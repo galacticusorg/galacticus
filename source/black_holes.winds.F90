@@ -34,7 +34,9 @@ module Black_Hole_Winds
    <name>blackHoleWind</name>
    <descriptiveName>Black Hole Winds</descriptiveName>
    <description>
-    Class providing models of black hole winds.
+    Class providing models of the mechanical power in winds driven by active galactic nuclei (AGN) that couples
+    to the surrounding galaxy. AGN-driven winds can heat or expel gas from the host galaxy, suppressing star
+    formation. The wind power typically scales with the black hole accretion rate and radiative efficiency.
    </description>
    <default>ciotti2009</default>
    <method name="power" >

@@ -27,7 +27,7 @@ implements a model for errors in spherical overdensity halo finders.
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
-   <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
+   <description>An N-body dark matter halo mass error class that models the statistical errors in halo masses measured by spherical overdensity halo finders, accounting for shot noise due to the finite particle mass of the simulation. The simulation particle mass is set by the \mono{[massParticle]} parameter.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorSOHaloFinder
@@ -49,13 +49,13 @@ implements a model for errors in spherical overdensity halo finders.
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
      !!}
-     module procedure soHaloFinderParameters
-     module procedure soHaloFinderInternal
+     module procedure soHaloFinderConstructorParameters
+     module procedure soHaloFinderConstructorInternal
   end interface nbodyHaloMassErrorSOHaloFinder
 
 contains
 
-  function soHaloFinderParameters(parameters) result(self)
+  function soHaloFinderConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class which takes a parameter set as input.
     !!}
@@ -84,9 +84,9 @@ contains
     <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
-  end function soHaloFinderParameters
+  end function soHaloFinderConstructorParameters
 
-  function soHaloFinderInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
+  function soHaloFinderConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
     !!}
@@ -100,7 +100,7 @@ contains
     !!]
 
     return
-  end function soHaloFinderInternal
+  end function soHaloFinderConstructorInternal
 
   subroutine soHaloFinderDestructor(self)
     !!{

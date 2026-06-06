@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIsPhysicallyPlausible">
-   <description>A node property extractor class which reports if a node is considered to be physically plausible.</description>
+   <description>Extracts an integer flag indicating whether a node's physical state is considered plausible (e.g., non-negative masses, physical sizes), useful for quality control filtering of output catalogs.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsPhysicallyPlausible
@@ -39,7 +39,7 @@
 
   interface nodePropertyExtractorIsPhysicallyPlausible
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class.
      !!}
      module procedure isPhysicallyPlausibleConstructorParameters
   end interface nodePropertyExtractorIsPhysicallyPlausible
@@ -48,7 +48,7 @@ contains
 
   function isPhysicallyPlausibleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function isPhysicallyPlausibleExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily isPhysicallyPlausible} node property extractor.
+    Implement a \mono{isPhysicallyPlausible} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                                 )                          :: isPhysicallyPlausibleExtract

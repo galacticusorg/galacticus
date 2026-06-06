@@ -85,6 +85,7 @@ Chandrasekhar
 Charlot
 Cholesky
 Clopper
+Comptonized
 Correa
 Covington
 Creasey
@@ -101,6 +102,7 @@ Dobbs
 Dodds
 Dopita
 Dorta
+Dopita
 Drlica
 Dutton
 Enzo
@@ -139,6 +141,7 @@ ISCO
 Inoue
 Jacobian
 Jerjen
+Jessop
 Jiang
 Jianling
 Jianming
@@ -192,6 +195,7 @@ Osterbrock
 PDF
 PDFs
 POSIX
+Poulton
 PRIMUS
 Padmanabhan
 Palla
@@ -214,6 +218,7 @@ SEDs
 SIDM
 SNe
 SSPs
+Springer
 SZ
 Safranek
 Safronov
@@ -293,7 +298,9 @@ arcsecond
 arcseconds
 arcminute
 arcminutes
+astrosylva
 asymptotes
+autocorrelation
 axion
 backtrace
 baldry
@@ -301,6 +308,7 @@ baryonic
 behrens
 benchmarking
 bertschinger
+bilinear
 binomially
 bivar
 bivariate
@@ -325,6 +333,7 @@ cflags
 chabrier
 changeset
 checkpointing
+checksum
 christoph
 chunked
 chunking
@@ -343,6 +352,7 @@ conformal
 continuua
 convolved
 convolving
+coronae
 correlator
 cosecant
 covariance
@@ -365,6 +375,7 @@ deallocate
 deallocated
 deallocation
 declinations
+decorrelated
 decrement
 dereference
 dereferenced
@@ -378,11 +389,13 @@ destructors
 desynchronization
 desynchronize
 detectability
+deterministically
 dex
 dielectronic
 differencing
 differentially
 differentiating
+digamma
 dilogarithm
 dilogarithms
 dima
@@ -492,6 +505,7 @@ intershell
 intracluster
 intrinsics
 ionizations
+isocurvature
 isodensity
 isoelectronic
 isotropically
@@ -533,6 +547,7 @@ metadata
 metadatum
 metallicities
 metallicity
+microbenchmark
 midplane
 minima
 minimization
@@ -559,6 +574,7 @@ normalizations
 normalizer
 normalizers
 octahedron
+octants
 octree
 octrees
 odes
@@ -582,11 +598,13 @@ overdensities
 overdensity
 overwritable
 parallelized
+parametrization
 parameterization
 parameterization
 parameterizations
 parameterized
 parentless
+parseable
 particulation
 passwordFrom
 passwordfrom
@@ -608,6 +626,7 @@ photoionizations
 photometric
 piecewise
 polycyclic
+polygamma
 polylogarithm
 polylogarithms
 postprocess
@@ -679,7 +698,6 @@ retabulate
 retabulated
 retabulation
 rockstar
-rockstar2galacticus
 rodrigues
 rotationally
 roundoff
@@ -703,6 +721,7 @@ sinusoid
 situ
 smtp
 soliton
+solitonic
 sphericalization
 spheroid
 splashback
@@ -752,6 +771,7 @@ timestepper
 timesteppers
 timestepping
 timesteps
+tokenized
 triaxial
 ttfamily
 tuple
@@ -764,6 +784,8 @@ unbuffered
 unclustered
 uncommented
 uncontracted
+underflow
+underflows
 undecorated
 underpredicts
 undersampling

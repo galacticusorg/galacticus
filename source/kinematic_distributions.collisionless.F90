@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionCollisionless">
-   <description>A kinematic distribution class for collisionless mass distributions.</description>
+   <description>A kinematic distribution class for collisionless (dark matter or stellar) mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation. Convergence tolerances for the velocity dispersion integral are controlled by \mono{[toleranceRelativeVelocityDispersion]} and \mono{[toleranceRelativeVelocityDispersionMaximum]}.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionCollisionless
@@ -118,7 +118,7 @@ contains
 
   double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an collisionless kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an collisionless kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionCollisionless), intent(inout)          :: self

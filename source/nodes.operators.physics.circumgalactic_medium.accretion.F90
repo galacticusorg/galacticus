@@ -26,7 +26,11 @@
   !![
   <nodeOperator name="nodeOperatorCGMAccretion">
    <description>
-    A node operator class that implements accretion of gas into the \gls{cgm}.
+    A node operator class that drives the inflow of gas from the \gls{igm} into the circumgalactic medium (\gls{cgm}) at each
+    ODE timestep, using a \refClass{accretionHaloClass} object to compute the mass and angular momentum accretion rates.
+    \mono{allowNegativeCGMMass} controls whether the \gls{cgm} gas mass is permitted to go negative (rates driving it
+    negative are optionally truncated to zero). \mono{angularMomentumAlwaysGrows} forces \gls{cgm} angular momentum to
+    only increase, preventing reversal from negative accretion rates.
    </description>
   </nodeOperator>
   !!]
@@ -270,7 +274,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances        , zeroAbundances        , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances, operator(*)      , operator(>)
-    use :: Accretion_Halos              , only : accretionModeHot  , accretionModeTotal
+    use :: Accretion_Halos              , only : accretionModeHot  , accretionModeTotal    , accretionModeCold
     use :: Galacticus_Nodes             , only : nodeComponentBasic, nodeComponentHotHalo  , nodeComponentSpin
     implicit none
     class           (nodeOperatorCGMAccretion), intent(inout) :: self
@@ -287,7 +291,8 @@ contains
     logical                                                   :: massTotalNonZero
     double precision                                          :: massAccreted           , massUnaccreted           , &
          &                                                       fractionAccreted       , massReaccreted           , &
-         &                                                       angularMomentumAccreted, massAccretedHot
+         &                                                       angularMomentumAccreted, massAccretedHot          , &
+         &                                                       massAccretedCold
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -311,12 +316,13 @@ contains
        end if
        ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted
        ! gas to the hot phase.
-       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       !! First, find the masses of hot, cold and failed mass the node would have if it formed instantaneously.
        massAccretedHot =self%accretionHalo_%      accretedMass(nodeParent,accretionModeHot  )
+       massAccretedCold=self%accretionHalo_%      accretedMass(nodeParent,accretionModeCold )
        massAccreted    =self%accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
        massUnaccreted  =self%accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
        massTotalNonZero=+massAccreted+massUnaccreted > 0.0d0
-       !! Find the fraction of mass that would be successfully accreted.
+       !! Find the fraction of hot mass that would be successfully accreted.
        if (massAccretedHot > 0.0d0) then
           if (.not.massTotalNonZero) call Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
           fractionAccreted=+  massAccretedHot &
@@ -378,13 +384,56 @@ contains
           !! Reaccrete the chemicals.
           call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
        end if
+       !! Find the fraction of cold mass that would be successfully accreted.
+       if (massAccretedCold > 0.0d0) then
+          if (.not.massTotalNonZero) call Error_Report('mass of cold-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
+          fractionAccreted=+  massAccretedCold &
+               &           /(                  &
+               &             +massAccreted     &
+               &             +massUnaccreted   &
+               &            )
+          !! Find the change in the unaccreted mass.
+          massReaccreted=+hotHaloParent   %unaccretedMass() &
+               &         *fractionAccreted                  &
+               &         *basic           %          mass() &
+               &         /basicParent     %          mass()
+          !! Reaccrete the gas,
+          call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
+          call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
+          ! Compute the reaccreted metals.
+          if (hotHaloParent%unaccretedAbundancesIsSettable()) then
+             !! First, find the metal mass the node would have if it formed instantaneously.
+             massMetalsAccreted=self%accretionHalo_%accretedMassMetals(nodeParent,accretionModeCold)
+             !! Find the mass fraction of metals that would be successfully accreted.
+             fractionMetalsAccreted=+  massMetalsAccreted &
+                  &                 /(                    &
+                  &                   +massAccreted       &
+                  &                   +massUnaccreted     &
+                  &                  )
+             !! Find the change in the unaccreted mass.
+             massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
+                  &               *fractionMetalsAccreted            &
+                  &               *basic           %          mass() &
+                  &               /basicParent     %          mass()
+             !! Reaccrete the metals.
+             call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
+             call hotHaloParent%      abundancesColdSet(hotHaloParent%      abundancesCold()+massMetalsReaccreted)
+          end if
+          ! Compute the reaccreted angular momentum.
+          if (hotHaloParent%angularMomentumColdIsSettable()) then
+             angularMomentumAccreted=+            massReaccreted    &
+                  &                  *spinParent %angularMomentum() &
+                  &                  /basicParent%mass           ()
+             call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)
+          end if
+       end if
     end select
     return
   end subroutine cgmAccretionNodesMerge
   
   subroutine satelliteMerger(self,node)
     !!{
-    Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Remove any hot halo associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
@@ -473,7 +522,7 @@ contains
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
-    use :: Accretion_Halos              , only : accretionModeTotal  , accretionModeHot
+    use :: Accretion_Halos              , only : accretionModeTotal  , accretionModeHot , accretionModeCold
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo, nodeComponentSpin, nodeComponentBasic, propertyInactive
     implicit none
     class           (nodeOperatorCGMAccretion), intent(inout), target  :: self
@@ -484,51 +533,64 @@ contains
     class           (nodeComponentBasic      )               , pointer :: basic
     class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     class           (nodeComponentSpin       )               , pointer :: spin
-    type            (abundances              ), save                   :: rateMetalsAccretion         , rateMetalsAccretionFailed
-    type            (chemicalAbundances      ), save                   :: rateChemicalsAccretion
-    !$omp threadprivate(rateMetalsAccretion,rateMetalsAccretionFailed,rateChemicalsAccretion)
-    double precision                                                   :: rateMassAccretion           , rateMassAccretionFailed  , &
-         &                                                                rateAngularMomentumAccretion
-    
+    type            (abundances              ), save                   :: rateMetalsAccretionHot         , rateMetalsAccretionCold         , &
+         &                                                                rateMetalsAccretionFailed
+    type            (chemicalAbundances      ), save                   :: rateChemicalsAccretionHot
+    !$omp threadprivate(rateMetalsAccretionHot,rateMetalsAccretionCold,rateMetalsAccretionFailed,rateChemicalsAccretionHot)
+    double precision                                                   :: rateMassAccretionHot           , rateMassAccretionCold           , &
+         &                                                                rateAngularMomentumAccretionHot, rateAngularMomentumAccretionCold, &
+         &                                                                rateMassAccretionFailed
     ! Return immediately if inactive variables are requested.
     if (propertyInactive(propertyType)) return
     ! Get the components needed.
     basic   => node%basic  ()
     hotHalo => node%hotHalo()
-    ! Find the rate of gas mass accretion onto the halo. We take all of the unaccreted gas, including any which is nominally cold
-    ! mode, since we do not care what mode it should be in (since it is not actually accreted). It will be assigned to the
-    ! relevant mode later when reaccreted. Negative accretion is allowed here as (for example) we may need to record the amount of
-    ! negative accretion during periods where a halo is declining in mass, such that this loss of mass must be accounted for when
-    ! the halo starts growing again before we allow gas to actually accrete into the hot component.
-    rateMassAccretion               =   self%accretionHalo_%      accretionRate         (node,accretionModeHot  )
+    ! Find the rate of gas mass accretion onto the halo. For failed accretion, we take all of the unaccreted gas, including any
+    ! which is nominally cold mode, since we do not care what mode it should be in (since it is not actually accreted). It will be
+    ! assigned to the relevant mode later when reaccreted. Negative accretion is allowed here as (for example) we may need to
+    ! record the amount of negative accretion during periods where a halo is declining in mass, such that this loss of mass must
+    ! be accounted for when the halo starts growing again before we allow gas to actually accrete into the hot component.
+    rateMassAccretionHot            =   self%accretionHalo_%      accretionRate         (node,accretionModeHot  )
+    rateMassAccretionCold           =   self%accretionHalo_%      accretionRate         (node,accretionModeCold )
     rateMassAccretionFailed         =   self%accretionHalo_%failedAccretionRate         (node,accretionModeTotal)
     ! Get the rates of abundances accretion onto the halo.
-    rateMetalsAccretion             =   self%accretionHalo_%      accretionRateMetals   (node,accretionModeHot  )
+    rateMetalsAccretionHot          =   self%accretionHalo_%      accretionRateMetals   (node,accretionModeHot  )
+    rateMetalsAccretionCold         =   self%accretionHalo_%      accretionRateMetals   (node,accretionModeCold )
     rateMetalsAccretionFailed       =   self%accretionHalo_%failedAccretionRateMetals   (node,accretionModeHot  )
     ! Get the rates of chemicals accretion onto the halo.
     if (self%countChemicals > 0) &
-         & rateChemicalsAccretion   =   self%accretionHalo_%      accretionRateChemicals(node,accretionModeHot  )
+         & rateChemicalsAccretionHot=   self%accretionHalo_%      accretionRateChemicals(node,accretionModeHot  )
     ! Get the rate of angular momentum accretion onto the halo.
     if (basic%accretionRate() /= 0.0d0 .and. hotHalo%angularMomentumIsSettable()) then
-       spin                         =>  node %spin                     ()
-       rateAngularMomentumAccretion =  +spin %angularMomentumGrowthRate() &
-            &                          *      rateMassAccretion           &
-            &                          /basic%accretionRate            ()
-       if (self%angularMomentumAlwaysGrows) &
-            & rateAngularMomentumAccretion=abs(rateAngularMomentumAccretion)
+       spin                            =>  node %spin                     ()
+       rateAngularMomentumAccretionHot =  +spin %angularMomentumGrowthRate() &
+            &                             *      rateMassAccretionHot        &
+            &                             /basic%accretionRate            ()
+       rateAngularMomentumAccretionCold=  +spin %angularMomentumGrowthRate() &
+            &                             *      rateMassAccretionCold       &
+            &                             /basic%accretionRate            ()
+       if (self%angularMomentumAlwaysGrows) then
+          rateAngularMomentumAccretionHot =abs(rateAngularMomentumAccretionHot )
+          rateAngularMomentumAccretionCold=abs(rateAngularMomentumAccretionCold)
+       end if
     else
-       rateAngularMomentumAccretion =  +0.0d0
+       rateAngularMomentumAccretionHot =  +0.0d0
+       rateAngularMomentumAccretionCold=  +0.0d0
     end if
-    ! Apply accretion rates.
-    if (      rateMassAccretion > 0.0d0 .or. hotHalo%mass() > 0.0d0 .or. self%allowNegativeCGMMass) &
-         & call hotHalo%                massRate(      rateMassAccretion     ,interrupt,functionInterrupt)
-    if (rateMassAccretionFailed > 0.0d0 .or. hotHalo%mass() > 0.0d0 .or. self%allowNegativeCGMMass) &
-         & call hotHalo%      unaccretedMassRate(rateMassAccretionFailed     ,interrupt,functionInterrupt)
-    call        hotHalo%          abundancesRate(rateMetalsAccretion         ,interrupt,functionInterrupt)
-    call        hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed   ,interrupt,functionInterrupt)
+    ! Apply accretion rates for the hot mode.
+    if (rateMassAccretionHot    > 0.0d0 .or. hotHalo%mass    () > 0.0d0 .or. self%allowNegativeCGMMass) &
+         & call hotHalo%                massRate(rateMassAccretionHot            ,interrupt,functionInterrupt)
+    if (rateMassAccretionCold   > 0.0d0 .or. hotHalo%massCold() > 0.0d0 .or. self%allowNegativeCGMMass) &
+         & call hotHalo%            massColdRate(rateMassAccretionCold           ,interrupt,functionInterrupt)
+    if (rateMassAccretionFailed > 0.0d0 .or. hotHalo%mass    () > 0.0d0 .or. self%allowNegativeCGMMass) &
+         & call hotHalo%      unaccretedMassRate(rateMassAccretionFailed         ,interrupt,functionInterrupt)
+    call        hotHalo%          abundancesRate(rateMetalsAccretionHot          ,interrupt,functionInterrupt)
+    call        hotHalo%      abundancesColdRate(rateMetalsAccretionCold         ,interrupt,functionInterrupt)
+    call        hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed       ,interrupt,functionInterrupt)
     if (self%countChemicals > 0) &
-         & call hotHalo%           chemicalsRate(rateChemicalsAccretion      ,interrupt,functionInterrupt)
-    call        hotHalo%     angularMomentumRate(rateAngularMomentumAccretion,interrupt,functionInterrupt)
+         & call hotHalo%           chemicalsRate(rateChemicalsAccretionHot       ,interrupt,functionInterrupt)
+    call        hotHalo%     angularMomentumRate(rateAngularMomentumAccretionHot ,interrupt,functionInterrupt)
+    call        hotHalo% angularMomentumColdRate(rateAngularMomentumAccretionCold,interrupt,functionInterrupt)
     return
   end subroutine cgmAccretionDifferentialEvolution
   

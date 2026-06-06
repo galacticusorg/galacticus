@@ -23,7 +23,7 @@ Implements a cosmic time output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTimeFirstInfall">
-   <description>A time of first infall property extractor class.</description>
+   <description>Extracts the cosmic time at which a satellite node first crossed the virial radius of its host halo (first infall), a key epoch for quantifying how long satellites have been processed by environmental effects such as ram pressure stripping and tidal forces.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTimeFirstInfall
@@ -37,11 +37,12 @@ Implements a cosmic time output analysis property extractor class.
      procedure :: name        => timeFirstInfallName
      procedure :: description => timeFirstInfallDescription
      procedure :: unitsInSI   => timeFirstInfallUnitsInSI
+     procedure :: units       => timeFirstInfallUnits
   end type nodePropertyExtractorTimeFirstInfall
 
   interface nodePropertyExtractorTimeFirstInfall
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -51,7 +52,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -133,3 +134,17 @@ contains
     timeFirstInfallUnitsInSI=gigaYear
     return
   end function timeFirstInfallUnitsInSI
+
+  function timeFirstInfallUnits(self) result(units)
+    !!{
+    Return the units of the timeFirstInfall property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorTimeFirstInfall), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function timeFirstInfallUnits

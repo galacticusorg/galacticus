@@ -27,7 +27,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorProfiler">
    <description>
-    A merger tree operator which profiles merger tree structure.
+    A merger tree operator which profiles merger tree structure by counting nodes and non-primary progenitors as a function of mass and redshift, characterizing the statistical properties of the merger history. Mass and redshift binning is controlled by \mono{[massMinimum]}, \mono{[massMaximum]}, \mono{[massBinsPerDecade]}, \mono{[redshiftMinimum]}, \mono{[redshiftMaximum]}, and \mono{[timeBinsPerDecade]}.
   </description>
   </mergerTreeOperator>
   !!]
@@ -244,7 +244,6 @@ contains
     call profilerGroup%writeDataset  (self%nonPrimaryProgenitorCount,'nonPrimaryProgenitorCount')
     call profilerGroup%writeDataset  (self%mass                     ,'nonPrimaryProgenitorMass' )
     call profilerGroup%writeDataset  (self%time                     ,'nonPrimaryProgenitorTime' )
-    call profilerGroup%close         (                                                          )
     !$ call hdf5Access%unset()
     return
   end subroutine profilerFinalize

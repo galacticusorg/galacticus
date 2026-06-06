@@ -22,9 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorJetPowerBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive jet powers.
-   </description>
+   <description>Extracts a list of jet power values for all supermassive black holes in a node, enabling output of the mechanical AGN feedback power contributed by each black hole separately.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorJetPowerBlackHoles
@@ -41,11 +39,12 @@
      procedure :: names        => jetPowerBlackHolesNames
      procedure :: descriptions => jetPowerBlackHolesDescriptions
      procedure :: unitsInSI    => jetPowerBlackHolesUnitsInSI
+     procedure :: units        => jetPowerBlackHolesUnits
   end type nodePropertyExtractorJetPowerBlackHoles
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -79,7 +78,7 @@ contains
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self
@@ -145,7 +144,7 @@ contains
 
   subroutine jetPowerBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily jetPowerBlackHoles} properties.
+    Return the names of the \mono{jetPowerBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorJetPowerBlackHoles), intent(inout)                             :: self
@@ -159,7 +158,7 @@ contains
 
   subroutine jetPowerBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily jetPowerBlackHoles} properties.
+    Return the descriptions of the \mono{jetPowerBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorJetPowerBlackHoles), intent(inout)                             :: self
@@ -173,7 +172,7 @@ contains
 
   function jetPowerBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily jetPowerBlackHoles} properties in the SI system.
+    Return the units of the \mono{jetPowerBlackHoles} properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
@@ -188,3 +187,22 @@ contains
          &       /gigaYear
     return
   end function jetPowerBlackHolesUnitsInSI
+
+  function jetPowerBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the jetPowerBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorJetPowerBlackHoles), intent(inout)             :: self
+    double precision                                         , dimension(:), allocatable :: siValues
+    integer                                                                             :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉ km²s⁻¹ Gyr⁻¹',quantity='solMass km^2 s^-2 / Gyr')
+    end do
+    return
+  end function jetPowerBlackHolesUnits

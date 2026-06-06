@@ -37,7 +37,11 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet">
    <description>
-    A node operator class that sets dark matter profile scale radius.
+    A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a
+    \refClass{darkMatterProfileScaleRadiusClass} object. \mono{factorReset} controls the multiplicative factor by which a
+    halo mass must grow before its scale radius is recomputed. \mono{forward} selects whether scale radii are assigned by
+    walking forward along the branch (until mass exceeds \mono{factorReset} times the previously computed value) or backward
+    (until mass falls below $1/$\mono{factorReset} of the previous value).
    </description>
   </nodeOperator>
   !!]
@@ -88,7 +92,7 @@ contains
     <inputParameter>
       <name>forward</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by {\normalfont \ttfamily [factor]} that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than $1/${\normalfont \ttfamily [factor]} of that for which the scale radius was last computed.</description>
+      <description>If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by \mono{[factor]} that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than $1/$\mono{[factor]} of that for which the scale radius was last computed.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
@@ -120,7 +124,7 @@ contains
 
   subroutine darkMatterProfileScaleSetConstructorDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} dark matter halo profile scale radius class.
+    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleSet), intent(inout) :: self
@@ -249,8 +253,8 @@ contains
     
   subroutine darkMatterProfileScaleSetNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    of {\normalfont \ttfamily node} to be that of its parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    of \mono{node} to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

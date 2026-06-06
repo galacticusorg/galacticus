@@ -29,9 +29,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
   <galacticFilter name="galacticFilterStreamKick">
    <description>
      A filter for the velocity kick imparted by subhalos to a stellar stream. We compute an upper limit on the velocity kick a
-     subhalo can impart on the stream, for any orientation along a sphere of radius {\normalfont \ttfamily [radiusOrbitalStream]},
-     and filter out any subhalos that do not create a total velocity kick greater than {\normalfont \ttfamily
-     [cutoffVelocityKick]}.
+     subhalo can impart on the stream, for any orientation along a sphere of radius \mono{[radiusOrbitalStream]},
+     and filter out any subhalos that do not create a total velocity kick greater than \mono{[cutoffVelocityKick]}.
   </description>
   </galacticFilter>
   !!]
@@ -84,7 +83,7 @@ contains
     <inputParameter>
       <name>cutoffVelocityKick</name>
       <source>parameters</source>
-      <description>The minimum velocity kick to pass.</description>
+      <description>The minimum velocity kick (in km/s) that a subhalo must be able to impart on the stream for the node to pass; subhalos whose maximum kick falls below this threshold are rejected.</description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]

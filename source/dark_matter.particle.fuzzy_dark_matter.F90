@@ -23,7 +23,7 @@ Implements a fuzzy dark matter particle class.
 
   !![
   <darkMatterParticle name="darkMatterParticleFuzzyDarkMatter">
-   <description>Provides a fuzzy dark matter particle.</description>
+   <description>Provides a fuzzy dark matter particle, representing an ultralight axion-like boson whose quantum pressure suppresses structure on small scales. The particle mass in units of $10^{-22}$~eV is set by \mono{[mass]}, and the fraction of the total dark matter density in this component by \mono{[densityFraction]}.</description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleFuzzyDarkMatter

@@ -23,14 +23,14 @@ print("...done ("+str(status)+")")
 if status.returncode != 0:
     print("FAILED: model run:")
     subprocess.run(f"cat {pathOutputLog}",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("Checking for errors...")
 status = subprocess.run(f"grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" {pathOutputLog}",shell=True)
 print("...done ("+str(status)+")")
 if status.returncode == 0:
     print("FAILED: model run (errors):")
     subprocess.run(f"cat {pathOutputLog}",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("SUCCESS: model run")
 
 # Best-fitting parameters from Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).

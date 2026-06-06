@@ -28,23 +28,25 @@ module IO_HDF5
   !!{
   Implements simple and convenient interfaces to a variety of HDF5 functionality.
   !!}
-  use            :: HDF5              , only : hid_t         , hsize_t, size_t
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int  , c_ptr , c_size_t
+  use            :: HDF5              , only : hid_t          , hsize_t, size_t
+  use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
+  use            :: Units_MetaData    , only : unitType
+  use            :: Resource_Manager  , only : resourceManager
   implicit none
   private
-  public :: hdf5Object          , hdf5VarDouble  , hdf5VarInteger8, ioHDF5AccessInitialize, &
-       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5, hdf5VarDouble2D
+  public :: hdf5Object          , hdf5VarDouble     , hdf5VarInteger8, ioHDF5AccessInitialize, &
+       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5   , hdf5VarDouble2D
 #ifdef DEBUGHDF5
-  public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
+  public :: IO_HDF5_Start_Locked, IO_HDF5_End_Locked
 
-  logical                                                :: inCritical=.false.
-  !$omp threadprivate(inCritical)
+  integer                                                :: inLocked                  =0
+  !$omp threadprivate(inLocked)
 #endif
 
   ! Record of initialization of this module.
-  logical                                                :: hdf5IsInitalized          =.false.
+  logical                                                :: hdf5IsInitialized         =.false.
   integer                                                :: initializationsCount      =0
 
   ! Type of HDF5 objects.
@@ -83,18 +85,20 @@ module IO_HDF5
      A structure that holds properties of HDF5 objects.
      !!}
      private
-     logical                          :: isOpenValue      =  .false.
-     logical                          :: isOverwritable
-     logical                          :: readOnly
-     integer(kind=HID_T    )          :: objectID
-     type   (varying_string)          :: objectFile
-     type   (varying_string)          :: objectLocation
-     type   (varying_string)          :: objectName
-     integer                          :: hdf5ObjectType
-     integer(kind=HSIZE_T  )          :: chunkSize
-     integer                          :: compressionLevel
-     logical                          :: chunkSizeSet               , compressionLevelSet
-     type   (hdf5Object    ), pointer :: parentObject     => null()
+     logical                           :: isOpenValue      =  .false.
+     logical                           :: isOverwritable
+     logical                           :: readOnly
+     logical                           :: isTemporary      =  .false.
+     integer(hid_t          ), pointer :: objectID         => null() , fileID             => null()
+     type   (resourceManager)          :: objectManager              , fileManager
+     type   (varying_string )          :: objectFile
+     type   (varying_string )          :: objectLocation
+     type   (varying_string )          :: objectName
+     integer                           :: hdf5ObjectType
+     integer(hsize_t        )          :: chunkSize
+     integer                           :: compressionLevel
+     logical                           :: chunkSizeSet               , compressionLevelSet
+     type   (hdf5Object     ), pointer :: parentObject     => null()
    contains
      !![
      <methods>
@@ -122,14 +126,11 @@ module IO_HDF5
        <method description="Create a reference to a 2D dataset." method="createReference3D" />
        <method description="Create a reference to a 2D dataset." method="createReference4D" />
        <method description="Create a reference to a 2D dataset." method="createReference5D" />
-       <method description="Destroy an HDF5 object." method="destroy" />
-       <method description="Close an HDF5 object." method="close" />
        <method description="Flush an HDF5 file to disk." method="flush" />
        <method description="Returns the path to a given object." method="pathTo" />
        <method description="Returns the name of a given object." method="name" />
        <method description="Returns the name of the file containing a given object." method="fileName" />
        <method description="Return a report on the location of an object suitable for inclusion in an error message." method="locationReport" />
-       <method description="Open an HDF5 file and return an appropriate HDF5 object." method="openFile" />
        <method description="Open an HDF5 group and return an appropriate HDF5 object." method="openGroup" />
        <method description="Open all HDF5 groups along a path and return the appropriate HDF5 objects." method="openGroupPath" />
        <method description="Open an HDF5 dataset." method="openDataset" />
@@ -137,21 +138,20 @@ module IO_HDF5
        <method description="Copy an HDF5 object." method="copy" />
        <method description="Return the parent object." method="parent" />
        <method description="Create a deep copy of the object with a new HDF5 object identifier." method="deepCopy" />
+       <method description="Assign HDF5 objects." method="assignment(=)"/>
      </methods>
      !!]
-     procedure :: destroy                                 =>IO_HDF5_Destroy
+     final     ::                                           IO_HDF5_Finalize
+     procedure ::                                           IO_HDF5_Assign
+     generic   :: assignment(=)                           =>IO_HDF5_Assign
      procedure :: name                                    =>IO_HDF5_Name
      procedure :: pathTo                                  =>IO_HDF5_Path_To
      procedure :: fileName                                =>IO_HDF5_File_Name
      procedure :: locationReport                          =>IO_HDF5_Location_Report
-     procedure ::                                           IO_HDF5_Open_File_Char
-     procedure ::                                           IO_HDF5_Open_File_VarStr
-     generic   :: openFile                                =>IO_HDF5_Open_File_Char , IO_HDF5_Open_File_VarStr
      procedure :: openGroup                               =>IO_HDF5_Open_Group
      procedure :: openGroupPath                           =>IO_HDF5_Open_Group_Path
      procedure :: openDataset                             =>IO_HDF5_Open_Dataset
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
-     procedure :: close                                   =>IO_HDF5_Close
      procedure :: flush                                   =>IO_HDF5_Flush
      procedure :: remove                                  =>IO_HDF5_Remove
      procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
@@ -166,6 +166,7 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
      procedure :: IO_HDF5_Write_Attribute_VarString_1D
      procedure :: IO_HDF5_Write_Attribute_Logical_Scalar
+     procedure :: IO_HDF5_Write_Attribute_Units_Scalar
      generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Integer_Scalar  , &
           &                              IO_HDF5_Write_Attribute_Integer_1D      , &
           &                              IO_HDF5_Write_Attribute_Integer8_Scalar , &
@@ -177,13 +178,15 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
           &                              IO_HDF5_Write_Attribute_VarString_1D    , &
-          &                              IO_HDF5_Write_Attribute_Logical_Scalar
+          &                              IO_HDF5_Write_Attribute_Logical_Scalar  , &
+          &                              IO_HDF5_Write_Attribute_Units_Scalar
      procedure :: IO_HDF5_Write_Dataset_Integer_1D
      procedure :: IO_HDF5_Write_Dataset_Integer_2D
      procedure :: IO_HDF5_Write_Dataset_Integer_3D
      procedure :: IO_HDF5_Write_Dataset_Integer8_1D
      procedure :: IO_HDF5_Write_Dataset_Integer8_2D
      procedure :: IO_HDF5_Write_Dataset_Integer8_3D
+     procedure :: IO_HDF5_Write_Dataset_Integer8_4D
      procedure :: IO_HDF5_Write_Dataset_Double_1D
      procedure :: IO_HDF5_Write_Dataset_Double_2D
      procedure :: IO_HDF5_Write_Dataset_Double_3D
@@ -202,6 +205,7 @@ module IO_HDF5
           &                              IO_HDF5_Write_Dataset_Integer8_1D       , &
           &                              IO_HDF5_Write_Dataset_Integer8_2D       , &
           &                              IO_HDF5_Write_Dataset_Integer8_3D       , &
+          &                              IO_HDF5_Write_Dataset_Integer8_4D       , &
           &                              IO_HDF5_Write_Dataset_Double_1D         , &
           &                              IO_HDF5_Write_Dataset_Double_2D         , &
           &                              IO_HDF5_Write_Dataset_Double_3D         , &
@@ -331,6 +335,11 @@ module IO_HDF5
      procedure :: deepCopy           =>IO_HDF5_Deep_Copy
   end type hdf5Object
 
+  interface hdf5Object
+     module procedure hdf5FileOpenVarStr
+     module procedure hdf5FileOpenChar
+  end interface hdf5Object
+    
   type :: hdf5VarDouble
      !!{
      Type used for internal storage of variable-length double datasets.
@@ -379,18 +388,25 @@ module IO_HDF5
   interface
      function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
        !!{
-       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
+       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
        !!}
        import
        integer(kind=hid_t) :: H5T_C_S1_Get
      end function H5T_C_S1_Get
      function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
        !!{
-       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
+       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
        !!}
        import
        integer(kind=size_t) :: H5T_Variable_Get
      end function H5T_Variable_Get
+     function HDF5_Unit_Type_Create() bind(c,name='HDF5_Unit_Type_Create')
+       !!{
+       Template for the C function that creates the HDF5 compound datatype matching \mono{unitType}.
+       !!}
+       import
+       integer(kind=hid_t) :: HDF5_Unit_Type_Create
+     end function HDF5_Unit_Type_Create
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !!{
        Template for the HDF5 C API attribute write function.
@@ -452,11 +468,11 @@ contains
     Initialize the HDF5 access lock.
     !!}
     use :: HDF5_Access, only : hdf5Access, hdf5AccessInitialized
-    use :: Locks      , only : ompLock
+    use :: Locks      , only : mutex
     implicit none
 
     if (hdf5AccessInitialized) return
-    hdf5Access           =ompLock()
+    hdf5Access           =mutex(recursiveLock=.true.)
     hdf5AccessInitialized=.true.
     return
   end subroutine ioHDF5AccessInitialize
@@ -476,10 +492,10 @@ contains
     logical :: isLittleEndian, isBigEndian
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
-    if (.not.hdf5IsInitalized) then
+    if (.not.hdf5IsInitialized) then
        call h5open_f(errorCode)
        if (errorCode < 0) call Error_Report('failed to initialize HDF5 subsystem'//{introspection:location})
 
@@ -518,7 +534,7 @@ contains
        call ioHDF5AccessInitialize()
        
        ! Flag that the hdf5 system is now initialized.
-       hdf5IsInitalized=.true.
+       hdf5IsInitialized=.true.
     end if
     initializationsCount=initializationsCount+1
     return
@@ -534,10 +550,10 @@ contains
     integer :: errorCode
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
-    if (hdf5IsInitalized) then
+    if (hdf5IsInitialized) then
        initializationsCount=initializationsCount-1
        if (initializationsCount == 0) then
           call h5tclose_f(H5T_VLEN_DOUBLE     (1),errorCode)
@@ -548,7 +564,7 @@ contains
           if (errorCode < 0) call Error_Report('failed to close vlen integer8 datatype'   //{introspection:location})
           call h5close_f (                   errorCode)
           if (errorCode < 0) call Error_Report('failed to uninitialize HDF5 subsystem'    //{introspection:location})
-          hdf5IsInitalized=.false.
+          hdf5IsInitialized=.false.
        end if
     end if
     return
@@ -562,58 +578,65 @@ contains
     implicit none
 
 #ifdef DEBUGHDF5
-    call IO_HDF5_Assert_In_Critical()
+    call IO_HDF5_Assert_In_Locked()
 #endif
 
-    if (.not.hdf5IsInitalized) call Error_Report('HDF5 IO module has not been initialized'//{introspection:location})
+    if (.not.hdf5IsInitialized) call Error_Report('HDF5 IO module has not been initialized'//{introspection:location})
     return
   end subroutine IO_HDF_Assert_Is_Initialized
 
 #ifdef DEBUGHDF5
-  subroutine IO_HDF5_Assert_In_Critical()
+  subroutine IO_HDF5_Assert_In_Locked()
     !!{
-    Assert that we are in an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
+    Assert that we are holding the \mono{hdf5Access} lock.
     !!}
     use :: Error, only : Error_Report
     implicit none
 
-    if (.not.inCritical) call Error_Report('HDF5 functions accessed outside of critical block'//{introspection:location})
+    if (inLocked == 0) call Error_Report('HDF5 functions accessed without lock acquisition'//{introspection:location})
     return
-  end subroutine IO_HDF5_Assert_In_Critical
-
-  subroutine IO_HDF5_Start_Critical()
-    !!{
-    Record that we have entered an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
-    !!}
-    implicit none
-
-    inCritical=.true.
-    return
-  end subroutine IO_HDF5_Start_Critical
-
-  subroutine IO_HDF5_End_Critical()
-    !!{
-    Record that we have left an {\normalfont \ttfamily HDF5\_Access} OpenMP critical block.
-    !!}
-    implicit none
-
-    inCritical=.false.
-    return
-  end subroutine IO_HDF5_End_Critical
+  end subroutine IO_HDF5_Assert_In_Locked
 #endif
+  
+  subroutine IO_HDF5_Start_Locked()
+    !!{
+    Record that we have acquired the hdf5Access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+
+    !$ call hdf5Access%set()
+#ifdef DEBUGHDF5
+    inLocked=inLocked+1
+#endif
+    return
+  end subroutine IO_HDF5_Start_Locked
+
+  subroutine IO_HDF5_End_Locked()
+    !!{
+    Record that we have released the hdf5Access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access
+    implicit none
+
+#ifdef DEBUGHDF5
+    inLocked=inLocked-1
+#endif
+    !$ call hdf5Access%unset()
+    return
+  end subroutine IO_HDF5_End_Locked
 
   subroutine IO_HDF5_Set_Defaults(chunkSize,compressionLevel)
     !!{
     Sets the compression level and chunk size for dataset output.
     !!}
-    use :: Error      , only : Error_Report
-    use :: HDF5       , only : HSIZE_T
-    use :: HDF5_Access, only : hdf5Access
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : HSIZE_T
     implicit none
     integer(kind=HSIZE_T), intent(in   ), optional :: chunkSize
     integer              , intent(in   ), optional :: compressionLevel
 
-    !$ call hdf5Access%set()
+    call IO_HDF5_Start_Locked()
     if (present(chunkSize)) then
        if (chunkSize        ==  0_hsize_t) call Error_Report('zero chunksize is invalid'        //{introspection:location})
        if (chunkSize        <  -1_hsize_t) call Error_Report('chunksize less than -1 is invalid'//{introspection:location})
@@ -623,28 +646,126 @@ contains
        if (compressionLevel <  -1 .or. compressionLevel > 9) call Error_Report('compression level must be in range -1 to 9'//{introspection:location})
        hdf5CompressionLevel=compressionLevel
     end if
-    !$ call hdf5Access%unset()
+    call IO_HDF5_End_Locked()
     return
   end subroutine IO_HDF5_Set_Defaults
 
   !! Utility routines.
 
-  subroutine IO_HDF5_Destroy(self)
+  impure elemental subroutine IO_HDF5_Finalize(self)
     !!{
-    Destroy an HDF5 object by destroying its associated varying string objects.
+    Finalize an HDF5 object.
     !!}
+    use :: File_Utilities    , only : File_Remove
+    use :: Display           , only : displayIndent     , displayMessage  , displayUnindent, verbosityLevelSilent
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : h5f_obj_all_f     , h5aclose_f      , h5dclose_f     , h5fclose_f          , &
+          &                           h5fget_obj_count_f, h5fget_obj_ids_f, h5gclose_f     , h5iget_name_f       , &
+          &                           hid_t             , size_t
+    use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , char
+    use :: String_Handling   , only : operator(//)
     implicit none
-    class(hdf5Object), intent(inout) :: self
+    type     (hdf5Object               ), intent(inout)               :: self
+    integer  (hid_t                    ), allocatable  , dimension(:) :: openObjectIDs
+    integer  (size_t                   ), parameter                   :: objectNameSizeMaximum=1024
+    integer                                                           :: errorCode
+    integer  (size_t                   )                              :: i                         , objectNameSize        , &
+         &                                                               openObjectCount           , nonRootOpenObjectCount
+    type     (varying_string           )                              :: message
+    character(len=objectNameSizeMaximum)                              :: objectName
 
-    call self%objectFile    %destroy()
-    call self%objectLocation%destroy()
-    call self%objectName    %destroy()
+    ! Ensure that finalization occurs within an HDF5 locked region to avoid thread conflicts. (The HDF5 library is not
+    ! thread-safe, and we must also ensure that resource manager counts are updated in a thread-safe manner to ensure correct
+    ! counting.)    
+    !$ call IO_HDF5_Start_Locked()
+    if (self%objectManager%count() == 1) then
+       ! Close the object.
+       select case (self%hdf5ObjectType)
+       case (hdf5ObjectTypeFile     )
+          ! Do not close file objects as these are a shared resource.
+       case (hdf5ObjectTypeGroup    )
+          call h5gclose_f(self%objectID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close group object '"//self%objectName//"'"
+             call Error_Report(message//self%locationReport()//{introspection:location})
+          end if
+       case (hdf5ObjectTypeDataset  )
+          call h5dclose_f(self%objectID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close dataset object '"//self%objectName//"'"
+             call Error_Report(message//self%locationReport()//{introspection:location})
+          end if
+       case (hdf5ObjectTypeAttribute)
+          call h5aclose_f(self%objectID,errorCode)
+          if (errorCode /= 0) then
+             message="unable to close attribute object '"//self%objectName//"'"
+             call Error_Report(message//self%locationReport()//{introspection:location})
+          end if
+       end select
+       nullify(self%parentObject)
+    end if
+    ! Release the object.
+    call self%objectManager%release()
+    ! If this is the last reference to the file, close it now.
+    if (self%fileManager%count() == 1) then
+       ! Check for still-open objects.
+       call h5fget_obj_count_f(self%fileID,h5f_obj_all_f,openObjectCount,errorCode)
+       if (errorCode /= 0) then
+          message="unable to count open objects in file object '"//self%objectFile//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       allocate(openObjectIDs(openObjectCount))
+       call h5fget_obj_ids_f(self%fileID,h5f_obj_all_f,openObjectCount,openObjectIDs,errorCode)
+       if (errorCode /= 0) then
+          message="unable to get IDs of open objects in file object '"//self%objectFile//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       nonRootOpenObjectCount=0
+       if (openObjectCount > 1) then
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//self%objectFile//"'"
+                call Error_Report(message//self%locationReport()//{introspection:location})
+             end if
+             if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
+          end do
+       end if
+       if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
+          message=""
+          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectFile//"'"
+          call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
+          call displayMessage(message,verbosityLevelSilent)
+          do i=1,openObjectCount
+             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
+             if (errorCode /= 0) then
+                message="unable to get name of open object in file object '"//self%objectName//"'"
+                call Error_Report(message//self%locationReport()//{introspection:location})
+             end if
+             message="Object: "//trim(objectName)//" ["
+             message=message//openObjectIDs(i)//"]"
+             if (trim(objectName) /= "/") call displayMessage(message,verbosityLevelSilent)
+          end do
+          call displayUnindent('done',verbosityLevelSilent)
+       end if
+       call h5fclose_f(self%fileID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to close file object '"//self%objectFile//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       if (self%isTemporary) call File_Remove(char(self%objectName))
+       ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
+       call IO_HDF5_Uninitialize()
+    end if
+    ! Release the file.
+    call self%fileManager%release()
+    !$ call IO_HDF5_End_Locked()
     return
-  end subroutine IO_HDF5_Destroy
-
+  end subroutine IO_HDF5_Finalize
+  
   logical function IO_HDF5_Is_Open(self)
     !!{
-    Returns true if {\normalfont \ttfamily self} is open.
+    Returns true if \mono{self} is open.
     !!}
     implicit none
     class(hdf5Object), intent(in   ) :: self
@@ -655,7 +776,7 @@ contains
 
   integer function IO_HDF5_Object_Type(self)
     !!{
-    Returns the object type for {\normalfont \ttfamily self}.
+    Returns the object type for \mono{self}.
     !!}
     implicit none
     class(hdf5Object), intent(in   ) :: self
@@ -664,9 +785,37 @@ contains
     return
   end function IO_HDF5_Object_Type
 
+  subroutine IO_HDF5_Assign(to,from)
+    !!{
+    Assignment operator for the \mono{hdf5Object} class.
+    !!}
+    implicit none
+    class(hdf5Object), intent(  out) :: to
+    class(hdf5Object), intent(in   ) :: from
+
+    to%isOpenValue         =  from%isOpenValue
+    to%isOverwritable      =  from%isOverwritable
+    to%readOnly            =  from%readOnly
+    to%isTemporary         =  from%isTemporary
+    to%objectID            => from%objectID
+    to%objectManager       =  from%objectManager
+    to%fileID              => from%fileID
+    to%fileManager         =  from%fileManager
+    to%objectLocation      =  from%objectLocation
+    to%objectFile          =  from%objectFile
+    to%objectName          =  from%objectName
+    to%hdf5ObjectType      =  from%hdf5ObjectType
+    to%chunkSize           =  from%chunkSize
+    to%compressionLevel    =  from%compressionLevel
+    to%chunkSizeSet        =  from%chunkSizeSet
+    to%compressionLevelSet =  from%compressionLevelSet
+    to%parentObject        => from%parentObject
+    return
+  end subroutine IO_HDF5_Assign
+  
   function IO_HDF5_Name(self) result (nameOfObject)
     !!{
-    Returns the path to {\normalfont \ttfamily self}.
+    Returns the path to \mono{self}.
     !!}
     implicit none
     class(hdf5Object    ), intent(in   ) :: self
@@ -678,7 +827,7 @@ contains
 
   function IO_HDF5_Path_To(self,includeFileName) result (pathToObject)
     !!{
-    Returns the path to {\normalfont \ttfamily self}.
+    Returns the path to \mono{self}.
     !!}
     use :: ISO_Varying_String, only : operator(//), assignment(=), operator(/=)
     implicit none
@@ -690,18 +839,24 @@ contains
     !!]
 
     if (includeFileName_) then
-       pathToObject=self%objectFile//"/"
+       pathToObject=self%objectFile
     else
        pathToObject=""
     end if
-    if (self%objectLocation /= "/") pathToObject=pathToObject//self%objectLocation//"/"
-    pathToObject=pathToObject//self%objectName
+    if (self%objectLocation /= "") then
+       if (pathToObject /= "") pathToObject=pathToObject//"/"
+       pathToObject=pathToObject//self%objectLocation
+    end if
+    if (self%objectName     /= "") then
+       if (pathToObject /= "") pathToObject=pathToObject//"/"
+       pathToObject=pathToObject//self%objectName
+    end if
     return
   end function IO_HDF5_Path_To
 
   function IO_HDF5_File_Name(self) result (fileName)
     !!{
-    Returns the name of the file containing {\normalfont \ttfamily self}.
+    Returns the name of the file containing \mono{self}.
     !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
@@ -719,126 +874,16 @@ contains
 
   function IO_HDF5_Location_Report(self) result (report)
     !!{
-    Returns a report on the location of {\normalfont \ttfamily self} suitable for inclusion in an error message.
+    Returns a report on the location of \mono{self} suitable for inclusion in an error message.
     !!}
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     class(hdf5Object    ), intent(in   ), target :: self
     type (varying_string)                        :: report
 
-    report=char(10)//"   object is located in:"//self%pathTo()
+    report=char(10)//"   object is located in: "//self%pathTo()
     return
   end function IO_HDF5_Location_Report
-
-  subroutine IO_HDF5_Close(self)
-    !!{
-    Close an HDF5 object.
-    !!}
-    use :: Display           , only : displayIndent     , displayMessage  , displayUnindent, verbosityLevelSilent
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5F_OBJ_ALL_F     , h5aclose_f      , h5dclose_f     , h5fclose_f          , &
-          &                           h5fget_obj_count_f, h5fget_obj_ids_f, h5gclose_f     , h5iget_name_f       , &
-          &                           hid_t             , size_t
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//)
-    use :: String_Handling   , only : operator(//)
-    implicit none
-    class    (hdf5Object               ), intent(inout)               :: self
-    integer  (kind=hid_t               ), allocatable  , dimension(:) :: openObjectIDs
-    integer  (kind=size_t              ), parameter                   :: objectNameSizeMaximum=1024
-    integer                                                           :: errorCode
-    integer  (kind=size_t              )                              :: i                         , objectNameSize        , &
-         &                                                               openObjectCount           , nonRootOpenObjectCount
-    type     (varying_string           )                              :: message
-    character(len=objectNameSizeMaximum)                              :: objectName
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check that the object is open.
-    if (.not.self%isOpenValue) then
-       message="Attempt to close unopen HDF5 object '"//self%objectName//"'"
-       call displayMessage(message)
-       return
-    end if
-
-    ! Close the object.
-    select case (self%hdf5ObjectType)
-    case (hdf5ObjectTypeFile     )
-       ! Check for still-open objects.
-       call h5fget_obj_count_f(self%objectID,H5F_OBJ_ALL_F,openObjectCount,errorCode)
-       if (errorCode /= 0) then
-          message="unable to count open objects in file object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-       allocate(openObjectIDs(openObjectCount))
-       call h5fget_obj_ids_f(self%objectID,H5F_OBJ_ALL_F,openObjectCount,openObjectIDs,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get IDs of open objects in file object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-       nonRootOpenObjectCount=0
-       if (openObjectCount > 1) then
-          do i=1,openObjectCount
-             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
-             if (errorCode /= 0) then
-                message="unable to get name of open object in file object '"//self%objectName//"'"
-                call Error_Report(message//{introspection:location})
-             end if
-
-             if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
-          end do
-       end if
-       if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then
-          message=""
-          message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//self%objectName//"'"
-          call displayIndent('Problem closing HDF5 file',verbosityLevelSilent)
-          call displayMessage(message,verbosityLevelSilent)
-          do i=1,openObjectCount
-             call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
-             if (errorCode /= 0) then
-                message="unable to get name of open object in file object '"//self%objectName//"'"
-                call Error_Report(message//{introspection:location})
-             end if
-             message="Object: "//trim(objectName)//" ["
-             message=message//openObjectIDs(i)//"]"
-             if (trim(objectName) /= "/") call displayMessage(message,verbosityLevelSilent)
-          end do
-          call displayUnindent('done',verbosityLevelSilent)
-       end if
-       call h5fclose_f(self%objectID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to close file object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-       ! Uninitialize the HDF5 library (will only uninitialize if this is the last file to be closed).
-       call IO_HDF5_Uninitialize
-    case (hdf5ObjectTypeGroup    )
-       call h5gclose_f(self%objectID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to close group object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-    case (hdf5ObjectTypeDataset  )
-       call h5dclose_f(self%objectID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to close dataset object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-    case (hdf5ObjectTypeAttribute)
-       call h5aclose_f(self%objectID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to close attribute object '"//self%objectName//"'"
-          call Error_Report(message//{introspection:location})
-       end if
-    end select
-
-    ! Mark that the object is now closed.
-    self%isOpenValue=.false.
-
-    ! Reset the object ID to zero.
-    self%objectID=0
-    return
-  end subroutine IO_HDF5_Close
 
   subroutine IO_HDF5_Flush(self)
     !!{
@@ -867,7 +912,7 @@ contains
     call h5fflush_f(self%objectID,H5F_Scope_Local_F,errorCode)
     if (errorCode /= 0) then
        message="unable to flush object '"//self%objectName//"' to file"
-       call Error_Report(message//{introspection:location})
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
   end subroutine IO_HDF5_Flush
@@ -1011,7 +1056,7 @@ contains
     return
   end function IO_HDF5_Character_Types
 
-  elemental subroutine hdf5VarDoubleDestructor(self)
+  impure elemental subroutine hdf5VarDoubleDestructor(self)
     !!{
     Destructor for the variable-length double type.
     !!}
@@ -1022,7 +1067,7 @@ contains
     return
   end subroutine hdf5VarDoubleDestructor
 
-  elemental subroutine hdf5VarDouble2DDestructor(self)
+  impure elemental subroutine hdf5VarDouble2DDestructor(self)
     !!{
     Destructor for the variable-length 2D double type.
     !!}
@@ -1033,7 +1078,7 @@ contains
     return
   end subroutine hdf5VarDouble2DDestructor
 
-  elemental subroutine hdf5VarInteger8Destructor(self)
+  impure elemental subroutine hdf5VarInteger8Destructor(self)
     !!{
     Destructor for the variable-length integer-8 type.
     !!}
@@ -1046,30 +1091,27 @@ contains
   
   !! File routines.
 
-  subroutine IO_HDF5_Open_File_VarStr(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+  function hdf5FileOpenVarStr(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary) result(self)
     !!{
-    Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
-    provided, will be taken from the stored object name in {\normalfont \ttfamily fileObject}.
+    Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
     !!}
-    use :: HDF5              , only : hsize_t, size_t
     use :: ISO_Varying_String, only : char
     implicit none
-    class  (hdf5Object    ), intent(inout)           :: fileObject
+    type   (hdf5Object    )                          :: self
     type   (varying_string), intent(in   )           :: fileName
-    logical                , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly
+    logical                , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly      , isTemporary
     integer(kind=hsize_t  ), intent(in   ), optional :: chunkSize
     integer(kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
     integer                , intent(in   ), optional :: compressionLevel
     logical                , intent(in   ), optional :: useLatestFormat
 
-    call fileObject%openFile(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+    self=hdf5Object(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary)
     return
-  end subroutine IO_HDF5_Open_File_VarStr
+  end function hdf5FileOpenVarStr
 
-  subroutine IO_HDF5_Open_File_Char(fileObject,fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes)
+  function hdf5FileOpenChar(fileName,overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary,threadSafe) result(self)
     !!{
-    Open a file and return an appropriate HDF5 object. The file name can be provided as an input parameter or, if not
-    provided, will be taken from the stored object name in {\normalfont \ttfamily fileObject}.
+    Constructor for HDF5 object. Will open a file and return an appropriate HDF5 object.
     !!}
     use :: File_Utilities    , only : File_Exists        , File_Name_Expand
     use :: Error             , only : Error_Report
@@ -1081,59 +1123,62 @@ contains
     use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)          , trim                   , &
          &                            char
     implicit none
-    class    (hdf5Object    ), intent(inout)           :: fileObject
+    type     (hdf5Object    )                          :: self
     character(len=*         ), intent(in   )           :: fileName
-    logical                  , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly
+    logical                  , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly      , isTemporary
     integer  (kind=hsize_t  ), intent(in   ), optional :: chunkSize
     integer  (kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
     integer                  , intent(in   ), optional :: compressionLevel
-    logical                  , intent(in   ), optional :: useLatestFormat
+    logical                  , intent(in   ), optional :: useLatestFormat    , threadSafe
+    class    (*             ), pointer                 :: dummyPointer_
     integer                                            :: errorCode          , fileAccess
     logical                                            :: overWriteActual
     type     (varying_string)                          :: message            , fileName_
     integer  (kind=hid_t    )                          :: accessList
 
     ! Initialize the HDF5 library.
-    call IO_HDF5_Initialize
-
+    call IO_HDF5_Initialize()
     ! Expand the file name.
     fileName_=File_Name_Expand(fileName)
-    
     ! Store the location and name of this object.
-    fileObject%objectFile    =trim(fileName_)
-    fileObject%objectLocation=""
-    fileObject%objectName    =""
-    
+    self%objectFile    =trim(fileName_)
+    self%objectLocation=""
+    self%objectName    =""
+    ! Mark whether this file is temporary.
+    if (present(isTemporary)) then
+       self%isTemporary=isTemporary
+    else
+       self%isTemporary=.false.
+    end if
     ! Check if overwriting is allowed.
     if (present(overWrite)) then
        overWriteActual=overWrite
     else
        overWriteActual=.false.
     end if
-
     ! Create an access list.
     call h5pcreate_f(H5P_FILE_ACCESS_F,accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to create file access list HDF5 file '"//fileObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       message="failed to create file access list HDF5 file '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     call h5pset_fclose_degree_f(accessList,H5F_CLOSE_SEMI_F,errorCode)
     if (errorCode /= 0) then
-       message="failed to set close degree for HDF5 file '"//fileObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       message="failed to set close degree for HDF5 file '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Specify file driver (buffered I/O).
     call h5pset_fapl_stdio_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to set I/O driver for HDF5 file '"//fileObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       message="failed to set I/O driver for HDF5 file '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Set sieve buffer size.
     if (present(sieveBufferSize)) then
        call h5pset_sieve_buf_size_f(accessList,sieveBufferSize,errorCode)
        if (errorCode /= 0) then
-          message="failed to set sieve buffer size for HDF5 file '"//fileObject%objectName//"'"
-          call Error_Report(message//{introspection:location})
+          message="failed to set sieve buffer size for HDF5 file '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
     ! Set file format.
@@ -1143,109 +1188,121 @@ contains
        else
           call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
        end if
+       if (errorCode /= 0) then
+          message="failed to set file format for HDF5 file '"//self%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
     else
        call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
     end if
     if (errorCode /= 0) then
-       message="failed to set file format for HDF5 file '"//fileObject%objectName//"'"
+       message="failed to set file format for HDF5 file '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
     end if
     if (present(cacheElementsCount).or.present(cacheSizeBytes)) then
        if (.not.(present(cacheElementsCount).and.present(cacheSizeBytes))) call Error_Report('both or neither of "cacheElementsCount" and "cacheSizeBytes" must be specified'//{introspection:location})
        call h5pset_cache_f(accessList,0,cacheElementsCount,cacheSizeBytes,0.75,errorCode)
     end if
-
+    ! Allocate object and file IDs.
+    allocate(self%objectID)
+    allocate(self%fileID  )
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_      => self%objectID
+    self%objectManager =  resourceManager(dummyPointer_                      )
+    dummyPointer_      => self%fileID
+    self%fileManager   =  resourceManager(dummyPointer_,threadSafe=threadSafe)
+    !![
+    </workaround>
+    !!]
     ! Check if the file exists.
     if (File_Exists(fileName_).and..not.overWriteActual) then
        ! Determine access for file.
        if (present(readOnly)) then
-          fileObject%readOnly=readOnly
+          self%readOnly=readOnly
           if (readOnly) then
              fileAccess=H5F_ACC_RDONLY_F
           else
              fileAccess=H5F_ACC_RDWR_F
           end if
        else
-          fileObject%readOnly=.false.
+          self%readOnly=.false.
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
-       call h5fopen_f(char(fileName_),fileAccess,fileObject%objectID,errorCode,access_prp=accessList)
+       call h5fopen_f(char(fileName_),fileAccess,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to open HDF5 file '"//fileObject%objectFile//"'"
-          call Error_Report(message//{introspection:location})
+          message="failed to open HDF5 file '"//self%objectFile//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
        ! If read only was specified, creating the file is not allowed.
        if (present(readOnly)) then
           if (readOnly) then
-             message="can not create/overwrite read only file '"//fileObject%objectName//"'"
-             call Error_Report(message//{introspection:location})
+             message="can not create/overwrite read only file '"//self%objectName//"'"
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
        ! Attempt to create the file.
-       call h5fcreate_f(char(fileName_),H5F_ACC_TRUNC_F,fileObject%objectID,errorCode,access_prp=accessList)
+       call h5fcreate_f(char(fileName_),H5F_ACC_TRUNC_F,self%objectID,errorCode,access_prp=accessList)
        if (errorCode /= 0) then
-          message="failed to create HDF5 file '"//fileObject%objectFile//"'"
-          call Error_Report(message//{introspection:location})
+          message="failed to create HDF5 file '"//self%objectFile//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
-
     ! Finished with our property list.
     call h5pclose_f(accessList,errorCode)
     if (errorCode /= 0) then
-       message="failed to close access property list for HDF5 file '"//fileObject%objectName//"'"
-       call Error_Report(message//{introspection:location})
+       message="failed to close access property list for HDF5 file '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
+    ! Store the file ID.
+    self%fileID     =self%objectID
     ! Mark this object as open.
-    fileObject%isOpenValue=.true.
-
+    self%isOpenValue=.true.
     ! Object has no parent.
-    fileObject%parentObject => null()
-
+    self%parentObject => null()
     ! Mark this object as a file object.
-    fileObject%hdf5ObjectType=hdf5ObjectTypeFile
-
+    self%hdf5ObjectType=hdf5ObjectTypeFile
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
-       fileObject%chunkSizeSet=.true.
-       fileObject%chunkSize   =chunkSize
+       self%chunkSizeSet=.true.
+       self%chunkSize   =chunkSize
     else
-       fileObject%chunkSizeSet=.false.
+       self%chunkSizeSet=.false.
     end if
-
     ! Set the compression level if provided.
     if (present(compressionLevel)) then
-       fileObject%compressionLevelSet=.true.
-       fileObject%compressionLevel   =compressionLevel
+       self%compressionLevelSet=.true.
+       self%compressionLevel   =compressionLevel
     else
-       fileObject%compressionLevelSet=.false.
+       self%compressionLevelSet=.false.
     end if
-
     ! Mark whether objects are overwritable.
     if (present(objectsOverwritable)) then
-       fileObject%isOverwritable=objectsOverwritable
+       self%isOverwritable=objectsOverwritable
     else
-       fileObject%isOverwritable=.false.
+       self%isOverwritable=.false.
     end if
     return
-  end subroutine IO_HDF5_Open_File_Char
+  end function hdf5FileOpenChar
 
   !! Group routines.
 
-  function IO_HDF5_Open_Group_Path(inObject,groupPath) result (groupObjects)
+  subroutine IO_HDF5_Open_Group_Path(inObject,groupPath,groupObjects)
     !!{
     Open all HDF5 groups in the given path and return objects for all of them.
     !!}
     use :: String_Handling   , only : String_Split_Words, String_Count_Words
     use :: ISO_Varying_String, only : char
     implicit none
-    type     (hdf5Object    ), allocatable  , dimension(:) :: groupObjects
-    class    (hdf5Object    ), intent(in   ), target       :: inObject
-    character(len=*         ), intent(in   )               :: groupPath
-    type     (varying_string), allocatable  , dimension(:) :: groupNames
-    integer                                                :: i           , countGroups
+    class    (hdf5Object    ), intent(in   ), target                      :: inObject
+    character(len=*         ), intent(in   )                              :: groupPath
+    type     (hdf5Object    ), intent(inout), allocatable  , dimension(:) :: groupObjects
+    type     (varying_string)               , allocatable  , dimension(:) :: groupNames
+    integer                                                               :: i           , countGroups
 
     countGroups=String_Count_Words(groupPath,"/")
     allocate(groupNames  (countGroups))
@@ -1259,20 +1316,20 @@ contains
        end if
     end do
     return
-  end function IO_HDF5_Open_Group_Path
+  end subroutine IO_HDF5_Open_Group_Path
 
-  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (groupObject)
+  function IO_HDF5_Open_Group(inObject,groupName,comment,objectsOverwritable,overwriteOverride,chunkSize,compressionLevel,attributesCompactMaxiumum) result (self)
     !!{
     Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
-    not provided, will be taken from the stored object name in {\normalfont \ttfamily groupObject}. The location at which to open the group is
-    taken from either {\normalfont \ttfamily inObject} or {\normalfont \ttfamily inPath}.
+    not provided, will be taken from the stored object name in \mono{self}. The location at which to open the group is
+    taken from either \mono{inObject} or \mono{inPath}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5gcreate_f               , h5gopen_f , hsize_t            , &
          &                            h5pcreate_f  , h5pset_attr_phase_change_f, h5pclose_f, H5P_GROUP_CREATE_F
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
-    type     (hdf5Object    )                          :: groupObject
+    type     (hdf5Object    )                          :: self
     character(len=*         ), intent(in   )           :: groupName
     character(len=*         ), intent(in   ), optional :: comment
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
@@ -1286,6 +1343,7 @@ contains
     type     (varying_string), save                    :: locationPath       , message
     integer                                            :: errorCode
     integer  (kind=HID_T    )                          :: locationID         , propertyList
+    class    (*             ), pointer                 :: dummyPointer_
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -1301,13 +1359,26 @@ contains
     ! Set the parent for the group.
     select type (inObject)
     type is (hdf5Object)
-       groupObject%parentObject => inObject
+       self%parentObject => inObject
     end select
-
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
+    ! Create an ID for this group.
+    allocate(self%objectID)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%objectID
+    self%objectManager=resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Check if the group exists.
     if (inObject%hasGroup(groupName)) then
        ! Open the group.
-       call h5gopen_f(locationID,trim(groupName),groupObject%objectID,errorCode)
+       call h5gopen_f(locationID,trim(groupName),self%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open group '"//trim(groupName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1317,7 +1388,7 @@ contains
        call h5pcreate_f(H5P_GROUP_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) then
           message="unable to create property list for group '"//trim(groupName)//"'"
-          call Error_Report(message//groupObject%locationReport()//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Set the number of attributes allowed in compact
        ! storage. (Setting this to zero will force dense storage for
@@ -1327,10 +1398,10 @@ contains
           call h5pset_attr_phase_change_f(propertyList,attributesCompactMaxiumum,attributesCompactMaxiumum,errorCode)
           if (errorCode /= 0) then
              message="failed to set attribute phase change for group '"//trim(groupName)
-             call Error_Report(message//groupObject%locationReport()//{introspection:location})
+             call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        end if
-       call h5gcreate_f(locationID,trim(groupName),groupObject%objectID,errorCode,gcpl_id=propertyList)
+       call h5gcreate_f(locationID,trim(groupName),self%objectID,errorCode,gcpl_id=propertyList)
        if (errorCode < 0) then
           message="failed to make group '"//trim(groupName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1338,71 +1409,71 @@ contains
        call h5pclose_f(propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to close property list for group '"//trim(groupName)//"'"
-          call Error_Report(message//groupObject%locationReport()//{introspection:location})
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
 
     ! Mark this object as open.
-    groupObject%isOpenValue=.true.
+    self%isOpenValue=.true.
 
     ! Mark this object as a file object.
-    groupObject%hdf5ObjectType=hdf5ObjectTypeGroup
+    self%hdf5ObjectType=hdf5ObjectTypeGroup
 
     ! Store the name and location of the object.
-    groupObject%objectFile    =groupObject%parentObject%objectFile
-    groupObject%objectLocation=groupObject%parentObject%pathTo    (includeFileName=.false.)
-    groupObject%objectName    =trim(groupName)
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
+    self%objectName    =trim(groupName)
 
     ! Set the chunk size if provided.
     if (present(chunkSize)) then
-       groupObject%chunkSizeSet   =.true.
-       groupObject%chunkSize      =chunkSize
+       self%chunkSizeSet   =.true.
+       self%chunkSize      =chunkSize
     else
        ! No chunk size provided. See if we can inherit one from the parent object.
-       if (groupObject%parentObject%chunkSizeSet) then
-          groupObject%chunkSizeSet=.true.
-          groupObject%chunkSize   =groupObject%parentObject%chunkSize
+       if (self%parentObject%chunkSizeSet) then
+          self%chunkSizeSet=.true.
+          self%chunkSize   =self%parentObject%chunkSize
        else
-          groupObject%chunkSizeSet=.false.
+          self%chunkSizeSet=.false.
        end if
     end if
 
     ! Set the compression level if provided.
     if (present(compressionLevel)) then
-       groupObject%compressionLevelSet=.true.
-       groupObject%compressionLevel   =compressionLevel
+       self%compressionLevelSet=.true.
+       self%compressionLevel   =compressionLevel
     else
        ! No compression level provided. See if we can inherit one from the parent object.
-       if (groupObject%parentObject%compressionLevelSet) then
-          groupObject%compressionLevelSet=.true.
-          groupObject%compressionLevel   =groupObject%parentObject%compressionLevel
+       if (self%parentObject%compressionLevelSet) then
+          self%compressionLevelSet=.true.
+          self%compressionLevel   =self%parentObject%compressionLevel
        else
-          groupObject%compressionLevelSet=.false.
+          self%compressionLevelSet=.false.
        end if
     end if
 
     ! Mark whether objects are overwritable.
     if (present(objectsOverwritable)) then
        if (.not.present(overwriteOverride).or..not.overwriteOverride) then
-          if (objectsOverwritable.and..not.groupObject%parentObject%isOverwritable) then
+          if (objectsOverwritable.and..not.self%parentObject%isOverwritable) then
              message="cannot make objects in '"//trim(groupName)//"' overwritable as objects in parent '"&
-                  &//groupObject%parentObject%objectName//"' are not overwritable"
+                  &//self%parentObject%objectName//"' are not overwritable"
              call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
        end if
-       groupObject%isOverwritable=objectsOverwritable
+       self%isOverwritable=objectsOverwritable
     else
-       groupObject%isOverwritable=groupObject%parentObject%isOverwritable
+       self%isOverwritable=self%parentObject%isOverwritable
     end if
 
     ! Set the comment for this group.
-    if (present(comment) .and. len_trim(comment) > 0 .and. .not.groupObject%hasAttribute('comment')) call groupObject%writeAttribute(trim(comment),'comment')
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.self%hasAttribute('comment')) call self%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Group
 
   logical function IO_HDF5_Has_Group(self,groupName)
     !!{
-    Check if {\normalfont \ttfamily self} has a group with the given {\normalfont \ttfamily groupName}.
+    Check if \mono{self} has a group with the given \mono{groupName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5eset_auto_f, h5gget_info_by_name_f
@@ -1441,19 +1512,18 @@ contains
 
   !! Attribute routines.
 
-  function IO_HDF5_Open_Attribute(inObject,attributeName,attributeDataType,attributeDimensions,isOverwritable,useDataType)&
-       & result(attributeObject)
+  function IO_HDF5_Open_Attribute(inObject,attributeName,attributeDataType,attributeDimensions,isOverwritable,useDataType) result(self)
     !!{
-    Open an attribute in {\normalfont \ttfamily inObject}.
+    Open an attribute in \mono{inObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, h5screate_simple_f, &
           &                           HID_T               , HSIZE_T           , h5acreate_f       , h5aopen_f         , &
           &                           h5sclose_f
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)       , operator(//)      , operator(/=)
     implicit none
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
-    type     (hdf5Object    )                                        :: attributeObject
+    type     (hdf5Object    )                                        :: self
     character(len=*         )              , intent(in   )           :: attributeName
     integer                                , intent(in   ), optional :: attributeDataType
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: attributeDimensions
@@ -1464,17 +1534,20 @@ contains
          &                                                              locationID
     integer  (kind=HSIZE_T  ), dimension(7)                          :: attributeDimensionsActual
     type     (varying_string)                                        :: locationPath             , message
+    class    (*             ), pointer                               :: dummyPointer_
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
-       locationID  =inObject%objectID
-       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
+       locationID                                     =inObject    %objectID
+       locationPath                                   =inObject    %objectFile
+       if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
+       if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-          attributeObject%parentObject => inObject
+          self%parentObject => inObject
        end select
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
@@ -1494,11 +1567,24 @@ contains
        ! No dimensions specified, assume a scalar.
        attributeRank=0
     end if
-
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
+    ! Create an ID for this attribute.
+    allocate(self%objectID)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%objectID
+    self%objectManager=resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Check if the attribute exists.
     if (IO_HDF5_Has_Attribute(inObject,attributeName)) then
        ! Open the attribute.
-       call h5aopen_f(locationID,trim(attributeName),attributeObject%objectID,errorCode)
+       call h5aopen_f(locationID,trim(attributeName),self%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open attribute '"//trim(attributeName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1537,7 +1623,7 @@ contains
           end select
        end if
        ! Create the attribute.
-       call h5acreate_f(locationID,trim(attributeName),dataTypeID,dataSpaceID,attributeObject%objectID,errorCode)
+       call h5acreate_f(locationID,trim(attributeName),dataTypeID,dataSpaceID,self%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to create attribute '"//trim(attributeName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1551,33 +1637,33 @@ contains
     end if
 
     ! Mark this object as open.
-    attributeObject%isOpenValue=.true.
+    self%isOpenValue=.true.
 
     ! Mark this object as a file object.
-    attributeObject%hdf5ObjectType=hdf5ObjectTypeAttribute
+    self%hdf5ObjectType=hdf5ObjectTypeAttribute
 
     ! Store the name and location of the object.
-    attributeObject%objectFile    =attributeObject%parentObject%objectFile
-    attributeObject%objectLocation=attributeObject%parentObject%pathTo    (includeFileName=.false.)
-    attributeObject%objectName    =trim(attributeName)
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
+    self%objectName    =trim(attributeName)
 
     ! Mark whether attribute is overwritable.
     if (present(isOverwritable)) then
-       if (isOverwritable.and..not.attributeObject%parentObject%isOverwritable) then
+       if (isOverwritable.and..not.self%parentObject%isOverwritable) then
           message="cannot make attribute '"//trim(attributeName)//"' overwritable as objects in parent '"&
-               &//attributeObject%parentObject%objectName//"' are not overwritable"
+               &//self%parentObject%objectName//"' are not overwritable"
           call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
-       attributeObject%isOverwritable=isOverwritable
+       self%isOverwritable=isOverwritable
     else
-       attributeObject%isOverwritable=attributeObject%parentObject%isOverwritable
+       self%isOverwritable=self%parentObject%isOverwritable
     end if
     return
   end function IO_HDF5_Open_Attribute
 
   subroutine IO_HDF5_Write_Attribute_Logical_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a logical scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a logical scalar attribute in \mono{self}.
     !!}
     implicit none
     class    (hdf5Object    ), intent(inout)           :: self
@@ -1594,7 +1680,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_Integer_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
@@ -1637,7 +1723,7 @@ contains
        end if
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        attributeNameActual=self%objectName
     else
@@ -1649,7 +1735,7 @@ contains
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeInteger)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger)
        ! Check that pre-existing object is a scalar integer.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
        ! If this attribute if not overwritable, report an error.
@@ -1658,23 +1744,18 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
-
     ! Write the attribute.
     call h5awrite_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Integer_Scalar
 
   subroutine IO_HDF5_Write_Attribute_Integer_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
@@ -1717,7 +1798,7 @@ contains
        end if
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        attributeNameActual=self%objectName
     else
@@ -1732,7 +1813,7 @@ contains
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
        attributeDimensions=shape(attributeValue)
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeInteger,attributeDimensions)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger,attributeDimensions)
        ! Check that pre-existing object is a 1D integer.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
        ! If this attribute if not overwritable, report an error.
@@ -1748,16 +1829,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Integer_1D
 
   subroutine IO_HDF5_Write_Attribute_Integer8_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a long integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a long integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_loc
@@ -1814,7 +1891,7 @@ contains
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeInteger8)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger8)
        ! Check that pre-existing object is a scalar integer.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
        ! If this attribute if not overwritable, report an error.
@@ -1831,16 +1908,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Integer8_Scalar
 
   subroutine IO_HDF5_Write_Attribute_Integer8_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an integer 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : HSIZE_T
@@ -1901,7 +1974,7 @@ contains
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
        attributeDimensions=shape(attributeValue)
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeInteger8,attributeDimensions)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger8,attributeDimensions)
        ! Check that pre-existing object is a 1D long integer.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
        ! If this attribute if not overwritable, report an error.
@@ -1923,16 +1996,12 @@ contains
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     deallocate(attributeValueContiguous)
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Integer8_1D
 
   subroutine IO_HDF5_Write_Attribute_Double_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -1989,7 +2058,7 @@ contains
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeDouble)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble)
        ! Check that pre-existing object is a scalar double.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
        ! If this attribute if not overwritable, report an error.
@@ -2005,16 +2074,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Double_Scalar
 
   subroutine IO_HDF5_Write_Attribute_Double_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an double 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an double 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -2072,7 +2137,7 @@ contains
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
        attributeDimensions=shape(attributeValue)
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeDouble,attributeDimensions)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble,attributeDimensions)
        ! Check that pre-existing object is a 1D double.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
        ! If this attribute if not overwritable, report an error.
@@ -2088,16 +2153,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Double_1D
 
   subroutine IO_HDF5_Write_Attribute_Double_2D(self,attributeValue,attributeName)
     !!{
-    Open and write an double 2-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an double 2-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
@@ -2155,7 +2216,7 @@ contains
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
        attributeDimensions=shape(attributeValue)
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeDouble,attributeDimensions)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble,attributeDimensions)
        ! Check that pre-existing object is a 2D double.
        if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,2)
        ! If this attribute if not overwritable, report an error.
@@ -2171,16 +2232,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Double_2D
 
   subroutine IO_HDF5_Write_Attribute_Character_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and write an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5awrite_f, &
@@ -2251,7 +2308,7 @@ contains
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeCharacter,useDataType=dataTypeID)
        ! Check that pre-existing object is a scalar character.
        if (preExisted) call attributeObject%assertAttributeType([dataTypeID],0)
        ! If this attribute if not overwritable, report an error.
@@ -2274,16 +2331,12 @@ contains
        message="unable to close custom datatype for attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Character_Scalar
 
   subroutine IO_HDF5_Write_Attribute_Character_1D(self,attributeValue,attributeName)
     !!{
-    Open and write an character 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write an character 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5awrite_f, &
@@ -2355,7 +2408,7 @@ contains
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
        attributeDimensions=shape(attributeValue)
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName,hdf5DataTypeCharacter,attributeDimensions,useDataType=dataTypeID)
+       attributeObject=self%openAttribute(attributeName,hdf5DataTypeCharacter,attributeDimensions,useDataType=dataTypeID)
        ! Check that pre-existing object is a 1D character.
        if (preExisted) call attributeObject%assertAttributeType([dataTypeID],1)
        ! If this attribute if not overwritable, report an error.
@@ -2371,16 +2424,12 @@ contains
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Write_Attribute_Character_1D
 
   subroutine IO_HDF5_Write_Attribute_VarString_Scalar(self,attributeValue,attributeName)
     !!{
-    Open and write a varying string scalar attribute in {\normalfont \ttfamily self}.
+    Open and write a varying string scalar attribute in \mono{self}.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -2395,7 +2444,7 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_VarString_1D(self,attributeValue,attributeName)
     !!{
-    Open and write a varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and write a varying string 1-D array attribute in \mono{self}.
     !!}
     use :: String_Handling, only : Convert_VarString_To_Char
     implicit none
@@ -2411,7 +2460,7 @@ contains
 
   subroutine IO_HDF5_Read_Attribute_Integer_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2458,7 +2507,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -2477,7 +2526,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a scalar integer.
@@ -2520,16 +2569,12 @@ contains
     else
        call       Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar"                 //self%locationReport()//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Integer_Scalar
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2585,7 +2630,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D integer array.
@@ -2621,16 +2666,12 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -2661,13 +2702,12 @@ contains
        message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
     ! Check if the object is an attribute, or something else.
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -2686,7 +2726,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D integer array.
@@ -2722,16 +2762,12 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read a long integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
@@ -2780,7 +2816,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -2799,7 +2835,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a scalar integer.
@@ -2842,16 +2878,12 @@ contains
     else
        call       Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar"                 //self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Integer8_Scalar
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T      , HSIZE_T, h5aget_space_f, &
@@ -2909,7 +2941,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D long integer array.
@@ -2945,16 +2977,12 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an integer scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
@@ -2994,7 +3022,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -3013,7 +3041,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D long integer array.
@@ -3052,17 +3080,13 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    attributeValue=attributeValueContiguous
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
+    attributeValue=attributeValueContiguous    
     return
   end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_Double_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -3109,7 +3133,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -3128,7 +3152,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a scalar double.
@@ -3173,16 +3197,12 @@ contains
     else
        call       Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar"                 //self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Double_Scalar
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
@@ -3238,7 +3258,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D double array.
@@ -3274,21 +3294,18 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an double scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an double scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
           &                           h5aread_f        , h5sclose_f  , h5sget_simple_extent_dims_f
     use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
+    use :: ISO_Varying_String, only : char
     implicit none
     double precision                , dimension(:), intent(  out)           :: attributeValue
     class           (hdf5Object    )              , intent(inout)           :: self
@@ -3320,7 +3337,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -3339,7 +3356,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D double array.
@@ -3375,25 +3392,20 @@ contains
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
-    use, intrinsic :: ISO_C_Binding     , only : c_loc, c_ptr, c_null_char, c_f_pointer
+    use, intrinsic :: ISO_C_Binding     , only : c_loc              , c_ptr                      , c_null_char    , c_f_pointer
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HID_T              , HSIZE_T                    , h5aget_space_f , h5aread_f , &
-         &                                       h5sclose_f         , h5sget_simple_extent_dims_f, h5tclose_f     , h5tcopy_f , &
-         &                                       h5tset_cset_f      , h5t_cset_utf8_f            , h5tset_size_f  , h5t_string, &
+    use            :: HDF5              , only : HID_T              , HSIZE_T                    , h5aget_space_f , h5aread_f  , &
+         &                                       h5sclose_f         , h5sget_simple_extent_dims_f, h5tclose_f     , h5tcopy_f  , &
+         &                                       h5tset_cset_f      , h5t_cset_utf8_f            , h5tset_size_f  , h5t_string , &
          &                                       H5T_Str_NullTerm_f , H5T_C_S1                   , h5tset_strpad_f
     use            :: ISO_Varying_String, only : assignment(=)      , operator(//)               , trim
-
     use            :: String_Handling   , only : String_C_to_Fortran
     implicit none
     character(len=*                  )              , intent(  out)           :: attributeValue
@@ -3462,7 +3474,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a scalar character.
@@ -3541,16 +3553,12 @@ contains
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Character_Scalar
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
@@ -3609,7 +3617,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D character array.
@@ -3657,16 +3665,12 @@ contains
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an character scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an character scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , HSIZE_T                    , h5aget_space_f, h5aread_f, &
@@ -3706,7 +3710,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -3725,7 +3729,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Check that the object is a 1D character array.
@@ -3773,16 +3777,12 @@ contains
        message="unable to close custom datatype for attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{
-    Open and read an varying string scalar attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string scalar attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f, &
@@ -3841,7 +3841,7 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Get the datatype of this attribute.
@@ -3887,15 +3887,12 @@ attributeValue=trim(attributeValue)
        call IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
     end if
 
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_Scalar
 
   subroutine IO_HDF5_Read_Attribute_VarString_Scalar_Do_Read(self,attributeName,attributeValue,dataTypeSize,allowPseudoScalar)
     !!{
-    Open and read an varying string scalar attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string scalar attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -3918,7 +3915,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
@@ -3973,7 +3970,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Get the datatype of this attribute.
@@ -3999,16 +3996,12 @@ attributeValue=trim(attributeValue)
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(self,attributeName,attributeValue,dataTypeSize)
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable_Do_Read(self,attributeName,attributeValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -4032,13 +4025,13 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static(self,attributeName,attributeValue)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array attribute in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
     implicit none
-    type     (varying_string), dimension(:), intent(  out)           :: attributeValue
+    type     (varying_string), dimension(:), intent(inout)           :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: self
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HID_T    )                                        :: dataTypeID
@@ -4087,7 +4080,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the attribute.
-       attributeObject=IO_HDF5_Open_Attribute(self,attributeName)
+       attributeObject=self%openAttribute(attributeName)
     end if
 
     ! Get the datatype of this attribute.
@@ -4113,21 +4106,17 @@ attributeValue=trim(attributeValue)
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(self,attributeName,attributeValue,dataTypeSize)
-
-    ! Close the attribute unless this was an attribute object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
-
     return
   end subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(self,attributeName,attributeValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array attribute in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array attribute in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), dimension(:)                   , intent(  out)           :: attributeValue
+    type     (varying_string  ), dimension(:)                   , intent(inout)           :: attributeValue
     class    (hdf5Object      )                                 , intent(inout)           :: self
     character(len=*           )                                 , intent(in   ), optional :: attributeName
     integer  (kind=SIZE_T     )                                 , intent(in   )           :: dataTypeSize
@@ -4144,7 +4133,7 @@ attributeValue=trim(attributeValue)
 
   logical function IO_HDF5_Has_Attribute(self,attributeName)
     !!{
-    Check if {\normalfont \ttfamily self} has an attribute with the given {\normalfont \ttfamily attributeName}.
+    Check if \mono{self} has an attribute with the given \mono{attributeName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5aexists_f
@@ -4259,7 +4248,7 @@ attributeValue=trim(attributeValue)
 
   function IO_HDF5_Dataset_Size(datasetObject,dim)
     !!{
-    Return the size of the {\normalfont \ttfamily dim}$^\mathrm{th}$ dimension of dataset {\normalfont \ttfamily datasetObject}.
+    Return the size of the \mono{dim}$^\mathrm{th}$ dimension of dataset \mono{datasetObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T                      , HSIZE_T                     , h5dget_space_f, h5sclose_f, &
@@ -4329,7 +4318,7 @@ attributeValue=trim(attributeValue)
 
   integer function IO_HDF5_Dataset_Rank(datasetObject)
     !!{
-    Return the rank of dataset {\normalfont \ttfamily datasetObject}.
+    Return the rank of dataset \mono{datasetObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_space_f, h5sget_simple_extent_ndims_f
@@ -4372,9 +4361,9 @@ attributeValue=trim(attributeValue)
     return
   end function IO_HDF5_Dataset_Rank
 
-  function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(datasetObject)
+  function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(self)
     !!{
-    Open an dataset in {\normalfont \ttfamily inObject}.
+    Open an dataset in \mono{inObject}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5P_DATASET_CREATE_F, H5S_UNLIMITED_F      , H5T_NATIVE_CHARACTER, H5T_NATIVE_DOUBLE , &
@@ -4382,9 +4371,9 @@ attributeValue=trim(attributeValue)
           &                           h5dcreate_f         , h5dget_create_plist_f, h5dopen_f           , h5eset_auto_f     , &
           &                           hsize_t             , h5pclose_f           , h5pcreate_f         , h5pget_chunk_f    , &
           &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)       , operator(//)         , operator(/=)
     implicit none
-    type     (hdf5Object    )                                        :: datasetObject
+    type     (hdf5Object    )                                        :: self
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -4405,17 +4394,20 @@ attributeValue=trim(attributeValue)
          &                                                              locationID                                 , propertyList
     logical                                                          :: appendToActual
     type     (varying_string)                                        :: locationPath                               , message
+    class    (*             ), pointer                               :: dummyPointer_
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
     ! Ensure that the object is already open.
     if (inObject%isOpenValue) then
-       locationID  =inObject%objectID
-       locationPath=inObject%objectFile//"/"//inObject%objectLocation//"/"//inObject%objectName
+       locationID                                     =inObject    %objectID
+       locationPath                                   =inObject    %objectFile
+       if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
+       if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
        select type (inObject)
        type is (hdf5Object)
-          datasetObject%parentObject => inObject
+          self%parentObject => inObject
        end select
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
@@ -4447,46 +4439,58 @@ attributeValue=trim(attributeValue)
     else
        appendDimensionActual=1
     end if
-
+    ! Obtain a reference to the file ID.
+    self%fileID      => inObject%fileID
+    self%fileManager =  inObject%fileManager
+    ! Create an ID for this dataset.
+    allocate(self%objectID)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_ => self%objectID
+    self%objectManager=resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Store the name and location of the object.
-    datasetObject%objectFile    =datasetObject%parentObject%objectFile
-    datasetObject%objectLocation=datasetObject%parentObject%pathTo    (includeFileName=.false.)
-    datasetObject%objectName    =trim(datasetName)
-
+    self%objectFile    =self%parentObject%objectFile
+    self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
+    self%objectName    =trim(datasetName)
     ! Check if the dataset exists.
     if (inObject%hasDataset(datasetName)) then
        ! Open the dataset.
-       call h5dopen_f(locationID,trim(datasetName),datasetObject%objectID,errorCode)
+       call h5dopen_f(locationID,trim(datasetName),self%objectID,errorCode)
        if (errorCode /= 0) then
           message="failed to open dataset '"//trim(datasetName)//"' at "//locationPath
           call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
-       call h5dget_create_plist_f(datasetObject%objectID,propertyList,errorCode)
+       call h5dget_create_plist_f(self%objectID,propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to get creation property list for dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        call h5eset_auto_f(0,errorCode)
        if (errorCode /= 0) then
           message="failed to switch HDF5 error report off"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        call h5pget_chunk_f(propertyList,1,chunkDimensions,errorCode)
        if (errorCode < 0) then
           ! Assume that a failed attempt to get chunk size indicates that the dataset is not chunked.
-          datasetObject%chunkSize=-1
+          self%chunkSize=-1
        else
-          datasetObject%chunkSize=int(chunkDimensions(1))
+          self%chunkSize=int(chunkDimensions(1))
        end if
        call h5eset_auto_f(1,errorCode)
        if (errorCode /= 0) then
           message="failed to switch HDF5 error report on"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        call h5pclose_f(propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to close property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     else
        ! Determine maximum dimensions of this dataset.
@@ -4500,14 +4504,14 @@ attributeValue=trim(attributeValue)
        call h5screate_simple_f(datasetRank,datasetDimensionsActual,dataspaceID,errorCode,datasetDimensionsMaximum)
        if (errorCode < 0) then
           message="unable to open dataspace for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Determine the chunking level.
        if (present(chunkSize)) then
           ! Check that chunk size is valid.
           if (chunkSize == 0 .or. chunkSize < -1) then
              message="invalid chunk size for dataset '"//trim(datasetName)//"' at "//locationPath
-             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
           chunkSizeActual=chunkSize
        else
@@ -4518,13 +4522,13 @@ attributeValue=trim(attributeValue)
              chunkSizeActual=hdf5ChunkSize
           end if
        end if
-       datasetObject%chunkSize=int(chunkSizeActual)
+       self%chunkSize=int(chunkSizeActual)
        ! Determine the compression level.
        if (present(compressionLevel)) then
           ! Check that compression level is valid.
           if (compressionLevel == 0 .or. compressionLevel < -1) then
              message="invalid compression level for dataset '"//trim(datasetName)//"' at "//locationPath
-             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
           compressionLevelActual=compressionLevel
        else
@@ -4535,12 +4539,12 @@ attributeValue=trim(attributeValue)
              compressionLevelActual=hdf5CompressionLevel
           end if
        end if
-       datasetObject%compressionLevel=compressionLevelActual
+       self%compressionLevel=compressionLevelActual
        ! Create a property list for the dataset.
        call h5pcreate_f(H5P_DATASET_CREATE_F,propertyList,errorCode)
        if (errorCode < 0) then
           message="unable to create property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Check if chunk size needs to be set.
        if (chunkSizeActual /= -1) then
@@ -4563,13 +4567,13 @@ attributeValue=trim(attributeValue)
           call h5pset_chunk_f(propertyList,datasetRank,chunkDimensions,errorCode)
           if (errorCode < 0) then
              message="unable to set chunk size for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
        else
           ! No chunk size was specified. This is problematic if the dataset is appendable.
           if (appendToActual) then
              message="appendable dataset '"//trim(datasetName)//"' requires a chunk size"
-             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
        end if
 
@@ -4578,13 +4582,13 @@ attributeValue=trim(attributeValue)
           call h5pset_deflate_f(propertyList,compressionLevelActual,errorCode)
           if (errorCode < 0) then
              message="could not set compression level for dataset '"//trim(datasetName)//"'"
-             call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+             call Error_Report(message//inObject%locationReport()//{introspection:location})
           end if
        end if
        ! Ensure that a data type was specified.
        if (.not.present(datasetDataType)) then
           message="no datatype was specified for dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Determine the data type.
        if (present(useDataType)) then
@@ -4608,52 +4612,52 @@ attributeValue=trim(attributeValue)
           end select
        end if
        ! Create the dataset.
-       call h5dcreate_f(locationID,trim(datasetName),dataTypeID,dataSpaceID,datasetObject%objectID,errorCode,propertyList)
+       call h5dcreate_f(locationID,trim(datasetName),dataTypeID,dataSpaceID,self%objectID,errorCode,propertyList)
        if (errorCode /= 0) then
           message="failed to create dataset '"//trim(datasetName)//"' at "//locationPath
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Close the dataspace.
        call h5sclose_f(dataSpaceID,errorCode)
        if (errorCode /= 0) then
           message="failed to close dataspace for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
        ! Close the property list.
        call h5pclose_f(propertyList,errorCode)
        if (errorCode /= 0) then
           message="failed to close property list for dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
     end if
 
     ! Mark this object as open.
-    datasetObject%isOpenValue=.true.
+    self%isOpenValue=.true.
 
     ! Mark this object as a file object.
-    datasetObject%hdf5ObjectType=hdf5ObjectTypeDataset
+    self%hdf5ObjectType=hdf5ObjectTypeDataset
 
     ! Mark whether dataset is overwritable.
     if (present(isOverwritable)) then
        ! Check overwriting is not requested if parent is not overwritable.
-       if (isOverwritable.and..not.datasetObject%parentObject%isOverwritable) then
+       if (isOverwritable.and..not.self%parentObject%isOverwritable) then
           message="cannot make dataset '"//trim(datasetName)//"' overwritable as objects in parent '"&
-               &//datasetObject%parentObject%objectName//"' are not overwritable"
-          call Error_Report(message//datasetObject%locationReport()//{introspection:location})
+               &//self%parentObject%objectName//"' are not overwritable"
+          call Error_Report(message//inObject%locationReport()//{introspection:location})
        end if
-       datasetObject%isOverwritable=isOverwritable
+       self%isOverwritable=isOverwritable
     else
-       datasetObject%isOverwritable=datasetObject%parentObject%isOverwritable
+       self%isOverwritable=self%parentObject%isOverwritable
     end if
 
     ! Set the comment for this dataset.
-    if (present(comment) .and. len_trim(comment) > 0 .and. .not.datasetObject%hasAttribute('comment')) call datasetObject%writeAttribute(trim(comment),'comment')
+    if (present(comment) .and. len_trim(comment) > 0 .and. .not.self%hasAttribute('comment')) call self%writeAttribute(trim(comment),'comment')
     return
   end function IO_HDF5_Open_Dataset
 
   logical function IO_HDF5_Has_Dataset(self,datasetName)
     !!{
-    Check if {\normalfont \ttfamily self} has a dataset with the given {\normalfont \ttfamily datasetName}.
+    Check if \mono{self} has a dataset with the given \mono{datasetName}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dclose_f  , h5dopen_f, h5eset_auto_f
@@ -4699,7 +4703,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Datasets(self,datasetNames)
     !!{
-    Return a list of all datasets present within {\normalfont \ttfamily self}.
+    Return a list of all datasets present within \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : h5g_dataset_f, h5gget_obj_info_idx_f, h5gn_members_f, hid_t
@@ -4855,7 +4859,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Dataset_Integer_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -4928,7 +4932,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,1)
@@ -5014,19 +5018,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_1D
 
   subroutine IO_HDF5_Write_Dataset_Integer_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 2-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -5099,7 +5097,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,2)
@@ -5185,19 +5183,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_2D
 
   subroutine IO_HDF5_Write_Dataset_Integer_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write an integer 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write an integer 3-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_INTEGER         , HID_T                , HSIZE_T   , &
@@ -5270,7 +5262,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGERS,3)
@@ -5356,19 +5348,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer_3D
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -5454,7 +5440,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -5643,28 +5629,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -5750,7 +5730,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -5938,29 +5918,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
-
     return
   end subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -6046,7 +6019,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -6235,28 +6208,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_INTEGER         , &
@@ -6342,7 +6309,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -6530,29 +6497,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
-
     return
   end subroutine IO_HDF5_Read_Dataset_Integer_2D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Integer8_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 1-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -6628,7 +6588,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
@@ -6718,19 +6678,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_1D
 
   subroutine IO_HDF5_Write_Dataset_Integer8_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -6807,7 +6761,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,2)
@@ -6909,19 +6863,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_2D
 
   subroutine IO_HDF5_Write_Dataset_Integer8_3D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a long integer 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a long integer 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
@@ -6997,7 +6945,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D long integer.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,3)
@@ -7087,19 +7035,185 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Integer8_3D
 
+  subroutine IO_HDF5_Write_Dataset_Integer8_4D(self,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+    !!{
+    Open and write a long integer 4-D array dataset in \mono{self}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f , HID_T     , &
+          &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f       , h5sclose_f, &
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
+    implicit none
+    class    (hdf5Object    )                                 , intent(inout)                   :: self
+    character(len=*         )                                 , intent(in   ), optional         :: commentText                , datasetName
+    integer  (kind=kind_int8)             , dimension(:,:,:,:), intent(in   )                   :: datasetValue
+    logical                                                   , intent(in   ), optional         :: appendTo
+    integer  (hsize_t       )                                 , intent(in   ), optional         :: chunkSize
+    integer                                                   , intent(in   ), optional         :: compressionLevel
+    type     (hdf5Object    )                                 , intent(  out), optional         :: datasetReturned
+    integer  (kind=kind_int8), allocatable, dimension(:,:,:,:)                         , target :: datasetValueContiguous
+    integer  (kind=HSIZE_T  )             , dimension(4      )                                  :: datasetDimensions          , hyperslabCount      , &
+         &                                                                                         hyperslabStart             , newDatasetDimensions, &
+         &                                                                                         newDatasetDimensionsMaximum
+    integer                                                                                     :: datasetRank                , errorCode
+    integer  (kind=HID_T    )                                                                   :: dataspaceID                , newDataspaceID
+    logical                                                                                     :: appendToActual             , preExisted
+    type     (hdf5Object    )                                                                   :: datasetObject
+    type     (varying_string)                                                                   :: datasetNameActual          , message
+    type     (c_ptr         )                                                                   :: dataBuffer
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Get the name of the dataset.
+    if (present(datasetName)) then
+       datasetNameActual=datasetName
+    else
+       datasetNameActual=self%objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.self%isOpenValue) then
+       message="attempt to write dataset '"//trim(datasetNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Determine append status.
+    if (present(appendTo)) then
+       appendToActual=appendTo
+    else
+       appendToActual=.false.
+    end if
+    ! Determine dataset dimensions
+    datasetDimensions=shape(datasetValue)
+    ! Check if the object is an dataset, or something else.
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
+       ! If this dataset if not overwritable, report an error.
+       if (.not.(self%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
+          call Error_Report(message//{introspection:location})
+       else
+          ! Check that the object is a 4D long integer.
+          call self%assertDatasetType(H5T_NATIVE_INTEGER_8S,4)
+       end if
+       select type (self)
+       type is (hdf5Object)
+          datasetObject=self
+       end select
+       datasetNameActual=self%objectName
+       preExisted       =.true.
+    else
+       ! Check that an dataset name was supplied.
+       if (.not.present(datasetName)) then
+          message="no name was supplied for dataset in '"//self%objectName//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       ! Record if dataset already exists.
+       preExisted=self%hasDataset(datasetName)
+       ! Open the dataset.
+       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeInteger8,datasetDimensions,appendTo&
+            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+       ! Check that pre-existing object is a 4D long integer.
+       if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,4)
+       ! If this dataset if not overwritable, report an error.
+       if (preExisted.and..not.(datasetObject%isOverwritable.or.appendToActual)) then
+          message="dataset '"//trim(datasetName)//"' is not overwritable"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! If appending is requested, get the size of the existing dataset.
+    if (appendToActual.and.preExisted) then
+       ! Get size of existing dataset here.
+       call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       call h5sget_simple_extent_dims_f(dataspaceID,newDatasetDimensions,newDatasetDimensionsMaximum,errorCode)
+       if (errorCode < 0) then
+          message="could not get dataspace extent for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+       if (errorCode < 0) then
+          message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+       hyperslabStart      =newDatasetDimensions
+       hyperslabCount      =dataSetDimensions
+       newDatasetDimensions=newDatasetDimensions+datasetDimensions
+    else
+       newDatasetDimensions=datasetDimensions
+       hyperslabStart      =0
+       hyperslabCount      =datasetDimensions
+    end if
+
+    ! Set extent of the dataset.
+    if (datasetObject%chunkSize /= -1) then
+       call h5dset_extent_f(datasetObject%objectID,newDatasetDimensions,errorCode)
+       if (errorCode < 0) then
+          message="could not set extent of dataset '"//trim(datasetNameActual)//"'"
+          call Error_Report(message//{introspection:location})
+       end if
+    end if
+    ! Get the dataspace for the dataset.
+    call h5dget_space_f(datasetObject%objectID,dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not get dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    ! Select hyperslab to write.
+    call h5sselect_hyperslab_f(dataspaceID,H5S_SELECT_SET_F,hyperslabStart,hyperslabCount,errorCode)
+    if (errorCode < 0) then
+       message="could not select hyperslab for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    ! Create a dataspace for the data to be written.
+    datasetRank=4
+    call h5screate_simple_f(datasetRank,datasetDimensions,newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="could not create dataspace for data to be written to dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Write the dataset.
+    allocate(datasetValueContiguous,mold=datasetValue)
+    datasetValueContiguous=datasetValue
+    dataBuffer=c_loc(datasetValueContiguous)
+    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    if (errorCode /= 0) then
+       message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    deallocate(datasetValueContiguous)
+
+    ! Close the dataspaces.
+    call h5sclose_f(dataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+    call h5sclose_f(newDataspaceID,errorCode)
+    if (errorCode < 0) then
+       message="unable to close new dataspace for dataset '"//trim(datasetNameActual)//"'"
+       call Error_Report(message//{introspection:location})
+    end if
+
+    ! Copy the dataset to return if necessary.
+    if (present(datasetReturned)) datasetReturned=datasetObject
+    return
+  end subroutine IO_HDF5_Write_Dataset_Integer8_4D
+  
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , h5sselect_elements_f, &
@@ -7193,7 +7307,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -7453,28 +7567,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a long integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a long integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -7567,7 +7675,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -7824,28 +7932,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -7940,7 +8042,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -8204,28 +8306,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -8319,7 +8415,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -8580,28 +8676,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_2D_Array_Allocatable
-
+  
   subroutine IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F             , H5S_SELECT_SET_F           , hdset_reg_ref_t_f   , &
@@ -8696,7 +8786,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -8961,28 +9051,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_3D_Array_Allocatable
   
   subroutine IO_HDF5_Write_Dataset_Double_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -9055,7 +9139,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,1)
@@ -9141,19 +9225,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_1D
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -9246,7 +9324,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -9503,28 +9581,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -9624,7 +9696,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -9881,28 +9953,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Double_2D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 2-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -9976,7 +10042,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
@@ -10074,19 +10140,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_2D
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Static(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -10181,7 +10241,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -10442,28 +10502,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 2-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -10558,7 +10612,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -10819,28 +10873,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Double_3D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 3-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -10914,7 +10962,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
@@ -11012,19 +11060,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_3D
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -11110,7 +11152,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -11299,28 +11341,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 3-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 3-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -11406,7 +11442,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -11595,28 +11631,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Double_4D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 4-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 4-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -11690,7 +11720,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 4D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
@@ -11788,19 +11818,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_4D
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -11886,7 +11910,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -12075,28 +12099,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 4-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 4-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12182,7 +12200,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -12371,28 +12389,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Double_5D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 5-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 5-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -12466,7 +12478,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 5D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
@@ -12564,19 +12576,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_5D
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12662,7 +12668,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -12851,28 +12857,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 5-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 5-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -12957,7 +12957,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -13146,28 +13146,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Double_6D(self,datasetValue,datasetName,comment,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a double 6-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a double 6-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_DOUBLE          , HID_T                , HSIZE_T   , &
@@ -13241,7 +13235,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeDouble,datasetDimensions,appendTo&
             &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 6D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,6)
@@ -13339,19 +13333,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Double_6D
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a double scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -13437,7 +13425,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -13626,28 +13614,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a double 6-D array dataset in {\normalfont \ttfamily self}.
+    Open and read a double 6-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F         , H5S_SELECT_SET_F      , H5T_NATIVE_DOUBLE          , &
@@ -13732,7 +13714,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -13921,28 +13903,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Double_6D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_Character_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a character 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a character 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_NATIVE_CHARACTER       , HID_T                , HSIZE_T   , &
@@ -14029,7 +14005,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeCharacter,datasetDimensions,useDataType&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeCharacter,datasetDimensions,useDataType&
             &=dataTypeID,appendTo =appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 1D integer.
        if (preExisted) call datasetObject%assertDatasetType([dataTypeID],1)
@@ -14122,19 +14098,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_Character_1D
 
   subroutine IO_HDF5_Write_Dataset_VarString_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying string 1-D array dataset in \mono{self}.
     !!}
     use :: HDF5           , only : hsize_t
     use :: String_Handling, only : Convert_VarString_To_Char
@@ -14156,14 +14126,14 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a character scalar dataset in {\normalfont \ttfamily self}.
+    Open and read a character scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
           &                                      HID_T             , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
           &                                      h5dread_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
           &                                      h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      h5tclose_f        , hdset_reg_ref_t_f     , hsize_t
+          &                                      hdset_reg_ref_t_f , hsize_t               , h5tclose_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
     implicit none
@@ -14245,7 +14215,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -14446,28 +14416,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer scalar dataset in {\normalfont \ttfamily self}.
+    Open and read an integer scalar dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
@@ -14556,7 +14520,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -14756,29 +14720,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-         ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
-
     return
   end subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable(self,datasetName,datasetValue)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
@@ -14833,7 +14790,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Get the datatype of this dataset.
@@ -14859,16 +14816,12 @@ attributeValue=trim(attributeValue)
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(self,datasetName,datasetValue,dataTypeSize)
-
-    ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable_Do_Read(self,datasetName,datasetValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array dataset in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -14892,13 +14845,13 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static(self,datasetName,datasetValue)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and read an varying string 1-D array dataset in \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
     implicit none
-    type     (varying_string), dimension(:), intent(  out)           :: datasetValue
+    type     (varying_string), dimension(:), intent(inout)           :: datasetValue
     class    (hdf5Object    )              , intent(inout)           :: self
     character(len=*         )              , intent(in   ), optional :: datasetName
     integer  (kind=HID_T    )                                        :: dataTypeID
@@ -14947,7 +14900,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Get the datatype of this dataset.
@@ -14973,21 +14926,17 @@ attributeValue=trim(attributeValue)
 
     ! Call wrapper routine that will do the remainder of the read.
     call IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(self,datasetName,datasetValue,dataTypeSize)
-
-    ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static
 
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(self,datasetName,datasetValue,dataTypeSize)
     !!{
-    Open and read an varying string 1-D array dataset in {\normalfont \ttfamily self} by creating a suitably-sized character variable into
+    Open and read an varying string 1-D array dataset in \mono{self} by creating a suitably-sized character variable into
     which it can be read.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), dimension(:)                 , intent(  out)           :: datasetValue
+    type     (varying_string  ), dimension(:)                 , intent(inout)           :: datasetValue
     class    (hdf5Object      )                               , intent(inout)           :: self
     character(len=*           )                               , intent(in   ), optional :: datasetName
     integer  (kind=SIZE_T     )                               , intent(in   )           :: dataTypeSize
@@ -15004,7 +14953,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length 1D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length 1D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -15364,10 +15313,7 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Input was a dataset object. Test if it was a reference.
        if (datasetObject%isReference()) then
           ! It was, so close the referenced dataset.
@@ -15385,7 +15331,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length $\times$ varying-length 1D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length $\times$ varying-length 1D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -15489,7 +15435,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -15757,28 +15703,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable
 
   subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a varying-length 2D double dataset in {\normalfont \ttfamily self}.
+    Open and read a varying-length 2D double dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
@@ -15804,7 +15744,7 @@ attributeValue=trim(attributeValue)
     type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i                 , j
-    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
          &                                                                                       memorySpaceID     , storedDatasetID
     logical                                                                                   :: isReference       , readSubsection
     type            (hdf5Object       )                                                       :: datasetObject
@@ -15879,7 +15819,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -16140,28 +16080,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
 
   subroutine IO_HDF5_Write_Dataset_VarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length double 1-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length double 1-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16331,19 +16265,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_VarDouble_1D
   
   subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length $\times$ varying-length 1D double array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length $\times$ varying-length 1D double array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16521,19 +16449,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_VarVarDouble_1D
 
   subroutine IO_HDF5_Write_Dataset_VarDouble_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a varying-length double 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a varying-length double 2-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -16705,19 +16627,13 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_VarDouble_2D
   
   subroutine IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable(self,datasetName,datasetValue,readBegin,readCount,readSelection)
     !!{
-    Open and read a variable-length integer-8 2D array dataset in {\normalfont \ttfamily self}.
+    Open and read a variable-length integer-8 2D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , hdset_reg_ref_t_f          , &
@@ -16818,7 +16734,7 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName)
+       datasetObject=self%openDataset(datasetName)
     end if
 
     ! Check if the dataset is a reference.
@@ -17077,28 +16993,22 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Determine how to close the object.
-    if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) then
-       ! Input was not a dataset object, so just close it.
-       call datasetObject%close()
-    else
-       ! Input was a dataset object. Test if it was a reference.
-       if (datasetObject%isReference()) then
-          ! It was, so close the referenced dataset.
-          call h5dclose_f(datasetObject%objectID,errorCode)
-          if (errorCode < 0) then
-             message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          ! Restore the object ID of the original dataset.
-          self%objectID=storedDatasetID
+    if (self%hdf5ObjectType == hdf5ObjectTypeDataset .and. datasetObject%isReference()) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_VarInteger8_2D_Array_Allocatable
   
   subroutine IO_HDF5_Write_Dataset_VarInteger8_2D(self,datasetValue,datasetName,comment,appendTo,chunkSize,compressionLevel,datasetReturned)
     !!{
-    Open and write a variable-length integer-8 2-D array dataset in {\normalfont \ttfamily self}.
+    Open and write a variable-length integer-8 2-D array dataset in \mono{self}.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
@@ -17175,7 +17085,7 @@ attributeValue=trim(attributeValue)
        ! Record if dataset already exists.
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
-       datasetObject=IO_HDF5_Open_Dataset(self,datasetName,comment,hdf5DataTypeVlenInteger8,datasetDimensions,appendTo&
+       datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeVlenInteger8,datasetDimensions,appendTo&
             &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a variable-length 2D integer-8.
        if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_INTEGER8,1)
@@ -17268,13 +17178,7 @@ attributeValue=trim(attributeValue)
     end if
 
     ! Copy the dataset to return if necessary.
-    if (present(datasetReturned)) then
-       datasetReturned=datasetObject
-    else
-       ! Close the dataset unless this was an dataset object and it was not requested to be returned.
-       if (self%hdf5ObjectType /= hdf5ObjectTypeDataset) call datasetObject%close()
-    end if
-
+    if (present(datasetReturned)) datasetReturned=datasetObject
     return
   end subroutine IO_HDF5_Write_Dataset_VarInteger8_2D
   
@@ -17282,7 +17186,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Real_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real 1D array from a table {\normalfont \ttfamily self}.
+    Open and read a real 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17367,7 +17271,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Integer_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read an integer 1D array from a table {\normalfont \ttfamily self}.
+    Open and read an integer 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17450,7 +17354,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Integer8_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real scalar from a table {\normalfont \ttfamily self}.
+    Open and read a real scalar from a table \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: H5TB              , only : h5tbget_table_info_f
@@ -17536,7 +17440,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Read_Table_Character_1D_Array_Allocatable(self,tableName,columnName,datasetValue,readBegin,readCount)
     !!{
-    Open and read a real 1D array from a table {\normalfont \ttfamily self}.
+    Open and read a real 1D array from a table \mono{self}.
     !!}
     use :: Error             , only : Error_Report
     use :: H5TB              , only : h5tbget_table_info_f, h5tbread_field_name_f
@@ -17626,7 +17530,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 1-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 1-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17747,7 +17651,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_2D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 2-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 2-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17868,7 +17772,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_3D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 3-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 3-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -17989,7 +17893,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_4D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 4-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 4-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -18110,7 +18014,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Create_Reference_Scalar_To_5D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{
-    Create a scalar reference to the 5-D {\normalfont \ttfamily toDataset} in the HDF5 group {\normalfont \ttfamily fromGroup}.
+    Create a scalar reference to the 5-D \mono{toDataset} in the HDF5 group \mono{fromGroup}.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
@@ -18345,7 +18249,7 @@ attributeValue=trim(attributeValue)
        case (hdf5ObjectTypeFile     )
           !![
           <conditionalCall>
-           <call>call destination                  %openFile     (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+           <call>destination=hdf5Object                          (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
            <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
            <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
           </conditionalCall>
@@ -18367,12 +18271,88 @@ attributeValue=trim(attributeValue)
           </conditionalCall>
           !!]
        case (hdf5ObjectTypeAttribute)
-          destination               =self%parentObject%openAttribute(char(self%objectName)                                         ,     isOverwritable=self%isOverwritable            )
+          destination               =self%parentObject%openAttribute(char(self%objectName)                                      ,     isOverwritable=self%isOverwritable            )
        case default
           call Error_Report(var_str('unknown HDF5 object type')//self%locationReport()//{introspection:location})
        end select
     end if
     return
   end subroutine IO_HDF5_Deep_Copy
+
+  subroutine IO_HDF5_Write_Attribute_Units_Scalar(self,attributeValue,attributeName)
+    !!{
+    Write a \mono{unitType} compound scalar attribute to \mono{self}. The attribute is written using a custom HDF5 compound
+    datatype whose layout is defined in \mono{hdf5\_cTypes.c} via \mono{HDF5\_Unit\_Type\_Create()}.
+    !!}
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : HID_T          , h5aclose_f    , h5acreate_f , &
+         &                                       h5aopen_f      , h5screate_f   , h5sclose_f  , &
+         &                                       h5tclose_f     , H5S_SCALAR_F
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)  , trim, char
+    implicit none
+    class    (hdf5Object    ), intent(inout)           :: self
+    type     (unitType      ), intent(in   ), target   :: attributeValue
+    character(len=*         ), intent(in   ), optional :: attributeName
+    integer  (kind=HID_T    )                          :: compoundTypeID     , dataspaceID, &
+         &                                                attributeID
+    integer                                            :: errorCode
+    type     (varying_string)                          :: attributeNameActual, message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized()
+    ! Determine attribute name.
+    if (present(attributeName)) then
+       attributeNameActual=trim(attributeName)
+    else
+       attributeNameActual=self%objectName
+    end if
+    ! Ensure the object is open.
+    if (.not.self%isOpenValue) then
+       message="attempt to write units attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    ! Build the compound HDF5 type from the C helper.
+    compoundTypeID=HDF5_Unit_Type_Create()
+    ! If the attribute already exists, open it; otherwise create it.
+    if (IO_HDF5_Has_Attribute(self,char(attributeNameActual))) then
+       call h5aopen_f(self%objectID,char(attributeNameActual),attributeID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to open existing units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+    else
+       ! Create a scalar dataspace and then the attribute.
+       call h5screate_f(H5S_SCALAR_F,dataspaceID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to create scalar dataspace for units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       call h5acreate_f(self%objectID,char(attributeNameActual),compoundTypeID,dataspaceID,attributeID,errorCode)
+       if (errorCode /= 0) then
+          message="unable to create units attribute '"//char(attributeNameActual)//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       call h5sclose_f(dataspaceID,errorCode)
+    end if
+    ! Write using the C-level H5Awrite so compound data passes through c_loc correctly.
+    errorCode=int(H5Awrite(attributeID,compoundTypeID,c_loc(attributeValue)))
+    if (errorCode /= 0) then
+       message="unable to write units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    ! Cleanup.
+    call h5aclose_f(attributeID   ,errorCode)
+    if (errorCode /= 0) then
+       message="failed to close units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    call h5tclose_f(compoundTypeID,errorCode)
+    if (errorCode /= 0) then
+       message="failed to close datatype for units attribute '"//trim(attributeNameActual)//"'"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+    return
+  end subroutine IO_HDF5_Write_Attribute_Units_Scalar
 
 end module IO_HDF5

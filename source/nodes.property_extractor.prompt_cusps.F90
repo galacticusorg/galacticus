@@ -54,11 +54,12 @@
      procedure :: names              => promptCuspsNames
      procedure :: descriptions       => promptCuspsDescriptions
      procedure :: unitsInSI          => promptCuspsUnitsInSI
+     procedure :: units       => promptCuspsUnits
   end type nodePropertyExtractorPromptCusps
 
   interface nodePropertyExtractorPromptCusps
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPromptCusps} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
      !!}
      module procedure promptCuspsConstructorParameters
      module procedure promptCuspsConstructorInternal
@@ -135,7 +136,7 @@ contains
 
   integer function promptCuspsElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily promptCusps} property extractors.
+    Return the number of elements in the \mono{promptCusps} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout) :: self
@@ -148,7 +149,7 @@ contains
 
   function promptCuspsExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily promptCusps} property extractor.
+    Implement a \mono{promptCusps} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -209,7 +210,7 @@ contains
 
   subroutine promptCuspsNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily promptCusps} properties.
+    Return the names of the \mono{promptCusps} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -229,7 +230,7 @@ contains
 
   subroutine promptCuspsDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily promptCusps} property.
+    Return descriptions of the \mono{promptCusps} property.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -249,7 +250,7 @@ contains
 
   function promptCuspsUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily PromptCusps} properties in the SI system.
+    Return the units of the \mono{PromptCusps} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -269,4 +270,25 @@ contains
          &               ]
     return
   end function promptCuspsUnitsInSI
-  
+
+  function promptCuspsUnits(self,time) result(units)
+    !!{
+    Return the units of the promptCusps properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorPromptCusps), intent(inout)              :: self
+    double precision                                  , intent(in   )              :: time
+    double precision                                  , dimension(:) , allocatable :: siValues
+
+    siValues=self%unitsInSI(time)
+    allocate(units(6))
+    units(1)=unitType(siValues(1),description='M☉/Mpc^-1.5' ,quantity='solMass/Mpc^(3/2)')
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass'          )
+    units(3)=unitType(siValues(3)                                                        )
+    units(4)=unitType(siValues(4),description='Mpc'         ,quantity='Mpc'              )
+    units(5)=unitType(siValues(5),description='M☉/Mpc³'     ,quantity='solMass/Mpc**3'   )
+    units(6)=unitType(siValues(6),description='Mpc'         ,quantity='Mpc'              )
+    return
+  end function promptCuspsUnits

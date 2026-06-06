@@ -25,8 +25,8 @@
   <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
    <description>
     A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-    physical conditions. The populations to use are specified by the {\normalfont \ttfamily [stellarPopulationDisk]} and
-    {\normalfont \ttfamily [stellarPopulationSpheroid]} parameters.
+    physical conditions. The populations to use are specified by the \mono{[stellarPopulationDisk]} and
+    \mono{[stellarPopulationSpheroid]} parameters.
    </description>
   </stellarPopulationSelector>
   !!]
@@ -54,7 +54,7 @@ contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population class which takes a parameter list as input.
+    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass

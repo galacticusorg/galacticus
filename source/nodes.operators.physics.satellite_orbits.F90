@@ -23,9 +23,12 @@
   Implements a node operator class that propagates satellite halos along their orbits.
   !!}
 
+  use :: Satellites_Bound_Mass_Initialize, only : satelliteMassBoundInitializorClass
+  use :: Virial_Orbits                   , only : virialOrbitClass
+
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit">
-   <description>A node operator class that propagates satellite halos along their orbits.</description>
+   <description>A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo, updating position and velocity at each ODE timestep via the equations of motion in the host potential. \mono{trackPreInfallOrbit} enables approximate orbit integration before formal infall, which is useful for modeling pre-infall tidal effects and environmental processes.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrbit
@@ -33,9 +36,15 @@
      A node operator class that propagates satellite halos along their orbits.
      !!}
      private
-     logical :: trackPreInfallOrbit
-     integer :: rateGrowthMassBoundID
+     class  (virialOrbitClass                   ), pointer :: virialOrbit_                   => null()
+     class  (satelliteMassBoundInitializorClass ), pointer :: satelliteMassBoundInitializor_ => null()
+     logical                                               :: trackPreInfallOrbit                     , acceptUnboundOrbits, &
+          &                                                   initializeOnly
+     integer                                               :: rateGrowthMassBoundID
    contains
+     final     ::                          satelliteOrbitDestructor
+     procedure :: autoHook              => satelliteOrbitAutoHook
+     procedure :: nodeTreeInitialize    => satelliteOrbitNodeTreeInitialize
      procedure :: nodeInitialize        => satelliteOrbitNodeInitialize
      procedure :: nodePromote           => satelliteOrbitNodePromote
      procedure :: nodesMerge            => satelliteOrbitNodeMerge
@@ -66,9 +75,12 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorSatelliteOrbit)                :: self
-    type   (inputParameters           ), intent(inout) :: parameters
-    logical                                            :: trackPreInfallOrbit
+    type   (nodeOperatorSatelliteOrbit        )                :: self
+    type   (inputParameters                   ), intent(inout) :: parameters
+    class  (virialOrbitClass                  ), pointer       :: virialOrbit_
+    class  (satelliteMassBoundInitializorClass), pointer       :: satelliteMassBoundInitializor_
+    logical                                                    :: trackPreInfallOrbit           , acceptUnboundOrbits, &
+         &                                                        initializeOnly
 
     !![
     <inputParameter>
@@ -77,26 +89,50 @@ contains
       <description>If true, (approximately) track the orbits of halos prior to infall.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>acceptUnboundOrbits</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>initializeOnly</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, orbits are initialized, but not evolved.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="virialOrbit"                   name="virialOrbit_"                   source="parameters"/>
+    <objectBuilder class="satelliteMassBoundInitializor" name="satelliteMassBoundInitializor_" source="parameters"/>
     !!]
-    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit)
+    self=nodeOperatorSatelliteOrbit(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialOrbit_"                  />
+    <objectDestructor name="satelliteMassBoundInitializor_"/>
     !!]
     return
   end function satelliteOrbitConstructorParameters
   
-  function satelliteOrbitConstructorInternal(trackPreInfallOrbit) result(self)
+  function satelliteOrbitConstructorInternal(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorSatelliteOrbit)                :: self
-    logical                            , intent(in   ) :: trackPreInfallOrbit
+    type   (nodeOperatorSatelliteOrbit        )                        :: self
+    logical                                    , intent(in   )         :: trackPreInfallOrbit           , acceptUnboundOrbits, &
+         &                                                                initializeOnly
+    class  (virialOrbitClass                  ), intent(in   ), target :: virialOrbit_
+    class  (satelliteMassBoundInitializorClass), intent(in   ), target :: satelliteMassBoundInitializor_
     !![
-    <constructorAssign variables="trackPreInfallOrbit"/>
+    <constructorAssign variables="trackPreInfallOrbit, acceptUnboundOrbits, initializeOnly, *virialOrbit_, *satelliteMassBoundInitializor_"/>
     !!]
 
+    ! Validate.
+    !! Check that the virial orbit class supports setting of angular coordinates.
+    if (.not.self%virialOrbit_%isAngularlyResolved()) call Error_Report('this `nodeOperator` requires a `virialOrbit` implementation which provides angularly-resolved orbits'//{introspection:location})
+    ! Add pre-infall properties if needed.
     if (self%trackPreInfallOrbit) then
        !![
        <addMetaProperty component="satellite" name="rateGrowthMassBound" id="self%rateGrowthMassBoundID" isEvolvable="no" isCreator="yes"/>
@@ -104,6 +140,104 @@ contains
     end if
     return
   end function satelliteOrbitConstructorInternal
+
+  subroutine satelliteOrbitAutoHook(self)
+    !!{
+    Attach to the subhalo orbit initialization event.
+    !!}
+    use :: Events_Hooks, only : subhaloOrbitInitializationEvent, openMPThreadBindingAtLevel
+    implicit none
+    class(nodeOperatorSatelliteOrbit), intent(inout) :: self
+
+    call subhaloOrbitInitializationEvent%attach(self,subhaloOrbitInitialize,openMPThreadBindingAtLevel,label='nodeOperatorSatelliteOrbits')
+    return
+  end subroutine satelliteOrbitAutoHook
+
+  subroutine satelliteOrbitDestructor(self)
+    !!{
+    Destructor for the \refClass{nodeOperatorSatelliteOrbit} node operator function class.
+    !!}
+    use :: Events_Hooks, only : subhaloOrbitInitializationEvent
+    implicit none
+    type(nodeOperatorSatelliteOrbit), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%virialOrbit_"                  />
+    <objectDestructor name="self%satelliteMassBoundInitializor_"/>
+    !!]
+    if (subhaloOrbitInitializationEvent%isAttached(self,subhaloOrbitInitialize)) call subhaloOrbitInitializationEvent%detach(self,subhaloOrbitInitialize)
+    return
+  end subroutine satelliteOrbitDestructor
+
+  subroutine subhaloOrbitInitialize(self,node,orbitIsDefined)
+    !!{
+    Initialize a new subhalo orbit.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite
+    use :: Kepler_Orbits   , only : keplerOrbit
+    implicit none
+    class  (*                     ), intent(inout)           :: self
+    type   (treeNode              ), intent(inout)           :: node
+    logical                        , intent(in   ), optional :: orbitIsDefined
+    class  (nodeComponentSatellite), pointer                 :: satellite
+    type   (treeNode              ), pointer                 :: nodeHost
+    type   (keplerOrbit           )                          :: orbit
+    logical                                                  :: isNewSatellite, orbitIsDefined_
+    
+    select type (self)
+    class is (nodeOperatorSatelliteOrbit)
+       ! Get the satellite component.
+       satellite => node%satellite()
+       ! Determine if the satellite component exists already.
+       isNewSatellite=.false.
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          isNewSatellite=.true.
+       end select
+       ! If this is a new satellite, create the component and set the bound mass.
+       if (isNewSatellite) then
+          satellite => node%satellite(autoCreate=.true.)
+          call satellite%boundMassSet(self%satelliteMassBoundInitializor_%massBound(node))
+       end if
+       ! Create an orbit for the satellite if needed.
+       if (present(orbitIsDefined)) then
+          orbitIsDefined_=orbitIsDefined
+       else
+          orbit          =satellite%virialOrbit()
+          orbitIsDefined_=orbit    %isDefined  ()
+       end if
+       if (.not.orbitIsDefined_) then
+          ! Get an orbit for this satellite.
+          if (node%isSatellite()) then
+             nodeHost => node%parent
+          else
+             nodeHost => node%parent%firstChild
+          end if
+          orbit=self%virialOrbit_%orbit(node,nodeHost,self%acceptUnboundOrbits)
+          ! Store the orbit.
+          call satellite%virialOrbitSet(orbit)
+       end if
+    class default
+       call Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine subhaloOrbitInitialize
+
+  subroutine satelliteOrbitNodeTreeInitialize(self,node)
+    !!{
+    Initialize orbits for any initial subhalos.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSatellite
+    implicit none
+    class(nodeOperatorSatelliteOrbit), intent(inout), target  :: self
+    type (treeNode                  ), intent(inout), target  :: node
+    class(nodeComponentSatellite    )               , pointer :: satellite
+
+    ! If this node is an initial subhalo - create a satellite component in it.
+    if (node%isSatellite()) call subhaloOrbitInitialize(self,node)
+    return
+  end subroutine satelliteOrbitNodeTreeInitialize
   
   subroutine satelliteOrbitNodeInitialize(self,node)
     !!{
@@ -119,10 +253,10 @@ contains
     type            (treeNode                  )               , pointer :: nodeHost
     class           (nodeComponentBasic        )               , pointer :: basicHost            , basicProgenitor
     class           (nodeComponentSatellite    )               , pointer :: satellite            , satelliteProgenitor
-    type            (odeSolver                 ), allocatable            :: solver
     double precision                            , dimension(3)           :: positionProgenitor   , velocityProgenitor, &
          &                                                                  positionDescendent   , velocityEffective
     double precision                            , dimension(6)           :: phaseSpaceCoordinates
+    type            (odeSolver                 )                         :: solver
     type            (keplerOrbit               )                         :: orbit
     double precision                                                     :: time                 , timeProgenitor     , &
          &                                                                  timeDescendent       , massBoundDescendent, &
@@ -145,7 +279,6 @@ contains
     massBound          =  satellite     %boundMass  (                 )
     time               =  basicHost     %time       (                 )
     ! Integrate the orbit backward in time to each progenitor halo.
-    allocate(solver)
     solver         =  odeSolver(6_c_size_t,orbitalODEs,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-6)
     self_          => self
     do while (associated(nodeProgenitor))
@@ -182,7 +315,6 @@ contains
        time           =  timeProgenitor
        nodeProgenitor => nodeProgenitor%firstChild
     end do
-    deallocate(solver)
     return
   end subroutine satelliteOrbitNodeInitialize
   
@@ -193,7 +325,7 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly, massTypeDark
     use :: Interface_GSL                   , only : GSL_Success
-    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec, gravitationalConstant_internal, MpcPerKmPerSToGyr  
+    use :: Numerical_Constants_Astronomical, only : gigaYear                   , megaParsec, gravitationalConstant_internal, MpcPerKmPerSToGyr
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Vectors                         , only : Vector_Magnitude
@@ -294,6 +426,7 @@ contains
 
     if (.not.self%trackPreInfallOrbit  ) return
     if (     node%isOnMainBranch     ()) return
+    if (     self%initializeOnly       ) return
     satellite       => node       %satellite()
     satelliteParent => node%parent%satellite()   
     call        satellite%              positionSet(                           satelliteParent%position                 (                          ))
@@ -307,26 +440,11 @@ contains
     !!{
     Act on a merger between nodes.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Kepler_Orbits   , only : keplerOrbit
-    use :: Coordinates     , only : assignment(=)
     implicit none
-    class           (nodeOperatorSatelliteOrbit), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    class           (nodeComponentSatellite    ), pointer       :: satellite
-    type            (keplerOrbit               )                :: orbit
-    double precision                            , dimension(3)  :: position , velocity
+    class(nodeOperatorSatelliteOrbit), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
 
-    if (.not.self%trackPreInfallOrbit  ) return
-    if (     node%isOnMainBranch     ()) return
-    satellite => node     %satellite  ()
-    orbit     =  satellite%virialOrbit()
-    if (orbit%isDefined()) then
-       position=orbit%position()
-       velocity=orbit%velocity()
-       call satellite%positionSet(position)
-       call satellite%velocitySet(velocity)
-    end if
+    call subhaloOrbitInitialize(self,node)
     return
   end subroutine satelliteOrbitNodeMerge
 
@@ -360,6 +478,8 @@ contains
     ! Ignore the main branch, and non-satellites unless we are tracking pre-infall orbits.
     if     (                                   &
          &          node%isOnMainBranch     () &
+         &  .or.                               &
+         &          self%initializeOnly        &
          &  .or.                               &
          &   (                                 &
          &     .not.self%trackPreInfallOrbit   &

@@ -23,7 +23,7 @@
 
   !![
   <cosmologyParameters name="cosmologyParametersSimple">
-   <description>Provides basic cosmological parameters: $(H_0,\Omega_\mathrm{M},\Omega_\Lambda,\Omega_\mathrm{b},T_\mathrm{CMB})$. Also provides derived quantities $(\Omega_\mathrm{K},\Omega_\mathrm{r},\rho_\mathrm{crit})$.</description>
+   <description>Provides basic cosmological parameters including the matter density $\Omega_\mathrm{M}$, baryon density $\Omega_\mathrm{b}$, dark energy density $\Omega_\Lambda$, \gls{cmb} temperature $T_\mathrm{CMB}$, and Hubble constant $H_0$, all specified as input parameters. Also computes derived quantities including the curvature density $\Omega_\mathrm{K}$, radiation density $\Omega_\mathrm{r}$, and critical density $\rho_\mathrm{crit}$.</description>
   </cosmologyParameters>
   !!]
   type, extends(cosmologyParametersClass) :: cosmologyParametersSimple
@@ -242,7 +242,7 @@ contains
 
   double precision function simpleDensityCritical(self)
     !!{
-    Return the present day critical density of the Universe in units of $M_\odot$/Mpc$^3$.
+    Return the present day critical density of the Universe in units of $\mathrm{M}_\odot$/Mpc$^3$.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

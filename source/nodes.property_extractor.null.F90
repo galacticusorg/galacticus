@@ -23,7 +23,7 @@ Implements a null output analysis class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNull">
-   <description>A null output analysis property extractor class.</description>
+   <description>A no-op property extractor that returns no output, used as a placeholder or default when no property extraction is required, primarily useful in testing or when an extractor slot must be filled without producing output.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorNull
@@ -37,7 +37,7 @@ Implements a null output analysis class.
 
   interface nodePropertyExtractorNull
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNull} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNull} property extractor class.
      !!}
      module procedure nullConstructorParameters
   end interface nodePropertyExtractorNull
@@ -46,7 +46,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorNull} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorNull} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

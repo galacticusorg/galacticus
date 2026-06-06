@@ -29,8 +29,7 @@
   <radiationField name="radiationFieldIntergalacticBackgroundFile">
    <description>
     A radiation field class for intergalactic background light with properties read from file. The flux is determined by
-    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by {\normalfont \ttfamily
-    [fileName]}. An example of the required file structure for XML files is:
+    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by \mono{[fileName]}. An example of the required file structure for XML files is:
     \begin{verbatim}
     &lt;spectrum>
       &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
@@ -58,13 +57,10 @@
       &lt;/spectra>
     &lt;/spectrum>
     \end{verbatim}
-    The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
-    {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
-    wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in
-    increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
-    \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
-    redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum}
-    elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must
+    The optional \mono{URL}, \mono{description}, \mono{reference} and
+    \mono{source} elements can be used to give the provenance of the data. The \mono{wavelengths} element should contain a set of \mono{datum} elements each containing a wavelength (in
+    increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple \mono{spectra} elements can be given, each specifying the spectrum at a redshift as given in the \mono{redshift} element. Each \mono{spectra} element must contain an array of \mono{datum}
+    elements that gives the spectrum at each wavelength listed in the \mono{wavelength} element. Spectra must
     be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
    </description>
    <runTimeFileDependencies paths="fileName"/>
@@ -215,7 +211,7 @@ contains
     else if (extract(fileName,len(fileName)-4,len(fileName)) == ".hdf5") then
        ! HDF5 file.
        !$ call hdf5Access%set()
-       call file%openFile(char(self%fileName),readOnly=.true.)
+       file=hdf5Object(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -242,7 +238,6 @@ contains
              self%spectra(:,iSpectrum)=spectraTmp(:,self%spectraTimesCount+1-iSpectrum)
           end do
        end if
-       call file%close()
        !$ call hdf5Access%unset()
     else
        call Error_Report('unrecognized file format'//{introspection:location})

@@ -32,10 +32,13 @@ module Galactic_Filters
   <functionClass>
    <name>galacticFilter</name>
    <descriptiveName>Galactic Filter</descriptiveName>
-   <description>Object providing boolean filters acting on galaxies.</description>
+   <description>Object providing boolean filters that select or reject galaxies (nodes) based on their properties.
+    Filters are used to restrict output analyses, apply selection criteria matching observational surveys, or limit
+    processing to specific galaxy populations. Multiple filters can be combined using logical \mono{and}, \mono{or},
+    and \mono{not} operations to build complex selection functions.</description>
    <default>always</default>
    <method name="passes" >
-    <description>Return true if the given {\normalfont \ttfamily node} passes the filter.</description>
+    <description>Return true if the given \mono{node} passes the filter.</description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>

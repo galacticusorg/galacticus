@@ -30,7 +30,8 @@ module Root_Finder
   !!{
   Implements root finding.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_null_ptr, c_ptr
+  use, intrinsic :: ISO_C_Binding   , only : c_double       , c_int, c_null_ptr, c_ptr
+  use            :: Resource_Manager, only : resourceManager
   implicit none
   private
   public :: rootFinder
@@ -39,7 +40,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>rangeExpand</name>
-   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a \mono{rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="null"           />
    <entry label="additive"       />
@@ -51,7 +52,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>rangeExpandSignExpect</name>
-   <description>Used to specify the expected sign of the root function when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the expected sign of the root function when searching for roots using a \mono{rootFinder} object.</description>
    <entry label="negative" />
    <entry label="none"     />
    <entry label="positive" />
@@ -62,7 +63,7 @@ module Root_Finder
   !![
   <enumeration>
    <name>stoppingCriterion</name>
-   <description>Used to specify the stopping criterion to use when searching for roots using a {\normalfont \ttfamily rootFinder} object.</description>
+   <description>Used to specify the stopping criterion to use when searching for roots using a \mono{rootFinder} object.</description>
    <visibility>public</visibility>
    <entry label="delta"    />
    <entry label="interval" />
@@ -85,19 +86,39 @@ module Root_Finder
   integer, public, parameter :: gsl_root_fdfsolver_secant    =5
   integer, public, parameter :: gsl_root_fdfsolver_steffenson=6
 
+  type :: gslFunctionWrapper
+     !!{
+     Wrapper class for managing GSL functions.
+     !!}
+     type(c_ptr) :: gsl=c_null_ptr
+   contains
+     final :: gslFunctionWrapperDestructor
+  end type gslFunctionWrapper
+  
+  type :: gslSolverWrapper
+     !!{
+     Wrapper class for managing GSL solvers.
+     !!}
+     logical        :: useDerivative
+     type   (c_ptr) :: gsl          =c_null_ptr
+   contains
+     final :: gslSolverWrapperDestructor
+  end type gslSolverWrapper
+  
   type :: rootFinder
      !!{
      Type containing all objects required when calling the GSL root solver function.
      !!}
      private
-     type            (c_ptr                               )                  :: gslFunction                  =c_null_ptr
-     type            (c_ptr                               )                  :: solver                       =c_null_ptr
-     type            (c_ptr                               )                  :: solverType                   =c_null_ptr
+     type            (gslSolverWrapper                    ), pointer         :: solver                       => null()
+     type            (gslFunctionWrapper                  ), pointer         :: gslFunction                  => null()
+     type            (c_ptr                               )                  :: solverType                   =  c_null_ptr
+     type            (resourceManager                     )                  :: solverManager                             , functionManager
      integer                                                                 :: solverTypeID
      double precision                                                        :: toleranceAbsolute
      double precision                                                        :: toleranceRelative
      logical                                                                 :: initialized
-     logical                                                                 :: functionInitialized          =.false.
+     logical                                                                 :: functionInitialized          =  .false.
      logical                                                                 :: resetRequired
      logical                                                                 :: useDerivative
      logical                                                                 :: testLimits
@@ -117,22 +138,19 @@ module Root_Finder
    contains
      !![
      <methods>
-       <method description="Set the function that evaluates $f(x)$ to use in a {\normalfont \ttfamily rootFinder} object."                                          method="rootFunction"          />
-       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a {\normalfont \ttfamily rootFinder} object."                          method="rootFunctionDerivative"/>
-       <method description="Set the type of algorithm to use in a {\normalfont \ttfamily rootFinder} object."                                                       method="type"                  />
-       <method description="Set the tolerance to use in a {\normalfont \ttfamily rootFinder} object."                                                               method="tolerance"             />
-       <method description="Specify how the initial range will be expanded in a {\normalfont \ttfamily rootFinder} object to bracket the root."                     method="rangeExpand"           />
+       <method description="Set the function that evaluates $f(x)$ to use in a \mono{rootFinder} object."                                          method="rootFunction"          />
+       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a \mono{rootFinder} object."                          method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a \mono{rootFinder} object."                                                       method="type"                  />
+       <method description="Set the tolerance to use in a \mono{rootFinder} object."                                                               method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a \mono{rootFinder} object to bracket the root."                     method="rangeExpand"           />
        <method description="Wrapper function to find the root of the function given an initial guess or range."                                                     method="find"                  />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFLower"        />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
        <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
-       <method description="Return the initialization state of a {\normalfont \ttfamily rootFinder} object."                                                        method="isInitialized"         />
-       <method description="Destroy the {\normalfont \ttfamily rootFinder} object."                                                                                 method="destroy"               />
+       <method description="Return the initialization state of a \mono{rootFinder} object."                                                        method="isInitialized"         />
        <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]
-     final     ::                            rootFinderDestructor
-     procedure :: destroy                 => rootFinderDestroy
      procedure :: rootFunction            => rootFinderRootFunction
      procedure :: rootFunctionDerivative  => rootFinderRootFunctionDerivative
      procedure :: type                    => rootFinderType
@@ -186,10 +204,22 @@ module Root_Finder
           &                                   fLowInitial             , fHighInitial
   end type rootFinderList
 
-  ! List of currently active root finders.
-  integer                                            :: currentFinderIndex=0
-  type   (rootFinderList), allocatable, dimension(:) :: currentFinders
-  !$omp threadprivate(currentFinders,currentFinderIndex)
+  ! List of currently active root finders. 'currentFinder' is a hot-path
+  ! pointer into 'currentFinders' at the active depth; the GSL wrappers
+  ! follow it on every callback instead of indexing the array each time.
+  !
+  ! Lifetime invariant for 'currentFinder': it is (re)bound on entry to
+  ! 'rootFinderFind' AFTER any growth of 'currentFinders' for this frame
+  ! has happened, and rebound by 'popCurrentFinder' from
+  ! 'currentFinders(currentFinderIndex)' on every exit (normal or early)
+  ! so that, after a recursive call that grew the array, the caller's
+  ! pointer is refreshed against the new array before control returns.
+  ! No other code path resizes 'currentFinders', so the pointer cannot
+  ! dangle for a frame that is currently using it.
+  integer                                                     :: currentFinderIndex =  0
+  type   (rootFinderList), allocatable, dimension(:), target  :: currentFinders
+  type   (rootFinderList)                           , pointer :: currentFinder      => null()
+  !$omp threadprivate(currentFinders,currentFinderIndex,currentFinder)
 
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
@@ -312,7 +342,7 @@ module Root_Finder
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
        !!{
-       Template for GSL interface {\normalfont \ttfamily fsolver} type function.
+       Template for GSL interface \mono{fsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
@@ -321,7 +351,7 @@ module Root_Finder
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
        !!{
-       Template for GSL interface {\normalfont \ttfamily fdfsolver} type function.
+       Template for GSL interface \mono{fdfsolver} type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
@@ -351,29 +381,29 @@ contains
     procedure       (rootFunctionBothTemplate            )               , optional :: rootFunctionBoth
     
     ! Initialize GSL objects to null pointers.
-    self%gslFunction                  =c_null_ptr
-    self%solver                       =c_null_ptr
-    self%solverType                   =c_null_ptr
+    self%gslFunction                  => null()
+    self%solver                       => null()
+    self%solverType                   =  c_null_ptr
     ! Initialize to a null solver type.
-    self%solverTypeID                 =0
+    self%solverTypeID                 =  0
     ! Initialize to tolerances at machine precision.
-    self%toleranceAbsolute            =        0.0d0
-    self%toleranceRelative            =epsilon(0.0d0)
+    self%toleranceAbsolute            =          0.0d0
+    self%toleranceRelative            =  epsilon(0.0d0)
     ! Initialize state.
-    self%initialized                  =.false.
-    self%functionInitialized          =.false.
-    self%resetRequired                =.false.
-    self%useDerivative                =.false.
+    self%initialized                  =  .false.
+    self%functionInitialized          =  .false.
+    self%resetRequired                =  .false.
+    self%useDerivative                =  .false.
     ! Initialize range expansion to no expansion.
-    self%rangeExpandType              =rangeExpandNull
-    self%rangeExpandUpward            =1.0d0
-    self%rangeExpandDownward          =1.0d0
-    self%rangeUpwardLimitSet          =.false.
-    self%rangeDownwardLimitSet        =.false.
-    self%rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
-    self%rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
+    self%rangeExpandType              =  rangeExpandNull
+    self%rangeExpandUpward            =  1.0d0
+    self%rangeExpandDownward          =  1.0d0
+    self%rangeUpwardLimitSet          =  .false.
+    self%rangeDownwardLimitSet        =  .false.
+    self%rangeExpandDownwardSignExpect=  rangeExpandSignExpectNone
+    self%rangeExpandUpwardSignExpect  =  rangeExpandSignExpectNone
     ! Initialize stopping criterion to an interval test.
-    self%stoppingCriterion            =stoppingCriterionInterval
+    self%stoppingCriterion            =  stoppingCriterionInterval
     ! If functions are provided, set them.
     if (present(rootFunction)) then
        if (present(rootFunctionDerivative).or.present(rootFunctionBoth)) then
@@ -403,41 +433,37 @@ contains
     call self%rangeExpand(rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     return
   end function rootFinderConstructorInternal
-  
-  subroutine rootFinderDestroy(self)
+
+  subroutine gslFunctionWrapperDestructor(self)
     !!{
-    Destroy a root finder object.
+    Destroy a \mono{gslFunctionWrapper} object.
     !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
-    class(rootFinder), intent(inout) :: self
+    type(gslFunctionWrapper), intent(inout) :: self
 
-    if (self%functionInitialized) then
-       if (self%useDerivative) then
-          call GSL_Root_FdFSolver_Free(self%solver)
-       else
-          call GSL_Root_FSolver_Free  (self%solver)
-       end if
-       call gslFunctionDestroy(self%gslFunction)
-       self%functionInitialized=.false.
-    end if
+    call gslFunctionDestroy(self%gsl)
     return
-  end subroutine rootFinderDestroy
+  end subroutine gslFunctionWrapperDestructor
 
-  subroutine rootFinderDestructor(self)
+  subroutine gslSolverWrapperDestructor(self)
     !!{
-    Finalize a root finder object.
+    Destroy a \mono{gslSolverWrapper} object.
     !!}
     implicit none
-    type(rootFinder), intent(inout) :: self
+    type(gslSolverWrapper), intent(inout) :: self
 
-    call self%destroy()
+    if (self%useDerivative) then
+       call GSL_Root_FdFSolver_Free(self%gsl)
+    else
+       call GSL_Root_FSolver_Free  (self%gsl)
+    end if
     return
-  end subroutine rootFinderDestructor
+  end subroutine gslSolverWrapperDestructor
 
   logical function rootFinderIsInitialized(self)
     !!{
-    Return whether a {\normalfont \ttfamily rootFinder} object is initialized.
+    Return whether a \mono{rootFinder} object is initialized.
     !!}
     implicit none
     class(rootFinder), intent(in   ) :: self
@@ -482,7 +508,13 @@ contains
        rootRangeValues=-huge(0.0d0)
     else
        rootRangeValues(1)=self%finderFunction(rootRange(1))
-       rootRangeValues(2)=self%finderFunction(rootRange(2))
+       if (rootRange(2) == rootRange(1)) then
+          ! Degenerate bracket (typical when dispatched from rootFinderFindGuess) — avoid the
+          ! redundant evaluation of the user function at the same point.
+          rootRangeValues(2)=rootRangeValues(1)
+       else
+          rootRangeValues(2)=self%finderFunction(rootRange(2))
+       end if
     end if
     rootFinderFindRange=self%find(rootRange,rootRangeValues,report,status)
     return
@@ -556,12 +588,12 @@ contains
 
   recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,report,status)
     !!{
-    Finds the root of the supplied {\normalfont \ttfamily root} function.
+    Finds the root of the supplied \mono{root} function.
     !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: Display           , only : displayMessage            , verbosityLevelWarn   , displayIndent     , displayUnindent
     use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
          &                                       GSL_Error_Handler_Abort_On
-    use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
     use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
@@ -570,6 +602,7 @@ contains
     logical                                             , intent(in   ), optional :: report
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
+    class           (*                   ), pointer                               :: dummyPointer_
     integer                               , parameter                             :: iterationMaximum =1000
     integer                               , parameter                             :: findersIncrement =   3
     logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
@@ -599,35 +632,86 @@ contains
        allocate(currentFinders(findersIncrement))
     end if
     currentFinders(currentFinderIndex)%finder => self
+    ! Bind 'currentFinder' to the (now stable) array slot. Any growth of
+    ! 'currentFinders' for this frame has already happened in the block
+    ! above; no later code path in 'rootFinderFind' resizes the array, so
+    ! this pointer remains valid for the lifetime of this frame except
+    ! across recursive calls — where 'popCurrentFinder' re-derives it
+    ! from the (possibly grown) array before control returns here.
+    currentFinder                             => currentFinders(currentFinderIndex)
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.self%functionInitialized.or.self%resetRequired) then
-          if (     self%functionInitialized  ) call GSL_Root_fdfSolver_Free(self%solver)
+          if (     self%functionInitialized  ) call self%solverManager%release()
           if (.not.self%solverTypeIsValid()) then
-             self%solverTypeID    =gsl_root_fdfsolver_steffenson
-             self%solverType      =gsl_fdfsolver_type_get  (self%solverTypeID)
+             self%solverTypeID                  =gsl_root_fdfsolver_steffenson
+             self%solverType                    =gsl_fdfsolver_type_get  (self%solverTypeID)
           end if
-          self%gslFunction        =gslFunctionFdF          (                               &
-               &                                            rootFunctionWrapper          , &
-               &                                            rootFunctionDerivativeWrapper, &
-               &                                            rootFunctionBothWrapper        &    
-               &                                           )
-          self%solver             =GSL_Root_fdfSolver_Alloc(self%solverType)
-          self%resetRequired      =.false.
-          self%functionInitialized=.true.
+          allocate(self%gslFunction)
+          allocate(self%solver     )
+          self%gslFunction        %gsl          =gslFunctionFdF          (                               &
+               &                                                          rootFunctionWrapper          , &
+               &                                                          rootFunctionDerivativeWrapper, &
+               &                                                          rootFunctionBothWrapper        &    
+               &                                                         )
+          self%solver             %gsl          =GSL_Root_fdfSolver_Alloc(self%solverType)
+          self%solver             %useDerivative=.true.
+          self%resetRequired                    =.false.
+          self%functionInitialized              =.true.
+          ! Initialize resource managers.
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%solver
+          self%solverManager   =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%gslFunction
+          self%functionManager =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
        end if
     else
        if (.not.self%functionInitialized.or.self%resetRequired) then
-          if (     self%functionInitialized  ) call GSL_Root_fSolver_Free(self%solver)
+          if (     self%functionInitialized  ) call self%solverManager%release()
           if (.not.self%solverTypeIsValid()) then
-             self%solverTypeID    =gsl_root_fsolver_brent
-             self%solverType      =gsl_fsolver_type_get  (self%solverTypeID           )
+             self%solverTypeID              =gsl_root_fsolver_brent
+             self%solverType                =gsl_fsolver_type_get  (self%solverTypeID           )
           end if
-          self%gslFunction        =gslFunction           (rootFunctionWrapper)
-          self%solver             =GSL_Root_fSolver_Alloc(self%solverType             )
-          self%resetRequired      =.false.
-          self%functionInitialized=.true.
-      end if
+          allocate(self%gslFunction)
+          allocate(self%solver     )
+          self%gslFunction        %gsl          =gslFunction           (rootFunctionWrapper)
+          self%solver             %gsl          =GSL_Root_fSolver_Alloc(self%solverType             )
+          self%solver             %useDerivative=.false.
+          self%resetRequired                    =.false.
+          self%functionInitialized              =.true.
+          ! Initialize resource managers.
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%solver
+          self%solverManager   =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+          !![
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+          !!]
+          dummyPointer_        => self%gslFunction
+          self%functionManager =  resourceManager(dummyPointer_)
+          !![
+	  </workaround>
+          !!]
+       end if
     end if
     ! Initialize range.
     xLow =rootRange(1)
@@ -652,9 +736,9 @@ contains
        end select
        if (.not.rangeLowerAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
-             currentFinderIndex=currentFinderIndex-1
-             rootFinderFind    =self%rangeDownwardLimit
+             status        =errorStatusOutOfRange
+             call popCurrentFinder()
+             rootFinderFind=self%rangeDownwardLimit
              return
           else
              message='root function has incorrect sign at downward limit'
@@ -683,9 +767,9 @@ contains
        end select
        if (.not.rangeUpperAsExpected) then
           if (present(status)) then
-             status            =errorStatusOutOfRange
-             currentFinderIndex=currentFinderIndex-1
-             rootFinderFind    =self%rangeUpwardLimit
+             status        =errorStatusOutOfRange
+             call popCurrentFinder()
+             rootFinderFind=self%rangeUpwardLimit
              return
           else
              message='root function has incorrect sign at upward limit'
@@ -707,10 +791,10 @@ contains
     ! Expand the range as necessary.
     if (self%useDerivative) then
        xRoot       =0.5d0*(xLow+xHigh)
-       statusActual=GSL_Root_fdfSolver_Set(self%solver,self%gslFunction,xRoot)
+       statusActual=GSL_Root_fdfSolver_Set(self%solver%gsl,self%gslFunction%gsl,xRoot)
     else
-       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
-       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+       currentFinder%lowInitialUsed =.true.
+       currentFinder%highInitialUsed=.true.
        fLow=rootRangeValues(1)
        if (xHigh == xLow) then
           ! If a root guess was used, the initial xHigh will equal xLow, so we can avoid re-evaluating the function here.
@@ -737,7 +821,7 @@ contains
           case default
              rangeUpperAsExpected=.false.
           end select
-          call reportState(includeExpectations=.true.)
+          if (report_) call reportState(includeExpectations=.true.)
           select case (self%rangeExpandType%ID)
           case (rangeExpandAdditive      %ID)
              if     (                                  &
@@ -862,7 +946,7 @@ contains
              end if
              if (present(status)) then
                 status=errorStatusOutOfRange
-                currentFinderIndex=currentFinderIndex-1
+                call popCurrentFinder()
                 return
              else
                 fLow =self%finderFunction(xLow )
@@ -898,17 +982,17 @@ contains
              end if
           end if
        end do
-       call reportState(includeExpectations=.false.)
+       if (report_) call reportState(includeExpectations=.false.)
        if (report_) call displayUnindent("done")
        ! Store the values of the function at the lower and upper extremes of the range.
-       currentFinders(currentFinderIndex)%xLowInitial    =xLow
-       currentFinders(currentFinderIndex)%xHighInitial   =xHigh
-       currentFinders(currentFinderIndex)%fLowInitial    =fLow
-       currentFinders(currentFinderIndex)%fHighInitial   =fHigh
-       currentFinders(currentFinderIndex)%lowInitialUsed =.false.
-       currentFinders(currentFinderIndex)%highInitialUsed=.false.
+       currentFinder%xLowInitial    =xLow
+       currentFinder%xHighInitial   =xHigh
+       currentFinder%fLowInitial    =fLow
+       currentFinder%fHighInitial   =fHigh
+       currentFinder%lowInitialUsed =.false.
+       currentFinder%highInitialUsed=.false.
        ! Set the initial range for the solver.
-       statusActual=GSL_Root_fSolver_Set(self%solver,self%gslFunction,xLow,xHigh)
+       statusActual=GSL_Root_fSolver_Set(self%solver%gsl,self%gslFunction%gsl,xLow,xHigh)
     end if
     ! Find the root.
     if (statusActual /= GSL_Success) then
@@ -925,16 +1009,16 @@ contains
        do
           iteration=iteration+1
           if (self%useDerivative) then
-             statusActual=GSL_Root_fdfSolver_Iterate(self%solver)
+             statusActual=GSL_Root_fdfSolver_Iterate(self%solver%gsl)
           else
-             statusActual=GSL_Root_fSolver_Iterate  (self%solver)
+             statusActual=GSL_Root_fSolver_Iterate  (self%solver%gsl)
           end if
           if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
           if (iteration > 1) then
              select case (self%stoppingCriterion%ID)
              case (stoppingCriterionDelta   %ID)
                 xRootPrevious=xRoot
-                xRoot        =GSL_Root_fdfSolver_Root(self%solver)
+                xRoot        =GSL_Root_fdfSolver_Root(self%solver%gsl)
                 if (report_) then
                    write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
                    message="xRoot, fRoot  = "//trim(label)
@@ -942,9 +1026,9 @@ contains
                 end if
                 statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
              case (stoppingCriterionInterval%ID)
-                xRoot =GSL_Root_fSolver_Root   (self%solver)
-                xLow  =GSL_Root_fSolver_x_Lower(self%solver)
-                xHigh =GSL_Root_fSolver_x_Upper(self%solver)
+                xRoot =GSL_Root_fSolver_Root   (self%solver%gsl)
+                xLow  =GSL_Root_fSolver_x_Lower(self%solver%gsl)
+                xHigh =GSL_Root_fSolver_x_Upper(self%solver%gsl)
                 if (report_) then
                    write (label,'(e12.6,a2,e12.6)') xRoot,", ",self%finderFunction(xRoot)
                    message="xRoot, fRoot  = "//trim(label)
@@ -978,21 +1062,45 @@ contains
     ! Reset error handler.
     if (present(status)) call GSL_Error_Handler_Abort_On()
     ! Restore state.
-    currentFinderIndex=currentFinderIndex-1
+    call popCurrentFinder()
     ! Finish reporting.
     if (report_) call displayUnindent("done")
     return
 
   contains
 
+    subroutine popCurrentFinder()
+      !!{
+      Decrement the active-finder stack pointer and restore the
+      module-level \mono{currentFinder} pointer to the parent's slot
+      (or nullify it when the stack is empty).
+
+      The pointer is re-derived from \mono{currentFinders(currentFinderIndex)},
+      not restored from a saved value, so if the array was grown by the
+      child frame this routine is exiting from, the parent's
+      \mono{currentFinder} is rebound against the new array before
+      control returns to the parent. This is what keeps the pointer
+      from dangling across recursive root-finding calls.
+      !!}
+      implicit none
+
+      currentFinderIndex=currentFinderIndex-1
+      if (currentFinderIndex > 0) then
+         currentFinder => currentFinders(currentFinderIndex)
+      else
+         currentFinder => null()
+      end if
+      return
+    end subroutine popCurrentFinder
+
     subroutine reportState(includeExpectations)
       !!{
-      Report on the state of the root finder.
+      Report on the state of the root finder. Callers must guard with
+      \mono{if (report\_)} — the routine itself no longer tests \mono{report\_}.
       !!}
       implicit none
       logical, intent(in   ) :: includeExpectations
-      
-      if (.not.report_) return
+
       write (label,'(e12.6,a2,e12.6)') xLow,", ",fLow
       message="xLow , fLow  = "//trim(label)
       if (includeExpectations .and. self%rangeExpandDownwardSignExpect /= rangeExpandSignExpectNone) then
@@ -1034,13 +1142,14 @@ contains
 
   subroutine rootFinderRootFunction(self,rootFunction)
     !!{
-    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the function to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class    (rootFinder          ), intent(inout) :: self
     procedure(rootFunctionTemplate)                :: rootFunction
 
-    call self%destroy()
+    call self%  solverManager%release()
+    call self%functionManager%release()
     self%finderFunction => rootFunction
     self%initialized    =  .true.
     self%useDerivative  =  .false.
@@ -1050,7 +1159,7 @@ contains
 
   subroutine rootFinderRootFunctionDerivative(self,rootFunction,rootFunctionDerivative,rootFunctionBoth)
     !!{
-    Sets the function to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the function to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class    (rootFinder                    ), intent(inout) :: self
@@ -1058,7 +1167,8 @@ contains
     procedure(rootFunctionDerivativeTemplate)                :: rootFunctionDerivative
     procedure(rootFunctionBothTemplate      )                :: rootFunctionBoth
 
-    call self%destroy()
+    call self%  solverManager%release()
+    call self%functionManager%release()
     self%finderFunction           => rootFunction
     self%finderFunctionDerivative => rootFunctionDerivative
     self%finderFunctionBoth       => rootFunctionBoth
@@ -1070,7 +1180,7 @@ contains
 
   subroutine rootFinderType(self,solverType)
     !!{
-    Sets the type to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the type to use in a \mono{rootFinder} object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1094,7 +1204,7 @@ contains
 
   subroutine rootFinderTolerance(self,toleranceAbsolute,toleranceRelative)
     !!{
-    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the tolerances to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class           (rootFinder), intent(inout)           :: self
@@ -1107,7 +1217,7 @@ contains
 
   subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
     !!{
-    Sets the rules for range expansion to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the rules for range expansion to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class           (rootFinder                          ), intent(inout)           :: self
@@ -1166,7 +1276,7 @@ contains
   
   logical function rootFinderSolverTypeIsValid(self)
     !!{
-    Sets the tolerances to use in a {\normalfont \ttfamily rootFinder} object.
+    Sets the tolerances to use in a \mono{rootFinder} object.
     !!}
     implicit none
     class(rootFinder), intent(inout) :: self
@@ -1191,41 +1301,41 @@ contains
 
   recursive function rootFunctionWrapper(x) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x
     real(c_double)                       :: rootFunctionWrapper
 
     ! Attempt to use previously computed solutions if possible.
-    if      (.not.currentFinders(currentFinderIndex)%lowInitialUsed  .and. x == currentFinders(currentFinderIndex)%xLowInitial ) then
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%fLowInitial
-       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
-    else if (.not.currentFinders(currentFinderIndex)%highInitialUsed .and. x == currentFinders(currentFinderIndex)%xHighInitial) then
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%fHighInitial
-       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+    if      (.not.currentFinder%lowInitialUsed  .and. x == currentFinder%xLowInitial ) then
+       rootFunctionWrapper=currentFinder%fLowInitial
+       currentFinder%lowInitialUsed =.true.
+    else if (.not.currentFinder%highInitialUsed .and. x == currentFinder%xHighInitial) then
+       rootFunctionWrapper=currentFinder%fHighInitial
+       currentFinder%highInitialUsed=.true.
     else
        ! No previously computed solution available - evaluate the function.
-       rootFunctionWrapper=currentFinders(currentFinderIndex)%finder%finderFunction(x)
+       rootFunctionWrapper=currentFinder%finder%finderFunction(x)
     end if
     return
   end function rootFunctionWrapper
 
   recursive function rootFunctionDerivativeWrapper(x) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double)                       :: rootFunctionDerivativeWrapper
     real(c_double), intent(in   ), value :: x
 
-    rootFunctionDerivativeWrapper=currentFinders(currentFinderIndex)%finder%finderFunctionDerivative(x)
+    rootFunctionDerivativeWrapper=currentFinder%finder%finderFunctionDerivative(x)
     return
   end function rootFunctionDerivativeWrapper
 
   recursive subroutine rootFunctionBothWrapper(x,parameters,f,df) bind(c)
     !!{
-    Wrapper function callable by {\normalfont \ttfamily GSL} used in root finding.
+    Wrapper function callable by \mono{GSL} used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x
@@ -1233,7 +1343,7 @@ contains
     type(c_ptr   ), intent(in   ), value :: parameters
     !$GLC attributes unused :: parameters
 
-    call currentFinders(currentFinderIndex)%finder%finderFunctionBoth(x,f,df)
+    call currentFinder%finder%finderFunctionBoth(x,f,df)
     return
   end subroutine rootFunctionBothWrapper
 

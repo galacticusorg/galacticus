@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Implements a critical overdensity class which renormalizes another class based on the ratio of two mass
-variance classes. This is intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
+Implements a critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is
+intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
 $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
 !!}
 
@@ -39,7 +39,7 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
       $\sigma_\mathrm{r}(M)$ is the reference cosmological mass variance (typically computed using a top-hat window function), and
       $M_\mathrm{match}$ is the mass at which to match the mass variance. The mass variances are evaluated at the present epoch.
 
-      The matching scale is given by $M_\mathrm{match}=${\normalfont \ttfamily [massMatch]} if this parameter is
+      The matching scale is given by $M_\mathrm{match}=$\mono{[massMatch]} if this parameter is
       present. Otherwise $M_\mathrm{match}=M_*$ is used, where $\sigma(M_*)=\delta_\mathrm{crit}$, computed at the present epoch.
    </description>
   </criticalOverdensity>
@@ -94,7 +94,7 @@ contains
        <inputParameter>
 	 <name>massMatch</name>
 	 <source>parameters</source>
-	 <description>The mass scale at which to renormalize.</description>
+	 <description>The halo mass ($\mathrm{M}_\odot$) at which the renormalized critical overdensity is matched to the reference value; if absent, normalization is matched at the cosmic mean density scale.</description>
        </inputParameter>
        !!]
     end if

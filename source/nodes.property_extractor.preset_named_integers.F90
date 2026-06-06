@@ -38,11 +38,12 @@
      procedure :: names        => presetNamedIntegersNames
      procedure :: descriptions => presetNamedIntegersDescriptions
      procedure :: unitsInSI    => presetNamedIntegersUnitsInSI
+     procedure :: units       => presetNamedIntegersUnits
   end type nodePropertyExtractorPresetNamedIntegers
 
   interface nodePropertyExtractorPresetNamedIntegers
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
      !!}
      module procedure presetNamedIntegersConstructorParameters
      module procedure presetNamedIntegersConstructorInternal
@@ -77,7 +78,7 @@ contains
 
   function presetNamedIntegersConstructorInternal(presetnames) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedIntegers)                              :: self
@@ -98,7 +99,7 @@ contains
 
   integer function presetNamedIntegersElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily presetNamedIntegers} property extractors.
+    Return the number of elements in the \mono{presetNamedIntegers} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout) :: self
@@ -134,7 +135,7 @@ contains
 
   subroutine presetNamedIntegersNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily presetNamedIntegers} properties.
+    Return the names of the \mono{presetNamedIntegers} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -149,7 +150,7 @@ contains
 
   subroutine presetNamedIntegersDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily presetNamedIntegers} properties.
+    Return the descriptions of the \mono{presetNamedIntegers} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -164,7 +165,7 @@ contains
 
   function presetNamedIntegersUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily presetNamedIntegers} properties in the SI system.
+    Return the units of the \mono{presetNamedIntegers} properties in the SI system.
     !!}
     implicit none
     double precision                                          , dimension(:) , allocatable :: presetNamedIntegersUnitsInSI
@@ -177,3 +178,22 @@ contains
     return
   end function presetNamedIntegersUnitsInSI
 
+  function presetNamedIntegersUnits(self,time) result(units)
+    !!{
+    Return the units of the presetNamedIntegers properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)             :: self
+    double precision                                          , intent(in   )             :: time
+    double precision                                          , dimension(:), allocatable :: siValues
+    integer                                                                               :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(-1.0d0)
+    end do
+    return
+  end function presetNamedIntegersUnits

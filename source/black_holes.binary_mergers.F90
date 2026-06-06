@@ -32,9 +32,12 @@ module Black_Hole_Binary_Mergers
   <functionClass>
    <name>blackHoleBinaryMerger</name>
    <descriptiveName>Black Hole Binaries Merger</descriptiveName>
-   <description>
-    Class providing models of black hole binary mergers.
-   </description>
+   <description>Class providing models of black hole binary mergers---the outcome (final mass and spin) of
+    the coalescence of two black holes of given masses and spins. When two galaxies merge their central black
+    holes eventually form a bound binary and spiral together via dynamical friction, eventually merging through
+    gravitational wave emission. The merger product mass and spin determine the subsequent evolution of the
+    remnant black hole, including its subsequent accretion and feedback. Implementations are typically based
+    on numerical relativity fitting formulae.</description>
    <default>rezzolla2008</default>
    <method name="merge" >
     <description>The properties of the black hole resulting from a binary merger.</description>

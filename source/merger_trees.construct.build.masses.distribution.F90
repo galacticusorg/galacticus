@@ -31,12 +31,14 @@ module Merger_Trees_Build_Masses_Distributions
   <functionClass>
    <name>mergerTreeBuildMassDistribution</name>
    <descriptiveName>Merger Tree Mass Distributions</descriptiveName>
-   <description>
-    Class providing distribution functions for the masses of merger trees to be built.
-   </description>
+   <description>Class providing the sampling rate (trees per decade of halo mass) as a function of halo mass
+    and time, used when drawing a set of merger tree root masses. The sampling distribution determines how
+    many trees are built at each mass, and implementations typically follow the halo mass function to ensure
+    representative sampling. The sampling rate is used together with assigned statistical weights so that
+    volume-averaged quantities (e.g.\ galaxy stellar mass functions) can be correctly computed.</description>
    <default>haloMassFunction</default>
    <method name="sample" >
-    <description>Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.</description>
+    <description>Returns the sampling rate for merger trees of the given \mono{mass}, per decade of halo mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass,time,massMinimum,massMaximum</argument>

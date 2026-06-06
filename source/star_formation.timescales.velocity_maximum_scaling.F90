@@ -28,7 +28,7 @@
 
   !![
   <starFormationTimescale name="starFormationTimescaleVelocityMaxScaling">
-   <description>A velocityMaxScaling timescale for star formation.</description>
+   <description>A star formation timescale class that scales the gas consumption timescale as a power law in the host halo maximum circular velocity and redshift. The normalization is set by \mono{[timescale]}, and the power-law exponents with respect to velocity and $(1+z)$ are set by \mono{[exponentVelocity]} and \mono{[exponentRedshift]} respectively.</description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleVelocityMaxScaling
@@ -193,7 +193,7 @@ contains
 
   double precision function velocityMaxScalingTimescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the {\normalfont \ttfamily component} in the velocity maximum scaling timescale model.
+    Returns the timescale (in Gyr) for star formation in the \mono{component} in the velocity maximum scaling timescale model.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass

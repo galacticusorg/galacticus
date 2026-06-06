@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate functionClass directives -->
+
+  <xs:element name="functionClass">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="name"            type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="descriptiveName" type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="description"     type="xs:string" minOccurs="1" maxOccurs="1"        />
+	<xs:element name="default"         type="xs:string" minOccurs="0" maxOccurs="1"        />
+	<xs:element name="destructor"                       minOccurs="0" maxOccurs="1"         >
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="modules"                  minOccurs="0" maxOccurs="unbounded" >
+		<xs:complexType>
+		  <xs:sequence>
+		    <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		    <xs:element name="only" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		  </xs:sequence>
+		</xs:complexType>
+	      </xs:element>
+	      <xs:element name="code"    type="xs:string" minOccurs="1" maxOccurs="1"        />
+	    </xs:sequence>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="method"                           minOccurs="0" maxOccurs="unbounded" >
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="description" type="xs:string" minOccurs="1" maxOccurs="1"        />
+	      <xs:element name="type"        type="xs:string" minOccurs="1" maxOccurs="1"        />
+	      <xs:element name="pass"        type="xs:string" minOccurs="1" maxOccurs="1"        />
+	      <xs:element name="selfTarget"  type="xs:string" minOccurs="0" maxOccurs="1"        />
+	      <xs:element name="modules"                      minOccurs="0" maxOccurs="unbounded" >
+		<xs:complexType mixed="true">
+		  <xs:sequence>
+		    <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		    <xs:element name="only" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		  </xs:sequence>
+		</xs:complexType>
+	      </xs:element>
+	      <xs:element name="argument"    type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+	      <xs:element name="function"    type="xs:string" minOccurs="0" maxOccurs="1"        />
+	      <xs:element name="code"        type="xs:string" minOccurs="0" maxOccurs="1"        />
+	    </xs:sequence>
+	    <xs:attribute name="name" use="required"/>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="generic"                          minOccurs="0" maxOccurs="unbounded" >
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="method" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+	    </xs:sequence>
+	    <xs:attribute name="name" use="required"/>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="data"                              minOccurs="0" maxOccurs="unbounded" >
+	  <xs:complexType mixed="true">
+	    <xs:sequence>
+	      <xs:element name="scope"         type="xs:string" minOccurs="0" maxOccurs="1"/>
+	      <xs:element name="threadprivate" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	      <xs:element name="content"       type="xs:string" minOccurs="0" maxOccurs="1"/>
+	    </xs:sequence>
+	    <xs:attribute name="scope" use="optional"/>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="autoHook"                           minOccurs="0" maxOccurs="1"       >
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="modules"          minOccurs="0" maxOccurs="unbounded">
+		<xs:complexType>
+		  <xs:sequence>
+		    <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+		    <xs:element name="only" type="xs:string" minOccurs="0" maxOccurs="1"/>
+		  </xs:sequence>
+		</xs:complexType>
+	      </xs:element>
+	      <xs:element name="code" type="xs:string" minOccurs="0" maxOccurs="1"/>
+	    </xs:sequence>
+	  </xs:complexType>
+	</xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

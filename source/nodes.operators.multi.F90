@@ -28,7 +28,7 @@
 
   !![
   <nodeOperator name="nodeOperatorMulti">
-   <description>A multi node operator property process class.</description>
+   <description>A node operator class that applies a linked list of multiple child \refClass{nodeOperatorClass} objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.</description>
    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
   </nodeOperator>
   !!]
@@ -41,7 +41,7 @@
    contains
      !![
      <methods>
-	<method method="isActive" description="Return true if the operators are active for the given {\normalfont \ttfamily node}."/>
+	<method method="isActive" description="Return true if the operators are active for the given \mono{node}."/>
      </methods>
      !!]
      final     ::                                        multiDestructor
@@ -75,7 +75,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodeOperatorMulti} node operator property process class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorMulti} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function multiConstructorInternal(processes) result(self)
     !!{
-    Internal constructor for the \refClass{nodeOperatorMulti} output process property process class.
+    Internal constructor for the \refClass{nodeOperatorMulti} node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{nodeOperatorMulti} output process property process class.
+    Destructor for the \refClass{nodeOperatorMulti} node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self
@@ -424,7 +424,7 @@ contains
 
   logical function multiIsActive(self,node) result(isActive)
     !!{
-    Return true if the operators are active for the given {\normalfont \ttfamily node}.
+    Return true if the operators are active for the given \mono{node}.
     !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self

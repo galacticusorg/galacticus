@@ -38,7 +38,7 @@
     exponential disk), $\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2$ is the external driving specific torque, and $\mathcal{F}$
     is the external tidal field (evaluated using the selected method; see \refPhysics{satelliteTidalField}). The value of
     $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks
-    as specified by {\normalfont \ttfamily stabilityThresholdStellar} and {\normalfont \ttfamily stabilityThresholdGaseous}
+    as specified by \mono{stabilityThresholdStellar} and \mono{stabilityThresholdGaseous}
     respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
     \begin{equation}
      t_\mathrm{bar} = t_\mathrm{disk} {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon},

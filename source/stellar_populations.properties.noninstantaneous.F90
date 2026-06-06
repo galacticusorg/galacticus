@@ -72,7 +72,7 @@
 
   interface stellarPopulationPropertiesNoninstantaneous
      !!{
-     Constructors for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population class.
+     Constructors for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
      !!}
      module procedure noninstantaneousConstructorParameters
      module procedure noninstantaneousConstructorInternal

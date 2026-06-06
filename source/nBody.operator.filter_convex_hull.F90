@@ -23,7 +23,7 @@ Implements an N-body data operator which filters particles outside of a convex h
   
   !![
   <nbodyOperator name="nbodyOperatorFilterConvexHull">
-   <description>An N-body data operator which filters particles outside of a convex hull.</description>
+   <description>An N-body data operator which retains only particles whose positions fall inside the convex hull of another simulation dataset, enabling filtering to an irregular survey geometry or simulation subvolume boundary. The convex hull is taken from the simulation identified by the \mono{[simulationIndex]} parameter.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterConvexHull

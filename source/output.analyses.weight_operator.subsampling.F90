@@ -23,7 +23,8 @@ Implements a subsampling weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSubsampling">
-   <description>A subsampling weight operator class.</description>
+   <description>Applies a subsampling weight to each node, upweighting the nodes to preserve correct number statistics after
+   merger tree branches have been subsampled.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSubsampling
@@ -37,7 +38,7 @@ Implements a subsampling weight operator class.
 
   interface outputAnalysisWeightOperatorSubsampling
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis weight operator class.
      !!}
      module procedure subsamplingConstructorParameters
   end interface outputAnalysisWeightOperatorSubsampling

@@ -25,7 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids">
-   <description>A node operator class that performs ram pressure mass loss in spheroids.</description>
+   <description>Computes and applies ram pressure stripping of gas from the spheroid (bulge) component of satellite galaxies as they orbit through the hot intracluster medium, removing rotationally unsupported gas more readily stripped than disk gas.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossSpheroids

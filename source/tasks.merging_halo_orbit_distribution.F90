@@ -28,7 +28,7 @@
 
   !![
   <task name="taskMergingHaloOrbitDistribution">
-   <description>A task which tabulates the orbital parameter distribution for merging halos.</description>
+   <description>A task which tabulates the joint distribution of orbital parameters (velocity at virial radius and tangential-to-total velocity ratio) for halos merging into host halos, sampled from the virial orbit model weighted by the merger tree branching probability and halo mass function, and outputs the resulting distribution for analysis.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskMergingHaloOrbitDistribution
@@ -464,7 +464,6 @@ contains
     call output%writeDataset  (                         velocityRadialDistributionOrbits               ,'velocityRadialDistributionOrbits'    )
     call output%writeDataset  (                         velocityTangentialDistributionOrbits           ,'velocityTangentialDistributionOrbits')
     call output%writeDataset  (                         velocityDistributionOrbits                     ,'velocityDistributionOrbits'          )
-    call output%close         (                                                                                                               )
     !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: merging halo orbit distributions')

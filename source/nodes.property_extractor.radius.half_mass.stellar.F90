@@ -23,7 +23,7 @@ Implements a half-stellar mass radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassStellar">
-   <description>A half-(stellar) mass output analysis property extractor class.</description>
+   <description>Extracts the projected half-stellar-mass radius (effective radius), the radius enclosing half the total stellar luminosity or stellar mass of a galaxy, a fundamental size observable used in galaxy structural studies.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMassStellar
@@ -36,11 +36,12 @@ Implements a half-stellar mass radius output analysis property extractor class.
      procedure :: name        => radiusHalfMassStellarName
      procedure :: description => radiusHalfMassStellarDescription
      procedure :: unitsInSI   => radiusHalfMassStellarUnitsInSI
+     procedure :: units       => radiusHalfMassStellarUnits
   end type nodePropertyExtractorRadiusHalfMassStellar
 
   interface nodePropertyExtractorRadiusHalfMassStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassStellar
@@ -49,7 +50,7 @@ contains
 
   function radiusHalfMassStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,3 +124,16 @@ contains
     radiusHalfMassStellarUnitsInSI=megaParsec
     return
   end function radiusHalfMassStellarUnitsInSI
+
+  function radiusHalfMassStellarUnits(self) result(units)
+    !!{
+    Return the units of the radiusHalfMassStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorRadiusHalfMassStellar), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusHalfMassStellarUnits

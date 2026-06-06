@@ -24,7 +24,7 @@
   !![
   <coolingInfallTorque name="coolingInfallTorqueFixed">
    <description>
-    A cooling torque class in which a fixed fraction of angular momentum is lost during infall.
+    A cooling infall torque class in which a fixed fraction of specific angular momentum is lost from gas as it cools and falls onto the galaxy. The fraction of angular momentum lost during infall is specified by the \mono{[fractionLossAngularMomentum]} parameter.
    </description>
   </coolingInfallTorque>
   !!]

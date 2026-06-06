@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSubsubhaloPromotion">
-   <description>A node operator class that promotes sub-sub-halos.</description>
+   <description>A node operator class that handles the promotion of sub-sub-halos (halos orbiting within a subhalo) when their host subhalo is itself promoted, correctly updating the host hierarchy so the sub-sub-halo becomes a direct satellite of the new host halo.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSubsubhaloPromotion

@@ -26,7 +26,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusVelocityMaximum">
-   <description>A property extractor class which extracts the radius at which the maximum velocity is reached in the dark matter-only density profile.</description>
+   <description>Extracts the radius at which the circular velocity reaches its maximum value in the dark matter-only density profile of each halo, a key structural parameter that characterizes halo concentration and mass distribution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVelocityMaximum
@@ -44,11 +44,12 @@
      procedure :: name        => radiusVelocityMaximumName
      procedure :: description => radiusVelocityMaximumDescription
      procedure :: unitsInSI   => radiusVelocityMaximumUnitsInSI
+     procedure :: units       => radiusVelocityMaximumUnits
   end type nodePropertyExtractorRadiusVelocityMaximum
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal
@@ -172,3 +173,16 @@ contains
     return
   end function radiusVelocityMaximumUnitsInSI
 
+  function radiusVelocityMaximumUnits(self) result(units)
+    !!{
+    Return the units of the radiusVelocityMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVelocityMaximumUnits

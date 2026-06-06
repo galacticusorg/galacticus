@@ -26,7 +26,7 @@
 
   !![
   <nodeOperator name="nodeOperatorHaloAngularMomentumRandom">
-   <description>A node operator class that initializes halo spins to random values drawn from a distribution.</description>
+   <description>A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a \refClass{haloSpinDistributionClass} (e.g.\ a log-normal distribution). \mono{factorReset} specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumRandom

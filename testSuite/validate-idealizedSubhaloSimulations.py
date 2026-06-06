@@ -72,7 +72,7 @@ for model in models:
     status = subprocess.run("cd ..; ./Galacticus.exe "+model['parameterFileName'],shell=True)
     if status.returncode != 0:
         print("FAILED: idealized subhalo validation model '"+model['suffix']+"' failed to run")
-        sys.exit()
+        sys.exit(0)
     # Extract and validate the likelihoods.
     validate.extract(
         model['fileName'         ],

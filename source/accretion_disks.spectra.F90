@@ -32,10 +32,13 @@ module Accretion_Disk_Spectra
   <functionClass>
    <name>accretionDiskSpectra</name>
    <descriptiveName>Accretion Disk Spectra</descriptiveName>
-   <description>Class providing spectra of accretion disks.</description>
+   <description>Class providing the spectral energy distribution (in $L_\odot$ Hz$^{-1}$) of circumnuclear accretion
+    disks around supermassive black holes, as a function of wavelength. The spectrum depends on the black hole accretion
+    rate and radiative efficiency, and is used to compute AGN contributions to the UV background, photoionization of the
+    \gls{igm}, and other radiative effects.</description>
    <default>hopkins2007</default>
    <method name="spectrumNode" >
-    <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node}.</description>
+    <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
@@ -47,10 +50,6 @@ module Accretion_Disk_Spectra
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: accretionRate, efficiencyRadiative, wavelength</argument>
    </method>
-   <generic name="spectrum">
-    <method>spectrumNode</method>
-    <method>spectrumMassRate</method>
-   </generic>
    <method name="wavelengths" >
     <description>Return a tabulation of wavelengths at which accretion disk spectra are defined.</description>
     <type>void</type>
@@ -58,6 +57,10 @@ module Accretion_Disk_Spectra
     <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
     <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
    </method>
+   <generic name="spectrum">
+    <method>spectrumNode</method>
+    <method>spectrumMassRate</method>
+   </generic>
   </functionClass>
   !!]
 

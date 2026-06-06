@@ -33,7 +33,7 @@ contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
     !!{
-    Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
+    Computes the Bondi-Hoyle-Lyttleton accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
     !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstant_internal

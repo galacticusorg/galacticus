@@ -25,11 +25,8 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <criticalOverdensity name="criticalOverdensityBarkana2001WDM" defaultThreaedPrivate="yes">
+  <criticalOverdensity name="criticalOverdensityBarkana2001WDM">
    <description>
-  !!]
-
-  !![
     A critical overdensity for collapse class based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to
     some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
     \begin{equation}
@@ -159,6 +156,7 @@ contains
     class           (linearGrowthClass                ), target, intent(in   ) :: linearGrowth_
     logical                                                    , intent(in   ) :: useFittingFunction
     type            (node                             ), pointer               :: doc                              , element
+    type            (varying_string                   )                        :: fileCriticalOverdensity
     double precision                                                           :: matterRadiationEqualityRedshift
     integer                                                                    :: ioStatus
     !![
@@ -188,8 +186,9 @@ contains
        call Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Read in the tabulated critical overdensity scaling.
+    fileCriticalOverdensity=inputPath(pathTypeDataStatic)//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml"
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
+    doc => XML_Parse(fileCriticalOverdensity,iostat=ioStatus)
     if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
     ! Extract the datum lists.
     element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )

@@ -33,23 +33,25 @@ module Stellar_Populations_Initial_Mass_Functions
   <functionClass>
    <name>initialMassFunction</name>
    <descriptiveName>Initial Mass Functions</descriptiveName>
-   <description>
-    Class providing stellar initial mass functions. All IMFs are assumed to be continuous in $M$, unless otherwise noted and
-    normalized to unit mass.
-   </description>
+   <description>Class providing stellar initial mass functions (\glspl{imf}), $\phi(M) = \mathrm{d}N/\mathrm{d}M$,
+    normalized to unit total stellar mass formed. The \gls{imf} determines the relative number of stars at each
+    mass and therefore governs the recycled gas fraction, metal yields, ionizing photon rate, and the total
+    luminosity of a stellar population. All \glspl{imf} are assumed continuous in $M$ unless otherwise noted.
+    Implementations provide the \gls{imf} itself, its cumulative integral, the minimum and maximum stellar mass,
+    and a tabulation suitable for numerical integration over the stellar population.</description>
    <default>chabrier2001</default>
    <method name="massMinimum" >
-    <description>Return the minimum mass in the initial mass function.</description>
+    <description>Return the minimum stellar mass (in $\mathrm{M}_\odot$) in the initial mass function, i.e., the lowest mass star formed; below this mass the IMF is zero and no contribution to recycling or yields is included.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="massMaximum" >
-    <description>Return the maximum mass in the initial mass function.</description>
+    <description>Return the maximum stellar mass (in $\mathrm{M}_\odot$) in the initial mass function, i.e., the most massive star formed; above this mass the IMF is zero and stars above this threshold are assumed to form as black holes or fail to explode.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="phi" >
-    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily massInitial}.</description>
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\mono{massInitial}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial</argument>
@@ -61,13 +63,13 @@ module Stellar_Populations_Initial_Mass_Functions
     <argument>double precision, intent(in   ) :: massLower, massUpper</argument>
    </method>
    <method name="tabulate" >
-    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=${\normalfont \ttfamily initialMass}.</description>
+    <description>Return the initial mass function, $\phi(M)=\mathrm{d}N/\mathrm{d}M$, at the given mass $M=$\mono{initialMass}.</description>
     <type>void</type>
-    <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
     <pass>yes</pass>
+    <argument>class(table1D), allocatable, intent(inout) :: imfTable</argument>
    </method>
    <method name="label" >
-    <description>Return the label for this \gls{imf}.</description>
+    <description>Return a short human-readable string label identifying this initial mass function (e.g., ``Chabrier2001'', ``Kroupa2001''), used for constructing unique hashed descriptors and labeling output.</description>
     <type>type(varying_string)</type>
     <pass>yes</pass>
    </method>

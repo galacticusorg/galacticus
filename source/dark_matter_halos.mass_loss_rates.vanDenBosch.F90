@@ -138,7 +138,7 @@ contains
 
   double precision function vanDenBoschRate(self,node)
     !!{
-    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $\mathrm{M}_\odot$/Gyr.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none

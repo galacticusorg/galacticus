@@ -23,7 +23,7 @@
 
   !![
   <massDistribution name="massDistributionZero">
-   <description>A zero mass distribution class.</description>
+   <description>A mass distribution class that returns zero density, zero enclosed mass, and zero potential everywhere; useful as a null placeholder when no mass component is present in a given region.</description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionZero
@@ -36,6 +36,7 @@
      procedure :: densityGradientRadial => zeroDensityGradientRadial
      procedure :: densityRadialMoment   => zeroDensityRadialMoment
      procedure :: massEnclosedBySphere  => zeroMassEnclosedBySphere
+     procedure :: surfaceDensity        => zeroSurfaceDensity
      procedure :: rotationCurve         => zeroRotationCurve
      procedure :: rotationCurveGradient => zeroRotationCurveGradient
      procedure :: potentialIsAnalytic   => zeroPotentialIsAnalytic
@@ -109,7 +110,7 @@ contains
 
   double precision function zeroDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a zero distribution.
+    Return the density at the specified \mono{coordinates} in a zero distribution.
     !!}
     implicit none
     class(massDistributionZero), intent(inout) :: self
@@ -136,7 +137,7 @@ contains
 
   double precision function zeroMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a zero distribution.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a zero distribution.
     !!}
     implicit none
     class           (massDistributionZero), intent(inout), target :: self
@@ -146,6 +147,19 @@ contains
     zeroMassEnclosedBySphere=0.0d0
     return
   end function zeroMassEnclosedBySphere
+
+  double precision function zeroSurfaceDensity(self,coordinates)
+    !!{
+    Return the surface density at the specified \mono{coordinates} in a zero distribution.
+    !!}
+    implicit none
+    class(massDistributionZero), intent(inout) :: self
+    class(coordinate          ), intent(in   ) :: coordinates
+    !$GLC attributes unused :: self, coordinates
+
+    zeroSurfaceDensity=0.0d0
+    return
+  end function zeroSurfaceDensity
 
   double precision function zeroRotationCurve(self,radius)
     !!{
@@ -186,7 +200,7 @@ contains
 
   double precision function zeroPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
+    Return the potential at the specified \mono{coordinates} for a point mass.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none

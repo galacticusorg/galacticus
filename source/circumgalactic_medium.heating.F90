@@ -33,9 +33,10 @@ module Circumgalactic_Medium_Heating
   <functionClass>
    <name>circumgalacticMediumHeating</name>
    <descriptiveName>Circumgalactic Medium Heating</descriptiveName>
-   <description>
-    Class providing models of \gls{cgm} heating.
-   </description>
+   <description>Class providing models of the heating rate (in $\mathrm{M}_\odot$ km$^2$ s$^{-1}$) deposited into
+    the \gls{cgm}. This may include contributions from AGN feedback, for example. The \gls{cgm} heating
+    rate directly affects the cooling rate and hence the gas supply available for star formation in
+    the central galaxy.</description>
    <default>zero</default>
    <method name="heatingRate" >
     <description>Compute the heating rate of the CGM [in units of $\mathrm{M}_\odot \mathrm{km}^2\mathrm{s}^{-1}$].</description>

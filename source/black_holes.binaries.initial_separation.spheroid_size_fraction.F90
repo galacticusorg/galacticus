@@ -26,7 +26,7 @@ larger of the host and satellite spheroids.
   <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationSpheroidRadiusFraction">
    <description>
     A black hole binary initial separation class that assumes that the initial separation of the binary is equal to a fixed
-    fraction {\normalfont \ttfamily [spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
+    fraction \mono{[spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
     galaxies.
    </description>
   </blackHoleBinaryInitialSeparation>
@@ -43,7 +43,7 @@ larger of the host and satellite spheroids.
 
   interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !!{
-     Constructors for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial radius class.
+     Constructors for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial separation class.
      !!}
      module procedure spheroidRadiusFractionConstructorParameters
      module procedure spheroidRadiusFractionConstructorInternal
@@ -53,8 +53,7 @@ contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
-    input.
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial separation class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +78,7 @@ contains
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary recoiled class which takes a parameter list as
-    input.
+    Constructor for the \refClass{blackHoleBinaryInitialSeparationSpheroidRadiusFraction} black hole binary initial separation class which takes a parameter list as input.
     !!}
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self

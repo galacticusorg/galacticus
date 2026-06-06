@@ -23,7 +23,7 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistoryHearin2021">
-   <description>A node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.</description>
+   <description>Extracts best-fit parameters of the \cite{hearin_differentiable_2021} differentiable model for halo mass accretion histories, fitting a smooth parametric form to each halo's MAH for use in empirical galaxy-halo connection models.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -37,11 +37,12 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
      procedure :: names        => massAccretionHistoryHearin2021Names
      procedure :: descriptions => massAccretionHistoryHearin2021Descriptions
      procedure :: unitsInSI    => massAccretionHistoryHearin2021UnitsInSI
+     procedure :: units       => massAccretionHistoryHearin2021Units
   end type nodePropertyExtractorMassAccretionHistoryHearin2021
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -50,7 +51,7 @@ contains
 
   function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +67,7 @@ contains
 
   integer function massAccretionHistoryHearin2021ElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily massAccretionHistoryHearin2021} property extractor.
+    Return the number of elements in the \mono{massAccretionHistoryHearin2021} property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
@@ -120,7 +121,7 @@ contains
 
   subroutine massAccretionHistoryHearin2021Names(self,time,names)
     !!{
-    Return the name of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
+    Return the name of the \mono{massAccretionHistoryHearin2021} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -137,7 +138,7 @@ contains
 
   subroutine massAccretionHistoryHearin2021Descriptions(self,time,descriptions)
     !!{
-    Return a description of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
+    Return a description of the \mono{massAccretionHistoryHearin2021} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -154,7 +155,7 @@ contains
 
   function massAccretionHistoryHearin2021UnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property in the SI system.
+    Return the units of the \mono{massAccretionHistoryHearin2021} property in the SI system.
     !!}
     implicit none
     double precision                                                     , allocatable  , dimension(:) :: massAccretionHistoryHearin2021UnitsInSI
@@ -163,7 +164,25 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(massAccretionHistoryHearin2021UnitsInSI(3))
-    massAccretionHistoryHearin2021UnitsInSI=0.0d0
+    massAccretionHistoryHearin2021UnitsInSI=1.0d0
     return
   end function massAccretionHistoryHearin2021UnitsInSI
 
+  function massAccretionHistoryHearin2021Units(self,time) result(units)
+    !!{
+    Return the units of the massAccretionHistoryHearin2021 properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
+    double precision                                                     , intent(in   )              :: time
+    integer                                                                                           :: i
+    !$GLC attributes unused :: self, time
+
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function massAccretionHistoryHearin2021Units

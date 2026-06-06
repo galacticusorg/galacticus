@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole masses.
-   </description>
+   <description>Extracts a list of masses for all supermassive black holes in each node, providing per-black-hole mass data for analysis of black hole demographics and the black hole mass function.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassBlackHoles
@@ -35,11 +33,12 @@
      procedure :: names        => massBlackHolesNames
      procedure :: descriptions => massBlackHolesDescriptions
      procedure :: unitsInSI    => massBlackHolesUnitsInSI
+     procedure :: units        => massBlackHolesUnits
   end type nodePropertyExtractorMassBlackHoles
 
   interface nodePropertyExtractorMassBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles
@@ -98,7 +97,7 @@ contains
 
   subroutine massBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily massBlackHoles} properties.
+    Return the names of the \mono{massBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -112,7 +111,7 @@ contains
 
   subroutine massBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massBlackHoles} properties.
+    Return the descriptions of the \mono{massBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -126,7 +125,7 @@ contains
 
   function massBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily massBlackHoles} properties in the SI system.
+    Return the units of the black hole mass properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -138,3 +137,22 @@ contains
     unitsInSI(1)=massSolar
     return
   end function massBlackHolesUnitsInSI
+
+  function massBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the black hole mass properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassBlackHoles), intent(inout)              :: self
+    double precision                                     , dimension(:) , allocatable :: siValues
+    integer                                                                           :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function massBlackHolesUnits

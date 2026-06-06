@@ -28,7 +28,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
+   <description>Computes dark matter halo concentrations using the mass-collapse epoch relation of \cite{bullock_profiles_2001}, in which concentration scales with the ratio of the virial radius to the collapse-epoch scale factor. The two free parameters of the model are \mono{[F]}, which determines the collapse mass fraction, and \mono{[K]}, which sets the concentration normalization.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -69,7 +69,7 @@ contains
 
   function bullock2001ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    Default constructor for the \mono{bullock2001} dark matter halo profile
     concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -191,7 +191,7 @@ contains
 
   double precision function bullock2001Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the concentration of the dark matter halo profile of \mono{node}
     using the \cite{bullock_profiles_2001} algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

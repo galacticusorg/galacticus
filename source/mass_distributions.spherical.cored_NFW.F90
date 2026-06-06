@@ -109,7 +109,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the cored profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the cored NFW halo, used to set the density normalization when the concentration and virial radius are provided instead of \mono{densityNormalization}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -186,21 +186,23 @@ contains
     if      (                            &
          &   present(radiusCore   )      &
          &  ) then
-       self%radiusCore          =radiusCore
+       self%radiusCore=radiusCore
     else
+       self%radiusCore=0.0d0
        call Error_Report('no means to determine core radius' //{introspection:location})
     end if
     ! Determine scale radius.
     if      (                            &
          &   present(radiusScale  )      &
          &  ) then
-       self%radiusScale         =radiusScale
+       self%radiusScale=radiusScale
     else if (                            &
          &   present(concentration).and. &
          &   present(radiusVirial )      &
          &  ) then
        self%radiusScale=radiusVirial/concentration
     else
+       self%radiusScale=0.0d0
        call Error_Report('no means to determine scale radius'//{introspection:location})
     end if
     ! Determine density normalization.
@@ -225,6 +227,7 @@ contains
             &                      -(1.0d0-      radiusCoreScaleFree   )*radiusScaleFree/(1.0d0+radiusScaleFree)                          &
             &                     )
     else
+       self%densityNormalization=+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
@@ -259,7 +262,7 @@ contains
   
   double precision function coredNFWDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a cored NFW mass distribution.
+    Return the density at the specified \mono{coordinates} in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout) :: self
@@ -277,7 +280,7 @@ contains
   
   double precision function coredNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a cored NFW mass distribution.
+    Return the radial density gradient at the specified \mono{coordinates} in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout), target   :: self

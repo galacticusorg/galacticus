@@ -31,22 +31,25 @@ module Power_Spectra
   <functionClass>
    <name>powerSpectrum</name>
    <descriptiveName>Linear Theory Power Spectrum</descriptiveName>
-   <description>Class providing linear theory power spectra.</description>
+   <description>Class providing the linear theory matter power spectrum $P(k,t)$ as a function of wavenumber $k$ and cosmic
+    time $t$. The power spectrum quantifies the amplitude of density fluctuations on different scales and is the fundamental
+    statistical descriptor of the large-scale structure of the Universe. Both the dimensional form $P(k)$ and the dimensionless
+    form $\Delta^2(k) = k^3 P(k) / 2\pi^2$ are available, along with the logarithmic slope $\mathrm{d}\ln P/\mathrm{d}\ln k$.</description>
    <default>standard</default>
    <method name="power" >
-    <description>Return the linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the linear power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>
    </method>
    <method name="powerDimensionless" >
-    <description>Return the dimensionless linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the dimensionless linear power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>
    </method>
    <method name="powerLogarithmicDerivative" >
-    <description>Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>

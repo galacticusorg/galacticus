@@ -23,7 +23,7 @@ Implements an N-body data operator which computes the distance of each particle 
 
   !![
   <nbodyOperator name="nbodyOperatorDistanceFromPoint">
-   <description>An N-body data operator which computes the distance of each particle from a point.</description>
+   <description>An N-body data operator which computes and stores the Euclidean distance of each particle from a fixed reference point in three-dimensional Cartesian space, adding this as a new particle property. The reference point coordinates are specified as a three-element array via the \mono{[point]} parameter.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDistanceFromPoint

@@ -23,7 +23,7 @@ Implements a boolean analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
-   <description>A boolean analysis property operator class, specifically $x \rightarrow 0$ if $x=0$, and $x \rightarrow 1$ otherwise..</description>
+   <description>An output analysis property operator that converts a continuous property to a boolean value ($x \rightarrow 0$ if $x=0$, otherwise $x \rightarrow 1$), with \mono{preciseZero} controlling whether zero inputs map to exact zero or the smallest representable non-zero value.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorBoolean
@@ -38,7 +38,7 @@ Implements a boolean analysis property operator class.
 
   interface outputAnalysisPropertyOperatorBoolean
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorBoolean} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorBoolean} output analysis property operator class.
      !!}
      module procedure booleanConstructorParameters
      module procedure booleanConstructorInternal
@@ -61,7 +61,7 @@ contains
       <name>preciseZero</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, {\normalfont \ttfamily epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} class.</description>
+      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, \mono{epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} output analysis class.</description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorBoolean(preciseZero)

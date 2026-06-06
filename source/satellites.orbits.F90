@@ -68,7 +68,7 @@ contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
     !!{
-    Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    Solves for the equivalent circular orbit radius for \mono{orbit} in \mono{nodeHost}.
     !!}
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -80,9 +80,11 @@ contains
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
     class           (nodeComponentBasic       )               , pointer  :: basicHost
-    double precision                           , parameter               :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6, &
+    double precision                           , parameter               :: toleranceAbsolute    =0.0d0  , toleranceRelative=1.0d-6, &
          &                                                                  factorRadiusLarge    =1.0d6
-    type            (rootFinder               )                          :: finder
+    type            (rootFinder               ), save                    :: finder
+    logical                                    , save                    :: finderConstructed    =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit              )                          :: orbitCurrent
     double precision                                                     :: potential
 
@@ -110,16 +112,19 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       finder        =rootFinder(                                                                &
-            &                    rootFunction                 =Equivalent_Circular_Orbit_Solver, &
-            &                    toleranceAbsolute            =toleranceAbsolute               , &
-            &                    toleranceRelative            =toleranceRelative               , &
-            &                    rangeExpandUpward            =2.0d0                           , &
-            &                    rangeExpandDownward          =0.5d0                           , &
-            &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
-            &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
-            &                    rangeExpandType              =rangeExpandMultiplicative         &
-            &                   )
+       if (.not.finderConstructed) then
+          finder           =rootFinder(                                                                &
+               &                       rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+               &                       toleranceAbsolute            =toleranceAbsolute               , &
+               &                       toleranceRelative            =toleranceRelative               , &
+               &                       rangeExpandUpward            =2.0d0                           , &
+               &                       rangeExpandDownward          =0.5d0                           , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+               &                       rangeExpandType              =rangeExpandMultiplicative         &
+               &                      )
+          finderConstructed=.true.
+          end if
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=radiusVirial__)
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -159,7 +164,7 @@ contains
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity,darkMatterHaloScale_)
     !!{
-    Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    Solves for the pericentric radius and velocity of \mono{orbit} in \mono{nodeHost}.
     !!}
     use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType, radiusLarge
     use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
@@ -357,7 +362,7 @@ contains
   double precision function Satellite_Orbit_Potential(radius,radiusVirial,massVirial,status) result(potential)
     !!{
     Evaluate the gravitational potential under the convention that the potential at the virial radius is always
-    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for {\normalfont \ttfamily keplerOrbit} objects.
+    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for \mono{keplerOrbit} objects.
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType
     use :: Coordinates                     , only : coordinateCartesian              , assignment(=)

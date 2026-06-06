@@ -31,20 +31,21 @@ module Cooling_Times_Available
   !![
   <functionClass>
    <name>coolingTimeAvailable</name>
-   <descriptiveName>Time available for cooling</descriptiveName>
-   <description>
-    Class providing models of the time available (i.e. the time for which gas in a halo has been able to cool) for cooling in
-    the hot atmosphere surrounding a galaxy.
-   </description>
+   <descriptiveName>Cooling Time Available</descriptiveName>
+   <description>Class providing models of the time available for cooling (in Gyr)---the elapsed time since gas
+    in the hot halo was first able to start cooling. This quantity, together with the cooling time, determines
+    whether gas has had enough time to cool and fall in. Implementations typically anchor this time to halo
+    formation or to the time since the last major merger, and different choices lead to significantly different
+    predictions for the cold gas supply and star formation history of galaxies.</description>
    <default>whiteFrenk1991</default>
    <method name="timeAvailable" >
-    <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>
+    <description>Return the time available for cooling in \mono{node} in units of Gyr.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
-    <description>Return the rate at which the time available for cooling increases in {\normalfont \ttfamily node} (dimensionless).</description>
+    <description>Return the rate at which the time available for cooling increases in \mono{node} (dimensionless).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

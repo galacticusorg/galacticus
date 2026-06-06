@@ -31,8 +31,8 @@
     \begin{equation}
     \rho(r) = \rho_\mathrm{NFW}(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
     \end{equation}
-    where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
-    original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
+    where $\Delta x$ is the larger of the resolution length, \mono{[lengthResolution]}, and the radius in the
+    original profile enclosing the mass resolution, \mono{[massResolution]}.
    </description>
   </massDistribution>
   !!]
@@ -181,22 +181,22 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length scale.</description>
+      <description>The spatial resolution length scale (in Mpc) of the N-body simulation being modeled; sets the minimum effective radius below which the NFW density profile is softened.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusScale</name>
       <source>parameters</source>
-      <description>The NFW scale radius.</description>
+      <description>The NFW scale radius (in Mpc) at which the density profile transitions from the inner $\rho \propto r^{-1}$ slope to the outer $\rho \propto r^{-3}$ slope.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusVirial</name>
       <source>parameters</source>
-      <description>The virial radius.</description>
+      <description>The virial radius (in Mpc) of the halo, defining the outer boundary of the NFW profile at which the mean enclosed density equals the virial overdensity threshold.</description>
     </inputParameter>
     <inputParameter>
       <name>mass</name>
       <source>parameters</source>
-      <description>The mass within the virial radius.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) enclosed within the virial radius, used together with \mono{radiusScale} and \mono{radiusVirial} to normalize the NFW density profile.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -259,7 +259,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -277,7 +277,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a finiteResolution spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a finiteResolution spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
@@ -302,7 +302,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Returns the enclosed mass (in $M_\odot$) at the given {\normalfont \ttfamily radius} (given in units of Mpc). The analytic
+    Returns the enclosed mass (in $\mathrm{M}_\odot$) at the given \mono{radius} (given in units of Mpc). The analytic
     solution (computed using Mathematica) is
     \begin{equation}
     M(x) = 4 \pi \rho_0 r_\mathrm{s}^3 \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
@@ -458,8 +458,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
     !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    \ttfamily radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of \mono{node} at the given \mono{radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
     \begin{eqnarray}
     \Phi(x) &=& -\frac{\mathrm{G} M}{r_\mathrm{s}}  \nonumber \\
             & & \left\{ +\frac{\sqrt{x^2+X^2}}{x \left(X^2+1\right)} \right. \nonumber \\
@@ -769,11 +768,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingMassTableLengthResolution,'lengthResolution')
     call file%writeDataset(radiusEnclosingMassTableMass            ,'mass'            )
     call file%writeDataset(radiusEnclosingMassTable                ,'radius'          )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -809,11 +807,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('lengthResolution',radiusEnclosingMassTableLengthResolution)
        call file%readDataset('mass'            ,radiusEnclosingMassTableMass            )
        call file%readDataset('radius'          ,radiusEnclosingMassTable                )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        radiusEnclosingMassTableMassCount            =size(radiusEnclosingMassTableMass            )
@@ -1023,11 +1020,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingDensityTableLengthResolution,'lengthResolution')
     call file%writeDataset(radiusEnclosingDensityTableDensity         ,'density'         )
     call file%writeDataset(radiusEnclosingDensityTable                ,'radius'          )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1063,11 +1059,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('lengthResolution',radiusEnclosingDensityTableLengthResolution)
-       call file%readDataset('density'   ,radiusEnclosingDensityTableDensity   )
-       call file%readDataset('radius'    ,radiusEnclosingDensityTable          )
-       call file%close()
+       call file%readDataset('density'         ,radiusEnclosingDensityTableDensity   )
+       call file%readDataset('radius'          ,radiusEnclosingDensityTable          )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        radiusEnclosingDensityTableDensityCount         =size(radiusEnclosingDensityTableDensity         )
@@ -1089,7 +1084,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a finite-resolution NFW mass distribution.
+    Compute the energy within a given \mono{radius} in a finite-resolution NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -1273,7 +1268,7 @@ contains
 
   double precision function sphericalFiniteResolutionNFWDensityScaleFree(self,radius,radiusCore) result(densityScaleFree)
     !!{
-    Returns the scale-free density in the dark matter profile at the given {\normalfont \ttfamily radius}.
+    Returns the scale-free density in the dark matter profile at the given \mono{radius}.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -1310,11 +1305,10 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(energyTableLengthResolution,'lengthResolution')
     call file%writeDataset(energyTableRadiusOuter     ,'radiusOuter'     )
     call file%writeDataset(energyTable                ,'energy'          )
-    call file%close()
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     return
@@ -1350,11 +1344,10 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName))
+       file=hdf5Object(char(fileName))
        call file%readDataset('lengthResolution',energyTableLengthResolution)
        call file%readDataset('radiusOuter'     ,energyTableRadiusOuter     )
        call file%readDataset('energy'          ,energyTable                )
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        energyTableRadiusOuterCount     =size(energyTableRadiusOuter      )

@@ -28,7 +28,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
     <description>
       Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of
-      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} class.
+      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -84,7 +84,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfileDMO_,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function sidmIsothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass

@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionIsothermal">
-   <description>An isothermal kinematic distribution class masses.</description>
+   <description>An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature \mono{[temperature]} and mean atomic mass \mono{[massAtomicMean]}, appropriate for modelling thermally supported gas in hydrostatic equilibrium.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionIsothermal
@@ -65,7 +65,7 @@ contains
        !![
        <inputParameter>
 	 <name>temperature</name>
-	 <description>The temperature of the distribution.</description>
+	 <description>The temperature (in Kelvin) of the isothermal gas distribution; used with \mono{massAtomicMean} to compute the 1D velocity dispersion via $\sigma^2 = k_\mathrm{B} T / (\mu m_\mathrm{H})$.</description>
 	 <source>parameters</source>
        </inputParameter>
        <inputParameter>
@@ -79,7 +79,7 @@ contains
        !![
        <inputParameter>
 	 <name>velocityDispersion</name>
-	 <description>The velocity dispersion of the distribution.</description>
+	 <description>The 1D velocity dispersion (in km/s) of the isothermal distribution, used directly when no \mono{temperature} is specified; sets the thermally broadened line-of-sight velocity spread.</description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -93,7 +93,7 @@ contains
   
   function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit
@@ -146,7 +146,7 @@ contains
 
   double precision function isothermalTemperature(self,coordinates)
     !!{
-    Return the temperature at the specified {\normalfont \ttfamily coordinates} in an isothermal kinematic distribution.
+    Return the temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -159,7 +159,7 @@ contains
 
   double precision function isothermalTemperatureGradientLogarithmic(self,coordinates)
     !!{
-    Return the logarithmic gradient of temperature at the specified {\normalfont \ttfamily coordinates} in an isothermal kinematic distribution.
+    Return the logarithmic gradient of temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -172,7 +172,7 @@ contains
 
   double precision function isothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an isothermal kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout)          :: self

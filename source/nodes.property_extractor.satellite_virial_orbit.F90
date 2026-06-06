@@ -19,7 +19,12 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
-   <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
+   <description>A property extractor that outputs selected orbital elements of the virial orbit of
+    satellite nodes---the Keplerian orbit at the time the satellite first crosses the host virial
+    radius. The \mono{properties} parameter specifies the list of orbital quantities to extract
+    (e.g.\ radial velocity, tangential velocity, specific energy, angular momentum), returning one
+    output column per selected property per satellite. This is used to characterize the infall
+    conditions of satellite galaxies and dark matter subhalos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorKeplerOrbit) :: nodePropertyExtractorSatelliteVirialOrbit
@@ -33,7 +38,7 @@
 
   interface nodePropertyExtractorSatelliteVirialOrbit
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
      !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
@@ -68,7 +73,7 @@ contains
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self

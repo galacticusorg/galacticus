@@ -104,13 +104,6 @@ contains
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    !![
-    <include directive="mergerTreeInitializeTask" type="moduleUse">
-    !!]
-    include 'merger_trees.initialize.tasks.modules.inc'
-    !![
-    </include>
-    !!]
     implicit none
     class           (mergerTreeInitializorStandard), intent(inout) :: self
     type            (mergerTree                   ), intent(inout) :: tree
@@ -130,12 +123,9 @@ contains
           call self%nodeOperator_%nodeInitialize(node)
           ! Call subroutines to perform any necessary initialization of this node.
           !![
-          <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
-           <functionArgs>node</functionArgs>
-          !!]
-	  include 'merger_trees.initialize.tasks.inc'
-          !![
-          </include>
+          <eventHookStatic name="mergerTreeInitializeTask">
+           <callWith>node</callWith>
+          </eventHookStatic>
           !!]
        end if
     end do

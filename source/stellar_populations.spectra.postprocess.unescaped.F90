@@ -23,7 +23,7 @@
 
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorUnescaped">
-   <description>Retains only unescaped stellar populations.</description>
+   <description>A stellar population spectra postprocessor that retains only the emission from stellar populations that have not yet escaped their birth environment (i.e., those younger than a specified timescale), suppressing the contribution of stars older than the escape timescale.</description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorUnescaped

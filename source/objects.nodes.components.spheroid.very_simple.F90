@@ -52,28 +52,28 @@ module Node_Component_Spheroid_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the very simple spheroid."/>
     </property>
     <property>
       <name>abundancesStellar</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the very simple spheroid."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true"  />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the very simple spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the very simple spheroid."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -86,14 +86,14 @@ module Node_Component_Spheroid_Very_Simple
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of spheroid stars."/>
     </property>
     <property>
       <name>radius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
+      <output unitsInSI="megaparsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the spheroid."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -107,7 +107,7 @@ module Node_Component_Spheroid_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the spheroid."/>
     </property>
    </properties>
    <bindings>
@@ -132,9 +132,7 @@ module Node_Component_Spheroid_Very_Simple
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Spheroid_Very_Simple_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters)
     !!{
@@ -170,9 +168,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Spheroid_Very_Simple_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters)
     !!{
@@ -202,9 +198,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Spheroid_Very_Simple_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
     !!{
@@ -226,9 +220,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_Spheroid_Very_Simple_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_Spheroid_Very_Simple_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
     !!{
@@ -281,9 +273,7 @@ contains
   end subroutine postEvolve
 
   !![
-  <postStepTask>
-  <unitName>Node_Component_Spheroid_Very_Simple_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Spheroid_Very_Simple_Post_Step"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
     !!{
@@ -395,13 +385,11 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Create
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Spheroid_Very_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
@@ -451,7 +439,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any very simple spheroid associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -684,9 +672,7 @@ contains
   end subroutine satelliteMerger
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node)
     !!{
@@ -709,9 +695,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility
 
   !![
-  <radiusSolverTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver</unitName>
-  </radiusSolverTask>
+  <radiusSolverTask function="Node_Component_Spheroid_Very_Simple_Radius_Solver"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
@@ -815,9 +799,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Spheroid_Very_Simple_State_Store"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -838,9 +820,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Spheroid_Very_Simple_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Spheroid_Very_Simple_State_Restore"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

@@ -34,14 +34,12 @@
      \begin{itemize}
       \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
       exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
-      \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
-      \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
-      spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+      \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the \mono{[destinationGasMinorMerger]} parameter (either ``\mono{disk}'' or ``\mono{spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
      \end{itemize}
     \end{itemize}
-    Here, $f_\mathrm{major}=${\normalfont \ttfamily [massRatioMajorMerger]} is the mass ratio above which a merger is
-    considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [ratioMassBurst]} and
-    $f_\mathrm{gas,crit}=${\normalfont \ttfamily [fractionGasCriticalBurst]}.
+    Here, $f_\mathrm{major}=$\mono{[massRatioMajorMerger]} is the mass ratio above which a merger is
+    considered to be ``major'', while $f_\mathrm{burst}=$\mono{[ratioMassBurst]} and
+    $f_\mathrm{gas,crit}=$\mono{[fractionGasCriticalBurst]}.
    </description>
   </mergerMassMovements>
   !!]
@@ -156,7 +154,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{
-    Destructor for the \refClass{mergerMassMovementsBaugh2005} dark matter halo profile class.
+    Destructor for the \refClass{mergerMassMovementsBaugh2005} merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

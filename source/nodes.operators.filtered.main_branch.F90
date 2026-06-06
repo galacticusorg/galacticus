@@ -25,7 +25,7 @@
   <nodeOperator name="nodeOperatorFilteredMainBranch">
     <description>
       A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to
-      determine main branch status, so is more efficient that using the \refClass{nodeOperatorFiltered} class along with a
+      determine main branch status, so is more efficient that using the \refClass{nodeOperatorFiltered} node operator class along with a
       \refClass{galacticFilterMainBranch} filter.
     </description>
   </nodeOperator>
@@ -116,7 +116,7 @@ contains
 
   logical function filteredMainBranchIsActive(self,node) result(isActive)
     !!{
-    Return true if the given {\normalfont \ttfamily node} is on the main branch of the tree. Here we assume that a depth-first
+    Return true if the given \mono{node} is on the main branch of the tree. Here we assume that a depth-first
     walk of the tree is being performed. As such, we keep a record of the (unique ID of the) last main branch node seen (starting
     from the tip of the main branch). A subsequent node is then only on the main branch if its first child is that same last seen
     main branch node.

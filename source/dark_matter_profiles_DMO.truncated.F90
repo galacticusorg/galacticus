@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
     <description>
-      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} class.
+      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -74,7 +74,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusFractionalTruncateMinimum</name>
@@ -102,7 +102,7 @@ contains
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -137,7 +137,7 @@ contains
 
   function truncatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo             , massTypeDark                   , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalTruncated, kinematicsDistributionTruncated, massDistributionSpherical

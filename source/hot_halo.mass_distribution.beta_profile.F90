@@ -33,8 +33,7 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
      \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
     \end{equation}
     where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-    \refPhysics{hotHaloMassDistributionCoreRadius}). The value of $\beta$ is specified by the {\normalfont
-    \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
+    \refPhysics{hotHaloMassDistributionCoreRadius}). The value of $\beta$ is specified by the \mono{[beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
     within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
    </description>
   </hotHaloMassDistribution>
@@ -63,8 +62,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distributionclass which builds the object from a
-    parameter set.
+    Constructor for the \refClass{hotHaloMassDistributionBetaProfile} hot halo mass distribution class which takes a parameter set as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -150,7 +148,7 @@ contains
 
   function betaProfileGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the $\beta$-profile hot halo mass distribution for the given {\normalfont \ttfamily node}.
+    Return the $\beta$-profile hot halo mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode
     use :: Galactic_Structure_Options, only : componentTypeHotHalo, massTypeGaseous, weightByMass

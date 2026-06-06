@@ -40,7 +40,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Position of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -48,7 +48,7 @@ module Node_Component_Position_Cartesian
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Velocity of the node (in physical coordinates)."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
@@ -68,9 +68,7 @@ module Node_Component_Position_Cartesian
 contains
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Position_Cartesian_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Position_Cartesian_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Position_Cartesian_Thread_Initialize(parameters_)
     !!{
@@ -89,9 +87,7 @@ contains
   end subroutine Node_Component_Position_Cartesian_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Position_Cartesian_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Position_Cartesian_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Position_Cartesian_Thread_Uninitialize()
     !!{
@@ -108,8 +104,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    node} to that of the parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, update the position of \mono{node} to that of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionCartesian, treeNode
     implicit none
@@ -137,7 +132,7 @@ contains
   subroutine Node_Component_Position_Cartesian_Inter_Tree_Insert(node,replaceNode)
     !!{
     A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    assigned to the \mono{replaceNode} so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
     use :: Histories       , only : history

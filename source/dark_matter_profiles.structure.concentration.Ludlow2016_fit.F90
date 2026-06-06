@@ -69,7 +69,7 @@ contains
 
   function ludlow2016FitConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    Default constructor for the \mono{ludlow2016Fit} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -165,7 +165,7 @@ contains
 
   double precision function ludlow2016FitConcentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{ludlow_mass-concentration-redshift_2016} fitting function.
     !!}
     use :: Error, only : Error_Report

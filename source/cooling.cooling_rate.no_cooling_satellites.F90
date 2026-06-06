@@ -24,7 +24,7 @@
 
   !![
   <coolingRate name="coolingRateNoCoolingSatellites">
-   <description>A cooling rate class which modifies another cooling rate by cutting off cooling in satellites</description>
+   <description>Wraps a \refClass{coolingRateClass} object and suppresses cooling in satellite halos, restricting gas cooling to isolated (field) halos only, modeling strangulation of satellite gas supply after infall.</description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateNoCoolingSatellites
@@ -97,7 +97,7 @@ contains
 
   double precision function noCoolingSatellitesRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
     in satellites.
     !!}
     implicit none

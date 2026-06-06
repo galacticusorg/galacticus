@@ -30,7 +30,7 @@ module Cooling_Options
   !![
   <enumeration>
    <name>coolingFrom</name>
-   <description>Options specifying from which node cooling is computed.</description>
+   <description>Enumeration of options specifying the reference node from which gas cooling properties are computed: either the current node in the merger tree or the node at the time of halo formation.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>

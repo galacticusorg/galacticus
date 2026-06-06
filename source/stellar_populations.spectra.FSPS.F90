@@ -27,10 +27,9 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
   <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
    <description>
     A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
-    \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
-    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
-    \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
-    $&lt;${\normalfont \ttfamily version}$&gt;$ is the FSPS version used, and $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is
+    \href{https://github.com/cconroy20/fsps}\mono{FSPS} code will be downloaded, patched and compiled and run
+    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is \mono{datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
+    $&lt;$\mono{version}$&gt;$ is the FSPS version used, and $&lt;$\mono{descriptor}$&gt;$ is
     an MD5 hash descriptor of the selected stellar population.
    </description>
   </stellarPopulationSpectra>
@@ -106,7 +105,7 @@ contains
 
   subroutine fspsDestructor(self)
     !!{
-    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population class.
+    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population spectra class.
     !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self
@@ -114,6 +113,9 @@ contains
     !![
     <objectDestructor name="self%initialMassFunction_"/>
     !!]
+    if (allocated(self%spectra%interpolatorAge        )) deallocate(self%spectra%interpolatorAge        )
+    if (allocated(self%spectra%interpolatorWavelength )) deallocate(self%spectra%interpolatorWavelength )
+    if (allocated(self%spectra%interpolatorMetallicity)) deallocate(self%spectra%interpolatorMetallicity)
     return
   end subroutine fspsDestructor
 
@@ -132,7 +134,6 @@ contains
     class  (table1D                     ), allocatable   :: imf
     logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
-    type   (hdf5Object                  )                :: spectraFile
     type   (lockDescriptor              )                :: fileLock
     integer                                              :: i
 
@@ -146,9 +147,12 @@ contains
           call File_Lock(self%fileName,fileLock,lockIsShared=i == 1)
           if (File_Exists(self%fileName)) then
              !$ call hdf5Access%set()
-             call spectraFile%openFile     (self%fileName,readOnly         =.true.)
-             call spectraFile%readAttribute('fileFormat' ,fileFormatVersion       )
-             if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             block
+               type(hdf5Object) :: spectraFile
+               spectraFile=hdf5Object(self%fileName,readOnly=.true.)
+               call spectraFile%readAttribute('fileFormat',fileFormatVersion)
+               if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
+             end block
              !$ call hdf5Access%unset()
           else
              remakeFile=.true.

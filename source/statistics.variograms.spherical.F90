@@ -55,7 +55,7 @@
 
   interface variogramSpherical
      !!{
-     Constructors for the \refClass{variogramSpherical} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramSpherical} variogram class.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -77,7 +77,7 @@ contains
     !![
     <inputParameter>
       <name>variogramFitOption</name>
-      <description>Option controlling how the variogram is to be fit.</description>
+      <description>Option controlling how the binned semi-variance data are aggregated before fitting the spherical variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -132,7 +132,7 @@ contains
 
   double precision function sphericalVariogram(self,separation)
     !!{
-    Compute the variogram at the given {\normalfont \ttfamily separation}. Here we use the ``spherical model'':
+    Compute the variogram at the given \mono{separation}. Here we use the ``spherical model'':
     \begin{equation}
       \gamma(h) = \left\{ \begin{array}{ll} 0 &amp; \hbox{ if } h  = 0, \\ C_0 + C_1 [3h/2R_\mathrm{C} - h^3/2R_\mathrm{C}^3] &amp; \hbox{ if } h > a \\ C_0 + C_1 &amp; \hbox{ if } h > a, \end{array} \right.
     \end{equation}

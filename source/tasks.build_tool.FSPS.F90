@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolFSPS">
-   <description>A task which builds the FSPS tool.</description>
+   <description>A task which downloads, compiles, and installs the FSPS (Flexible Stellar Population Synthesis) code, making it available for computing stellar population spectral energy distributions and broadband luminosities from star formation histories.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolFSPS

@@ -30,10 +30,10 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily [mean]}] The mean, $\mu$;
-    \item[{\normalfont \ttfamily [variance]}] The variance, $S$;
-    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \item[\mono{[mean]}] The mean, $\mu$;
+    \item[\mono{[variance]}] The variance, $S$;
+    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
     \end{description}
    </description>
   </distributionFunction1D>
@@ -81,12 +81,12 @@ contains
     !![
     <inputParameter>
       <name>mean</name>
-      <description>The mean of the normal distribution.</description>
+      <description>The mean $\mu$ of the normal (Gaussian) distribution, specifying the location of the peak of the probability density function; optionally constrained within $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>variance</name>
-      <description>The variance of the normal distribution.</description>
+      <description>The variance $S = \sigma^2 > 0$ of the normal distribution, controlling the width of the Gaussian bell curve; the standard deviation is $\sigma = \sqrt{S}$ and the FWHM is $2\sqrt{2\ln 2}\,\sigma$.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -94,7 +94,7 @@ contains
        !![
        <inputParameter>
          <name>limitLower</name>
-         <description>The lower limit of the normal distribution.</description>
+         <description>The lower truncation limit $x_\mathrm{l}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -103,7 +103,7 @@ contains
        !![
        <inputParameter>
          <name>limitUpper</name>
-         <description>The upper limit of the normal distribution.</description>
+         <description>The upper truncation limit $x_\mathrm{u}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -396,7 +396,7 @@ contains
     !!{
     Evaluates a polynomial based on the implementation by John Burkardt. For sanity's sake, the value of N indicates the
     \emph{number} of coefficients, or more precisely, the \emph{order} of the polynomial, rather than the \emph{degree} of the
-    polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given {\normalfont \ttfamily n} and {\normalfont \ttfamily a}, the form of the
+    polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given \mono{n} and \mono{a}, the form of the
     polynomial is:
     \begin{equation}
     p(x) = a(1) + a(2) * x + \ldots + a(n-1) * x^{n-2} + a(n) * x^{n-1}.

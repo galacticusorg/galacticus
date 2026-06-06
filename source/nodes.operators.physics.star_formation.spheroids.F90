@@ -27,7 +27,7 @@
 
   !![
   <nodeOperator name="nodeOperatorStarFormationSpheroids">
-   <description>A node operator class that performs star formation.</description>
+   <description>A node operator class that performs star formation in galactic spheroids by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by \refClass{starFormationRateSpheroidsClass} and applied to evolve the spheroid gas mass, stellar mass, chemical abundances, and star formation history. \mono{luminositiesStellarInactive} controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationSpheroids

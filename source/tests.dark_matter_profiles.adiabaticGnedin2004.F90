@@ -41,7 +41,8 @@ program Test_Dark_Matter_Profiles_Gnedin2004
           &                                 treeNode                                                      , nodeComponentSPheroid
   use :: Input_Parameters          , only : inputParameters
   use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
-  use :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                    , char, var_str
+  use :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                    , char                                        , var_str                       , &
+       &                                    operator(//)
   use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize         , Node_Components_Uninitialize
   use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                        , Unit_Tests_Finish
   implicit none
@@ -165,7 +166,7 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   ! Begin unit tests.
   call Unit_Tests_Begin_Group('Gnedin et al. (2004) dark matter profile')
   ! Read data from the reference "contra" file.
-  fileName  =char(inputPath(pathTypeExec))//'testSuite/data/adiabaticContractionContra.txt'
+  fileName  =inputPath(pathTypeExec)//'testSuite/data/adiabaticContractionContra.txt'
   countLines=Count_Lines_in_File(fileName    )
   countRadii=Count_Lines_in_File(fileName,'#')
   allocate(radiusFractionalInitialContra(countRadii))
@@ -197,11 +198,14 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
   ! Clean up objects.
+  call node%destroy()
+  deallocate(radiusFractionalInitialContra,radiusFractionalInitial,node)
   !![
-  <objectDestructor name="cosmologyParameters_"      />
-  <objectDestructor name="cosmologyFunctions_"       />
-  <objectDestructor name="virialDensityContrast_"    />
-  <objectDestructor name="darkMatterHaloScale_"      />
-  <objectDestructor name="darkMatterProfileDMONFW_"  />
+  <objectDestructor name="cosmologyParameters_"                 />
+  <objectDestructor name="cosmologyFunctions_"                  />
+  <objectDestructor name="virialDensityContrast_"               />
+  <objectDestructor name="darkMatterHaloScale_"                 />
+  <objectDestructor name="darkMatterProfileDMONFW_"             />
+  <objectDestructor name="darkMatterProfileAdiabaticGnedin2004_"/>
   !!]
 end program Test_Dark_Matter_Profiles_Gnedin2004

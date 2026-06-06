@@ -23,7 +23,7 @@ Implements a merger tree weight property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTreeWeight">
-   <description>A merger tree weight property extractor class.</description>
+   <description>Extracts the statistical weight assigned to each merger tree, representing the number density of halos of that mass in the target cosmology, used when combining results across trees sampled at discrete mass points to recover volume-averaged statistics.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTreeWeight
@@ -36,11 +36,12 @@ Implements a merger tree weight property extractor class.
      procedure :: name        => treeWeightName
      procedure :: description => treeWeightDescription
      procedure :: unitsInSI   => treeWeightUnitsInSI
+     procedure :: units       => treeWeightUnits
   end type nodePropertyExtractorTreeWeight
 
   interface nodePropertyExtractorTreeWeight
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTreeWeight} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTreeWeight} property extractor class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight
@@ -116,3 +117,16 @@ contains
     return
   end function treeWeightUnitsInSI
 
+  function treeWeightUnits(self) result(units)
+    !!{
+    Return the units of the treeWeight property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorTreeWeight), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc⁻³',quantity='Mpc^-3',isComoving=.true.)
+    return
+  end function treeWeightUnits

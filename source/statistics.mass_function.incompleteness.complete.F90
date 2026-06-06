@@ -24,7 +24,10 @@
   !![
   <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
    <description>
-  A mass function incompleteness class which assumes a fully complete mass function.
+    A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the
+    completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no
+    observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the
+    \refClass{massFunctionIncompletenessClass} interface.
    </description>
   </massFunctionIncompleteness>
   !!]

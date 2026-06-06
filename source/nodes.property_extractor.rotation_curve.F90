@@ -27,7 +27,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
    <description>
     A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
-    are specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    are specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -57,11 +57,12 @@
      procedure :: names              => rotationCurveNames
      procedure :: descriptions       => rotationCurveDescriptions
      procedure :: unitsInSI          => rotationCurveUnitsInSI
+     procedure :: units       => rotationCurveUnits
   end type nodePropertyExtractorRotationCurve
 
   interface nodePropertyExtractorRotationCurve
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRotationCurve} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -153,7 +154,7 @@ contains
 
   integer function rotationCurveElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    Return the number of elements in the \mono{rotationCurve} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
@@ -166,7 +167,7 @@ contains
 
   function rotationCurveSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    Return the number of array elements in the \mono{rotationCurve} property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: rotationCurveSize
@@ -180,7 +181,7 @@ contains
 
   function rotationCurveExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily rotationCurve} property extractor.
+    Implement a \mono{rotationCurve} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction, &
@@ -288,7 +289,7 @@ contains
 
   subroutine rotationCurveNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily rotationCurve} properties.
+    Return the names of the \mono{rotationCurve} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -305,7 +306,7 @@ contains
 
   subroutine rotationCurveDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    Return descriptions of the \mono{rotationCurve} property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -320,30 +321,32 @@ contains
     return
   end subroutine rotationCurveDescriptions
 
-  subroutine rotationCurveColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine rotationCurveColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    Return column descriptions of the \mono{rotationCurve} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                            :: self
     double precision                                    , intent(in   ), optional                  :: time
     type            (varying_string                    ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                    , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                    ), intent(  out)                            :: valuesDescription
-    double precision                                    , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                          ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily rotationCurve} properties in the SI system.
+    Return the units of the \mono{rotationCurve} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -360,3 +363,22 @@ contains
     return
   end function rotationCurveUnitsInSI
 
+  function rotationCurveUnits(self,time) result(units)
+    !!{
+    Return the units of the rotationCurve properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                          ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
+    double precision                                    , intent(in   ), optional    :: time
+    double precision                                    , dimension(:) , allocatable :: siValues
+    integer                                                                          :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='km/s',quantity='km/s')
+    end do
+    return
+  end function rotationCurveUnits

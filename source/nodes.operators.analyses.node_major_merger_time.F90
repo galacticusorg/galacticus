@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorNodeMajorMergerTime">
-   <description>A node operator class that computes the time of the most recent major merger between nodes.</description>
+   <description>A node operator class that records the cosmic time of the most recent dark matter halo--halo major merger for each node. A merger is classified as major when the progenitor mass ratio $M_2/M_1 \geq$ \mono{fractionMassMajorMerger} (default 0.25, where $M_2 \leq M_1$). The time is stored as a meta-property of the basic component and is propagated through promotions.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeMajorMergerTime

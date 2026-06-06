@@ -17,11 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a scalar floating point property.</description>
+   <description>Abstract base class for all extractors that return a single floating-point scalar value per node (e.g., mass, radius, temperature), defining the common interface implemented by the large majority of node property extractors.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorScalar
@@ -32,17 +33,19 @@
    contains
      !![
      <methods>
-       <method method="extract"     description="Extract the property from the given {\normalfont \ttfamily node}."/>
-       <method method="name"        description="Return the name of the property extracted."                       />
-       <method method="description" description="Return a description of the property extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
+       <method method="extract"     description="Extract the property from the given \mono{node}."              />
+       <method method="name"        description="Return the name of the property extracted."                    />
+       <method method="description" description="Return a description of the property extracted."               />
+       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."  />
+       <method method="units"       description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"    description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(scalarExtract  ), deferred :: extract
      procedure(scalarName     ), deferred :: name
      procedure(scalarName     ), deferred :: description
      procedure(scalarUnitsInSI), deferred :: unitsInSI
+     procedure                            :: units       => scalarUnits
      procedure                            :: metaData    => scalarMetaData
   end type nodePropertyExtractorScalar
 
@@ -80,7 +83,21 @@
   end interface
 
 contains
-  
+
+  function scalarUnits(self) result(units)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorScalar} \mono{unitsInSI} result into a
+    \mono{unitType}. Subclasses may override this method to populate \mono{description}, \mono{quantity},
+    and \mono{isComoving}.
+    !!}
+    implicit none
+    type (unitType                   )                :: units
+    class(nodePropertyExtractorScalar), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),isComoving=.false.)
+    return
+  end function scalarUnits
+
   subroutine scalarMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for scalar property meta-data.

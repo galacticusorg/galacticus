@@ -19,10 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteMinimumDistance">
-   <description>
-     A node property extractor which extracts the minimum distance from the center that a satellite has ever reached in its
-     current host halo.
-   </description>
+   <description>Extracts the minimum pericentric distance ever reached by a satellite node within its current host halo, recording the closest approach to the halo center as an indicator of tidal stripping history.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSatelliteMinimumDistance
@@ -37,11 +34,12 @@
      procedure :: name        => satelliteMinimumDistanceName
      procedure :: description => satelliteMinimumDistanceDescription
      procedure :: unitsInSI   => satelliteMinimumDistanceUnitsInSI
+     procedure :: units       => satelliteMinimumDistanceUnits
   end type nodePropertyExtractorSatelliteMinimumDistance
 
   interface nodePropertyExtractorSatelliteMinimumDistance
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -67,7 +65,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self
@@ -101,7 +99,7 @@ contains
   
   function satelliteMinimumDistanceName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily satelliteMinimumDistance} properties.
+    Return the names of the \mono{satelliteMinimumDistance} properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceName
@@ -114,7 +112,7 @@ contains
 
   function satelliteMinimumDistanceDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily satelliteMinimumDistance} properties.
+    Return the descriptions of the \mono{satelliteMinimumDistance} properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceDescription
@@ -127,7 +125,7 @@ contains
 
   double precision function satelliteMinimumDistanceUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily satelliteMinimumDistance} properties in the SI system.
+    Return the units of the \mono{satelliteMinimumDistance} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
@@ -137,3 +135,17 @@ contains
     satelliteMinimumDistanceUnitsInSI=megaParsec
     return
   end function satelliteMinimumDistanceUnitsInSI
+
+  function satelliteMinimumDistanceUnits(self) result(units)
+    !!{
+    Return the units of the satelliteMinimumDistance property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                     )                :: units
+    class(nodePropertyExtractorSatelliteMinimumDistance), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function satelliteMinimumDistanceUnits

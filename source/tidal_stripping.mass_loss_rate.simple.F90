@@ -69,7 +69,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{tidalStrippingSimple} tidal stripping class which takes a parameter set as input.
+    Constructor for the \refClass{tidalStrippingSimple} model of tidal stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -177,7 +177,7 @@ contains
        call Error_Report('unsupported component'//{introspection:location})
     end select
     ! Get the tidal field due to the host halo.
-    tidalTensorRadial =  self%satelliteTidalField_%tidalTensorRadial(node)
+    tidalTensorRadial =  self%satelliteTidalField_%tidalTensorRadial(node,atPericenter=.true.,includeCentrifugalAcceleration=.false.)
     ! Get the tidal force exerted at the half-mass radius.
     forceTidal        =  +tidalTensorRadial &
          &               *radiusHalfMass

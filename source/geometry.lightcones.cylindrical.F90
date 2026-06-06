@@ -87,7 +87,7 @@
 
   interface geometryLightconeCylindrical
      !!{
-     Constructors for the \refClass{geometryLightconeCylindrical} dark matter halo spin distribution class.
+     Constructors for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -268,9 +268,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile   (char(fileName    )           )
-       call file%readDataset(     'covariance' ,covariance)
-       call file%close      (                             )
+       file=hdf5Object(char(fileName))
+       call file%readDataset('covariance',covariance)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     else
@@ -300,9 +299,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile    (char(fileName  )             )
-       call file%writeDataset(     covariance ,'covariance')
-       call file%close       (                             )
+       file=hdf5Object(char(fileName))
+       call file%writeDataset(covariance,'covariance')
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
     end if
@@ -475,7 +473,7 @@ contains
 
   function cylindricalReplicationCount(self,node)
     !!{
-    Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    Determine the number of times \mono{node} appears in the lightcone.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -512,7 +510,7 @@ contains
 
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
     !!{
-    Determine if the given {\normalfont \ttfamily node} lies within the lightcone.
+    Determine if the given \mono{node} lies within the lightcone.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic 
     use :: Numerical_Comparison, only : Values_Agree
@@ -632,8 +630,8 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (geometryLightconeCylindrical), intent(inout)                                      :: self
-    type            (treeNode                    ), intent(inout)                                      :: node
+    class           (geometryLightconeCylindrical), intent(inout), target                              :: self
+    type            (treeNode                    ), intent(inout), target                              :: node
     double precision                              , intent(in   )                                      :: timeStart    , timeEnd
     double precision                              , intent(inout), dimension(:), allocatable, optional :: timesCrossing
    !$GLC attributes unused :: self, node, timeStart, timeEnd, timesCrossing

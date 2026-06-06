@@ -21,32 +21,30 @@
   Implementation of a S\'ersic mass distribution class.
   !!}
 
-  use    :: Numerical_Interpolation, only : interpolator
-  !$ use :: OMP_Lib                , only : omp_lock_kind
+  use :: Numerical_Interpolation, only : interpolator
 
   !![
   <massDistribution name="massDistributionSersic">
-   <description>A S\'ersic mass distribution class.</description>
+   <description>A S\'ersic mass distribution class implementing the spherically deprojected form of the S\'ersic surface brightness profile $I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])$, where $n$ controls the profile shape.</description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
      !!{
      The S\'ersic density profile.
      !!}
-     double precision                                               :: densityNormalization                  , mass              , &
-          &                                                            radiusHalfMass_                       , index_
+     double precision                                          :: densityNormalization                  , mass              , &
+          &                                                       radiusHalfMass_                       , index_
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient                           , radiusStart
-     logical                                                        :: tableInitialized              =.false.
-     integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum                    , tableRadiusMinimum
-     double precision                                               :: table3dRadiusHalfMass
-     double precision                                               :: table2dRadiusHalfMass
-     double precision                                               :: gradientLogarithmicMassCentral
-     double precision                   , allocatable, dimension(:) :: tableDensity                          , tableEnclosedMass , &
-          &                                                            tablePotential                        , tableRadius
-     type            (interpolator     )                            :: tableInterpolator
-     !$ integer      (omp_lock_kind    )                            :: tableLock
+     double precision                                          :: coefficient                           , radiusStart
+     logical                                                   :: tableInitialized              =.false.
+     integer                                                   :: tableCount
+     double precision                                          :: tableRadiusMaximum                    , tableRadiusMinimum
+     double precision                                          :: table3dRadiusHalfMass
+     double precision                                          :: table2dRadiusHalfMass
+     double precision                                          :: gradientLogarithmicMassCentral
+     double precision              , allocatable, dimension(:) :: tableDensity                          , tableEnclosedMass , &
+          &                                                       tablePotential                        , tableRadius
+     type            (interpolator)                            :: tableInterpolator
    contains
      !![
      <methods>
@@ -103,19 +101,19 @@ contains
       <name>index</name>
       <variable>index_</variable>
       <defaultValue>4.0d0</defaultValue>
-      <description>The S\'ersic index.</description>
+      <description>The S\'ersic index $n$ that controls the shape of the surface brightness (or mass surface density) profile; $n=1$ gives an exponential profile, $n=4$ gives the de~Vaucouleurs profile, and larger $n$ produces more centrally concentrated profiles.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radiusHalfMass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The half mass radius of the S\'ersic profile.</description>
+      <description>The projected half-mass (effective) radius (in Mpc) of the S\'ersic profile, $R_e$, within which half the total projected mass is enclosed.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the S\'ersic profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the S\'ersic profile, used together with \mono{index} and \mono{radiusHalfMass} to set the overall normalization of the density distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -173,7 +171,6 @@ contains
     self%tableRadiusMinimum   =1.0d-3
     self%table3dRadiusHalfMass=1.0d+0
     self%index_               =index
-    !$ call OMP_Init_Lock(self%tableLock)
     ! Tabulate the profile.
     call self%tabulate()
     ! If dimensionless, then set scale length and mass to unity.
@@ -203,7 +200,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    Return the density at the specified \mono{coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
@@ -215,15 +212,13 @@ contains
     ! Get position in spherical coordinate system.
     position= coordinates
     ! Compute the density at this position.
-    !$ call OMP_Set_Lock(self%tableLock)
     r       =+position%r             () &
          &   /self    %radiusHalfMass_
     call self%tabulate(r)
     sersicDensity=+self%mass                                               &
          &        /self%radiusHalfMass_**3                                 &
          &        *self%tableInterpolator%interpolate(r,self%tableDensity)
-    !$ call OMP_Unset_Lock(self%tableLock)
-    return
+     return
   end function sersicDensity
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
@@ -242,7 +237,6 @@ contains
 
     isInfinite               =.false.
     sersicDensityRadialMoment=0.0d0
-    !$ call OMP_Set_Lock(self%tableLock)
     if (present(radiusMinimum)) then
        fractionalRadiusMinimum=radiusMinimum/self%radiusHalfMass_
     else
@@ -274,7 +268,6 @@ contains
             &                     )                         &
             &                    *deltaRadius
     end do
-    !$ call OMP_Unset_Lock(self%tableLock)
     sersicDensityRadialMoment=+sersicDensityRadialMoment           &
          &                    *self%mass                           &
          &                    *self%radiusHalfMass_**(moment-3.0d0)
@@ -294,7 +287,7 @@ contains
   
   double precision function sersicMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for S\'ersic mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for S\'ersic mass distributions.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
@@ -304,7 +297,6 @@ contains
     if (radius <= 0.0d0) then
        sersicMassEnclosedBySphere=0.0d0
     else
-       !$ call OMP_Set_Lock(self%tableLock)
        fractionalRadius=+     radius         &
             &           /self%radiusHalfMass_
        call self%tabulate(fractionalRadius)
@@ -314,7 +306,6 @@ contains
        else
           sersicMassEnclosedBySphere=+self%mass
        end if
-       !$ call OMP_Unset_Lock(self%tableLock)
     end if
     return
   end function sersicMassEnclosedBySphere
@@ -332,7 +323,7 @@ contains
 
   double precision function sersicPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a S\'ersic mass distribution.
+    Return the potential at the specified \mono{coordinates} in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report
@@ -348,7 +339,6 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     ! Get position in spherical coordinate system.
     position=coordinates
-    !$ call OMP_Set_Lock(self%tableLock)
     ! For small radii, use a simple power-law extrapolation.
     if (position%r() < self%tableRadiusMinimum) then
        if (position%r() <= 0.0d0 .and. self%gradientLogarithmicMassCentral <= 1.0d0) call Error_Report('potential is divergent at r=0'//{introspection:location})
@@ -373,7 +363,6 @@ contains
           sersicPotential=0.0d0
        end if
     end if
-    !$ call OMP_Unset_Lock(self%tableLock)
     if (.not.self%isDimensionless()) sersicPotential=+gravitationalConstant_internal &
          &                                           *sersicPotential
     return
@@ -386,9 +375,7 @@ contains
     implicit none
     class(massDistributionSersic), intent(inout) :: self
 
-    !$ call OMP_Set_Lock(self%tableLock)
     sersicRadiusHalfMass=+self%radiusHalfMass_
-    !$ call OMP_Unset_Lock(self%tableLock)
     return
   end function sersicRadiusHalfMass
 

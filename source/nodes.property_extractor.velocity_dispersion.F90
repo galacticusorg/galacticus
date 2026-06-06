@@ -29,18 +29,16 @@
   <nodePropertyExtractor name="nodePropertyExtractorVelocityDispersion">
    <description>
     A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output
-    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}, but with an additional, colon-separated, value at the end indicating the direction in which the velocity
-    dispersion should be computed. This direction should be one of {\normalfont \ttfamily radial} (computes the radial
-    component of velocity dispersion), {\normalfont \ttfamily lineOfSight\{\textless luminosity\textgreater\}} (computes the
-    line-of-sight velocity dispersion), {\normalfont \ttfamily lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
-    (computes the line-of-sight velocity dispersion averaged interior to the given radius), or {\normalfont \ttfamily
-    lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
-    \citealt{cappellari_sauron_2007})---in the latter three cases {\normalfont \ttfamily \{\textless luminosity\textgreater\}}
-    specifies which band should be used to weight the velocity dispersion, alternatively setting {\normalfont \ttfamily
-    \{\textless luminosity\textgreater\}}$=${\normalfont \ttfamily mass} (or just leaving off this specifier entirely) will use
+    dispersion should be computed. This direction should be one of \mono{radial} (computes the radial
+    component of velocity dispersion), \mono{lineOfSight\{\textless luminosity\textgreater\}} (computes the
+    line-of-sight velocity dispersion), \mono{lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
+    (computes the line-of-sight velocity dispersion averaged interior to the given radius), or \mono{lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
+    \citealt{cappellari_sauron_2007})---in the latter three cases \mono{\{\textless luminosity\textgreater\}}
+    specifies which band should be used to weight the velocity dispersion, alternatively setting \mono{\{\textless luminosity\textgreater\}}$=$\mono{mass} (or just leaving off this specifier entirely) will use
     mass weighting instead.
    </description>
   </nodePropertyExtractor>
@@ -69,11 +67,12 @@
      procedure :: names              => velocityDispersionNames
      procedure :: descriptions       => velocityDispersionDescriptions
      procedure :: unitsInSI          => velocityDispersionUnitsInSI
+     procedure :: units       => velocityDispersionUnits
   end type nodePropertyExtractorVelocityDispersion
 
   interface nodePropertyExtractorVelocityDispersion
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorVelocityDispersion} property extractor class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -193,7 +192,7 @@ contains
 
   integer function velocityDispersionElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    Return the number of elements in the \mono{velocityDispersion} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout) :: self
@@ -206,7 +205,7 @@ contains
 
   function velocityDispersionSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    Return the number of array elements in the \mono{velocityDispersion} property extractors.
     !!}
     implicit none
     integer         (c_size_t                               )                :: velocityDispersionSize
@@ -220,7 +219,7 @@ contains
 
   function velocityDispersionExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
+    Implement a \mono{velocityDispersion} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , componentTypeDisk           , componentTypeSpheroid                     , massTypeGalactic                  , &
           &                                             massTypeStellar                , massTypeAll
@@ -430,7 +429,7 @@ contains
 
   subroutine velocityDispersionNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
+    Return the names of the \mono{velocityDispersion} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
@@ -447,7 +446,7 @@ contains
 
   subroutine velocityDispersionDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    Return descriptions of the \mono{velocityDispersion} property.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
@@ -462,30 +461,32 @@ contains
     return
   end subroutine velocityDispersionDescriptions
 
-  subroutine velocityDispersionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine velocityDispersionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    Return column descriptions of the \mono{velocityDispersion} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)                            :: self
     double precision                                         , intent(in   ), optional                  :: time
     type            (varying_string                         ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                         , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    double precision                                         , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                               ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine velocityDispersionColumnDescriptions
 
   function velocityDispersionUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily velocityDispersion} properties in the SI system.
+    Return the units of the \mono{velocityDispersion} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -662,8 +663,7 @@ contains
 
   double precision function velocityDispersionSolidAngleInCylinder(radius)
     !!{
-    Computes the solid angle of a spherical shell of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
-    radiusImpact}.
+    Computes the solid angle of a spherical shell of given \mono{radius} that lies within a cylinder of radius \mono{radiusImpact}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -682,7 +682,7 @@ contains
 
   double precision function velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
     !!{
-    Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
+    Compute the line-of-sight velocity dispersion at the given \mono{radius}.
     !!}
     use :: Error                , only : Error_Report, errorStatusSuccess
     use :: Numerical_Integration, only : integrator
@@ -772,3 +772,24 @@ contains
     end if
     return
   end function velocityDispersionVelocityDensityIntegrand
+
+  function velocityDispersionUnits(self,time) result(units)
+    !!{
+    Return the units of the velocityDispersion properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
+    double precision                                         , intent(in   ), optional    :: time
+    double precision                                         , dimension(:) , allocatable :: siValues
+    integer                                                                               :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='km/s',quantity='km/s')
+    end do
+    return
+  end function velocityDispersionUnits

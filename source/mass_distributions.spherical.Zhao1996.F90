@@ -26,7 +26,7 @@
   !![
   <enumeration>
    <name>specialCase</name>
-   <description>Special cases for {\normalfont \ttfamily zhao1996} dark matter halo profile class.</description>
+   <description>Special cases for \mono{zhao1996} dark matter halo profile class.</description>
    <entry label="general"    />
    <entry label="coredNFW"   />
    <entry label="gamma0_5NFW"/>
@@ -168,7 +168,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the Zhao1996 profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the \cite{zhao_analytical_1996} profile, used to set the density normalization $\rho_0$ when \mono{densityNormalization} is not supplied directly.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -240,6 +240,7 @@ contains
        radiusScaleFree          =+radiusOuter/self%scaleLength
        self%densityNormalization=+mass/self%scaleLength**3*(3.0d0-gamma)/4.0d0/Pi/radiusScaleFree**(3.0d0-gamma)/Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[1.0d0+(3.0d0-gamma)/alpha],-radiusScaleFree**alpha)
     else
+       self%densityNormalization=+0.0d0
        call Error_Report('either "densityNormalization", or "mass" and "radiusOuter" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
@@ -335,7 +336,7 @@ contains
 
   double precision function zhao1996Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a Zhao1996 mass distribution.
+    Return the density at the specified \mono{coordinates} in a Zhao1996 mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
@@ -389,7 +390,7 @@ contains
 
   double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target   :: self
@@ -486,7 +487,7 @@ contains
 
   double precision function zhao1996MassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for zhao1996 mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for zhao1996 mass distributions.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target :: self
@@ -860,7 +861,7 @@ contains
 
   double precision function zhao1996Potential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an zhao1996 mass distribution.
+    Return the potential at the specified \mono{coordinates} in an zhao1996 mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -1064,7 +1065,7 @@ contains
     
   double precision function zhao1996RadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in an Zhao1996 mass distribution.
+    Compute the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -1091,7 +1092,7 @@ contains
   
   double precision function zhao1996RadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an zhao1996 mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an zhao1996 mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -1120,7 +1121,7 @@ contains
   
   subroutine zhao1996TimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given {\normalfont \ttfamily time} in an Zhao1996 mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -1204,7 +1205,7 @@ contains
 
   double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an Zhao1996 mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an Zhao1996 mass
     distribution.
     !!}
     use :: Exponential_Integrals   , only : Exponential_Integral
@@ -1282,7 +1283,7 @@ contains
 
   double precision function zhao1996EnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in a Zhao1996 mass distribution.
+    Compute the potential energy within a given \mono{radius} in a Zhao1996 mass distribution.
     \begin{eqnarray}
     \end{eqnarray}
     where $x=r/r_\mathrm{s}$ and $\mathrm{G}$ is Catalan's constant.
@@ -1398,7 +1399,7 @@ contains
 
   double precision function zhao1996EnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in a Zhao1996 mass distribution.
+    Compute the kinetic energy within a given \mono{radius} in a Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi

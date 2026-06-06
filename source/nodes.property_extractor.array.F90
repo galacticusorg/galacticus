@@ -17,11 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a array of floating point properties.</description>
+   <description>Abstract base class for extractors that return a fixed-length 2D array of floating-point values per node, defining the interface (including column descriptions, element counts, names, and units) for multi-valued scalar array outputs used in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorArray
@@ -32,14 +33,15 @@
    contains
      !![
      <methods>
-       <method method="columnDescriptions" description="Return a description of the columns."                               />
-       <method method="size"               description="Return the number of elements in the array."                        />
-       <method method="elementCount"       description="Return the number of properties in the array."                      />
-       <method method="extract"            description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="names"              description="Return the name of the properties extracted."                       />
-       <method method="descriptions"       description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"           description="Populate a hash with meta-data for the property."                   />
+       <method method="columnDescriptions" description="Return a description of the columns."                          />
+       <method method="size"               description="Return the number of elements in the array."                   />
+       <method method="elementCount"       description="Return the number of properties in the array."                 />
+       <method method="extract"            description="Extract the properties from the given \mono{node}."            />
+       <method method="names"              description="Return the name of the properties extracted."                  />
+       <method method="descriptions"       description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"              description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"           description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(arrayColumns     ), deferred :: columnDescriptions
@@ -49,6 +51,7 @@
      procedure(arrayNames       ), deferred :: names
      procedure(arrayDescriptions), deferred :: descriptions
      procedure(arrayUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: units              => arrayUnits
      procedure                              :: metaData           => arrayMetaData
   end type nodePropertyExtractorArray
 
@@ -91,17 +94,17 @@
   end interface
 
   abstract interface
-     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+     subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnits,time)
        !!{
        Interface for array column descriptions.
        !!}
-       import varying_string, nodePropertyExtractorArray
+       import varying_string, nodePropertyExtractorArray, unitType
        class           (nodePropertyExtractorArray), intent(inout)                            :: self
        double precision                            , intent(in   ), optional                  :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
        double precision                            , intent(inout), allocatable, dimension(:) :: values
        type            (varying_string            ), intent(  out)                            :: valuesDescription
-       double precision                            , intent(  out)                            :: valuesUnitsInSI
+       type            (unitType                  ), intent(  out)                            :: valuesUnits
      end subroutine arrayColumns
   end interface
 
@@ -141,7 +144,27 @@
   end interface
 
 contains
-  
+
+  function arrayUnits(self,time) result(units)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorArray}{unitsInSI} array into an array of
+    \mono{unitType}.
+    !!}
+    implicit none
+    type            (unitType                  ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorArray), intent(inout)             :: self
+    double precision                            , intent(in   ), optional   :: time
+    double precision                            , dimension(:), allocatable :: siValues
+    integer                                                                  :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),isComoving=.false.)
+    end do
+    return
+  end function arrayUnits
+
   subroutine arrayMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{
     Interface for array property meta-data.

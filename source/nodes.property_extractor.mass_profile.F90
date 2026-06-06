@@ -26,7 +26,13 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-   <description>A property extractor class for the enclosed mass at a set of radii.</description>
+   <description>A property extractor that returns the enclosed mass profile
+    (in $\mathrm{M}_\odot$) at a user-specified set of radii, supporting a variety of radius
+    definitions (virial radius multiples, disk/spheroid scale radii, half-mass radii, galactic mass
+    or light fractions, and satellite bound-mass fractions). The \mono{radiusSpecifiers} parameter
+    specifies the list of radii; if \mono{includeRadii} is \mono{true}, the actual radii in Mpc are
+    also written to the output. The dark matter fraction from cosmological parameters is used to
+    translate satellite bound mass into a corresponding dark matter radius.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
@@ -55,11 +61,12 @@
      procedure :: names              => massProfileNames
      procedure :: descriptions       => massProfileDescriptions
      procedure :: unitsInSI          => massProfileUnitsInSI
+     procedure :: units       => massProfileUnits
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
@@ -160,7 +167,7 @@ contains
 
   integer function massProfileElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily massProfile} property extractors.
+    Return the number of elements in the \mono{massProfile} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
@@ -173,7 +180,7 @@ contains
 
   function massProfileSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily massProfile} property extractors.
+    Return the number of array elements in the \mono{massProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                        )                :: massProfileSize
@@ -187,7 +194,7 @@ contains
 
   function massProfileExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily massProfile} property extractor.
+    Implement a \mono{massProfile} property extractor.
     !!}
 
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic            , massTypeStellar                     , massTypeDark
@@ -316,7 +323,7 @@ contains
 
   subroutine massProfileNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily massProfile} properties.
+    Return the names of the \mono{massProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -332,7 +339,7 @@ contains
 
   subroutine massProfileDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily massProfile} property.
+    Return descriptions of the \mono{massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -347,9 +354,9 @@ contains
     return
   end subroutine massProfileDescriptions
 
-  subroutine massProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine massProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily massProfile} property.
+    Return column descriptions of the \mono{massProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                            :: self
@@ -357,20 +364,20 @@ contains
     type            (varying_string                  ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                  , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string                  ), intent(  out)                            :: valuesDescription
-    double precision                                  , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                        ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(1.0d0)
     descriptions     =self%radii%name
     return
   end subroutine massProfileColumnDescriptions
 
   function massProfileUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily massProfile} properties in the SI system.
+    Return the units of the \mono{massProfile} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -386,3 +393,22 @@ contains
     return
   end function massProfileUnitsInSI
 
+  function massProfileUnits(self,time) result(units)
+    !!{
+    Return the units of the mass profile properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
+    double precision                                  , intent(in   ), optional    :: time
+    double precision                                  , dimension(:) , allocatable :: siValues
+    integer                                                                        :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function massProfileUnits

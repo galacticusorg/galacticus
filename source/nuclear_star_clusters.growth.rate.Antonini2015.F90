@@ -32,7 +32,7 @@
     \begin{equation}
      \dot{M}_\mathrm{gas}^\mathrm{NSC} = A_\mathrm{res}\dot{M}_\star^\mathrm{spheroid},
     \end{equation}    
-    where $A_\mathrm{res}=${\normalfont \ttfamily [efficiency]} is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the
+    where $A_\mathrm{res}=$\mono{[efficiency]} is a free parameter, and $\dot{M}_\star^\mathrm{spheroid}$ is the
     star formation rate of the spheroid component.
    </description>
   </nuclearStarClusterGrowthRates>
@@ -90,7 +90,7 @@ contains
 
   function antonini2015ConstructorInternal(efficiency,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate from NSCs class.
+    Internal constructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class.
     !!}
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine antonini2015Destructor(self)
     !!{
-    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} class
+    Destructor for the \refClass{nuclearStarClusterGrowthRatesAntonini2015} gas inflow rate in \glspl{nsc} class
     !!}
     implicit none
     type(nuclearStarClusterGrowthRatesAntonini2015), intent(inout) :: self
@@ -116,8 +116,7 @@ contains
 
   double precision function antonini2015Rate(self,node) result(rate)
     !!{
-    Returns the gas inflow rate (in $M_\odot$ Gyr$^{-1}$) onto the galactic \gls{nsc} of {\normalfont \ttfamily
-    node}. The \gls{nsc} is assumed to obey the \cite{antonini_coevolution_2015} gas inflow rate model.
+    Returns the gas inflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) onto the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{antonini_coevolution_2015} gas inflow rate model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentSpheroid
     implicit none

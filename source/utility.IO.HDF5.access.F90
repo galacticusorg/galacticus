@@ -18,19 +18,21 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which provides an HDF5 access lock.
+Contains a module which provides an OpenMP lock to serialize access to the HDF5 library, which is not fully thread-safe in all
+configurations.
 !!}
 
 module HDF5_Access
   !!{
-  Provides an HDF5 access lock.
+  Provides an OpenMP lock to serialize access to the HDF5 library, preventing race conditions when multiple threads attempt
+  concurrent HDF5 operations.
   !!}
-  use :: Locks, only : ompLock
+  use :: Locks, only : mutex
   implicit none
   public
 
   ! Lock object to coordinate access to HDF5.
-  type   (ompLock) :: hdf5Access
-  logical          :: hdf5AccessInitialized=.false.
+  type   (mutex) :: hdf5Access
+  logical        :: hdf5AccessInitialized=.false.
   
 end module HDF5_Access

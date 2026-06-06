@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
-   <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
+   <description>Models the effect of random disk inclination on apparent disk size measurements, smearing the intrinsic size distribution by the projection factor $\cos(i)$ to enable comparison with observations of randomly oriented galaxies.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn
@@ -43,7 +43,7 @@
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output distribution operator class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
      !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -107,9 +107,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),readOnly=.true.)
+       file=hdf5Object(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
        call self%inclinationTable%populate(halfMassRadii)
@@ -140,9 +139,8 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       call file%openFile(char(fileName),objectsOverwritable=.true.)
+       file=hdf5Object(char(fileName),objectsOverwritable=.true.)
        call file%writeDataset(halfMassRadii,'halfMassRadii')
-       call file%close()
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
     end if
@@ -153,7 +151,7 @@ contains
 
   subroutine diskSizeInclinationDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator operator class.
+    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self

@@ -31,16 +31,17 @@ module Interface_GSL
   !!{
   Interfaces with low-level aspects of the GSL library.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr, c_double, c_int, &
-       &                                  c_char
+  use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr     , c_double, c_int, &
+       &                                  c_char  , c_null_ptr, c_size_t
   private
   public :: gslFunction        , gslFunctionFdF        , gslFunctionDestroy, &
        &    gslFunctionTemplate, gslFunctionFdFTemplate, gslSetErrorHandler, &
-       &    gslFileOpen        , gslFileClose
+       &    gslFileOpen        , gslFileClose          , gslFunctionWrapper, &
+       &    gslErrorDecode
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily gslFunction} type. We ignore the {\normalfont \ttfamily parameters} argument here as
+     Interface for \mono{gslFunction} type. We ignore the \mono{parameters} argument here as
      it is not used by \glc.
      !!}
      double precision function gslFunctionTemplate(x)
@@ -51,7 +52,7 @@ module Interface_GSL
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily gslFunctionFdF} type.
+     Interface for \mono{gslFunctionFdF} type.
      !!}
      subroutine gslFunctionFdFTemplate(x,parameters,f,df)
        import c_ptr
@@ -63,7 +64,7 @@ module Interface_GSL
 
   abstract interface
      !!{
-     Interface for {\normalfont \ttfamily  gsl\_error\_handler\_t} type.
+     Interface for \mono{ gsl\_error\_handler\_t} type.
      !!}
      subroutine gslErrorHandlerTemplate(reason,file,line,errorNumber)
        import c_char, c_int
@@ -78,7 +79,7 @@ module Interface_GSL
      !!}
      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which establishes a \mono{gslFunction} type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionConstructor
@@ -87,7 +88,7 @@ module Interface_GSL
 
      function gslFunctionFdFConstructor(f,df,fdf) bind(c,name="gslFunctionFdFConstructor")
        !!{
-       Interface to a C function which establishes a {\normalfont \ttfamily gslFunctionFdF} type.
+       Interface to a C function which establishes a \mono{gslFunctionFdF} type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionFdFConstructor
@@ -97,7 +98,7 @@ module Interface_GSL
 
      subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
        !!{
-       Interface to a C function which destroys a {\normalfont \ttfamily gslFunction} type.
+       Interface to a C function which destroys a \mono{gslFunction} type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
@@ -126,6 +127,16 @@ module Interface_GSL
        integer(c_int)        :: gslFileCloseC
        type   (c_ptr), value :: stream
      end function gslFileCloseC
+ 
+     subroutine gslErrorDecoder(gsl_errno,gsl_str,gsl_strlen) bind(c,name='gslErrorDecoder')
+       !!{
+       Template for a C function that returns a string describing a GSL error.
+       !!}
+       import c_int, c_char, c_size_t
+       integer  (c_int   ), value        :: gsl_errno
+       character(c_char  ), dimension(*) :: gsl_str
+       integer  (c_size_t), value        :: gsl_strlen
+     end subroutine gslErrorDecoder
   end interface
 
   interface gslSetErrorHandler
@@ -143,6 +154,15 @@ module Interface_GSL
      real(c_double) :: val, err
   end type gsl_sf_result
 
+  type :: gslFunctionWrapper
+     !!{
+     Wrapper class for managing GSL functions.
+     !!}
+     type(c_ptr) :: f=c_null_ptr
+   contains
+     final :: gslFunctionWrapperDestructor
+  end type gslFunctionWrapper
+  
   ! Error codes.
   !![
   <constant variable="GSL_Success"  gslSymbol="GSL_SUCCESS"  gslHeader="gsl_errno" type="integer" reference="Gnu Scientific Library" referenceURL="https://www.gnu.org/software/gsl/doc/html/err.html#error-codes" description="Error code for success." group="GSL"/>
@@ -222,7 +242,7 @@ contains
 
   function gslFunction(f)
     !!{
-    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    Return a \mono{c\_ptr} object for the given function \mono{f}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -235,7 +255,7 @@ contains
 
   function gslFunctionFdF(f,df,fdf)
     !!{
-    Return a {\normalfont \ttfamily c\_ptr} object for the given function {\normalfont \ttfamily f}.
+    Return a \mono{c\_ptr} object for the given function \mono{f}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -249,7 +269,7 @@ contains
 
   subroutine gslFunctionDestroy(f)
     !!{
-    Destroy a {\normalfont \ttfamily c\_ptr} to a {\normalfont \ttfamily gslFunction} object.
+    Destroy a \mono{c\_ptr} to a \mono{gslFunction} object.
     !!}
     implicit none
     type(c_ptr), intent(in   ) :: f
@@ -257,5 +277,35 @@ contains
     call gslFunctionDestructor(f)
     return
   end subroutine gslFunctionDestroy
+
+  function gslErrorDecode(errorNumber) result(description)
+    !!{
+    Decode a GSL error number.
+    !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_f_pointer
+    use            :: ISO_Varying_String, only : varying_string     , assignment(=)
+    use            :: String_Handling   , only : String_C_to_Fortran
+    implicit none
+    type     (varying_string)                               :: description
+    integer                  , intent(in   )                :: errorNumber
+    integer  (c_size_t      ), parameter                    :: descriptionLength=128
+
+    character(c_char        ), dimension(descriptionLength) :: description_
+    
+    call gslErrorDecoder(errorNumber,description_,descriptionLength)
+    description=String_C_to_Fortran(description_)
+    return
+  end function gslErrorDecode
+
+  subroutine gslFunctionWrapperDestructor(self)
+    !!{
+    Destroy a \mono{gslFunction} object.
+    !!}
+    implicit none
+    type(gslFunctionWrapper), intent(inout) :: self
+
+    call gslFunctionDestructor(self%f)
+    return
+  end subroutine gslFunctionWrapperDestructor
 
 end module Interface_GSL

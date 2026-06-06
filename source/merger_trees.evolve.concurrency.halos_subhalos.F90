@@ -101,7 +101,7 @@ contains
 
   logical function halosSubhalosIncludeInEvolution(self,evolutionPhase,node) result(includeInEvolution)
     !!{
-    Return true if the {\normalfont \ttfamily node} should be included in this phase of evolution.
+    Return true if the \mono{node} should be included in this phase of evolution.
     !!}
     implicit none
     class  (mergerTreeEvolveConcurrencyHalosSubhalos), intent(inout)          :: self

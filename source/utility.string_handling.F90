@@ -84,7 +84,7 @@ contains
 
   integer function String_Count_Words_VarString(inputString,separator,bracketing) result(countWords)
     !!{
-    Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
+    Return a count of the number of space separated words in \mono{inputString}.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
@@ -98,7 +98,7 @@ contains
 
   integer function String_Count_Words_Char(inputString,separator,bracketing) result(countWords)
     !!{
-    Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
+    Return a count of the number of space separated words in \mono{inputString}.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -139,7 +139,7 @@ contains
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !!{
-    Split {\normalfont \ttfamily inputString} into words and return as an array.
+    Split \mono{inputString} into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -191,7 +191,7 @@ contains
 
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
     !!{
-    Split {\normalfont \ttfamily inputString} into words and return as an array.
+    Split \mono{inputString} into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
@@ -243,7 +243,7 @@ contains
 
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
     !!{
-    Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
+    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -259,7 +259,7 @@ contains
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
     !!{
-    Provides a concatenation operator to append an integer number to a {\normalfont \ttfamily varying\_string}.
+    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
     !!}
     use :: Kind_Numbers      , only : kind_int8
     use :: ISO_Varying_String, only : varying_string, operator(//)
@@ -484,38 +484,39 @@ contains
 
   integer function String_Levenshtein_Distance(s,t)
     !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\normalfont \ttfamily a} and {\normalfont \ttfamily
-    b}.
+    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and
+    \mono{b}. Requires only \mono{len(t)}$\times$\mono{2} storage as the Levenshtein algorithm only ever needs to refer to the
+    immediately previous row of the transformation. Rows are alternated by using a modulo-2 operation to determine to which row
+    reads/writes should be made.
     !!}
     implicit none
-    character(len=*), intent(in   )                :: s, t
-    integer         , dimension(0:len(s),0:len(t)) :: d
-    integer                                        :: i, j, m, n
+    character(len=*), intent(in   )           :: s    , t
+    integer         , dimension(0:len(t),0:1) :: d
+    integer                                   :: i    , j    , &
+         &                                       m    , n    , &
+         &                                       iCurr, iPrev
 
     m=len(s)
     n=len(t)
-    do i=0,m
-       d(i,0)=i ! The distance of any first string to an empty second string.
-    end do
+    ! Initialize row 0 as the cost of transforming an empty string into t(1..j).
     do j=0,n
-       d(0,j)=j ! The distance of any second string to an empty first string.
+       d(j,0)=j
     end do
-    do j=1,n
-       do i=1,m
+    do i=1,m
+       iCurr=mod(i  ,2)
+       iPrev=mod(i-1,2)
+       d(0,iCurr)=i ! Cost of transforming s(1..i) into an empty string.
+       do j=1,n
           if (s(i:i) == t(j:j)) then
-             d(i,j)=d(i-1,j-1)       ! No operation required.
+             d(j,iCurr)=d(j-1,iPrev)          ! No operation required.
           else
-             d(i,j)=minval(               &
-                  &        [              &
-                  &         d(i-1,j  )+1, & ! A deletion.
-                  &         d(i  ,j-1)+1, & ! An insertion.
-                  &         d(i-1,j-1)+1  & ! A substitution.
-                  &        ]              &
-                  &       )
-                end if
-             end do
-          end do
-          String_Levenshtein_Distance=d(m,n)
+             d(j,iCurr)=min(d(j  ,iPrev)+1, & ! A deletion.
+                  &         d(j-1,iCurr)+1, & ! An insertion.
+                  &         d(j-1,iPrev)+1)   ! A substitution.
+          end if
+       end do
+    end do
+    String_Levenshtein_Distance=d(n,mod(m,2))
     return
   end function String_Levenshtein_Distance
   
@@ -639,7 +640,7 @@ contains
 
   function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
     !!{
-    Extract a {\normalfont \ttfamily size\_t} integer value from a string.
+    Extract a \mono{size\_t} integer value from a string.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -659,13 +660,15 @@ contains
     implicit none
     type     (varying_string)                :: stringSubstitute
     type     (varying_string), intent(in   ) :: string
-    character(len=1         )                :: find
-    character(len=*         )                :: replace
+    character(len=1         ), intent(in   ) :: find
+    character(len=*         ), intent(in   ) :: replace
+    character(len=1         )                :: extracted
     integer                                  :: i
 
     stringSubstitute=""
     do i=1,len(string)
-       if (extract(string,i,i) == find) then
+       extracted=extract(string,i,i)
+       if (extracted == find) then
           stringSubstitute=stringSubstitute//replace
        else
           stringSubstitute=stringSubstitute//extract(string,i,i)
@@ -677,11 +680,11 @@ contains
   function stringXMLFormatVarStr(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
     !!{
     Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
-    \ttfamily indentInitial} argument). Some special formatting codes are supported:
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
+    \mono{indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
-      \item[{\normalfont \ttfamily **B}:] Highlight the remainder of the line using bold.
-      \item[{\normalfont \ttfamily **C}:] Display a continuation line (to indicate arbitrary additional content), {\normalfont \ttfamily ......}.
+      \item[\mono{**B}:] Highlight the remainder of the line using bold.
+      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
     \end{description}
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -698,11 +701,11 @@ contains
   function stringXMLFormatChar(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
     !!{
     Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional {\normalfont
-    \ttfamily indentInitial} argument). Some special formatting codes are supported:
+    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
+    \mono{indentInitial} argument). Some special formatting codes are supported:
     \begin{description}
-      \item[{\normalfont \ttfamily **B}:] Highlight the remainder of the line using bold.
-      \item[{\normalfont \ttfamily **C}:] Display a continuation line (to indicate arbitrary additional content), {\normalfont \ttfamily ......}.
+      \item[\mono{**B}:] Highlight the remainder of the line using bold.
+      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
     \end{description}
     !!}
     use :: ISO_Varying_String, only : varying_string, len         , assignment(=), operator(//), &
@@ -720,7 +723,8 @@ contains
          &                                                startTagName          , inAttribute  , &
          &                                                startValue            , inValue      , &
          &                                                useColor
-    character(len=1         )                          :: c
+    character(len=1         )                          :: c                     , f1
+    character(len=2         )                          :: f2
     character(len=8         )                          :: reset
     !![
     <optionalArgument name="indentStep"    defaultsTo="2"      />
@@ -768,14 +772,15 @@ contains
        if (c == char(10)) cycle
        ! Detect formatting.
        if (c == "*") then
-          if (extract(stringIn,i+1,i+2) == "*B") then
+          f2=extract(stringIn,i+1,i+2)
+          if (f2 == "*B") then
              ! Switch on bold formatting.
              if (useColor) stringOut=stringOut//ESC//"[1m"
              reset=ESC//"[0m"//ESC//"[1m"
              i=i+2
              cycle
           end if
-          if (extract(stringIn,i+1,i+2) == "*C") then
+          if (f2 == "*C") then
              ! Add a continuation line.
              stringOut=stringOut//repeat(" ",indent)//"......"//char(10)
              i=i+2
@@ -787,7 +792,8 @@ contains
           inElement   =.true.
           inTagName   =.true.
           startTagName=.true.
-          if (extract(stringIn,i+1,i+1) == "/") then
+          f1          =extract(stringIn,i+1,i+1)
+          if (f1 == "/") then
              ! Closing element.
              indent   =indent-indentStep_
              stringOut=stringOut//repeat(" ",indent)
@@ -802,7 +808,8 @@ contains
        end if
        ! Detect element closing.
        if (c == "/") then
-          if (extract(stringIn,i+1,i+1) == ">") indent=indent-indentStep_
+          f1=extract(stringIn,i+1,i+1)
+          if (f1 == ">") indent=indent-indentStep_
        end if
        if (c == ">") inElement=.false.
        ! Detect attribute name.

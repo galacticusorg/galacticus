@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Test pre-infall subhalo evolution is not applied to tj=he main branch. -->
+
 <parameters>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <lastModified>acecf6cc0b0da2604d667e770b26c791aa2eafc9</lastModified>
   <formatVersion>2</formatVersion>
@@ -19,19 +20,6 @@
   <!-- Baryonic components are set to null since we are not modeling them here. -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
-  <blackHoleCGMHeating value="jetPower">
-    <efficiencyRadioMode value="1.0"/>
-  </blackHoleCGMHeating>
-  <blackHoleWind value="ciotti2009">
-    <efficiencyWind value="2.4e-3"/>
-    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
-  </blackHoleWind>
-  <blackHoleAccretionRate value="standard">
-    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
-    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
-    <bondiHoyleAccretionHotModeOnly value="true"/>
-    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
-  </blackHoleAccretionRate>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
     <massDistributionDisk value="exponentialDisk">
@@ -426,7 +414,7 @@
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold">
       <!-- Subhalos will be removed if they fall below the merger tree mass resolution limit. -->
-      <massDestructionAbsolute value="=[mergerTreeMassResolution::massResolution]"/>
+      <massDestructionAbsolute value="=[mergerTreeMassResolution/massResolution]"/>
       <massDestructionMassInfallFraction value="0.0"/>
     </nodeOperator>
     <!-- CGM -->
@@ -491,6 +479,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   
   <!-- Merger tree evolution -->

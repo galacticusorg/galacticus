@@ -30,7 +30,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
     For the angular mask, we make use of the \gls{mangle} polygon file provided by the \gls{mangle}
     project\footnote{Specifically,
     \href{https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz}{https://zenodo.org/records/10998446/files/sdss\_dr72safe0\_res6d.pol.gz}.}
-    The solid angle of this mask, computed using the \gls{mangle} {\normalfont \ttfamily harmonize} command is
+    The solid angle of this mask, computed using the \gls{mangle} \mono{harmonize} command is
     2.232262776405~sr.
     
     To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private
@@ -44,7 +44,7 @@ Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
      (0.572399+m (-0.0110301)))))
      \label{eq:BernardiDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}
@@ -139,7 +139,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass completeness limits. (See
-    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.py for details.)
     if (present(mass)) then
        ! Limit the mass to the range for which our empirical mass-distance relation is calibrated.
        logarithmicMass=max(8.0d0,min(12.5d0,log10(mass)))
@@ -206,10 +206,7 @@ contains
     integer                                                                           :: status
 
     allocate(mangleFiles(1))
-    mangleFiles=                                                    &
-         &      [                                                   &
-         &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"sdss_dr72safe0_res6d.pol"
     if (.not.File_Exists(mangleFiles(1))) then
        call Directory_Make(self%mangleDirectory())
        call File_Lock  (char(mangleFiles(1)),lock,lockIsShared=.false.)

@@ -44,13 +44,14 @@
   use :: IO_XML                  , only : xmlNodeList
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   use :: Merger_Tree_Seeds       , only : mergerTreeSeedsClass
+  use :: Resource_Manager        , only : resourceManager
 
   !![
   <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
    <description>
     A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
     a merger tree, and set properties of components in each node, using a description read from an XML document. The document
-    is specified via the {\normalfont \ttfamily [fileName]} input parameter.
+    is specified via the \mono{[fileName]} input parameter.
     
     The tree specification document looks as follows:
     \begin{verbatim}
@@ -101,32 +102,31 @@
     
     &lt;/initialConditions&gt;
     \end{verbatim}
-    The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
-    tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the
-    index of the node's {\normalfont \ttfamily parent}, {\normalfont \ttfamily firstChild}, and {\normalfont \ttfamily
-    sibling}.
+    The document consists of a set of \mono{node} elements, each of which defines a single node in the merger
+    tree. Each \mono{node} element must specify the \mono{index} of the node, along with the
+    index of the node's \mono{parent}, \mono{firstChild}, and \mono{sibling}.
     
-    Each {\normalfont \ttfamily node} element may contain elements which specify the properties of a component in the node. For
-    example, a {\normalfont \ttfamily basic} element will specify properties of the ``basic'' component. If multiple elements
+    Each \mono{node} element may contain elements which specify the properties of a component in the node. For
+    example, a \mono{basic} element will specify properties of the ``basic'' component. If multiple elements
     for a given component type are present, then multiple instances of that component will be created in the node.
     
     Within a component definition element scalar properties are set using an element with the same name as that property
-    (e.g. {\normalfont \ttfamily mass} in the {\normalfont \ttfamily basic} components in the above example). Rank-1 properties
-    are set using a list of elements with the same name as the property (e.g. {\normalfont \ttfamily position} in the
-    {\normalfont \ttfamily position} component in the above example).
+    (e.g. \mono{mass} in the \mono{basic} components in the above example). Rank-1 properties
+    are set using a list of elements with the same name as the property (e.g. \mono{position} in the
+    \mono{position} component in the above example).
     
     For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
-    property of the composite. Currently only the {\normalfont \ttfamily abundances} object supports specification in this way,
+    property of the composite. Currently only the \mono{abundances} object supports specification in this way,
     as detailed below:
     \begin{description}
-     \item [{\normalfont \ttfamily abundances}] (See {\normalfont \ttfamily abundancesGas} in the above example.) The total
-     metal content is specified via a {\normalfont \ttfamily metals} element. If other elements are being tracked, their
-     content is specified via an element with the short-name of the element (e.g. {\normalfont \ttfamily Fe} for iron).
+     \item [\mono{abundances}] (See \mono{abundancesGas} in the above example.) The total
+     metal content is specified via a \mono{metals} element. If other elements are being tracked, their
+     content is specified via an element with the short-name of the element (e.g. \mono{Fe} for iron).
     \end{description}
+
+    The parameter \mono{[countRealizations]} (defaulting to 1) controls how many merger tree realizations are
+    simulated for each input tree.
    </description>
-   <deepCopy>
-     <increment variables="document%copyCount" atomic="yes"/>
-   </deepCopy>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
@@ -138,9 +138,10 @@
      class  (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      class  (mergerTreeSeedsClass      ), pointer                   :: mergerTreeSeeds_       => null()
      type   (varying_string            )                            :: fileName
+     type   (resourceManager           )                            :: documentManager
      type   (documentContainer         ), pointer                   :: document               => null()
      type   (xmlNodeList               ), allocatable, dimension(:) :: trees
-     integer(c_size_t                  )                            :: treeCount
+     integer(c_size_t                  )                            :: treeCount                       , countRealizations
    contains
      final     ::              fullySpecifiedDestructor
      procedure :: construct => fullySpecifiedConstruct
@@ -148,11 +149,12 @@
 
   type :: documentContainer
      !!{
-     A container for XML document.
+     A container for XML documents.
      !!}
      private
-     type   (node), pointer :: doc       => null()
-     integer                :: copyCount =  0
+     type(node), pointer :: doc => null()
+   contains
+     final :: documentContainerDestructor
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -167,15 +169,16 @@ contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (mergerTreeConstructorFullySpecified)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
-    class(mergerTreeSeedsClass               ), pointer       :: mergerTreeSeeds_
-    type (varying_string                     )                :: fileName
+    type   (mergerTreeConstructorFullySpecified)                :: self
+    type   (inputParameters                    ), intent(inout) :: parameters
+    class  (randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
+    class  (mergerTreeSeedsClass               ), pointer       :: mergerTreeSeeds_
+    type   (varying_string                     )                :: fileName
+    integer(c_size_t                           )                :: countRealizations
 
     !![
     <inputParameter>
@@ -183,10 +186,16 @@ contains
       <description>The name of the file containing the merger tree specification.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>countRealizations</name>
+      <description>The number of realizations of each tree to generate.</description>
+      <source>parameters</source>
+      <defaultValue>1_c_size_t</defaultValue>
+    </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <objectBuilder class="mergerTreeSeeds"       name="mergerTreeSeeds_"       source="parameters"/>
     !!]
-    self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_,mergerTreeSeeds_)
+    self=mergerTreeConstructorFullySpecified(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="randomNumberGenerator_"/>
@@ -195,9 +204,9 @@ contains
     return
   end function fullySpecifiedConstructorParameters
 
-  function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
+  function fullySpecifiedConstructorInternal(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
     !!}
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse
@@ -205,14 +214,16 @@ contains
     use :: Display           , only : displayGreen                , displayReset
     use :: ISO_Varying_String, only : varying_string              , var_str     , operator(//)
     implicit none
-    type   (mergerTreeConstructorFullySpecified)                        :: self
-    type   (varying_string                     ), intent(in   )         :: fileName
-    class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
-    class  (mergerTreeSeedsClass               ), intent(in   ), target :: mergerTreeSeeds_
-    integer                                                             :: ioErr
-    type   (varying_string                     )                        :: message
+    type   (mergerTreeConstructorFullySpecified)                         :: self
+    type   (varying_string                     ), intent(in   )          :: fileName
+    integer(c_size_t                           ), intent(in   )          :: countRealizations
+    class  (randomNumberGeneratorClass         ), intent(in   ), target  :: randomNumberGenerator_
+    class  (mergerTreeSeedsClass               ), intent(in   ), target  :: mergerTreeSeeds_
+    class  (*                                  )               , pointer :: dummyPointer_
+    integer                                                              :: ioErr
+    type   (varying_string                     )                         :: message
     !![
-    <constructorAssign variables="fileName, *randomNumberGenerator_, *mergerTreeSeeds_"/>
+    <constructorAssign variables="fileName, countRealizations, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     !$omp critical (FoX_DOM_Access)
@@ -228,11 +239,20 @@ contains
        end if
        call Error_Report(message//{introspection:location})
     end if
-    self%document%copyCount = 1
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_        => self%document
+    self%documentManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     ! Get the list of trees.
     call XML_Get_Elements_By_Tag_Name(self%document%doc,"tree",self%trees)
     ! Count the number of trees.
-    self%treeCount=size(self%trees)
+    self%treeCount=+size(self%trees            ,kind=c_size_t) &
+         &         *     self%countRealizations
     if (self%treeCount <= 0) call Error_Report('no trees were specified'//{introspection:location})
     !$omp end critical (FoX_DOM_Access)
     return
@@ -242,22 +262,9 @@ contains
     !!{
     Destructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
     !!}
-    use :: FoX_DOM, only : destroy
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
-    ! Reduce the count of document copies.
-    if (associated(self%document)) then
-       !$omp atomic
-       self%document%copyCount=self%document%copyCount-1
-       ! Destroy the XML document only if the count of document copies decreases to 0.
-       if (self%document%copyCount == 0) then
-          !$omp critical (FoX_DOM_Access)
-          call destroy(self%document%doc)
-          if (associated(self%document)) deallocate(self%document)
-          !$omp end critical (FoX_DOM_Access)
-       end if
-    end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
     <objectDestructor name="self%mergerTreeSeeds_"      />
@@ -285,13 +292,19 @@ contains
     type   (node                               ), pointer                     :: treeDefinition, nodeDefinition
     type   (xmlNodeList                        ), allocatable  , dimension(:) :: nodes
     integer                                                                   :: i             , nodeCount
-    integer(kind_int8                          )                              :: indexValue
+    integer(kind_int8                          )                              :: indexValue    , treeNumberActual
 
     ! Read one tree.
     if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
+       treeNumberActual=+(                      &
+            &             +   treeNumber        &
+            &             -   1_kind_int8       &
+            &            )                      &
+            &           /self%countRealizations &
+            &           +     1_kind_int8
        !$omp critical (FoX_DOM_Access)
        ! Select one tree.
-       treeDefinition => self%trees(int(treeNumber-1))%element
+       treeDefinition => self%trees(treeNumberActual-1_kind_int8)%element
        ! Get the list of nodes in this tree.
        call XML_Get_Elements_By_Tag_Name(treeDefinition,"node",nodes)
        nodeCount=size(nodes)
@@ -416,7 +429,7 @@ contains
 
     function nodeLookup(nodeArray,indexValue) result (node)
       !!{
-      Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
+      Find the position of a node in the \mono{nodeArray} array given its \mono{indexValue}.
       !!}
       use :: Error           , only : Error_Report
       use :: Galacticus_Nodes, only : treeNode    , treeNodeList
@@ -440,3 +453,15 @@ contains
     end function nodeLookup
 
   end function fullySpecifiedConstruct
+
+  subroutine documentContainerDestructor(self)
+    !!{
+    Destroy a \mono{documentContainer} object.
+    !!}
+    use :: FoX_DOM, only : destroy
+    implicit none
+    type(documentContainer), intent(inout) :: self
+
+    call destroy(self%doc)
+    return
+  end subroutine documentContainerDestructor

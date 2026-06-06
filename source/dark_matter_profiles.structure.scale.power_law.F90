@@ -35,13 +35,10 @@
       \begin{equation}
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
       \end{equation}
-      where $r_0=${\normalfont \ttfamily [radiusLow]}, $r_1=${\normalfont \ttfamily [radiusHigh]}, $r_\nu=${\normalfont \ttfamily
-      [radiusTransition]}, $\Delta r=${\normalfont \ttfamily [radiusWidth]}, $\alpha_0=${\normalfont \ttfamily [massLow]},
-      $\alpha_1=${\normalfont \ttfamily [massHigh]}, $\alpha_\nu=${\normalfont \ttfamily [massTransition]}, $\Delta
-      \alpha=${\normalfont \ttfamily [massWidth]}, $\beta_0=${\normalfont \ttfamily [expansionFactorLow]}, $\beta_1=${\normalfont
-      \ttfamily [expansionFactorHigh]}, $\beta_\nu=${\normalfont \ttfamily [expansionFactorTransition]}, and $\Delta
-      \beta=${\normalfont \ttfamily [expansionFactorWidth]} , plus a random log-normal scatter of {\normalfont \ttfamily
-      [scatter]}~dex.
+      where $r_0=$\mono{[radiusLow]}, $r_1=$\mono{[radiusHigh]}, $r_\nu=$\mono{[radiusTransition]}, $\Delta r=$\mono{[radiusWidth]}, $\alpha_0=$\mono{[massLow]},
+      $\alpha_1=$\mono{[massHigh]}, $\alpha_\nu=$\mono{[massTransition]}, $\Delta
+      \alpha=$\mono{[massWidth]}, $\beta_0=$\mono{[expansionFactorLow]}, $\beta_1=$\mono{[expansionFactorHigh]}, $\beta_\nu=$\mono{[expansionFactorTransition]}, and $\Delta
+      \beta=$\mono{[expansionFactorWidth]} , plus a random log-normal scatter of \mono{[scatter]}~dex.
     </description>
   </darkMatterProfileScaleRadius>
   !!]
@@ -68,7 +65,7 @@
   
   interface darkMatterProfileScaleRadiusPowerLaw
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} node operator class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScalePowerLawConstructorParameters
      module procedure darkMatterProfileScalePowerLawConstructorInternal
@@ -78,7 +75,7 @@ contains
   
   function darkMatterProfileScalePowerLawConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter profile scale radius class which
+    Constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class which
     takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -101,19 +98,19 @@ contains
       <name>radiusLow</name>
       <defaultValue>+0.0154d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_0$ in the power-law scale radius model.</description>
+      <description>The low-mass limit of the characteristic scale radius $r_0$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for low-mass halos as a function of peak height and expansion factor.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusHigh</name>
       <defaultValue>+0.0962d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_1$ in the power-law scale radius model.</description>
+      <description>The high-mass limit of the characteristic scale radius $r_1$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for high-mass halos.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusTransition</name>
       <defaultValue>+1.2137d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $r_\nu$ in the power-law scale radius model.</description>
+      <description>The peak height $\nu$ at which the characteristic scale radius transitions between its low-mass and high-mass limiting values in the power-law scale radius model.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusWidth</name>
@@ -173,7 +170,7 @@ contains
       <name>scatter</name>
       <defaultValue>+0.1513d0</defaultValue>
       <source>parameters</source>
-      <description>.</description>
+      <description>The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
@@ -191,7 +188,7 @@ contains
 
   function darkMatterProfileScalePowerLawConstructorInternal(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter profile scale radius class.
+    Internal constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusPowerLaw)                        :: self

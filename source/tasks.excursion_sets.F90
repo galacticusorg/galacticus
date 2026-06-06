@@ -27,7 +27,7 @@
 
   !![
   <task name="taskExcursionSets">
-   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+   <description>A task which computes and outputs excursion set statistics over a grid of halo masses and cosmic times, including the variance of the density field, the excursion set barrier, the first-crossing probability and rate, the halo mass function, and the matter power spectrum. These quantities characterize the stochastic evolution of density perturbations in the extended Press-Schechter formalism.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskExcursionSets
@@ -254,6 +254,7 @@ contains
     use :: Display                 , only : displayIndent     , displayUnindent
     use :: Error                   , only : errorStatusSuccess
     use :: Output_HDF5             , only : outputFile
+    use :: HDF5_Access             , only : hdf5Access
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
     use :: Numerical_Constants_Math, only : Pi
@@ -326,6 +327,7 @@ contains
     call self%excursionSetFirstCrossing_%coordinatedMPI(.false.)
 #endif
     ! Write results to the output file.
+    !$ call hdf5Access%set()
     outputGroup=outputFile%openGroup(char(self%outputGroup),'Group containing data relating to the excursion set problem.')
     call outputGroup%writeDataset(mass                    ,'mass'                    ,'The mass of the halo [M☉]'                       )
     call outputGroup%writeDataset(time                    ,'time'                    ,'The cosmic time [Gyr]'                           )
@@ -336,7 +338,7 @@ contains
     call outputGroup%writeDataset(firstCrossingProbability,'firstCrossingProbability','The first crossing probability'                  )
     call outputGroup%writeDataset(massFunctionDifferential,'massFunction'            ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
     call outputGroup%writeDataset(firstCrossingRate       ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
-    call outputGroup%close()
+    !$ call hdf5Access%unset()
     ! Deallocate arrays.
     deallocate(mass                    )
     deallocate(variance                )

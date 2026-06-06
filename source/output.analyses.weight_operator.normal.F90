@@ -26,7 +26,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
-   <description>A weight operator class in which the weight is multiplied by an integral over a normal distribution.</description>
+   <description>An output analysis weight operator that multiplies galaxy weights by the integral of a normal distribution (with specified \mono{rootVariance}) over the range [\mono{rangeLower}, \mono{rangeUpper}], for incorporating Gaussian selection uncertainties in statistical comparisons.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
@@ -51,7 +51,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   interface outputAnalysisWeightOperatorNormal
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -142,7 +142,7 @@ contains
 
   double precision function normalRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !!{
-    Return the root variance for use in the {\normalfont \ttfamily normal} output analysis weight operator class.
+    Return the root variance for use in the \mono{normal} output analysis weight operator class.
     !!}
     implicit none
     class           (outputAnalysisWeightOperatorNormal           ), intent(inout) :: self

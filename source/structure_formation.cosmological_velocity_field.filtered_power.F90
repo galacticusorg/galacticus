@@ -55,7 +55,7 @@
      !![
      <methods>
       <method description="Compute the function $\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]$, e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}."                    method="sigmaJ"        />
-      <method description="Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
+      <method description="Compute the peak correction term for the velocity dispersion of halos of given \mono{mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
      </methods>
      !!]
      final     ::                                     filteredPowerDestructor
@@ -68,7 +68,7 @@
 
   interface cosmologicalVelocityFieldFilteredPower
      !!{
-     Constructors for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class.
+     Constructors for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological mass variance class which takes a parameter set as input.
+    Constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_) result(self)
     !!{
-    Internal constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
+    Internal constructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
     !!}
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                        :: self
@@ -141,7 +141,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{
-    Destructor for the \refClass{cosmologicalVelocityFieldFilteredPower} linear growth class.
+    Destructor for the \refClass{cosmologicalVelocityFieldFilteredPower} cosmological velocity field class.
     !!}
     implicit none
     type   (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
@@ -159,8 +159,8 @@ contains
 
   double precision function filteredPowerVelocityRadialMeanPairwise(self,separation,time,includeHubbleFlow)
     !!{
-    Return the mean radial velocity (averaged over all positions) at a given {\normalfont \ttfamily separation} and
-    {\normalfont \ttfamily time}. If {\normalfont \ttfamily includeHubbleFlow} is {\normalfont \ttfamily true} then the Hubble
+    Return the mean radial velocity (averaged over all positions) at a given \mono{separation} and
+    \mono{time}. If \mono{includeHubbleFlow} is \mono{true} then the Hubble
     flow is included, otherwise only the peculiar component of the mean radial velocity is computed.
     !!}
     implicit none
@@ -194,8 +194,7 @@ contains
 
   double precision function filteredPowerVelocityDispersion1D(self,mass,time)
     !!{
-    Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given {\normalfont
-    \ttfamily mass} on average.
+    Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given \mono{mass} on average.
     !!}
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
@@ -257,10 +256,10 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber,time)        &
-           &         *(                                                                 &
-           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass)        &
-           &           *                                        wavenumber      **(1+j) &
+      powerIntegrand=+  self%powerSpectrum_              %power(wavenumber     ,time)        &
+           &         *(                                                                      &
+           &           +self%powerSpectrumWindowFunction_%value(wavenumber,mass,time)        &
+           &           *                                        wavenumber           **(1+j) &
            &          )**2    
       return
     end function powerIntegrand
@@ -331,17 +330,17 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
       
-      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                   ,time)                        &
-           &                      *(                                                                                                      &
-           &                        +(                                                                                                    &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)**2*peakCorrection1**2 &
-           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)**2*peakCorrection2**2 &
-           &                         )                                                                                                    &
-           &                        /3.0d0                                                                                                & ! Convert from 3D to 1D dispersion.
-           &                        -2.0d0                                                                                                &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1)   *peakCorrection1    &
-           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2)   *peakCorrection2    &
-           &                        *  K                                      (wavenumber*separationComoving      )                       &
+      velocityDispersionIntegrand=+    self%powerSpectrum_              %power(wavenumber                        ,time)                        &
+           &                      *(                                                                                                           &
+           &                        +(                                                                                                         &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)**2*peakCorrection1**2 &
+           &                          +self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)**2*peakCorrection2**2 &
+           &                         )                                                                                                         &
+           &                        /3.0d0                                                                                                     & ! Convert from 3D to 1D dispersion.
+           &                        -2.0d0                                                                                                     &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass1,time)   *peakCorrection1    &
+           &                        *  self%powerSpectrumWindowFunction_%value(wavenumber                   ,mass2,time)   *peakCorrection2    &
+           &                        *  K                                      (wavenumber*separationComoving           )                       &
            &                       )
       return
     end function velocityDispersionIntegrand
@@ -370,7 +369,7 @@ contains
 
   double precision function filteredPowerPeakCorrection(self,mass,time)
     !!{
-    Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass},
+    Compute the peak correction term for the velocity dispersion of halos of given \mono{mass},
     e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}.
     !!}
     implicit none

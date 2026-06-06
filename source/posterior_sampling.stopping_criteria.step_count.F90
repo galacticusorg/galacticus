@@ -26,8 +26,7 @@
   !![
   <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
    <description>
-    This type will cause the simulation to stop when at least a number of steps (as specified by {\normalfont \ttfamily
-    [stopAfterCount]}) have accrued post-convergence.
+    This type will cause the simulation to stop when at least a number of steps (as specified by \mono{[stopAfterCount]}) have accrued post-convergence.
    </description>
   </posteriorSampleStoppingCriterion>
   !!]
@@ -45,7 +44,7 @@
 
   interface posteriorSampleStoppingCriterionStepCount
      !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal

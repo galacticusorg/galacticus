@@ -115,19 +115,17 @@
     }
     }
     \end{verbatim}
-    The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The {\normalfont \ttfamily electronDensity} dataset should specify the number density of electrons
-    relative to hydrogen at each temperature/metallicity pair. Optionally {\normalfont \ttfamily hiDensity} and {\normalfont
-    \ttfamily hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
-    \scshape ii} relative to hydrogen respectively The {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily
-    extrapolateHigh} attributes of the {\normalfont \ttfamily temperature} and {\normalfont \ttfamily metallicity} datasets
+    The \mono{temperature} dataset should specify temperature (in Kelvin), while the \mono{metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
+    zero metallicity). The \mono{electronDensity} dataset should specify the number density of electrons
+    relative to hydrogen at each temperature/metallicity pair. Optionally \mono{hiDensity} and
+    \mono{hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
+    \scshape ii} relative to hydrogen respectively The \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets
     specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
     are:
     \begin{description}
-     \item[{\normalfont \ttfamily zero}] The electron density is set to zero beyond the relevant limit.
-     \item[{\normalfont \ttfamily fixed}] The electron density is held fixed at the value at the relevant limit.
-     \item[{\normalfont \ttfamily power law}] The electron density is extrapolated assuming a
+     \item[\mono{zero}] The electron density is set to zero beyond the relevant limit.
+     \item[\mono{fixed}] The electron density is held fixed at the value at the relevant limit.
+     \item[\mono{power law}] The electron density is extrapolated assuming a
      power-law dependence beyond the relevant limit. This option is only allowed if the
      electron density is everywhere positive.
     \end{description}
@@ -646,7 +644,7 @@ contains
     !$ call hdf5Access%set()
     ! Parse the file.
     call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
-    call chemicalStateFile%openFile(fileName,readOnly=.true.)
+    chemicalStateFile=hdf5Object(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -675,7 +673,6 @@ contains
     call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high metallicity extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call metallicityDataset%close()
     temperatureDataset=chemicalStateFile%openDataset('temperature')
     call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
@@ -683,7 +680,6 @@ contains
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high temperature extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call temperatureDataset%close()
     ! Validate extrapolation methods.
     if     (                                                                 &
          &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
@@ -713,8 +709,6 @@ contains
          &  .and.                                                            &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeExtrapolate &
          & ) call Error_Report('extrapolation type not permitted'//{introspection:location})
-    ! Close the file.
-    call chemicalStateFile%close()
     call displayUnindent('done',verbosityLevelDebug)
     !$ call hdf5Access%unset()
     ! Store table ranges for convenience.

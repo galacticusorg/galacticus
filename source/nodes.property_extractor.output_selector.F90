@@ -25,7 +25,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorOutputSelector">
-   <description>A node property extractor class that allows selection of output times at which to extract properties.</description>
+   <description>A wrapper property extractor that delegates extraction to one or more child \refClass{nodePropertyExtractorClass} objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by \mono{toleranceRelative}); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.</description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
@@ -52,7 +52,7 @@
 
   interface nodePropertyExtractorOutputSelector
      !!{
-     Constructors for the \refClass{nodePropertyExtractorOutputSelector} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
      !!}
      module procedure outputSelectorConstructorParameters
      module procedure outputSelectorConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function outputSelectorConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function outputSelectorConstructorInternal(extractors,outputTimes_,toleranceRelative) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorOutputSelector)                         :: self
@@ -130,7 +130,7 @@ contains
 
   subroutine outputSelectorDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorOutputSelector} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorOutputSelector), intent(inout) :: self
@@ -143,7 +143,7 @@ contains
 
   subroutine outputSelectorInitialize(self)
     !!{
-    Initialize a {\normalfont \ttfamily outputSelector} object with the list of times to select.
+    Initialize a \mono{outputSelector} object with the list of times to select.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -176,7 +176,7 @@ contains
 
   logical function outputSelectorTimeMatches(self,time) result(matches)
     !!{
-    Return true if the given {\normalfont \ttfamily time} matches a time for which we should extract properties.
+    Return true if the given \mono{time} matches a time for which we should extract properties.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none

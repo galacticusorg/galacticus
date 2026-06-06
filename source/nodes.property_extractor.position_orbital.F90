@@ -46,11 +46,12 @@ Implements an orbital position output analysis property extractor class.
      procedure :: names        => positionOrbitalNames
      procedure :: descriptions => positionOrbitalDescriptions
      procedure :: unitsInSI    => positionOrbitalUnitsInSI
+     procedure :: units       => positionOrbitalUnits
   end type nodePropertyExtractorPositionOrbital
 
   interface nodePropertyExtractorPositionOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPositionOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorPositionOrbital} property extractor class.
      !!}
      module procedure positionOrbitalConstructorParameters
   end interface nodePropertyExtractorPositionOrbital
@@ -59,7 +60,7 @@ contains
 
   function positionOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorPositionOrbital} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorPositionOrbital} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +76,7 @@ contains
 
   integer function positionOrbitalElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily positionOrbital} property extractors.
+    Return the number of elements in the \mono{positionOrbital} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPositionOrbital), intent(inout) :: self
@@ -186,3 +187,23 @@ contains
     positionOrbitalUnitsInSI=megaParsec
     return
   end function positionOrbitalUnitsInSI
+
+  function positionOrbitalUnits(self,time) result(units)
+    !!{
+    Return the units of the orbital position properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                            ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPositionOrbital), intent(inout)             :: self
+    double precision                                      , intent(in   )             :: time
+    double precision                                      , dimension(:), allocatable :: siValues
+    integer                                                                           :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Mpc',quantity='Mpc')
+    end do
+    return
+  end function positionOrbitalUnits

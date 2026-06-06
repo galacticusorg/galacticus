@@ -28,10 +28,9 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
    <description>
     A survey geometry class that describes the survey geometry of \cite{tomczak_galaxy_2014}. 
     
-    For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files constructed by hand using vertices
+    For the angular mask, we make use of \mono{mangle} polygon files constructed by hand using vertices
     matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private
-    communication). The solid angle of each mask is computed using the {\normalfont \ttfamily mangle} {\normalfont \ttfamily
-    harmonize} command.
+    communication). The solid angle of each mask is computed using the \mono{mangle} \mono{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function
     of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order
@@ -43,7 +42,7 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
      -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) &amp; \hbox{NMBS fields} \end{array} \right.
      \label{eq:TomczakDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}
@@ -236,7 +235,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (field)
@@ -307,15 +306,12 @@ contains
     class(surveyGeometryTomczak2014ZFOURGE)                           , intent(inout) :: self
     type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
-    allocate(mangleFiles(5))
-    mangleFiles=                                                       &
-         &      [                                                      &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-CDFS.ply:"  // &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-COSMOS.ply:"// &
-         &       "+"//self%mangleDirectory()//"/ZFOURGE-UDS.ply"    ,  &
-         &       "+"//self%mangleDirectory()//"/NMBS-COSMOS.ply:"   // &
-         &       "+"//self%mangleDirectory()//"/NMBS-AEGIS.ply"        &
-         &      ]
+    allocate(mangleFiles(2))
+    mangleFiles(1)="+"//self%mangleDirectory()//"/ZFOURGE-CDFS.ply:"  // &
+         &         "+"//self%mangleDirectory()//"/ZFOURGE-COSMOS.ply:"// &
+         &         "+"//self%mangleDirectory()//"/ZFOURGE-UDS.ply"
+    mangleFiles(2)="+"//self%mangleDirectory()//"/NMBS-COSMOS.ply:"   // &
+         &         "+"//self%mangleDirectory()//"/NMBS-AEGIS.ply"
     return
   end subroutine tomczak2014ZFOURGEMangleFiles
 

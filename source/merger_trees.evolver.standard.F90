@@ -76,8 +76,8 @@
        \Delta t &amp;\le&amp; t_\mathrm{host}, \\
        \Delta t &amp;\le&amp; \epsilon_\mathrm{host} (a/\dot{a}),
       \end{eqnarray}
-     where $t_\mathrm{host}=${\normalfont \ttfamily [timestepHostAbsolute]},
-     $\epsilon_\mathrm{host}=${\normalfont \ttfamily [timestepHostRelative]}, and $a$ is expansion
+     where $t_\mathrm{host}=$\mono{[timestepHostAbsolute]},
+     $\epsilon_\mathrm{host}=$\mono{[timestepHostRelative]}, and $a$ is expansion
      factor. These criteria are intended to prevent a satellite for evolving too far ahead of the
      host node before the host is allowed to ``catch up''.
     
@@ -337,7 +337,7 @@ contains
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                                       , vMessage
-    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasIntertreeEvent, &
+    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasInterTreeEvent, &
          &                                                                                nodeProgressed                                 , nextNodeFound    , &
          &                                                                                didEvolve                                      , interrupted      , &
          &                                                                                nodesRemain
@@ -460,7 +460,7 @@ contains
                          end if
                          ! Check for interrupt.
                          if     (                                                         &
-                              &   interrupted                                             & ! An interrupt occured.
+                              &   interrupted                                             & ! An interrupt occurred.
                               &  .and.                                                    &
                               &   (                                                       &
                               &    basic%time() < timeEndThisNode                         & ! The end of the timestep was not reached.
@@ -728,15 +728,15 @@ contains
     if (.not.anyTreeExistsAtOutputTime) then
        ! Walk over all trees in the forest.
        treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-       do while (treeWalker%next(node).and..not.hasIntertreeEvent)
+       do while (treeWalker%next(node).and..not.hasInterTreeEvent)
           ! Iterate over events.
           event => node%event
-          do while (associated(event).and..not.hasIntertreeEvent)
+          do while (associated(event).and..not.hasInterTreeEvent)
              select type (event)
              type is (nodeEventSubhaloPromotionInterTree)
-                hasIntertreeEvent=.true.
+                hasInterTreeEvent=.true.
              type is (nodeEventBranchJumpInterTree      )
-                hasIntertreeEvent=.true.
+                hasInterTreeEvent=.true.
              end select
              event => event%next
           end do
@@ -749,7 +749,7 @@ contains
   
   logical function standardNodeIsEvolvable(self,node,timeEnd,finalTimeInTree)
     !!{
-    Return true if the given {\normalfont \ttfamily node} is evolvable.
+    Return true if the given \mono{node} is evolvable.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, nodeEvent
     implicit none
@@ -816,7 +816,7 @@ contains
   
   recursive function standardTimeEvolveTo(self,node,timeEnd,cosmologyFunctions_,mergerTreeEvolveTimestep_,mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !!{
-    Determine the time to which {\normalfont \ttfamily node} should be evolved.
+    Determine the time to which \mono{node} should be evolved.
     !!}
     use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
@@ -1129,7 +1129,7 @@ contains
 
   subroutine standardDeadlockOutputTree(self,timeEnd)
     !!{
-    Output the deadlocked nodes in {\normalfont \ttfamily dot} format.
+    Output the deadlocked nodes in \mono{dot} format.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: String_Handling , only : operator(//)
@@ -1247,7 +1247,7 @@ contains
 
   subroutine standardNodeEventsPerform(self,tree,node,statusDeadlock)
     !!{
-    Perform any events associated with {\normalfont \ttfamily node}.
+    Perform any events associated with \mono{node}.
     !!}
     use :: Galacticus_Nodes                   , only : mergerTree                   , nodeComponentBasic, nodeEvent, treeNode
     use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
@@ -1310,7 +1310,7 @@ contains
 
   subroutine standardTreeEventsPerform(tree,statusDeadlock)
     !!{
-    Perform any events associated with {\normalfont \ttfamily tree}.
+    Perform any events associated with \mono{tree}.
     !!}
     use :: Galacticus_Nodes                   , only : mergerTree                   , treeEvent
     use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
@@ -1333,7 +1333,7 @@ contains
           mergerTreeEvolverDone=event%task(tree,statusDeadlock)
           ! Move to the next event.
           if (mergerTreeEvolverDone) then
-             ! The mergerTreeEvolver was performed successfully, so remove it and move to the next event.
+             ! The task was performed successfully, so remove it and move to the next event.
              if (associated(event,tree%event)) then
                 tree%event => event%next
                 eventLast      => tree %event
@@ -1344,7 +1344,7 @@ contains
              deallocate(event)
              event => eventNext
           else
-             ! The mergerTreeEvolver was not performed, so simply move to the next event.
+             ! The task was not performed, so simply move to the next event.
              event => event%next
           end if
        else

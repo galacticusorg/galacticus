@@ -61,7 +61,7 @@ contains
 
   function decayingConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily decaying} dark matter halo profile class.
+    Default constructor for the \mono{decaying} dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,19 +98,19 @@ contains
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
     </inputParameter>
     <inputParameter>
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of a decaying dark matter profile (e.g. due to extreme decay fractions), allowing the calculation to proceed with a fallback result rather than terminating.</description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -128,7 +128,7 @@ contains
 
   function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -165,7 +165,7 @@ contains
 
   function decayingGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo            , massTypeDark                       , weightByMass
     use :: Galacticus_Nodes          , only : nodeComponentBasic

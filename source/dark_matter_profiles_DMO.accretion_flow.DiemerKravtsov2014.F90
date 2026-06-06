@@ -139,7 +139,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                        :: self
@@ -159,7 +159,7 @@ contains
 
   subroutine accretionFlowDiemerKravtsov2014Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowDiemerKravtsov2014), intent(inout) :: self
@@ -175,7 +175,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass

@@ -24,7 +24,7 @@ Implements a stellar mass function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS">
-   <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.</description>
+   <description>Computes the H$\alpha$ luminosity function at one of four redshift intervals for comparison with the HiZELS \cite{sobral_large_2013} survey measurements, with H$\alpha$ luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionSobral2013HiZELS

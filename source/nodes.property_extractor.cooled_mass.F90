@@ -20,8 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassCooled">
    <description>
-     A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter {\normalfont \ttfamily
-     [resetAfterExtract]}$=${\normalfont \ttfamily true} then the cooled mass is reset to zero after extraction.
+     A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter \mono{[resetAfterExtract]}$=$\mono{true} then the cooled mass is reset to zero after extraction.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -37,11 +36,12 @@
      procedure :: name        => massCooledName
      procedure :: description => massCooledDescription
      procedure :: unitsInSI   => massCooledUnitsInSI
+     procedure :: units       => massCooledUnits
   end type nodePropertyExtractorMassCooled
 
   interface nodePropertyExtractorMassCooled
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassCooled} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassCooled} property extractor class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function massCooledConstructorInternal(resetAfterExtract) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassCooled} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassCooled} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassCooled)                :: self
@@ -117,7 +117,7 @@ contains
 
   function massCooledName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massCooled} property.
+    Return the names of the \mono{massCooled} property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledName
@@ -130,7 +130,7 @@ contains
 
   function massCooledDescription(self)
     !!{
-    Return the description of the {\normalfont \ttfamily massCooled} property.
+    Return the description of the \mono{massCooled} property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledDescription
@@ -143,7 +143,7 @@ contains
 
   double precision function massCooledUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massCooled} property in the SI system.
+    Return the units of the \mono{massCooled} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -153,3 +153,17 @@ contains
     massCooledUnitsInSI=massSolar
     return
   end function massCooledUnitsInSI
+
+  function massCooledUnits(self) result(units)
+    !!{
+    Return the units of the massCooled property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                :: units
+    class(nodePropertyExtractorMassCooled), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massCooledUnits

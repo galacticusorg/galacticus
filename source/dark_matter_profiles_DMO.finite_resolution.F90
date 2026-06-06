@@ -73,7 +73,7 @@ contains
 
   function finiteResolutionConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    Default constructor for the \mono{finiteResolution} dark matter halo profile class.
     !!}
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -90,12 +90,12 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length, $\Delta x$.</description>
+      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation, which sets the minimum spatial scale below which the dark matter profile is smoothed to avoid artificial two-body effects.</description>
     </inputParameter>
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-       <description>The resolution mass, $\Delta M$.</description>
+       <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, representing the minimum halo mass that can be resolved; profiles of halos near this limit are softened to account for particle discreteness effects.</description>
     </inputParameter>
     <inputParameter>
       <name>resolutionIsComoving</name>
@@ -106,7 +106,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -122,7 +122,7 @@ contains
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -186,7 +186,7 @@ contains
 
   function finiteResolutionGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                    , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalFiniteResolution, kinematicsDistributionCollisionless, massDistributionSpherical

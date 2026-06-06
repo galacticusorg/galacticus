@@ -28,7 +28,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
-   <description>A sequence stellar population spectra postprocessor class.</description>
+   <description>A stellar population spectra postprocessor class that applies a sequence of other postprocessors in order, computing the total multiplicative correction as the product of all individual postprocessor multipliers, allowing multiple physical effects (e.g., IGM absorption and dust) to be combined.</description>
    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
   </stellarPopulationSpectraPostprocessor>
   !!]

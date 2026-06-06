@@ -30,43 +30,41 @@
   <outputAnalysis name="outputAnalysisSizeVsStellarMassRelation">
     <description>
       A size vs. stellar mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      {\normalfont \ttfamily [fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      sampleN} where {\normalfont \ttfamily N} is an integer. Each such group specifies the galaxy size---stellar mass relation
+      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{sampleN} where \mono{N} is an integer. Each such group specifies the galaxy size---stellar mass relation
       for one sample (a combination of redshift interval and any selection criteria), and must contain the following datasets and
       attributes:
       \begin{itemize}
-       \item dataset {\normalfont \ttfamily massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily radiusEffective}: effective radius in units of Mpc;
-       \item dataset {\normalfont \ttfamily radiusEffectiveError}: uncertainty in effective radius in units of Mpc;
-       \item dataset {\normalfont \ttfamily radiusEffectiveScatter}: scatter in effective radius in units of dex;
-       \item dataset {\normalfont \ttfamily radiusEffectiveScatterError}: uncertainty in scatter in effective radius in units of dex;
-       \item attribute {\normalfont \ttfamily redshiftMinimum}: the minimum redshift associated with this sample;
-       \item attribute {\normalfont \ttfamily redshiftMaximum}: the maximum redshift associated with this sample.
+       \item dataset \mono{massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
+       \item dataset \mono{radiusEffective}: effective radius in units of Mpc;
+       \item dataset \mono{radiusEffectiveError}: uncertainty in effective radius in units of Mpc;
+       \item dataset \mono{radiusEffectiveScatter}: scatter in effective radius in units of dex;
+       \item dataset \mono{radiusEffectiveScatterError}: uncertainty in scatter in effective radius in units of dex;
+       \item attribute \mono{redshiftMinimum}: the minimum redshift associated with this sample;
+       \item attribute \mono{redshiftMaximum}: the maximum redshift associated with this sample.
       \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes {\normalfont \ttfamily description} and
-      {\normalfont \ttfamily unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
+      While not required, it is recommended that each of these datasets has attributes \mono{description} and
+      \mono{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
       them to SI standard units, respectively.
 
-      Additionally, the file must contain a {\normalfont \ttfamily cosmology} group that specifies the cosmological model assumed
+      Additionally, the file must contain a \mono{cosmology} group that specifies the cosmological model assumed
       in constructing the dataset, and which has attributes:
       \begin{itemize}
-       \item {\normalfont \ttfamily OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item {\normalfont \ttfamily OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item {\normalfont \ttfamily OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item {\normalfont \ttfamily HubbleConstant}: the Hubble constant in units of km/s/Mpc.
+       \item \mono{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
+       \item \mono{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
+       \item \mono{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
+       \item \mono{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
       \end{itemize}
 
-      Each {\normalfont \ttfamily sampleN} group must have an attribute {\normalfont \ttfamily selection} which specifies the
+      Each \mono{sampleN} group must have an attribute \mono{selection} which specifies the
       selection criterion used in constructing the dataset. Allowed values are:      
       \begin{itemize}
-       \item {\normalfont \ttfamily `none'}: no selection criterion will be applied;
-       \item {\normalfont \ttfamily `star forming'}: only galaxies on or above the star forming main sequence are included;
-       \item {\normalfont \ttfamily `quiescent}: only galaxies below the star forming main sequence are included.
+       \item \mono{`none'}: no selection criterion will be applied;
+       \item \mono{`star forming'}: only galaxies on or above the star forming main sequence are included;
+       \item \mono{`quiescent}: only galaxies below the star forming main sequence are included.
       \end{itemize}
-      For the {\normalfont ``\ttfamily star forming}'' and ``{\normalfont \ttfamily quiescent}'' options, a dataset {\normalfont
-      \ttfamily mainSequenceSFR} must be specified in the {\normalfont \ttfamily sampleN} group which specifies the mean
+      For the ``\mono{star forming}'' and ``\mono{quiescent}'' options, a dataset \mono{mainSequenceSFR} must be specified in the \mono{sampleN} group which specifies the mean
       (of the logarithm of star formation rate in units of $\mathrm{M}_\odot/\hbox{yr}^{-1}$) of the star forming main sequence at
-      the center of each bin, and an attribute {\normalfont \ttfamily offsetMainSequenceSFR} which specifies an offset below the
+      the center of each bin, and an attribute \mono{offsetMainSequenceSFR} which specifies an offset below the
       mean of the star forming main sequence below which galaxies are considered to be quiescent. That is, a galaxy will be
       classified as quiescent if
       \begin{equation}
@@ -74,13 +72,13 @@
       \end{equation}
       where $\log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the star formation rate in the galaxy, $\log_{10} (
       \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the mean of the star forming main sequence (as specified by
-      {\normalfont \ttfamily mainSequenceSFR} and interpolated to the stellar mass of the galaxy, and $\Delta_{\star}$ is
-      {\normalfont \ttfamily offsetMainSequenceSFR},
+      \mono{mainSequenceSFR} and interpolated to the stellar mass of the galaxy, and $\Delta_{\star}$ is
+      \mono{offsetMainSequenceSFR},
 								  
       Lastly, the file must have two attributes used to identify and level the dataset:
       \begin{itemize}
-       \item {\normalfont \ttfamily label}: a space-free label that will be appended to the analysis group in the output, e.g. {\normalfont \ttfamily vanDerWel2014};
-       \item {\normalfont \ttfamily reference}: a reference for the dataset suitable for inclusion in figures, e.g. {\normalfont \ttfamily van der Wel et al. (2014)}.
+       \item \mono{label}: a space-free label that will be appended to the analysis group in the output, e.g. \mono{vanDerWel2014};
+       \item \mono{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \mono{van der Wel et al. (2014)}.
       \end{itemize}
     </description>
   </outputAnalysis>
@@ -173,7 +171,7 @@ contains
 	      \begin{itemize}
 	      \item \emph{not present}: all bins are included in the likelihood calculation;
 	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item {\normalfont \ttfamily auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
+	      \item \mono{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	      \end{itemize}
 	    </description>
 	  </inputParameter>
@@ -193,7 +191,7 @@ contains
       <name>sample</name>
       <source>parameters</source>
       <defaultValue>1</defaultValue>
-      <description>The sample to use.</description>
+      <description>The integer index (starting at 1) of the \mono{sampleN} group within the target HDF5 file to use when computing the size--stellar mass relation likelihood.</description>
     </inputParameter>
     <inputParameter>
       <name>likelihoodNormalize</name>
@@ -279,6 +277,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : giga
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList                          , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -344,13 +343,14 @@ contains
          &                                                                                                  groupCosmology
     character       (len=4                                              )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (enumerationFilterTypeType                          )                                :: filterType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="fileNameTarget, sample, likelihoodBins, likelihoodBinsAutomatic, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassStellarPolynomialCoefficient, randomErrorMassStellarPolynomialCoefficient, randomErrorMassStellarMinimum, randomErrorMassStellarMaximum, *cosmologyParameters_, *cosmologyFunctions_, *outputTimes_, *starFormationRateDisks_, *starFormationRateSpheroids_, *starFormationRateNuclearStarClusters_"/>
     !!]
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    call fileTarget%openFile(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
     ! Find the requested sample.
     groupSampleName=var_str('sample')//sample
     if (.not.fileTarget%hasGroup(char(groupSampleName))) call Error_Report(var_str('redshift interval ')//sample//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -368,21 +368,17 @@ contains
        call groupSample%readDataset  ('mainSequenceSFR'            ,rateStarFormationMainSequence    )
        call groupSample%readAttribute('offsetMainSequenceSFR'      ,offsetMainSequenceSFR            )
     end if
-    call groupSample%close           (                                                               )
     ! Get the cosmological parameters used in analyzing the target data.
     groupCosmology=fileTarget%openGroup('cosmology')
     call groupCosmology%readAttribute('OmegaMatter'    ,OmegaMatterTarget    )
     call groupCosmology%readAttribute('OmegaDarkEnergy',OmegaDarkEnergyTarget)
     call groupCosmology%readAttribute('OmegaBaryon'    ,OmegaBaryonTarget    )
     call groupCosmology%readAttribute('HubbleConstant' ,HubbleConstantTarget )
-    call groupCosmology%close()
     ! Get the analysis label and target dataset reference.
     call fileTarget%readAttribute('label'    ,labelTarget    )
     call fileTarget%readAttribute('reference',referenceTarget)
-    ! Close the target data file.
-    call fileTarget%close()
     !$ call hdf5Access%unset()
-    ! Construct survey geometry. A fully-sky geometry is used here as only the redshift range is important.
+    ! Construct survey geometry. A full-sky geometry is used here as only the redshift range is important.
     write (redshiftMinimumLabel,'(f4.2)') redshiftMinimum
     write (redshiftMaximumLabel,'(f4.2)') redshiftMaximum
     allocate(surveyGeometry_)
@@ -623,6 +619,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                              &
+          &                                                                                   xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                              , &
+          &                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                              , &
+          &                                                                                   xAxisIsLog      =.true.                                                                                                     , &
+          &                                                                                   yAxisIsLog      =.false.                                                                                                    , &
+          &                                                                                   targetLabel     =referenceTarget                                                                                            , &
+          &                                                                                   valueTarget     =radiusEffectiveScatterTarget                                                                               , &
+          &                                                                                   covarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                       &
+          &                                                                                  )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -632,10 +637,14 @@ contains
           &amp;                                                  var_str('massStellar'                                            )                                                                 , &amp;
           &amp;                                                  var_str('Stellar mass'                                           )                                                                 , &amp;
           &amp;                                                  var_str('M☉'                                                     )                                                                 , &amp;
+          &amp;                                                  var_str('solMass'                                                )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                            , &amp;
           &amp;                                                  massSolar                                                                                                                          , &amp;
           &amp;                                                  weightPropertyLabel                                                                                                                , &amp;
           &amp;                                                  weightPropertyDescription                                                                                                          , &amp;
           &amp;                                                  var_str(' '                                                      )                                                                 , &amp;
+          &amp;                                                  var_str(' '                                                      )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                            , &amp;
           &amp;                                                  0.0d0                                                                                                                              , &amp;
           &amp;                                                  massStellarLogarithmic                                                                                                             , &amp;
           &amp;                                                  0_c_size_t                                                                                                                         , &amp;
@@ -651,18 +660,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                                       , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                               , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                                , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\star/\mathrm{M}_\odot$'                       )                                                                       , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})}$')                                                                       , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                             , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                            , &amp;
-          &amp;                          targetLabel            =referenceTarget                                                                                                                    , &amp;
-          &amp;                          scatterValueTarget     =radiusEffectiveScatterTarget                                                                                                       , &amp;
-          &amp;                          scatterCovarianceTarget=radiusEffectiveScatterCovarianceTarget                                                                                               &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                                              &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                      &
+          &                                                       xAxisLabel      =var_str('$M_\star\mathrm{M}_\odot$'               ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$'), &
+          &                                                       xAxisIsLog      =.true.                                             , &
+          &                                                       yAxisIsLog      =.false.                                            , &
+          &                                                       targetLabel     =referenceTarget                                    , &
+          &                                                       valueTarget     =radiusEffectiveLogarithmicTarget                   , &
+          &                                                       covarianceTarget=radiusEffectiveLogarithmicCovarianceTarget           &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -672,10 +684,14 @@ contains
           &amp;                                               var_str('massStellar'                                 )                                                                 , &amp;
           &amp;                                               var_str('Stellar mass'                                )                                                                 , &amp;
           &amp;                                               var_str('M☉'                                          )                                                                 , &amp;
+          &amp;                                               var_str('solMass'                                     )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                                 , &amp;
           &amp;                                               massSolar                                                                                                               , &amp;
           &amp;                                               weightPropertyLabel                                                                                                     , &amp;
           &amp;                                               weightPropertyDescription                                                                                               , &amp;
           &amp;                                               var_str(' '                                           )                                                                 , &amp;
+          &amp;                                               var_str(' '                                           )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                                 , &amp;
           &amp;                                               0.0d0                                                                                                                   , &amp;
           &amp;                                               massStellarLogarithmic                                                                                                  , &amp;
           &amp;                                               0_c_size_t                                                                                                              , &amp;
@@ -691,13 +707,7 @@ contains
           &amp;                                               outputTimes_                                                                                                            , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                                    , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                     , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\star\mathrm{M}_\odot$'               )                                                                     , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(R_\mathrm{eff}/\mathrm{Mpc})$')                                                                     , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                                  , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                                 , &amp;
-          &amp;                          targetLabel         =referenceTarget                                                                                                         , &amp;
-          &amp;                          meanValueTarget     =radiusEffectiveLogarithmicTarget                                                                                        , &amp;
-          &amp;                          meanCovarianceTarget=radiusEffectiveLogarithmicCovarianceTarget                                                                                &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                                 &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
@@ -770,7 +780,7 @@ contains
 
   subroutine sizeVsStellarMassRelationReduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis class.
+    Implement reduction for the \mono{sizeVsStellarMassRelation} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -788,7 +798,7 @@ contains
 
   subroutine sizeVsStellarMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis finalization.
+    Implement a \mono{sizeVsStellarMassRelation} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -810,19 +820,15 @@ contains
        inGroup    => subGroup
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%writeAttribute(self%selection      ,'selection'    )
-    call    analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup %close         (                                    )
-    call    analysesGroup%close         (                                    )
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
+    call analysisGroup%writeAttribute(self%selection      ,'selection'    )
     !$ call hdf5Access%unset()
     return
   end subroutine sizeVsStellarMassRelationFinalize
 
   double precision function sizeVsStellarMassRelationLogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily sizeVsStellarMassRelation} output analysis.
+    Return the log-likelihood of a \mono{sizeVsStellarMassRelation} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

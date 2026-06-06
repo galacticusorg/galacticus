@@ -27,10 +27,10 @@
   !![
   <enumeration>
    <name>intervalType</name>
-   <description>Options for ``recent'' major merger interval types.</description>
+   <description>Enumeration of the time units used to define the lookback interval for ``recent'' major mergers: absolute (Gyr) or dynamical (in units of the halo dynamical time).</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="absolute" />
    <entry label="dynamical"/>
   </enumeration>
@@ -38,7 +38,7 @@
 
   !![
   <nodeOperator name="nodeOperatorNodeMajorMergerRecentCount">
-   <description>A node operator class that counts the number of recent major mergers between nodes prior to each output time.</description>
+   <description>A node operator class that counts the number of dark matter halo--halo major mergers (mass ratio $\geq$ \mono{massRatioMajor}, default 0.25) occurring within a lookback interval \mono{intervalRecent} before each output time. \mono{intervalType} selects absolute Gyr or dynamical-time units; \mono{intervalFromInfall} measures the interval from satellite infall rather than from the output time.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeMajorMergerRecentCount
@@ -97,9 +97,7 @@ contains
       <name>intervalRecent</name>
       <defaultValue>2.0d0</defaultValue>
       <description>
-	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily
-	[intervalType]}$=${\normalfont \ttfamily dynamical}.
+	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if \mono{[intervalType]}$=$\mono{absolute}, or in units of the halo dynamical time if \mono{[intervalType]}$=$\mono{dynamical}.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -107,9 +105,9 @@ contains
       <name>intervalType</name>
       <defaultValue>var_str('dynamical')</defaultValue>
       <description>
-	Specifies the units for the {\normalfont \ttfamily [intervalRecent]} parameter. If set to {\normalfont \ttfamily absolute}
-	then {\normalfont \ttfamily [intervalRecent]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical}
-	{\normalfont \ttfamily [intervalRecent]} is given in units of the halo dynamical time.
+	Specifies the units for the \mono{[intervalRecent]} parameter. If set to \mono{absolute}
+	then \mono{[intervalRecent]} is given in Gyr, while if set to \mono{dynamical}
+	\mono{[intervalRecent]} is given in units of the halo dynamical time.
       </description>
       <source>parameters</source>
     </inputParameter>

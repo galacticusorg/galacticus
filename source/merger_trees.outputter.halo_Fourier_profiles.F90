@@ -31,29 +31,25 @@
   <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles">
    <description>
     A merger tree outputter class which outputs $k$-space density profiles as needed for halo model calculations. A
-    ``{\normalfont \ttfamily haloModel}'' group is created in the \glc\ output file. This group contains the following:
+    ``\mono{haloModel}'' group is created in the \glc\ output file. This group contains the following:
   
     \begin{description}
   
-     \item [{\normalfont \ttfamily wavenumber}] A dataset giving the wavenumbers (in units of Mpc$^{-1}$) at which all output
-     power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the {\normalfont \ttfamily
-     [haloModelWavenumberMinimum]} and {\normalfont \ttfamily [haloModelWavenumberMaximum]} parameters respectively, while the
-     number of points to tabulate in each decade of wavenumber is determined by the {\normalfont \ttfamily
-     [haloModelWavenumberPointsPerDecade]} parameter.
+     \item [\mono{wavenumber}] A dataset giving the wavenumbers (in units of Mpc$^{-1}$) at which all output
+     power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the \mono{[haloModelWavenumberMinimum]} and \mono{[haloModelWavenumberMaximum]} parameters respectively, while the
+     number of points to tabulate in each decade of wavenumber is determined by the \mono{[haloModelWavenumberPointsPerDecade]} parameter.
   
-     \item [{\normalfont \ttfamily powerSpectrum}] A dataset giving the linear theory power spectrum (in units of Mpc$^3$
-     normalized to $z=0$ at each wavenumber specified in the {\normalfont \ttfamily wavenumber} dataset.
+     \item [\mono{powerSpectrum}] A dataset giving the linear theory power spectrum (in units of Mpc$^3$
+     normalized to $z=0$ at each wavenumber specified in the \mono{wavenumber} dataset.
   
-     \item [{\normalfont \ttfamily Output\{i\}/mergerTree\{j\}/fourierProfile\{k\}}] A dataset giving the Fourier transform of
+     \item [\mono{Output\{i\}/mergerTree\{j\}/fourierProfile\{k\}}] A dataset giving the Fourier transform of
      the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index
-     {\normalfont \ttfamily k} in merger tree with index {\normalfont \ttfamily j} at output number {\normalfont \ttfamily
-     i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the {\normalfont
-     \ttfamily wavenumber} group. Note that wavenumbers are assumed to be comoving.
+     \mono{k} in merger tree with index \mono{j} at output number \mono{i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the \mono{wavenumber} group. Note that wavenumbers are assumed to be comoving.
   
     \end{description}
   
-    Finally, each numbered output group is given two additional attributes, {\normalfont \ttfamily linearGrowthFactor} and
-    {\normalfont \ttfamily linearGrowthFactorLogDerivative} which give the growth factor, $D$, and its logarithmic derivative,
+    Finally, each numbered output group is given two additional attributes, \mono{linearGrowthFactor} and
+    \mono{linearGrowthFactorLogDerivative} which give the growth factor, $D$, and its logarithmic derivative,
     $\d \ln D / \d \ln a$ at the output time.
    </description>
   </mergerTreeOutputter>
@@ -75,7 +71,6 @@
      final     ::               haloFourierProfilesDestructor
      procedure :: outputTree => haloFourierProfilesOutputTree
      procedure :: outputNode => haloFourierProfilesOutputNode
-     procedure :: finalize   => haloFourierProfilesFinalize
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
@@ -169,7 +164,6 @@ contains
     implicit none
     type(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
     
-    call self%finalize()
     !![
     <objectDestructor name="self%galacticFilter_"      />
     <objectDestructor name="self%cosmologyFunctions_"  />
@@ -178,24 +172,10 @@ contains
     !!]
     return
   end subroutine haloFourierProfilesDestructor
-
-  subroutine haloFourierProfilesFinalize(self)
-    !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
-    !!}
-    !$ use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
-
-    !$ call hdf5Access%set  ()
-    if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine haloFourierProfilesFinalize
   
-  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time)
+  subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time,outputType)
     !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
     use    :: Output_HDF5                     , only : outputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
@@ -204,12 +184,14 @@ contains
     use    :: Mass_Distributions              , only : massDistributionClass
     use    :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Constants_Astronomical, only : megaParsec
+    use    :: Units_MetaData                  , only : unitType
     use    :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerTreeOutputterHaloFourierProfiles), intent(inout)               :: self
     type            (mergerTree                            ), intent(inout), target       :: tree
     integer         (c_size_t                              ), intent(in   )               :: indexOutput
     double precision                                        , intent(in   )               :: time
+    type            (enumerationOutputGroupTypeType        ), intent(in   ), optional     :: outputType
     type            (treeNode                              )               , pointer      :: node
     class           (nodeComponentBasic                    )               , pointer      :: basic
     class           (massDistributionClass                 )               , pointer      :: massDistribution_
@@ -220,15 +202,14 @@ contains
     integer         (c_size_t                              )                              :: treeIndexPrevious
     double precision                                                                      :: expansionFactor  , radiusVirial
     integer                                                                               :: i
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: time, outputType
     
     allocate(fourierProfile(self%wavenumberCount))
     !$ call hdf5Access%set  ()
     if (.not.self%outputGroup%isOpen()) then
        self%outputGroup=outputFile%openGroup("haloFourierProfiles","Halo model data.")
        call self   %outputGroup%writeDataset  (self%wavenumber ,'wavenumber','Wavenumber at which Fourier transform of density profile is tabulated [Mpc⁻¹].',datasetReturned=dataset)
-       call dataset            %writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                                          )
-       call dataset            %close         (                                                                                                                                      )
+       call dataset            %writeAttribute(unitType(1.0d0/megaParsec,"Mpc⁻¹","Mpc^-1",.true.),'units'                                                                                          )
     end if
     outputGroup=self%outputGroup%openGroup(char(var_str('output')//indexOutput),char(var_str("Fourier space density profiles of halos for all trees at output number ")//indexOutput//"."))
     !$ call hdf5Access%unset()
@@ -239,7 +220,6 @@ contains
        if (node%hostTree%index /= treeIndexPrevious) then
           treeIndexPrevious=node%hostTree%index
           !$ call hdf5Access%set  ()
-          if (treeGroup%isOpen()) call treeGroup%close()
           treeGroup=outputGroup%openGroup(char(var_str('tree')//node%hostTree%index),"Fourier space density profiles of halos for each tree.")
           !$ call hdf5Access%unset()
        end if
@@ -259,23 +239,20 @@ contains
        call treeGroup%writeDataset(fourierProfile,char(var_str('node')//node%index()),"The Fourier-space density profile.")
        !$ call hdf5Access%unset()
     end do
-    !$ call hdf5Access%set  ()
-    if (treeGroup%isOpen()) call treeGroup  %close()
-    call                         outputGroup%close()
-    !$ call hdf5Access%unset()
     return
   end subroutine haloFourierProfilesOutputTree
 
-  subroutine haloFourierProfilesOutputNode(self,node,indexOutput)
+  subroutine haloFourierProfilesOutputNode(self,node,indexOutput, outputType)
     !!{
     Perform no output.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
-    type   (treeNode                              ), intent(inout) :: node
-    integer(c_size_t                              ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterHaloFourierProfiles), intent(inout)           :: self
+    type   (treeNode                              ), intent(inout)           :: node
+    integer(c_size_t                              ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType        ), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     call Error_Report('output of single nodes is not supported'//{introspection:location})
     return

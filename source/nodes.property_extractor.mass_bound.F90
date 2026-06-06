@@ -23,7 +23,7 @@ Implements an output analysis property extractor class that extracts the bound m
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBound">
-   <description>An output analysis property extractor class that extracts the bound mass.</description>
+   <description>Extracts the gravitationally bound mass remaining in a subhalo after tidal stripping, representing the mass retained within the tidal radius as the subhalo orbits in its host potential, relevant to subhalo abundance matching.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBound
@@ -36,11 +36,12 @@ Implements an output analysis property extractor class that extracts the bound m
      procedure :: name        => massBoundName
      procedure :: description => massBoundDescription
      procedure :: unitsInSI   => massBoundUnitsInSI
+     procedure :: units       => massBoundUnits
   end type nodePropertyExtractorMassBound
 
   interface nodePropertyExtractorMassBound
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBound} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBound} property extractor class.
      !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound
@@ -49,7 +50,7 @@ contains
 
   function massBoundConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBound} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassBound} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,7 +110,7 @@ contains
 
   double precision function massBoundUnitsInSI(self)
     !!{
-    Return the units of the massBound property in the SI system.
+    Return the units of the bound mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -119,3 +120,17 @@ contains
     massBoundUnitsInSI=massSolar
     return
   end function massBoundUnitsInSI
+
+  function massBoundUnits(self) result(units)
+    !!{
+    Return the units of the bound mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                      )                :: units
+    class(nodePropertyExtractorMassBound), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBoundUnits

@@ -60,7 +60,7 @@ contains
     <inputParameter>
       <name>Rv</name>
       <defaultValue>2.7d0</defaultValue>
-      <description>The relative visibility, $R_\mathrm{V}$.</description>
+      <description>The ratio of total to selective extinction $R_\mathrm{V} = A_\mathrm{V}/E(B-V)$ in the \cite{prevot_typical_1984}/\cite{bouchet_visible_1985} SMC-like dust attenuation law; the default value of 2.7 is typical for the Small Magellanic Cloud, which lacks the 2175\,\AA\ bump seen in Milky Way dust.</description>
       <source>parameters</source>
     </inputParameter>
     !!]

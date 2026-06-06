@@ -28,9 +28,9 @@
   <enumeration>
    <name>wagner2016QuiescentRedshiftRange</name>
    <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis.</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="low" />
    <entry label="mid" />
    <entry label="high"/>
@@ -39,7 +39,7 @@
   
   !![
   <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
-    <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
+    <description>Computes the quiescent galaxy fraction as a function of stellar mass for a low or high redshift interval from \cite{wagner_evolution_2016}, with stellar mass and specific star formation rate random/systematic error polynomial coefficients and redshift range selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016
@@ -146,7 +146,7 @@ contains
     <inputParameter>
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``{\normalfont \ttfamily low}'' or ``{\normalfont \ttfamily high}'') for this analysis.</description>
+      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>

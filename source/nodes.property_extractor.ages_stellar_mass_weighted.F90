@@ -47,11 +47,12 @@
      procedure :: names        => agesStellarMassWeightedNames
      procedure :: descriptions => agesStellarMassWeightedDescriptions
      procedure :: unitsInSI    => agesStellarMassWeightedUnitsInSI
+     procedure :: units       => agesStellarMassWeightedUnits
   end type nodePropertyExtractorAgesStellarMassWeighted
 
   interface nodePropertyExtractorAgesStellarMassWeighted
      !!{
-     Constructors for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -77,7 +78,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self
@@ -95,7 +96,7 @@ contains
 
   integer function agesStellarMassWeightedElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily agesStellarMassWeighted} property extractors.
+    Return the number of elements in the \mono{agesStellarMassWeighted} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout) :: self
@@ -200,7 +201,7 @@ contains
 
   subroutine agesStellarMassWeightedNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
+    Return the names of the \mono{agesStellarMassWeighted} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -217,7 +218,7 @@ contains
 
   subroutine agesStellarMassWeightedDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
+    Return the descriptions of the \mono{agesStellarMassWeighted} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -234,7 +235,7 @@ contains
 
   function agesStellarMassWeightedUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily agesStellarMassWeighted} properties in the SI system.
+    Return the units of the \mono{agesStellarMassWeighted} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -248,3 +249,22 @@ contains
     return
   end function agesStellarMassWeightedUnitsInSI
 
+  function agesStellarMassWeightedUnits(self,time) result(units)
+    !!{
+    Return the units of the agesStellarMassWeighted properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)             :: self
+    double precision                                              , intent(in   )             :: time
+    integer                                                                                   :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(gigaYear,description='Gyr',quantity='Gyr')
+    end do
+    return
+  end function agesStellarMassWeightedUnits

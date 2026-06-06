@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorAppendSuffix">
-   <description>A node property extractor that appends a suffix to property names.</description>
+   <description>A wrapper property extractor that delegates extraction to one or more child \refClass{nodePropertyExtractorClass} objects and appends a user-specified \mono{suffix} string to all output dataset names. This is useful for disambiguating otherwise identically named properties when, for example, the same extractor is used with different parameter settings, different galaxy components, or at different epochs, and the outputs need to coexist in the same output file.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorAppendSuffix
@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorAppendSuffix
      !!{
-     Constructors for the \refClass{nodePropertyExtractorAppendSuffix} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class.
      !!}
      module procedure appendSuffixConstructorParameters
      module procedure appendSuffixConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function appendSuffixConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorAppendSuffix} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function appendSuffixConstructorInternal(suffix,extractors) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAppendSuffix} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAppendSuffix)                :: self

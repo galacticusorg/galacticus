@@ -26,8 +26,7 @@
   !![
   <massDistribution name="massDistributionSphericalHeatedMonotonic">
    <description>
-     A mass distribution class in which dark matter halos start out with a density profile defined by another {\normalfont
-     \ttfamily massDistributionClass}. This profile is then modified by heating, under the assumption that the
+     A mass distribution class in which dark matter halos start out with a density profile defined by another \mono{massDistributionClass}. This profile is then modified by heating, under the assumption that the
      energy of a shell of mass before and after heating are related by
      \begin{equation}
      -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
@@ -44,8 +43,7 @@
      monotonicity relation $r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)$ is enforced by starting at large radius and stepping inward,
      enforcing the condition in the next innermost shell as necessary.
      
-     Not all methods have analytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
-     \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=$\mono{fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
      unheated profile, otherwise a numerical calculation is performed.
    </description>
   </massDistribution>
@@ -105,13 +103,13 @@ contains
     <inputParameter>
       <name>radiusVirial</name>
       <source>parameters</source>
-      <description>The virial radius of the halo.</description>
+      <description>The virial radius (in Mpc) of the halo, defining the outer boundary up to which the monotonic heating calculation tracks the energy-ordered shell mapping from the initial to heated density profile.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -195,7 +193,7 @@ contains
   
   double precision function sphericalHeatedMonotonicMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    Returns the enclosed mass (in $\mathrm{M}_\odot$) in the dark matter profile of \mono{node} at the given \mono{radius} (given in
     units of Mpc).
     !!}
     implicit none
@@ -232,7 +230,7 @@ contains
 
   double precision function sphericalHeatedMonotonicDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

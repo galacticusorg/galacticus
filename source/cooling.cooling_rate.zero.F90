@@ -23,7 +23,7 @@
 
   !![
   <coolingRate name="coolingRateZero">
-   <description>A cooling rate class in which the cooling rate is always zero.</description>
+   <description>Returns a cooling rate of exactly zero for all nodes at all times, effectively disabling gas cooling and useful for testing, debugging, or modeling scenarios where cooling is artificially suppressed.</description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateZero
@@ -62,7 +62,7 @@ contains
 
   double precision function zeroRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
     !!}
     implicit none
     class           (coolingRateZero), intent(inout) :: self

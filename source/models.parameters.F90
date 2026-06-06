@@ -32,56 +32,67 @@ module Model_Parameters
   <functionClass>
    <name>modelParameter</name>
    <descriptiveName>Model Parameters</descriptiveName>
-   <description>Class providing model parameters.</description>
+   <description>Class providing model parameters for Bayesian inference---the individual free parameters of a
+    \glc\ model that are explored during parameter estimation (e.g.\ via MCMC). Each parameter has a name,
+    a prior distribution (with \mono{logPrior}, \mono{priorSample}, \mono{priorInvert}, \mono{priorMinimum},
+    and \mono{priorMaximum} methods), and a bijective mapping to an unconstrained real line for efficient
+    sampling (via \mono{map}/\mono{unmap}). Implementations include active parameters that vary during
+    inference, and fixed parameters held at constant values.</description>
    <default>active</default>
    <method name="name">
+     <description>Return the name of this parameter as it appears in the \glc\ parameter file and in output metadata, used to identify the parameter when applying posterior sampler updates.</description>
      <type>type(varying_string)</type>
      <pass>yes</pass>
-     <description>Return the name of this parameter.</description>
    </method>
    <method name="logPrior">
+     <description>Return the natural logarithm of the prior probability density evaluated at the physical parameter value \mono{x}, used in computing the log-posterior during Bayesian inference.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Return the log-prior for this parameter.</description>
    </method>
    <method name="priorSample">
+     <description>Draw a random sample from the prior distribution for this parameter, returning a physical parameter value; used to initialize the posterior sampler or generate prior predictive samples.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Sample from the parameter's prior.</description>
    </method>
    <method name="priorInvert">
-     <type>double precision</type>
-     <argument>double precision, intent(in   ) :: f</argument>
-     <pass>yes</pass>
      <description>Invert the prior, returning the parameter value given the cumulative probability.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: f</argument>
    </method>
    <method name="priorMinimum">
+     <description>Return the minimum non-zero value of the prior for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return the minimum non-zero value of the prior for this parameter.</description>
    </method>
    <method name="priorMaximum">
+     <description>Return the maximum non-zero value of the prior for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return the maximum non-zero value of the prior for this parameter.</description>
    </method>
    <method name="randomPerturbation">
+     <description>Return a random perturbation for this parameter.</description>
      <type>double precision</type>
      <pass>yes</pass>
-     <description>Return a random perturbation for this parameter.</description>
    </method>
    <method name="map">
+     <description>Apply the bijective mapping to transform the physical parameter value \mono{x} onto the unconstrained real line used by the posterior sampler (e.g.\ logarithm for positive-definite parameters).</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Map the parameter value.</description>
    </method>
    <method name="unmap">
+     <description>Apply the inverse bijective mapping to transform the sampler's unconstrained variable \mono{x} back to the physical parameter value used to evaluate the model.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Unmap the parameter value.</description>
+   </method>
+   <method name="mapJacobian">
+     <description>Compute the Jacobian of the map at the given parameter value.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
    </method>
   </functionClass>
   !!]
@@ -91,6 +102,15 @@ module Model_Parameters
      Class used to construct lists of model parameters.
      !!}
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign postprocessor list objects."/>
+     </methods>
+     !!]
+     final     ::                  modelParameterListDestructor
+     procedure ::                  modelParameterListAssign
+     generic   :: assignment(=) => modelParameterListAssign
   end type modelParameterList
 
 contains
@@ -106,24 +126,58 @@ contains
     class           (posteriorSampleStateClass), intent(inout)                                       :: posteriorSampleState_
     double precision                                          , dimension(size(modelParameterList_)) :: stateVector
     integer                                                                                          :: i
-    double precision                                                                                 :: logPrior
+    double precision                                                                                 :: logPrior             , valueUnmapped
 
     stateVector               =posteriorSampleState_%get()
     modelParameterListLogPrior=0.0d0
     do i=1,size(modelParameterList_)
-       logPrior=modelParameterList_(i)%modelParameter_%logPrior(                &
-            &   modelParameterList_(i)%modelParameter_%unmap    (               &
-            &                                                    stateVector(i) &
-            &                                                   )               &
-            &                                                  )
+       valueUnmapped=modelParameterList_(i)%modelParameter_%unmap(stateVector(i))
+       logPrior=modelParameterList_(i)%modelParameter_%logPrior   (valueUnmapped)
        if (logPrior <= logImpossible) then
-          modelParameterListLogPrior=logImpossible
+          modelParameterListLogPrior=+logImpossible
           exit
        else
-          modelParameterListLogPrior=modelParameterListLogPrior+logPrior
+          modelParameterListLogPrior=+modelParameterListLogPrior                                                &
+               &                     +logPrior                                                                  &
+               &                     -log(                                                                      &
+               &                          abs(                                                                  &
+               &                              modelParameterList_(i)%modelParameter_%mapJacobian(valueUnmapped) &
+               &                             )                                                                  &
+               &                         )
        end if
     end do
     return
   end function modelParameterListLogPrior
+
+  subroutine modelParameterListDestructor(self)
+    !!{
+    Destructor for elements of model parameter lists.
+    !!}
+    implicit none
+    type(modelParameterList), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%modelParameter_"/>
+    !!]
+    return
+  end subroutine modelParameterListDestructor
+
+  recursive subroutine modelParameterListAssign(self,from)
+    !!{
+    Perform assignment for the \refClass{modelParameterList} class.
+    !!}
+    implicit none
+    class(modelParameterList), intent(  out) :: self
+    class(modelParameterList), intent(in   ) :: from
+
+    nullify(self%modelParameter_)
+    if (associated(from%modelParameter_)) then
+       self%modelParameter_ => from%modelParameter_
+       !![
+       <referenceCountIncrement owner="self" object="modelParameter_"/>
+       !!]
+    end if
+    return
+  end subroutine modelParameterListAssign
 
 end module Model_Parameters

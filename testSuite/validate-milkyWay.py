@@ -17,7 +17,7 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_milkyWay.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: Milky Way validation model failed to run")
-    sys.exit()
+    sys.exit(0)
 
 # Extract and validate the likelihoods.
 validate.extract("outputs/validate_milkyWay.hdf5","Milky Way model","milkyWayModel","testSuite/parameters/validate_milkyWay.xml")

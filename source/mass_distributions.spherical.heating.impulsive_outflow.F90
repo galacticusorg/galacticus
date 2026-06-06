@@ -55,7 +55,7 @@
 
   interface massDistributionHeatingImpulsiveOutflow
      !!{
-     Constructors for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -102,7 +102,7 @@ contains
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self
@@ -117,7 +117,7 @@ contains
 
   double precision function impulsiveOutflowSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    Returns the specific energy of heating in the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

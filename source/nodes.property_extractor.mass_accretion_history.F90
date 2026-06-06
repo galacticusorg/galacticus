@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistory">
-   <description>
-     A node property extractor which extracts the mass accretion history for each node.
-   </description>
+   <description>Extracts the mass accretion history (a time series of halo mass values) for each node along the main progenitor branch, enabling analysis of halo growth histories across cosmic time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassAccretionHistory
@@ -36,11 +34,12 @@
      procedure :: names        => massAccretionHistoryNames
      procedure :: descriptions => massAccretionHistoryDescriptions
      procedure :: unitsInSI    => massAccretionHistoryUnitsInSI
+     procedure :: units       => massAccretionHistoryUnits
   end type nodePropertyExtractorMassAccretionHistory
 
   interface nodePropertyExtractorMassAccretionHistory
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistory} property extractor class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -66,7 +65,7 @@ contains
 
   function massAccretionHistoryConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionHistory} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassAccretionHistory) :: self
@@ -115,7 +114,7 @@ contains
   
   subroutine massAccretionHistoryNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily massAccretionHistory} properties.
+    Return the names of the \mono{massAccretionHistory} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionHistory), intent(inout)                             :: self
@@ -130,7 +129,7 @@ contains
 
   subroutine massAccretionHistoryDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massAccretionHistory} properties.
+    Return the descriptions of the \mono{massAccretionHistory} properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionHistory), intent(inout)                             :: self
@@ -145,7 +144,7 @@ contains
 
   function massAccretionHistoryUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily massAccretionHistory} properties in the SI system.
+    Return the units of the \mono{massAccretionHistory} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
     implicit none
@@ -158,3 +157,20 @@ contains
     unitsInSI(2)=massSolar    
     return
   end function massAccretionHistoryUnitsInSI
+
+  function massAccretionHistoryUnits(self) result(units)
+    !!{
+    Return the units of the massAccretionHistory properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                 ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMassAccretionHistory), intent(inout)             :: self
+    double precision                                           , dimension(:), allocatable :: siValues
+
+    siValues=self%unitsInSI()
+    allocate(units(2))
+    units(1)=unitType(siValues(1),description='Gyr'         ,quantity='Gyr'    )
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
+    return
+  end function massAccretionHistoryUnits

@@ -195,12 +195,14 @@ contains
     type            (treeNode                          ), pointer               :: nodeHost
     class           (massDistributionClass             ), pointer               :: massDistribution_
     double precision                                    , dimension(3)          :: position
-    double precision                                    , parameter             :: toleranceAbsolute   =0.0d+0, toleranceRelative                   =1.0d-3
-    double precision                                                            :: massSatellite              , densityHostCentral                         , &
-         &                                                                         factorSuppression          , logSlopeDensityProfileDarkMatterHost       , &
-         &                                                                         radiusOrbital              , radiusStalling                             , &
+    double precision                                    , parameter             :: toleranceAbsolute   =0.0d+0 , toleranceRelative                   =1.0d-3
+    double precision                                                            :: massSatellite               , densityHostCentral                         , &
+         &                                                                         factorSuppression           , logSlopeDensityProfileDarkMatterHost       , &
+         &                                                                         radiusOrbital               , radiusStalling                             , &
          &                                                                         radiusDimensionless
-    type            (rootFinder                        )                        :: finder
+    type            (rootFinder                        ), save                  :: finder
+    logical                                             , save                  :: finderConstructed   =.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (coordinateSpherical               )                        :: coordinates
     
     ! Compute the base acceleration.    
@@ -226,17 +228,20 @@ contains
     self_              => self
     massDistribution_  => nodeHost         %massDistribution(           )
     densityHostCentral =  massDistribution_%density         (coordinates)
-    finder             =  rootFinder(                                                             &
-         &                           rootFunction                 =radiusStallingRoot           , &
-         &                           toleranceAbsolute            =toleranceAbsolute            , &
-         &                           toleranceRelative            =toleranceRelative            , &
-         &                           rangeExpandDownward          =0.5d0                        , &
-         &                           rangeExpandUpward            =2.0d0                        , &
-         &                           rangeExpandType              =rangeExpandMultiplicative    , &
-         &                           rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-         &                           rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-         &                          )
-    radiusStalling=finder%find(rootGuess=radiusOrbital)
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =radiusStallingRoot           , &
+            &                       toleranceAbsolute            =toleranceAbsolute            , &
+            &                       toleranceRelative            =toleranceRelative            , &
+            &                       rangeExpandDownward          =0.5d0                        , &
+            &                       rangeExpandUpward            =2.0d0                        , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+            &                      )
+       finderConstructed=.true.
+    end if
+     radiusStalling=finder%find(rootGuess=radiusOrbital)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]

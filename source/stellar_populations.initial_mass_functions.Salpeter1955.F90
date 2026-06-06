@@ -24,12 +24,9 @@
   !![
   <initialMassFunction name="initialMassFunctionSalpeter1955">
    <description>
-  !!]
-
-  !![
     A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf} defined as:
     \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1M_\odot &lt; M &lt; 125M_\odot \\ 0 &amp; \hbox
+     \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\ 0 &amp; \hbox
      {otherwise.} \end{array} \right.
     \end{equation}
    </description>

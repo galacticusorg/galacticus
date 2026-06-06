@@ -31,10 +31,7 @@
      M^\alpha &amp; \hbox{ for } M_\mathrm{t} &lt; M &lt; M_\mathrm{u} \\
      0 &amp; \hbox {otherwise,} \end{array} \right.
     \end{equation}
-    where $\sigma_\mathrm{c}=${\normalfont \ttfamily [sigma]}, $M_\mathrm{c}=${\normalfont \ttfamily
-    [massCharacteristic]}$M_\odot$, $\alpha=${\normalfont \ttfamily [exponent]}, $M_\mathrm{t}=${\normalfont \ttfamily
-    [massTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [massLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont
-    \ttfamily [massUpper]}$M_\odot$.
+    where $\sigma_\mathrm{c}=$\mono{[sigma]}, $M_\mathrm{c}=$\mono{[massCharacteristic]}$\mathrm{M}_\odot$, $\alpha=$\mono{[exponent]}, $M_\mathrm{t}=$\mono{[massTransition]}$\mathrm{M}_\odot$, $M_\mathrm{l}=$\mono{[massLower]}$\mathrm{M}_\odot$, and $M_\mathrm{u}=$\mono{[massUpper]}$\mathrm{M}_\odot$.
    </description>
   </initialMassFunction>
   !!]

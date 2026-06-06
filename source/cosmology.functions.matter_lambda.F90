@@ -29,6 +29,8 @@
   double precision, parameter :: ageTableNPointsPerOctave     =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
   double precision, parameter :: ageTableIncrementFactor      =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
   integer         , parameter :: distanceTableNPointsPerDecade=100
+  double precision, parameter :: distanceTableNPointsPerOctave=dble(distanceTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter :: distanceTableIncrementFactor =exp(int(distanceTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(distanceTableNPointsPerDecade))
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
@@ -314,7 +316,7 @@ contains
 
   subroutine matterLambdaDestructor(self)
     !!{
-    Default constructor for the matter plus cosmological constant cosmological functions class.
+    Destructor for the matter plus cosmological constant cosmological functions class.
     !!}
     implicit none
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -466,7 +468,7 @@ contains
 
   double precision function matterLambdaExpansionFactor(self,time)
     !!{
-    Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
+    Returns the expansion factor at cosmological time \mono{time}.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
@@ -538,7 +540,7 @@ contains
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
     !!{
-    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard, hubbleUnitsTime
     implicit none
@@ -564,7 +566,7 @@ contains
 
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -615,7 +617,7 @@ contains
 
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    Returns the rate of change of the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -648,7 +650,7 @@ contains
 
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -676,7 +678,7 @@ contains
 
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the matter density at expansion factor \mono{expansionFactor}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -708,7 +710,7 @@ contains
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -735,7 +737,7 @@ contains
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -762,7 +764,7 @@ contains
 
   double precision function matterLambdaTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
     !!{
-    Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
+    Return the temperature of the CMB at expansion factor \mono{expansionFactor}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -790,7 +792,7 @@ contains
 
     ! For matter and cosmological constant, matter always dominates at early times.
     densityPower=-3.0d0 ! Power-law scaling of matter density with expansion factor.
-    ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
+    ! Choose present day as default - will be used if no other densities present (i.e. Einstein-de Sitter).
     expansionFactorDominant=self%dominationEpochMatter(dominateFactor)
     ! Return the density parameter in the dominant species if required.
     if (present(OmegaDominant)) OmegaDominant=self%cosmologyParameters_%OmegaMatter()
@@ -805,9 +807,9 @@ contains
     double precision                                                :: aMatterEquality                  , expansionFactorDominantCurvature, &
          &                                                             expansionFactorDominantDarkEnergy
 
-    ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
+    ! Choose present day as default - will be used if no other densities present (i.e. Einstein-de Sitter).
     matterLambdaDominationEpochMatter=1.0d0
-    if (self%cosmologyParameters_%OmegaDarkEnergy()/=0.0d0) then
+    if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0) then
        ! Find the expansion factor of matter-dark energy equality.
        aMatterEquality=self%equalityEpochMatterDarkEnergy(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
@@ -1040,7 +1042,7 @@ contains
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
     !!{
-    Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    Returns the cosmological time corresponding to given \mono{comovingDistance}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1071,7 +1073,7 @@ contains
 
   double precision function matterLambdaDistanceComoving(self,time)
     !!{
-    Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    Returns the comoving distance to cosmological time \mono{time}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1105,7 +1107,7 @@ contains
 
   double precision function matterLambdaDistanceLuminosity(self,time)
     !!{
-    Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
+    Returns the luminosity distance to cosmological time \mono{time}.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1118,7 +1120,7 @@ contains
 
   double precision function matterLambdaDistanceAngular(self,time,timeOrigin) result(distance)
     !!{
-    Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
+    Returns the angular diameter distance to cosmological time \mono{time}.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsTime
     use :: Error                           , only : Error_Report
@@ -1236,13 +1238,13 @@ contains
 
   double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
     !!{
-    Returns the comoving distance to the particle horizon at cosmological time {\normalfont \ttfamily time}.
+    Returns the comoving distance to the particle horizon at cosmological time \mono{time}.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: time
-    type            (integrator                    ), allocatable   :: integrator_
+    type            (integrator                    )                :: integrator_
 
     integrator_                                =integrator           (integrandParticleHorizon,toleranceRelative=1.0d-6)
     matterLambdaDistanceParticleHorizonComoving=integrator_%integrate(0.0d0                   ,                  time  )
@@ -1274,39 +1276,77 @@ contains
   
   subroutine matterLambdaMakeDistanceTable(self,time)
     !!{
-    Builds a table of distance vs. time.
+    Builds a table of comoving distance vs. time.
     !!}
-    use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range   , rangeTypeLogarithmic
+    use :: Numerical_Integration           , only : integrator
+    use :: Numerical_Ranges                , only : Make_Range   , rangeTypeLogarithmic
     use :: Numerical_Constants_Astronomical, only : gigaYear  , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
     implicit none
-    class           (cosmologyFunctionsMatterLambda), intent(inout), target :: self
-    double precision                                , intent(in   )         :: time
-    double precision                                , parameter             :: toleranceAbsolute=1.0d-5, toleranceRelative=1.0d-5
-    integer                                                                 :: iTime
-    type            (integrator                    )                        :: integrator_
+    class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
+    double precision                                , intent(in   )               :: time
+    double precision                                , allocatable  , dimension(:) :: distanceTableTimeTemporary                                      , distanceTableComovingDistanceTemporary                , &
+         &                                                                           distanceTableComovingDistanceNegatedTemporary                   , distanceTableLuminosityDistanceNegatedTemporary       , &
+         &                                                                           distanceTableLuminosityDistanceKCorrectedNegatedTemporary
+    double precision                                , parameter                   :: toleranceAbsolute                                        =1.0d-5, toleranceRelative                              =1.0d-5
+    integer                                                                       :: iTime                                                           , prefixPointCount
+    type            (integrator                    )                              :: integrator_
 
     ! Find minimum and maximum times to tabulate.
-    self%distanceTableTimeMinimum=min(self%distanceTableTimeMinimum,0.5d0*time)
-    self%distanceTableTimeMaximum=    self%cosmicTime(1.0d0)
+    if (.not.self%distanceTableInitialized) then
+       self%distanceTableTimeMinimum=0.5d0*time
+       self%distanceTableTimeMaximum=self%cosmicTime(1.0d0)
+    else
+       do while (self%distanceTableTimeMinimum > time/2.0d0)
+          self%distanceTableTimeMinimum=self%distanceTableTimeMinimum/distanceTableIncrementFactor
+       end do
+    end if
     ! Determine number of points to tabulate.
     self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
+    self%distanceTableTimeMinimum =self%distanceTableTimeMaximum/10.0d0**(dble(self%distanceTableNumberPoints)/dble(distanceTableNPointsPerDecade))
     ! Deallocate arrays if currently allocated.
-    if (allocated(self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
-    if (allocated(self%distanceTableComovingDistance                   )) deallocate(self%distanceTableComovingDistance                   )
-    if (allocated(self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
-    if (allocated(self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
-    if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
-    ! Allocate the arrays to current required size.
-    allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
-    allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
-    allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
-    allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
-    allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
-    ! Create the range of times.
-    self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
-    ! Integrate to get the comoving distance.
+    if (allocated(self%distanceTableTime)) then
+       prefixPointCount=int(log10(self%distanceTableTime(1)/self%distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade)+0.5d0)
+       call Move_Alloc(self%distanceTableTime                               ,distanceTableTimeTemporary                               )
+       call Move_Alloc(self%distanceTableComovingDistance                   ,distanceTableComovingDistanceTemporary                   )
+       call Move_Alloc(self%distanceTableComovingDistanceNegated            ,distanceTableComovingDistanceNegatedTemporary            )
+       call Move_Alloc(self%distanceTableLuminosityDistanceNegated          ,distanceTableLuminosityDistanceNegatedTemporary          )
+       call Move_Alloc(self%distanceTableLuminosityDistanceKCorrectedNegated,distanceTableLuminosityDistanceKCorrectedNegatedTemporary)
+       ! Allocate the arrays to current required size.
+       allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
+       allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
+       allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
+       allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
+       allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
+       ! Create the range of times.
+       self%distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the comoving distances to a negative value to indicate they are not yet computed.
+       self%distanceTableComovingDistance=-1.0d0
+       ! Paste in the previously computed regions.
+       self%distanceTableTime                               (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=+distanceTableTimeTemporary
+       self%distanceTableComovingDistance                   (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=+distanceTableComovingDistanceTemporary
+       self%distanceTableComovingDistanceNegated            (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableComovingDistanceNegatedTemporary
+       self%distanceTableLuminosityDistanceNegated          (prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableLuminosityDistanceNegatedTemporary
+       self%distanceTableLuminosityDistanceKCorrectedNegated(prefixPointCount+1:prefixPointCount+size(distanceTableTimeTemporary))=-distanceTableLuminosityDistanceKCorrectedNegatedTemporary
+       ! Deallocate the temporary arrays.
+       deallocate(distanceTableTimeTemporary                               )
+       deallocate(distanceTableComovingDistanceTemporary                   )
+       deallocate(distanceTableComovingDistanceNegatedTemporary            )
+       deallocate(distanceTableLuminosityDistanceNegatedTemporary          )
+       deallocate(distanceTableLuminosityDistanceKCorrectedNegatedTemporary)
+    else
+       ! Allocate the arrays to current required size.
+       allocate(self%distanceTableTime                               (self%distanceTableNumberPoints))
+       allocate(self%distanceTableComovingDistance                   (self%distanceTableNumberPoints))
+       allocate(self%distanceTableComovingDistanceNegated            (self%distanceTableNumberPoints))
+       allocate(self%distanceTableLuminosityDistanceNegated          (self%distanceTableNumberPoints))
+       allocate(self%distanceTableLuminosityDistanceKCorrectedNegated(self%distanceTableNumberPoints))
+       ! Create set of grid points in time variable.
+       self%distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the expansion factors to a negative value to indicate they are not yet computed.
+       self%distanceTableComovingDistance=-1.0d0
+    end if
+        ! Integrate to get the comoving distance.
     integrator_ =  integrator(                                                         &
          &                                      matterLambdaComovingDistanceIntegrand, &
          &                    toleranceAbsolute=toleranceAbsolute                    , &
@@ -1314,6 +1354,8 @@ contains
          &                   )
     self_       => self
     do iTime=1,self%distanceTableNumberPoints
+       ! Skip pre-computed entries.
+       if (self%distanceTableComovingDistance(iTime) >= 0.0d0) cycle
        self%distanceTableComovingDistance(iTime)=+integrator_%integrate(                                                                              &
             &                                                           self%expansionFactor(self%distanceTableTime(iTime                         )), &
             &                                                           self%expansionFactor(self%distanceTableTime(self%distanceTableNumberPoints))  &

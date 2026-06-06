@@ -21,9 +21,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMergedSubhaloProperties">
-   <description>
-     A node property extractor which extracts properties of merged subhalo orbits.
-   </description>
+   <description>Extracts orbital properties (such as orbital energy, angular momentum, and pericentric distance) of subhalos at the time they merged, enabling analysis of merger dynamics and post-merger evolution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMergedSubhaloProperties
@@ -38,11 +36,12 @@
      procedure :: names        => mergedSubhaloPropertiesNames
      procedure :: descriptions => mergedSubhaloPropertiesDescriptions
      procedure :: unitsInSI    => mergedSubhaloPropertiesUnitsInSI
+     procedure :: units       => mergedSubhaloPropertiesUnits
   end type nodePropertyExtractorMergedSubhaloProperties
 
   interface nodePropertyExtractorMergedSubhaloProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMergedSubhaloProperties} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
      !!}
      module procedure mergedSubhaloPropertiesConstructorParameters
      module procedure mergedSubhaloPropertiesConstructorInternal
@@ -68,7 +67,7 @@ contains
 
   function mergedSubhaloPropertiesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -141,7 +140,7 @@ contains
   
   subroutine mergedSubhaloPropertiesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
+    Return the names of the \mono{mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits  , only : enumerationKeplerOrbitDecode, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                         keplerOrbitRadiusPericenter ,  keplerOrbitRadius    , keplerOrbitTimeCurrent
@@ -175,7 +174,7 @@ contains
 
   subroutine mergedSubhaloPropertiesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily mergedSubhaloProperties} properties.
+    Return the descriptions of the \mono{mergedSubhaloProperties} properties.
     !!}
     use :: Kepler_Orbits, only : enumerationKeplerOrbitDescription, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                       keplerOrbitRadiusPericenter      , keplerOrbitRadius     , keplerOrbitTimeCurrent
@@ -208,7 +207,7 @@ contains
 
   function mergedSubhaloPropertiesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily mergedSubhaloProperties} properties in the SI system.
+    Return the units of the \mono{mergedSubhaloProperties} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar, megaParsec
     implicit none
@@ -220,3 +219,24 @@ contains
     unitsInSI=[gigaYear,massSolar,massSolar,megaParsec,megaParsec]
     return
   end function mergedSubhaloPropertiesUnitsInSI
+
+  function mergedSubhaloPropertiesUnits(self) result(units)
+    !!{
+    Return the units of the mergedSubhaloProperties properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                    ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorMergedSubhaloProperties), intent(inout)              :: self
+    double precision                                              , dimension(:) , allocatable :: siValues
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(5))
+    units(1)=unitType(siValues(1),description='Gyr'         ,quantity='Gyr'    )
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass')
+    units(3)=unitType(siValues(3),description='Solar masses',quantity='solMass')
+    units(4)=unitType(siValues(4),description='Mpc'         ,quantity='Mpc'    )
+    units(5)=unitType(siValues(5),description='Mpc'         ,quantity='Mpc'    )
+    return
+  end function mergedSubhaloPropertiesUnits

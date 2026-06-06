@@ -27,7 +27,7 @@ Implements satellite orbital extrema property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
    <description>
     A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
-    {\normalfont \ttfamily satellitePericenterRadius} and {\normalfont \ttfamily satellitePericenterVelocity}.
+    \mono{satellitePericenterRadius} and \mono{satellitePericenterVelocity}.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -47,11 +47,12 @@ Implements satellite orbital extrema property extractor class.
      procedure :: names        => satelliteOrbitalExtremaNames
      procedure :: descriptions => satelliteOrbitalExtremaDescriptions
      procedure :: unitsInSI    => satelliteOrbitalExtremaUnitsInSI
+     procedure :: units       => satelliteOrbitalExtremaUnits
   end type nodePropertyExtractorSatelliteOrbitalExtrema
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
@@ -121,7 +122,7 @@ contains
 
   subroutine satelliteOrbitalExtremaDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -134,7 +135,7 @@ contains
   
   integer function satelliteOrbitalExtremaElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor class.
+    Return the number of elements in the \mono{satelliteOrbitalExtrema} property extractor class.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -147,7 +148,7 @@ contains
 
   function satelliteOrbitalExtremaExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily satelliteOrbitalExtrema} property extractor
+    Implement a \mono{satelliteOrbitalExtrema} property extractor
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
@@ -194,7 +195,7 @@ contains
 
   subroutine satelliteOrbitalExtremaNames(self,time,names)
     !!{
-    Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
+    Return the name of the \mono{satelliteOrbitalExtrema} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
@@ -238,7 +239,7 @@ contains
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily satelliteOrbitalExtrema} property in the SI system.
+    Return the units of the \mono{satelliteOrbitalExtrema} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -254,3 +255,26 @@ contains
     return
   end function satelliteOrbitalExtremaUnitsInSI
 
+  function satelliteOrbitalExtremaUnits(self,time) result(units)
+    !!{
+    Return the units of the satelliteOrbitalExtrema properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                    ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)             :: self
+    double precision                                              , intent(in   )             :: time
+
+    allocate(units(self%elementCount_))
+    if (self%extractPericenter) then
+       units(self%offsetPericenter  )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetPericenter+1)=unitType(kilo      ,'km/s','km/s')
+    end if
+    if (self%extractApocenter ) then
+       units(self%offsetApocenter   )=unitType(megaParsec,'Mpc' ,'Mpc' )
+       units(self%offsetApocenter +1)=unitType(kilo      ,'km/s','km/s')
+    end if
+    return
+  end function satelliteOrbitalExtremaUnits

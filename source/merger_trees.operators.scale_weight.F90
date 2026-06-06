@@ -23,7 +23,7 @@ Implements a merger tree operator that scales the weight of each tree by a fixed
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorScaleWeight">
-   <description>A merger tree operator that scales the weight of each tree by a fixed factor.</description>
+   <description>A merger tree operator that multiplies the statistical weight of each merger tree by a user-specified constant factor, enabling rescaling of tree ensembles for combining datasets or adjusting volume normalizations. The scaling factor is specified by the \mono{[factor]} parameter.</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorScaleWeight

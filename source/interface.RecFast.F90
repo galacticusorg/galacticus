@@ -39,7 +39,8 @@ contains
           &                           lockDescriptor
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
-    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
+    use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string, &
+         &                            var_str
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , languageFortran
@@ -48,7 +49,9 @@ contains
     logical                  , intent(in   ), optional :: static
     integer                                            :: status     , recFastUnit
     character(len=32        )                          :: line       , versionLabel
-    type     (varying_string)                          :: command
+    type     (varying_string)                          :: command    , pathExe       , &
+         &                                                pathPatched, pathFor       , &
+         &                                                pathVersion
     type     (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -57,34 +60,46 @@ contains
     ! Set path.
     recfastPath=inputPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
-    if (.not.File_Exists(recfastPath//"recfast.exe")) then
-       call Directory_Make(     recfastPath                                              )
-       call File_Lock     (char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
+    pathExe=recfastPath//"recfast.exe"
+    if (.not.File_Exists(pathExe)) then
+       call Directory_Make(recfastPath                              )
+       call File_Lock     (pathExe    ,fileLock,lockIsShared=.false.)
        ! Patch the code if not already patched.
-       if (.not.File_Exists(recfastPath//"patched")) then
+       pathPatched=recfastPath//"patched"
+       if (.not.File_Exists(pathPatched)) then
           ! Download the code if not already downloaded.
-          if (.not.File_Exists(recfastPath//"recfast.for")) then
-             call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call download("https://www.astro.ubc.ca/people/scott/recfast.for",char(recfastPath)//"recfast.for",retries=5,retryWait=60)
-             if (.not.File_Exists(recfastPath//"recfast.for")) &
+          pathFor=recfastPath//"recfast.for"
+          if (.not.File_Exists(pathFor)) then
+             block
+               type(varying_string), dimension(2) :: urls
+
+               call displayMessage("downloading RecFast code....",verbosityLevelWorking)
+               urls(1)=var_str("https://www.astro.ubc.ca/people/scott/recfast.for"                                              )
+               urls(2)=var_str("https://web.archive.org/web/20250818121544im_/https://www.astro.ubc.ca/people/scott/recfast.for")
+               call download(urls,pathFor,retries=5,retryWait=10)
+               if (.not.File_Exists(pathFor)) &
                   & call Error_Report("failed to download RecFast code"//{introspection:location})
+             end block
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
-          call System_Command_Do("cp "//inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
+          command="cp "//inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch"
+          call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-          call System_Command_Do("touch "//recfastPath//"patched")
+          command="touch "//recfastPath//"patched"
+          call System_Command_Do(command)
        end if
        call displayMessage("compiling RecFast code....",verbosityLevelWorking)
        command="cd "//recfastPath//"; "//compiler(languageFortran)//" recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))
-       if (.not.File_Exists(recfastPath//"recfast.exe")) &
+       if (.not.File_Exists(pathExe)) &
             & call Error_Report("failed to build RecFast code"//{introspection:location})
        call File_Unlock(fileLock)
     end if
     ! Determine the version.
-    call File_Lock(char(inputPath(pathTypeDataDynamic))//'RecFast.currentVersion',fileLock,lockIsShared=.false.)
-    if (.not.File_Exists(recfastPath//"currentVersion")) then
+    pathVersion=recfastPath//'currentVersion'
+    call File_Lock(pathVersion,fileLock,lockIsShared=.false.)
+    if (.not.File_Exists(pathVersion)) then
        recFastVersion="unknown"
        open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
        do while (status == 0)
@@ -95,11 +110,11 @@ contains
           end if
        end do
        close(recFastUnit)
-       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='new',form='formatted')
+       open(newUnit=recFastUnit,file=char(pathVersion),status='new',form='formatted')
        write (recfastUnit,'(a)') char(recFastVersion)
        close(recFastUnit)
     else
-       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='old',form='formatted')
+       open(newUnit=recFastUnit,file=char(pathVersion),status='old',form='formatted')
        read (recfastUnit,'(a)') versionLabel
        close(recFastUnit)
        recFastVersion=trim(versionLabel)

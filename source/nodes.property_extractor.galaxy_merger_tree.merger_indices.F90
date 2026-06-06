@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreeMergerIndices">
-   <description>
-     A node property extractor which extracts the merger indices properties of galaxy merger trees.
-   </description>
+   <description>Extracts integer index properties specific to merger events within galaxy merger trees, such as the indices of progenitor nodes involved in each merger, enabling tracking of merger histories.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerList) :: nodePropertyExtractorGalaxyMergerTreeMergerIndices
@@ -36,11 +34,12 @@
      procedure :: names        => galaxyMergerTreeMergerIndicesNames
      procedure :: descriptions => galaxyMergerTreeMergerIndicesDescriptions
      procedure :: unitsInSI    => galaxyMergerTreeMergerIndicesUnitsInSI
+     procedure :: units        => galaxyMergerTreeMergerIndicesUnits
   end type nodePropertyExtractorGalaxyMergerTreeMergerIndices
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerIndices
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerIndicesConstructorParameters
      module procedure galaxyMergerTreeMergerIndicesConstructorInternal
@@ -66,7 +65,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerIndices} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerIndices) :: self
@@ -115,7 +114,7 @@ contains
   
   subroutine galaxyMergerTreeMergerIndicesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily galaxyMergerTreeMergerIndices} properties.
+    Return the names of the \mono{galaxyMergerTreeMergerIndices} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerIndices), intent(inout)                             :: self
@@ -130,7 +129,7 @@ contains
 
   subroutine galaxyMergerTreeMergerIndicesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily galaxyMergerTreeMergerIndices} properties.
+    Return the descriptions of the \mono{galaxyMergerTreeMergerIndices} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerIndices), intent(inout)                             :: self
@@ -145,7 +144,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily galaxyMergerTreeMergerIndices} properties in the SI system.
+    Return the units of the \mono{galaxyMergerTreeMergerIndices} properties in the SI system.
     !!}
     implicit none
     double precision                                                    , dimension(:) , allocatable :: unitsInSI
@@ -153,6 +152,24 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(2))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function galaxyMergerTreeMergerIndicesUnitsInSI
+
+  function galaxyMergerTreeMergerIndicesUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMergerTreeMergerIndices properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type   (unitType                                          ), dimension(:), allocatable :: units
+    class  (nodePropertyExtractorGalaxyMergerTreeMergerIndices), intent(inout)             :: self
+    integer                                                                                :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function galaxyMergerTreeMergerIndicesUnits

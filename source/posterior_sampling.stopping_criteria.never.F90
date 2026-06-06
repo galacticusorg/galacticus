@@ -23,7 +23,7 @@
 
   !![
   <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-   <description>A posterior sampling stopping class which never stops.</description>
+   <description>A posterior sampling stopping criterion class that always returns false, allowing the sampler to run for the full maximum number of steps without terminating early based on any stopping condition.</description>
   </posteriorSampleStoppingCriterion>
   !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever
@@ -37,7 +37,7 @@
 
   interface posteriorSampleStoppingCriterionNever
      !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling stopping class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleStoppingCriterionNever

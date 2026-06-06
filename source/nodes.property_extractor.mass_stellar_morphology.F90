@@ -23,7 +23,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarMorphology">
-   <description>A stellar mass-weighted morphology output analysis property extractor class.</description>
+   <description>Extracts a stellar mass-weighted morphological indicator for a galaxy, quantifying the fractional contribution of disk vs. spheroid components to the total stellar mass as a proxy for Hubble-type morphological classification.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarMorphology
@@ -36,11 +36,12 @@ Implements a stellar mass-weighted morphology output analysis property extractor
      procedure :: name        => massStellarMorphologyName
      procedure :: description => massStellarMorphologyDescription
      procedure :: unitsInSI   => massStellarMorphologyUnitsInSI
+     procedure :: units       => massStellarMorphologyUnits
   end type nodePropertyExtractorMassStellarMorphology
 
   interface nodePropertyExtractorMassStellarMorphology
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellarMorphology} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarMorphology} property extractor class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology
@@ -49,7 +50,7 @@ contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassStellarMorphology} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassStellarMorphology} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -127,12 +128,25 @@ contains
 
   double precision function massStellarMorphologyUnitsInSI(self)
     !!{
-    Return the units of the massStellarMorphology property in the SI system.
+    Return the units of the stellar mass morphology property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    massStellarMorphologyUnitsInSI=0.0d0
+    massStellarMorphologyUnitsInSI=1.0d0
     return
   end function massStellarMorphologyUnitsInSI
+
+  function massStellarMorphologyUnits(self) result(units)
+    !!{
+    Return the units of the stellar mass morphology property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function massStellarMorphologyUnits

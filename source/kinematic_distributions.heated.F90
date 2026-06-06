@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionHeated">
-   <description>A heated kinematic distribution class masses.</description>
+   <description>A kinematic distribution class for mass distributions subject to external heating. The 1D velocity dispersion is computed by solving the Jeans equation modified to account for the additional energy injected by the heating source. The \mono{[velocityDispersionApproximate]} flag enables an approximate solver for improved performance.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionHeated
@@ -72,9 +72,9 @@ contains
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
       <description>
-	If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume
+	If \mono{true}, radial velocity dispersion is computed using an approximate method in which we assume
 	that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific
-	heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the
+	heating energy. If \mono{false} then radial velocity dispersion is computed by numerically solving the
 	Jeans equation.
       </description>
     </inputParameter>
@@ -95,8 +95,7 @@ contains
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
       <description>
-	Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily
-	fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then
+	Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then
 	numerical solvers are used to find solutions.
       </description>
     </inputParameter>
@@ -110,7 +109,7 @@ contains
   
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{
-    Constructor for the \refClass{kinematicsDistributionHeated} kinematics distribution class.
+    Constructor for the \refClass{kinematicsDistributionHeated} kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self
@@ -137,7 +136,7 @@ contains
 
   double precision function heatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an heated kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an heated kinematic distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none

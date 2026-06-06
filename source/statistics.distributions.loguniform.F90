@@ -30,8 +30,8 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
     \end{description}
    </description>
   </distributionFunction1D>
@@ -41,7 +41,8 @@
      Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
      !!}
      private
-     double precision :: limitLower, limitUpper
+     double precision :: limitLower   , limitUpper      , &
+          &              logLimitLower, logNormalization
    contains
      procedure :: density    => logUniformDensity
      procedure :: cumulative => logUniformCumulative
@@ -75,12 +76,12 @@ contains
     !![
     <inputParameter>
       <name>limitLower</name>
-      <description>The lower limit of the log-uniform distribution function.</description>
+      <description>The lower bound $x_\mathrm{l} > 0$ of the log-uniform distribution, below which the probability density is zero; must be positive and strictly less than the upper limit.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitUpper</name>
-      <description>The upper limit of the log-uniform distribution function.</description>
+      <description>The upper bound $x_\mathrm{u} > 0$ of the log-uniform distribution, above which the probability density is zero; must be positive and strictly greater than the lower limit.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -108,6 +109,13 @@ contains
     if (limitLower <= 0.0d0     ) call Error_Report('`limitLower` > 0 is required'           //{introspection:location})
     if (limitUpper <= 0.0d0     ) call Error_Report('`limitUpper` > 0 is required'           //{introspection:location})
     if (limitLower >= limitUpper) call Error_Report('`limitLower` < `limitUpper` is required'//{introspection:location})
+    self%logLimitLower   =log(                 &
+         &                    +self%limitLower &
+         &                   )
+    self%logNormalization=log(                 &
+         &                    +self%limitUpper &
+         &                    /self%limitLower &
+         &                   )
     return
   end function logUniformConstructorInternal
 
@@ -122,7 +130,7 @@ contains
     if (x < self%limitLower .or. x > self%limitUpper) then
        logUniformDensity=0.0d0
     else
-       logUniformDensity=1.0d0/x/(log(self%limitUpper)-log(self%limitLower))
+       logUniformDensity=1.0d0/x/self%logNormalization
     end if
     return
   end function logUniformDensity
@@ -140,7 +148,7 @@ contains
     else if (x > self%limitUpper) then
        logUniformCumulative=1.0d0
     else
-       logUniformCumulative=(log(x)-log(self%limitLower))/(log(self%limitUpper)-log(self%limitLower))
+       logUniformCumulative=(log(x)-self%logLimitLower)/self%logNormalization
     end if
     return
   end function logUniformCumulative
@@ -159,7 +167,7 @@ contains
          &                              'probability out of range'// &
          &                              {introspection:location}     &
          &                             )
-    logUniformInverse=exp(log(self%limitLower)+p*(log(self%limitUpper)-log(self%limitLower)))
+    logUniformInverse=exp(self%logLimitLower+p*self%logNormalization)
     return
   end function logUniformInverse
 

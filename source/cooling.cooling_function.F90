@@ -36,7 +36,11 @@ module Cooling_Functions
    <name>coolingFunction</name>
    <descriptiveName>Cooling Function</descriptiveName>
    <description>
-    Class providing cooling functions of gas, $\Lambda(\rho,T,\mathbf{Z})$.
+    Class providing radiative cooling functions of gas, $\Lambda(\rho,T,\mathbf{Z})$, in units of erg cm$^{-3}$ s$^{-1}$.
+    The cooling function encodes the rate at which gas loses energy per unit volume through line emission, bremsstrahlung,
+    and other radiative processes, as a function of hydrogen number density, temperature, and metal abundances.
+    Implementations may assume collisional ionization equilibrium (CIE) or account for photoionization by a radiation
+    field. The logarithmic slopes with respect to density and temperature are also provided.
    </description>
    <default>atomicCIECloudy</default>
    <method name="coolingFunction" >
@@ -54,7 +58,7 @@ module Cooling_Functions
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="coolingFunctionFractionInBand" >
-    <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by {\normalfont \ttfamily energyLow} and {\normalfont \ttfamily energyHigh} (in units of keV).</description>
+    <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by \mono{energyLow} and \mono{energyHigh} (in units of keV).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode           ), intent(inout) :: node</argument>

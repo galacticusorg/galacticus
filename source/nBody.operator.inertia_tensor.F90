@@ -26,7 +26,7 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
   
   !![
   <nbodyOperator name="nbodyOperatorInertiaTensor">
-   <description>An N-body data operator which computes the inertia tensor eigenvalues and eigenvectors, along with axis ratios.</description>
+   <description>An N-body data operator which computes the inertia tensor eigenvalues, eigenvectors, and resulting axis ratios of an N-body halo, characterizing its three-dimensional shape. Parameters control whether only self-bound particles are used, the maximum radius for inclusion, and the number of bootstrap resamples.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorInertiaTensor

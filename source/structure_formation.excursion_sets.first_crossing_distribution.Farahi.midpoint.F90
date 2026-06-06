@@ -118,7 +118,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -170,9 +170,9 @@ contains
     ! Read tables from file if possible.
     do i=1,2
        makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
-       if (i == 1 .and. self%useFile .and. makeTable) then
-          call self%fileNameInitialize()
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       call self%fileNameInitialize()
+       if (i == 1 .and. self%useFile .and. makeTable .and. File_Exists(self%fileName)) then
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        else
@@ -185,8 +185,8 @@ contains
     if (makeTable) then
        !$omp critical(farahiMidpointProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
-          call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       if (self%useFile .and. File_Exists(self%fileName)) then
+          call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
        end if
@@ -266,6 +266,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !$omp barrier
           allocate(barrier        (0:self%countVariance))
           allocate(barrierMidpoint(0:self%countVariance))
           !$omp do schedule(dynamic)
@@ -431,7 +432,7 @@ contains
           &                         displayMessage              , displayReset         , displayUnindent     , displayVerbosity, &
           &                         verbosityLevelWarn          , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -519,8 +520,8 @@ contains
     !! the table needs to be remade.
     do i=1,2
        makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
-       if (i == 1 .and. self%useFile .and. makeTable) then
-          call self%fileNameInitialize()
+       call self%fileNameInitialize()
+       if (i == 1 .and. self%useFile .and. makeTable .and. File_Exists(self%fileName)) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -534,7 +535,7 @@ contains
     if (makeTable.or.self%retabulateRateNonCrossing) then
        !$omp critical(farahiMidpointRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -716,6 +717,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !$omp barrier
           allocate(barrierRateQuad        (self%countVarianceProgenitorRate))
           allocate(barrierMidpointRateQuad(self%countVarianceProgenitorRate))
           ! In the first run, first crossing rates are computed. In the second run, non-crossing rates are computed at different
@@ -743,8 +745,8 @@ contains
                    else
                       varianceMaximumRateLimit=self%varianceMaximumRate
                    end if
-                   ! For computing non-crossing rates, the results are tabulated with respect to $S_{\rm max}-S$ so that interpolation
-                   ! is more accurate when $S$ approaches $S_{\rm max}$.
+                   ! For computing non-crossing rates, the results are tabulated with respect to S_max-S so that interpolation
+                   ! is more accurate when $S$ approaches S_max.
                    do iVariance=0,countVarianceCurrentRate
                       varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
                    end do

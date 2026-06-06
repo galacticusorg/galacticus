@@ -25,8 +25,8 @@ Implements an ISM mass output analysis property extractor class.
   <enumeration>
    <name>satelliteStatusDiscriminator</name>
    <description>Enumeration of possible discriminators for satellite orphan status.</description>
-   <visibility>private</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="boundMass"/>
    <entry label="position" />
   </enumeration>
@@ -34,7 +34,12 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSatelliteStatus">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>A property extractor that returns an integer satellite status flag for each node:
+    0 for central (non-satellite) halos, 1 for satellites that still have a resolved dark matter
+    subhalo, and 2 for orphaned satellites that have lost their subhalo below the resolution limit.
+    The \mono{discriminator} parameter (default: \mono{boundMass}) controls whether orphan status is
+    determined from the bound mass history of the satellite component or the position history of the
+    position component, allowing flexibility in how subhalo disruption is identified.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorSatelliteStatus
@@ -47,11 +52,12 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: extract     => satelliteStatusExtract
      procedure :: name        => satelliteStatusName
      procedure :: description => satelliteStatusDescription
+     procedure :: units       => satelliteStatusUnits
   end type nodePropertyExtractorSatelliteStatus
 
   interface nodePropertyExtractorSatelliteStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal
@@ -61,7 +67,7 @@ contains
 
   function satelliteStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +92,7 @@ contains
 
   function satelliteStatusConstructorInternal(discriminator) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
     !!}
     use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
@@ -134,7 +140,7 @@ contains
 
   function satelliteStatusExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily satelliteStatus} node property extractor.
+    Implement a \mono{satelliteStatus} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
     use :: Histories       , only : history
@@ -206,4 +212,16 @@ contains
     return
   end function satelliteStatusDescription
 
+  function satelliteStatusUnits(self) result(units)
+    !!{
+    Return the units of the satelliteStatus property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                            )                :: units
+    class(nodePropertyExtractorSatelliteStatus), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function satelliteStatusUnits

@@ -56,7 +56,7 @@ contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily finiteResolutionNFW} dark matter halo profile class.
+    Default constructor for the \mono{finiteResolutionNFW} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -73,12 +73,12 @@ contains
     <inputParameter>
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The resolution length, $\Delta x$.</description>
+      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation used to smooth the NFW profile at small radii, preventing artificial divergence below the resolution scale.</description>
     </inputParameter>
     <inputParameter>
       <name>massResolution</name>
       <source>parameters</source>
-      <description>The resolution mass, $\Delta M$.</description>
+      <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, used to determine the finite-resolution softening of the NFW profile for halos near the resolution limit.</description>
     </inputParameter>
     <inputParameter>
       <name>resolutionIsComoving</name>
@@ -89,7 +89,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -105,7 +105,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none
@@ -151,7 +151,7 @@ contains
 
   function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                          , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                             , weightByMass

@@ -34,7 +34,11 @@
   !![
   <nodeOperator name="nodeOperatorCGMCoolingHeating">
    <description>
-    A node operator class that implements inflow/outflow of gas from the \gls{cgm} due to cooling/heating.
+    A node operator class that drives cooling-driven gas infall from the \gls{cgm} into a galaxy component and, optionally,
+    heating-driven gas expulsion. \mono{component} selects the destination (disk or spheroid); \mono{coolingFrom} specifies
+    whether angular momentum is computed from \mono{currentNode} or \mono{formationNode}; \mono{excessHeatDrivesOutflow}
+    enables AGN/stellar heating to expel gas from the \gls{cgm}; \mono{rateMaximumExpulsion} caps the outflow rate.
+    Cooling rates and angular momenta are supplied by \refClass{coolingRateClass} and \refClass{coolingSpecificAngularMomentumClass}.
    </description>
   </nodeOperator>
   !!]
@@ -99,7 +103,7 @@ contains
     <inputParameter>
       <name>coolingFrom</name>
       <defaultValue>var_str('currentNode')</defaultValue>
-      <description>Specifies whether the angular momentum of cooling gas should be computed from the {\normalfont \ttfamily currentNode} or the {\normalfont \ttfamily formationNode}.</description>
+      <description>Specifies whether the angular momentum of cooling gas should be computed from the \mono{currentNode} or the \mono{formationNode}.</description>
       <source>parameters</source>
       <variable>coolingFrom</variable>
     </inputParameter>

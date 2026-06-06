@@ -25,11 +25,11 @@
 
   use    :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use    :: Numerical_Interpolation , only : interpolator
-  !$ use :: OMP_Lib                 , only : omp_lock_kind
+  !$ use :: Locks                   , only : ompLock
 
   !![
   <outputAnalysis name="outputAnalysisSatelliteVelocityMaximum">
-    <description>An output analysis class that computes satellite maximum circular velocity fraction as a function of time.</description>
+    <description>Computes the satellite subhalo maximum circular velocity fraction ($V_\mathrm{max}/V_\mathrm{max,0}$) as a function of time since infall, tracking tidal evolution and comparing against a target dataset read from \mono{fileName}, with a relative model uncertainty parameter.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteVelocityMaximum
@@ -41,7 +41,7 @@
      class           (outputTimesClass         ), pointer                   :: outputTimes_                  => null()
      type            (varying_string           )                            :: fileName
      type            (interpolator             )                            :: interpolator_                          , interpolatorError_
-     !$ integer      (omp_lock_kind            )                            :: accumulateLock
+     !$ type         (ompLock                  )                            :: accumulateLock
      double precision                                                       :: logLikelihood_
      double precision                                                       :: relativeModelUncertainty               , velocityMaximumInitial
      double precision                           , dimension(:), allocatable :: time                                   , fractionVelocityMaximum              , &
@@ -129,11 +129,10 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file%openFile   (char(fileName)        ,readOnly=.true.              )
-    call file%readDataset('time'                ,         time                )
-    call file%readDataset('velocityMaximum'     ,         velocityMaximum     )
-    call file%readDataset('velocityMaximumError',         velocityMaximumError)
-    call file%close      (                                                    )
+    file=hdf5Object(char(fileName),readOnly=.true.)
+    call file%readDataset('time'                ,time                )
+    call file%readDataset('velocityMaximum'     ,velocityMaximum     )
+    call file%readDataset('velocityMaximumError',velocityMaximumError)
     !$ call hdf5Access%unset()
     allocate(fractionVelocityMaximum     (size(velocityMaximum)))
     allocate(fractionVelocityMaximumError(size(velocityMaximum)))
@@ -152,7 +151,7 @@ contains
        self%fractionVelocityMaximumTarget        (i)=exp(self%interpolator_     %interpolate(outputTimes_%time(i)))
        self%varianceFractionVelocityMaximumTarget(i)=exp(self%interpolatorError_%interpolate(outputTimes_%time(i)))**2
     end do
-    !$ call OMP_Init_Lock(self%accumulateLock)
+    !$ self%accumulateLock      =ompLock()
     self%fractionVelocityMaximum=0.0d0
     self%logLikelihood_         =0.0d0
     return
@@ -162,7 +161,6 @@ contains
     !!{
     Destructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self
 
@@ -171,7 +169,6 @@ contains
     <objectDestructor name="self%darkMatterProfileDMOUnheated"/>
     <objectDestructor name="self%outputTimes_"                />
     !!]
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine satelliteVelocityMaximumDestructor
 
@@ -179,9 +176,8 @@ contains
     !!{
     Analyze the maximum velocity tidal track.
     !!}
-    use    :: Numerical_Constants_Math, only : Pi
-    use    :: Mass_Distributions      , only : massDistributionClass
-    !$ use :: OMP_Lib                 , only : OMP_Set_Lock         , OMP_Unset_Lock
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Mass_Distributions      , only : massDistributionClass
     implicit none
     class           (outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -217,7 +213,6 @@ contains
          &                                  /             varianceFractionVelocityMaximum        &
          &                                  +log(2.0d0*Pi*varianceFractionVelocityMaximum)       &
          &                                 )
-    !$ call OMP_Unset_Lock(self%accumulateLock)
     return
   end subroutine satelliteVelocityMaximumAnalyze
 
@@ -225,18 +220,17 @@ contains
     !!{
     Reduce over the maximum velocity tidal track output analysis.
     !!}
-    use    :: Error  , only : Error_Report
-    !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
+    use :: Error, only : Error_Report
     implicit none
     class(outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self
     class(outputAnalysisClass                   ), intent(inout) :: reduced
 
     select type (reduced)
     class is (outputAnalysisSatelliteVelocityMaximum)
-       !$ call OMP_Set_Lock(reduced%accumulateLock)       
+       !$ call reduced%accumulateLock%set()       
        reduced%fractionVelocityMaximum=reduced%fractionVelocityMaximum+self%fractionVelocityMaximum
        reduced%logLikelihood_         =reduced%logLikelihood_         +self%logLikelihood_
-       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+       !$ call reduced%accumulateLock%unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select
@@ -254,6 +248,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSatelliteVelocityMaximum), intent(inout)           :: self
     type (varying_string                        ), intent(in   ), optional :: groupName
@@ -287,21 +282,11 @@ contains
     call analysisGroup%writeAttribute(self%logLikelihood()                                    ,'logLikelihood'                      )
     call analysisGroup%writeAttribute('Simulations'                                           ,'targetLabel'                        )
     call analysisGroup%writeDataset  (self%time                         ,'time'                         ,'Time'                                          ,datasetReturned=dataset)
-    call dataset      %writeAttribute('Gyr'                             ,'units'                                                                                                 )
-    call dataset      %writeAttribute(gigaYear                          ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
+    call dataset      %writeAttribute(unitType(gigaYear,description='Gyr',quantity='Gyr'),'units')
     call analysisGroup%writeDataset  (self%fractionVelocityMaximum      ,'fractionVelocityMaximum'      ,'Fraction of maximum circular velocity'         ,datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                               ,'units'                                                                                                 )
-    call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
+    call dataset      %writeAttribute(unitType(1.0d0                                    ),'units')
     call analysisGroup%writeDataset  (self%fractionVelocityMaximumTarget,'fractionVelocityMaximumTarget','Fraction of maximum circular velocity [target]',datasetReturned=dataset)
-    call dataset      %writeAttribute(' '                               ,'units'                                                                                                 )
-    call dataset      %writeAttribute(1.0d0                             ,'unitsInSI'                                                                                             )
-    call dataset      %close         (                                                                                                                                           )
-    call analysisGroup%close         (                                                                                                                                           )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                           )
-    call analysesGroup%close         (                                                                                                                                           )
+    call dataset      %writeAttribute(unitType(1.0d0                                    ),'units')
     !$ call hdf5Access%unset()
     return
   end subroutine satelliteVelocityMaximumFinalize

@@ -29,39 +29,35 @@
     A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
     lightcone will be extracted. Specifically, these properties are extracted as:
     \begin{description}
-     \item [{\normalfont \ttfamily lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
+     \item [\mono{lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
      the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     \item [\mono{lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
      angular direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     \item [\mono{lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
-     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if {\normalfont
-     \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
+     \item [\mono{lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
+     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if \mono{[includeObservedPosition]}=\mono{true});
+     \item [\mono{lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
      angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
+     \mono{[includeObservedPosition]}=\mono{true});
+     \item [\mono{lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
      angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     {\normalfont \ttfamily [includeObservedPosition]}={\normalfont \ttfamily true});
-     \item [{\normalfont \ttfamily lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
+     \mono{[includeObservedPosition]}=\mono{true});
+     \item [\mono{lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
      lightcone;
-     \item [{\normalfont \ttfamily lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
+     \item [\mono{lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
      direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
+     \item [\mono{lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
      direction of the lightcone;
-     \item [{\normalfont \ttfamily lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
+     \item [\mono{lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
      not, in general, be precisely the same as the redshift corresponding to the output time.};
-     \item [{\normalfont \ttfamily lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
-     line-of-sight peculiar velocity (included only if {\normalfont \ttfamily [includeObservedRedshift]}={\normalfont \ttfamily
-     true});
-     \item [{\normalfont \ttfamily lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
-     spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
-     true}) [radians]
-     \item [{\normalfont \ttfamily lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
-     in a spherical coordinate system; included only if {\normalfont \ttfamily [includeAngularCoordinates]}={\normalfont \ttfamily
-     true}) [radians]
-     \item [{\normalfont \ttfamily angularWeight}] The mean number density of this galaxy per unit area on the sky (in
+     \item [\mono{lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
+     line-of-sight peculiar velocity (included only if \mono{[includeObservedRedshift]}=\mono{true});
+     \item [\mono{lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
+     spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
+     \item [\mono{lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
+     in a spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
+     \item [\mono{angularWeight}] The mean number density of this galaxy per unit area on the sky (in
      degrees$^{-2}$).
     \end{description}
     In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.
@@ -79,7 +75,7 @@
           &                                                                  angularCoordinatesOffset          , positionObservedOffset
      integer         (c_size_t               )                            :: instanceIndex
      type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
-     double precision                         , allocatable, dimension(:) :: unitsInSI_
+     type            (unitType               ), allocatable, dimension(:) :: units_
      logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
           &                                                                  atCrossing                        , failIfNotInLightcone     , &
           &                                                                  includeObservedPosition
@@ -90,12 +86,13 @@
      procedure :: names        => lightconeNames
      procedure :: descriptions => lightconeDescriptions
      procedure :: unitsInSI    => lightconeUnitsInSI
+     procedure :: units        => lightconeUnits
      procedure :: addInstances => lightconeAddInstances
   end type nodePropertyExtractorLightcone
 
   interface nodePropertyExtractorLightcone
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLightcone} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorLightcone} property extractor class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -105,7 +102,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -162,10 +159,11 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
     implicit none
     type   (nodePropertyExtractorLightcone)                        :: self
     logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates, &
@@ -192,35 +190,35 @@ contains
     end if
     allocate(self%names_       (self%elementCount_))
     allocate(self%descriptions_(self%elementCount_))
-    allocate(self%unitsInSI_   (self%elementCount_))
+    allocate(self%units_       (self%elementCount_))
     self%names_       (1)='lightconePositionX'
     self%descriptions_(1)='Position of galaxy in lightcone (radial axis) [Mpc].'
-    self%unitsInSI_   (1)=megaParsec
+    self%units_       (1)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
     self%names_       (2)='lightconePositionY'
     self%descriptions_(2)='Position of galaxy in lightcone (1st angular axis) [Mpc].'
-    self%unitsInSI_   (2)=megaParsec
+    self%units_       (2)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
     self%names_       (3)='lightconePositionZ'
     self%descriptions_(3)='Position of galaxy in lightcone (2nd angular axis) [Mpc].'
-    self%unitsInSI_   (3)=megaParsec
+    self%units_       (3)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
     self%names_       (4)='lightconeVelocityX'
     self%descriptions_(4)='Velocity of galaxy in lightcone (radial axis) [km/s].'
-    self%unitsInSI_   (4)=kilo
+    self%units_       (4)=unitType(kilo,'km/s','km/s')
     self%names_       (5)='lightconeVelocityY'
     self%descriptions_(5)='Velocity of galaxy in lightcone (1st angular axis) [km/s].'
-    self%unitsInSI_   (5)=kilo
+    self%units_       (5)=unitType(kilo,'km/s','km/s')
     self%names_       (6)='lightconeVelocityZ'
     self%descriptions_(6)='Velocity of galaxy in lightcone (2nd angular axis) [km/s].'
-    self%unitsInSI_   (6)=kilo
+    self%units_       (6)=unitType(kilo,'km/s','km/s')
     self%names_       (7)='lightconeRedshiftCosmological'
     self%descriptions_(7)='Cosmological redshift of galaxy in lightcone (does not include the effects of line-of-sight peculiar velocity).'
-    self%unitsInSI_   (7)=0.0d0
+    self%units_       (7)=unitType(1.0d0)
     self%names_       (8)='angularWeight'
     self%descriptions_(8)='Number of such galaxies per unit area [degrees⁻²].'
-    self%unitsInSI_   (8)=degreesToRadians**2
+    self%units_       (8)=unitType(degreesToRadians**2,'degrees⁻²','deg^-2')
     if (includeObservedRedshift) then
        self%names_       (self%redshiftObservedOffset  +1)='lightconeRedshiftObserved'
        self%descriptions_(self%redshiftObservedOffset  +1)='Observed redshift of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity).'
-       self%unitsInSI_   (self%redshiftObservedOffset  +1)=0.0d0
+       self%units_       (self%redshiftObservedOffset  +1)=unitType(1.0d0)
     end if
     if (includeObservedPosition) then
        self%names_       (self%positionObservedOffset  +1)='lightconePositionObservedX'
@@ -229,24 +227,24 @@ contains
        self%descriptions_(self%positionObservedOffset  +1)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; radial axis) [Mpc].'
        self%descriptions_(self%positionObservedOffset  +2)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; 1st angular axis) [Mpc].'
        self%descriptions_(self%positionObservedOffset  +3)='Observed position of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity; 2nd angular axis) [Mpc].'
-       self%unitsInSI_   (self%positionObservedOffset  +1)=megaParsec
-       self%unitsInSI_   (self%positionObservedOffset  +2)=megaParsec
-       self%unitsInSI_   (self%positionObservedOffset  +3)=megaParsec
+       self%units_       (self%positionObservedOffset  +1)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
+       self%units_       (self%positionObservedOffset  +2)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
+       self%units_       (self%positionObservedOffset  +3)=unitType(megaParsec,'Mpc','Mpc',isComoving=.true.)
     end if
     if (includeAngularCoordinates) then
        self%names_       (self%angularCoordinatesOffset+1)='lightconeAngularTheta'
        self%descriptions_(self%angularCoordinatesOffset+1)='Angular distance from pole of coordinate system (i.e. θ in a spherical coordinate system) [radians]'
-       self%unitsInSI_   (self%angularCoordinatesOffset+1)=1.0d0
+       self%units_       (self%angularCoordinatesOffset+1)=unitType(1.0d0,'radians','rad')
        self%names_       (self%angularCoordinatesOffset+2)='lightconeAngularPhi'
        self%descriptions_(self%angularCoordinatesOffset+2)='Angular distance around the pole of coordinate system (i.e. φ in a spherical coordinate system) [radians]'
-       self%unitsInSI_   (self%angularCoordinatesOffset+2)=1.0d0
+       self%units_       (self%angularCoordinatesOffset+2)=unitType(1.0d0,'radians','rad')
     end if
     return
   end function lightconeConstructorInternal
 
   subroutine lightconeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLightcone} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLightcone), intent(inout) :: self
@@ -439,10 +437,27 @@ contains
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
     double precision                                , intent(in   )              :: time
+    integer                                                                      :: i
     !$GLC attributes unused :: time
 
     allocate(lightconeUnitsInSI(self%elementCount_))
-    lightconeUnitsInSI=self%unitsInSI_
+    do i=1,self%elementCount_
+       lightconeUnitsInSI(i)=self%units_(i)%unitsInSI
+    end do
     return
   end function lightconeUnitsInSI
 
+  function lightconeUnits(self,time) result(units)
+    !!{
+    Return the units of the lightcone properties.
+    !!}
+    implicit none
+    type            (unitType                      ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLightcone), intent(inout)             :: self
+    double precision                                , intent(in   )             :: time
+    !$GLC attributes unused :: time
+
+    allocate(units(self%elementCount_))
+    units=self%units_
+    return
+  end function lightconeUnits

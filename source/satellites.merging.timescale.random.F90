@@ -25,7 +25,7 @@
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
-   <description>Returns a random timescale for merging.</description>
+   <description>Returns a satellite merging timescale chosen randomly between the current snapshot time and the next snapshot time, providing a simple statistical prescription for satellite merging that avoids artificial synchronization with snapshot output times.</description>
   </satelliteMergingTimescales>
   !!]
 
@@ -49,7 +49,7 @@ contains
 
   function randomConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a
+    A constructor for the \mono{random} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

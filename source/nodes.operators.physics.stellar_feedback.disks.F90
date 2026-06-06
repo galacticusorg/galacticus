@@ -27,7 +27,7 @@
   
   !![
   <nodeOperator name="nodeOperatorStellarFeedbackDisks">
-   <description>A node operator class that performs stellar feedback in disks.</description>
+   <description>Computes stellar feedback-driven outflows from galactic disks, using the star formation rate and feedback model to determine gas ejection rates that regulate disk star formation and enrich the circumgalactic medium with metals and energy.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackDisks

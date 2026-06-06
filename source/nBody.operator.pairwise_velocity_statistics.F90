@@ -28,7 +28,7 @@ Implements an N-body data operator which computes pairwise velocity statistics i
 
   !![
   <nbodyOperator name="nbodyOperatorPairwiseVelocityStatistics">
-   <description>An N-body data operator which computes pairwise velocity statistics in bins of separation.</description>
+   <description>An N-body data operator which computes statistics of pairwise relative velocities between particles in bins of physical separation, useful for constraining galaxy peculiar velocity fields. Parameters control the separation range, redshift, Hubble flow correction, sampling rate, and bootstrap resample count.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairwiseVelocityStatistics
@@ -91,13 +91,13 @@ contains
       <name>addHubbleFlow</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, add Hubble flow to velocities.</description>
+      <description>If true, add the Hubble flow contribution $H(z)\,\mathbf{r}$ to each particle velocity before computing pairwise statistics, converting peculiar velocities to total line-of-sight velocities.</description>
     </inputParameter>
     <inputParameter>
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift.</description>
+      <description>The redshift at which to evaluate the Hubble flow when adding the Hubble flow correction to particle velocities.</description>
     </inputParameter>
     <inputParameter>
       <name>bootstrapSampleCount</name>
@@ -109,7 +109,7 @@ contains
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The sampling rate for particles.</description>
+      <description>The fraction of particles to sample randomly at each bootstrap iteration, between 0 and 1; values less than 1 reduce computational cost at the expense of statistical precision.</description>
     </inputParameter>
     <inputParameter>
       <name>separationMinimum</name>
@@ -241,7 +241,8 @@ contains
          &                                                                                      iSample                                      , bootstrapSampleCount                , &
          &                                                                                      iSimulation                                  , jSimulation                         , &
          &                                                                                      jStart                                       , jEnd
-    type            (nearestNeighbors                       )                                :: neighborFinder
+    type            (nearestNeighbors                       ), save                          :: neighborFinder
+    !$omp threadprivate(neighborFinder)
     integer                                                                                  :: neighborCount
     type            (varying_string                         )                                :: label
     
@@ -332,7 +333,7 @@ contains
        velocityRadialInflowingBin              =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
-       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
+       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair                 (bootstrapSampleCount,size(position2,dim=2)))

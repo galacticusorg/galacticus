@@ -28,7 +28,7 @@ Implements a fixed halo environment.
 
   !![
   <haloEnvironment name="haloEnvironmentFixed">
-   <description>Implements a fixed halo environment.</description>
+   <description>Implements a halo environment with a fixed, user-specified overdensity, representing a deterministic large-scale density field around a halo. The environmental overdensity is set by \mono{[overdensity]}, while the filtering scale for variance computations is specified by either \mono{[radiusEnvironment]} or the corresponding environmental mass \mono{[massEnvironment]}.</description>
    <deepCopy>
     <functionClass variables="sphericalCollapseSolver_"/>
    </deepCopy>
@@ -92,7 +92,7 @@ contains
     <inputParameter>
       <name>overdensity</name>
       <source>parameters</source>
-      <description>The overdensity of the environment.</description>
+      <description>The fixed linear overdensity $\delta$ of the large-scale environment assigned uniformly to all halos; a positive value places halos in an overdense region, while negative values simulate voids.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusEnvironment</name>
@@ -122,7 +122,7 @@ contains
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
     !!{
-    Internal constructor for the \refClass{haloEnvironmentFixed} halo mass function class.
+    Internal constructor for the \refClass{haloEnvironmentFixed} halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -160,12 +160,13 @@ contains
     else
        call Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
     end if
+    self%linearToNonLinearInitialized=.false.
     return
   end function fixedHEConstructorInternal
 
   subroutine fixedHEDestructor(self)
     !!{
-    Destructor for the \refClass{haloEnvironmentFixed} halo mass function class.
+    Destructor for the \refClass{haloEnvironmentFixed} halo environment class.
     !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self
@@ -180,7 +181,7 @@ contains
 
   double precision function fixedHEOverdensityLinear(self,node,presentDay)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -196,14 +197,14 @@ contains
     if (.not.presentDay_) then
        basic                    =>  node                                 %basic(                 )
        fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
-            &                      *self                   %linearGrowth_%value(time=basic%time())
+            &                     *self                    %linearGrowth_%value(time=basic%time())
     end if
     return
   end function fixedHEOverdensityLinear
 
   double precision function fixedHEOverdensityLinearGradientTime(self,node)
     !!{
-    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    Return the time gradient of the environment of the given \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -216,13 +217,13 @@ contains
          &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
          &                                  *self%cosmologyFunctions_%expansionRate                       (                    &
          &                                   self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
-         &                                                                                              )
+         &                                                                                                )
     return
   end function fixedHEOverdensityLinearGradientTime
 
   double precision function fixedHEOverdensityNonLinear(self,node)
     !!{
-    Return the environment of the given {\normalfont \ttfamily node}.
+    Return the environment of the given \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

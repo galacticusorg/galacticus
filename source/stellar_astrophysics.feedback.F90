@@ -34,11 +34,14 @@ module Stellar_Feedback
    <name>stellarFeedback</name>
    <descriptiveName>Stellar Feedback</descriptiveName>
    <description>
-    Class providing models of stellar feedback.
+    Class providing models of the cumulative energy input from stellar populations as a function of population age
+    and metallicity. Stellar feedback encompasses energy injection from supernovae, stellar winds, and radiation
+    pressure. The cumulative energy input is integrated over the initial mass function and used to drive outflows
+    from galactic disks and spheroids.
    </description>
    <default>standard</default>
    <method name="energyInputCumulative" >
-    <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the cumulative energy input from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

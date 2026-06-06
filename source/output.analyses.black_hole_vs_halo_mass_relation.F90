@@ -28,47 +28,44 @@
   <outputAnalysis name="outputAnalysisBlackHoleVsHaloMassRelation">
     <description>
       A black hole vs. halo mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      {\normalfont \ttfamily [fileNameTarget]} parameter. This file must contain one or more groups named {\normalfont \ttfamily
-      redshiftIntervalN} where {\normalfont \ttfamily N} is an integer. Each such group specifies the black hole mass--halo mass
+      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{redshiftIntervalN} where \mono{N} is an integer. Each such group specifies the black hole mass--halo mass
       relation in one redshift interval, and must contain the following datasets and attributes:
       \begin{itemize}
-       \item dataset {\normalfont \ttfamily massHalo}: halo mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massBlackHole}: black hole mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massBlackHoleError}: uncertainty in black hole mass in units of $\mathrm{M}_\odot$;
-       \item dataset {\normalfont \ttfamily massBlackHoleScatter}: scatter in black hole mass in units of dex;
-       \item dataset {\normalfont \ttfamily massBlackHoleScatterError}: uncertainty in scatter in black hole mass in units of dex;
-       \item attribute {\normalfont \ttfamily redshiftMinimum}: the minimum redshift associated with this redshift interval;
-       \item attribute {\normalfont \ttfamily redshiftMaximum}: the maximum redshift associated with this redshift interval.
+       \item dataset \mono{massHalo}: halo mass in units of $\mathrm{M}_\odot$;
+       \item dataset \mono{massBlackHole}: black hole mass in units of $\mathrm{M}_\odot$;
+       \item dataset \mono{massBlackHoleError}: uncertainty in black hole mass in units of $\mathrm{M}_\odot$;
+       \item dataset \mono{massBlackHoleScatter}: scatter in black hole mass in units of dex;
+       \item dataset \mono{massBlackHoleScatterError}: uncertainty in scatter in black hole mass in units of dex;
+       \item attribute \mono{redshiftMinimum}: the minimum redshift associated with this redshift interval;
+       \item attribute \mono{redshiftMaximum}: the maximum redshift associated with this redshift interval.
       \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes {\normalfont \ttfamily description} and
-      {\normalfont \ttfamily unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
+      While not required, it is recommended that each of these datasets has attributes \mono{description} and
+      \mono{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
       them to SI standard units, respectively.
 
-      Additionally, the file must contain a {\normalfont \ttfamily cosmology} group that specifies the cosmological model assumed
+      Additionally, the file must contain a \mono{cosmology} group that specifies the cosmological model assumed
       in constructing the dataset, and which has attributes:
       \begin{itemize}
-       \item {\normalfont \ttfamily OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item {\normalfont \ttfamily OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item {\normalfont \ttfamily OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item {\normalfont \ttfamily HubbleConstant}: the Hubble constant in units of km/s/Mpc.
+       \item \mono{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
+       \item \mono{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
+       \item \mono{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
+       \item \mono{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
       \end{itemize}
 
-      The file must have an attribute {\normalfont \ttfamily haloMassDefinition} which specifies the halo mass definition assumed
+      The file must have an attribute \mono{haloMassDefinition} which specifies the halo mass definition assumed
       in constructing the dataset. Allowed values are:
       \begin{itemize}
-       \item {\normalfont \ttfamily `spherical collapse'} or {\normalfont \ttfamily `virial'}: halos are defined as have mean
+       \item \mono{`spherical collapse'} or \mono{`virial'}: halos are defined as have mean
              density contrasts given by spherical collapse calculations, e.g. \cite{percival_cosmological_2005};
-       \item {\normalfont \ttfamily `Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
+       \item \mono{`Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
              fitting formula of \cite{bryan_statistical_1998};
-       \item {\normalfont \ttfamily `X * mean density'}: halos are defined as having mean densities equal to ;{\normalfont
-             \ttfamily X} times the mean density of the universe;
-       \item {\normalfont \ttfamily `X * critical density'}: halos are defined as having mean densities equal to ;{\normalfont
-             \ttfamily X} times the critical density of the universe;
+       \item \mono{`X * mean density'}: halos are defined as having mean densities equal to ;\mono{X} times the mean density of the universe;
+       \item \mono{`X * critical density'}: halos are defined as having mean densities equal to ;\mono{X} times the critical density of the universe;
       \end{itemize}
       Lastly, the file must have two attributes used to identify and level the dataset:
       \begin{itemize}
-       \item {\normalfont \ttfamily label}: a space-free label that will be appended to the analysis group in the output, e.g. {\normalfont \ttfamily Leauthaud2012};
-       \item {\normalfont \ttfamily reference}: a reference for the dataset suitable for inclusion in figures, e.g. {\normalfont \ttfamily Leauthaud et al. (2012)}.
+       \item \mono{label}: a space-free label that will be appended to the analysis group in the output, e.g. \mono{Leauthaud2012};
+       \item \mono{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \mono{Leauthaud et al. (2012)}.
       \end{itemize}
     </description>
   </outputAnalysis>
@@ -161,7 +158,7 @@ contains
 	      \begin{itemize}
 	      \item \emph{not present}: all bins are included in the likelihood calculation;
 	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item {\normalfont \ttfamily auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
+	      \item \mono{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	      \end{itemize}
 	    </description>
 	  </inputParameter>
@@ -241,6 +238,7 @@ contains
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10                       , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList      , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence                        , outputAnalysisPropertyOperatorSystmtcPolynomial, 
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -303,13 +301,14 @@ contains
          &                                                                                              groupCosmology
     character       (len=4                                          )                                :: redshiftMinimumLabel                                         , redshiftMaximumLabel
     type(enumerationFixedDensityTypeType) :: densityType
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="fileNameTarget, redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    call fileTarget%openFile(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
     ! Find the requested redshift interval.
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     if (.not.fileTarget%hasGroup(char(groupRedshiftName))) call Error_Report(var_str('redshift interval ')//redshiftInterval//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -322,21 +321,17 @@ contains
     call groupRedshift%readDataset  ('massBlackHoleError'       ,massBlackHoleErrorTarget       )
     call groupRedshift%readDataset  ('massBlackHoleScatter'     ,massBlackHoleScatterTarget     )
     call groupRedshift%readDataset  ('massBlackHoleScatterError',massBlackHoleScatterErrorTarget)
-    call groupRedshift%close        (                                                           )
     ! Get the cosmological parameters used in analyzing the target data.
     groupCosmology=fileTarget%openGroup('cosmology')
     call groupCosmology%readAttribute('OmegaMatter'    ,OmegaMatterTarget    )
     call groupCosmology%readAttribute('OmegaDarkEnergy',OmegaDarkEnergyTarget)
     call groupCosmology%readAttribute('OmegaBaryon'    ,OmegaBaryonTarget    )
     call groupCosmology%readAttribute('HubbleConstant' ,HubbleConstantTarget )
-    call groupCosmology%close()
     ! Get the halo mass definition.
     call fileTarget%readAttribute('haloMassDefinition',haloMassDefinition)
     ! Get the analysis label and target dataset reference.
     call fileTarget%readAttribute('label'    ,labelTarget    )
     call fileTarget%readAttribute('reference',referenceTarget)
-    ! Close the target data file.
-    call fileTarget%close()
     !$ call hdf5Access%unset()
     ! Construct survey geometry. A fully-sky geometry is used here as only the redshift range is important.
     write (redshiftMinimumLabel,'(f4.2)') redshiftMinimum
@@ -545,6 +540,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                                                              &
+          &                                                                                   xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'              )                                              , &
+          &                                                                                   yAxisLabel      =var_str('$\sigma_{\log_{10}(M_\bullet/\mathrm{M}_\odot)}$')                                              , &
+          &                                                                                   xAxisIsLog      =.true.                                                                                                    , &
+          &                                                                                   yAxisIsLog      =.false.                                                                                                   , &
+          &                                                                                   targetLabel     =referenceTarget                                                                                           , &
+          &                                                                                   valueTarget     =massBlackHoleScatterTarget                                                                                , &
+          &                                                                                   covarianceTarget=massBlackHoleScatterCovarianceTarget                                                                        &
+          &                                                                                  )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -554,11 +558,15 @@ contains
           &amp;                                                  var_str('massHalo'                                      )                                                                 , &amp;
           &amp;                                                  var_str('Halo mass'                                     )                                                                 , &amp;
           &amp;                                                  var_str('M☉'                                            )                                                                 , &amp;
+          &amp;                                                  var_str('solMass'                                       )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                   , &amp;
           &amp;                                                  massSolar                                                                                                                 , &amp;
           &amp;                                                  weightPropertyLabel                                                                                                       , &amp;
           &amp;                                                  weightPropertyDescription                                                                                                 , &amp;
           &amp;                                                  var_str(' '                                             )                                                                 , &amp;
-          &amp;                                                  0.0d0                                                                                                                     , &amp;
+          &amp;                                                  var_str(' '                                             )                                                                 , &amp;
+          &amp;                                                  .false.                                                                                                                   , &amp;
+          &amp;                                                  1.0d0                                                                                                                     , &amp;
           &amp;                                                  massHaloLogarithmic                                                                                                       , &amp;
           &amp;                                                  0_c_size_t                                                                                                                , &amp;
           &amp;                                                  outputWeight                                                                                                              , &amp;
@@ -573,18 +581,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                              , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                      , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                       , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'              )                                                               , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(M_\bullet/\mathrm{M}_\odot)}$')                                                               , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                    , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                   , &amp;
-          &amp;                          targetLabel            =referenceTarget                                                                                                           , &amp;
-          &amp;                          scatterValueTarget     =massBlackHoleScatterTarget                                                                                                , &amp;
-          &amp;                          scatterCovarianceTarget=massBlackHoleScatterCovarianceTarget                                                                                        &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                                              &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                     &
+          &                                                       xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'     ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(M_\bullet/\mathrm{M}_\odot)$'), &
+          &                                                       xAxisIsLog      =.true.                                            , &
+          &                                                       yAxisIsLog      =.false.                                           , &
+          &                                                       targetLabel     =referenceTarget                                   , &
+          &                                                       valueTarget     =massBlackHoleLogarithmicTarget                    , &
+          &                                                       covarianceTarget=massBlackHoleLogarithmicCovarianceTarget            &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -594,11 +605,15 @@ contains
           &amp;                                               var_str('massHalo'                               )                                                                 , &amp;
           &amp;                                               var_str('Halo mass'                              )                                                                 , &amp;
           &amp;                                               var_str('M☉'                                     )                                                                 , &amp;
+          &amp;                                               var_str('solMass'                                )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                            , &amp;
           &amp;                                               massSolar                                                                                                          , &amp;
           &amp;                                               weightPropertyLabel                                                                                                , &amp;
           &amp;                                               weightPropertyDescription                                                                                          , &amp;
           &amp;                                               var_str(' '                                      )                                                                 , &amp;
-          &amp;                                               0.0d0                                                                                                              , &amp;
+          &amp;                                               var_str(' '                                      )                                                                 , &amp;
+          &amp;                                               .false.                                                                                                            , &amp;
+          &amp;                                               1.0d0                                                                                                              , &amp;
           &amp;                                               massHaloLogarithmic                                                                                                , &amp;
           &amp;                                               0_c_size_t                                                                                                         , &amp;
           &amp;                                               outputWeight                                                                                                       , &amp;
@@ -613,13 +628,7 @@ contains
           &amp;                                               outputTimes_                                                                                                       , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                               , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                                , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'     )                                                                 , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(M_\bullet/\mathrm{M}_\odot)$')                                                                 , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                             , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                            , &amp;
-          &amp;                          targetLabel         =referenceTarget                                                                                                    , &amp;
-          &amp;                          meanValueTarget     =massBlackHoleLogarithmicTarget                                                                                     , &amp;
-          &amp;                          meanCovarianceTarget=massBlackHoleLogarithmicCovarianceTarget                                                                             &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                            &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
@@ -725,7 +734,7 @@ contains
 
   subroutine blackHoleVsHaloMassRelationReduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily blackHoleVsHaloMassRelation} output analysis class.
+    Implement reduction for the \mono{blackHoleVsHaloMassRelation} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -743,7 +752,7 @@ contains
 
   subroutine blackHoleVsHaloMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily blackHoleVsHaloMassRelation} output analysis finalization.
+    Implement a \mono{blackHoleVsHaloMassRelation} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -765,18 +774,14 @@ contains
        inGroup    => subGroup
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
-    call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup %close         (                                    )
-    call    analysesGroup%close         (                                    )
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     !$ call hdf5Access%unset()
     return
   end subroutine blackHoleVsHaloMassRelationFinalize
 
   double precision function blackHoleVsHaloMassRelationLogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily blackHoleVsHaloMassRelation} output analysis.
+    Return the log-likelihood of a \mono{blackHoleVsHaloMassRelation} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

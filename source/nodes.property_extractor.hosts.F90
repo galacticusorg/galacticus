@@ -43,7 +43,7 @@ Implements a host index output analysis property extractor class.
 
   interface nodePropertyExtractorIndicesHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function indicesHostConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function indicesHostConstructorInternal(topLevel) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self
@@ -92,7 +92,7 @@ contains
 
   function indicesHostExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily indicesHost} node property extractor.
+    Implement a \mono{indicesHost} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesHostExtract
@@ -143,4 +143,3 @@ contains
     indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
     return
   end function indicesHostDescription
-

@@ -72,7 +72,7 @@ contains
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the black hole.</description>
+      <description>The mass (in $\mathrm{M}_\odot$) of the black hole, which is treated as a point mass whose gravitational potential is $-\mathrm{G}M/r$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -134,6 +134,7 @@ contains
        self%mass         =mass
        self%dimensionless=.false.
     else
+       self%mass         =0.0d0
        call Error_Report('either specify a mass, or declare the distribution to be dimensionless'//{introspection:location})
     end if
     ! Compute the gravitational radius for the black hole.
@@ -161,7 +162,7 @@ contains
 
   double precision function blackHoleDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class(massDistributionBlackHole), intent(inout) :: self
@@ -191,7 +192,7 @@ contains
 
   double precision function blackHoleMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a black hole.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a black hole.
     !!}
     implicit none
     class           (massDistributionBlackHole), intent(inout), target :: self
@@ -272,7 +273,7 @@ contains
 
   double precision function blackHolePotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} for a point mass.
+    Return the potential at the specified \mono{coordinates} for a point mass.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

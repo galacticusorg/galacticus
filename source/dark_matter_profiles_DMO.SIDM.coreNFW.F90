@@ -35,12 +35,12 @@
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMCoreNFW
      !!{
      A dark matter halo profile class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based
-     on the model of Jiang et al. (2022). The profile is defined by the enclosed mass, with (Jiang et al. 2022):
+     on the model of \cite{jiang_semi-analytic_2023}. The profile is defined by the enclosed mass, with \citep{jiang_semi-analytic_2023}:
      \begin{equation}
        M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
      \end{equation}
      where $r_\mathrm{c} = \alpha r_1$ is a characteristic core size related to the interaction radius $r_1$ by a constant factor
-     $\alpha = ${\normalfont \ttfamily [factorRadiusCore]}.
+     $\alpha = $\mono{[factorRadiusCore]}.
      !!}
      private
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
@@ -78,7 +78,7 @@ contains
     <inputParameter>
       <name>factorRadiusCore</name>
       <defaultValue>0.45d0</defaultValue>
-      <defaultSource>Jiang et al. (2022)</defaultSource>
+      <defaultSource>\citep{jiang_semi-analytic_2023}</defaultSource>
       <source>parameters</source>
       <description>The factor $\alpha$ appearing in the definition of the core radius, $r_\mathrm{c}=\alpha r_1$ where $r_1$ is the radius at which an SIDM particle has had, on average, 1 interaction.</description>
     </inputParameter>
@@ -96,7 +96,7 @@ contains
 
   function sidmCoreNFWConstructorInternal(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -150,7 +150,7 @@ contains
 
   function sidmCoreNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass

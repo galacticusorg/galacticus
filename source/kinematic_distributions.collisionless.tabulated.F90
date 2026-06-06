@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionCollisionlessTabulated">
-   <description>A kinematic distribution class for collisionless mass distributions using tabulated solutions.</description>
+   <description>A kinematic distribution base class for collisionless mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation and caching the results in tabulated form. Numerical convergence is governed by \mono{[toleranceRelativeVelocityDispersion]} and \mono{[toleranceRelativeVelocityDispersionMaximum]}.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionCollisionlessTabulated
@@ -119,7 +119,7 @@ contains
 
   double precision function collisionlessTabulatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a tabulated collisionless kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in a tabulated collisionless kinematic distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none

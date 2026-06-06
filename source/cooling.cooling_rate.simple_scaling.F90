@@ -35,9 +35,7 @@
     \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
     M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
     \end{equation}
-    $\tau_\mathrm{cool,0}=${\normalfont \ttfamily [timescale]}, $\beta_\mathrm{cool}=${\normalfont \ttfamily
-    [exponentRedshift]}, $M_\mathrm{transition}=${\normalfont \ttfamily [massCutOff]}, and $\gamma_\mathrm{cool}=${\normalfont
-    \ttfamily [exponentCutOff]}.
+    $\tau_\mathrm{cool,0}=$\mono{[timescale]}, $\beta_\mathrm{cool}=$\mono{[exponentRedshift]}, $M_\mathrm{transition}=$\mono{[massCutOff]}, and $\gamma_\mathrm{cool}=$\mono{[exponentCutOff]}.
    </description>
   </coolingRate>
   !!]
@@ -188,7 +186,7 @@ contains
 
   double precision function simpleScalingRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none

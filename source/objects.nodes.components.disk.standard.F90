@@ -55,7 +55,7 @@ module Node_Component_Disk_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the standard disk."/>
     </property>
     <property>
       <name>massStellarFormed</name>
@@ -74,35 +74,35 @@ module Node_Component_Disk_Standard
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard disk."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard disk."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard disk."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of the standard disk."/>
     </property>
     <property>
       <name>radius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaparsec" comment="Radial scale length in the standard disk."/>
+      <output unitsInSI="megaparsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard disk."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -116,14 +116,14 @@ module Node_Component_Disk_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity of the standard disk at scale length."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the standard disk at scale length."/>
     </property>
     <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of disk stars."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -183,9 +183,7 @@ module Node_Component_Disk_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Disk_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Disk_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Initialize(parameters)
     !!{
@@ -254,9 +252,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Disk_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Disk_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters)
     !!{
@@ -345,7 +341,7 @@ contains
        !![
        <inputParameter>
          <name>ratioAngularMomentumSolverRadius</name>
-         <defaultSource>($I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
+         <defaultSource>(Assuming a flat rotation curve this ratio is $I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead. For a fully self-gravitating, razor-thin exponential disk a ratio of $0.6679$ would be found instead.)</defaultSource>
          <defaultValue>ratioAngularMomentumSolverRadiusDefault</defaultValue>
          <description>The assumed ratio of the specific angular momentum at the structure solver radius to the mean specific angular momentum of the standard disk component.</description>
          <source>subParameters</source>
@@ -365,9 +361,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Disk_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Disk_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Thread_Uninitialize()
     !!{
@@ -396,9 +390,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_Disk_Standard_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_Disk_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Disk_Standard_Pre_Evolve(node)
     !!{
@@ -451,9 +443,7 @@ contains
   end subroutine postEvolve
 
   !![
-  <postStepTask>
-    <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Disk_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
     !!{
@@ -715,13 +705,11 @@ contains
   end subroutine Node_Component_Disk_Standard_Create
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Disk_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Disk_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                      , operator(*)            , &
           &                                       unitAbundances
@@ -811,13 +799,11 @@ contains
   end subroutine Node_Component_Disk_Standard_Scale_Set
 
   !![
-  <inactiveSetTask>
-   <unitName>Node_Component_Disk_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_Disk_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Disk_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
     implicit none
@@ -836,7 +822,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any standard disk associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -862,11 +848,10 @@ contains
     disk => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-       spheroid => node%spheroid()
+       spheroid => node    %spheroid  (                 )
        ! Find the node to merge with.
-       nodeHost     => node%mergesWith  (                 )
-       diskHost     => nodeHost%disk    (autoCreate=.true.)
-       spheroidHost => nodeHost%spheroid(autoCreate=.true.)
+       nodeHost => node    %mergesWith(                 )
+       diskHost => nodeHost%disk      (autoCreate=.true.)
        ! Get specific angular momentum of the disk material.
        if (                                               disk%massGas()+disk%massStellar() > 0.0d0) then
           specificAngularMomentum=disk%angularMomentum()/(disk%massGas()+disk%massStellar())
@@ -875,6 +860,12 @@ contains
        end if
        ! Get mass movement descriptors.
        call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       ! Get the host spheroid component if needed (creating it if needed).
+       if     (                                                              &
+            &   destinationGasSatellite  %ID == destinationMergerSpheroid%ID &
+            &  .or.                                                          &
+            &   destinationStarsSatellite%ID == destinationMergerSpheroid%ID &
+            & ) spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk%ID)
@@ -978,10 +969,7 @@ contains
   end subroutine satelliteMerger
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>
-   <after>Node_Component_Basic_Standard_Plausibility</after>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Disk_Standard_Radius_Solver_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !!{
@@ -1094,9 +1082,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Velocity_Set
 
   !![
-  <radiusSolverTask>
-   <unitName>Node_Component_Disk_Standard_Radius_Solver</unitName>
-  </radiusSolverTask>
+  <radiusSolverTask function="Node_Component_Disk_Standard_Radius_Solver"/>
   !!]
   subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
@@ -1201,9 +1187,7 @@ contains
   end subroutine mergerTreeExtraOutput
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Disk_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Disk_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1226,9 +1210,7 @@ contains
   end subroutine Node_Component_Disk_Standard_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Disk_Standard_State_Retrieve</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Disk_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

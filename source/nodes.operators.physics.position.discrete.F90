@@ -23,9 +23,7 @@
   
   !![
   <nodeOperator name="nodeOperatorPositionDiscrete">
-   <description>
-    A node operator class that interpolates positions of nodes in discrete steps.
-   </description>
+   <description>Updates node positions in discrete steps at the end of each differential evolution timestep, rather than via continuous interpolation, providing a simplified positional evolution scheme for nodes in the merger tree.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionDiscrete

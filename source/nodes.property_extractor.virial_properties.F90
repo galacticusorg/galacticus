@@ -24,9 +24,9 @@
    <description>
     A node property extractor which extracts the following quantities related to the virialized region of each node:
     \begin{description}
-     \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
+     \item [\mono{nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
      specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
-     \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+     \item [\mono{nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
     \end{description}
    </description>
   </nodePropertyExtractor>
@@ -44,11 +44,12 @@
      procedure :: names        => virialPropertiesNames
      procedure :: descriptions => virialPropertiesDescriptions
      procedure :: unitsInSI    => virialPropertiesUnitsInSI
+     procedure :: units       => virialPropertiesUnits
   end type nodePropertyExtractorVirialProperties
 
   interface nodePropertyExtractorVirialProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorVirialProperties} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -79,7 +80,7 @@ contains
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self
@@ -106,7 +107,7 @@ contains
 
   integer function virialPropertiesElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily virialProperties} property extractors.
+    Return the number of elements in the \mono{virialProperties} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
@@ -140,7 +141,7 @@ contains
 
   subroutine virialPropertiesNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily virialProperties} properties.
+    Return the names of the \mono{virialProperties} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
@@ -157,7 +158,7 @@ contains
 
   subroutine virialPropertiesDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
+    Return the descriptions of the \mono{virialProperties} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
@@ -174,7 +175,7 @@ contains
 
   function virialPropertiesUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily virialProperties} properties in the SI system.
+    Return the units of the \mono{virialProperties} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -193,3 +194,22 @@ contains
     return
   end function virialPropertiesUnitsInSI
 
+  function virialPropertiesUnits(self,time) result(units)
+    !!{
+    Return the units of the virialProperties properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorVirialProperties), intent(inout)             :: self
+    double precision                                       , intent(in   )             :: time
+    double precision                                       , dimension(:), allocatable :: siValues
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(3))
+    units(1)=unitType(siValues(1),description='Mpc' ,quantity='Mpc' )
+    units(2)=unitType(siValues(2),description='km/s',quantity='km/s')
+    units(3)=unitType(siValues(3),description='K'   ,quantity='K'   )
+    return
+  end function virialPropertiesUnits

@@ -26,7 +26,7 @@ Implements an N-body data operator which determines the potential energy of each
   
   !![
   <nbodyOperator name="nbodyOperatorPotentialEnergy">
-   <description>An N-body data operator which determines the potential energy of each particle.</description>
+   <description>An N-body data operator which computes the gravitational potential energy of each particle in an N-body halo using a tree-based algorithm. Parameters control whether only self-bound particles contribute, the tree opening-angle criterion, particle sampling rate, and bootstrap resample count.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPotentialEnergy
@@ -88,7 +88,7 @@ contains
       <name>thetaTolerance</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The criterion for the opening angle.</description>
+      <description>The Barnes-Hut opening-angle tolerance $\theta$; cells subtending an angle smaller than $\theta$ at a particle are treated as point masses, trading accuracy for speed.</description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

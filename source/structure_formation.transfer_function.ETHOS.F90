@@ -28,8 +28,7 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, u
   !![
   <transferFunction name="transferFunctionETHOSDM">
     <description>
-      Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
-      \cite[][eqn.~3]{bohr_halo_2021}.
+      Implements the ETHOS effective theory of structure formation \citep{cyr-racine_ethoseffective_2016} transfer function for dark acoustic oscillations, using the specific parametric form given by \cite[][eqn.~3]{bohr_halo_2021}. The shape and amplitude of the dark acoustic oscillation feature are controlled by the parameters $\alpha$, $\beta$, $\gamma$, $\sigma$, $\tau$, $k_\mathrm{peak}$, and $h_\mathrm{peak}$.
     </description>
   </transferFunction>
   !!]

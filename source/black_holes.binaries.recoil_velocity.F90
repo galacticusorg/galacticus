@@ -35,9 +35,11 @@ module Black_Hole_Binary_Recoil_Velocities
   <functionClass>
    <name>blackHoleBinaryRecoil</name>
    <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
-   <description>
-    Class providing models of black hole binary recoil.
-   </description>
+   <description>Class providing models of the gravitational wave recoil velocity (in km s$^{-1}$) imparted
+    to the remnant black hole when two black holes of given masses and spins merge. Asymmetric gravitational
+    wave emission during coalescence gives the merged black hole a ``kick'' that can eject it from the
+    nucleus or even from its host galaxy. The recoil velocity depends sensitively on the mass ratio and
+    the spin magnitudes and orientations of the merging black holes.</description>
    <default>zero</default>
    <method name="velocity" >
     <description>Computes the recoil velocity of the given pair of merging black holes.</description>

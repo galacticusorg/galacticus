@@ -27,7 +27,7 @@
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
    <description>
     The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
-    specified within the {\normalfont \ttfamily likelihood} element using:
+    specified within the \mono{likelihood} element using:
     \begin{verbatim}
       &lt;mean>0.45 0.50&lt;/mean>
       &lt;covariance>
@@ -35,8 +35,8 @@
         &lt;row>-0.9e-4 1.0e-4&lt;/row>
       &lt;/covariance>
     \end{verbatim}
-    where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance}
-    element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the
+    where the \mono{mean} element gives the mean vector of $N$ elements, and the \mono{covariance}
+    element contains $N$ \mono{row} elements each containing a vector of $N$ elements giving a single row of the
     covariance matrix. The likelihood is then:
     \begin{equation}
     \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
@@ -61,7 +61,7 @@
 
   interface posteriorSampleLikelihoodMultivariateNormal
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -104,7 +104,7 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} convergence class.
+    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none

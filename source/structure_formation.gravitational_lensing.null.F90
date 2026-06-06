@@ -23,7 +23,7 @@ Implements a null gravitational lensing distribution.
 
   !![
   <gravitationalLensing name="gravitationalLensingNull">
-   <description>Implements a null gravitational lensing distribution.</description>
+   <description>A gravitational lensing class that returns a delta-function magnification distribution peaked at $\mu=1$ (i.e., no lensing), used as a null model to disable lensing corrections in luminosity or flux calculations.</description>
   </gravitationalLensing>
   !!]
   type, extends(gravitationalLensingClass) :: gravitationalLensingNull
@@ -75,8 +75,7 @@ contains
 
   double precision function nullMagnificationCDF(self,magnification,redshift,scaleSource)
     !!{
-    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont
-    \ttfamily redshift} for a null lensing case.
+    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} for a null lensing case.
     !!}
     implicit none
     class           (gravitationalLensingNull), intent(inout) :: self

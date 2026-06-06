@@ -24,7 +24,7 @@
 
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
-   <description>An N-body dark matter halo mass error class which uses a fit appropriate for friends-of-friends group finders.</description>
+   <description>An N-body dark matter halo mass error class that models the statistical mass errors in halos identified by friends-of-friends group finding algorithms, using a fitting function calibrated against simulations. The simulation particle mass required for the error model is set by the \mono{[massParticle]} parameter.</description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorFriendsOfFriends
@@ -40,19 +40,19 @@
      !!{
      Constructors for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
      !!}
-     module procedure nbodyHaloMassErrorFriendsOfFriendsParameters
-     module procedure nbodyHaloMassErrorFriendsOfFriendsInternal
+     module procedure friendsOfFriendsConstructorParameters
+     module procedure friendsOfFriendsConstructorInternal
   end interface nbodyHaloMassErrorFriendsOfFriends
 
 contains
 
-  function nbodyHaloMassErrorFriendsOfFriendsParameters(parameters)
+  function friendsOfFriendsConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsParameters
+    type            (nbodyHaloMassErrorFriendsOfFriends)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: massParticle
 
@@ -65,19 +65,19 @@ contains
       <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
     </inputParameter>
     !!]
-    nbodyHaloMassErrorFriendsOfFriendsParameters=nbodyHaloMassErrorFriendsOfFriends(massParticle)
+    self=nbodyHaloMassErrorFriendsOfFriends(massParticle)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function nbodyHaloMassErrorFriendsOfFriendsParameters
+  end function friendsOfFriendsConstructorParameters
 
-  function nbodyHaloMassErrorFriendsOfFriendsInternal(massParticle)
+  function friendsOfFriendsConstructorInternal(massParticle) result(self)
     !!{
     Internal constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
     !!}
     implicit none
-    type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsInternal
+    type            (nbodyHaloMassErrorFriendsOfFriends)                :: self
     double precision                                    , intent(in   ) :: massParticle
     double precision                                    , parameter     :: exponent         =-0.5d00
     double precision                                    , parameter     :: normalization    =+1.25d00
@@ -88,8 +88,8 @@ contains
     
     ! Convert from a model defined in terms of particle number (in which the fractional error is 1.2/sqrt(N)) to one defined in
     ! terms of halo mass as used in our parent class.
-    nbodyHaloMassErrorFriendsOfFriendsInternal%normalizationSquared          =(normalization*(massReference/massParticle)**exponent)**2
-    nbodyHaloMassErrorFriendsOfFriendsInternal%exponent                      =exponent
-    nbodyHaloMassErrorFriendsOfFriendsInternal%fractionalErrorHighMassSquared=errorHighMass                                         **2
+    self%normalizationSquared          =(normalization*(massReference/massParticle)**exponent)**2
+    self%exponent                      =exponent
+    self%fractionalErrorHighMassSquared=errorHighMass                                         **2
     return
-  end function nbodyHaloMassErrorFriendsOfFriendsInternal
+  end function friendsOfFriendsConstructorInternal

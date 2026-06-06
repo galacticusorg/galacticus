@@ -86,7 +86,7 @@ contains
       <name>scaleFactorVelocity</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A scale factor to be applied to inflow velocities.</description>
+      <description>A dimensionless multiplicative scale factor applied to the inflow velocities computed from the \cite{shi_outer_2016} splashback and accretion flow model, allowing calibration of the infall velocity amplitude relative to the theoretical prediction.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     <objectBuilder class="criticalOverdensity"                name="criticalOverdensity_"                source="parameters"/>
@@ -112,7 +112,7 @@ contains
 
   function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine accretionFlowShi2016Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter profile class.
+    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowShi2016), intent(inout) :: self
@@ -151,7 +151,7 @@ contains
 
   function accretionFlowShi2016Get(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass

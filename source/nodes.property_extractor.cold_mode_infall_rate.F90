@@ -25,7 +25,7 @@ Implements a cold mode infall rate property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
-   <description>A cold mode infall rate property extractor class.</description>
+   <description>Extracts the infall rate of cold-mode gas accreting onto a galaxy, capturing the filamentary cold-stream accretion channel that bypasses virial shock heating and directly feeds star formation. Particularly relevant for high-redshift galaxies in massive halos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateInfallColdMode
@@ -40,11 +40,12 @@ Implements a cold mode infall rate property extractor class.
      procedure :: name        => rateInfallColdModeName
      procedure :: description => rateInfallColdModeDescription
      procedure :: unitsInSI   => rateInfallColdModeUnitsInSI
+     procedure :: units       => rateInfallColdModeUnits
   end type nodePropertyExtractorRateInfallColdMode
 
   interface nodePropertyExtractorRateInfallColdMode
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
      !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal
@@ -102,7 +103,7 @@ contains
 
   double precision function rateInfallColdModeExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily rateInfallColdMode} property extractor.
+    Implement a \mono{rateInfallColdMode} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -117,7 +118,7 @@ contains
 
   function rateInfallColdModeName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily rateInfallColdMode} property.
+    Return the name of the \mono{rateInfallColdMode} property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeName
@@ -130,7 +131,7 @@ contains
 
   function rateInfallColdModeDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily rateInfallColdMode} property.
+    Return a description of the \mono{rateInfallColdMode} property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeDescription
@@ -143,7 +144,7 @@ contains
 
   double precision function rateInfallColdModeUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily rateInfallColdMode} property in the SI system.
+    Return the units of the \mono{rateInfallColdMode} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
@@ -154,4 +155,15 @@ contains
     return
   end function rateInfallColdModeUnitsInSI
 
+  function rateInfallColdModeUnits(self) result(units)
+    !!{
+    Return the units of the rateInfallColdMode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
 
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function rateInfallColdModeUnits

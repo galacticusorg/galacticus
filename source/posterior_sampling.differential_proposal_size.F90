@@ -39,7 +39,7 @@ module Posterior_Sample_Differential_Proposal_Size
     for use in differential evolution simulations.
    </description>
    <method name="gamma" >
-    <description>Sample from the jump distribution.</description>
+    <description>Return the proposal size parameter $\gamma$ given the current simulation state and convergence status, scaling the vector difference between two randomly selected chain states to form the differential evolution proposal.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(posteriorSampleStateClass      ), intent(inout) :: simulationState</argument>

@@ -37,8 +37,8 @@
     selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
     surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
     disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
-    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=${\normalfont \ttfamily [beta]} scales the rate of
-    mass loss, and $R_\mathrm{maximum}=${\normalfont \ttfamily [rateFractionalMaximum]} controls the maximum allowed rate of mass
+    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=$\mono{[beta]} scales the rate of
+    mass loss, and $R_\mathrm{maximum}=$\mono{[rateFractionalMaximum]} controls the maximum allowed rate of mass
     loss.
    </description>
   </ramPressureStripping>
@@ -57,7 +57,7 @@
 
   interface ramPressureStrippingSimpleCylindrical
      !!{
-     Constructors for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of .
+     Constructors for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
      !!}
      module procedure simpleCylindricalConstructorParameters
      module procedure simpleCylindricalConstructorInternal
@@ -67,8 +67,7 @@ contains
 
   function simpleCylindricalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{ramPressureStrippingSimpleCylindrical} timescale for star formation feedback in disks class which takes a
-    parameter set as input.
+    Constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +101,7 @@ contains
 
   function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{
-    Internal constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
+    Internal constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
@@ -117,7 +116,7 @@ contains
 
   subroutine simpleCylindricalDestructor(self)
     !!{
-    Destructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping class.
+    Destructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleCylindrical), intent(inout) :: self

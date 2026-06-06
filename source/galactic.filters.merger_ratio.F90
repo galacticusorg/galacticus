@@ -23,7 +23,7 @@ Implements an interval pass filter on halo merger ratio.
 
   !![
   <galacticFilter name="galacticFilterMergerRatio">
-   <description>An interval pass filter on halo merger ratio.</description>
+   <description>An interval pass filter that selects halos whose merger mass ratio falls within the range [\mono{[ratioLow]}, \mono{[ratioHigh]}]. The merger ratio quantifies the relative mass of merging progenitors, enabling selection of major or minor merger events within a specified mass-ratio interval.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterMergerRatio

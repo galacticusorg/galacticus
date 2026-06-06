@@ -28,7 +28,7 @@ Implements a sequence output analysis distribution operator class.
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
-   <description>A sequence output analysis distribution operator class.</description>
+   <description>An output analysis distribution operator class that applies a linked list of child \refClass{outputAnalysisDistributionOperatorClass} objects sequentially, enabling composite transformations such as convolution with a measurement error kernel followed by a survey selection function.</description>
    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
   </outputAnalysisDistributionOperator>
   !!]
@@ -52,7 +52,7 @@ Implements a sequence output analysis distribution operator class.
 
   interface outputAnalysisDistributionOperatorSequence
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis distribution operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal

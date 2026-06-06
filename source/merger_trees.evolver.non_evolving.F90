@@ -26,7 +26,7 @@
   
   !![
   <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
-   <description>A non-evolving merger tree evolver.</description>
+   <description>A merger tree evolver which initializes the tree without performing any time evolution of galaxy properties, useful for computing purely structural or initial-condition quantities from merger trees. Optionally prunes the tree to the target evolution time after initialization, controlled by the \mono{[pruneTree]} parameter.</description>
   </mergerTreeEvolver>
   !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverNonEvolving

@@ -24,9 +24,7 @@
   !![
   <mergerTreeMassResolution name="mergerTreeMassResolutionScaled">
    <description>
-    A merger tree mass resolution class which computes the mass resolution to be min({\normalfont \ttfamily
-    [massResolutionMaximum]},max({\normalfont \ttfamily [massResolutionMinimum]},{\normalfont \ttfamily
-    [massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
+    A merger tree mass resolution class which computes the mass resolution to be min(\mono{[massResolutionMaximum]},max(\mono{[massResolutionMinimum]},\mono{[massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
    </description>
   </mergerTreeMassResolution>
   !!]
@@ -43,7 +41,7 @@
 
   interface mergerTreeMassResolutionScaled
      !!{
-     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal

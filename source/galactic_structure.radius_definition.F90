@@ -35,9 +35,8 @@ module Galactic_Structure_Radii_Definitions
    <name>radiusType</name>
    <description>Used to specify radii types used in output specifiers.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
-
+   <visibility>public</visibility>
    <entry label="radius"                           description="Radii are specified absolutely, in units of Mpc"                                            />
    <entry label="virialRadius"                     description="Radii are specified in units of the virial radius"                                          />
    <entry label="hotHaloOuterRadius"               description="Radii are specified in units of the outer radius of the hot halo"                           />
@@ -60,8 +59,8 @@ module Galactic_Structure_Radii_Definitions
    <name>direction</name>
    <description>Used to specify the type of velocity dispersion in output specifiers.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="radial"                     description="The radial velocity dispersion is computed"                                                                  />
    <entry label="lineOfSight"                description="The line-of-sight velocity dispersion (mass- or light-weighted) is computed"                                 />
    <entry label="lineOfSightInteriorAverage" description="The line-of-sight velocity dispersion, averaged over all interior radii (mass- or light-weighted)"           />
@@ -111,6 +110,7 @@ contains
     type     (varying_string  )              , dimension(2)              :: weightingDefinition
     type     (varying_string  )                                          :: valueDefinition     , message
     character(len=20          )                                          :: fractionLabel       , radiusLabel
+    character(len=27          )                                          :: extract_
     integer                                                              :: i                   , radiiCount         , &
          &                                                                  countComponents     , status
 
@@ -135,11 +135,17 @@ contains
           call reportSpecifierError(specifiers(i)%name,message)
        end if
        call String_Split_Words(radiusDefinition,char(descriptors(i)),':',bracketing="{}")
+       ! Default weights.
+       specifiers(i)%weightBy             =weightByMass
+       specifiers(i)%weightByIndex        =weightIndexNull
+       specifiers(i)%integralWeightBy     =weightByMass
+       specifiers(i)%integralWeightByIndex=weightIndexNull
        ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction.
-       if (extract(radiusDefinition(1),1,22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
-       if (extract(radiusDefinition(1),1,21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
-       if (extract(radiusDefinition(1),1,27) == 'satelliteBoundMassFraction{') call extractFraction(specifiers(i)%name,radiusDefinition(1),27,fractionDefinition)
-       if (extract(radiusDefinition(1),1,20) == 'stellarMassFraction{'       ) call extractFraction(specifiers(i)%name,radiusDefinition(1),20,fractionDefinition)
+       extract_=extract(radiusDefinition(1),1,27)
+       if (extract_(1:22) == 'galacticLightFraction{'     ) call extractFraction(specifiers(i)%name,radiusDefinition(1),22,fractionDefinition)
+       if (extract_(1:21) == 'galacticMassFraction{'      ) call extractFraction(specifiers(i)%name,radiusDefinition(1),21,fractionDefinition)
+       if (extract_(1:27) == 'satelliteBoundMassFraction{') call extractFraction(specifiers(i)%name,radiusDefinition(1),27,fractionDefinition)
+       if (extract_(1:20) == 'stellarMassFraction{'       ) call extractFraction(specifiers(i)%name,radiusDefinition(1),20,fractionDefinition)
        ! Parse the radius definition.
        select case (char(radiusDefinition(1)))
        case ('radius'                          )
@@ -311,10 +317,11 @@ contains
        ! Detect cases which specify the weighting for integrals over the velocity dispersion.
        if (countComponents == 5) then
           valueDefinition=radiusDefinition(4)
-          if     (                                                &
-               &   extract(valueDefinition,1,11) == 'lineOfSight' &
-               &  .or.                                            &
-               &   extract(valueDefinition,1, 7) == 'lambdaR'     &
+          extract_       =extract(valueDefinition,1,11)
+          if     (                                 &
+               &   extract_(1:11) == 'lineOfSight' &
+               &  .or.                             &
+               &   extract_(1: 7) == 'lambdaR'     &
                & ) then
              call String_Split_Words(weightingDefinition,char(valueDefinition),'{}')
              radiusDefinition(4)=weightingDefinition(1)

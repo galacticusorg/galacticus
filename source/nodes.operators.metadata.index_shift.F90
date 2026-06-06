@@ -23,7 +23,7 @@ Implements a node operator class that shifts node indices at node promotion.
 
   !![
   <nodeOperator name="nodeOperatorIndexShift">
-   <description>A node operator class that shifts node indices at node promotion.</description>
+   <description>Updates node index metadata when a node is promoted (i.e., when a satellite becomes a new isolated halo), shifting stored index values to reflect the node's new position in the evolving merger tree structure.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexShift

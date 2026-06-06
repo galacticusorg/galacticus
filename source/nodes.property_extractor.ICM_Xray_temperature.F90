@@ -27,7 +27,7 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMXRayTemperature">
-   <description>An intracluster medium X-ray luminosity-weighted temperature property extractor class.</description>
+   <description>Extracts the X-ray luminosity-weighted temperature of the intracluster medium, computed as the emission-weighted mean temperature integrated over the hot halo out to the virial radius. This quantity directly corresponds to the spectroscopic temperature observable in X-ray spectroscopy of galaxy clusters.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayTemperature
@@ -44,11 +44,12 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
      procedure :: name        => icmXRayTemperatureName
      procedure :: description => icmXRayTemperatureDescription
      procedure :: unitsInSI   => icmXRayTemperatureUnitsInSI
+     procedure :: units       => iCMXRayTemperatureUnits
   end type nodePropertyExtractorICMXRayTemperature
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal
@@ -251,7 +252,7 @@ contains
 
   function icmXRayTemperatureName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily icmXRayTemperature} properties.
+    Return the names of the \mono{icmXRayTemperature} properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureName
@@ -264,7 +265,7 @@ contains
 
   function icmXRayTemperatureDescription(self)
     !!{
-    Return descriptions of the {\normalfont \ttfamily icmXRayTemperature} properties.
+    Return descriptions of the \mono{icmXRayTemperature} properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureDescription
@@ -277,7 +278,7 @@ contains
 
   double precision function icmXRayTemperatureUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmXRayTemperature} properties in the SI system.
+    Return the units of the \mono{icmXRayTemperature} properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -289,3 +290,16 @@ contains
     return
   end function icmXRayTemperatureUnitsInSI
 
+  function iCMXRayTemperatureUnits(self) result(units)
+    !!{
+    Return the units of the iCMXRayTemperature property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='keV',quantity='keV')
+    return
+  end function iCMXRayTemperatureUnits

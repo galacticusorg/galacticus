@@ -21,9 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole radii and radial migration rates.
-   </description>
+   <description>Extracts a list of radial positions and radial migration rates for all supermassive black holes in each node, enabling analysis of black hole orbital evolution within their host galaxies.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiusBlackHoles
@@ -38,11 +36,12 @@
      procedure :: names        => radiusBlackHolesNames
      procedure :: descriptions => radiusBlackHolesDescriptions
      procedure :: unitsInSI    => radiusBlackHolesUnitsInSI
+     procedure :: units       => radiusBlackHolesUnits
   end type nodePropertyExtractorRadiusBlackHoles
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -72,7 +71,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self
@@ -93,7 +92,7 @@ contains
 
     !![
     <objectDestructor name="self%blackHoleBinarySeparationGrowthRate_"/>
-    !!]                                                                                                                                                                                                               
+    !!]
     return
   end subroutine radiusBlackHolesDestructor
 
@@ -134,7 +133,7 @@ contains
 
   subroutine radiusBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily radiusBlackHoles} properties.
+    Return the names of the \mono{radiusBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -149,7 +148,7 @@ contains
 
   subroutine radiusBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily radiusBlackHoles} properties.
+    Return the descriptions of the \mono{radiusBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -164,7 +163,7 @@ contains
 
   function radiusBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily radiusBlackHoles} properties in the SI system.
+    Return the units of the \mono{radiusBlackHoles} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
     implicit none
@@ -177,3 +176,20 @@ contains
     unitsInSI(2)=megaParsec/gigaYear
     return
   end function radiusBlackHolesUnitsInSI
+
+  function radiusBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the radiusBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorRadiusBlackHoles), intent(inout)              :: self
+    double precision                                       , dimension(:) , allocatable :: siValues
+
+    siValues=self%unitsInSI()
+    allocate(units(2))
+    units(1)=unitType(siValues(1),description='Mpc'    ,quantity='Mpc'    )
+    units(2)=unitType(siValues(2),description='Mpc/Gyr',quantity='Mpc/Gyr')
+    return
+  end function radiusBlackHolesUnits

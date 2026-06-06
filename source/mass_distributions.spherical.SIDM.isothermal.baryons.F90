@@ -122,7 +122,7 @@ contains
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr).</description>
+      <description>The age of the halo (in Gyr) since its formation, setting the time available for SIDM interactions to thermalize the dark matter core while the baryonic potential influences the resulting density profile.</description>
     </inputParameter>
     <inputParameter>
       <name>velocityRelativeMean</name>
@@ -133,7 +133,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -203,7 +203,7 @@ contains
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
     !!{
-    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} class.
+    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
@@ -389,7 +389,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsDensity(self,coordinates) result(density)
     !!{
-    Compute the density at the specified {\normalfont \ttfamily coordinates} for the {\normalfont \ttfamily sphericalSIDMIsothermalBaryons}
+    Compute the density at the specified \mono{coordinates} for the \mono{sphericalSIDMIsothermalBaryons}
     mass distribution.
     !!}
     implicit none
@@ -407,7 +407,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalSIDMIsothermalBaryons), intent(inout) , target   :: self
@@ -431,7 +431,7 @@ contains
   
   double precision function sphericalSIDMIsothermalBaryonsMassEnclosedBySphere(self,radius) result(mass)
     !!{   
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for the {\normalfont \ttfamily sphericalSIDMIsothermalBaryons}
+    Computes the mass enclosed within a sphere of given \mono{radius} for the \mono{sphericalSIDMIsothermalBaryons}
     mass distribution.
     !!}
     implicit none
@@ -460,7 +460,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
+    Return the potential at the specified \mono{coordinates} in an burkert mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess

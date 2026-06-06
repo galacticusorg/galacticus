@@ -28,7 +28,7 @@
       \begin{equation}
       \epsilon(r) = \gamma \frac{\mathrm{G}\Delta M(r)}{r},
       \end{equation}
-      where $\gamma=${\normalfont \ttfamily [gamma]} sets the magnitude of the heating.
+      where $\gamma=$\mono{[gamma]} sets the magnitude of the heating.
     </description>
   </massDistributionHeating>
   !!]
@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingDecayingDarkMatter
      !!{
-     Constructors for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -159,7 +159,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{
-    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} dark matter profile heating class.
+    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self

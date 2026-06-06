@@ -25,7 +25,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorConstrainedStatus">
    <description>
     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-    extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+    extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
     branching rate solution and a value of 0 indicating that it does not.
    </description>
   </nodePropertyExtractor>
@@ -33,7 +33,7 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorConstrainedStatus
      !!{
      A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-     extracted as {\normalfont \ttfamily nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
+     extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
      branching rate solution and a value of 0 indicating that it does not.
      !!}
      private
@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorConstrainedStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function constrainedStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorConstrainedStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function constrainedStatusConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorConstrainedStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConstrainedStatus) :: self
@@ -87,7 +87,7 @@ contains
 
   function constrainedStatusExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily constrainedStatus} node property extractor.
+    Implement a \mono{constrainedStatus} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

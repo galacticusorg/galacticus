@@ -45,7 +45,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily identity} hot halo outflow reincorporation class which takes a parameter
+    Default constructor for the \mono{identity} hot halo outflow reincorporation class which takes a parameter
     set as input.
     !!}
     use :: Input_Parameters, only : inputParameters

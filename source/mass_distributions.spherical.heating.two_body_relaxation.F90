@@ -41,7 +41,7 @@
 
   interface massDistributionHeatingTwoBodyRelaxation
      !!{
-     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -92,7 +92,7 @@ contains
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} dark matter profile heating class.
+    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self
@@ -107,9 +107,9 @@ contains
 
   double precision function twoBodyRelaxationSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
-    Returns the specific energy of heating in the given {\normalfont \ttfamily node}. The assumption here is that the mean
+    Returns the specific energy of heating in the given \mono{node}. The assumption here is that the mean
     fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
-    within radius $r=${\normalfont \ttfamily radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
+    within radius $r=$\mono{radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
     circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
     the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
     specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.

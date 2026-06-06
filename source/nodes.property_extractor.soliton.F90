@@ -23,9 +23,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSoliton">
-   <description>
-    A property extractor class for the properties of the \gls{fdm} soliton.
-   </description>
+   <description>Extracts physical properties of the fuzzy dark matter (\gls{fdm}) soliton core (such as core radius and core mass) associated with each halo node, enabling analysis of quantum pressure effects in FDM models.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSoliton
@@ -40,6 +38,7 @@
      procedure :: names        => solitonNames
      procedure :: descriptions => solitonDescriptions
      procedure :: unitsInSI    => solitonUnitsInSI
+     procedure :: units       => solitonUnits
   end type nodePropertyExtractorSoliton
 
   interface nodePropertyExtractorSoliton
@@ -88,7 +87,7 @@ contains
 
   integer function solitonElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily soliton} property extractors.
+    Return the number of elements in the \mono{soliton} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSoliton), intent(inout) :: self
@@ -101,7 +100,7 @@ contains
 
   function solitonExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily soliton} property extractor.
+    Implement a \mono{soliton} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -141,7 +140,7 @@ contains
 
   subroutine solitonNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily soliton} property.
+    Return the names of the \mono{soliton} property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -161,7 +160,7 @@ contains
 
   subroutine solitonDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily soliton} property.
+    Return the descriptions of the \mono{soliton} property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -181,7 +180,7 @@ contains
 
   function solitonUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily Soliton} property in the SI system.
+    Return the units of the \mono{Soliton} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -201,4 +200,26 @@ contains
          &           ]
     return
   end function solitonUnitsInSI
-  
+
+  function solitonUnits(self,time) result(units)
+    !!{
+    Return the units of the soliton properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                    ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorSoliton), intent(inout)              :: self
+    double precision                              , intent(in   )              :: time
+    double precision                              , dimension(:) , allocatable :: siValues
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(6))
+    units(1)=unitType(siValues(1),description='Solar masses',quantity='solMass'      )
+    units(2)=unitType(siValues(2),description='Solar masses',quantity='solMass'      )
+    units(3)=unitType(siValues(3),description='M☉/Mpc³'     ,quantity='solMass/Mpc^3')
+    units(4)=unitType(siValues(4),description='Mpc'         ,quantity='Mpc'          )
+    units(5)=unitType(siValues(5),description='Mpc'         ,quantity='Mpc'          )
+    units(6)=unitType(siValues(6)                                                    )
+    return
+  end function solitonUnits

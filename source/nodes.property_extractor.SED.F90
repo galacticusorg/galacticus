@@ -40,7 +40,14 @@
      
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSED">
-    <description>A property extractor class for the SED of a component.</description>
+    <description>A property extractor that returns the spectral energy distribution (SED) of a
+    galaxy component (disk, spheroid, or total) at a grid of wavelengths, computed by convolving
+    the star formation history with stellar population spectral templates. Parameters include
+    \mono{component} (the galaxy component), \mono{frame} (\mono{rest} or \mono{observed}),
+    \mono{wavelengthMinimum} and \mono{wavelengthMaximum} (in \AA), \mono{resolution}
+    ($\lambda/\Delta\lambda$; negative for full template resolution), and
+    \mono{toleranceRelative} for the spectral integration. The SED is returned as a 2D array
+    over wavelength and output time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorSED
@@ -87,11 +94,12 @@
      procedure :: luminosityMean          => sedLuminosityMean
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
+     procedure :: units       => sEDUnits
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSED} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSED} property extractor class.
      !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal
@@ -130,7 +138,7 @@ contains
       <name>frame</name>
       <source>parameters</source>
       <defaultValue>var_str('rest')</defaultValue>
-      <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
+      <description>The frame (\mono{rest} or \mono{observed}) for which to compute the SED.</description>
     </inputParameter>
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -165,7 +173,6 @@ contains
     self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
     parametersGroup=parameters%parametersGroup()
     self%parametersGroupPath=parametersGroup%pathTo(includeFileName=.false.)
-    call parametersGroup%close()
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="stellarPopulationSpectra_"             />
@@ -241,7 +248,7 @@ contains
 
   integer function sedElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily sed} property extractors.
+    Return the number of elements in the \mono{sed} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSED), intent(inout) :: self
@@ -254,7 +261,7 @@ contains
 
   function sedSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily sed} property extractors.
+    Return the number of array elements in the \mono{sed} property extractors.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
@@ -331,7 +338,7 @@ contains
 
   function sedExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily sed} property extractor.
+    Implement a \mono{sed} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -387,7 +394,7 @@ contains
 
   subroutine sedNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily sed} properties.
+    Return the names of the \mono{sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -403,7 +410,7 @@ contains
 
   subroutine sedDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily sed} property.
+    Return descriptions of the \mono{sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -469,18 +476,20 @@ contains
     return
   end function sedWavelengths
 
-  subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine sedColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily sed} property.
+    Return column descriptions of the \mono{sed} property.
     !!}
-    use :: Numerical_Constants_Units, only : metersToAngstroms
+    use            :: Numerical_Constants_Units, only : metersToAngstroms
+    use            :: Units_MetaData           , only : unitType
+    use, intrinsic :: ISO_C_Binding            , only : c_int
     implicit none
     class           (nodePropertyExtractorSED), intent(inout)                            :: self
     double precision                          , intent(in   ), optional                  :: time
     type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                          , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string          ), intent(  out)                            :: valuesDescription
-    double precision                          , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                )                                           :: i
     character       (len=18                  )                                           :: label
     
@@ -492,25 +501,42 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/metersToAngstroms
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstrom")
     return
   end subroutine sedColumnDescriptions
 
   function sedUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily sed} properties in the SI system.
+    Return the units of the \mono{sed} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
     double precision                          , allocatable  , dimension(:) :: sedUnitsInSI
     class           (nodePropertyExtractorSED), intent(inout)               :: self
     double precision                          , intent(in   ), optional     :: time
-    !$GLC attributes unused :: time
+    !$GLC attributes unused :: self, time
 
     allocate(sedUnitsInSI(1))
     sedUnitsInSI(1)=luminositySolar
     return
   end function sedUnitsInSI
+
+  function SEDUnits(self,time) result(units)
+    !!{
+    Return the units of the SED properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSED), intent(inout)             :: self
+    double precision                          , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
+    return
+  end function SEDUnits
 
   integer function sedIndexTemplateTime(self,time,countTemplates) result(indexTemplate)
     !!{
@@ -580,10 +606,7 @@ contains
     class           (nodeComponentBasic      ), pointer                     :: basic
     double precision                          , allocatable  , dimension(:) :: times
     type            (hdf5Object              ), allocatable  , dimension(:) :: parametersGroups
-    integer         (c_size_t                )                              :: indexOutput         , i
-    type            (lockDescriptor          )                              :: fileLock
-    type            (hdf5Object              )                              :: file
-    type            (varying_string          )                              :: fileName
+    integer         (c_size_t                )                              :: indexOutput
     character       (len=16                  )                              :: label
 
     if      (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed         ) then
@@ -617,71 +640,71 @@ contains
     ! Ensure that the templates have been built for this index.
     if (.not.allocated(self%templates)) allocate(self%templates(countTemplates))
     if (.not.allocated(self%templates(indexTemplate)%sed)) then
-       ! Construct the file name.
-       fileName=inputPath(pathTypeDataDynamic)                                          // &
-            &        'stellarPopulations/'                                              // &
-            &        self%objectType             (                                     )// &
-            &        '_'                                                                // &
-            &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
-            &        '_'                                                                // &
-            &        indexTemplate                                                      // &
-            &        '.hdf5'
-       ! Store the file name used to the output file parameters group for this object.
-       !$ call hdf5Access%set()
-       if (self%parametersGroupPath /= "") then
-          parametersGroups=outputFile%openGroupPath(char(self%parametersGroupPath))
-          call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:sedMatrixFileName')//indexTemplate))
-          do i=1,size(parametersGroups)
-             call parametersGroups(i)%close()
-          end do
-       end if
-       !$ call hdf5Access%unset()
-       ! Check if the templates can be retrieved from file.
-       !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call Directory_Make(File_Path(fileName))
-       call File_Lock(fileName,fileLock,lockIsShared=.false.)
-       if (File_Exists(fileName)) then
-          !$ call hdf5Access%set()
-          call file%openFile(char(fileName))
-          if (file%hasDataset('sedTemplate')) then
-             if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-                call displayMessage("reading SED tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
-             else
-                !$omp critical(gfortranInternalIO)
-                write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
-                !$omp end critical(gfortranInternalIO)
-                call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
-             end if
-             call file%readDataset('sedTemplate',self%templates(indexTemplate)%sed)
-          end if
-          call file%close()
-          !$ call hdf5Access%unset()
-       end if
-       if (.not.allocated(self%templates(indexTemplate)%sed)) then
-          basic                              => node%basic         (                                                                                    )
-          self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
-          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-             call displayMessage("storing SED tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
-          else
-             !$omp critical(gfortranInternalIO)
-             write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
-             !$omp end critical(gfortranInternalIO)
-             call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
-          end if
-          !$ call hdf5Access%set()
-          call    file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
-          call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
-          call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
-          call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')
-          if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
-             call file%writeDataset(basic%time                 (             )    -times ,'ages'       ,'The ages at which the star formation history is tabulated [Gyr]'        )
-          else
-             call file%writeDataset(      times                                          ,'time'       ,'The times at which the star formation history is tabulated [Gyr]'       )
-          end if
-          call file%close()
-          !$ call hdf5Access%unset()
-       end if
-       call File_Unlock(fileLock)
+       coldPathScope: block
+         type            (lockDescriptor          )                              :: fileLock
+         type            (hdf5Object              )                              :: file
+         type            (varying_string          )                              :: fileName
+         ! Construct the file name.
+         fileName=inputPath(pathTypeDataDynamic)                                          // &
+              &        'stellarPopulations/'                                              // &
+              &        self%objectType             (                                     )// &
+              &        '_'                                                                // &
+              &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
+              &        '_'                                                                // &
+              &        indexTemplate                                                      // &
+              &        '.hdf5'
+         ! Store the file name used to the output file parameters group for this object.
+         !$ call hdf5Access%set()
+         if (self%parametersGroupPath /= "") then
+            call outputFile%openGroupPath(char(self%parametersGroupPath),parametersGroups)
+            call parametersGroups(size(parametersGroups))%writeAttribute(fileName,char(var_str('meta:sedMatrixFileName')//indexTemplate))
+         end if
+         !$ call hdf5Access%unset()
+         ! Check if the templates can be retrieved from file.
+         !! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+         call Directory_Make(File_Path(fileName))
+         call File_Lock(fileName,fileLock,lockIsShared=.false.)
+         if (File_Exists(fileName)) then
+            !$ call hdf5Access%set()
+            file=hdf5Object(char(fileName))
+            if (file%hasDataset('sedTemplate')) then
+               if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+                  call displayMessage("reading SED tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
+               else
+                  !$omp critical(gfortranInternalIO)
+                  write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+                  !$omp end critical(gfortranInternalIO)
+                  call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
+               end if
+               call file%readDataset('sedTemplate',self%templates(indexTemplate)%sed)
+            end if
+            !$ call hdf5Access%unset()
+         end if
+         if (.not.allocated(self%templates(indexTemplate)%sed)) then
+            basic                              => node%basic         (                                                                                    )
+            self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
+            if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+               call displayMessage("storing SED tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
+            else
+               !$omp critical(gfortranInternalIO)
+               write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+               !$omp end critical(gfortranInternalIO)
+               call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
+            end if
+            !$ call hdf5Access%set()
+            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
+            call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
+            call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
+            call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')
+            if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
+               call file%writeDataset(basic%time                 (             )    -times ,'ages'       ,'The ages at which the star formation history is tabulated [Gyr]'        )
+            else
+               call file%writeDataset(      times                                          ,'time'       ,'The times at which the star formation history is tabulated [Gyr]'       )
+            end if
+            !$ call hdf5Access%unset()
+         end if
+         call File_Unlock(fileLock)
+       end block coldPathScope
     end if
     return
   end function sedIndexTemplateNode
@@ -806,8 +829,9 @@ contains
        <deepCopyFinalize variables="stellarPopulationSpectra_ stellarPopulationSpectraPostprocessor_ cosmologyFunctions_"/>
        !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
+       !$omp barrier
     end if
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
           call displayIndent("computing template SEDs"                                        ,verbosityLevelWorking)
@@ -819,7 +843,7 @@ contains
        end if
        call timer_%start()
     end if
-    !$omp end master
+    !$omp end masked
     ! Iterate over (wavelength,time,metallicity).
     !$omp do
     do iterator=0,counterMaximum-1
@@ -884,14 +908,14 @@ contains
        end if
     end do
     !$omp end do
-    !$omp master
+    !$omp masked
     if (parallelize_) then
        call timer_%stop()
        call displayCounterClear(                                                                                          verbosityLevelWorking)
        call displayMessage     ("table is "//trim(adjustl(siFormat(dble(sizeof(sedLuminosityMean)),'f9.3')))//"B in size",verbosityLevelWorking)
        call displayUnindent    ("done in " //trim(adjustl(timer_%reportText()                             ))             ,verbosityLevelWorking)
     end if
-    !$omp end master
+    !$omp end masked
     !![
     <objectDestructor name="stellarPopulationSpectra_"             />
     <objectDestructor name="stellarPopulationSpectraPostprocessor_"/>
@@ -1056,7 +1080,7 @@ contains
     ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
-    call setLiveNodeLists(descriptor%document,.false.)
+    call setLiveNodeLists(descriptor%document%document,.false.)
     call descriptor%addParameter('frame'            ,char(enumerationFrameDecode(self%frame,includePrefix=.false.)))
     !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum

@@ -25,6 +25,16 @@ module Interfaces_Cloudy
   !!{
   Provides various interfaces to the \gls{cloudy} code.
   !!}
+
+  !![
+  <workaround type="gfortran" PR="94463" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94463">
+  <description>Failure of name mangling on module read.</description>
+    !!]
+    use :: ISO_Varying_String
+    !![
+    </workaround>
+    !!]
+
   private
   public :: Interface_Cloudy_Initialize
 
@@ -85,7 +95,7 @@ contains
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//compiler(languageCPlusPlus)//'"/ '//cloudyPath//'/source/Makefile',status)
+          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//stringSubstitute(compiler(languageCPlusPlus),"/","\/")//'"/ '//cloudyPath//'/source/Makefile',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
        end if
        ! Build the code.

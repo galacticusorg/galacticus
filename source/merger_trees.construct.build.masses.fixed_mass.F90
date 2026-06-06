@@ -20,14 +20,14 @@
   !!{
   Implementation of a merger tree masses class which uses a fixed mass for trees.
   !!}
-  use :: Cosmology_Parameters     , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
-  use :: Nodes_Operators          , only : nodeOperatorClass
-  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Nodes_Operators         , only : nodeOperatorClass
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
-   <description>A merger tree masses class which uses a fixed mass for trees.</description>
+   <description>A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with \mono{[masses]}, \mono{[treeCount]}, and, optionally, \mono{[radii]} controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.</description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
@@ -202,23 +202,28 @@ contains
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
-    double precision                                , intent(  out), allocatable, dimension(:) :: mass       , weight     , &
-         &                                                                                        massMinimum, massMaximum
-    type            (rootFinder                    )                                           :: finder
+    double precision                                , intent(  out), allocatable, dimension(:) :: mass                     , weight     , &
+         &                                                                                        massMinimum              , massMaximum
+    type            (rootFinder                    ), save                                     :: finder
+    logical                                         , save                                     :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (mergerTree                    )                                           :: tree
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
-    integer                                                                                    :: indexStart , i
+    integer                                                                                    :: indexStart               , i
     !$GLC attributes unused :: weight
 
-    finder=rootFinder(                                               &
-         &            rootFunction       =massEnclosed             , &
-         &            toleranceAbsolute  =1.0d-6                   , &
-         &            toleranceRelative  =1.0d-6                   , &
-         &            rangeExpandUpward  =2.0d+0                   , &
-         &            rangeExpandDownward=0.5d+0                   , &
-         &            rangeExpandType    =rangeExpandMultiplicative  &
-         &           )
+    if (.not.finderConstructed) then 
+       finder           =rootFinder(                                               &
+            &                       rootFunction       =massEnclosed             , &
+            &                       toleranceAbsolute  =1.0d-6                   , &
+            &                       toleranceRelative  =1.0d-6                   , &
+            &                       rangeExpandUpward  =2.0d+0                   , &
+            &                       rangeExpandDownward=0.5d+0                   , &
+            &                       rangeExpandType    =rangeExpandMultiplicative  &
+            &                      )
+       finderConstructed=.true.
+    end if
     ! Restart the random number sequence.
     tree%index=1
     allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)

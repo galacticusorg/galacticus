@@ -106,19 +106,19 @@ contains
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
     </inputParameter>
     <inputParameter>
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate failures to compute the potential.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusEscape</name>
@@ -283,7 +283,7 @@ contains
 
   double precision function sphericalDecayingDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a scaled spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecaying), intent(inout) :: self
@@ -296,7 +296,7 @@ contains
 
   double precision function sphericalDecayingMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a decaying mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a decaying mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecaying), intent(inout), target :: self

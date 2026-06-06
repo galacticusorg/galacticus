@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolAxionCAMB">
-   <description>A task which builds the AxionCAMB tool.</description>
+   <description>A task which downloads, compiles, and installs the AxionCAMB Boltzmann code---a modification of CAMB that supports ultralight axion dark matter---making it available for computing transfer functions and power spectra in axion cosmologies.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolAxionCAMB

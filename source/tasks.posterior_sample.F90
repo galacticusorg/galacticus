@@ -21,7 +21,7 @@
 
   !![
   <task name="taskPosteriorSample">
-   <description>A task which performs sampling from a posterior distribution.</description>
+   <description>A task which performs Bayesian inference by sampling from the posterior distribution of model parameters given observational constraints. Delegates to a \refClass{posteriorSampleSimulationClass} object that implements the specific sampling algorithm (e.g., MCMC, differential evolution, or particle swarm optimization).</description>
   </task>
   !!]
   type, extends(taskClass) :: taskPosteriorSample

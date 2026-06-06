@@ -23,7 +23,7 @@
   
   !![
   <radiativeTransferSource name="radiativeTransferSourceDistributed">
-   <description>A photon source class for distributed sources.</description>
+   <description>A photon source class for spatially extended radiative transfer sources whose emission is distributed according to a specified mass distribution. Photon packets are launched from positions sampled from the mass distribution, with spectra and a descriptive label provided via the \mono{[radiativeTransferSpectrum]} object and \mono{[label]} parameter.</description>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceDistributed

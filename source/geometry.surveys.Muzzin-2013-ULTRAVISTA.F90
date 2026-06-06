@@ -35,7 +35,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     (i.e. those bright than $13^\mathrm{th}$ and $10.5^\mathrm{th}$ magnitudes in the USNO and 2MASS star lists
     respectively). Finally, we mask regions of one detector for which 75\% of pixels are dead by clipping pixels with weights
     below $0.02$ in the K$_\mathrm{s}$-band weight map. These choices match those made in the ULTRAVISTA survey (A.~Muzzin,
-    private communication). The solid angle of each mask is computed using the \gls{mangle} {\normalfont \ttfamily harmonize}
+    private communication). The solid angle of each mask is computed using the \gls{mangle} \mono{harmonize}
     command.
     
     To determine the depth as a function of stellar mass, we simply fit the
@@ -46,7 +46,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     \exp[(m-11.24)/0.02] }
      \label{eq:MuzzinDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$.
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$.
     
     \begin{figure}
      \begin{center}
@@ -234,7 +234,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        redshift=-6076.22869161192d0+logarithmicMass*(3231.43806947672d0+logarithmicMass*(-686.81594922437d0+logarithmicMass*(72.9147764759627d0+logarithmicMass*(-3.86638121388152d0+logarithmicMass*(0.0819398410572916d0)))))
@@ -308,10 +308,7 @@ contains
     !$GLC attributes unused :: self
 
     allocate(mangleFiles(1))
-    mangleFiles=                  &
-         &      [                 &
-         &       'surveyMask.ply' &
-         &      ]
+    mangleFiles(1)='surveyMask.ply'
     return
   end subroutine muzzin2013ULTRAVISTAMangleFiles
 

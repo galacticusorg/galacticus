@@ -23,7 +23,7 @@
 
   !![
   <modelParameter name="modelParameterInactive">
-   <description>An inactive model parameter class.</description>
+   <description>An inactive model parameter class representing a fixed parameter that does not participate in posterior sampling and has no prior distribution or perturbation applied during inference. The parameter name is set by \mono{[name]}, making it available as a named parameter in the model parameter set without affecting the sampling space.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterInactive
@@ -42,11 +42,12 @@
      procedure :: randomPerturbation => inactiveRandomPerturbation
      procedure :: map                => inactiveMap
      procedure :: unmap              => inactiveUnmap
+     procedure :: mapJacobian        => inactiveMapJacobian
   end type modelParameterInactive
 
   interface modelParameterInactive
      !!{
-     Constructors for the \refClass{modelParameterInactive} 1D distribution function class.
+     Constructors for the \refClass{modelParameterInactive} model parameter class.
      !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal
@@ -67,16 +68,16 @@ contains
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the inactive model parameter as it appears in the \glc\ parameter file; held at a fixed value during posterior sampling without contributing to the sampler's free parameter space.</description>
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>
     !!]
     self=modelParameterInactive(name)
-     !![
-     <inputParametersValidate source="parameters"/>
-     !!]
-   return
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
   end function inactiveConstructorParameters
 
   function inactiveConstructorInternal(name_) result(self)
@@ -221,3 +222,17 @@ contains
     return
   end function inactiveUnmap
 
+  double precision function inactiveMapJacobian(self,x)
+    !!{
+    Compute the Jacobian of the map for this parameter.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (modelParameterInactive), intent(inout) :: self
+    double precision                        , intent(in   ) :: x
+    !$GLC attributes unused :: self, x
+
+    inactiveMapJacobian=0.0d0
+    call Error_Report('parameter is inactive'//{introspection:location})
+    return
+  end function inactiveMapJacobian

@@ -58,7 +58,7 @@ contains
 
   function filterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{mergerTreeConstructorFilter} merger tree operator class which takes a parameter set as input.
+    Constructor for the \refClass{mergerTreeConstructorFilter} merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_,mergerTreeOperator_,nodeOperator_) result(self)
     !!{
-    Internal constructor for the \refClass{mergerTreeConstructorFilter} merger tree operator class.
+    Internal constructor for the \refClass{mergerTreeConstructorFilter} merger tree constructor class.
     !!}
     implicit none
     type (mergerTreeConstructorFilter)                        :: self

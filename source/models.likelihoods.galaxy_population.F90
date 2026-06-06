@@ -26,7 +26,11 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
-   <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
+   <description>
+    A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
+    against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
+    collaborative MPI groups is set by \mono{[countCollaborativeGroups]}, with analysis storage controlled by \mono{[storeResults]}.    
+   </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
@@ -35,15 +39,14 @@
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
-     logical                                         :: randomize                         , outputAnalyses, &
+     logical                                         :: doPing                            , outputAnalyses, &
           &                                             reportEvaluationTimes             , setOutputGroup, &
-          &                                             firstComeFirstServed              , doPing
+          &                                             firstComeFirstServed
      integer                                         :: countCollaborativeGroups
      type   (enumerationVerbosityLevelType)          :: evolveForestsVerbosity
      class  (*                            ), pointer :: task_                    => null()
      class  (outputAnalysisClass          ), pointer :: outputAnalysis_          => null()
    contains
-     final     ::                    galaxyPopulationDestructor
      procedure :: evaluate        => galaxyPopulationEvaluate
      procedure :: functionChanged => galaxyPopulationFunctionChanged
      procedure :: willEvaluate    => galaxyPopulationWillEvaluate
@@ -77,17 +80,17 @@ contains
     type   (varying_string)                                                         :: baseParametersFileName   , failedParametersFileName
     type   (varying_string)                           , allocatable  , dimension(:) :: changeParametersFileNames
     integer                                                                         :: countCollaborativeGroups
-    logical                                                                         :: randomize                , outputAnalyses          , &
+    logical                                                                         :: doPing                   , outputAnalyses          , &
          &                                                                             reportEvaluationTimes    , reportFileName          , &
          &                                                                             reportState              , setOutputGroup          , &
-         &                                                                             firstComeFirstServed     , doPing
+         &                                                                             firstComeFirstServed
     type   (varying_string)                                                         :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer                     :: parametersModel
 
     !![
     <inputParameter>
       <name>baseParametersFileName</name>
-      <description>The base set of parameters to use.</description>
+      <description>The path to the XML parameter file that provides the base configuration for each \glc\ model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -109,12 +112,6 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
-      <name>randomize</name>
-      <description>If true, randomize models (i.e. change the random seed).</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
       <name>countCollaborativeGroups</name>
       <description>The number of groups into which MPI processes should be split for the purpose of model evaluation. Each group will be populated with MPI processes. Processes within a group will collaborate on running a single model evaluation. Setting this parameter to a negative value will result in using the maximum possible number of groups (equal to the number of MPI processes).</description>
       <defaultValue>1</defaultValue>
@@ -130,7 +127,7 @@ contains
       <name>doPing</name>
       <defaultValue>.false.</defaultValue>
       <description>
-        If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
+        If true, the master MPI process will attach to the \mono{calculationReset} event and ping the MPI
         counter. This can help to ensure that the counter updates regularly.
       </description>
       <source>parameters</source>
@@ -143,7 +140,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>reportState</name>
-      <description>If true, report the state being evaluated.</description>
+      <description>If true, log a summary of the model parameter state to standard output at the beginning of each likelihood evaluation.</description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -172,7 +169,7 @@ contains
     end if
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.,changeFiles=changeParametersFileNames)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,enumerationVerbosityLevelEncode(evolveForestsVerbosity,includesPrefix=.false.),failedParametersFileName,changeParametersFileNames)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -180,7 +177,8 @@ contains
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,randomize,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
+
+  function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{
     Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
     !!}
@@ -192,40 +190,40 @@ contains
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                              :: self
     type   (inputParameters                          ), intent(inout), target       :: parametersModel
-    logical                                           , intent(in   )               :: randomize                , outputAnalyses        , &
+    logical                                           , intent(in   )               :: doPing                   , outputAnalyses        , &
          &                                                                             reportEvaluationTimes    , reportFileName        , &
          &                                                                             reportState              , setOutputGroup        , &
-         &                                                                             firstComeFirstServed     , doPing
+         &                                                                             firstComeFirstServed
     integer                                           , intent(in   )               :: countCollaborativeGroups
     type   (enumerationVerbosityLevelType            ), intent(in   )               :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )               :: failedParametersFileName , baseParametersFileName
     type   (varying_string                           ), intent(in   ), dimension(:) :: changeParametersFileNames
+    class  (*                                        ), pointer                     :: dummyPointer_
     !![
-    <constructorAssign variables="*parametersModel, baseParametersFileName, randomize, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
+    <constructorAssign variables="baseParametersFileName, outputAnalyses, setOutputGroup, reportEvaluationTimes, countCollaborativeGroups, firstComeFirstServed, doPing, reportFileName, reportState, evolveForestsVerbosity, failedParametersFileName, changeParametersFileNames"/>
     !!]
 
+    ! Validate.
     if (setOutputGroup.and.countCollaborativeGroups < mpiSelf%count()) call Error_Report('[setOutputGroup]=true and [countCollaborativeGroups] less than the number of MPI processes is not recommended'//char(10)//displayGreen()//'  HELP: '//displayReset()//'[setOutputGroup]=true suggests that you want results of each model evaluation written to its own group, but [countCollaborativeGroups]>1 results in each MPI process evolving a subset of trees from a model evaluation, and writing them to its own output file - this will result in a random mix of trees in each output group - it is recommended that you set [countCollaborativeGroups] equal to the number of MPI processes to avoid this problem'//{introspection:location})
     if      (countCollaborativeGroups < 0) then
        self%countCollaborativeGroups=mpiSelf%count()
     else if (countCollaborativeGroups < 1 .or. countCollaborativeGroups > mpiSelf%count()) then
        call Error_Report(var_str('1 ≤ [countCollaborativeGroups] ≤ ')//mpiSelf%count()//' is required '//{introspection:location})
     end if
+    ! Put the parameters object under resource management.
+    allocate(self%parametersModel)
+    self%parametersModel%parametersModel => parametersModel
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    dummyPointer_               => self%parametersModel
+    self%parametersModelManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function galaxyPopulationConstructorInternal
-
-  subroutine galaxyPopulationDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
-    !!}
-    implicit none
-    type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
-
-    if (associated(self%parametersModel)) then
-       call self%parametersModel%destroy()
-       deallocate(self%parametersModel)
-    end if
-    return
-  end subroutine galaxyPopulationDestructor
 
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !!{
@@ -403,9 +401,9 @@ contains
        ! Update parameter values.
        call self%update(simulationState,modelParametersActive_,modelParametersInactive_,stateVector(:,iRank_),report=isActive)
        ! Build the task and outputter objects.
-       call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
+       call Tasks_Evolve_Forest_Construct_(self%parametersModel%parametersModel,self%task_)
        !![
-       <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>
+       <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel%parametersModel"/>
        !!]
        ! Perform the forest evolution tasks.
        call CPU_Time(timeBegin)
@@ -414,7 +412,7 @@ contains
           ! Forest evolution failed - record impossible likelihood.
           if (isActive) then
              ! Dump the failed parameter set to file.
-             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank_//".errCode"//status)
+             call self%parametersModel%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank_//".errCode"//status)
              ! Return impossible likelihood. We use a somewhat-less-than-impossible value to avoid this being rejected as the
              ! initial state.
              logLikelihoodProposed        =logImprobable
@@ -451,7 +449,7 @@ contains
        !![
        <objectDestructor name="self%outputAnalysis_"/>
        !!]
-       call self%parametersModel%reset()
+       call self%parametersModel%parametersModel%reset()
     end do
     ! If we use multiple collaborative groups, join the MPI communicator here.
     if (self%countCollaborativeGroups > 1) then
@@ -475,7 +473,7 @@ contains
 
     subroutine evaluationCounterPing(self,node,uniqueID)
       !!{
-      Return the number of the next forest to process.
+      Ping the evaluation counter to force it to respond to requests.
       !!}
       use :: Galacticus_Nodes, only : treeNode
       use :: Kind_Numbers    , only : kind_int8
@@ -489,9 +487,9 @@ contains
       !$GLC attributes unused :: self, node, uniqueID
 
 #ifdef USEMPI
-      !$omp master
+      !$omp masked
       if (mpiSelf%isMaster()) evaluationNumber=evaluationCounter%get()
-      !$omp end master
+      !$omp end masked
 #endif
       return
     end subroutine evaluationCounterPing
@@ -546,6 +544,6 @@ contains
     ! Dump the failed parameter set to file.
     fileName=self_%failedParametersFileName//"."//iRank_//"."//enumerationSignalDecode(signal,includePrefix=.false.)
     call displayMessage(displayRed()//displayBold()//"Error condition:"//displayReset()//" `posteriorSampleLikelihoodGalaxyPopulation` parameter state will be written to '"//fileName//"'",verbosityLevelSilent)
-    call self_%parametersModel%serializeToXML(fileName)
+    call self_%parametersModel%parametersModel%serializeToXML(fileName)
     return
   end subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler

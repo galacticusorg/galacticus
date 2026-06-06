@@ -24,7 +24,7 @@
 
   !![
   <task name="taskHaloSpinDistribution">
-   <description>A task which computes and outputs the halo spin distribution.</description>
+   <description>A task which computes and outputs the differential distribution of dark matter halo spin parameters $\mathrm{d}P/\mathrm{d}\lambda$ over a specified range of spin values at each output time, for halos above a specified minimum mass.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloSpinDistribution
@@ -160,7 +160,6 @@ contains
     !!]
 
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     return
   end function haloSpinDistributionConstructorInternal
 
@@ -193,6 +192,7 @@ contains
     use            :: Galacticus_Nodes       , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
     use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
     use            :: IO_HDF5                , only : hdf5Object
+    use            :: HDF5_Access            , only : hdf5Access
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Node_Components        , only : Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize
     use            :: String_Handling        , only : operator(//)
@@ -253,6 +253,7 @@ contains
           end if
        end do
        ! Open the output group.
+       !$ call hdf5Access%set()
        groupName  ='Output'
        description='Data for output number '
        groupName  =groupName  //iOutput
@@ -264,10 +265,8 @@ contains
        call outputGroup%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%outputTimes_%time(iOutput))),'outputRedshift'                                                            )
        call outputGroup%writeDataset  (spin                                                                                                                           ,'spin'                 ,'Spins at which the spin distribution is tabulated.')
        call outputGroup%writeDataset  (spinDistribution                                                                                                               ,'spinDistribution'     ,'Spin parameter distribution.'                      )
-       call outputGroup%close         (                                                                                                                                                                                                            )
+       !$ call hdf5Access%unset()
     end do
-    call outputsGroup%close()
-    if (containerGroup%isOpen()) call containerGroup%close()
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: halo spin distribution' )

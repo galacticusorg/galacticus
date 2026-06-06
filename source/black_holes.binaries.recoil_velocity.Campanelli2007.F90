@@ -75,7 +75,7 @@ contains
 
   function campanelli2007ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleBinaryRecoilCampanelli2007} black hole binary recoiled class which takes a parameter list as
+    Constructor for the \refClass{blackHoleBinaryRecoilCampanelli2007} black hole binary recoil class which takes a parameter list as
     input.
     !!}
     use :: Input_Parameters, only : inputParameters

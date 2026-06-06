@@ -25,7 +25,7 @@ Implements a spin parameter output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpin">
-   <description>A spin parameter output analysis property extractor class.</description>
+   <description>Extracts the dimensionless spin parameter $\lambda$ of a dark matter halo, characterizing its angular momentum content relative to gravitational and kinetic energy, a key parameter linking halo properties to disk galaxy sizes in semi-analytic models.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpin
@@ -40,11 +40,12 @@ Implements a spin parameter output analysis property extractor class.
      procedure :: name        => spinName
      procedure :: description => spinDescription
      procedure :: unitsInSI   => spinUnitsInSI
+     procedure :: units       => spinUnits
   end type nodePropertyExtractorSpin
 
   interface nodePropertyExtractorSpin
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpin} output property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSpin} property extractor class.
      !!}
      module procedure spinConstructorParameters
      module procedure spinConstructorInternal
@@ -54,7 +55,7 @@ contains
 
   function spinConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSpin} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +77,7 @@ contains
 
   function spinConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSpin} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSpin)                        :: self
@@ -90,7 +91,7 @@ contains
 
   subroutine spinDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSpin} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSpin} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpin), intent(inout) :: self
@@ -155,6 +156,20 @@ contains
     class(nodePropertyExtractorSpin), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    spinUnitsInSI=0.0d0
+    spinUnitsInSI=1.0d0
     return
   end function spinUnitsInSI
+
+  function spinUnits(self) result(units)
+    !!{
+    Return the units of the spin property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                 )                :: units
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function spinUnits

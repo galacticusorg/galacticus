@@ -26,7 +26,7 @@
 
   !![
   <modelParameter name="modelParameterActive">
-   <description>An active model parameter class.</description>
+   <description>An active model parameter class representing a free parameter that participates in posterior sampling, with a prior distribution, perturbation distribution, and optional mapping transformation. The parameter name is set by \mono{[name]}, with prior and perturbation distributions provided as objects, and a unary operator applied to transform the parameter value for model evaluation.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterActive
@@ -34,10 +34,16 @@
      Implementation of an active model parameter class.
      !!}
      private
-     class(distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
-     class(operatorUnaryClass         ), pointer :: mapper => null()
-     type (varying_string             )          :: name_
+     class  (distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
+     class  (operatorUnaryClass         ), pointer :: mapper => null()
+     type   (varying_string             )          :: name_
+     logical                                       :: slow
    contains
+     !![
+     <methods>
+       <method method="isSlow" description="Return true if changes in this paper may lead to slow likelihood evaluation."/>
+     </methods>
+     !!]
      final     ::                       activeDestructor
      procedure :: name               => activeName
      procedure :: logPrior           => activeLogPrior
@@ -48,11 +54,13 @@
      procedure :: randomPerturbation => activeRandomPerturbation
      procedure :: map                => activeMap
      procedure :: unmap              => activeUnmap
+     procedure :: mapJacobian        => activeMapJacobian
+     procedure :: isSlow             => activeIsSlow
   end type modelParameterActive
 
   interface modelParameterActive
      !!{
-     Constructors for the \refClass{modelParameterActive} 1D distribution function class.
+     Constructors for the \refClass{modelParameterActive} model parameter class.
      !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal
@@ -66,24 +74,31 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (modelParameterActive       )                :: self
-    type (inputParameters            ), intent(inout) :: parameters
-    class(distributionFunction1DClass), pointer       :: prior     , perturber
-    class(operatorUnaryClass         ), pointer       :: mapper
-    type (varying_string             )                :: name
-
+    type   (modelParameterActive       )                :: self
+    type   (inputParameters            ), intent(inout) :: parameters
+    class  (distributionFunction1DClass), pointer       :: prior     , perturber
+    class  (operatorUnaryClass         ), pointer       :: mapper
+    type   (varying_string             )                :: name
+    logical                                             :: slow
+    
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the active model parameter as it appears in the \glc\ parameter file and output metadata; used to identify and retrieve the parameter during posterior sampling runs.</description>
       <defaultValue>var_str('')</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>slow</name>
+      <description>If true, changes in the parameter are considered to result in slow likelihood evaluations.</description>
+      <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPrior"     name="prior"     source="parameters"/>
     <objectBuilder class="distributionFunction1D" parameterName="distributionFunction1DPerturber" name="perturber" source="parameters"/>
     <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
     !!]
-    self=modelParameterActive(name,prior,perturber,mapper)
+    self=modelParameterActive(name,slow,prior,perturber,mapper)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="prior"    />
@@ -93,17 +108,18 @@ contains
     return
   end function activeConstructorParameters
 
-  function activeConstructorInternal(name_,prior,perturber,mapper) result(self)
+  function activeConstructorInternal(name_,slow,prior,perturber,mapper) result(self)
     !!{
     Internal constructor for the \refClass{modelParameterActive} model parameter class.
     !!}
     implicit none
-    type (modelParameterActive       )                        :: self
-    class(distributionFunction1DClass), intent(in   ), target :: prior , perturber
-    class(operatorUnaryClass         ), intent(in   ), target :: mapper
-    type (varying_string             ), intent(in   )         :: name_
+    type   (modelParameterActive       )                        :: self
+    class  (distributionFunction1DClass), intent(in   ), target :: prior , perturber
+    class  (operatorUnaryClass         ), intent(in   ), target :: mapper
+    type   (varying_string             ), intent(in   )         :: name_
+    logical                             , intent(in   )         :: slow
     !![
-    <constructorAssign variables="name_, *prior, *perturber, *mapper"/>
+    <constructorAssign variables="name_, slow, *prior, *perturber, *mapper"/>
     !!]
 
     return
@@ -233,4 +249,27 @@ contains
     activeUnmap=self%mapper%unoperate(x)
     return
   end function activeUnmap
+
+  double precision function activeMapJacobian(self,x)
+    !!{
+    Compute the Jacobian of the map for this parameter.
+    !!}
+    implicit none
+    class           (modelParameterActive), intent(inout) :: self
+    double precision                      , intent(in   ) :: x
+
+    activeMapJacobian=self%mapper%jacobian(x)
+    return
+  end function activeMapJacobian
+
+  logical function activeIsSlow(self)
+    !!{
+    Return true if changes in this parameter may result in slow likelihood evaluation.
+    !!}
+    implicit none
+    class(modelParameterActive), intent(inout) :: self
+
+    activeIsSlow=self%slow
+    return
+  end function activeIsSlow
 

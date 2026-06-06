@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisConcentrationDistribution">
-   <description>A concentration distribution function output analysis class.</description>
+   <description>Computes the distribution of dark matter halo concentration parameters within a specified mass range and redshift, reading bin configuration from a file and comparing model predictions against target data with a minimum fractional root variance floor.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
@@ -169,7 +169,7 @@ contains
        <inputParameter>
          <name>timeRecent</name>
          <source>parameters</source>
-         <description>Halos which experienced a major node merger within a time $\Delta t=${\normalfont \ttfamily [timeRecent]} of the analysis time will be excluded from the analysis.</description>
+         <description>Halos which experienced a major node merger within a time $\Delta t=$\mono{[timeRecent]} of the analysis time will be excluded from the analysis.</description>
        </inputParameter>
        <inputParameter>
          <name>massParticle</name>
@@ -291,7 +291,7 @@ contains
          &                                                                                      massMaximum                     , massParticle
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile=hdf5Object(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup   %readDataset  ('concentration'                              ,concentration           )
@@ -307,9 +307,6 @@ contains
     call attributesGroup   %readAttribute('redshift'                                   ,redshift                )
     call attributesGroup   %readAttribute('massParticle'                               ,massParticle            )
     call attributesGroup   %readAttribute('timeRecent'                                 ,timeRecent              )
-    call attributesGroup   %close        (                                                                      )
-    call simulationGroup   %close        (                                                                      )
-    call dataFile          %close        (                                                                      )
     !$ call hdf5Access%unset()
     ! Compute a (diagonal) covariance matrix from the counts if necessary.
     if (.not.allocated(functionCovarianceTarget)) then
@@ -343,6 +340,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
           &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRndmErrNbdyCnc
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNbodyMass
@@ -393,6 +391,7 @@ contains
     integer                                                           , parameter                                  :: covarianceBinomialBinsPerDecade         =  2
     double precision                                                  , parameter                                  :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                        )                                             :: iOutput                                             , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="rootVarianceFractionalMinimum, massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, timeRecent, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *nbodyHaloMassError_, *virialDensityContrastDefinition_, *virialDensityContrast_"/>
     !!]
@@ -545,6 +544,15 @@ contains
     ! Determine number of buffer bins.
     bufferCount=0
     ! Construct the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                            &
+         &                                                     xAxisLabel      =var_str('$c$'                           ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log c$'), &
+         &                                                     xAxisIsLog      =.true.                                   , &
+         &                                                     yAxisIsLog      =.false.                                  , &
+         &                                                     targetLabel     =targetLabel                              , &
+         &                                                     valueTarget     =functionValueTarget                      , &
+         &                                                     covarianceTarget=functionCovarianceTarget                   &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=                                                                &
          & outputAnalysisVolumeFunction1D(                                                              &
          &                                var_str('concentrationDistribution')//label                 , &
@@ -552,11 +560,15 @@ contains
          &                                var_str('concentration'                                    ), &
          &                                var_str('Concentration at the bin center'                  ), &
          &                                var_str('dimensionless'                                    ), &
-         &                                0.0d0                                                       , &
+         &                                var_str(' '                                                ), &
+         &                                .false.                                                     , &
+         &                                1.0d0                                                       , &
          &                                var_str('concentrationFunction'                            ), &
          &                                var_str('Concentration distribution averaged over each bin'), &
          &                                var_str('dimensionless'                                    ), &
-         &                                0.0d0                                                       , &
+         &                                var_str(' '                                                ), &
+         &                                .false.                                                     , &
+         &                                1.0d0                                                       , &
          &                                log10(concentrations)                                       , &
          &                                bufferCount                                                 , &
          &                                outputWeight                                                , &
@@ -573,13 +585,7 @@ contains
          &                                covarianceBinomialMassHaloMinimum                           , &
          &                                covarianceBinomialMassHaloMaximum                           , &
          &                                .false.                                                     , &
-         &                                var_str('$c$'                                              ), &
-         &                                var_str('$\mathrm{d}p/\mathrm{d}\log c$'                   ), &
-         &                                .true.                                                      , &
-         &                                .false.                                                     , &
-         &                                targetLabel                                                 , &
-         &                                functionValueTarget                                         , &
-         &                                functionCovarianceTarget                                      &
+         &                                outputAnalysisTargetData_                                     &
          &                               )
     !![
     <objectDestructor name="galacticFilterHaloIsolated_"                    />
@@ -644,14 +650,14 @@ contains
                    if (mask(j)) then
                       jj=jj+1
                       ! Compute total covariance.
-                      functionCovarianceCombined       (ii,jj)=    +self%functionCovarianceTarget     (i,j)       &
-                           &                                       +self%functionCovariance           (i,j)
+                      functionCovarianceCombined       (ii,jj)=    +self%targetData_%covarianceTarget             ( i, j)     &
+                           &                                       +self            %functionCovariance           ( i, j)
                       if (ii == jj) &
-                           & functionCovarianceCombined(ii,jj)=max(                                               &
-                           &                                       +functionCovarianceCombined        (ii,jj)   , &
-                           &                                       +self%functionValueTarget          ( i   )     &
-                           &                                       *self%functionValueTarget          (    j)     &
-                           &                                       *self%rootVarianceFractionalMinimum       **2  &
+                           & functionCovarianceCombined(ii,jj)=max(                                                           &
+                           &                                       +                 functionCovarianceCombined   (ii,jj)   , &
+                           &                                       +self%targetData_%valueTarget                  ( i   )     &
+                           &                                       *self%targetData_%valueTarget                  (    j)     &
+                           &                                       *self            %rootVarianceFractionalMinimum       **2  &
                            &                                      )
                     end if
                 end do

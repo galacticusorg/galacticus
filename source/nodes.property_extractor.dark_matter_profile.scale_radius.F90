@@ -23,7 +23,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius">
-   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+   <description>Extracts the scale radius of the dark matter halo density profile (e.g., the NFW scale radius $r_\mathrm{s}$ where the logarithmic slope equals $-2$), a key structural parameter relating halo mass to its spatial extent and concentration.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -36,11 +36,12 @@ Implements a dark matter profile scale radius output analysis property extractor
      procedure :: name        => darkMatterProfileScaleRadiusName
      procedure :: description => darkMatterProfileScaleRadiusDescription
      procedure :: unitsInSI   => darkMatterProfileScaleRadiusUnitsInSI
+     procedure :: units       => darkMatterProfileScaleRadiusUnits
   end type nodePropertyExtractorDarkMatterProfileScaleRadius
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class.
      !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -49,7 +50,7 @@ contains
 
   function darkMatterProfileScaleRadiusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +66,7 @@ contains
 
   double precision function darkMatterProfileScaleRadiusExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily darkMatterProfileScaleRadius} output analysis.
+    Implement a \mono{darkMatterProfileScaleRadius} output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -83,7 +84,7 @@ contains
 
   function darkMatterProfileScaleRadiusName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    Return the name of the \mono{darkMatterProfileScaleRadius} property.
     !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusName
@@ -96,7 +97,7 @@ contains
 
   function darkMatterProfileScaleRadiusDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property.
+    Return a description of the \mono{darkMatterProfileScaleRadius} property.
     !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusDescription
@@ -109,7 +110,7 @@ contains
 
   double precision function darkMatterProfileScaleRadiusUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily darkMatterProfileScaleRadius} property in the SI system.
+    Return the units of the \mono{darkMatterProfileScaleRadius} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
@@ -119,3 +120,16 @@ contains
     darkMatterProfileScaleRadiusUnitsInSI=megaParsec
     return
   end function darkMatterProfileScaleRadiusUnitsInSI
+
+  function darkMatterProfileScaleRadiusUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileScaleRadius property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                         )                :: units
+    class(nodePropertyExtractorDarkMatterProfileScaleRadius), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function darkMatterProfileScaleRadiusUnits

@@ -36,7 +36,10 @@ module Dark_Matter_Profiles_DMO
    <name>darkMatterProfileDMO</name>
    <descriptiveName>Dark Matter Only Halo Profiles</descriptiveName>
    <description>
-    Class providing dark matter-only halo profiles.
+    Class providing dark matter-only halo density profiles, i.e. the profile a halo would have in the absence of baryonic
+    effects. This returns a \refClass{massDistributionClass} object for the specified node. Common implementations include
+    NFW and Einasto profiles parameterized by a scale radius or concentration. This class is used in calculations of
+    dynamical friction, tidal stripping, and other processes where the unmodified dark matter profile is needed.
    </description>
    <default>NFW</default>
    <method name="get" >
@@ -55,7 +58,10 @@ module Dark_Matter_Profiles_DMO
    <name>darkMatterProfileHeating</name>
    <descriptiveName>Dark Matter Profile Heating</descriptiveName>
    <description>
-    Class providing models of heating of dark matter profiles.
+    Class providing models of heating applied to dark matter-only halo profiles. Heating can modify the density profile
+    of a dark matter halo, for example due to tidal shocks, dynamical heating from baryons, or other perturbative
+    processes. This class returns a \refClass{massDistributionHeatingClass} object encoding the heating distribution
+    for a given node.
    </description>
    <default>null</default>
    <method name="get" >

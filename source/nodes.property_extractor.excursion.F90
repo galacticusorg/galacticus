@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorExcursion">
-   <description>
-     A node property extractor which extracts the (infimum of the) excursion corresponding to the mass accretion history for each node.
-   </description>
+   <description>Extracts the infimum of the excursion (the minimum value of the random walk trajectory above threshold) corresponding to the mass accretion history for each node in the excursion set formalism.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorExcursion
@@ -36,11 +34,12 @@
      procedure :: names        => excursionNames
      procedure :: descriptions => excursionDescriptions
      procedure :: unitsInSI    => excursionUnitsInSI
+     procedure :: units        => excursionUnits
   end type nodePropertyExtractorExcursion
 
   interface nodePropertyExtractorExcursion
      !!{
-     Constructors for the \refClass{nodePropertyExtractorExcursion} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorExcursion} property extractor class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -66,7 +65,7 @@ contains
 
   function excursionConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorExcursion} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorExcursion} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorExcursion) :: self
@@ -115,7 +114,7 @@ contains
   
   subroutine excursionNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily excursion} properties.
+    Return the names of the \mono{excursion} properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -130,7 +129,7 @@ contains
 
   subroutine excursionDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily excursion} properties.
+    Return the descriptions of the \mono{excursion} properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -145,7 +144,7 @@ contains
 
   function excursionUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily excursion} properties in the SI system.
+    Return the units of the \mono{excursion} properties in the SI system.
     !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: unitsInSI
@@ -156,3 +155,21 @@ contains
     unitsInSI=1.0d0
     return
   end function excursionUnitsInSI
+
+  function excursionUnits(self) result(units)
+    !!{
+    Return the units of the excursion properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type   (unitType                      ), dimension(:), allocatable :: units
+    class  (nodePropertyExtractorExcursion), intent(inout)             :: self
+    integer                                                            :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2))
+    do i=1,2
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function excursionUnits

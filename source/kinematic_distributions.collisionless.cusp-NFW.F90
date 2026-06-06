@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionCuspNFW">
-   <description>A kinematic distribution class for the cusp-NFW \citep{delos_cusp-halo_2025} mass distribution.</description>
+   <description>A kinematic distribution class for the cusp-NFW dark matter profile of \citep{delos_cusp-halo_2025}, which describes halos with a central density cusp transitioning to an NFW envelope. The 1D velocity dispersion is computed from tabulated solutions to the isotropic Jeans equation for this two-component density profile.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionlessTabulated) :: kinematicsDistributionCuspNFW
@@ -118,7 +118,7 @@ contains
 
   double precision function cuspNFWKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a cusp-NFW kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in a cusp-NFW kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

@@ -26,7 +26,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMOpticalDepthLymanAlpha">
-    <description>An intracluster medium cooling power in band property extractor class.</description>
+    <description>Extracts the Lyman-$\alpha$ optical depth through the intracluster medium, integrating the line-center cross-section against the neutral hydrogen density profile out to the virial radius. Relevant for assessing Lyman-$\alpha$ photon escape fractions from galaxies embedded in hot gas environments.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMOpticalDepthLymanAlpha
@@ -43,11 +43,12 @@
      procedure :: name        => icmOpticalDepthLymanAlphaName
      procedure :: description => icmOpticalDepthLymanAlphaDescription
      procedure :: unitsInSI   => icmOpticalDepthLymanAlphaUnitsInSI
+     procedure :: units       => iCMOpticalDepthLymanAlphaUnits
   end type nodePropertyExtractorICMOpticalDepthLymanAlpha
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMOpticalDepthLymanAlpha} property extractor class.
      !!}
      module procedure icmOpticalDepthLymanAlphaConstructorParameters
      module procedure icmOpticalDepthLymanAlphaConstructorInternal
@@ -283,7 +284,7 @@ contains
 
   double precision function icmOpticalDepthLymanAlphaUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmOpticalDepthLymanAlpha} properties in the SI system.
+    Return the units of the \mono{icmOpticalDepthLymanAlpha} properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
@@ -293,4 +294,16 @@ contains
     return
   end function icmOpticalDepthLymanAlphaUnitsInSI
 
+  function icmOpticalDepthLymanAlphaUnits(self) result(units)
+    !!{
+    Return the units of the ICMOpticalDepthLymanAlpha property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                      )                :: units
+    class(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(1.0d0)
+    return
+  end function icmOpticalDepthLymanAlphaUnits

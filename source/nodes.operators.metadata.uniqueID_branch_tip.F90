@@ -23,7 +23,7 @@ Implements a node operator class that records the index of the branch tip for ea
 
   !![
   <nodeOperator name="nodeOperatorUniqueIDBranchTip">
-   <description>A node operator class that records the index of the branch tip for each node.</description>
+   <description>Records the unique global ID of the branch tip (earliest progenitor) in each node's metadata, providing a persistent cross-snapshot identifier for each branch origin usable for cross-matching nodes across different tree realizations.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorUniqueIDBranchTip

@@ -31,10 +31,13 @@ module Atomic_Radiation_Gaunt_Factors
   <functionClass>
    <name>gauntFactor</name>
    <descriptiveName>Gaunt Factors</descriptiveName>
-   <description>Class providing Gaunt factors.</description>
+   <description>Class providing thermally averaged Gaunt factors $\bar{g}(T, Z, N_\mathrm{e})$ for free-free (bremsstrahlung)
+    radiation from a plasma of given atomic number and ionization state at temperature $T$. Gaunt factors are quantum
+    mechanical correction factors to the classical free-free emission rate and enter into the computation of
+    bremsstrahlung cooling and thermal emission spectra from hot gas.</description>
    <default>sutherland1998</default>
    <method name="total" >
-    <description>Returns the thermally averaged, total Gaunt factor.</description>
+    <description>Returns the thermally averaged, total Gaunt factor for free-free (bremsstrahlung) emission from a plasma, given the atomic number, electron number, and temperature. This dimensionless quantum-mechanical correction factor modifies the classical free-free emission rate.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>

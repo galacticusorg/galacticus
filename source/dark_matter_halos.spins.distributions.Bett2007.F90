@@ -29,8 +29,7 @@
   <haloSpinDistribution name="haloSpinDistributionBett2007">
    <description>
     A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
-    and $\alpha$ parameter of Bett et al.'s distribution are set by the {\normalfont \ttfamily [lambda0]} and {\normalfont
-    \ttfamily [alpha]} input parameters.
+    and $\alpha$ parameter of \cite{bett_spin_2007}'s distribution are set by the \mono{[lambda0]} and \mono{[alpha]} input parameters.
    </description>
   </haloSpinDistribution>
   !!]
@@ -191,8 +190,7 @@ contains
 
   double precision function bett2007Sample(self,node)
     !!{
-    Sample from a \cite{bett_spin_2007} spin parameter distribution for the given {\normalfont
-    \ttfamily node}.
+    Sample from a \cite{bett_spin_2007} spin parameter distribution for the given \mono{node}.
     !!}
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
@@ -204,7 +202,7 @@ contains
 
   double precision function bett2007Distribution(self,node)
     !!{
-    Compute the spin parameter distribution for the given {\normalfont \ttfamily node} assuming the fitting function of
+    Compute the spin parameter distribution for the given \mono{node} assuming the fitting function of
     \cite{bett_spin_2007}.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale

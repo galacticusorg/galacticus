@@ -27,7 +27,7 @@
 
   !![
   <task name="taskBuildSEDTabulations">
-   <description>A task which pre-builds tabulations needed for SED calculations.</description>
+   <description>A task which pre-builds and caches tabulations of stellar spectral energy distributions (SEDs) by iterating over output times and computing SED properties for a representative galaxy node. This pre-computation avoids redundant calculations during full forest evolution, covering disk, spheroid, and nuclear star cluster components.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildSEDTabulations

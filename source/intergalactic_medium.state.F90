@@ -34,9 +34,12 @@ module Intergalactic_Medium_State
   <functionClass>
    <name>intergalacticMediumState</name>
    <descriptiveName>Intergalactic Medium State</descriptiveName>
-   <description>
-    Class providing the thermal and ionization state of the intergalactic medium.
-   </description>
+   <description>Class providing the thermal and ionization state of the \gls{igm}---the hydrogen and helium
+    neutral, singly-ionized, and doubly-ionized fractions, the electron fraction, the temperature, and the
+    electron-scattering optical depth as functions of cosmic time. These quantities evolve through the epoch
+    of reionization and affect the cooling rates, photo-ionization suppression, and the UV background
+    modelled elsewhere in Galacticus. The instantaneous Jeans mass computed from the IGM temperature governs
+    the filtering mass scale for baryon accretion onto low-mass halos.</description>
    <default>recFast</default>
    <method name="electronFraction" >
     <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
@@ -123,7 +126,7 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringOpticalDepth" >
-    <description>Return the electron scattering optical depth from the present day back to the given {\normalfont \ttfamily time} in the \gls{igm}.</description>
+    <description>Return the electron scattering optical depth from the present day back to the given \mono{time} in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -149,7 +152,7 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringTime" >
-    <description>Return the cosmological time at which the given electron scattering {\normalfont \ttfamily opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
+    <description>Return the cosmological time at which the given electron scattering \mono{opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>

@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
-   <description>A stellar vs halo mass relation output analysis class.</description>
+   <description>Computes the stellar mass--halo mass relation (mean or scatter) for one of three COSMOS redshift intervals from \cite{leauthaud_new_2011}, with optional single-bin likelihood and likelihood normalization, and systematic error polynomial coefficients for both stellar and halo masses.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelationLeauthaud2012
@@ -182,6 +182,7 @@ contains
     use :: Numerical_Ranges                      , only : Make_Range                                 , rangeTypeLinear
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, propertyOperatorList      , outputAnalysisPropertyOperatorLog10, &
           &                                               outputAnalysisPropertyOperatorSequence     , outputAnalysisPropertyOperatorSystmtcPolynomial, 
     use :: Output_Analysis_Utilities             , only : Output_Analysis_Output_Weight_Survey_Volume
@@ -235,10 +236,12 @@ contains
          &                                                                                                   redshiftMaximum                                               , massHaloMinimum                                                   , &
          &                                                                                                   massHaloMaximum
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                                               , &
-         &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
+         &                                                                                                   weightPropertyDescription                                     , groupRedshiftName                                                 , &
+         &                                                                                                   targetDataFileName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="redshiftInterval, likelihoodBins, likelihoodNormalize, computeScatter, systematicErrorPolynomialCoefficient, systematicErrorMassHaloPolynomialCoefficient, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *outputTimes_"/>
     !!]
@@ -295,15 +298,14 @@ contains
     !!]
     ! Read observational data and convert masses to logarithmic.
     !$ call hdf5Access%set()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5",readOnly=.true.)
+    targetDataFileName=inputPath(pathTypeDataStatic)//"observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5"
+    fileData=hdf5Object(targetDataFileName,readOnly=.true.)
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     groupRedshift=fileData%openGroup(char(groupRedshiftName))
     call groupRedshift%readDataset('massStellar' ,massStellarData )
     call groupRedshift%readDataset('massHaloMean',massHaloMeanData)
     call groupRedshift%readDataset('massHaloLow' ,massHaloLowData )
     call groupRedshift%readDataset('massHaloHigh',massHaloHighData)
-    call groupRedshift%close      (                               )
-    call fileData     %close      (                               )
     !$ call hdf5Access%unset()
     ! Create bins in halo mass.
     massHaloMinimum=massHaloMeanData(1                     )
@@ -469,6 +471,15 @@ contains
     ! is appropriate to counting analyses (e.g. mass functions), but not to this type of mean or scatter analysis.
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisScatterFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                            &
+          &                                                       xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'            ), &
+          &                                                       yAxisLabel      =var_str('$\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}$'), &
+          &                                                       xAxisIsLog      =.true.                                                   , &
+          &                                                       yAxisIsLog      =.false.                                                  , &
+          &                                                       targetLabel     =var_str('More et al. (2009)'                            ), &
+          &                                                       valueTarget     =massStellarLogarithmicTarget                             , &
+          &                                                       covarianceTarget=massStellarLogarithmicCovarianceTarget                     &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -478,10 +489,14 @@ contains
           &amp;                                                  var_str('massHalo'                                    )                                                                , &amp;
           &amp;                                                  var_str('Halo mass'                                   )                                                                , &amp;
           &amp;                                                  var_str('M☉'                                          )                                                                , &amp;
+          &amp;                                                  var_str('solMass'                                     )                                                                , &amp;
+          &amp;                                                  .false.                                                                                                                , &amp;
           &amp;                                                  massSolar                                                                                                              , &amp;
           &amp;                                                  weightPropertyLabel                                                                                                    , &amp;
           &amp;                                                  weightPropertyDescription                                                                                              , &amp;
           &amp;                                                  var_str(' '                                           )                                                                , &amp;
+          &amp;                                                  var_str(' '                                           )                                                                , &amp;
+          &amp;                                                  .false.                                                                                                                , &amp;
           &amp;                                                  0.0d0                                                                                                                  , &amp;
           &amp;                                                  massHalo                                                                                                               , &amp;
           &amp;                                                  0_c_size_t                                                                                                             , &amp;
@@ -497,18 +512,21 @@ contains
           &amp;                                                  outputTimes_                                                                                                           , &amp;
           &amp;                                                  outputAnalysisCovarianceModelPoisson                                                                                   , &amp;
           &amp;                          likelihoodNormalize    =likelihoodNormalize                                                                                                    , &amp;
-          &amp;                          xAxisLabel             =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'            )                                                                , &amp;
-          &amp;                          yAxisLabel             =var_str('$\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}$')                                                                , &amp;
-          &amp;                          xAxisIsLog             =.true.                                                                                                                 , &amp;
-          &amp;                          yAxisIsLog             =.false.                                                                                                                , &amp;
-          &amp;                          targetLabel            =var_str('More et al. (2009)'                          )                                                                , &amp;
-          &amp;                          scatterValueTarget     =massStellarLogarithmicTarget                                                                                           , &amp;
-          &amp;                          scatterCovarianceTarget=massStellarLogarithmicCovarianceTarget                                                                                   &amp;
+          &amp;                          targetData_            =outputAnalysisTargetData_                                                                                                &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
        !!]
     type is (outputAnalysisMeanFunction1D   )
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                   &
+          &                                                       xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'   ), &
+          &                                                       yAxisLabel      =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'), &
+          &                                                       xAxisIsLog      =.true.                                          , &
+          &                                                       yAxisIsLog      =.false.                                         , &
+          &                                                       targetLabel     =var_str('Leauthaud et al. (2012)'              ), &
+          &                                                       valueTarget     =massStellarLogarithmicTarget                    , &
+          &                                                       covarianceTarget=massStellarLogarithmicCovarianceTarget            &
+          &                                                      )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
         <constructor>
@@ -518,10 +536,14 @@ contains
           &amp;                                               var_str('massHalo'                             )                                                            , &amp;
           &amp;                                               var_str('Halo mass'                            )                                                            , &amp;
           &amp;                                               var_str('M☉'                                   )                                                            , &amp;
+          &amp;                                               var_str('solMass'                              )                                                            , &amp;
+          &amp;                                               .false.                                                                                                     , &amp;
           &amp;                                               massSolar                                                                                                   , &amp;
           &amp;                                               weightPropertyLabel                                                                                         , &amp;
           &amp;                                               weightPropertyDescription                                                                                   , &amp;
           &amp;                                               var_str(' '                                    )                                                            , &amp;
+          &amp;                                               var_str(' '                                    )                                                            , &amp;
+          &amp;                                               .false.                                                                                                     , &amp;
           &amp;                                               0.0d0                                                                                                       , &amp;
           &amp;                                               massHalo                                                                                                    , &amp;
           &amp;                                               0_c_size_t                                                                                                  , &amp;
@@ -537,13 +559,7 @@ contains
           &amp;                                               outputTimes_                                                                                                , &amp;
           &amp;                                               outputAnalysisCovarianceModelPoisson                                                                        , &amp;
           &amp;                          likelihoodNormalize =likelihoodNormalize                                                                                         , &amp;
-          &amp;                          xAxisLabel          =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'   )                                                            , &amp;
-          &amp;                          yAxisLabel          =var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$')                                                            , &amp;
-          &amp;                          xAxisIsLog          =.true.                                                                                                      , &amp;
-          &amp;                          yAxisIsLog          =.false.                                                                                                     , &amp;
-          &amp;                          targetLabel         =var_str('Leauthaud et al. (2012)'              )                                                            , &amp;
-          &amp;                          meanValueTarget     =massStellarLogarithmicTarget                                                                                , &amp;
-          &amp;                          meanCovarianceTarget=massStellarLogarithmicCovarianceTarget                                                                        &amp;
+          &amp;                          targetData_         =outputAnalysisTargetData_                                                                                     &amp;
           &amp;                         )
         </constructor>
        </referenceConstruct>
@@ -612,7 +628,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Reduce(self,reduced)
     !!{
-    Implement reduction for the {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis class.
+    Implement reduction for the \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -630,7 +646,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Finalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis finalization.
+    Implement a \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -653,17 +669,13 @@ contains
     end if
     analysisGroup=inGroup%openGroup(char(self%analysisLabel))
     call    analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
-    call    analysisGroup%close         (                                    )
-    if (present(groupName)) &
-         & call subGroup %close         (                                    )
-    call    analysesGroup%close         (                                    )
     !$ call hdf5Access%unset()
     return
   end subroutine stellarVsHaloMassRelationLeauthaud2012Finalize
 
   double precision function stellarVsHaloMassRelationLeauthaud2012LogLikelihood(self) result(logLikelihood)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily stellarVsHaloMassRelationLeauthaud2012} output analysis.
+    Return the log-likelihood of a \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

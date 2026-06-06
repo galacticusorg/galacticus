@@ -27,7 +27,7 @@ Implements a merger tree build controller class which limits tree building to a 
 
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerSingleStep">
-   <description>A merger tree build controller class which limits tree building to a single step.</description>
+   <description>A merger tree build controller class which limits the building of a merger tree to a single step, advancing to a specified target redshift set by \mono{[redshift]}. After the step, tree building either halts or continues without further step limitations depending on the \mono{[haltAfterStep]} parameter.</description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerSingleStep

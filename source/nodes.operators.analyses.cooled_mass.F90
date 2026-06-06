@@ -25,9 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorMassCooled">
-    <description>
-      A node operator class that computes the mass of gas which has cooled out of the \gls{cgm}.
-    </description>
+    <description>Tracks the cumulative mass of gas that has cooled out of the circumgalactic medium (\gls{cgm}) over time, integrating the cooling rate to maintain a running total of cooled gas mass for each node.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassCooled

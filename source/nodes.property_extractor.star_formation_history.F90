@@ -27,7 +27,7 @@
                                                       
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistory">
-   <description>An output extractor property extractor class that combines star formation history masses and times.</description>
+   <description>A composite property extractor that combines both the stellar mass formed in each age--metallicity bin and the corresponding time bin boundaries of the star formation history for a specified galaxy \mono{component} (disk, spheroid, nuclearStarCluster, or all). It bundles together the outputs of \refClass{nodePropertyExtractorStarFormationHistoryMass} and \refClass{nodePropertyExtractorStarFormationHistoryTimes} for convenient simultaneous extraction, providing the full information needed to reconstruct the star formation history from output datasets.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorStarFormationHistory
@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorStarFormationHistory
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistory} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class.
      !!}
      module procedure starFormationHistoryConstructorParameters
      module procedure starFormationHistoryConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function starFormationHistoryConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorStarFormationHistory} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -85,7 +85,7 @@ contains
 
   function starFormationHistoryConstructorInternal(component,starFormationHistory_,outputTimes_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistory} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class.
     !!}
     use :: Star_Formation_Histories, only : starFormationHistoryAgesFixedPerOutput
     use :: Error                   , only : Error_Report

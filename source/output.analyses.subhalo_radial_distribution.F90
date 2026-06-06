@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
-   <description>An output analysis class for subhalo mass functions.</description>
+   <description>Computes the radial distribution of subhalos as a function of fractional host-halo radius at a given redshift, with configurable mass threshold (absolute or as virial mass ratio), fractional radius bins, and negative binomial scatter in likelihood calculations.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>
@@ -136,13 +136,13 @@ contains
          <name>massThreshold</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>The minimum satellite bound mass (or mass ratio---see the {\normalfont \ttfamily [thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
+         <description>The minimum satellite bound mass (or mass ratio---see the \mono{[thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
        </inputParameter>
       <inputParameter>
          <name>thresholdIsRatio</name>
          <source>parameters</source>
          <defaultValue>.true.</defaultValue>
-         <description>If true, the {\normalfont \ttfamily [massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
+         <description>If true, the \mono{[massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
        </inputParameter>
        !!]
     end if
@@ -221,7 +221,7 @@ contains
     
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call    file                   %openFile     (fileName                 ,readOnly=.true.                       )
+    file                   =hdf5Object          (fileName,readOnly=.true.)
     call    file                   %readAttribute('label'                  ,         labelTarget                  )
     call    file                   %readAttribute('redshift'               ,         redshift_                    )
     radialDistributionGroup=file                   %openGroup   ('radialDistribution')
@@ -234,8 +234,6 @@ contains
     else
        call radialDistributionGroup%readAttribute('massMinimum'            ,         massThreshold                )
     end if
-    call    radialDistributionGroup%close        (                                                                )
-    call    file                   %close        (                                                                )
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -428,11 +426,15 @@ contains
        &amp;                         var_str('radiusFractional')                                      , &amp;
        &amp;                         var_str('Ratio of subhalo radial position to host virial radius'), &amp;
        &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         .false.                                                          , &amp;
        &amp;                         1.0d0                                                            , &amp;
        &amp;                         var_str('radialDistribution')                                    , &amp;
        &amp;                         var_str('Differential subhalo radial distribution')              , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
-       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         .false.                                                          , &amp;
+       &amp;                         1.0d0                                                            , &amp;
        &amp;                         radiiFractional                                                  , &amp;
        &amp;                         0_c_size_t                                                       , &amp;
        &amp;                         outputWeightSubhalos                                             , &amp;
@@ -456,11 +458,15 @@ contains
        &amp;                         var_str(' ')                                                     , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
-       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         .false.                                                          , &amp;
+       &amp;                         1.0d0                                                            , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
        &amp;                         var_str(' ')                                                     , &amp;
-       &amp;                         0.0d0                                                            , &amp;
+       &amp;                         var_str(' ')                                                     , &amp;
+       &amp;                         .false.                                                          , &amp;
+       &amp;                         1.0d0                                                            , &amp;
        &amp;                         massesHosts                                                      , &amp;
        &amp;                         0_c_size_t                                                       , &amp;
        &amp;                         outputWeightHosts                                                , &amp;
@@ -523,7 +529,7 @@ contains
 
   subroutine subhaloRadialDistributionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    Implement a \mono{subhaloRadialDistribution} output analysis.
     !!}
     implicit none
     class  (outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
@@ -538,7 +544,7 @@ contains
 
   subroutine subhaloRadialDistributionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis reduction.
+    Implement a \mono{subhaloRadialDistribution} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -557,7 +563,7 @@ contains
 
   subroutine subhaloRadialDistributionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis.
+    Finalize analysis of a \mono{subhaloRadialDistribution} output analysis.
     !!}
     implicit none
     class           (outputAnalysisSubhaloRadialDistribution), intent(inout)               :: self
@@ -584,12 +590,13 @@ contains
 
   subroutine subhaloRadialDistributionFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily subhaloRadialDistribution} output analysis finalization.
+    Implement a \mono{subhaloRadialDistribution} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSubhaloRadialDistribution), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName
@@ -617,9 +624,7 @@ contains
     call analysisGroup   %writeAttribute('radialDistribution'                     ,'yDataset'                                                                                                  )
     call analysisGroup   %writeAttribute('radialDistributionCovariance'           ,'yCovariance'                                                                                               )
     call analysisGroup   %writeDataset  (self%radiiFractional                     ,'radiusFractional'                   ,'Fractional radius at the bin center'         ,datasetReturned=dataset)
-    call dataset         %writeAttribute(' '                                      ,'units'                                                                                                     )
-    call dataset         %writeAttribute(1.0d0                                    ,'unitsInSI'                                                                                                 )
-    call dataset         %close         (                                                                                                                                                      )
+    call dataset         %writeAttribute(unitType(1.0d0),'units'                                                                                                     )
     call analysisGroup   %writeDataset  (self%radialDistribution                  ,'radialDistribution'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                          ,'radialDistributionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%radialDistributionTarget)) then
@@ -630,17 +635,13 @@ contains
        call analysisGroup%writeDataset  (self%radialDistributionTarget            ,'radialDistributionTarget'          ,'Subhalo number per bin [observed]'                                    )
        call analysisGroup%writeDataset  (self%radialDistributionCovarianceTarget  ,'radialDistributionCovarianceTarget','Subhalo number per bin [observed; covariance]'                        )
     end if
-    call analysisGroup   %close         (                                                                                                                                                      )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                                      )
-    call analysesGroup   %close         (                                                                                                                                                      )
     !$ call hdf5Access%unset()
     return
   end subroutine subhaloRadialDistributionFinalize
 
   double precision function subhaloRadialDistributionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily subhaloRadialDistribution} output analysis. The likelihood function
+    Return the log-likelihood of a \mono{subhaloRadialDistribution} output analysis. The likelihood function
     assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many

@@ -23,7 +23,7 @@ Implements a filter which passes only halos that have always been isolated.
 
   !![
   <galacticFilter name="galacticFilterHaloAlwaysIsolated">
-   <description>A filter which passes only halos that have always been isolated.</description>
+   <description>Passes only nodes that have never been a satellite throughout their entire merger tree history, selecting halos that have always resided as isolated field halos without ever experiencing a period of satellite status in a larger host halo.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloAlwaysIsolated

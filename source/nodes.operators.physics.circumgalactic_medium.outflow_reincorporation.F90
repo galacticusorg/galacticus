@@ -26,7 +26,10 @@
   !![
   <nodeOperator name="nodeOperatorCGMOutflowReincorporation">
    <description>
-    A node operator class that implements reincorporation of outflowing gas into the \gls{cgm}.
+    A node operator class that reincorporates gas previously ejected by stellar feedback back into the \gls{cgm} hot gas
+    reservoir, using a \refClass{hotHaloOutflowReincorporationClass} to compute the reincorporation rate.
+    \mono{includeSatellites} controls whether satellite halos also have their outflowing gas reincorporated, or whether
+    reincorporation is applied only to central galaxies.
    </description>
   </nodeOperator>
   !!]
@@ -36,7 +39,7 @@
      !!}
      private
      class  (hotHaloOutflowReincorporationClass), pointer :: hotHaloOutflowReincorporation_ => null()
-     logical                                              :: includeSatellites
+     logical                                              :: includeSatellites                       , outflowToColdMode
    contains
      final     ::                          cgmOutflowReincorporationDestructor
      procedure :: autoHook              => cgmOutflowReincorporationAutoHook
@@ -63,7 +66,7 @@ contains
     type   (nodeOperatorCGMOutflowReincorporation)                :: self
     type   (inputParameters                      ), intent(inout) :: parameters
     class  (hotHaloOutflowReincorporationClass   ), pointer       :: hotHaloOutflowReincorporation_
-    logical                                                       :: includeSatellites
+    logical                                                       :: includeSatellites             , outflowToColdMode
 
     !![
     <inputParameter>
@@ -74,9 +77,17 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>outflowToColdMode</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+	If true, outflows are reincorporated into the cold mode component. Otherwise they are reincorporated into the hot mode component.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="hotHaloOutflowReincorporation" name="hotHaloOutflowReincorporation_" source="parameters"/>
     !!]
-    self=nodeOperatorCGMOutflowReincorporation(includeSatellites,hotHaloOutflowReincorporation_)
+    self=nodeOperatorCGMOutflowReincorporation(includeSatellites,outflowToColdMode,hotHaloOutflowReincorporation_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloOutflowReincorporation_"/>
@@ -84,16 +95,16 @@ contains
     return
   end function cgmOutflowReincorporationConstructorParameters
 
-  function cgmOutflowReincorporationConstructorInternal(includeSatellites,hotHaloOutflowReincorporation_) result(self)
+  function cgmOutflowReincorporationConstructorInternal(includeSatellites,outflowToColdMode,hotHaloOutflowReincorporation_) result(self)
     !!{
     Internal constructor for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class.
     !!}
     implicit none
     type   (nodeOperatorCGMOutflowReincorporation)                        :: self
     class  (hotHaloOutflowReincorporationClass   ), intent(in   ), target :: hotHaloOutflowReincorporation_
-    logical                                       , intent(in   )         :: includeSatellites
+    logical                                       , intent(in   )         :: includeSatellites             , outflowToColdMode
     !![
-    <constructorAssign variables="includeSatellites, *hotHaloOutflowReincorporation_"/>
+    <constructorAssign variables="includeSatellites, outflowToColdMode, *hotHaloOutflowReincorporation_"/>
     !!]
 
     return
@@ -186,7 +197,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Remove any hot halo associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Error                        , only : Error_Report
     use :: Abundances_Structure         , only : zeroAbundances
@@ -300,15 +311,21 @@ contains
           rateAngularMomentumReturn=+hotHalo%outflowedAngularMomentum()*(rateMassReturn/massOutflowed)
           rateAbundancesReturn     =+hotHalo%outflowedAbundances     ()*(rateMassReturn/massOutflowed)
           rateChemicalsReturn      =+hotHalo%outflowedChemicals      ()*(rateMassReturn/massOutflowed)
-          call    hotHalo%           outflowedMassRate(-           rateMassReturn)
-          call    hotHalo%                    massRate(+           rateMassReturn)
-          call    hotHalo%outflowedAngularMomentumRate(-rateAngularMomentumReturn)
-          call    hotHalo%         angularMomentumRate( rateAngularMomentumReturn)
-          call    hotHalo%     outflowedAbundancesRate(-     rateAbundancesReturn)
-          call    hotHalo%              abundancesRate(      rateAbundancesReturn)
-          if (hotHalo%outflowedChemicalsIsSettable()) then
-             call hotHalo%      outflowedChemicalsRate(-      rateChemicalsReturn)
-             call hotHalo%               chemicalsRate(       rateChemicalsReturn)
+          call            hotHalo%           outflowedMassRate(-           rateMassReturn)
+          call            hotHalo%outflowedAngularMomentumRate(-rateAngularMomentumReturn)
+          call            hotHalo%     outflowedAbundancesRate(-     rateAbundancesReturn)
+          if (hotHalo%outflowedChemicalsIsSettable()) &
+               & call     hotHalo%      outflowedChemicalsRate(-      rateChemicalsReturn)
+          if (self%outflowToColdMode) then
+             call        hotHalo%                massColdRate(+           rateMassReturn)
+             call        hotHalo%     angularMomentumColdRate( rateAngularMomentumReturn)
+             call        hotHalo%          abundancesColdRate(      rateAbundancesReturn)
+          else
+             call        hotHalo%                    massRate(+           rateMassReturn)
+             call        hotHalo%         angularMomentumRate( rateAngularMomentumReturn)
+             call        hotHalo%              abundancesRate(      rateAbundancesReturn)
+             if (hotHalo%outflowedChemicalsIsSettable()) &
+                  & call hotHalo%               chemicalsRate(       rateChemicalsReturn)
           end if
           ! Trigger an event to allow other processes to respond to this reincorporation.
           !![ 

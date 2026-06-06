@@ -32,7 +32,12 @@ module Output_Times
   <functionClass>
    <name>outputTimes</name>
    <descriptiveName>Output Times</descriptiveName>
-   <description>Class providing output times for \glc.</description>
+   <description>Class providing the set of cosmic times (and corresponding redshifts) at which \glc\ writes
+    output snapshots. Methods return the count of output epochs, the time or redshift at each index, and
+    utilities to find the next or previous output time relative to a given cosmic time. The output time
+    schedule is used throughout the model to determine when to record galaxy properties, to guide the
+    ODE integrator timestep selection, and to compare model predictions with observational data at the
+    correct redshifts.</description>
    <default>list</default>
    <method name="count" >
     <description>Return the number of output times.</description>
@@ -40,33 +45,33 @@ module Output_Times
     <pass>yes</pass>
    </method>
    <method name="time" >
-    <description>Return the output time index by {\normalfont \ttfamily indexOutput}.</description>
+    <description>Return the output time index by \mono{indexOutput}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="redshift" >
-    <description>Return the output redshift index by {\normalfont \ttfamily indexOutput}.</description>
+    <description>Return the output redshift index by \mono{indexOutput}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="index" >
-    <description>Return the index of the output at the given {\normalfont \ttfamily time}. If {\normalfont \ttfamily findClosest} is given and is true then the closest matching output is returned.</description>
+    <description>Return the index of the output at the given \mono{time}. If \mono{findClosest} is given and is true then the closest matching output is returned.</description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time       </argument>
     <argument>logical         , intent(in   ), optional :: findClosest</argument>
    </method>
    <method name="timeNext" >
-    <description>Given a {\normalfont \ttfamily time}, return the time of the next output, and (optionally) the index of that output.</description>
+    <description>Given a \mono{time}, return the time of the next output, and (optionally) the index of that output.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>
     <argument>integer         (c_size_t), intent(  out), optional :: indexOutput</argument>
    </method>
    <method name="timePrevious" >
-    <description>Given a {\normalfont \ttfamily time}, return the time of the previous output, and (optionally) the index of that output.</description>
+    <description>Given a \mono{time}, return the time of the previous output, and (optionally) the index of that output.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>

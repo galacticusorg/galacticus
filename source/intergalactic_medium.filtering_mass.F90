@@ -31,34 +31,39 @@ module Intergalactic_Medium_Filtering_Masses
   <functionClass>
    <name>intergalacticMediumFilteringMass</name>
    <descriptiveName>Intergalactic Medium Filtering Mass</descriptiveName>
-   <description>Class providing intergalactic medium filtering mass.</description>
+   <description>Class providing models of the \gls{igm} filtering mass---the characteristic halo mass scale below
+    which photo-ionization heating of the \gls{igm} suppresses gas accretion. Photo-ionization by the UV
+    background raises the \gls{igm} temperature to $\sim 10^4$~K, increasing the Jeans mass and preventing
+    low-mass halos from accreting their full cosmic baryon fraction. Implementations return the filtering mass
+    $M_\mathrm{F}(t)$ (and its rate of change), and the suppressed baryon fraction $f_\mathrm{b}(M,t)$
+    relative to the cosmic mean, governing star formation in dwarf galaxies.</description>
    <default>gnedin2000</default>
    <method name="massFiltering" >
-    <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
+    <description>Return the filtering mass at the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="massFilteringRateOfChange" >
-    <description>Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.</description>
+    <description>Return the rate of change of the filtering mass at the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="fractionBaryons" >
-    <description>Return the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <description>Return the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
    </method>
    <method name="fractionBaryonsGradientMass" >
-    <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
    </method>
    <method name="fractionBaryonsRateOfChange" >
-    <description>Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+    <description>Return the rate of change of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>

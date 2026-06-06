@@ -23,7 +23,7 @@ Implements an output analysis property operator class which converts luminosity 
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMagnitude">
-   <description>An output analysis property operator class.</description>
+   <description>Converts a luminosity or flux property value into an astronomical magnitude, applying the standard logarithmic magnitude scale transformation for comparison to observed photometric data.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMagnitude
@@ -37,7 +37,7 @@ Implements an output analysis property operator class which converts luminosity 
 
   interface outputAnalysisPropertyOperatorMagnitude
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis property operator class.
      !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude

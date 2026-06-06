@@ -1,7 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Defines a Galacticus model to test mass conservation. -->
+
 <!-- Andrew Benson                                         -->
+
 <!-- 28-April-2016                                         -->
+
 <parameterGrid>
   <emailReport>no</emailReport>
   <doAnalysis>no</doAnalysis>
@@ -15,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+    <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -181,6 +184,7 @@
         <timeStepRelative value="0.01"/>
       </mergerTreeEvolveTimestep>
       <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
+      <mergerTreeEvolveTimestep value="satelliteDestruction" iterable="no"/>
     </mergerTreeEvolveTimestep>
 
     <transferFunction value="eisensteinHu1999">
@@ -192,10 +196,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize">
       <toleranceAbsoluteMass value="1.0e-6"/>
-      <pruneMassGas value="1.0e6"/>
-      <pruneMassStars value="1.0e6"/>
       <scaleAbsoluteMass value="1.0e6"/>
-      <useAnalyticSolver value="true"/>
     </componentDisk>
     <componentHotHalo value="verySimpleDelayed">
       <scaleRelativeMass value="1.0"/>
@@ -235,16 +236,19 @@
       <!-- Satellite evolution -->
       <nodeOperator value="satelliteMergingTime" iterable="no"/>
       <!-- Star formation -->
-      <nodeOperator value="starFormationDisks" iterable="no"/>
-      <nodeOperator value="stellarFeedbackDisks" iterable="no">
-	<stellarFeedbackOutflows value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflows value="vlctyMxSclng">
-	    <fraction value="5.4973312818696149E-002"/>
-	    <exponentRedshift value="1.9464430036515628"/>
-	    <exponentVelocity value="-5.2559103933618596"/>
+      <nodeOperator value="filtered" iterable="no">
+	<galacticFilter value="haloIsolated"/>
+	<nodeOperator value="starFormationDisks"/>
+	<nodeOperator value="stellarFeedbackDisks">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="vlctyMxSclng">
+	      <fraction value="5.4973312818696149E-002"/>
+	      <exponentRedshift value="1.9464430036515628"/>
+	      <exponentVelocity value="-5.2559103933618596"/>
+	    </stellarFeedbackOutflows>
 	  </stellarFeedbackOutflows>
-	</stellarFeedbackOutflows>
+	</nodeOperator>
       </nodeOperator>
       <!-- CGM physics -->
       <nodeOperator value="CGMOuterRadiusVirialRadius" iterable="no"/>
@@ -261,10 +265,16 @@
       <nodeOperator value="CGMOutflowReincorporation" iterable="no">
 	<includeSatellites value="false"/>
       </nodeOperator>
+      <nodeOperator value="diskVerySimpleAnalyticSolver" iterable="no">
+	<pruneMassGas value="1.0e6"/>      
+	<pruneMassStars value="1.0e6"/>
+      </nodeOperator>
     </nodeOperator>
 
     <nodePropertyExtractor value="multi">
       <nodePropertyExtractor value="nodeIndices" iterable="no"/>
+      <nodePropertyExtractor value="treeWeight" iterable="no"/>
+      <nodePropertyExtractor value="indicesTree" iterable="no"/>
       <nodePropertyExtractor value="massBertschinger" iterable="no"/>
     </nodePropertyExtractor>
 

@@ -32,24 +32,29 @@ module Cosmological_Velocity_Field
    <name>cosmologicalVelocityField</name>
    <descriptiveName>Cosmological Velocity Field</descriptiveName>
    <description>
-    A class providing models of the cosmological velocity field.
+    Class providing models of the large-scale cosmological peculiar velocity field---the deviation from
+    pure Hubble flow driven by gravitational collapse of density perturbations. Methods return the mean
+    pairwise radial velocity (in km~s$^{-1}$) between galaxy pairs at a given separation, and the
+    one-dimensional velocity dispersion on a scale corresponding to a given mass. These quantities enter
+    models of redshift-space distortions, pairwise statistics, and galaxy clustering in redshift surveys,
+    and depend on the matter power spectrum, cosmological parameters, and, if applicable, the halo bias.
    </description>
    <default>filteredPower</default>
    <method name="velocityRadialMeanPairwise">
-    <description>Return the mean radial velocity (averaged over all positions; in km/s) at a given {\normalfont \ttfamily separation} (in units of Mpc) and {\normalfont \ttfamily time} (in units of Gyr). If {\normalfont \ttfamily includeHubbleFlow} is {\normalfont \ttfamily true} then the Hubble flow is included, otherwise only the peculiar component of the mean radial velocity is computed.</description>
+    <description>Return the mean radial velocity (averaged over all positions; in km/s) at a given \mono{separation} (in units of Mpc) and \mono{time} (in units of Gyr). If \mono{includeHubbleFlow} is \mono{true} then the Hubble flow is included, otherwise only the peculiar component of the mean radial velocity is computed.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: separation, time</argument>
     <argument>logical         , intent(in   ) :: includeHubbleFlow</argument>
    </method>
    <method name="velocityDispersion1D">
-    <description>Return the 1-D dispersion of the velocity field (in units of km/s) on a scale corresponding to the given {\normalfont \ttfamily mass} (in units of $\mathrm{M}_\odot$) and the given {\normalfont \ttfamily time} (in units of Gyr).</description>
+    <description>Return the 1-D dispersion of the velocity field (in units of km/s) on a scale corresponding to the given \mono{mass} (in units of $\mathrm{M}_\odot$) and the given \mono{time} (in units of Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
    </method>
   <method name="velocityDispersion1DHaloPairwise">
-    <description>Return the 1-D dispersion of the velocity field (in units of km/s) for pairs of halos of the given {\normalfont \ttfamily mass1} and {\normalfont \ttfamily mass2} (in units of $\mathrm{M}_\odot$) at the given {\normalfont \ttfamily separation} (in units of Mpc) and the given {\normalfont \ttfamily time} (in units of Gyr).</description>
+    <description>Return the 1-D dispersion of the velocity field (in units of km/s) for pairs of halos of the given \mono{mass1} and \mono{mass2} (in units of $\mathrm{M}_\odot$) at the given \mono{separation} (in units of Mpc) and the given \mono{time} (in units of Gyr).</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass1, mass2, separation, time</argument>

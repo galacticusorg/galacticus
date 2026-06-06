@@ -31,11 +31,11 @@
     \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
     \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
+    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star
     formation rate in the disk, $\dot{E}_\mathrm{SN}$ is the current energy input rate from supernovae, $E_\mathrm{SN}$ is the
-    total energy input per unit mass from a stellar population after infinite time, $\beta_0=${\normalfont \ttfamily [beta0]},
-    $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
+    total energy input per unit mass from a stellar population after infinite time, $\beta_0=$\mono{[beta0]},
+    $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]}.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -124,7 +124,7 @@ contains
 
   subroutine creasey2013Destructor(self)
     !!{
-    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} feedback in disks class.
+    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsCreasey2013), intent(inout) :: self
@@ -137,14 +137,14 @@ contains
 
   subroutine creasey2013OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
     !!{
-    Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk {\normalfont \ttfamily component} using
+    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the galactic disk \mono{component} using
     the model of \cite{creasey_how_2013}. The outflow rate is given by
     \begin{equation}
     \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
-    fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
-    $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
+    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
+    fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=$\mono{[beta0]},
+    $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk                     , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Galacticus_Nodes          , only : nodeComponentDisk                     , nodeComponentSpheroid
@@ -213,7 +213,7 @@ contains
 
     double precision function outflowRateIntegrand(radius)
       !!{
-      Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
+      Integrand function for the \cite{creasey_how_2013} supernovae feedback calculation.
       !!}
       use :: Coordinates                 , only : coordinateCylindrical, assignment(=)
       use :: Numerical_Constants_Prefixes, only : mega

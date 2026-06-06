@@ -26,11 +26,11 @@
   <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
    <description>
     A node property extractor class which extracts the status of each node with respect to the main branch of its merger
-    tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+    tree. The status will be extracted as \mono{nodeIsOnMainBranch}, with a value of 1 indicating that the
     node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
     is not.
 
-    If {\normalfont \ttfamily [includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
+    If \mono{[includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
     1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
    </description>
   </nodePropertyExtractor>
@@ -38,11 +38,11 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
      !!{
      A node property extractor class which extracts the status of each node with respect to the main branch of its merger
-     tree. The status will be extracted as {\normalfont \ttfamily nodeIsOnMainBranch}, with a value of 1 indicating that the
+     tree. The status will be extracted as \mono{nodeIsOnMainBranch}, with a value of 1 indicating that the
      node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
      is not.
 
-     If {\normalfont \ttfamily [includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
+     If \mono{[includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
      1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
       !!}
      private
@@ -55,7 +55,7 @@
 
   interface nodePropertyExtractorMainBranchStatus
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMainBranchStatus} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
      !!}
      module procedure mainBranchStatusConstructorParameters
      module procedure mainBranchStatusConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function mainBranchStatusConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMainBranchStatus} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function mainBranchStatusConstructorInternal(includeSubhalos) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMainBranchStatus} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMainBranchStatus)                :: self
@@ -107,7 +107,7 @@ contains
 
   function mainBranchStatusExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily mainBranchStatus} node property extractor.
+    Implement a \mono{mainBranchStatus} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                            )                          :: mainBranchStatusExtract

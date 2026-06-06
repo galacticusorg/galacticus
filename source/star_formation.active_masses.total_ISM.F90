@@ -63,8 +63,7 @@ contains
 
   double precision function totalISMMassActive(self,component)
     !!{
-    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
-    component}, assuming that the entire ISM is active.
+    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given \mono{component}, assuming that the entire ISM is active.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC

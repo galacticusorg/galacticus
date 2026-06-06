@@ -23,7 +23,7 @@ Implements an orbital speed output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpeedOrbital">
-   <description>An orbital speed output analysis property extractor class.</description>
+   <description>Extracts the current orbital speed of a satellite node as it moves through its host halo potential, computed from the satellite's velocity vector, for use in orbital energy analyses and comparison with observed satellite velocity distributions.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpeedOrbital
@@ -36,11 +36,12 @@ Implements an orbital speed output analysis property extractor class.
      procedure :: name        => speedOrbitalName
      procedure :: description => speedOrbitalDescription
      procedure :: unitsInSI   => speedOrbitalUnitsInSI
+     procedure :: units       => speedOrbitalUnits
   end type nodePropertyExtractorSpeedOrbital
 
   interface nodePropertyExtractorSpeedOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpeedOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSpeedOrbital} property extractor class.
      !!}
      module procedure speedOrbitalConstructorParameters
   end interface nodePropertyExtractorSpeedOrbital
@@ -49,7 +50,7 @@ contains
 
   function speedOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorSpeedOrbital} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSpeedOrbital} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -134,3 +135,17 @@ contains
     speedOrbitalUnitsInSI=kilo
     return
   end function speedOrbitalUnitsInSI
+
+  function speedOrbitalUnits(self) result(units)
+    !!{
+    Return the units of the speedOrbital property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                         )                :: units
+    class(nodePropertyExtractorSpeedOrbital), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='km/s',quantity='km/s')
+    return
+  end function speedOrbitalUnits

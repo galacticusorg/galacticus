@@ -30,7 +30,7 @@
   !![
   <enumeration>
    <name>sussingBadValueTest</name>
-   <description>Bad value test options.</description>
+   <description>Enumeration of comparison operators used to detect invalid or sentinel halo property values in ``Sussing Merger Trees'' files: \mono{lessThan} flags values below a threshold, \mono{greaterThan} flags values above a threshold.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="lessThan"   />
    <entry label="greaterThan"/>
@@ -41,7 +41,7 @@
   !![
   <enumeration>
    <name>sussingMassOption</name>
-   <description>Halo mass definitions.</description>
+   <description>Enumeration of halo mass definition options for the ``Sussing Merger Trees'' importer, selecting which mass column to use: \mono{default}, \mono{FoF} (friends-of-friends), \mono{200Mean}, \mono{200Crit}, or \mono{topHat}.</description>
    <encodeFunction>yes</encodeFunction>
    <entry label="default"/>
    <entry label="FoF"    />
@@ -53,7 +53,7 @@
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
-   <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
+   <description>Importer for merger tree files in the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}, reading halo properties from N-body simulation snapshots and constructing halo merger histories. Supports spatial subvolume splitting via \mono{[subvolumeCount]} and \mono{[subvolumeIndex]}, with cosmological parameter mismatch handling controlled by \mono{[fatalMismatches]}.</description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
@@ -88,14 +88,13 @@
      !![
      <methods>
        <method description="Load the halo data." method="load" />
-       <method description="Return true if the given {\normalfont \ttfamily x,y,z} position lies within the current subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume" />
-       <method description="Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true." method="inSubvolume1D" />
-       <method description="Return true if the given {\normalfont \ttfamily x} value is bad." method="valueIsBad" />
+       <method description="Return true if the given \mono{x,y,z} position lies within the current subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume" />
+       <method description="Return true if the given \mono{x} position lies within the \mono{iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume1D" />
+       <method description="Return true if the given \mono{x} value is bad." method="valueIsBad" />
      </methods>
      !!]
      final     ::                                  sussingDestructor
      procedure :: load                          => sussingLoad
-     procedure :: close                         => sussingClose
      procedure :: canReadSubsets                => sussingCanReadSubsets
      procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
      procedure :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
@@ -178,7 +177,7 @@ contains
     <inputParameter>
       <name>subvolumeIndex</name>
       <defaultValue>[0,0,0]</defaultValue>
-      <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [subvolumeCount]}$-1$.</description>
+      <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to \mono{[subvolumeCount]}$-1$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -270,17 +269,6 @@ contains
     !!]
     return
   end subroutine sussingDestructor
-
-  subroutine sussingClose(self)
-    !!{
-    Close a {\normalfont \ttfamily sussing} format merger tree file.
-    !!}
-    implicit none
-    class(mergerTreeImporterSussing), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    return
-  end subroutine sussingClose
 
   logical function sussingCanReadSubsets(self)
     !!{
@@ -1105,7 +1093,7 @@ contains
 
   subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
-    Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
+    Stub function for the \mono{load} method of the \mono{sussing} merger tree importer.
     !!}
     use :: Error, only : Error_Report
     implicit none

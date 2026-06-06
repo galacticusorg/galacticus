@@ -29,7 +29,7 @@
 
   !![
   <nodeOperator name="nodeOperatorBlackHolesRadialMigration">
-   <description>A node operator class that implements radial migration of non-central black holes.</description>
+   <description>Evolves the positions of off-center black holes toward the galactic center via dynamical friction, modelling the orbital decay of black holes displaced by galaxy mergers and enabling treatment of off-center and wandering black hole populations.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesRadialMigration

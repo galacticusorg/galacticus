@@ -85,9 +85,9 @@ contains
 
   logical function allNodesBranchNext(self,node)
     !!{
-    This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree branch
-    to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
-    set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will
+    This function will update the given \mono{node} to the next node which should be visited in a tree branch
+    to perform a depth-first walk. Once the entire branch has been walked, a \mono{null()} pointer will be
+    set, and a value of \mono{false} returned indicating that there are no more nodes to walk. Each node will
     be visited once and once only if the branch is walked in this way.
     !!}
     implicit none

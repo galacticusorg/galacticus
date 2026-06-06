@@ -71,7 +71,7 @@
 
   interface darkMatterProfileScaleRadiusLudlow2016
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2016ConstructorParameters
      module procedure ludlow2016ConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function ludlow2016ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
+    Default constructor for the \mono{ludlow2016} dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -154,7 +154,7 @@ contains
 
   function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
@@ -177,7 +177,7 @@ contains
 
   subroutine ludlow2016Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
@@ -195,7 +195,7 @@ contains
 
   double precision function ludlow2016Radius(self,node)
     !!{
-    Return the scale radius of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the scale radius of the dark matter halo profile of \mono{node} using the
     \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -465,7 +465,7 @@ contains
 
   double precision function ludlow2016FormationTimeRoot(timeFormation)
     !!{
-    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2016} concentration algorithm.
+    Function used to find the formation time of a halo in the \mono{ludlow2016} concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode

@@ -27,7 +27,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorProjectedMass">
    <description>
     A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output
-    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -57,11 +57,12 @@
      procedure :: names              => projectedMassNames
      procedure :: descriptions       => projectedMassDescriptions
      procedure :: unitsInSI          => projectedMassUnitsInSI
+     procedure :: units       => projectedMassUnits
   end type nodePropertyExtractorProjectedMass
 
   interface nodePropertyExtractorProjectedMass
      !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedMass} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal
@@ -157,7 +158,7 @@ contains
 
   integer function projectedMassElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily projectedMass} property extractors.
+    Return the number of elements in the \mono{projectedMass} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout) :: self
@@ -170,7 +171,7 @@ contains
 
   function projectedMassSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily projectedMass} property extractors.
+    Return the number of array elements in the \mono{projectedMass} property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: projectedMassSize
@@ -184,7 +185,7 @@ contains
 
   function projectedMassExtract(self,node,time,instance) result(massProjected)
     !!{
-    Implement a {\normalfont \ttfamily projectedMass} property extractor.
+    Implement a \mono{projectedMass} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius           , radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
@@ -343,7 +344,7 @@ contains
 
   subroutine projectedMassNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily projectedMass} properties.
+    Return the names of the \mono{projectedMass} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -360,7 +361,7 @@ contains
 
   subroutine projectedMassDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily projectedMass} property.
+    Return descriptions of the \mono{projectedMass} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -375,31 +376,33 @@ contains
     return
   end subroutine projectedMassDescriptions
 
-  subroutine projectedMassColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine projectedMassColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily projectedMass} property.
+    Return column descriptions of the \mono{projectedMass} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                            :: self
     double precision                                    , intent(in   ), optional                  :: time
     type            (varying_string                    ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                    , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                    ), intent(  out)                            :: valuesDescription
-    double precision                                    , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                          ), intent(  out)                            :: valuesUnits
 
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(0.0d0)
     descriptions     =self%radii%name
     return
   end subroutine projectedMassColumnDescriptions
 
   function projectedMassUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily projectedMass} properties in the SI system.
+    Return the units of the \mono{projectedMass} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -415,3 +418,22 @@ contains
     return
   end function projectedMassUnitsInSI
 
+  function projectedMassUnits(self,time) result(units)
+    !!{
+    Return the units of the projectedMass properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                          ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorProjectedMass), intent(inout)              :: self
+    double precision                                    , intent(in   ), optional    :: time
+    double precision                                    , dimension(:) , allocatable :: siValues
+    integer                                                                          :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Solar masses',quantity='solMass')
+    end do
+    return
+  end function projectedMassUnits

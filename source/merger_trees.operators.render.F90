@@ -28,19 +28,17 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
   <mergerTreeOperator name="mergerTreeOperatorRender">
    <description>
     A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as
-    a 3-D structure to a file named {\normalfont \ttfamily
-    render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle${\normalfont \ttfamily
-    treeIndex}$\rangle$ is the index of the tree and $\langle${\normalfont \ttfamily outputIndex}$\rangle$ is an incremental
+    a 3-D structure to a file named \mono{render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle$\mono{treeIndex}$\rangle$ is the index of the tree and $\langle$\mono{outputIndex}$\rangle$ is an incremental
     counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following
     datasets:
     \begin{description}
-     \item [{\normalfont \ttfamily nodeIndex}] Index of the node;
-     \item [{\normalfont \ttfamily parentIndex}] Index of the parent node;
-     \item [{\normalfont \ttfamily childIndex}] Index of the child node;
-     \item [{\normalfont \ttfamily time}] Time of the node;
-     \item [{\normalfont \ttfamily expansionFactor}] Corresponding expansion factor;
-     \item [{\normalfont \ttfamily radiusVirial}] Virial radius of the node;
-     \item [{\normalfont \ttfamily position}] $(x,y,z)$ position of the node.
+     \item [\mono{nodeIndex}] Index of the node;
+     \item [\mono{parentIndex}] Index of the parent node;
+     \item [\mono{childIndex}] Index of the child node;
+     \item [\mono{time}] Time of the node;
+     \item [\mono{expansionFactor}] Corresponding expansion factor;
+     \item [\mono{radiusVirial}] Virial radius of the node;
+     \item [\mono{position}] $(x,y,z)$ position of the node.
     \end{description}
    </description>
   </mergerTreeOperator>
@@ -126,13 +124,14 @@ contains
   
   subroutine renderOperatePreEvolution(self,tree)
     !!{
-    Output the structure of {\normalfont \ttfamily tree}.
+    Output the structure of \mono{tree}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode
     use :: IO_HDF5                         , only : hdf5Object
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class           (mergerTreeOperatorRender), intent(inout), target         :: self
     type            (mergerTree              ), intent(inout), target         :: tree
@@ -188,22 +187,18 @@ contains
        position_      (:,iNode) =  position                     %position       (            )
     end do
     ! Open an HDF5 file.
-    call fileObject%openFile(fileName,overWrite=.true.,objectsOverwritable=.true.)
+    fileObject=hdf5Object(fileName,overWrite=.true.,objectsOverwritable=.true.)
     ! Write the datasets.
     call fileObject %writeDataset  (nodeIndex      ,"nodeIndex"      ,"Node index []"                                  )
     call fileObject %writeDataset  (parentIndex    ,"parentIndex"    ,"Parent index []"                                )
     call fileObject %writeDataset  (childIndex     ,"childIndex"     ,"Child index []"                                 )
     call fileObject %writeDataset  (expansionFactor,"expansionFactor","Expansion factor []"                            )
     call fileObject %writeDataset  (time           ,"time"           ,"Time [Gyr]"         ,datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(gigaYear       ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
+    call treeDataset%writeAttribute(unitType(gigaYear  ,"Gyr","Gyr"),"units")
     call fileObject %writeDataset  (radiusVirial   ,"radiusVirial"   ,"Virial radius [Mpc]",datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(megaParsec     ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
+    call treeDataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),"units")
     call fileObject %writeDataset  (position_      ,"position"       ,"Position [Mpc]"     ,datasetReturned=treeDataset)
-    call treeDataset%writeAttribute(megaParsec     ,"unitsInSI"                                                        )
-    call treeDataset%close         (                                                                                   )
-    call fileObject %close         (                                                                                   )
+    call treeDataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),"units")
     ! Deallocate temporary arrays.
     deallocate(nodeIndex      )
     deallocate(parentIndex    )

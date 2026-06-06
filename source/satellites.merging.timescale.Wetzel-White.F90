@@ -28,8 +28,7 @@
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
    <description>
-    A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
-    \cite{wetzel_what_2010}.
+    A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of \cite{wetzel_what_2010}. The predicted timescale can be rescaled by the \mono{[timescaleMultiplier]} parameter.
    </description>
   </satelliteMergingTimescales>
   !!]

@@ -23,7 +23,7 @@ Implements a filter which passes only halos below a specified hierarchy depth.
 
   !![
   <galacticFilter name="galacticFilterHierarchyDepthMaximum">
-   <description>A filter which passes only isolated halos.</description>
+   <description>Passes only nodes up to a specified maximum depth in the subhalo hierarchy, filtering out sub-subhalos and higher-order substructure beyond a given level of nesting, useful when analyses should not extend beyond a certain hierarchy depth.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHierarchyDepthMaximum

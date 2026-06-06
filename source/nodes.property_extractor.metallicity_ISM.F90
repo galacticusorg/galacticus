@@ -23,7 +23,12 @@ Implements an ISM metallicity output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
-   <description>An ISM metallicity output analysis property extractor class.</description>
+   <description>A property extractor that returns the gas-phase metallicity of the interstellar medium
+    (ISM), defined as the mass ratio of a specified element to hydrogen, $Z = M_X / M_\mathrm{H}$,
+    summed over disk and spheroid gas components. The \mono{element} parameter specifies the atomic
+    symbol (e.g.\ \mono{Fe}, \mono{O}, \mono{Si}) for the element used to define metallicity. Only
+    elements being actively tracked in the abundances structure are valid choices. Returns zero for
+    nodes with no cold gas.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityISM
@@ -38,11 +43,12 @@ Implements an ISM metallicity output analysis property extractor class.
      procedure :: name        => metallicityISMName
      procedure :: description => metallicityISMDescription
      procedure :: unitsInSI   => metallicityISMUnitsInSI
+     procedure :: units       => metallicityISMUnits
   end type nodePropertyExtractorMetallicityISM
 
   interface nodePropertyExtractorMetallicityISM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
      !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
@@ -52,7 +58,7 @@ contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -81,7 +87,7 @@ contains
 
   function metallicityISMConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -173,6 +179,20 @@ contains
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    metallicityISMUnitsInSI=0.0d0
+    metallicityISMUnitsInSI=1.0d0
     return
   end function metallicityISMUnitsInSI
+
+  function metallicityISMUnits(self) result(units)
+    !!{
+    Return the units of the metallicityISM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                           )                :: units
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function metallicityISMUnits

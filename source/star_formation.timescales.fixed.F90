@@ -24,7 +24,7 @@
   !![
   <starFormationTimescale name="starFormationTimescaleFixed">
    <description>
-    A star formation timescale class which fixed timescale for star formation {\normalfont \ttfamily [timescale]} (in Gyr).
+    A star formation timescale class that returns a constant, user-specified gas consumption timescale regardless of the galactic component properties. This implements the simplest possible star formation model for testing and comparison purposes. The timescale is set by the \mono{[timescale]} parameter in units of Gyr.
    </description>
   </starFormationTimescale>
   !!]
@@ -87,7 +87,7 @@ contains
 
   double precision function fixedTimescale(self,component)
     !!{
-    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component}, assuming a fixed
+    Returns the timescale (in Gyr) for star formation in the given \mono{component}, assuming a fixed
     timescale.
     !!}
     implicit none

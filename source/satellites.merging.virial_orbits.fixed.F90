@@ -30,8 +30,7 @@
   !![
   <virialOrbit name="virialOrbitFixed">
    <description>
-    A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
-    [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
+    A virial orbit class that assigns all satellite infall orbits a single fixed set of orbital parameters, with radial velocity $v_\mathrm{r}=$\mono{[velocityRadial]}$V_\mathrm{virial}$ and tangential velocity $v_\phi=$\mono{[velocityTangential]}$V_\mathrm{virial}$ in units of the host halo virial velocity. Default values match the approximate peak in the distribution of \cite{benson_orbital_2005}.
    </description>
   </virialOrbit>
   !!]
@@ -60,7 +59,7 @@
 
   interface virialOrbitFixed
      !!{
-     Constructors for the \refClass{virialOrbitFixed} virial orbit class.
+     Constructors for the \refClass{virialOrbitFixed} virial orbits class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -70,7 +69,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{virialOrbitFixed} satellite virial orbit class which takes a parameter set as input.
+    Constructor for the \refClass{virialOrbitFixed} virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

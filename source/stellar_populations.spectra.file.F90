@@ -43,14 +43,17 @@
      double precision              , allocatable, dimension(:    ) :: ages                  , metallicities          , &
           &                                                           wavelengths
      double precision              , allocatable, dimension(:,:,:) :: table
-     type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
+     type            (interpolator), allocatable                   :: interpolatorAge       , interpolatorMetallicity, &
           &                                                           interpolatorWavelength
    contains
      !![
      <methods>
-       <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
+       <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy"/>
+       <method description="Assign spectral table objects."              method="assignment(=)"        />
      </methods>
      !!]
+     procedure ::                          spectralTableAssignment
+     generic   :: assignment(=)         => spectralTableAssignment
      procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
@@ -69,7 +72,7 @@
     \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
   
     Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
-    format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
+    format are provided in the \mono{scripts/ssps} folder.
    </description>
    <stateStorable>
     <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
@@ -91,6 +94,7 @@
        <method description="Read the named stellar population spectra file." method="readFile" />
      </methods>
      !!]
+     final     ::                       fileDestructor
      procedure :: readFile           => fileReadFile
      procedure :: luminosity         => fileLuminosity
      procedure :: tabulation         => fileTabulation
@@ -131,7 +135,7 @@ contains
     <inputParameter>
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read spectra.</description>
+      <description>The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (\AA), and spectra ($L_\odot\,\mathrm{Hz}^{-1}$); see the \mono{scripts/ssps} folder for conversion scripts.</description>
     </inputParameter>
     !!]
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
@@ -158,10 +162,23 @@ contains
     return
   end function fileConstructorInternal
 
+  subroutine fileDestructor(self)
+    !!{
+    Destructor for the file stellar spectra class.
+    !!}
+    implicit none
+    type(stellarPopulationSpectraFile), intent(inout) :: self
+
+    if (allocated(self%spectra%interpolatorAge        )) deallocate(self%spectra%interpolatorAge        )
+    if (allocated(self%spectra%interpolatorWavelength )) deallocate(self%spectra%interpolatorWavelength )
+    if (allocated(self%spectra%interpolatorMetallicity)) deallocate(self%spectra%interpolatorMetallicity)
+    return
+  end subroutine fileDestructor
+
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
     !!{
-    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
-    given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
+    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition \mono{abundances}, of the
+    given \mono{age} (in Gyr) and the specified \mono{wavelength} (in Angstroms). This is found by interpolating in tabulated
     spectra.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
@@ -282,7 +299,7 @@ contains
     if (.not.self%fileRead) then
        !$ call hdf5Access%set()
        ! Open the HDF5 file.
-       call spectraFile%openFile(self%fileName,readOnly=.true.)
+       spectraFile=hdf5Object(self%fileName,readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
@@ -297,11 +314,12 @@ contains
        self%spectra%metallicityCount=size(self%spectra%metallicities)
        ! Read the spectra.
        call spectraFile%readDataset('spectra'                     ,self%spectra%table        )
-       ! Close the HDF5 file.
-       call spectraFile%close()
        !$ call hdf5Access%unset()
        self%fileRead=.true.
        ! Build interpolators.
+       allocate(self%spectra%interpolatorAge        )
+       allocate(self%spectra%interpolatorWavelength )
+       allocate(self%spectra%interpolatorMetallicity)
        self%spectra%interpolatorAge        =interpolator(self%spectra%ages         ,extrapolationType=extrapolationTypeExtrapolate)
        self%spectra%interpolatorWavelength =interpolator(self%spectra%wavelengths  ,extrapolationType=extrapolationTypeZero       )
        self%spectra%interpolatorMetallicity=interpolator(self%spectra%metallicities,extrapolationType=extrapolationTypeFix        )
@@ -392,8 +410,57 @@ contains
     implicit none
     class(spectralTable), intent(inout) :: self
 
-    call self%interpolatorAge        %GSLReallocate(gslFree=.false.)
-    call self%interpolatorMetallicity%GSLReallocate(gslFree=.false.)
-    call self%interpolatorWavelength %GSLReallocate(gslFree=.false.)
+    if (allocated(self%interpolatorAge        )) call self%interpolatorAge        %GSLReallocate()
+    if (allocated(self%interpolatorMetallicity)) call self%interpolatorMetallicity%GSLReallocate()
+    if (allocated(self%interpolatorWavelength )) call self%interpolatorWavelength %GSLReallocate()
     return
   end subroutine spectralTableInterpolatorsDeepCopy
+
+  subroutine spectralTableAssignment(self,from)
+    !!{
+    Perform assignment of spectral tables.
+    !!}
+    implicit none
+    class(spectralTable), intent(inout) :: self
+    class(spectralTable), intent(in   ) :: from
+    
+    self%agesCount      =  from%agesCount
+    self%metallicityCount =  from%metallicityCount
+    self%wavelengthsCount            = from%wavelengthsCount
+    if (allocated(self%ages                   )) deallocate(self%ages                   )
+    if (allocated(self%metallicities          )) deallocate(self%metallicities          )
+    if (allocated(self%wavelengths            )) deallocate(self%wavelengths            )
+    if (allocated(self%table                  )) deallocate(self%table                  )
+    if (allocated(self%interpolatorAge        )) deallocate(self%interpolatorAge        )
+    if (allocated(self%interpolatorMetallicity)) deallocate(self%interpolatorMetallicity)
+    if (allocated(self%interpolatorWavelength )) deallocate(self%interpolatorWavelength )
+    if (allocated(from%ages                   )) then
+       allocate(self%ages,mold=from%ages)
+       self%ages=from%ages
+    end if
+    if (allocated(from%metallicities                   )) then
+       allocate(self%metallicities,mold=from%metallicities)
+       self%metallicities=from%metallicities
+    end if
+    if (allocated(from%wavelengths                   )) then
+       allocate(self%wavelengths,mold=from%wavelengths)
+       self%wavelengths=from%wavelengths
+    end if
+    if (allocated(from%table                   )) then
+       allocate(self%table,mold=from%table)
+       self%table=from%table
+    end if
+    if (allocated(from%interpolatorAge                   )) then
+       allocate(self%interpolatorAge,mold=from%interpolatorAge)
+       self%interpolatorAge=from%interpolatorAge
+    end if
+    if (allocated(from%interpolatorMetallicity                   )) then
+       allocate(self%interpolatorMetallicity,mold=from%interpolatorMetallicity)
+       self%interpolatorMetallicity=from%interpolatorMetallicity
+    end if
+    if (allocated(from%interpolatorWavelength                   )) then
+       allocate(self%interpolatorWavelength,mold=from%interpolatorWavelength)
+       self%interpolatorWavelength=from%interpolatorWavelength
+    end if
+    return
+  end subroutine spectralTableAssignment

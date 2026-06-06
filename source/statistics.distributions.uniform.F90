@@ -30,8 +30,8 @@
     \end{equation}
     Specified using:
     \begin{description}
-    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
     \end{description}
    </description>
   </distributionFunction1D>
@@ -75,12 +75,12 @@ contains
     !![
     <inputParameter>
       <name>limitLower</name>
-      <description>The lower limit of the uniform distribution.</description>
+      <description>The lower bound $x_\mathrm{l}$ of the uniform distribution, below which the probability density is zero; the distribution has constant density $1/(x_\mathrm{u} - x_\mathrm{l})$ over $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>limitUpper</name>
-      <description>The upper limit of the uniform distribution.</description>
+      <description>The upper bound $x_\mathrm{u}$ of the uniform distribution, above which the probability density is zero; the distribution has constant density $1/(x_\mathrm{u} - x_\mathrm{l})$ over $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

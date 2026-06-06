@@ -41,12 +41,9 @@
   <galacticStructureSolver name="galacticStructureSolverFixed">
    <description>
     A galactic structure solver that determines the sizes of galactic components by assuming that radius equals \begin{equation} r
-    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if {\normalfont
-    \ttfamily [radiusFixed]}$=${\normalfont \ttfamily virialRadius} or {\normalfont \ttfamily turnaround} respectively, $\lambda$
-    is its spin parameter and $f_\mathrm{r}=${\normalfont \ttfamily [factor]} is a parameter. Optionally, different values of
-    $f_\mathrm{r}$ can be specified for disks and spheroids using the {\normalfont \ttfamily [factorDisk]} and {\normalfont
-    \ttfamily [factorSpheroid]} parameters respectively---if either or both are not provided the value of {\normalfont \ttfamily
-    [factor]} will be used for the corresponding component.
+    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if \mono{[radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
+    is its spin parameter and $f_\mathrm{r}=$\mono{[factor]} is a parameter. Optionally, different values of
+    $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and \mono{[factorSpheroid]} parameters respectively---if either or both are not provided the value of \mono{[factor]} will be used for the corresponding component.
    </description>
   </galacticStructureSolver>
   !!]
@@ -105,14 +102,14 @@ contains
       <name>factorDisk</name>
       <defaultSource>\citep{mo_formation_1998}</defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by {\normalfont \ttfamily [factor]} for disks.</description>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by \mono{[factor]} for disks.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>factorSpheroid</name>
       <defaultSource>\citep{mo_formation_1998}</defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by {\normalfont \ttfamily [factor]} for spheroids.</description>
+      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by \mono{[factor]} for spheroids.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -237,20 +234,14 @@ contains
     Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
     proportion to specific angular momentum.
     !!}
-    use :: Calculations_Resets       , only : Calculations_Reset
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType
-    include 'galactic_structure.radius_solver.tasks.modules.inc'
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
+    use :: Calculations_Resets                       , only : Calculations_Reset
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
     implicit none
     class           (galacticStructureSolverFixed), intent(inout)           :: self
     type            (treeNode                    ), intent(inout), target   :: node
     logical                                       , intent(in   ), optional :: plausibilityOnly
     logical                                       , parameter               :: specificAngularMomentumRequired=.false.
-    procedure       (solverGet                   ), pointer                 :: radiusGet                              , velocityGet
-    procedure       (solverSet                   ), pointer                 :: radiusSet                              , velocitySet
-    logical                                                                 :: componentActive
-    double precision                                                        :: specificAngularMomentum
-    type            (enumerationComponentTypeType)                          :: component
+    procedure       (radiusSolver                ), pointer                 :: radiusSolve_
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
     !!]
@@ -258,10 +249,11 @@ contains
     ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
+    call radiusSolverPlausibilities(node)
     if (.not.node%isPhysicallyPlausible .or. plausibilityOnly_) return
+    radiusSolve_ => radiusSolve
     call Calculations_Reset(node)
-    include 'galactic_structure.radius_solver.tasks.inc'
+    call radiusSolverTasks(node,specificAngularMomentumRequired,radiusSolve_)
     return
 
   contains
@@ -270,10 +262,12 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Dark_Matter_Halo_Spins    , only : Dark_Matter_Halo_Angular_Momentum_Scale
-      use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
-      use :: Mass_Distributions        , only : massDistributionClass
-      use :: Galactic_Structure_Options, only : componentTypeDarkMatterOnly            , massTypeDark     , componentTypeDisk, componentTypeSpheroid
+      use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                              , solverSet
+      use :: Dark_Matter_Halo_Spins                    , only : Dark_Matter_Halo_Angular_Momentum_Scale
+      use :: Galacticus_Nodes                          , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
+      use :: Mass_Distributions                        , only : massDistributionClass
+      use :: Galactic_Structure_Options                , only : componentTypeDarkMatterOnly            , massTypeDark     , componentTypeDisk, componentTypeSpheroid, &
+           &                                                    enumerationComponentTypeType
       implicit none
       type            (treeNode                    ), intent(inout)          :: node
       type            (enumerationComponentTypeType), intent(in   )          :: component

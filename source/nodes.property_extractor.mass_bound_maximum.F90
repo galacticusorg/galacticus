@@ -36,11 +36,12 @@
      procedure :: name        => massBoundMaximumName
      procedure :: description => massBoundMaximumDescription
      procedure :: unitsInSI   => massBoundMaximumUnitsInSI
+     procedure :: units       => massBoundMaximumUnits
   end type nodePropertyExtractorMassBoundMaximum
 
   interface nodePropertyExtractorMassBoundMaximum
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -66,7 +67,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self
@@ -104,7 +105,7 @@ contains
    
   function massBoundMaximumName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massBoundMaximum} properties.
+    Return the names of the \mono{massBoundMaximum} properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumName
@@ -117,7 +118,7 @@ contains
 
   function massBoundMaximumDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily massBoundMaximum} properties.
+    Return the descriptions of the \mono{massBoundMaximum} properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumDescription
@@ -130,7 +131,7 @@ contains
 
   double precision function massBoundMaximumUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massBoundMaximum} properties in the SI system.
+    Return the units of the \mono{massBoundMaximum} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -140,3 +141,16 @@ contains
     massBoundMaximumUnitsInSI=massSolar
     return
   end function massBoundMaximumUnitsInSI
+
+  function massBoundMaximumUnits(self) result(units)
+    !!{
+    Return the units of the massBoundMaximum property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                             )                :: units
+    class(nodePropertyExtractorMassBoundMaximum), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBoundMaximumUnits

@@ -24,8 +24,7 @@
   !![
   <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
    <description>
-    A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
-    all merger trees.
+    A merger tree mass resolution class which assumes a fixed, uniform mass resolution applied to all merger trees during tree construction. The minimum resolved halo mass is set by the \mono{[massResolution]} parameter, expressed in Solar masses, below which branches are not built.
    </description>
   </mergerTreeMassResolution>
   !!]
@@ -41,7 +40,7 @@
 
   interface mergerTreeMassResolutionFixed
      !!{
-     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree resolution class.
+     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal

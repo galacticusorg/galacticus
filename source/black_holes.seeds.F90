@@ -34,10 +34,10 @@ module Black_Hole_Seeds
   !![
   <enumeration>
     <name>blackHoleFormationChannel</name>
-    <description>Enumeration of black hole formation channels.</description>
-    <visibility>public</visibility>
-    <validator>yes</validator>
+    <description>Enumeration of the physical channels through which black hole seeds can form, including undetermined origin and formation via stellar cluster collapse leading to a massive seed black hole.</description>
     <decodeFunction>yes</decodeFunction>
+    <validator>yes</validator>
+    <visibility>public</visibility>
     <entry label="undetermined"       />
     <entry label="starClusterCollapse"/>
   </enumeration>
@@ -48,23 +48,26 @@ module Black_Hole_Seeds
    <name>blackHoleSeeds</name>
    <descriptiveName>Black Hole Seeds</descriptiveName>
    <description>
-    Class providing models of black hole seeds.
+    Class providing models of the initial seed masses for supermassive black holes and their formation channel.
+    Black hole seeds are the initial conditions for black hole growth via accretion and mergers, and their masses
+    and formation channels (e.g. stellar collapse, direct collapse, star cluster collapse) are set when a new
+    black hole component is initialized in a halo.
    </description>
    <default>fixed</default>
    <method name="mass" >
-    <description>Computes the mass of the black hole seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Computes the mass of the black hole seed in the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="spin" >
-    <description>Computes the spin of the black hole seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Computes the spin of the black hole seed in the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="formationChannel">
-    <description>Returns the formation channel of the seed in the given {\normalfont \ttfamily node}.</description>
+    <description>Returns the formation channel of the seed in the given \mono{node}.</description>
     <type>type(enumerationBlackHoleFormationChannelType)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

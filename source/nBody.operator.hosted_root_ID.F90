@@ -23,7 +23,7 @@
 
   !![
   <nbodyOperator name="nbodyOperatorHostedRootID">
-   <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
+   <description>An N-body data operator which determines the ID of the topmost root halo in the host hierarchy by iteratively following host links upward from each particle. The \mono{errorIfNotFound} parameter controls whether a missing host causes a fatal error or instead assigns a sentinel value of $-1$.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHostedRootID
@@ -61,7 +61,7 @@ contains
       <name>missingHalosAreFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
+      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a \mono{hostedRootID} value of $-1$ is assigned to the particle.</description>
     </inputParameter>
     !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)

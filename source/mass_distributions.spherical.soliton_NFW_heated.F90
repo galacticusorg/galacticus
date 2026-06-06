@@ -81,23 +81,23 @@ contains
     !![
     <inputParameter>
       <name>radiusCore</name>
-      <description>The soliton core radius.</description>
+      <description>The soliton core radius (in Mpc) that characterizes the size of the central quantum pressure-supported core of the fuzzy dark matter halo; density is approximately constant within this radius.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radiusSoliton</name>
-      <description>The soliton radius.</description>
+      <description>The outer radius (in Mpc) of the soliton region, beyond which the profile transitions from the soliton core to the heated NFW outer envelope.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>densitySolitonCentral</name>
-      <description>The central density of the soliton.</description>
+      <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the normalization of the soliton density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_\mathrm{c})^2]^{-8}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance for numerical solutions.</description>
+      <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the heated soliton-NFW composite profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -228,7 +228,7 @@ contains
 
   double precision function solitonNFWHeatedDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a solitonNFWHeated mass distribution.
+    Return the density at the specified \mono{coordinates} in a solitonNFWHeated mass distribution.
     !!}
     implicit none
     class(massDistributionSolitonNFWHeated), intent(inout) :: self
@@ -244,7 +244,7 @@ contains
 
   double precision function solitonNFWHeatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton+heated NFW mass distribution.
+    Return the density at the specified \mono{coordinates} in a soliton+heated NFW mass distribution.
     !!}
     implicit none
     class  (massDistributionSolitonNFWHeated), intent(inout), target   :: self
@@ -265,7 +265,7 @@ contains
 
   double precision function solitonNFWHeatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for soliton+heated NFW mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for soliton+heated NFW mass distributions.
     !!}
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target :: self

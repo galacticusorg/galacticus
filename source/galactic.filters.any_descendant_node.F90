@@ -24,7 +24,7 @@
   
   !![
   <galacticFilter name="galacticFilterAnyDescendantNode">
-   <description>Applies a filter to all descendant nodes of the given node and passes if any descendant passes.</description>
+   <description>Applies a \refClass{galacticFilterClass} to all descendant nodes of a given node and passes if any descendant satisfies the filter, enabling selection of nodes based on the properties of their descendants in the merger tree.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAnyDescendantNode

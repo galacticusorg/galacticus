@@ -39,7 +39,7 @@
 
   interface darkMatterProfileScaleRadiusLudlow2014
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2014ConstructorParameters
      module procedure ludlow2014ConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function ludlow2014ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    Default constructor for the \mono{ludlow2014} dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
 
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
@@ -103,7 +103,7 @@ contains
 
   double precision function ludlow2014FormationTimeRoot(timeFormation)
     !!{
-    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
+    Function used to find the formation time of a halo in the \mono{ludlow2014} concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode

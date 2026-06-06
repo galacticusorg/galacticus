@@ -28,7 +28,7 @@
     \begin{equation}
     \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
     \end{equation}
-    where $\tau_\mathrm{cool}=${\normalfont \ttfamily [timeScale]}.
+    where $\tau_\mathrm{cool}=$\mono{[timeScale]}.
    </description>
   </coolingRate>
   !!]
@@ -93,7 +93,7 @@ contains
 
   double precision function simpleRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always simple.
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere using a simple timescale model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none

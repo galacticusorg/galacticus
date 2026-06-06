@@ -25,7 +25,7 @@ Implements a low-pass filter on any node property.
 
   !![
   <galacticFilter name="galacticFilterLowPass">
-   <description>A low-pass filter on any node property.</description>
+   <description>A low-pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, is less than or equal to the specified \mono{[threshold]} value. This allows selection of galaxies or halos below any quantitative threshold in any extractable property.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLowPass

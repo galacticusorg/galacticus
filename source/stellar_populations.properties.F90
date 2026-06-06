@@ -41,7 +41,7 @@ module Stellar_Population_Properties
    </description>
    <default>instantaneous</default>
    <method name="rates" >
-    <description>Returns rates of change of stellar population properties.</description>
+    <description>Returns the rates of change of stellar population properties (stellar mass, fuel mass, elemental abundances, luminosities, and energy input) for a given star formation rate and fuel abundances, using either instantaneous recycling or a full stellar population model.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                     , intent(in   ) :: rateStarFormation                                                   </argument>

@@ -25,9 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorCGMOuterRadiusVirialRadius">
-   <description>
-    A node operator class that fixes the \gls{cgm} outer radius to the virial radius.
-   </description>
+   <description>Sets the outer boundary of the circumgalactic medium (\gls{cgm}) equal to the halo virial radius as computed by a \refClass{darkMatterHaloScaleClass} object, analytically enforcing this constraint during differential evolution.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMOuterRadiusVirialRadius

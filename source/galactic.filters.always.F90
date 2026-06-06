@@ -23,7 +23,7 @@ Implements a galactic filter which always passes.
 
   !![
   <galacticFilter name="galacticFilterAlways">
-   <description>A galactic filter which always passes. (Used mostly for testing purposes.)</description>
+   <description>A trivial filter that unconditionally passes every node regardless of its properties, used as a default or placeholder when all nodes should be included in an analysis and also as a null object in testing filter infrastructure.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAlways

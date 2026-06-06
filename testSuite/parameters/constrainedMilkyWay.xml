@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Test of constrained merger tree building -->
+
 <!-- 18-December-2024                         -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <verbosityLevel value="working"/>
 
@@ -81,23 +83,29 @@
       <label            value="LMC"/>
       <labelDescription value="Label indicating if this node is on the LMC branch."/>
       <labelBranch      value="true"/>
-       <!-- Apply all LMC conditions -->
+      <!-- Apply all LMC conditions -->
       <galacticFilter value="all">
-	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
-	<galacticFilter value="mainBranch"/>
-	<!-- Consider only halos infalling at the right time. -->
-	<galacticFilter value="intervalPass">
-          <nodePropertyExtractor value="time"/>
-          <thresholdLow  value="11.6"/>
-          <thresholdHigh value="12.0"/>
- 	</galacticFilter>
-	<!-- Consider only halos with a rank-2 child with a mass above 1.0e11 -->
-	<galacticFilter value="childNode">
-          <childRank value="2"/>
-          <galacticFilter value="intervalPass">
-            <nodePropertyExtractor value="massBasic"/>
-            <thresholdLow  value="1.2e11"/>
-            <thresholdHigh value="1.4e11"/>
+        <!-- Consider halos not on the main branch. -->
+        <galacticFilter value="not">
+          <galacticFilter value="mainBranch"/>
+	</galacticFilter>
+        <!-- Consider only halos in the LMC mass range. -->
+        <galacticFilter value="intervalPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <thresholdLow  value="1.2e11"/>
+          <thresholdHigh value="1.4e11"/>
+        </galacticFilter>
+	<!-- Restrict on parent halos. -->
+        <galacticFilter value="parentNode">
+	  <galacticFilter value="all">
+	    <!-- Parent halo must be on the main branch. -->
+            <galacticFilter value="mainBranch"/>
+            <!-- Consider only halos infalling at the right time. -->
+            <galacticFilter value="intervalPass">
+              <nodePropertyExtractor value="time"/>
+              <thresholdLow  value="11.6"/>
+              <thresholdHigh value="12.0"/>
+            </galacticFilter>
           </galacticFilter>
 	</galacticFilter>
       </galacticFilter>
@@ -119,21 +127,27 @@
       <labelBranch      value="true"/>
       <!-- Apply all GSE conditions -->
       <galacticFilter value="all">
-	<!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
-	<galacticFilter value="mainBranch"/>
-	<!-- Consider only halos infalling at the right time. -->
-	<galacticFilter value="intervalPass">
-          <nodePropertyExtractor value="time"/>
-          <thresholdLow  value="2.8"/>
-          <thresholdHigh value="5.8"/>
- 	</galacticFilter>
-	<!-- Consider only halos with a rank-2 child with a mass above 1.0e11 -->
-	<galacticFilter value="childNode">
-          <childRank value="2"/>
-          <galacticFilter value="intervalPass">
-            <nodePropertyExtractor value="massBasic"/>
-            <thresholdLow  value="1.3e11"/>
-            <thresholdHigh value="2.5e11"/>
+        <!-- Consider halos not on the main branch. -->
+        <galacticFilter value="not">
+          <galacticFilter value="mainBranch"/>
+	</galacticFilter>
+        <!-- Consider only halos in the GSE mass range. -->
+        <galacticFilter value="intervalPass">
+          <nodePropertyExtractor value="massBasic"/>
+          <thresholdLow  value="1.3e11"/>
+          <thresholdHigh value="2.5e11"/>
+        </galacticFilter>
+	<!-- Restrict on parent halos. -->
+        <galacticFilter value="parentNode">
+	  <galacticFilter value="all">
+	    <!-- Parent halo must be on the main branch. -->
+            <galacticFilter value="mainBranch"/>
+            <!-- Consider only halos infalling at the right time. -->
+            <galacticFilter value="intervalPass">
+              <nodePropertyExtractor value="time"/>
+              <thresholdLow  value="2.8"/>
+              <thresholdHigh value="5.8"/>
+            </galacticFilter>
           </galacticFilter>
 	</galacticFilter>
       </galacticFilter>
@@ -366,6 +380,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <!-- Numerical tolerances -->

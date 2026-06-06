@@ -30,10 +30,9 @@
     A merger tree build mass distribution class in which the sampling density function equal to the halo mass function,
     \begin{equation}
     \gamma(M) = \hbox{minmax}(\phi_\mathrm{min},\phi_\mathrm{max},\mathrm{d} n(M)/\mathrm{d}\log M [1 + p_1
-    \log_{10}(M/10^{13}M_\odot) + p_2 \log_{10}^2(M/10^{13}M_\odot)),
+    \log_{10}(M/10^{13}\mathrm{M}_\odot) + p_2 \log_{10}^2(M/10^{13}\mathrm{M}_\odot)),
     \end{equation}
-     where $\phi_\mathrm{min}=${\normalfont \ttfamily [abundanceMinimum]}, $\phi_\mathrm{max}=${\normalfont \ttfamily
-     [abundanceMaximum]}, $p_1=${\normalfont \ttfamily [modifier1]}, $p_2=${\normalfont \ttfamily [modifier2]}, and
+     where $\phi_\mathrm{min}=$\mono{[abundanceMinimum]}, $\phi_\mathrm{max}=$\mono{[abundanceMaximum]}, $p_1=$\mono{[modifier1]}, $p_2=$\mono{[modifier2]}, and
     \begin{equation}
      \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
      x &gt; b,\end{array}\right.
@@ -135,7 +134,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass sampling class.
+    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self

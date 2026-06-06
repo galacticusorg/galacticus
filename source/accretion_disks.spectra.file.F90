@@ -27,7 +27,7 @@
 
   !![
   <accretionDiskSpectra name="accretionDiskSpectraFile">
-   <description>Accretion disk spectra are interpolated from tables read from file.</description>
+   <description>Accretion disk spectra are computed by interpolating from tabulated data read from a file specified by \mono{[fileName]}. The tables provide spectral energy distributions as a function of physical parameters, enabling efficient lookup of accretion disk emission across a range of conditions.</description>
    <runTimeFileDependencies paths="fileName"/>
   </accretionDiskSpectra>
   !!]
@@ -117,7 +117,7 @@ contains
 
   subroutine fileDestructor(self)
     !!{
-    Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    Default destructor for the \mono{file} accretion disk spectra class.
     !!}
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
@@ -145,7 +145,7 @@ contains
 
     ! Open the file.
     !$ call hdf5Access%set()
-    call spectraFile%openFile(fileName,readOnly=.true.)
+    spectraFile=hdf5Object(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
     if (fileFormatFile /= fileFormatCurrent) call Error_Report('file format mismatch'//{introspection:location})
@@ -153,8 +153,6 @@ contains
     call spectraFile%readDataset('wavelength'          ,self%wavelength)
     call spectraFile%readDataset('bolometricLuminosity',self%luminosity)
     call spectraFile%readDataset('SED'                 ,self%SED       )
-    ! Close the file.
-    call spectraFile%close()
     !$ call hdf5Access%unset()
     ! Convert luminosities to logarithmic form for interpolation.
     self%luminosity=log(self%luminosity)

@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBertschinger">
-   <description>
-     A node property extractor which extracts the Bertschinger mass of the halo.
-   </description>
+   <description>Extracts the Bertschinger mass of each halo node, which is the mass enclosed within the secondary infall turnaround radius and provides a measure of the total mass within the halo's influence region.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBertschinger
@@ -35,11 +33,12 @@
      procedure :: name        => massBertschingerName
      procedure :: description => massBertschingerDescription
      procedure :: unitsInSI   => massBertschingerUnitsInSI
+     procedure :: units       => massBertschingerUnits
   end type nodePropertyExtractorMassBertschinger
 
   interface nodePropertyExtractorMassBertschinger
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBertschinger} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
      !!}
      module procedure massBertschingerConstructorParameters
      module procedure massBertschingerConstructorInternal
@@ -65,7 +64,7 @@ contains
 
   function massBertschingerConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBertschinger} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassBertschinger) :: self
@@ -95,7 +94,7 @@ contains
 
   function massBertschingerName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily massBertschinger} property.
+    Return the names of the \mono{massBertschinger} property.
     !!}
     implicit none
     type (varying_string                        )               :: massBertschingerName
@@ -108,7 +107,7 @@ contains
 
   function massBertschingerDescription(self)
     !!{
-    Return the description of the {\normalfont \ttfamily massBertschinger} property.
+    Return the description of the \mono{massBertschinger} property.
     !!}
     implicit none
     type (varying_string                       )                :: massBertschingerDescription
@@ -121,7 +120,7 @@ contains
 
   double precision function massBertschingerUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily massBertschinger} property in the SI system.
+    Return the units of the \mono{massBertschinger} property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -131,3 +130,17 @@ contains
     massBertschingerUnitsInSI=massSolar
     return
   end function massBertschingerUnitsInSI
+
+  function massBertschingerUnits(self) result(units)
+    !!{
+    Return the units of the massBertschinger property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                             )                :: units
+    class(nodePropertyExtractorMassBertschinger), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBertschingerUnits

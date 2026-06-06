@@ -23,7 +23,7 @@
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
-   <description>Provides a merger tree operator which prunes branches to end at a fixed time.</description>
+   <description>Provides a merger tree operator which prunes merger tree branches by truncating them at a fixed cosmic time, removing nodes earlier than the specified epoch from the tree. The truncation epoch is set by \mono{[redshift]}, with optional mass-based selection via \mono{[massMinimum]} and \mono{[massMaximum]} to restrict pruning to a specific halo mass range.</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime

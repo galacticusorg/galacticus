@@ -33,9 +33,12 @@ module Supernovae_Type_Ia
   <functionClass>
    <name>supernovaeTypeIa</name>
    <descriptiveName>Supernovae Type Ia</descriptiveName>
-   <description>
-    Class providing models of supernovae type Ia, including the cumulative number occurring and metal yield.
-   </description>
+   <description>Class providing models of Type Ia supernovae from a stellar population, specifically the cumulative
+    number of Type Ia events and the associated metal yield (iron-peak elements) as a function of initial stellar
+    population mass, age, and metallicity. Type Ia supernovae are thermonuclear explosions of white dwarfs in
+    binary systems and are the dominant source of iron in the universe. Their delay-time distribution governs the
+    iron enrichment history of galaxies and is expected to vary across different prescriptions (e.g.\ power-law
+    vs.\ single-degenerate vs.\ double-degenerate channels).</description>
    <default>nagashima2005</default>
    <method name="massInitialRange" >
     <description>Return the range of initial stellar masses that contribute to the Type Ia population.</description>
@@ -46,7 +49,7 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum</argument>
    </method>
    <method name="number" >
-    <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -54,7 +57,7 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(in   )         :: initialMass         , age, metallicity</argument>
    </method>
    <method name="yield" >
-    <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+    <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_                  </argument>

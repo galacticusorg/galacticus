@@ -24,7 +24,7 @@
 
   !![
   <task name="taskMulti">
-   <description>A task which performs multiple other tasks.</description>
+   <description>A task which sequentially performs multiple other tasks, iterating through a linked list of \refClass{taskClass} objects and calling each one's \mono{perform} method in order. This allows combining several independent computations (e.g., evolving forests plus computing a power spectrum) into a single \glc\ run.</description>
    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
   </task>
   !!]

@@ -19,7 +19,7 @@
 
   !![
   <task name="taskAGNSpectraHopkins2008BuildFile">
-   <description>A task which evolves galaxies within a set of merger tree forests.</description>
+   <description>A task which builds and caches a tabulation of AGN accretion disk spectra using the model of \cite{hopkins_observational_2007}, computing the spectral energy distribution as a function of black hole mass and accretion rate for use in subsequent galaxy evolution calculations.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskAGNSpectraHopkins2008BuildFile

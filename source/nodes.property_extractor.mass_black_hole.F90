@@ -23,7 +23,7 @@ Implements a black hole mass property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
-   <description>An black mass property extractor class.</description>
+   <description>Extracts the mass of the central supermassive black hole in a galaxy node, accounting for growth via gas accretion and black hole mergers, for comparison with $M_\bullet$--$\sigma$ and $M_\bullet$--$M_\mathrm{bulge}$ scaling relations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole
@@ -37,11 +37,12 @@ Implements a black hole mass property extractor class.
      procedure :: name        => massBlackHoleName
      procedure :: description => massBlackHoleDescription
      procedure :: unitsInSI   => massBlackHoleUnitsInSI
+     procedure :: units       => massBlackHoleUnits
   end type nodePropertyExtractorMassBlackHole
 
   interface nodePropertyExtractorMassBlackHole
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHole} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassBlackHole} property extractor class.
      !!}
      module procedure massBlackHoleConstructorParameters
   end interface nodePropertyExtractorMassBlackHole
@@ -50,7 +51,7 @@ contains
 
   function massBlackHoleConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBlackHole} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassBlackHole} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -124,7 +125,7 @@ contains
 
   double precision function massBlackHoleUnitsInSI(self)
     !!{
-    Return the units of the massBlackHole property in the SI system.
+    Return the units of the black hole mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -134,3 +135,16 @@ contains
     massBlackHoleUnitsInSI=massSolar
     return
   end function massBlackHoleUnitsInSI
+
+  function massBlackHoleUnits(self) result(units)
+    !!{
+    Return the units of the black hole mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massBlackHoleUnits

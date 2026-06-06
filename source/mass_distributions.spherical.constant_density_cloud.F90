@@ -68,12 +68,12 @@ contains
     !![
     <inputParameter>
       <name>mass</name>
-      <description>The mass of the cloud.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the constant-density spherical cloud, used together with the radius to set the uniform density of the cloud.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radius</name>
-      <description>The radius of the cloud.</description>
+      <description>The outer radius (in Mpc) of the constant-density spherical cloud; the density is zero beyond this radius and uniform within it.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -98,7 +98,7 @@ contains
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{
-    Constructor for the \refClass{massDistributionConstantDensityCloud} convergence class.
+    Constructor for the \refClass{massDistributionConstantDensityCloud} mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -121,7 +121,7 @@ contains
 
   double precision function constantDensityCloudDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a $\beta$-profile mass distribution.
+    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
     !!}
     implicit none
     class(massDistributionConstantDensityCloud), intent(inout) :: self
@@ -151,7 +151,7 @@ contains
 
   double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a constant density cloud.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a constant density cloud.
     !!}
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout), target :: self
@@ -182,7 +182,7 @@ contains
 
   double precision function constantDensityCloudPotential(self,coordinates,status)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a constant density cloud.
+    Return the potential at the specified \mono{coordinates} in a constant density cloud.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

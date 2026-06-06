@@ -25,7 +25,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
-   <description>A conversion of ISM mass to HI mass analysis property operator class.</description>
+   <description>Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a \refClass{outputAnalysisMolecularRatioClass} object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass
@@ -41,7 +41,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 
   interface outputAnalysisPropertyOperatorHIMass
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
      !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine hiMassDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis distribution operator class.
+    Destructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self

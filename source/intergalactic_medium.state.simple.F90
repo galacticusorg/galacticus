@@ -18,16 +18,16 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  An implementation of the \gls{igm} state class for a simplistic model of instantaneous and full reionization.
   !!}
 
   !![
   <intergalacticMediumState name="intergalacticMediumStateSimple">
    <description>
-    An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
-    fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
-    thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
-    {\normalfont \ttfamily [reionizationTemperature]} thereafter.
+    An \gls{igm} state class which implements a simple model of reionization in which the universe is assumed to be
+    fully neutral prior to the redshift given by \mono{[reionizationRedshift]} and fully ionized
+    thereafter. The temperature is given by \mono{[preReionizationTemperature]} before reionization, and
+    \mono{[reionizationTemperature]} thereafter.
    </description>
   </intergalacticMediumState>
   !!]
@@ -50,7 +50,7 @@
 
   interface intergalacticMediumStateSimple
      !!{
-     Constructors for the simple intergalactic medium state class.
+     Constructors for the simple \gls{igm} state class.
      !!}
      module procedure simpleIGMConstructorParameters
      module procedure simpleIGMConstructorInternal

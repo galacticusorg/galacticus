@@ -24,7 +24,7 @@ Implements a geometry corresponding to the detectability of classical Local Grou
 
   !![
   <surveyGeometry name="surveyGeometryLocalGroupClassical">
-   <description>Implements a geometry corresponding to the detectability of classical Local Group galaxies.</description>
+   <description>Implements a survey geometry corresponding to the detectability of classical Local Group satellite galaxies, defined by \gls{mangle} polygon sky coverage. The maximum detection distance is set by \mono{[distanceMaximumSurvey]}, and a stellar mass threshold \mono{[massThreshold]} separates classical from ultra-faint satellites.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupClassical
@@ -164,10 +164,7 @@ contains
     type (varying_string                   ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(1))
-    mangleFiles=                                               &
-         &      [                                              &
-         &       self%mangleDirectory()//"zoneOfAvoidance.ply" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"zoneOfAvoidance.ply"
     return
   end subroutine localGroupClassicalMangleFiles
 

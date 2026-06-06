@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
-   <description>A thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.</description>
+   <description>Computes the mean thermal Sunyaev-Zeldovich signal (Compton-$y$ parameter stacked over galaxy halos) as a function of stellar mass using the \cite{planck_collaboration_planck_2013} observational data, with configurable random and systematic error polynomial coefficients.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSunyaevZeldovichPlanck2013
@@ -129,6 +129,7 @@ contains
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorICMSZ
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorLog10            , outputAnalysisPropertyOperatorCosmologySZ, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
@@ -171,6 +172,7 @@ contains
     double precision                                                     , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                      , binCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *chemicalState_"/>
     !!]
@@ -316,17 +318,30 @@ contains
     </referenceConstruct>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                   &
+         &                                                     xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'           ), &
+         &                                                     yAxisLabel      =var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'), &
+         &                                                     xAxisIsLog      =.true.                                          , &
+         &                                                     yAxisIsLog      =.true.                                          , &
+         &                                                     targetLabel     =var_str('Planck Intermediate Results XI (2013)'), &
+         &                                                     valueTarget     =functionValueTarget                             , &
+         &                                                     covarianceTarget=functionCovarianceTarget                          &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                     &
          &                                                         var_str('sunyaevZeldovichPlanck2013'                              ), &
          &                                                         var_str('Sunyaev-Zeldovich signal vs. central galaxy stellar mass'), &
          &                                                         var_str('massStellar'                                             ), &
          &                                                         var_str('Stellar mass'                                            ), &
          &                                                         var_str('M☉'                                                      ), &
+         &                                                         var_str('solMass'                                                 ), &
+         &                                                         .false.                                                            , &
          &                                                         massSolar                                                          , &
          &                                                         var_str('thermalSZ'                                               ), &
-         &                                                         var_str('Thermal S-Z signal (̃Y₅₀₀)'                              ), &
+         &                                                         var_str('Thermal S-Z signal (̃Y₅₀₀)'                               ), &
          &                                                         var_str(' '                                                       ), &
-         &                                                         0.0d0                                                              , &
+         &                                                         var_str(' '                                                       ), &
+         &                                                         .false.                                                            , &
+         &                                                         1.0d0                                                              , &
          &                                                         log10(masses)                                                      , &
          &                                                         bufferCount                                                        , &
          &                                                         outputWeight                                                       , &
@@ -344,13 +359,7 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                  , &
          &                                                         covarianceBinomialMassHaloMaximum                                  , &
          &                                                         likelihoodNormalize                                                , &
-         &                                                         var_str('$M_\star/\mathrm{M}_\odot$'                              ), &
-         &                                                         var_str('$\widetilde{Y}_{500}/\hbox{arcmin}^2$'                   ), &
-         &                                                         .true.                                                             , &
-         &                                                         .true.                                                             , &
-         &                                                         var_str('Planck Intermediate Results XI (2013)'                   ), &
-         &                                                         functionValueTarget                                                , &
-         &                                                         functionCovarianceTarget                                             &
+         &                                                         outputAnalysisTargetData_                                            &
          &                                                        )
     ! Clean up.
     !![

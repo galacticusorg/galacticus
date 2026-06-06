@@ -23,9 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorBlackHoleFormationChannel">
-   <description>
-    A node property extractor class which extracts the formation channel for black hole seeds.
-   </description>
+   <description>Extracts the formation channel identifier for black hole seeds in each node, enabling classification of black holes by their seeding mechanism (e.g., direct collapse, stellar remnants) for statistical analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBlackHoleFormationChannel
@@ -42,7 +40,7 @@
 
   interface nodePropertyExtractorBlackHoleFormationChannel
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal
@@ -52,7 +50,7 @@ contains
 
   function blackHoleFormationChannelConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +66,7 @@ contains
 
   function blackHoleFormationChannelConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBlackHoleFormationChannel) :: self
@@ -81,7 +79,7 @@ contains
 
   function blackHoleFormationChannelExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily blackHoleFormationChannel} node property extractor.
+    Implement a \mono{blackHoleFormationChannel} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole               , nodeComponentBlackHoleStandard
     use :: Black_Hole_Seeds, only : blackHoleFormationChannelUndetermined

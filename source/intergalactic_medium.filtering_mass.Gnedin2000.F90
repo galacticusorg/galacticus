@@ -32,7 +32,7 @@
 
   !![
   <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
-   <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
+   <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation, which determines the characteristic halo mass below which gas accretion is suppressed by photoionization heating from the intergalactic radiation field. The filtering mass is computed by integrating an ODE system driven by the \gls{igm} thermal state and linear growth history.</description>
   </intergalacticMediumFilteringMass>
   !!]
   type, extends(intergalacticMediumFilteringMassClass) :: intergalacticMediumFilteringMassGnedin2000
@@ -53,7 +53,7 @@
    contains
      !![
      <methods>
-       <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
+       <method description="Tabulate the filtering mass to encompass at least the given \mono{time}." method="tabulate" />
        <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
        <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
@@ -176,7 +176,7 @@ contains
 
   double precision function gnedin2000MassFiltering(self,time)
     !!{
-    Return the filtering mass at the given {\normalfont \ttfamily time}.
+    Return the filtering mass at the given \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -189,7 +189,7 @@ contains
 
   double precision function gnedin2000MassFilteringRateOfChange(self,time)
     !!{
-    Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    Return the rate of change of the filtering mass at the given \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -202,8 +202,8 @@ contains
 
   double precision function gnedin2000FractionBaryons(self,mass,time)
     !!{
-    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    {\normalfont \ttfamily time}.
+    Return the rate of change of the fraction of baryons accreted into a halo of the given \mono{mass} at the
+    \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -215,8 +215,8 @@ contains
 
   double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
     !!{
-    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    {\normalfont \ttfamily time}.
+    Return the rate of change of the fraction of baryons accreted into a halo of the given \mono{mass} at the
+    \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -232,8 +232,7 @@ contains
 
   double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
     !!{
-    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
-    \ttfamily mass} at the {\normalfont \ttfamily time}.
+    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given \mono{mass} at the \mono{time}.
     !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -625,11 +624,10 @@ contains
     if (.not.File_Exists(self%fileName)) return
     if (self%initialized) call self%table%destroy()
     !$ call hdf5Access%set()
-    call dataFile%openFile     (self%fileName  ,overWrite=.false.           ,readOnly=.true.)
-    call dataFile%readDataset  ('massFiltering',               massFiltering                )
-    call dataFile%readAttribute('timeMinimum'  ,          self%timeMinimum                  )
-    call dataFile%readAttribute('timeMaximum'  ,          self%timeMaximum                  )
-    call dataFile%close        (                                                            )
+    dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
+    call dataFile%readDataset  ('massFiltering',     massFiltering)
+    call dataFile%readAttribute('timeMinimum'  ,self%timeMinimum  )
+    call dataFile%readAttribute('timeMaximum'  ,self%timeMaximum  )
     !$ call hdf5Access%unset()
     call self%table%create  (self%timeMinimum,self%timeMaximum,size(massFiltering))
     call self%table%populate(                                       massFiltering )
@@ -651,11 +649,10 @@ contains
 
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile      (char   (self%fileName                            ),overWrite=.true.         ,chunkSize=100_hsize_t,compressionLevel=9)
-    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering'                                         )
-    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'                                           )
-    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'                                           )
-    call dataFile%close         (                                                                                                                     )
+    dataFile=hdf5Object(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering')
+    call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'  )
+    call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'  )
     !$ call hdf5Access%unset()
     return
   end subroutine gnedin2000FileWrite

@@ -36,22 +36,20 @@
     \begin{equation}
      \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
     \end{equation}
-    where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
+    where $q=$\mono{[surfaceDensityExponent]} and $\Sigma_0=$\mono{[surfaceDensityCritical]}
     are parameters, the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
-    \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
-    [pressureCharacteristic]} are parameters, and the hydrostatic pressure in the disk plane assuming locally isothermal gas
+    \Sigma_\mathrm{HI}$, where $\alpha=$\mono{[pressureExponent]} and $P_0=$\mono{[pressureCharacteristic]} are parameters, and the hydrostatic pressure in the disk plane assuming locally isothermal gas
     and stellar components is given by
     \begin{equation}
      P_\mathrm{ext} \approx {\pi\over 2} \G \Sigma_\mathrm{gas} \left[ \Sigma_\mathrm{gas} + \left({\sigma_\mathrm{gas}\over
      \sigma_\star}\right)\Sigma_\star\right]
     \end{equation}
-    where we assume that the velocity dispersion in the gas is fixed at $\sigma_\mathrm{gas}=${\normalfont \ttfamily
-    [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_\mathrm{gas}$, we can write the stellar velocity
+    where we assume that the velocity dispersion in the gas is fixed at $\sigma_\mathrm{gas}=$\mono{[velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_\mathrm{gas}$, we can write the stellar velocity
     dispersion in terms of the disk scale height, $h_\star$, as
     \begin{equation}
      \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
     \end{equation}
-    where we assume $h_\star/R_\mathrm{disk}=${\normalfont \ttfamily [heightToRadialScaleDiskBlitzRosolowsky]}.
+    where we assume $h_\star/R_\mathrm{disk}=$\mono{[heightToRadialScaleDiskBlitzRosolowsky]}.
    </description>
   </starFormationRateSurfaceDensityDisks>
   !!]
@@ -139,7 +137,7 @@ contains
       <name>velocityDispersionDiskGas</name>
       <defaultSource>\citep{leroy_star_2008}</defaultSource>
       <defaultValue>10.0d0</defaultValue>
-      <description>The velocity dispersion of gas in disks.</description>
+      <description>The velocity dispersion of gas in galactic disks (in km/s), used to compute the hydrostatic midplane pressure that determines the molecular-to-atomic gas ratio in the \cite{blitz_role_2006} star formation model.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -153,7 +151,7 @@ contains
       <name>surfaceDensityCritical</name>
       <defaultSource>\citep{bigiel_star_2008}</defaultSource>
       <defaultValue>200.0d0</defaultValue>
-      <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the \cite{blitz_role_2006} star formation timescale calculation at which low-density truncation begins.</description>
+      <description>The surface density (in units of $\mathrm{M}_\odot$ pc$^{-2}$) in the \cite{blitz_role_2006} star formation timescale calculation at which low-density truncation begins.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -206,7 +204,7 @@ contains
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,useTabulation) result(self)
     !!{
-    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate from disks class.
+    Internal constructor for the \refClass{starFormationRateSurfaceDensityDisksBlitz2006} star formation surface density rate in disks class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                , pathTypeDataDynamic
@@ -321,8 +319,8 @@ contains
 
   double precision function blitz2006Rate(self,node,radius)
     !!{
-    Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
+    Returns the star formation rate surface density (in $\mathrm{M}_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    in the galactic disk of \mono{node}. The disk is assumed to obey the
     \cite{blitz_role_2006} star formation rule.
     !!}
     implicit none
@@ -391,7 +389,7 @@ contains
   
   subroutine blitz2006ComputeFactors(self,node)
     !!{
-    Compute various factors for the {\normalfont \ttfamily blitz2006} star formation rate surface density calculation.
+    Compute various factors for the \mono{blitz2006} star formation rate surface density calculation.
     !!}
     use :: Abundances_Structure            , only : abundances
     use :: Galacticus_Nodes                , only : nodeComponentDisk
@@ -906,11 +904,10 @@ contains
       character       (len=12        )                :: rangeLower                                  , rangeUpper
       type            (integrator    ), allocatable   :: integrator_
       type            (varying_string), save          :: message
-      type            (hdf5Object    ), save          :: file
       type            (lockDescriptor), save          :: fileLock
       logical                                         :: haveLock
-      !$omp threadprivate(message,file,fileLock)
-      
+      !$omp threadprivate(message,fileLock)
+
       ! If our table is insufficient (or does not yet exist), attempt to read the table from file.
       haveLock=.false.
       if (tableIsInsufficient()) then
@@ -922,21 +919,23 @@ contains
             call displayMessage(message,verbosityLevelWorking)
             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
             !$ call hdf5Access%set()
-            call file%openFile     (                                                      char(self%filenameTable                                      ),readOnly=.true.)
-            call file%readAttribute('coefficientFactorBoostMinimum'                      ,     self%coefficientFactorBoostMinimum                                       )
-            call file%readAttribute('coefficientFactorBoostMaximum'                      ,     self%coefficientFactorBoostMaximum                                       )
-            call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,     self%coefficientFactorBoostStellarMinimum                                )
-            call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,     self%coefficientFactorBoostStellarMaximum                                )
-            call file%readAttribute('radiusScaleFreeMinimum'                             ,     self%radiusScaleFreeMinimum                                              )
-            call file%readAttribute('radiusScaleFreeMaximum'                             ,     self%radiusScaleFreeMaximum                                              )
-            call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,     self%coefficientFactorBoostLogarithmicOffset                             )
-            call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,     self%coefficientFactorBoostStellarLogarithmicOffset                      )
-            call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,     self%radiusScaleFreeLogarithmicOffset                                    )
-            call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,     self%coefficientFactorBoostLogarithmicStepInverse                        )
-            call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',     self%coefficientFactorBoostStellarLogarithmicStepInverse                 )
-            call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,     self%radiusScaleFreeLogarithmicStepInverse                               )
-            call file%readDataset  ('integral'                                           ,     self%integralPartiallyMolecularTable                                     )
-            call file%close        (                                                                                                                                    )
+            hdf5FileScopeRead: block
+              type(hdf5Object) :: file
+              file=hdf5Object(char(self%filenameTable),readOnly=.true.)
+              call file%readAttribute('coefficientFactorBoostMinimum'                      ,self%coefficientFactorBoostMinimum                      )
+              call file%readAttribute('coefficientFactorBoostMaximum'                      ,self%coefficientFactorBoostMaximum                      )
+              call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,self%coefficientFactorBoostStellarMinimum               )
+              call file%readAttribute('coefficientFactorBoostStellarMaximum'               ,self%coefficientFactorBoostStellarMaximum               )
+              call file%readAttribute('radiusScaleFreeMinimum'                             ,self%radiusScaleFreeMinimum                             )
+              call file%readAttribute('radiusScaleFreeMaximum'                             ,self%radiusScaleFreeMaximum                             )
+              call file%readAttribute('coefficientFactorBoostLogarithmicOffset'            ,self%coefficientFactorBoostLogarithmicOffset            )
+              call file%readAttribute('coefficientFactorBoostStellarLogarithmicOffset'     ,self%coefficientFactorBoostStellarLogarithmicOffset     )
+              call file%readAttribute('radiusScaleFreeLogarithmicOffset'                   ,self%radiusScaleFreeLogarithmicOffset                   )
+              call file%readAttribute('coefficientFactorBoostLogarithmicStepInverse'       ,self%coefficientFactorBoostLogarithmicStepInverse       )
+              call file%readAttribute('coefficientFactorBoostStellarLogarithmicStepInverse',self%coefficientFactorBoostStellarLogarithmicStepInverse)
+              call file%readAttribute('radiusScaleFreeLogarithmicStepInverse'              ,self%radiusScaleFreeLogarithmicStepInverse              )
+              call file%readDataset  ('integral'                                           ,self%integralPartiallyMolecularTable                    )
+            end block hdf5FileScopeRead
             !$ call hdf5Access%unset()
             self%tableInitialized=.true.
          end if
@@ -945,7 +944,7 @@ contains
       if (tableIsInsufficient()) then
          ! Obtain a file lock if we don't already have one.
          if (.not.haveLock) then
-            call File_Lock(char(self%filenameTable),fileLock,lockIsShared=.false.)
+            call File_Lock(self%filenameTable,fileLock,lockIsShared=.false.)
             haveLock=.true.
          end if
          ! Find range encompassing the existing table and the new point (with some buffer).
@@ -1032,25 +1031,27 @@ contains
          call displayMessage(message,verbosityLevelWorking)
          call Directory_Make(File_Path(self%filenameTable))
          !$ call hdf5Access%set()
-         call file%openFile      (char(self%filenameTable                                      )                                                     ,overWrite=.true.,readOnly=.false.)
-         call file%writeAttribute(     self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                                                       )
-         call file%writeAttribute(     self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                                                       )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'                                                )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'                                                )
-         call file%writeAttribute(     self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                                                              )
-         call file%writeAttribute(     self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                                                              )
-         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'                                             )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'                                      )
-         call file%writeAttribute(     self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                                                    )
-         call file%writeAttribute(     self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'                                        )
-         call file%writeAttribute(     self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse'                                 )
-         call file%writeAttribute(     self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'                                               )
-         call file%writeDataset  (     self%integralPartiallyMolecularTable                     ,'integral'                                                                            )
-         call file%close         (                                                                                                                                                     )
+         hdf5FileScopeWrite: block
+           type(hdf5Object) :: file
+           file=hdf5Object(self%filenameTable,overWrite=.true.,readOnly=.false.)
+           call file%writeAttribute(self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                      )
+           call file%writeAttribute(self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                      )
+           call file%writeAttribute(self%coefficientFactorBoostStellarMinimum                ,'coefficientFactorBoostStellarMinimum'               )
+           call file%writeAttribute(self%coefficientFactorBoostStellarMaximum                ,'coefficientFactorBoostStellarMaximum'               )
+           call file%writeAttribute(self%radiusScaleFreeMinimum                              ,'radiusScaleFreeMinimum'                             )
+           call file%writeAttribute(self%radiusScaleFreeMaximum                              ,'radiusScaleFreeMaximum'                             )
+           call file%writeAttribute(self%coefficientFactorBoostLogarithmicOffset             ,'coefficientFactorBoostLogarithmicOffset'            )
+           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicOffset      ,'coefficientFactorBoostStellarLogarithmicOffset'     )
+           call file%writeAttribute(self%radiusScaleFreeLogarithmicOffset                    ,'radiusScaleFreeLogarithmicOffset'                   )
+           call file%writeAttribute(self%coefficientFactorBoostLogarithmicStepInverse        ,'coefficientFactorBoostLogarithmicStepInverse'       )
+           call file%writeAttribute(self%coefficientFactorBoostStellarLogarithmicStepInverse ,'coefficientFactorBoostStellarLogarithmicStepInverse')
+           call file%writeAttribute(self%radiusScaleFreeLogarithmicStepInverse               ,'radiusScaleFreeLogarithmicStepInverse'              )
+           call file%writeDataset  (self%integralPartiallyMolecularTable                     ,'integral'                                           )
+         end block hdf5FileScopeWrite
          !$ call hdf5Access%unset()
       end if
       if (haveLock) then
-         call File_Unlock(fileLock)            
+         call File_Unlock(fileLock)
          haveLock=.false.
       end if
       ! Interpolate in table.

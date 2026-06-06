@@ -23,7 +23,7 @@ Implements a cosmic time output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTime">
-   <description>A cosmic time output analysis property extractor class.</description>
+   <description>Extracts the cosmic time (age of the universe) at the epoch of each output snapshot, providing the absolute time coordinate for each node and enabling time-based analysis of galaxy formation histories across cosmic epochs.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTime
@@ -36,11 +36,12 @@ Implements a cosmic time output analysis property extractor class.
      procedure :: name        => timeName
      procedure :: description => timeDescription
      procedure :: unitsInSI   => timeUnitsInSI
+     procedure :: units       => timeUnits
   end type nodePropertyExtractorTime
 
   interface nodePropertyExtractorTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorTime} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorTime} property extractor class.
      !!}
      module procedure timeConstructorParameters
   end interface nodePropertyExtractorTime
@@ -49,7 +50,7 @@ contains
 
   function timeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorTime} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorTime} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -119,3 +120,17 @@ contains
     timeUnitsInSI=gigaYear
     return
   end function timeUnitsInSI
+
+  function timeUnits(self) result(units)
+    !!{
+    Return the units of the time property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                 )                :: units
+    class(nodePropertyExtractorTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function timeUnits

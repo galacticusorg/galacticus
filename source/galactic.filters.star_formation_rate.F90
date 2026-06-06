@@ -31,11 +31,9 @@ Implements a galactic high-pass filter for total star formation rate.
    A galactic high-pass filter for star formation rate. Galaxies with a combined disk,
    spheroid, plus \gls{nsc} star formation rate greater than or equal to a mass-dependent threshold. The threshold is given by
    \begin{equation}
-   \log_{10} \left( { \dot{\phi}_\mathrm{t} \over M_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
+   \log_{10} \left( { \dot{\phi}_\mathrm{t} \over \mathrm{M}_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
    \end{equation}
-   where $M_0=${\normalfont \ttfamily [starFormationRateThresholdLogM0]}, $\alpha_0=${\normalfont
-   \ttfamily [starFormationRateThresholdLogSFR0]}, and $\alpha_1=${\normalfont \ttfamily
-   [starFormationRateThresholdLogSFR1]}.
+   where $M_0=$\mono{[starFormationRateThresholdLogM0]}, $\alpha_0=$\mono{[starFormationRateThresholdLogSFR0]}, and $\alpha_1=$\mono{[starFormationRateThresholdLogSFR1]}.
    </description>
   </galacticFilter>
   !!]
@@ -84,7 +82,7 @@ contains
       <name>logM0</name>
       <source>parameters</source>
       <defaultValue>10.0d0</defaultValue>
-      <description>The parameter $\log_{10} M_0$ (with $M_0$ in units of $M_\odot$) appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
+      <description>The parameter $\log_{10} M_0$ (with $M_0$ in units of $\mathrm{M}_\odot$) appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
     </inputParameter>
     <inputParameter>
       <name>logSFR0</name>

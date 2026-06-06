@@ -27,7 +27,7 @@
 
   !![
   <nodeOperator name="nodeOperatorBlackHolesSeed">
-   <description>A node operator class that create black hole seeds in nodes.</description>
+   <description>A node operator class that initializes black hole seeds in newly formed nodes using a \refClass{blackHoleSeedsClass} object to set the initial black hole mass, enabling subsequent growth through accretion and merger channels.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesSeed

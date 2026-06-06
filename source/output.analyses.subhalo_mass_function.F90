@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSubhaloMassFunction">
-   <description>An output analysis class for subhalo mass functions.</description>
+   <description>Computes the subhalo mass function (number of subhalos per unit mass ratio relative to the host halo) at a given redshift, reading bin configuration and target data from file, with options for empty-bin handling and negative binomial scatter in likelihood calculations.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>
@@ -213,15 +213,13 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    call file             %openFile     (fileName           ,readOnly=.true.                 )
-    call file             %readAttribute('label'            ,         labelTarget            )
-    call file             %readAttribute('redshift'         ,         redshift_              )
-    massFunctionGroup=file%openGroup('massFunction')
-    call massFunctionGroup%readDataset  ('massRatio'        ,         massRatiosTarget       )
-    call massFunctionGroup%readDataset  ('massFunction'     ,         massFunctionTarget     )
-    call massFunctionGroup%readDataset  ('massFunctionError',         massFunctionErrorTarget)
-    call massFunctionGroup%close        (                                                    )
-    call file             %close        (                                                    )
+    file             =hdf5Object          (fileName,readOnly=.true.)
+    massFunctionGroup=file      %openGroup('massFunction'          )
+    call file             %readAttribute('label'            ,labelTarget            )
+    call file             %readAttribute('redshift'         ,redshift_              )
+    call massFunctionGroup%readDataset  ('massRatio'        ,massRatiosTarget       )
+    call massFunctionGroup%readDataset  ('massFunction'     ,massFunctionTarget     )
+    call massFunctionGroup%readDataset  ('massFunctionError',massFunctionErrorTarget)
     !$ call hdf5Access%unset()
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
@@ -396,11 +394,15 @@ contains
        &amp;                         var_str('massBoundRatio')                          , &amp;
        &amp;                         var_str('Ratio of subhalo bound mass to host mass'), &amp;
        &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
        &amp;                         1.0d0                                              , &amp;
        &amp;                         var_str('massFunction')                            , &amp;
        &amp;                         var_str('Differential subhalo mass function')      , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         massRatios                                         , &amp;
        &amp;                         0_c_size_t                                         , &amp;
        &amp;                         outputWeightSubhalos                               , &amp;
@@ -424,11 +426,15 @@ contains
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
        &amp;                         var_str(' ')                                       , &amp;
-       &amp;                         0.0d0                                              , &amp;
+       &amp;                         var_str(' ')                                       , &amp;
+       &amp;                         .false.                                            , &amp;
+       &amp;                         1.0d0                                              , &amp;
        &amp;                         massesHosts                                        , &amp;
        &amp;                         0_c_size_t                                         , &amp;
        &amp;                         outputWeightHosts                                  , &amp;
@@ -488,7 +494,7 @@ contains
 
   subroutine subhaloMassFunctionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily subhaloMassFunction} output analysis.
+    Implement a \mono{subhaloMassFunction} output analysis.
     !!}
     implicit none
     class  (outputAnalysisSubhaloMassFunction), intent(inout) :: self
@@ -503,7 +509,7 @@ contains
 
   subroutine subhaloMassFunctionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily subhaloMassFunction} output analysis reduction.
+    Implement a \mono{subhaloMassFunction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -522,7 +528,7 @@ contains
 
   subroutine subhaloMassFunctionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily subhaloMassFunction} output analysis.
+    Finalize analysis of a \mono{subhaloMassFunction} output analysis.
     !!}
     implicit none
     class           (outputAnalysisSubhaloMassFunction), intent(inout)               :: self
@@ -549,12 +555,13 @@ contains
 
   subroutine subhaloMassFunctionFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily subhaloMassFunction} output analysis finalization.
+    Implement a \mono{subhaloMassFunction} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSubhaloMassFunction), intent(inout)           :: self
     type (varying_string                   ), intent(in   ), optional :: groupName
@@ -582,9 +589,7 @@ contains
     call analysisGroup   %writeAttribute('massFunction'                       ,'yDataset'                                                                                            )
     call analysisGroup   %writeAttribute('massFunctionCovariance'             ,'yCovariance'                                                                                         )
     call analysisGroup   %writeDataset  (self%massRatios                      ,'massRatio'                   ,'Mass ratio at the bin center'                 ,datasetReturned=dataset)
-    call dataset         %writeAttribute(' '                                  ,'units'                                                                                               )
-    call dataset         %writeAttribute(1.0d0                                ,'unitsInSI'                                                                                           )
-    call dataset         %close         (                                                                                                                                            )
+    call dataset         %writeAttribute(unitType(1.0d0),'units'                                                                                               )
     call analysisGroup   %writeDataset  (self%massFunction                    ,'massFunction'                ,'Subhalo number per bin [model]'                                       )
     call analysisGroup   %writeDataset  (self%covariance                      ,'massFunctionCovariance'      ,'Subhalo number per bin [model; covariance]'                           )
     if (allocated(self%massFunctionTarget)) then
@@ -595,17 +600,13 @@ contains
        call analysisGroup%writeDataset  (self%massFunctionTarget              ,'massFunctionTarget'          ,'Subhalo number per bin [observed]'                                    )
        call analysisGroup%writeDataset  (self%massFunctionCovarianceTarget    ,'massFunctionCovarianceTarget','Subhalo number per bin [observed; covariance]'                        )
     end if
-    call analysisGroup   %close         (                                                                                                                                            )
-    if (present(groupName)) &
-         & call subGroup %close         (                                                                                                                                            )
-    call analysesGroup   %close         (                                                                                                                                            )
     !$ call hdf5Access%unset()
     return
   end subroutine subhaloMassFunctionFinalize
 
   double precision function subhaloMassFunctionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily subhaloMassFunction} output analysis. The likelihood function
+    Return the log-likelihood of a \mono{subhaloMassFunction} output analysis. The likelihood function
     assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many

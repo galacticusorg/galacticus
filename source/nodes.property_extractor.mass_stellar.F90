@@ -23,7 +23,7 @@ Implements a stellar mass property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
-   <description>A stellar mass output analysis property extractor class.</description>
+   <description>Extracts the total stellar mass of a galaxy node by summing the stellar masses of disk and spheroid components, for comparison with stellar mass functions and stellar-to-halo mass relations from photometric surveys.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar
@@ -37,6 +37,7 @@ Implements a stellar mass property extractor class.
      procedure :: description => massStellarDescription
      procedure :: unitsInSI   => massStellarUnitsInSI
      procedure :: quantity    => massStellarQuantity
+     procedure :: units       => massStellarUnits
   end type nodePropertyExtractorMassStellar
 
   interface nodePropertyExtractorMassStellar
@@ -50,7 +51,7 @@ contains
 
   function massStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -113,7 +114,7 @@ contains
 
   double precision function massStellarUnitsInSI(self)
     !!{
-    Return the units of the massStellar property in the SI system.
+    Return the units of the stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -127,7 +128,7 @@ contains
 
   function massStellarQuantity(self)
     !!{
-    Return the class of the stellar luminosity property.
+    Return the class of the stellar mass property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
@@ -138,3 +139,17 @@ contains
     massStellarQuantity=outputAnalysisPropertyQuantityMass
     return
   end function massStellarQuantity
+
+  function massStellarUnits(self) result(units)
+    !!{
+    Return the units of the stellar mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                        )                :: units
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massStellarUnits

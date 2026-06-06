@@ -42,7 +42,7 @@
 
   interface darkMatterProfileScaleRadiusBinary
      !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+     Constructors for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
      !!}
      module procedure binaryConstructorParameters
      module procedure binaryConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function binaryConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily binary} dark matter halo profile concentration class.
+    Default constructor for the \mono{binary} dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,7 +81,7 @@ contains
 
   function binaryConstructorInternal(darkMatterProfileScaleRadiusAccept_,darkMatterProfileScaleRadiusReject_,galacticFilter_) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+    Constructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
     !!}
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine binaryDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile concentration class.
+    Destructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusBinary), intent(inout) :: self
@@ -111,7 +111,7 @@ contains
 
   double precision function binaryRadius(self,node)
     !!{
-    Return the scale radius of the dark matter halo profile of {\normalfont \ttfamily node}.
+    Return the scale radius of the dark matter halo profile of \mono{node}.
     !!}
     implicit none
     class (darkMatterProfileScaleRadiusBinary), intent(inout), target :: self

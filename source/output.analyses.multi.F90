@@ -28,7 +28,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisMulti">
-   <description>A merger tree analysis class which combines multiple other analyses.</description>
+   <description>Combines multiple \refClass{outputAnalysisClass} objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.</description>
    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
   </outputAnalysis>
   !!]
@@ -59,7 +59,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisMulti} merger tree analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisMulti} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function multiConstructorInternal(analyses) result(self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisMulti} analysis class.
+    Internal constructor for the \refClass{outputAnalysisMulti} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisMulti} analysis class.
+    Destructor for the \refClass{outputAnalysisMulti} output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti), intent(inout) :: self

@@ -21,7 +21,7 @@
   
   !![
   <radiativeTransferOutputter name="radiativeTransferOutputterSpectrum">
-   <description>A radiative transfer outputter class which outputs a binned spectrum of both total emitted and emergent photons.</description>
+   <description>A radiative transfer outputter class that records wavelength-binned spectra of both the total emitted and emergent photon luminosities, allowing comparison of intrinsic and attenuated radiation. The wavelength range and resolution are set by \mono{[wavelengthMinimum]}, \mono{[wavelengthMaximum]}, and \mono{[wavelengthsPerDecade]}.</description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterSpectrum

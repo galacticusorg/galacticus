@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a scalar integer property.</description>
+   <description>Abstract base class for extractors that return a single integer value per node (e.g., node IDs, counts, or boolean flags encoded as integers), defining the interface for all scalar integer property extraction used in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerScalar
@@ -33,17 +33,19 @@
    contains
      !![
      <methods>
-       <method method="extract"     description="Extract the property from the given {\normalfont \ttfamily node}."/>
-       <method method="name"        description="Return the name of the property extracted."                       />
-       <method method="description" description="Return a description of the property extracted."                  />
-       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
-       <method method="metaData"    description="Populate a hash with meta-data for the property."                 />
+       <method method="extract"     description="Extract the property from the given \mono{node}."             />
+       <method method="name"        description="Return the name of the property extracted."                   />
+       <method method="description" description="Return a description of the property extracted."              />
+       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system." />
+       <method method="units"        description="Return an object containing units metadata for the property."/>
+       <method method="metaData"    description="Populate a hash with meta-data for the property."             />
      </methods>
      !!]
      procedure(integerScalarExtract), deferred :: extract
      procedure(integerScalarName   ), deferred :: name
      procedure(integerScalarName   ), deferred :: description
      procedure                                 :: unitsInSI   => integerScalarUnitsInSI
+     procedure                                 :: units       => integerScalarUnits
      procedure                                 :: metaData    => integerScalarMetaData
   end type nodePropertyExtractorIntegerScalar
 
@@ -74,6 +76,19 @@
 
 contains
 
+  function integerScalarUnits(self) result(units)
+    !!{
+    Default implementation: wraps \mono{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \mono{unitType}.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function integerScalarUnits
+
   double precision function integerScalarUnitsInSI(self)
     !!{
     Interface for integerScalar property units.
@@ -82,7 +97,7 @@ contains
     class(nodePropertyExtractorIntegerScalar), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    integerScalarUnitsInSI=0.0d0
+    integerScalarUnitsInSI=1.0d0
     return
   end function integerScalarUnitsInSI
 

@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpinBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole spins.
-   </description>
+   <description>Extracts a list of dimensionless spin parameters for all supermassive black holes in each node, providing per-black-hole angular momentum data for studies of black hole spin evolution and jet production efficiency.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorSpinBlackHoles
@@ -35,11 +33,12 @@
      procedure :: names        => spinBlackHolesNames
      procedure :: descriptions => spinBlackHolesDescriptions
      procedure :: unitsInSI    => spinBlackHolesUnitsInSI
+     procedure :: units       => spinBlackHolesUnits
   end type nodePropertyExtractorSpinBlackHoles
 
   interface nodePropertyExtractorSpinBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} property extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles
@@ -98,7 +97,7 @@ contains
 
   subroutine spinBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily spinBlackHoles} properties.
+    Return the names of the \mono{spinBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -112,7 +111,7 @@ contains
 
   subroutine spinBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily spinBlackHoles} properties.
+    Return the descriptions of the \mono{spinBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -126,7 +125,7 @@ contains
 
   function spinBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily spinBlackHoles} properties in the SI system.
+    Return the units of the \mono{spinBlackHoles} properties in the SI system.
     !!}
     implicit none
     double precision                                     , dimension(:) , allocatable :: unitsInSI
@@ -137,3 +136,23 @@ contains
     unitsInSI(1)=1.0d0
     return
   end function spinBlackHolesUnitsInSI
+
+  function spinBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the spinBlackHoles properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                           ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorSpinBlackHoles), intent(inout)              :: self
+    double precision                                     , dimension(:) , allocatable :: siValues
+    integer                                                                           :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function spinBlackHolesUnits

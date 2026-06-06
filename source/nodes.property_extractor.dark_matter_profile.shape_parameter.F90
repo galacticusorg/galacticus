@@ -23,7 +23,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter">
-   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+   <description>Extracts the shape parameter of the dark matter halo density profile (e.g., the Einasto index or inner logarithmic slope), which characterizes the curvature of the profile and distinguishes between different dark matter density models such as NFW, Einasto, or cored profiles.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileShapeParameter
@@ -36,11 +36,12 @@ Implements a dark matter profile scale radius output analysis property extractor
      procedure :: name        => darkMatterProfileShapeParameterName
      procedure :: description => darkMatterProfileShapeParameterDescription
      procedure :: unitsInSI   => darkMatterProfileShapeParameterUnitsInSI
+     procedure :: units       => darkMatterProfileShapeParameterUnits
   end type nodePropertyExtractorDarkMatterProfileShapeParameter
 
   interface nodePropertyExtractorDarkMatterProfileShapeParameter
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} property extractor class.
      !!}
      module procedure darkMatterProfileShapeParameterConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileShapeParameter
@@ -49,7 +50,7 @@ contains
 
   function darkMatterProfileShapeParameterConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +66,7 @@ contains
 
   double precision function darkMatterProfileShapeParameterExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis.
+    Implement a \mono{darkMatterProfileShapeParameter} output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -83,7 +84,7 @@ contains
 
   function darkMatterProfileShapeParameterName(self)
     !!{
-    Return the name of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    Return the name of the \mono{darkMatterProfileShapeParameter} property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterName
@@ -96,7 +97,7 @@ contains
 
   function darkMatterProfileShapeParameterDescription(self)
     !!{
-    Return a description of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    Return a description of the \mono{darkMatterProfileShapeParameter} property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterDescription
@@ -115,6 +116,20 @@ contains
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    darkMatterProfileShapeParameterUnitsInSI=0.0d0
+    darkMatterProfileShapeParameterUnitsInSI=1.0d0
     return
   end function darkMatterProfileShapeParameterUnitsInSI
+
+  function darkMatterProfileShapeParameterUnits(self) result(units)
+    !!{
+    Return the units of the darkMatterProfileShapeParameter property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                            )                :: units
+    class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function darkMatterProfileShapeParameterUnits

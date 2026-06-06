@@ -38,7 +38,7 @@
     \end{equation}
     In the above $R$ is the instantaneous recycled fraction and $p$ is the yield, both of which are supplied by the \gls{imf}
     subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy
-    from a single stellar population (as defined by the {\normalfont \ttfamily feedbackEnergyInputAtInfinityCanonical}) is
+    from a single stellar population (as defined by the \mono{feedbackEnergyInputAtInfinityCanonical}) is
     input instantaneously.
    </description>
   </stellarPopulationProperties>
@@ -65,7 +65,7 @@
 
   interface stellarPopulationPropertiesInstantaneous
      !!{
-     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population class.
+     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
      !!}
      module procedure instantaneousConstructorParameters
      module procedure instantaneousConstructorInternal

@@ -98,7 +98,7 @@ contains
     </inputParameter>
     <inputParameter>
       <name>mass</name>
-      <description>The mass within the outer radius.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the hot gas distribution enclosed within \mono{radiusOuter}; used to normalize the Enzo hydrostatic density profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -137,18 +137,21 @@ contains
     type            (enumerationComponentTypeType   ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="radiusScale, radiusOuter, mass, truncateAtOuterRadius, componentType, massType"/>
+    <constructorAssign variables="radiusScale, radiusOuter, mass, componentType, massType"/>
+    <optionalArgument name="truncateAtOuterRadius" defaultsTo=".false."/>
     !!]
 
     ! This distribution profile is never dimensionless.
     self%dimensionless               =.false.
+    self%truncateAtOuterRadius       =truncateAtOuterRadius_
     self%normalizationDensityComputed=.false.
+    self%normalizationDensity_       =-huge(0.0d0)
     return
   end function enzoHydrostaticConstructorInternal
 
   double precision function enzoHydrostaticNormalizationDensity(self) result(normalizationDensity)
     !!{
-    Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} mass distribution.
+    Return the density normalization in a \mono{enzoHydrostatic} mass distribution.
     !!}
     implicit none
     class           (massDistributionEnzoHydrostatic), intent(inout) :: self
@@ -177,7 +180,7 @@ contains
 
   double precision function enzoHydrostaticDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an Enzo hydrostatic mass distribution.
+    Return the density at the specified \mono{coordinates} in an Enzo hydrostatic mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -199,7 +202,7 @@ contains
 
   double precision function enzoHydrostaticDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an EnzoHydrostatic \citep{navarro_structure_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an EnzoHydrostatic \citep{navarro_structure_1996} mass distribution.
     !!}
     implicit none
     class  (massDistributionEnzoHydrostatic), intent(inout), target   :: self

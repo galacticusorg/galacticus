@@ -33,9 +33,11 @@ module Black_Hole_Binary_Initial_Separation
   <functionClass>
    <name>blackHoleBinaryInitialSeparation</name>
    <descriptiveName>Black Hole Binaries Initial Separation</descriptiveName>
-   <description>
-    Class providing models of black hole binary initial separations after galaxy mergers.
-   </description>
+   <description>Class providing models of the initial physical separation (in Mpc) between two black holes
+    immediately after the galaxies hosting them merge. When the two host galaxies coalesce the black holes
+    begin to sink toward the merger remnant center by dynamical friction. The initial separation sets the
+    starting point for the subsequent binary evolution and eventually determines the rate of energy
+    emission by gravitational waves and the time until coalescence.</description>
    <default>spheroidRadiusFraction</default>
    <method name="separationInitial" >
     <description>Computes the initial separation of a newly formed black hole binary black holes.</description>

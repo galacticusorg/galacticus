@@ -27,7 +27,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingTime">
-   <description>A node operator class that triggers merging of satellites based on a merging time.</description>
+   <description>A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a \refClass{satelliteMergingTimescalesClass}, then triggers the merger when that time is reached. \mono{resetOnHaloFormation} controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingTime
@@ -218,7 +218,7 @@ contains
 
   subroutine satelliteMergingTimeTimeMergingSet(self,node)
     !!{
-    Set the time of merging for the given {\normalfont \ttfamily node}.
+    Set the time of merging for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits   , only : keplerOrbit       , keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta, &

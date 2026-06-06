@@ -45,7 +45,7 @@ module Node_Component_Satellite_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>virialOrbit</name>
@@ -67,9 +67,7 @@ module Node_Component_Satellite_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-    <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Satellite_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Initialize(parameters)
     !!{
@@ -98,9 +96,7 @@ contains
   end subroutine Node_Component_Satellite_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
     !!{
@@ -124,9 +120,7 @@ contains
   end subroutine Node_Component_Satellite_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
     !!{
@@ -145,7 +139,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
     from the parent.
     !!}
     use :: Error           , only : Error_Report
@@ -186,13 +180,11 @@ contains
   end subroutine subhaloPromotion
   
   !![
-  <inactiveSetTask>
-    <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_Satellite_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
@@ -210,13 +202,11 @@ contains
   end subroutine Node_Component_Satellite_Standard_Inactive
   
   !![
-  <scaleSetTask>
-    <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Satellite_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none

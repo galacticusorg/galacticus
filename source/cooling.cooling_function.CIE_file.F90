@@ -115,17 +115,15 @@
     }
     }
     \end{verbatim}
-    The {\normalfont \ttfamily temperature} dataset should specify temperature (in Kelvin), while the {\normalfont \ttfamily
-    metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The {\normalfont \ttfamily coolingRate} dataset should specify the cooling function (in ergs cm$^3$
+    The \mono{temperature} dataset should specify temperature (in Kelvin), while the \mono{metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
+    zero metallicity). The \mono{coolingRate} dataset should specify the cooling function (in ergs cm$^3$
     s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively at each temperature/metallicity pair. The
-    {\normalfont \ttfamily extrapolateLow} and {\normalfont \ttfamily extrapolateHigh} attributes of the {\normalfont \ttfamily
-    temperature} and {\normalfont \ttfamily metallicity} datasets specify how the cooling rate should be extrapolated in the
+    \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets specify how the cooling rate should be extrapolated in the
     low and high vale limits. Allowed options for these attributes are:
     \begin{description}
-     \item[{\normalfont \ttfamily zero}] The cooling function is set to zero beyond the relevant limit.
-     \item[{\normalfont \ttfamily fixed}] The cooling function is held fixed at the value at the relevant limit.
-     \item[{\normalfont \ttfamily powerLaw}] The cooling function is extrapolated assuming a
+     \item[\mono{zero}] The cooling function is set to zero beyond the relevant limit.
+     \item[\mono{fixed}] The cooling function is held fixed at the value at the relevant limit.
+     \item[\mono{powerLaw}] The cooling function is extrapolated assuming a
      power-law dependence beyond the relevant limit. This option is only allowed if the
      cooling function is everywhere positive.
     \end{description}
@@ -136,10 +134,10 @@
     and cooling function. Otherwise, interpolation is linear in these quantities. The cooling
     function is scaled assuming a quadratic dependence on hydrogen density.
   
-    The {\normalfont \ttfamily energyContinuum} and {\normalfont \ttfamily powerEmittedFractionalCumulative} are optional. If
-    present, {\normalfont \ttfamily powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
+    The \mono{energyContinuum} and \mono{powerEmittedFractionalCumulative} are optional. If
+    present, \mono{powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
     energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
-    {\normalfont \ttfamily energyContinuum}.
+    \mono{energyContinuum}.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>
@@ -543,13 +541,13 @@ contains
     !!{
     Read in data from a cooling function file.
     !!}
-    use :: Display           , only : displayIndent                     , displayUnindent     , verbosityLevelWorking       , displayGreen         , &
+    use :: Display           , only : displayIndent                       , displayUnindent     , verbosityLevelWorking       , displayGreen         , &
          &                            displayReset
-    use :: Error             , only : Error_Report                      , errorStatusSuccess
+    use :: Error             , only : Error_Report                        , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : varying_string
-    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
+    use :: Table_Labels      , only : enumerationExtrapolationTypeEncode  , extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
          &                            enumerationExtrapolationTypeDescribe
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
@@ -563,7 +561,7 @@ contains
     !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
-    call coolingFunctionFile%openFile(fileName,readOnly=.true.)
+    coolingFunctionFile=hdf5Object(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})
@@ -587,7 +585,6 @@ contains
     call metallicityDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateMetallicityHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high metallicity extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call metallicityDataset%close()
     temperatureDataset=coolingFunctionFile%openDataset('temperature')
     call temperatureDataset%readAttribute('extrapolateLow' ,limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureLow =enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
@@ -595,7 +592,6 @@ contains
     call temperatureDataset%readAttribute('extrapolateHigh',limitType,allowPseudoScalar=.true.)
     self%extrapolateTemperatureHigh=enumerationExtrapolationTypeEncode(char(limitType),includesPrefix=.false.,status=status)
     if (status /= errorStatusSuccess) call Error_Report("high temperature extrapolation type '"//char(limitType)//"' in file '"//trim(fileName)//"' is invalid"//char(10)//displayGreen()//"HELP:"//displayReset()//enumerationExtrapolationTypeDescribe()//{introspection:location})
-    call temperatureDataset%close()
     ! Validate extrapolation methods.
     if     (                                                                 &
          &   self%extrapolateMetallicityLow  /= extrapolationTypeFix         &
@@ -630,8 +626,6 @@ contains
        call coolingFunctionFile%readDataset('energyContinuum'                 ,self%energyContinuum                 )
        call coolingFunctionFile%readDataset('powerEmittedFractionalCumulative',self%powerEmittedFractionalCumulative)
     end if
-    ! Close the file.
-    call coolingFunctionFile%close()
     call displayUnindent('done',verbosityLevelWorking)
     !$ call hdf5Access%unset()
     ! Store table ranges for convenience.

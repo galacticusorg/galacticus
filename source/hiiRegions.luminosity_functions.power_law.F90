@@ -30,9 +30,8 @@
     \begin{equation}
      \phi(Q_H) \propto \left\{ \begin{array}{ll}  Q_\mathrm{H}^{-\alpha} &amp; \hbox{ if } Q_\mathrm{H,min} &lt; Q_\mathrm{H} &lt; Q_\mathrm{H,max} \\ 0 &amp; \hbox{ otherwise} \end{array} \right. ,
     \end{equation}
-    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=${\normalfont \ttfamily
-    [rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=${\normalfont \ttfamily [rateHydrogenIonizingPhotonsMaximum]} and
-    the minimum and maximum HII region luminosities respectively, and $\alpha=${\normalfont \ttfamily [exponent]}.
+    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=$\mono{[rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=$\mono{[rateHydrogenIonizingPhotonsMaximum]} and
+    the minimum and maximum HII region luminosities respectively, and $\alpha=$\mono{[exponent]}.
    </description>
   </hiiRegionLuminosityFunction>
   !!]
@@ -61,7 +60,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} timescale for star formation class which takes a parameter set as
+    Constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class which takes a parameter set as
     input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,13 +81,13 @@ contains
       <name>rateHydrogenIonizingPhotonsMinimum</name>
       <defaultValue>1.0d48</defaultValue>
       <defaultSource>(\citealt{santoro_phangs-muse_2022}; approximate)</defaultSource>
-      <description>Minimum luminosity of HII regions.</description>
+      <description>The minimum ionizing photon production rate ($Q_\mathrm{H,min}$, in photons/s) below which the power-law HII region luminosity function is truncated to zero.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>rateHydrogenIonizingPhotonsMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>Maximum luminosity of HII regions.</description>
+      <description>The maximum ionizing photon production rate ($Q_\mathrm{H,max}$, in photons/s) above which the power-law HII region luminosity function is truncated to zero.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -101,7 +100,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorInternal(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent) result(self)
     !!{
-    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} luminosity function class.
+    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class.
     !!}
     
     implicit none

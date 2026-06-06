@@ -30,14 +30,9 @@
   <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
    <description>
     A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
-    as a function of time). Histories are written into the \glc\ output file in a group with name given by {\normalfont
-    \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named {\normalfont \ttfamily
-    mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the tree index. Within each
-    such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time (``{\normalfont
-    \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont \ttfamily
-    nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily nodeSpin}'')
-    and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
-    [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
+    as a function of time). Histories are written into the \glc\ output file in a group with name given by \mono{[outputGroupName]}. Within that group, each merger tree has its own group named \mono{mergerTree\textless\ N\textgreater} where \mono{\textless\ N\textgreater} is the tree index. Within each
+    such merger tree group datasets giving the node index (``\mono{nodeIndex}''), time (``\mono{nodeTime}''), basic mass (``\mono{nodeMass}''), expansion factor (``\mono{nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``\mono{nodeSpin}'')
+    and its vector components (``\mono{nodeSpinVector}'') are included if \mono{[includeSpin]} and \mono{[includeSpinVector]} respectively are set to \mono{true}.
    </description>
   </mergerTreeOperator>
   !!]
@@ -54,7 +49,6 @@
    contains
      final     ::                        massAccretionHistoryDestructor
      procedure :: operatePreEvolution => massAccretionHistoryOperatePreEvolution
-     procedure :: finalize            => massAccretionHistoryFinalize
   end type mergerTreeOperatorMassAccretionHistory
 
   interface mergerTreeOperatorMassAccretionHistory
@@ -177,6 +171,7 @@ contains
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : varying_string
     use            :: Numerical_Constants_Astronomical, only : gigaYear                               , massSolar
+    use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)                           , stringXMLFormat
     implicit none
     class           (mergerTreeOperatorMassAccretionHistory), intent(inout), target         :: self
@@ -252,15 +247,12 @@ contains
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)
-       call                             accretionDataset%writeAttribute(gigaYear                                 ,'unitsInSI'                                                     )
-       call                             accretionDataset%close         (                                                                                                          )
+       call                             accretionDataset%writeAttribute(unitType(gigaYear  ,"Gyr"        ,"Gyr"    ),'units')
        call                             treeGroup       %writeDataset  (nodeMass           ,'nodeMass'           ,'Mass of the node [M⊙].'       ,datasetReturned=accretionDataset)
-       call                             accretionDataset%writeAttribute(massSolar                                ,"unitsInSI"                                                     )
-       call                             accretionDataset%close         (                                                                                                          )
+       call                             accretionDataset%writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call                             treeGroup       %writeDataset  (nodeExpansionFactor,'nodeExpansionFactor','Expansion factor of the node.'                                 )
        if (self%includeSpin      ) call treeGroup       %writeDataset  (nodeSpin           ,'nodeSpin','Spin parameter of the node.'                                              )
        if (self%includeSpinVector) call treeGroup       %writeDataset  (nodeSpinVector     ,'nodeSpinVector','Spin parameter vector of the node.'                                 )
-       call treeGroup       %close         (                                                                                                                                      )
        !$ call hdf5Access%unset()
        ! Deallocate storage space.
        deallocate(nodeIndex          )
@@ -274,17 +266,3 @@ contains
     end do
     return
   end subroutine massAccretionHistoryOperatePreEvolution
-
-  subroutine massAccretionHistoryFinalize(self)
-    !!{
-    Close the mass accretion history group before closing the HDF5 file.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
-
-    !$ call hdf5Access%set()
-    if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine massAccretionHistoryFinalize

@@ -27,8 +27,7 @@
   <stellarTracks name="stellarTracksFile">
    <description>
     A stellar tracks class in which luminosities and effective temperatures of stars are computed from a tabulated set of
-    stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the {\normalfont
-    \ttfamily stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
+    stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the \mono{stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
     \begin{verbatim}
      stellarTracksFile
       |
@@ -50,11 +49,9 @@
       |
       x-> metallicityN
     \end{verbatim}
-    Each {\normalfont \ttfamily metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
-    the {\normalfont \ttfamily metallicity} dataset within each group), and may contain an arbitrary number of {\normalfont
-    \ttfamily massN} groups. Each {\normalfont \ttfamily massN} group should contain a track for a star of some mass (the value
-    of which is given in the {\normalfont \ttfamily mass} dataset). Within each track three datasets specify the {\normalfont
-    \ttfamily age} (in Gyr), {\normalfont \ttfamily luminosity} (in $L_\odot$) and {\normalfont \ttfamily effectiveTemperature}
+    Each \mono{metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
+    the \mono{metallicity} dataset within each group), and may contain an arbitrary number of \mono{massN} groups. Each \mono{massN} group should contain a track for a star of some mass (the value
+    of which is given in the \mono{mass} dataset). Within each track three datasets specify the \mono{age} (in Gyr), \mono{luminosity} (in $L_\odot$) and \mono{effectiveTemperature}
     (in Kelvin) along the track.
    </description>
    <runTimeFileDependencies paths="fileName"/>
@@ -148,7 +145,7 @@ contains
 
   subroutine fileInitialize(self)
     !!{
-    Read data for the {\normalfont \ttfamily file} stellar tracks class.
+    Read data for the \mono{file} stellar tracks class.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
@@ -170,7 +167,7 @@ contains
 
       ! Open the HDF5 file.
       !$ call hdf5Access%set()
-      call stellarTracks%openFile(char(self%fileName),readOnly=.true.)
+      stellarTracks=hdf5Object(char(self%fileName),readOnly=.true.)
       ! Check that this file has the correct format.
       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})
@@ -198,11 +195,8 @@ contains
                   massGroup=metallicityGroup%openGroup(char(groupName))
                   ageDataset=massGroup%openDataset('age')
                   ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
-                  call ageDataset%close()
-                  call massGroup%close()
                end if
             end do
-            call metallicityGroup%close()
          end if
       end do
       ! Allocate storage space for data.
@@ -242,19 +236,14 @@ contains
             ! Read tracks.
             ageDataset=massGroup%openDataset('age')
             self%countAge(initialMassCount,metallicityCount)=int(ageDataset%size(1))
-            call ageDataset%close()
             call massGroup%readDatasetStatic('age'                 ,self%age             (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
             call massGroup%readDatasetStatic('luminosity'          ,self%luminosityTrack (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
             call massGroup%readDatasetStatic('effectiveTemperature',self%temperatureTrack(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
-            call massGroup%close()
          end do
-         call metallicityGroup%close()
       end do
       ! Convert metallicities to logarithmic scale.
       self%metallicityLogarithmic=log(self%metallicityLogarithmic)
       self%countMetallicity=metallicityCountMaximum
-      ! Close the file.
-      call stellarTracks%close()
       !$ call hdf5Access%unset()
       ! Initialize interpolators.
       allocate(self%interpolatorMass(                        metallicityCountMaximum))
@@ -273,7 +262,7 @@ contains
 
   double precision function fileLuminosity(self,initialMass,metallicity,age)
     !!{
-    Return the bolometric luminosity (in $L_\odot$) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
+    Return the bolometric luminosity (in $L_\odot$) for a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -323,7 +312,7 @@ contains
 
   double precision function fileTemperatureEffective(self,initialMass,metallicity,age)
     !!{
-    Return the effective temperature (in Kelvin) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
+    Return the effective temperature (in Kelvin) for a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -373,7 +362,7 @@ contains
 
   double precision function fileInterpolate(self,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,stellarTracks)
     !!{
-    Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
+    Using precomputed factors, interpolate in metallicity, mass and age in the given \mono{stellarTracks}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report

@@ -53,7 +53,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
     <inputParameter>
       <name>efficiency</name>
       <source>parameters</source>
-      <description>The fractional efficiency of two-body relaxation heating.</description>
+      <description>The dimensionless efficiency factor (between 0 and 1) controlling what fraction of the energy transferred by two-body gravitational scattering actually heats the dark matter halo, accounting for partial thermalization of the relaxation energy.</description>
     </inputParameter>
     !!]
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)
@@ -93,7 +93,7 @@ contains
 
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeStart,efficiency) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating scales class.
+    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation)                :: self
@@ -108,7 +108,7 @@ contains
 
   function twoBodyRelaxationGet(self,node) result(massDistributionHeating_)
     !!{
-    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionHeatingTwoBodyRelaxation

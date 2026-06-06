@@ -44,7 +44,7 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true"/>
-      <output unitsInSI="0.0d0" comment="Shape parameter of the dark matter profile."/>
+      <output unitsInSI="1.0d0" comment="Shape parameter of the dark matter profile."/>
       <classDefault>-1.0d0</classDefault>
     </property>
    </properties>
@@ -54,13 +54,11 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
 contains
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
     implicit none

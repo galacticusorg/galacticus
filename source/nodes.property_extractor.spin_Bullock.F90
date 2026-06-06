@@ -25,12 +25,12 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
-   <description>A node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.</description>
+   <description>Extracts the \cite{bullock_profiles_2001} spin parameter $\lambda' = J / (\sqrt{2} M V r)$ of dark matter halos, an alternative dimensionless spin measure that is more easily computed from halo catalogs than the classical Peebles spin parameter.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSpinBullock
      !!{
-     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
+     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -43,11 +43,12 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
      procedure :: names        => spinBullockNames
      procedure :: descriptions => spinBullockDescriptions
      procedure :: unitsInSI    => spinBullockUnitsInSI
+     procedure :: units       => spinBullockUnits
   end type nodePropertyExtractorSpinBullock
 
   interface nodePropertyExtractorSpinBullock
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBullock} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
      !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal
@@ -78,7 +79,7 @@ contains
 
   function spinBullockConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -99,7 +100,7 @@ contains
 
   subroutine spinBullockDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorSpinBullock} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self
@@ -112,7 +113,7 @@ contains
 
   integer function spinBullockElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily spinBullock} property extractor.
+    Return the number of elements in the \mono{spinBullock} property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout) :: self
@@ -160,7 +161,7 @@ contains
 
   subroutine spinBullockNames(self,time,names)
     !!{
-    Return the name of the {\normalfont \ttfamily spinBullock} property.
+    Return the name of the \mono{spinBullock} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -180,7 +181,7 @@ contains
 
   subroutine spinBullockDescriptions(self,time,descriptions)
     !!{
-    Return a description of the {\normalfont \ttfamily spinBullock} property.
+    Return a description of the \mono{spinBullock} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -200,7 +201,7 @@ contains
 
   function spinBullockUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily spinBullock} property in the SI system.
+    Return the units of the \mono{spinBullock} property in the SI system.
     !!}
     implicit none
     double precision                                  , allocatable  , dimension(:) :: spinBullockUnitsInSI
@@ -209,7 +210,27 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(spinBullockUnitsInSI(self%elementCount_))
-    spinBullockUnitsInSI=0.0d0
+    spinBullockUnitsInSI=1.0d0
     return
   end function spinBullockUnitsInSI
 
+  function spinBullockUnits(self,time) result(units)
+    !!{
+    Return the units of the spinBullock properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                        ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSpinBullock), intent(inout)             :: self
+    double precision                                  , intent(in   )             :: time
+    double precision                                  , dimension(:), allocatable :: siValues
+    integer                                                                       :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function spinBullockUnits

@@ -23,7 +23,7 @@ Implements a galactic filter which applies another filter to the isolated host n
   
   !![
   <galacticFilter name="galacticFilterIsolatedHostNode">
-   <description>Applies a filter to the isolated host node of the given node.</description>
+   <description>Evaluates a wrapped \refClass{galacticFilterClass} on the isolated (top-level) host halo of the current node rather than on the node itself, enabling selection of satellites based on properties of their ultimate host environment.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterIsolatedHostNode

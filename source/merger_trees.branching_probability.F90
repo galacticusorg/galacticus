@@ -43,9 +43,11 @@ module Merger_Tree_Branching
   <functionClass>
    <name>mergerTreeBranchingProbability</name>
    <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
-   <description>
-    Class providing merger tree branching probabilities.
-   </description>
+   <description>Class providing merger tree branching probabilities---the differential probability per unit ``time'' (specifically
+    the variable $w(t) = \delta_\mathrm{c}(t)/D(t)$) that a halo of given mass splits into a more massive progenitor and a smaller
+    branch. These probabilities are typically derived from the extended Press-Schechter formalism and its extensions. They control
+    the statistical properties of the stochastically built merger trees and determine the mass spectrum of progenitors as a
+    function of redshift.</description>
    <default>parkinsonColeHelly</default>
    <method name="rate" >
     <description>Computes the probability per unit ``time'' of branching at the given mass.</description>

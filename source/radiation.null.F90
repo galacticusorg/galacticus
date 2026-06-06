@@ -23,7 +23,7 @@
 
   !![
   <radiationField name="radiationFieldNull">
-   <description>A radiation field class for null fields.</description>
+   <description>A radiation field class that returns zero flux at all wavelengths and positions, used as a placeholder when no radiation background is present or as a default in pipelines that do not require a radiation field.</description>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldNull

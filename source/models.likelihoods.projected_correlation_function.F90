@@ -46,16 +46,15 @@
     \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
     correlation function calculation are specified by the following subparameters:
     \begin{description}
-    \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-    \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
+    \item[\mono{haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+    \item[\mono{redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+    \item[\mono{projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
       correlation function and its covariance matrix.
     \end{description}
     
-    The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
-    \ttfamily separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
-    a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
-    function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
+    The HDF5 file specified by the \mono{projectedCorrelationFunctionFileName} element should contain a \mono{separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
+    a \mono{projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
+    function at those separations (in units of Mpc), and a \mono{covariance} dataset, giving the covariance of the
     projected correlation function (in units of Mpc$^2$).
    </description>
    <runTimeFileDependencies paths="fileName"/>
@@ -92,7 +91,7 @@
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -102,7 +101,7 @@ contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -201,7 +200,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    call file%openFile(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    file=hdf5Object(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )
@@ -213,7 +212,6 @@ contains
        allocate(self%integralConstraint,mold=self%projectedCorrelationFunctionObserved)
        self%integralConstraint=1.0d0
     end if
-    call file%close()
     !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     allocate(self%projectedCorrelationFunction(size(self%separation),size(self%massMinimum)))
@@ -224,7 +222,7 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} class.
+    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self

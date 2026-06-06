@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
+   <description>Abstract base class for extractors that return a fixed-length tuple of integer values per node, defining the interface (element count, names, descriptions, and units) for multi-valued integer outputs such as combined index arrays used in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerTuple
@@ -33,12 +33,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return the number of properties in the tuple."                      />
-       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="names"        description="Return the names of the properties extracted."                      />
-       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return the number of properties in the tuple."                 />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the names of the properties extracted."                 />
+       <method method="descriptions" description="Return descriptions of the properties extracted."              />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
@@ -46,13 +47,14 @@
      procedure(integerTupleNames       ), deferred :: names
      procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                                     :: units       => integerTupleUnits
      procedure                                     :: metaData    => integerTupleMetaData
   end type nodePropertyExtractorIntegerTuple
 
   abstract interface
      function integerTupleExtract(self,node,time,instance)
        !!{
-       Interface for {\normalfont \ttfamily integerTuple} property extraction.
+       Interface for \mono{integerTuple} property extraction.
        !!}
        import nodePropertyExtractorIntegerTuple, treeNode, multiCounter, kind_int8
        integer         (kind_int8                        ), dimension(:) , allocatable :: integerTupleExtract
@@ -66,7 +68,7 @@
   abstract interface
      subroutine integerTupleNames(self,time,names)
        !!{
-       Interface for {\normalfont \ttfamily integerTuple} property names.
+       Interface for \mono{integerTuple} property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -78,7 +80,7 @@
   abstract interface
      subroutine integerTupleDescriptions(self,time,descriptions)
        !!{
-       Interface for {\normalfont \ttfamily integerTuple} property descriptions.
+       Interface for \mono{integerTuple} property descriptions.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -90,7 +92,7 @@
   abstract interface
      function integerTupleUnitsInSI(self,time)
        !!{
-       Interface for {\normalfont \ttfamily integerTuple property units.
+       Interface for \mono{integerTuple} property units.
        !!}
        import nodePropertyExtractorIntegerTuple
        double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
@@ -102,7 +104,7 @@
   abstract interface
      integer function integerTupleElementCount(self,time)
        !!{
-       Interface for {\normalfont \ttfamily integerTuple} element count.
+       Interface for \mono{integerTuple} element count.
        !!}
        import nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout) :: self
@@ -111,6 +113,27 @@
   end interface
 
 contains
+
+  function integerTupleUnits(self,time) result(units)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerTuple} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                         ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorIntegerTuple), intent(inout)             :: self
+    double precision                                   , intent(in   )             :: time
+    double precision                                   , dimension(:), allocatable :: siValues
+    integer                                                                        :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i))
+    end do
+    return
+  end function integerTupleUnits
 
   subroutine integerTupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
     !!{

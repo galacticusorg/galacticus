@@ -33,11 +33,16 @@ module Excursion_Sets_Barriers
    <name>excursionSetBarrier</name>
    <descriptiveName>Excursion Set Barrier</descriptiveName>
    <description>
-    Class providing barriers for the excursion set problem.
+    Class providing the collapse barrier $B(\sigma^2, t)$ in the extended Press-Schechter excursion
+    set formalism---the threshold overdensity that a random walk in the density field must first cross
+    for a region of variance $\sigma^2$ to collapse by cosmic time $t$. The barrier height and its
+    gradient with respect to variance control the halo mass function and merger rate: a constant
+    barrier (spherical collapse) gives the Press-Schechter result, while a moving or stochastic barrier
+    (ellipsoidal collapse) produces mass functions in better agreement with N-body simulations.
    </description>
    <default>criticalOverdensity</default>
    <method name="barrier" >
-    <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <description>Return the barrier height at the given variance and time. The \mono{rateCompute} should be set to \mono{true} if the barrier is being used in a calculation of barrier crossing rates, and to \mono{false} otherwise.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>
@@ -45,7 +50,7 @@ module Excursion_Sets_Barriers
     <argument>logical                   , intent(in   ) :: rateCompute</argument>
    </method>
    <method name="barrierGradient" >
-    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The \mono{rateCompute} should be set to \mono{true} if the barrier is being used in a calculation of barrier crossing rates, and to \mono{false} otherwise.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>

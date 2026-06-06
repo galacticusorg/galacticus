@@ -41,7 +41,7 @@
     \begin{equation}
      n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
     \end{equation}
-    Along a sightline of length $l$ (specified by the {\normalfont \ttfamily [radiusBoundary]} parameter) the number of clouds
+    Along a sightline of length $l$ (specified by the \mono{[radiusBoundary]} parameter) the number of clouds
     intersected is
     \begin{equation}
      N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
@@ -100,17 +100,17 @@ contains
     !![
     <inputParameter>
       <name>halfWidth</name>
-      <description>The shell half-width.</description>
+      <description>The half-width (in Mpc) of each overdense spherical shell, representing the effective radius of the notional spherical cloud projected along the line of sight after accounting for a random impact parameter.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>densityContrast</name>
-      <description>The shell density contrast.</description>
+      <description>The density contrast of the overdense spherical shells relative to the smooth underlying mass distribution, i.e.\ $\Delta_\mathrm{c} = \rho_\mathrm{shell} / \rho_\mathrm{background}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>volumeFillingFactor</name>
-      <description>The shell volume filling factor.</description>
+      <description>The fraction of the total sightline volume occupied by overdense shells; together with \mono{halfWidth} determines the number of shells $N_\mathrm{c} = 3 f_\mathrm{v} l / r_\mathrm{c}$ along the line of sight.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -240,7 +240,7 @@ contains
 
   double precision function sphericalShellOverdensitiesDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a cloud overdensities mass distribution.
+    Return the density at the specified \mono{coordinates} in a cloud overdensities mass distribution.
     !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical

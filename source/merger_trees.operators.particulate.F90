@@ -27,6 +27,7 @@
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Mass_Distributions      , only : massDistributionClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: HDF5                    , only : hsize_t
   use :: ISO_Varying_String      , only : varying_string
@@ -40,7 +41,7 @@
    <description>Options for selection of nodes to particulate.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="all"        />
    <entry label="hosts"      />
    <entry label="satellites" />
@@ -53,7 +54,7 @@
    <description>Options for softening kernel in particulate.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="delta"  />
    <entry label="plummer"/>
    <entry label="gadget" />
@@ -62,7 +63,7 @@
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorParticulate">
-   <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
+   <description>Provides a merger tree operator which creates particle representations of \glc\ dark matter halos by sampling N-body particles from the halo density profile at a specified snapshot time. Particle mass is set by \mono{[massParticle]}, the snapshot time by \mono{[time]}, the truncation radius by \mono{[radiusTruncateOverRadiusVirial]}, and output by \mono{[outputFileName]}.</description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
@@ -112,14 +113,15 @@
   ! Tables used in construction of distribution functions.
   class           (mergerTreeOperatorParticulate   ), pointer     :: self_
   type            (treeNode                        ), pointer     :: node_
+  class           (massDistributionClass           ), pointer     :: massDistribution__
   logical                                                         :: energyDistributionInitialized
   class           (table1D                         ), allocatable :: radiusDistribution
   type            (table1DLogarithmicCSpline       )              :: energyDistribution
   type            (enumerationParticulateKernelType)              :: softeningKernel
-  double precision                                                :: energy_                                 , radiusTruncate_, &
-       &                                                             height_                                 , radius_        , &
-       &                                                             lengthSoftening_
-  !$omp threadprivate(self_,node_,radiusDistribution,energyDistribution,energyDistributionInitialized,softeningKernel,energy_,radiusTruncate_,height_,radius_,lengthSoftening_)
+  double precision                                                :: energy_                                 , massTruncate_   , &
+       &                                                             radiusTruncate_                         , height_         , &
+       &                                                             radius_                                 , lengthSoftening_
+  !$omp threadprivate(self_,node_,massDistribution__,radiusDistribution,energyDistribution,energyDistributionInitialized,softeningKernel,energy_,massTruncate_,radiusTruncate_,height_,radius_,lengthSoftening_)
 
 contains
 
@@ -161,7 +163,7 @@ contains
       <name>idMultiplier</name>
       <source>parameters</source>
       <defaultValue>0_kind_int8</defaultValue>
-      <description>If this parameter is greater than zero, particle IDs begin at {\normalfont \ttfamily nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
+      <description>If this parameter is greater than zero, particle IDs begin at \mono{nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
     </inputParameter>
     <inputParameter>
       <name>massParticle</name>
@@ -224,7 +226,7 @@ contains
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
-      <description>Selects the type of halo to output. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
+      <description>Selects the type of halo to output. Allowed options are ``\mono{all}'', ``\mono{hosts}'', and ``\mono{satellites}''.</description>
     </inputParameter>
     !!]
     selection_=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
@@ -233,7 +235,7 @@ contains
       <name>kernelSoftening</name>
       <source>parameters</source>
       <defaultValue>var_str('plummer')</defaultValue>
-      <description>Selects the softening kernel to use. Allowed options are ``{\normalfont \ttfamily plummer}'', and ``{\normalfont \ttfamily gadget}''.</description>
+      <description>Selects the softening kernel to use. Allowed options are ``\mono{plummer}'', and ``\mono{gadget}''.</description>
     </inputParameter>
     !!]
     kernelSoftening_=enumerationParticulateKernelEncode(char(kernelSoftening),includesPrefix=.false.)
@@ -271,7 +273,7 @@ contains
       <name>chunkSize</name>
       <source>parameters</source>
       <defaultValue>-1</defaultValue>
-      <description>HDF5 dataset chunk size.</description>
+      <description>The HDF5 dataset chunk size (in number of particles) used when writing particle data to the output file; set to $-1$ to disable chunking and write all particles in a single contiguous dataset.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -365,7 +367,6 @@ contains
     use    :: IO_HDF5                   , only : hdf5Object
     use    :: ISO_Varying_String        , only : varying_string                   , var_str
     use    :: Locks                     , only : ompLock
-    use    :: Mass_Distributions        , only : massDistributionClass
     use    :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use    :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Comparison      , only : Values_Agree
@@ -406,46 +407,45 @@ contains
          &                                                                          firstNode
     type            (coordinateCartesian          )                              :: positionCartesian                    , velocityCartesian
     type            (coordinateSpherical          )                              :: positionSpherical                    , velocitySpherical
-    type            (hdf5Object                   )                              :: outputFile                           , header                     , &
-         &                                                                          particleGroup
     type            (varying_string               )                              :: message
     character       (len=13                       )                              :: label
     character       (len= 9                       )                              :: groupName
 
     ! Open the HDF5 file for output.
-    !$ call hdf5Access%set     (                                                            )
-    call    outputFile%openFile(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
-    ! Create the header.
-    header=outputFile%openGroup('Header','Group containing Gadget metadata.')
-    ! Particle properties.
-    call header%writeAttribute(       1                                    ,'NumFilesPerSnapshot'   )
-    call header%writeAttribute(spread(0                               ,1,6),'NumPart_ThisFile'      )
-    call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total_HighWord')
-    call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total'         )
-    call header%writeAttribute(spread(self%massParticle/unitGadgetMass,1,6),'MassTable'             )
-    ! Time.
-    call header%writeAttribute(                                                                                              self%timeSnapshot  ,'Time'    )
-    call header%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeSnapshot)),'Redshift')
-    ! Cosmology.
-    if (self%nonCosmological) then
-       call header%writeAttribute(1.0d0                                                        ,'HubbleParam')
-       call header%writeAttribute(0.0d0                                                        ,'Omega0'     )
-       call header%writeAttribute(0.0d0                                                        ,'OmegaLambda')
-    else
-       call header%writeAttribute(self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH),'HubbleParam')
-       call header%writeAttribute(self%cosmologyParameters_%OmegaMatter    (                  ),'Omega0'     )
-       call header%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(                  ),'OmegaLambda')
-    end if
-    call header%writeAttribute(0.0d0,'BoxSize'         )
-    ! Flags.
-    call header%writeAttribute(0    ,'Flag_Cooling'    )
-    call header%writeAttribute(0    ,'Flag_Sfr'        )
-    call header%writeAttribute(0    ,'Flag_Feedback'   )
-    call header%writeAttribute(0    ,'Flag_StellarAge' )
-    call header%writeAttribute(0    ,'FlagMetals'      )
-    call header%writeAttribute(0    ,'Flag_Entropy_ICs')
-    call header%close()
-    call outputFile%close()
+    !$ call hdf5Access%set  ()
+    hdf5ScopeInitial: block
+      type(hdf5Object) :: outputFile, header
+      outputFile=hdf5Object(self%outputFileName,overWrite=.true.,readOnly=.false.)
+      ! Create the header.
+      header=outputFile%openGroup('Header','Group containing Gadget metadata.')
+      ! Particle properties.
+      call header%writeAttribute(       1                                    ,'NumFilesPerSnapshot'   )
+      call header%writeAttribute(spread(0                               ,1,6),'NumPart_ThisFile'      )
+      call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total_HighWord')
+      call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total'         )
+      call header%writeAttribute(spread(self%massParticle/unitGadgetMass,1,6),'MassTable'             )
+      ! Time.
+      call header%writeAttribute(                                                                                              self%timeSnapshot  ,'Time'    )
+      call header%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeSnapshot)),'Redshift')
+      ! Cosmology.
+      if (self%nonCosmological) then
+         call header%writeAttribute(1.0d0                                                        ,'HubbleParam')
+         call header%writeAttribute(0.0d0                                                        ,'Omega0'     )
+         call header%writeAttribute(0.0d0                                                        ,'OmegaLambda')
+      else
+         call header%writeAttribute(self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH),'HubbleParam')
+         call header%writeAttribute(self%cosmologyParameters_%OmegaMatter    (                  ),'Omega0'     )
+         call header%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(                  ),'OmegaLambda')
+      end if
+      call header%writeAttribute(0.0d0,'BoxSize'         )
+      ! Flags.
+      call header%writeAttribute(0    ,'Flag_Cooling'    )
+      call header%writeAttribute(0    ,'Flag_Sfr'        )
+      call header%writeAttribute(0    ,'Flag_Feedback'   )
+      call header%writeAttribute(0    ,'Flag_StellarAge' )
+      call header%writeAttribute(0    ,'FlagMetals'      )
+      call header%writeAttribute(0    ,'Flag_Entropy_ICs')
+    end block hdf5ScopeInitial
     !$ call hdf5Access%unset()
     ! Iterate over nodes.
     firstNode =.true.
@@ -504,6 +504,7 @@ contains
           satellite => node%satellite()
           ! Set pointers to module-scope variables.
           node_            => node
+          massTruncate_    =  massTruncate
           radiusTruncate_  =  radiusTruncate
           lengthSoftening_ =  self%lengthSoftening
           softeningKernel  =  self%kernelSoftening
@@ -513,7 +514,7 @@ contains
           positionRandomOffset=0.0d0
           velocityRandomOffset=0.0d0
           lockSampling        =ompLock()
-          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,radiusTruncate_,lengthSoftening_,softeningKernel)
+          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(node_,massTruncate_,radiusTruncate_,lengthSoftening_,softeningKernel)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(self_,mold=self)
           !$omp critical(mergerTreeOperatorsParticulateDeepCopy)
@@ -523,6 +524,8 @@ contains
           <deepCopyFinalize variables="self_"/>
           !!]
           !$omp end critical(mergerTreeOperatorsParticulateDeepCopy)
+          !$omp barrier
+          massDistribution__ => node_%massDistribution(massType=massTypeDark)
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              !$ if (OMP_Get_Thread_Num() == 0) then
@@ -533,22 +536,31 @@ contains
              counter=counter+1
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
-             randomDeviates=-1.0d0
-             call lockSampling%set()
-             do j=1,3
-                ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
-                do while (                                           &
-                     &     (j == 3 .and. randomDeviates(j) <= 0.0d0) &
-                     &    .or.                                       &
-                     &     (j /= 3 .and. randomDeviates(j) <  0.0d0) &
-                     &   )
-                   randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+             keepSample=.false.
+             do while (.not.keepSample)
+                randomDeviates=-1.0d0
+                call lockSampling%set()
+                do j=1,3
+                   ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
+                   do while (                                           &
+                        &     (j == 3 .and. randomDeviates(j) <= 0.0d0) &
+                        &    .or.                                       &
+                        &     (j /= 3 .and. randomDeviates(j) <  0.0d0) &
+                        &   )
+                      randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+                   end do
                 end do
+                call lockSampling%unset()
+                call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
+                call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
+                call positionSpherical%    rSet(                                                               &
+                     &                          massDistribution__%radiusEnclosingMass(                        &
+                     &                                                                 mass=+massTruncate_     &
+                     &                                                                      *randomDeviates(3) &
+                     &                                                                 )                       &
+                     &                         )
+                keepSample=positionSpherical%rSpherical() < radiusTruncate_
              end do
-             call lockSampling%unset()
-             call positionSpherical%  phiSet(     2.0d0*Pi       *randomDeviates(1)       )
-             call positionSpherical%thetaSet(acos(2.0d0          *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(     radiusTruncate_*randomDeviates(3)       )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical
              ! Construct the energy distribution function encompassing this radius.
@@ -695,7 +707,8 @@ contains
           !$omp end do
           call Node_Components_Thread_Uninitialize()
           !![
-          <objectDestructor name="self_"/>
+          <objectDestructor name="self_"             />
+          <objectDestructor name="massDistribution__"/>
           !!]
           !$omp end parallel
           call displayCounterClear(verbosity=verbosityLevelWorking)
@@ -712,50 +725,51 @@ contains
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
-          !$ call hdf5Access%set     (                                                                                      )
-          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
-          ! Get current count of particles in file.
-          header=outputFile%openGroup('Header','Group containing Gadget metadata.')
-          call header%readAttributeStatic('NumPart_Total',particleCounts)
-          ! Write particle data.
-          if (self%haloIdToParticleType) then
-             write (groupName,'(a,i1)') 'PartType',node%index()
-             typeIndex=int(node%index())+1
-          else
-             groupName='PartType1'
-             typeIndex=2
-          end if
-          ! Offset particle IDs.
-          if (self%idMultiplier > 0) then
-             particleIDs=particleIDs+node%index()*self%idMultiplier
-          else
-             particleIDs=particleIDs+particleCounts(typeIndex)
-          end if
-          if (.not.firstNode.and.self%chunkSize == -1)                                                                                                                                        &
-               & call Error_Report(                                                                                                                                                           &
-               &                   var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                                                            &
-               &                   displayGreen()//' HELP: '//displayReset()//                                                                                                                &
-               &                   ' set the chunk size in your parameter file as highlighted below: '                                                                 //char(10)//char(10)// &
-               &                   stringXMLFormat('<mergerTreeOperator value="'//self%objectType(short=.true.)//'">**B<chunkSize value="N"/>**C</mergerTreeOperator>')//char(10)//char(10)// &
-               &                   'where N is a non-zero value'                                                                                                                           // &
-               &                   {introspection:location}                                                                                                                                   &
-               &                  )
-          particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
-          call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
-          call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
-          call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
-          call particleGroup%close()
-          firstNode=.false.
-          deallocate(particlePosition)
-          deallocate(particleVelocity)
-          deallocate(particleIDs     )
-          ! Update particle counts.
-          particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
-          call    header    %writeAttribute(particleCounts,'NumPart_ThisFile')
-          call    header    %writeAttribute(particleCounts,'NumPart_Total'   )
-          call    header    %close         (                                 )
-          call    outputFile%close         (                                 )
-          !$ call hdf5Access%unset         (                                 )
+          !$ call hdf5Access%set  ()
+          hdf5ScopeWrite: block
+            type(hdf5Object) :: outputFile   , header, &
+                 &              particleGroup
+            outputFile=hdf5Object(self%outputFileName,overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+            ! Get current count of particles in file.
+            header=outputFile%openGroup('Header','Group containing Gadget metadata.')
+            call header%readAttributeStatic('NumPart_Total',particleCounts)
+            ! Write particle data.
+            if (self%haloIdToParticleType) then
+               write (groupName,'(a,i1)') 'PartType',node%index()
+               typeIndex=int(node%index())+1
+            else
+               groupName='PartType1'
+               typeIndex=2
+            end if
+            ! Offset particle IDs.
+            if (self%idMultiplier > 0) then
+               particleIDs=particleIDs+node%index()*self%idMultiplier
+            else
+               particleIDs=particleIDs+particleCounts(typeIndex)
+            end if
+            if (.not.firstNode.and.self%chunkSize == -1)                                                                                                                                        &
+                 & call Error_Report(                                                                                                                                                           &
+                 &                   var_str('can not write multiple halos to output with chunksize=-1')//char(10)//                                                                            &
+                 &                   displayGreen()//' HELP: '//displayReset()//                                                                                                                &
+                 &                   ' set the chunk size in your parameter file as highlighted below: '                                                                 //char(10)//char(10)// &
+                 &                   stringXMLFormat('<mergerTreeOperator value="'//self%objectType(short=.true.)//'">**B<chunkSize value="N"/>**C</mergerTreeOperator>')//char(10)//char(10)// &
+                 &                   'where N is a non-zero value'                                                                                                                           // &
+                 &                   {introspection:location}                                                                                                                                   &
+                 &                  )
+            particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
+            call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
+            call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
+            call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
+            firstNode=.false.
+            deallocate(particlePosition)
+            deallocate(particleVelocity)
+            deallocate(particleIDs     )
+            ! Update particle counts.
+            particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
+            call header%writeAttribute(particleCounts,'NumPart_ThisFile')
+            call header%writeAttribute(particleCounts,'NumPart_Total'   )
+          end block hdf5ScopeWrite
+          !$ call hdf5Access%unset()
        end if
     end do
     return
@@ -821,7 +835,8 @@ contains
     end if
     if (tableRebuild) then
        ! Build tables of potential and density.
-       radiusCount=int(energyDistributionPointsPerDecade*log10(radiusTruncate_/radiusMinimum))+1
+       radiusCount         =int(energyDistributionPointsPerDecade*log10(radiusTruncate_/radiusMinimum))+1
+       intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=self_%toleranceRelativeSmoothing)
        call energyDistribution%create(                                                                &
             &                                           +radiusMinimum                              , &
             &                                           +radiusTruncate_                            , &
@@ -866,7 +881,6 @@ contains
              end select
              ! The integral here is performed in two parts - below and above the current radius where the integrand has a
              ! discontinuous gradient - for improved speed and stability.
-             intergatorSmoothingZ=integrator(particulateSmoothingIntegrandZ,toleranceRelative=self_%toleranceRelativeSmoothing)
              if (particulateSmoothingIntegrationRangeLower < radius_) then
                 densitySmoothedIntegralLower=intergatorSmoothingZ%integrate(                                               &
                      &                                                          particulateSmoothingIntegrationRangeLower, &
@@ -1046,10 +1060,9 @@ contains
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
-    double precision            , intent(in   ) :: height
-    type            (integrator)                :: integrator_
-    double precision                            :: radiusMaximum, heightOffset, &
-         &                                         argumentSqrt
+    double precision, intent(in   ) :: height
+    double precision                :: radiusMaximum, heightOffset, &
+         &                             argumentSqrt
 
     heightOffset=height-radius_ ! Height in the profile (not the kernel).
     argumentSqrt=+radiusTruncate_**2-heightOffset**2
@@ -1062,9 +1075,12 @@ contains
        case (particulateKernelGadget %ID)
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*lengthSoftening_)**2-height_**2))
        end select
-       integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=self_%toleranceRelativeSmoothing)
-       particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                        radiusMaximum             )
-    end if
+       block
+         type(integrator) :: integrator_
+         integrator_                   =integrator           (particulateSmoothingIntegrandR,toleranceRelative=self_%toleranceRelativeSmoothing)
+         particulateSmoothingIntegrandZ=integrator_%integrate(0.0d0                         ,                        radiusMaximum             )
+       end block
+     end if
     return
   end function particulateSmoothingIntegrandZ
 

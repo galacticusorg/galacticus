@@ -26,7 +26,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes">
-    <description>A property extractor class for the star formation history tabulation times of a component.</description>
+    <description>A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy \mono{component} (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by \refClass{nodePropertyExtractorStarFormationHistoryMass}. The number of returned times depends on the specific \refClass{starFormationHistoryClass} implementation.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorStarFormationHistoryTimes
@@ -43,11 +43,12 @@
      procedure :: names        => starFormationHistoryTimesNames
      procedure :: descriptions => starFormationHistoryTimesDescriptions
      procedure :: unitsInSI    => starFormationHistoryTimesUnitsInSI
+     procedure :: units       => starFormationHistoryTimesUnits
   end type nodePropertyExtractorStarFormationHistoryTimes
   
   interface nodePropertyExtractorStarFormationHistoryTimes
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal
@@ -122,7 +123,7 @@ contains
 
   integer function starFormationHistoryTimesElementCount(self)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily starFormationHistoryTimes} property extractors.
+    Return the number of elements in the \mono{starFormationHistoryTimes} property extractors.
     !!}
     implicit none
     class(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self
@@ -133,7 +134,7 @@ contains
 
   function starFormationHistoryTimesExtract(self,node,instance)
     !!{
-    Implement a {\normalfont \ttfamily starFormationHistoryTimes} property extractor.
+    Implement a \mono{starFormationHistoryTimes} property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -174,7 +175,7 @@ contains
 
   subroutine starFormationHistoryTimesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily starFormationHistoryTimes} properties.
+    Return the names of the \mono{starFormationHistoryTimes} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -188,7 +189,7 @@ contains
 
   subroutine starFormationHistoryTimesDescriptions(self,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily starFormationHistoryTimes} property.
+    Return descriptions of the \mono{starFormationHistoryTimes} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -202,7 +203,7 @@ contains
 
   function starFormationHistoryTimesUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily starFormationHistoryTimes} properties in the SI system.
+    Return the units of the \mono{starFormationHistoryTimes} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -213,3 +214,23 @@ contains
     starFormationHistoryTimesUnitsInSI(1)=gigaYear
     return
   end function starFormationHistoryTimesUnitsInSI
+
+  function starFormationHistoryTimesUnits(self) result(units)
+    !!{
+    Return the units of the starFormationHistoryTimes properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                      ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorStarFormationHistoryTimes), intent(inout)              :: self
+    double precision                                                , dimension(:) , allocatable :: siValues
+    integer                                                                                      :: i
+    !$GLC attributes unused :: self
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='Gyr',quantity='Gyr')
+    end do
+    return
+  end function starFormationHistoryTimesUnits

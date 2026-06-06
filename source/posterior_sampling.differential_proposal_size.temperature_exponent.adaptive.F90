@@ -28,14 +28,14 @@
     This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
     temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily [exponentInitial]}] The initial value for $\alpha$;
-    \item[{\normalfont \ttfamily [exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
+    \item[\mono{[exponentInitial]}] The initial value for $\alpha$;
+    \item[\mono{[exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
       acceptance rate gradient is out of range;
-    \item[{\normalfont \ttfamily [exponentMinimum]}] The smallest value allowed for $\alpha$;
-    \item[{\normalfont \ttfamily [exponentMaximum]}] The largest value allowed for $\alpha$;
-    \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
+    \item[\mono{[exponentMinimum]}] The smallest value allowed for $\alpha$;
+    \item[\mono{[exponentMaximum]}] The largest value allowed for $\alpha$;
+    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
     \end{description}
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
@@ -81,22 +81,22 @@ contains
     !![
     <inputParameter>
       <name>exponentInitial</name>
-      <description>The initial exponent.</description>
+      <description>The initial value of the temperature-scaling exponent $\alpha$ used before any adaptive adjustment based on the acceptance-rate gradient has been applied.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentMinimum</name>
-      <description>The minimum allowed exponent.</description>
+      <description>The minimum value to which the temperature-scaling exponent $\alpha$ may be reduced during adaptive adjustment, preventing the temperature dependence from becoming negligibly weak.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentMaximum</name>
-      <description>The maximum allowed exponent.</description>
+      <description>The maximum value to which the temperature-scaling exponent $\alpha$ may be increased during adaptive adjustment, preventing the proposal size from growing too steeply with temperature.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>exponentAdjustFactor</name>
-      <description>The factor by which to adjust the exponent.</description>
+      <description>The additive increment by which the temperature-scaling exponent $\alpha$ is increased or decreased at each adaptation step when the acceptance-rate gradient falls outside the target range.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -124,7 +124,7 @@ contains
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self

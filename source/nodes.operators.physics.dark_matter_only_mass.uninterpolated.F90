@@ -23,9 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorDMOUninterpolated">
-   <description>
-    A node operator class that keeps the ``\gls{dmou}'' fixed between node promotion events.
-   </description>
+   <description>Keeps the dark matter only uninterpolated (\gls{dmou}) mass fixed at its current value between node promotion events, preventing interpolation-induced drift and ensuring mass consistency during tree evolution.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDMOUninterpolated
@@ -64,7 +62,7 @@ contains
 
   subroutine dmoUninterpolatedNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
+    Ensure that \mono{node} is ready for promotion to its parent.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic

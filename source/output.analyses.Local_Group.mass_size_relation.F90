@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupMassSizeRelation">
-   <description>An output analysis class for Local Group satellite galaxy mass-size relations.</description>
+   <description>Computes the stellar mass--half-light radius relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass and size random/systematic error polynomial coefficients, binomial covariance parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassSizeRelation
@@ -170,6 +170,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10             , outputAnalysisPropertyOperatorLog10       , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -221,6 +222,7 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, sizeSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
@@ -439,6 +441,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                             &
+           &                                                      xAxisLabel      =var_str('$M_\star/\mathrm{M}_\odot$'                     ), &
+           &                                                      yAxisLabel      =var_str('$\langle\log_{10}(r_{1/2}/\mathrm{Mpc})\rangle$'), &
+           &                                                      xAxisIsLog      =.true.                                                    , &
+           &                                                      yAxisIsLog      =.false.                                                   , &
+           &                                                      targetLabel     =var_str('Galacticus compilation'                         ), &
+           &                                                      valueTarget     =functionValueTargetNonZero                                , &
+           &                                                      covarianceTarget=functionCovarianceTargetNonZero                             &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -448,11 +459,15 @@ contains
 	   &amp;                        var_str('massStellar'                                        ), &amp;
 	   &amp;                        var_str('Stellar mass at the bin center'                     ), &amp;
 	   &amp;                        var_str('M☉'                                                 ), &amp;
+	   &amp;                        var_str('solMass'                                            ), &amp;
+	   &amp;                        .false.                                                       , &amp;
 	   &amp;                        massSolar                                                     , &amp;
 	   &amp;                        var_str('radiusHalfMassMean'                                 ), &amp;
            &amp;                        var_str('Mean logarithmic half-mass radius; ⟨log₁₀(r_½/Mpc)⟩'), &amp;
            &amp;                        var_str('dimensionless'                                      ), &amp;
-           &amp;                        0.0d0                                                         , &amp;
+           &amp;                        var_str(' '                                                  ), &amp;
+           &amp;                        .false.                                                       , &amp;
+           &amp;                        1.0d0                                                         , &amp;
 	   &amp;                        massesNonZero                                                 , &amp;
 	   &amp;                        bufferCount                                                   , &amp;
 	   &amp;                        outputWeight                                                  , &amp;
@@ -470,14 +485,8 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                             , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                             , &amp;
            &amp;                        likelihoodNormalize                                           , &amp;
-           &amp;                        var_str('$M_\star/\mathrm{M}_\odot$'                         ), &amp;
-           &amp;                        var_str('$\langle\log_{10}(r_{1/2}/\mathrm{Mpc})\rangle$'    ), &amp;
-           &amp;                        .true.                                                        , &amp;
-           &amp;                        .false.                                                       , &amp;
-           &amp;                        var_str('Galacticus compilation'                             ), &amp;
-           &amp;                        functionValueTargetNonZero                                    , &amp;
-           &amp;                        functionCovarianceTargetNonZero                               , &amp;
-	   &amp;                        massesWidthBin                                                  &amp; 
+           &amp;                        outputAnalysisTargetData_                                     , &amp;
+	   &amp;                        massesWidthBin                                                  &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>
@@ -524,7 +533,7 @@ contains
 
   subroutine localGroupMassSizeRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassSizeRelation} output analysis.
+    Implement a \mono{localGroupMassSizeRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self
@@ -537,7 +546,7 @@ contains
 
   subroutine localGroupMassSizeRelationReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassSizeRelation} output analysis reduction.
+    Implement a \mono{localGroupMassSizeRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -555,7 +564,7 @@ contains
 
   subroutine localGroupMassSizeRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupMassSizeRelation} output analysis finalization.
+    Implement a \mono{localGroupMassSizeRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassSizeRelation), intent(inout)           :: self
@@ -567,7 +576,7 @@ contains
 
   double precision function localGroupMassSizeRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupMassSizeRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupMassSizeRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self

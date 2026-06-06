@@ -23,7 +23,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalarizer">
-   <description>An output analysis property extractor class that scalarizes one element from an array node property extractor.</description>
+   <description>A property extractor that wraps an array or tuple \refClass{nodePropertyExtractorClass} and returns a single scalar value by selecting one entry from the array. The \mono{element} parameter specifies which element index to extract; for tuple extractors an additional \mono{item} parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorScalarizer
@@ -39,11 +39,12 @@ Implements an output analysis property extractor class that scalarizes one eleme
      procedure :: name        => scalarizerName
      procedure :: description => scalarizerDescription
      procedure :: unitsInSI   => scalarizerUnitsInSI
+     procedure :: units       => scalarizerUnits
   end type nodePropertyExtractorScalarizer
 
   interface nodePropertyExtractorScalarizer
      !!{
-     Constructors for the \refClass{nodePropertyExtractorScalarizer} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -53,7 +54,7 @@ contains
 
   function scalarizerConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorScalarizer} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -228,3 +229,27 @@ contains
     end select
     return
   end function scalarizerUnitsInSI
+
+  function scalarizerUnits(self) result(units)
+    !!{
+    Return the units of the scalarizer property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                       )                              :: units
+    class(nodePropertyExtractorScalarizer), intent(inout)               :: self
+    type (unitType                       ), allocatable  , dimension(:) :: units_
+
+    select type (nodePropertyExtractor__ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorArray)
+       units_=nodePropertyExtractor__%units(            )
+       units =units_                       (self%element)
+    class is (nodePropertyExtractorTuple)
+       units_=nodePropertyExtractor__%units(-huge(0.0d0))
+       units =units_                       (self%element)
+    class default
+       units=unitType(1.0d0)
+       call Error_Report('class must be nodePropertyExtractorArray'//{introspection:location})
+    end select
+    return
+  end function scalarizerUnits

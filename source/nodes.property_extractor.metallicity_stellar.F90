@@ -23,7 +23,12 @@ Implements an ISM metallicity output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMetallicityStellar">
-   <description>A stellar metallicity output analysis property extractor class.</description>
+   <description>A property extractor that returns the stellar metallicity of a node, defined as the
+    mass ratio of a specified element to hydrogen in the stellar component, $Z_\star = M_X / M_\mathrm{H}$,
+    summed over disk and spheroid stars. The \mono{element} parameter specifies the atomic symbol
+    (e.g.\ \mono{Fe}, \mono{O}) for the metal used in the definition. Only elements tracked by the
+    abundances structure are valid choices. Returns zero for nodes with no stellar mass, and tracks
+    the mass-weighted mean metallicity of all stars formed.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityStellar
@@ -38,11 +43,12 @@ Implements an ISM metallicity output analysis property extractor class.
      procedure :: name        => metallicityStellarName
      procedure :: description => metallicityStellarDescription
      procedure :: unitsInSI   => metallicityStellarUnitsInSI
+     procedure :: units       => metallicityStellarUnits
   end type nodePropertyExtractorMetallicityStellar
 
   interface nodePropertyExtractorMetallicityStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal
@@ -52,7 +58,7 @@ contains
 
   function metallicityStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -81,7 +87,7 @@ contains
 
   function metallicityStellarConstructorInternal(indexElement) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityStellar} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -172,6 +178,20 @@ contains
     class(nodePropertyExtractorMetallicityStellar), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    metallicityStellarUnitsInSI=0.0d0
+    metallicityStellarUnitsInSI=1.0d0
     return
   end function metallicityStellarUnitsInSI
+
+  function metallicityStellarUnits(self) result(units)
+    !!{
+    Return the units of the metallicityStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                               )                :: units
+    class(nodePropertyExtractorMetallicityStellar), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI())
+    return
+  end function metallicityStellarUnits

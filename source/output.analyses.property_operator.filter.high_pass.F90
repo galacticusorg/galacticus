@@ -23,7 +23,7 @@ Implements a high-pass filter analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorFilterHighPass">
-   <description>A high-pass filter analysis property operator class.</description>
+   <description>An output analysis property operator that applies a high-pass filter to a galaxy property value, passing values above \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) and either setting or multiplying the property by the filter value.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorFilterHighPass
@@ -39,7 +39,7 @@ Implements a high-pass filter analysis property operator class.
 
   interface outputAnalysisPropertyOperatorFilterHighPass
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self

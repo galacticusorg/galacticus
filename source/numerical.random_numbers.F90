@@ -32,7 +32,12 @@ module Numerical_Random_Numbers
   <functionClass>
    <name>randomNumberGenerator</name>
    <descriptiveName>Random Number Generators</descriptiveName>
-   <description>Class providing random number generators.</description>
+   <description>Class providing pseudo-random number generators---algorithms that produce sequences of numbers
+    with the statistical properties of true randomness. Methods return uniform deviates on $[0,1)$, Gaussian
+    deviates, and raw integer samples, with support for seeding and independent sequences per MPI process
+    and OpenMP thread. Random number generators are used throughout \glc\ for Monte Carlo sampling,
+    stochastic merger tree construction, posterior sampling simulations, and generating scatter in
+    model predictions.</description>
    <default>GSL</default>
    <method name="mpiIndependent" >
     <description>Return true if this random number generator produces independent sequences per MPI process (when using the same seed and offsetting is requested).</description>
@@ -55,7 +60,7 @@ module Numerical_Random_Numbers
     <pass>yes</pass>
    </method>
    <method name="sample" >
-    <description>Return a random integer. If the optional argument {\normalfont \ttfamily n} is supplied the random integer will lie in the range 0 to  {\normalfont \ttfamily n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
+    <description>Return a random integer. If the optional argument \mono{n} is supplied the random integer will lie in the range 0 to  \mono{n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
     <argument>integer(c_long), intent(in   ), optional :: n</argument>
@@ -66,7 +71,7 @@ module Numerical_Random_Numbers
     <pass>yes</pass>
    </method>
    <method name="poissonSample" >
-    <description>Return a random number drawn from a Poisson distribution with the given {\normalfont \ttfamily mean}.</description>
+    <description>Return a random number drawn from a Poisson distribution with the given \mono{mean}.</description>
     <type>integer</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mean</argument>

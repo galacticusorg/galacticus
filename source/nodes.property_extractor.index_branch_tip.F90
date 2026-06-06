@@ -23,7 +23,7 @@ Implements a node branch tip index property extractor.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIndexBranchTip">
-   <description>A node branch tip index property extractor.</description>
+   <description>Extracts the stored index of the tip node (earliest progenitor) on the same merger tree branch as a given node. Enables identification of the branch origin and facilitates comparisons of progenitor properties along a given merger tree branch across cosmic time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndexBranchTip
@@ -40,7 +40,7 @@ Implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorIndexBranchTip
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIndexBranchTip} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIndexBranchTip} property extractor class.
      !!}
      module procedure indexBranchTipConstructorParameters
      module procedure indexBranchTipConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function indexBranchTipConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIndexBranchTip} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIndexBranchTip} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function indexBranchTipConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndexBranchTip} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIndexBranchTip} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexBranchTip) :: self
@@ -79,7 +79,7 @@ contains
 
   function indexBranchTipExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily indexBranchTip} node property extractor.
+    Implement a \mono{indexBranchTip} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -122,4 +122,3 @@ contains
     indexBranchTipDescription=var_str('Index of the node at the tip of this branch.')
     return
   end function indexBranchTipDescription
-

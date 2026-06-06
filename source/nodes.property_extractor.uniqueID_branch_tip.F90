@@ -23,7 +23,7 @@ Implements a node branch tip index property extractor.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorUniqueIDBranchTip">
-   <description>A node branch tip index property extractor.</description>
+   <description>Extracts the unique global identifier of the tip (earliest progenitor) node on the current merger tree branch, providing a persistent cross-snapshot identifier that enables tracking of branch origins across different output times and tree realizations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorUniqueIDBranchTip
@@ -36,11 +36,12 @@ Implements a node branch tip index property extractor.
      procedure :: extract     => uniqueIDBranchTipExtract
      procedure :: name        => uniqueIDBranchTipName
      procedure :: description => uniqueIDBranchTipDescription
+     procedure :: units       => uniqueIDBranchTipUnits
   end type nodePropertyExtractorUniqueIDBranchTip
 
   interface nodePropertyExtractorUniqueIDBranchTip
      !!{
-     Constructors for the \refClass{nodePropertyExtractorUniqueIDBranchTip} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -50,7 +51,7 @@ contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +67,7 @@ contains
 
   function uniqueIDBranchTipConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorUniqueIDBranchTip) :: self
@@ -79,7 +80,7 @@ contains
 
   function uniqueIDBranchTipExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily uniqueIDBranchTip} node property extractor.
+    Implement a \mono{uniqueIDBranchTip} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -123,3 +124,16 @@ contains
     return
   end function uniqueIDBranchTipDescription
 
+  function uniqueIDBranchTipUnits(self) result(units)
+    !!{
+    Return the units of the uniqueIDBranchTip property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorUniqueIDBranchTip), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function uniqueIDBranchTipUnits

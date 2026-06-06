@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Default parameters for Galacticus v0.9.2 -->
+
 <!-- 30-October-2011                          -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyParameters value="simple">
@@ -60,18 +62,19 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <fixedValue value="1.234"/>
   <derivedValue1 value="=10.0*[fixedValue]"/>
-  <derivedValue2 value="=2.3+[fixedValue]-[derivedValue2:derivedValue3]^2">
+  <derivedValue2 value="=2.3+[fixedValue]-[derivedValue2/derivedValue3]^2">
     <derivedValue3 value="=exp([fixedValue])"/>
   </derivedValue2>
   <wrapper1 value="" ignoreWarnings="true">
-    <derivedValue4 value="=[.:fixedValue1]"/>
+    <derivedValue4 value="=[./fixedValue1]"/>
     <fixedValue1 value="33.42"/>
     <wrapper2 value="" ignoreWarnings="true">
-      <derivedValue5 value="=[.:fixedValue2]+[..:fixedValue1]+[.:..:wrapper2:fixedValue2]"/>
+      <derivedValue5 value="=[./fixedValue2]+[../fixedValue1]+[./../wrapper2/fixedValue2]"/>
       <fixedValue2 value="42.33"/>
     </wrapper2>
   </wrapper1>
@@ -83,13 +86,13 @@
   </container1>
   <container2>
     <container3>
-      <derivedValue10 value="=[container1:derivedValue9]+1.0"/>
+      <derivedValue10 value="=[container1/derivedValue9]+1.0"/>
     </container3>
   </container2>
-  <derivedValue11 value="=[container2:container3:derivedValue10]+1.0"/>
+  <derivedValue11 value="=[container2/container3/derivedValue10]+1.0"/>
   <integerValue1 value="6"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
-  <active1 value="0.1" active="[cosmologicalMassVariance:sigma_8] != 0.912"/>
-  <active1 value="0.2" active="[cosmologicalMassVariance:sigma_8] == 0.912"/>
+  <active1 value="0.1" active="[cosmologicalMassVariance/sigma_8] != 0.912"/>
+  <active1 value="0.2" active="[cosmologicalMassVariance/sigma_8] == 0.912"/>
 
-</parameters>
+<componentHotHalo value="standard"/></parameters>

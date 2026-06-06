@@ -31,9 +31,6 @@
   !![
   <coolingRadius name="coolingRadiusIsothermal">
    <description>
-  !!]
-
-  !![
     A cooling radius class that computes the cooling radius by assuming an isothermal density profile, and a cooling rate
     proportional to density squared. This implies a cooling time:
     \begin{equation}

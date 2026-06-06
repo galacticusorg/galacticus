@@ -28,18 +28,18 @@
   <enumeration>
    <name>wagner2016SSFRRedshiftRange</name>
    <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="low" />
    <entry label="high"/>
   </enumeration>
   <enumeration>
    <name>wagner2016SSFRGalaxyType</name>
    <description>Specifies the galaxy type for the \cite{wagner_evolution_2016} analysis</description>
+   <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
    <entry label="quiescent"  />
    <entry label="starForming"/>
   </enumeration>
@@ -47,7 +47,7 @@
   
   !![
   <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016">
-    <description>An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.</description>
+    <description>Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) for a specified redshift range and galaxy type (quiescent or star-forming) from \cite{wagner_evolution_2016}, with stellar mass and specific SFR random/systematic error polynomial coefficients.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2016
@@ -147,12 +147,12 @@ contains
     <inputParameter>
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``{\normalfont \ttfamily low}'' or ``{\normalfont \ttfamily high}'') for this analysis.</description>
+      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
     </inputParameter>
     <inputParameter>
       <name>galaxyType</name>
       <source>parameters</source>
-      <description>The galaxy type (``{\normalfont \ttfamily quiescent}'' or ``{\normalfont \ttfamily starForming}'') for this analysis.</description>
+      <description>The galaxy type (``\mono{quiescent}'' or ``\mono{starForming}'') for this analysis.</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>

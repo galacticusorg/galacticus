@@ -27,7 +27,7 @@ Implements a cooling rate property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
    <description>
    A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
-   heating) in $M_\odot$ Gyr$^{-1}$.
+   heating) in $\mathrm{M}_\odot$ Gyr$^{-1}$.
   </description>
   </nodePropertyExtractor>
   !!]
@@ -43,11 +43,12 @@ Implements a cooling rate property extractor class.
      procedure :: name        => rateCoolingName
      procedure :: description => rateCoolingDescription
      procedure :: unitsInSI   => rateCoolingUnitsInSI
+     procedure :: units       => rateCoolingUnits
   end type nodePropertyExtractorRateCooling
 
   interface nodePropertyExtractorRateCooling
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRateCooling} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
@@ -157,4 +158,16 @@ contains
     return
   end function rateCoolingUnitsInSI
 
+  function rateCoolingUnits(self) result(units)
+    !!{
+    Return the units of the rateCooling property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                        )                :: units
+    class(nodePropertyExtractorRateCooling), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function rateCoolingUnits

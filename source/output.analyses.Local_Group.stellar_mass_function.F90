@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupStellarMassFunction">
-   <description>An output analysis class for Local Group satellite galaxy mass functions.</description>
+   <description>Computes the stellar mass function of Local Group satellite galaxies for comparison with observational data, with random/systematic error polynomial coefficients, fractional scatter, binomial covariance matrix parameters, position-type selection, and zero-point log-likelihood control.</description>
    <deepCopy>
     <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
    </deepCopy>
@@ -426,11 +426,15 @@ contains
        &amp;                         var_str('massStellar')                                 , &amp;
        &amp;                         var_str('Stellar mass at the bin center')              , &amp;
        &amp;                         var_str('M☉')                                          , &amp;
+       &amp;                         var_str('solMass')                                     , &amp;
+       &amp;                         .false.                                                , &amp;
        &amp;                         massSolar                                              , &amp;
        &amp;                         var_str('massFunction')                                , &amp;
        &amp;                         var_str('Differential satellite stellar mass function'), &amp;
        &amp;                         var_str(' ')                                           , &amp;
-       &amp;                         0.0d0                                                  , &amp;
+       &amp;                         var_str(' ')                                           , &amp;
+       &amp;                         .false.                                                , &amp;
+       &amp;                         1.0d0                                                  , &amp;
        &amp;                         massesSatellites                                       , &amp;
        &amp;                         bufferCountSatellites                                  , &amp;
        &amp;                         outputWeightSatellites                                 , &amp;
@@ -457,11 +461,15 @@ contains
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
-       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         .false.                                               , &amp;
+       &amp;                         1.0d0                                                 , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
        &amp;                         var_str(' ')                                          , &amp;
-       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         .false.                                               , &amp;
+       &amp;                         1.0d0                                                 , &amp;
        &amp;                         massesCentrals                                        , &amp;
        &amp;                         bufferCountCentrals                                   , &amp;
        &amp;                         outputWeightCentrals                                  , &amp;
@@ -524,7 +532,7 @@ contains
 
   subroutine localGroupStellarMassFunctionAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis.
+    Implement a \mono{localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
@@ -539,7 +547,7 @@ contains
 
   subroutine localGroupStellarMassFunctionReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis reduction.
+    Implement a \mono{localGroupStellarMassFunction} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -558,7 +566,7 @@ contains
 
   subroutine localGroupStellarMassFunctionFinalizeAnalysis(self)
     !!{
-    Finalize analysis of a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis.
+    Finalize analysis of a \mono{localGroupStellarMassFunction} output analysis.
     !!}
     implicit none
     class           (outputAnalysisLocalGroupStellarMassFunction), intent(inout)                 :: self
@@ -594,12 +602,13 @@ contains
 
   subroutine localGroupStellarMassFunctionFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis finalization.
+    Implement a \mono{localGroupStellarMassFunction} output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisLocalGroupStellarMassFunction), intent(inout)           :: self
     type (varying_string                             ), intent(in   ), optional :: groupName
@@ -629,24 +638,18 @@ contains
     call analysisGroup%writeAttribute('massFunctionCovariance'           ,'yCovariance'                                                                                  )
     call analysisGroup%writeAttribute('Observed'                         ,'targetLabel'                                                                                  )
     call analysisGroup%writeDataset  (self%masses                        ,'massStellar'           ,'Stellar mass at the bin center'              ,datasetReturned=dataset)
-    call dataset      %writeAttribute('M☉'                               ,'units'                                                                                        )
-    call dataset      %writeAttribute(massSolar                          ,'unitsInSI'                                                                                    )
-    call dataset      %close         (                                                                                                                                   )
+    call dataset      %writeAttribute(unitType(massSolar,description='M☉',quantity='solMass'),'units')
     call analysisGroup%writeDataset  (self%massFunction                  ,'massFunction'          ,'Satellite number per bin [model]'                                    )
     call analysisGroup%writeDataset  (self%covariance                    ,'massFunctionCovariance','Satellite number per bin [model; covariance]'                        )
     call analysisGroup%writeDataset  (self%massFunctionTarget            ,'massFunctionTarget'    ,'Satellite number per bin [observed]'                                 )
     call analysisGroup%writeAttribute(self%logLikelihood     ()          ,'logLikelihood'                                                                                )
-    call analysisGroup%close         (                                                                                                                                   )
-    if (present(groupName)) &
-         & call subGroup%close       (                                                                                                                                   )
-    call analysesGroup%close         (                                                                                                                                   )
     !$ call hdf5Access%unset()
     return
   end subroutine localGroupStellarMassFunctionFinalize
 
   double precision function localGroupStellarMassFunctionLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupStellarMassFunction} output analysis. The likelihood function
+    Return the log-likelihood of a \mono{localGroupStellarMassFunction} output analysis. The likelihood function
     assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
     distribution as was found for dark matter subhalos \citep[][see also
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many

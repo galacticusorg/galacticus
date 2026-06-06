@@ -23,7 +23,7 @@
 
   !![
   <operatorUnary name="operatorUnaryIdentity">
-   <description>An identity unary operator.</description>
+   <description>A unary operator implementing the identity transformation $f(x) = x$; applying this operator leaves the value unchanged, and its inverse is also the identity.</description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryIdentity
@@ -34,6 +34,7 @@
    contains
      procedure :: operate   => identityOperate
      procedure :: unoperate => identityUnoperate
+     procedure :: jacobian  => identityJacobian
   end type operatorUnaryIdentity
 
   interface operatorUnaryIdentity
@@ -87,3 +88,16 @@ contains
     identityUnoperate=f
     return
   end function identityUnoperate
+
+  double precision function identityJacobian(self,x)
+    !!{
+    Compute the Jacobian of an identity operation.
+    !!}
+    implicit none
+    class           (operatorUnaryIdentity), intent(inout) :: self
+    double precision                       , intent(in   ) :: x
+    !$GLC attributes unused :: self, x
+
+    identityJacobian=1.0d0
+    return
+  end function identityJacobian

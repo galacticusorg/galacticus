@@ -151,7 +151,7 @@ except FileExistsError:
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_baryonicSuppression_IGM_evolution.xml",shell=True)
 if status.returncode != 0:
     print("FAILED: baryonic suppression (IGM evolution) validation model failed to run")
-    sys.exit()
+    sys.exit(0)
 
 # Read data and repackage into a file suitable for re-reading by other models.
 with h5py.File("outputs/validate_baryonicSuppression_IGM_evolution.hdf5","r") as model:
@@ -182,7 +182,7 @@ for suffix in "withoutBaryons", "withBaryons", "withBaryons_noReionization":
     status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/validate_baryonicSuppression_evolve_"+suffix+".xml",shell=True)
     if status.returncode != 0:
         print("FAILED: baryonic suppression (evolve: '"+suffix+"') validation model failed to run")
-        sys.exit()
+        sys.exit(0)
     model              = h5py.File("outputs/validate_baryonicSuppression_evolve_"+suffix+".hdf5","r")
     cosmology          = model['Parameters/cosmologyParameters']
     OmegaMatter        = cosmology.attrs['OmegaMatter']

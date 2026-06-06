@@ -22,9 +22,7 @@
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiativeEfficiencyBlackHoles">
-   <description>
-     A node property extractor which extracts a list of all super-massive black hole radiative efficiencies.
-   </description>
+   <description>Extracts a list of radiative efficiencies for all supermassive black holes in each node, providing the fraction of accreted mass-energy radiated as electromagnetic radiation for each black hole.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiativeEfficiencyBlackHoles
@@ -41,11 +39,12 @@
      procedure :: names        => radiativeEfficiencyBlackHolesNames
      procedure :: descriptions => radiativeEfficiencyBlackHolesDescriptions
      procedure :: unitsInSI    => radiativeEfficiencyBlackHolesUnitsInSI
+     procedure :: units       => radiativeEfficiencyBlackHolesUnits
   end type nodePropertyExtractorRadiativeEfficiencyBlackHoles
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -79,7 +78,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} node operator class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self
@@ -145,7 +144,7 @@ contains
   
   subroutine radiativeEfficiencyBlackHolesNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} properties.
+    Return the names of the \mono{radiativeEfficiencyBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -159,7 +158,7 @@ contains
 
   subroutine radiativeEfficiencyBlackHolesDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} properties.
+    Return the descriptions of the \mono{radiativeEfficiencyBlackHoles} properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -173,7 +172,7 @@ contains
 
   function radiativeEfficiencyBlackHolesUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily radiativeEfficiencyBlackHoles} properties in the SI system.
+    Return the units of the \mono{radiativeEfficiencyBlackHoles} properties in the SI system.
     !!}
     implicit none
     double precision                                                    , dimension(:) , allocatable :: unitsInSI
@@ -184,3 +183,22 @@ contains
     unitsInSI(1)=1.0d0
     return
   end function radiativeEfficiencyBlackHolesUnitsInSI
+
+  function radiativeEfficiencyBlackHolesUnits(self) result(units)
+    !!{
+    Return the units of the black hole radiative efficiency properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                          ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)              :: self
+    double precision                                                    , dimension(:) , allocatable :: siValues
+    integer                                                                                          :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function radiativeEfficiencyBlackHolesUnits

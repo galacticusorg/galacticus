@@ -25,7 +25,7 @@
 
   !![
   <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
-   <description>A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.</description>
+   <description>A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via \mono{[baryonsClustering]}, and the energy-fixing radius for dark energy is set by \mono{[radiusFixed]}.</description>
   </sphericalCollapseSolver>
   !!]
   type, extends(sphericalCollapseSolverCllsnlssMttrDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
@@ -296,6 +296,7 @@ contains
           linearGrowth_ => null()
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
+       !$omp barrier
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
           if (iTime >= iTimeMinimum .and. iTime <= iTimeMaximum) then
@@ -482,7 +483,7 @@ contains
   double precision function baryonsDarkMatterDarkEnergyRadiusPerturbation(epsilonPerturbation)
     !!{
     Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -494,7 +495,7 @@ contains
   double precision function baryonsDarkMatterDarkEnergyExpansionRatePerturbation(time)
     !!{
     Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     implicit none
     double precision, intent(in   ) :: time
@@ -506,7 +507,7 @@ contains
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
     !!{
     Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude {\normalfont \ttfamily epsilonPerturbation}.
+    amplitude \mono{epsilonPerturbation}.
     !!}
     use :: Error                , only : Error_Report
     use :: Interface_GSL        , only : GSL_Success

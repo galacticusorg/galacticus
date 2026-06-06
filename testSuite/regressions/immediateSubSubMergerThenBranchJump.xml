@@ -1,11 +1,15 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Contains a tree in which a node undergoes an immediate subhalo-subhalo merger, and -->
+
 <!-- later the node into which it merges has to jump branches. To handle this case      -->
+
 <!-- correctly, the immediate subhalo-subhalo merger must be detected and the branch    -->
+
 <!-- not processed for branch jumps.                                                    -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>

@@ -24,7 +24,7 @@
 
   !![
   <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation">
-   <description>A photon source class for summation sources.</description>
+   <description>A stellar feedback outflow class that combines multiple outflow models by summing their ejective and expulsive outflow rates, allowing complex multi-component feedback prescriptions to be built from simpler models.</description>
    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
   </stellarFeedbackOutflows>
   !!]

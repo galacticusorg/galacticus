@@ -27,12 +27,9 @@
   <nodePropertyExtractor name="nodePropertyExtractorSEDAGN">
     <description>
       A property extractor class for the SED of the AGN. The spectrum is computed using the provided
-      \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths {\normalfont \ttfamily
-      [wavelengthMinimum]} and {\normalfont \ttfamily [wavelengthMaximum]}. If {\normalfont \ttfamily [resolution]} is set to a
-      positive value then this specifies the resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If {\normalfont
-      \ttfamily [resolution]} is non-positive then the SED will be output at the full native resolution provided by the
-      \refClass{accretionDiskSpectraClass} object. The frame for the SED, {\normalfont \ttfamily rest} or {\normalfont \ttfamily
-      observed}, is specified by {\normalfont \ttfamily [frame]}. Note that using {\normalfont \ttfamily observed} merely means
+      \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]}. If \mono{[resolution]} is set to a
+      positive value then this specifies the resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If \mono{[resolution]} is non-positive then the SED will be output at the full native resolution provided by the
+      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \mono{rest} or \mono{observed}, is specified by \mono{[frame]}. Note that using \mono{observed} merely means
       that the extracted spectrum is evaluated at wavelength $\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)$ where
       $\lambda_\mathrm{o}$ is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method),
       $\lambda_\mathrm{r}$ is the rest-frame wavelength, and $z$ is redshift---\emph{no adjustment} is made for the boost in observed
@@ -68,11 +65,12 @@
      procedure :: names                   => sedAGNNames
      procedure :: descriptions            => sedAGNDescriptions
      procedure :: unitsInSI               => sedAGNUnitsInSI
+     procedure :: units       => sEDAGNUnits
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
      !!{
-     Constructors for the \refClass{nodePropertyExtractorSEDAGN} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
      !!}
      module procedure sedAGNConstructorParameters
      module procedure sedAGNConstructorInternal
@@ -100,7 +98,7 @@ contains
       <name>frame</name>
       <source>parameters</source>
       <defaultValue>var_str('rest')</defaultValue>
-      <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
+      <description>The frame (\mono{rest} or \mono{observed}) for which to compute the SED.</description>
     </inputParameter>
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -174,7 +172,7 @@ contains
 
   integer function sedAGNElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily sedAGN} property extractors.
+    Return the number of elements in the \mono{sedAGN} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout) :: self
@@ -187,7 +185,7 @@ contains
 
   function sedAGNSize(self,time) result(size)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily sedAGN} property extractors.
+    Return the number of array elements in the \mono{sedAGN} property extractors.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
@@ -229,7 +227,7 @@ contains
 
   function sedAGNExtract(self,node,time,instance) result(sed)
     !!{
-    Implement a {\normalfont \ttfamily sedAGN} property extractor.
+    Implement a \mono{sedAGN} property extractor.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved
@@ -268,7 +266,7 @@ contains
 
   subroutine sedAGNNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily sedAGN} properties.
+    Return the names of the \mono{sedAGN} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -283,7 +281,7 @@ contains
 
   subroutine sedAGNDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily agnSED} property.
+    Return descriptions of the \mono{agnSED} property.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -343,9 +341,9 @@ contains
     return
   end function sedAGNWavelengths
 
-  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily sedAGN} property.
+    Return column descriptions of the \mono{sedAGN} property.
     !!}
     use :: Numerical_Constants_Units, only : metersToAngstroms
     implicit none
@@ -354,7 +352,7 @@ contains
     type            (varying_string             ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                             , intent(inout), dimension(:), allocatable :: values 
     type            (varying_string             ), intent(  out)                            :: valuesDescription
-    double precision                             , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                   ), intent(  out)                            :: valuesUnits
     integer         (c_size_t                   )                                           :: i
     character       (len=18                     )                                           :: label
     !$GLC attributes unused :: self, time
@@ -367,13 +365,13 @@ contains
        descriptions(i)=trim(label)
     end do
     valuesDescription=var_str('Wavelengths at which the SED is tabulated [in units of Å].')
-    valuesUnitsInSI  =1.0d0/metersToAngstroms
+    valuesUnits      =unitType(1.0d0/metersToAngstroms,"Angstroms","angstroms",.false.)
     return
   end subroutine sedAGNColumnDescriptions
 
   function sedAGNUnitsInSI(self,time) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily sedAGN} properties in the SI system.
+    Return the units of the \mono{sedAGN} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
@@ -386,3 +384,20 @@ contains
     unitsInSI(1)=luminositySolar
     return
   end function sedAGNUnitsInSI
+
+  function sEDAGNUnits(self,time) result(units)
+    !!{
+    Return the units of the sEDAGN properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : luminositySolar
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                   ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorSEDAGN), intent(inout)             :: self
+    double precision                             , intent(in   ), optional   :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(units(1))
+    units(1)=unitType(luminositySolar,description='L☉',quantity='solLum')
+    return
+  end function sEDAGNUnits

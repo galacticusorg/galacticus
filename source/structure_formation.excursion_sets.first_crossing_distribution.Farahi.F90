@@ -276,7 +276,7 @@ contains
       <name>fileName</name>
       <defaultValue>var_str('none')</defaultValue>
       <source>parameters</source>
-      <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\normalfont \ttfamily none}'' tables will not be stored.</description>
+      <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``\mono{none}'' tables will not be stored.</description>
     </inputParameter>
     <inputParameter>
       <name>fractionalTimeStep</name>
@@ -294,7 +294,7 @@ contains
       <name>varianceNumberPerUnit</name>
       <defaultValue>40</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per unit variance for first crossing rates.</description>
+      <description>The number of tabulation points per unit of $\sigma^2$ used when building the rate look-up table for the Farahi excursion-set first-crossing distribution; higher values improve interpolation accuracy at the cost of memory and initialization time.</description>
     </inputParameter>
     <inputParameter>
       <name>varianceNumberPerDecade</name>
@@ -312,7 +312,7 @@ contains
       <name>timeNumberPerDecade</name>
       <defaultValue>10</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per decade of time.</description>
+      <description>The number of tabulation points per decade of cosmic time used when building the first-crossing rate look-up table as a function of time; higher values improve temporal interpolation accuracy for rapidly evolving cosmologies.</description>
     </inputParameter>
     <inputParameter>
       <name>varianceIsUnlimited</name>
@@ -410,7 +410,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -456,8 +456,8 @@ contains
     !  ΔS[t,S₁,S₂]       = self%varianceResidual        (self%time(iTime),0,S1,S2                    )
     
     ! Read tables from file if possible.
-    if (self%useFile.and..not.self%tableInitialized) then
-       call self%fileNameInitialize()
+    call self%fileNameInitialize()
+    if (self%useFile .and. .not.self%tableInitialized .and. File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
@@ -471,8 +471,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
-          call self%fileNameInitialize()
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -548,6 +547,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
+          !$omp barrier
           allocate(barrier(0:self%countVariance))
           !$omp do schedule(dynamic)
           do iTime=1,self%countTime
@@ -655,7 +655,7 @@ contains
              if (self%useFile) then
                 call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
-                call File_Unlock(fileLock)
+                call File_Unlock(fileLock,sync=.true.)
              end if
 #ifdef USEMPI
           end if
@@ -855,7 +855,7 @@ contains
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
           &                         displayUnindent             , verbosityLevelWorking
     use :: Error_Functions , only : Error_Function_Complementary
-    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: File_Utilities  , only : File_Lock                   , File_Unlock          , lockDescriptor      , File_Exists
     use :: Kind_Numbers    , only : kind_dble                   , kind_quad
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
@@ -925,8 +925,8 @@ contains
 
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
-    if (self%useFile.and..not.self%tableInitializedRate) then
-       call self%fileNameInitialize()
+    call self%fileNameInitialize()
+    if (self%useFile .and. .not.self%tableInitializedRate .and. File_Exists(self%fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
        call self%fileRead()
@@ -939,7 +939,7 @@ contains
     if (makeTable.or.self%retabulateRateNonCrossing) then
        !$omp critical(farahiRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile) then
+       if (self%useFile .and. File_Exists(self%fileName)) then
           call File_Lock(self%fileName,fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -1072,6 +1072,7 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
           !!]
           !$omp end critical(excursionSetsSolverFarahiDeepCopy)
+          !$omp barrier
           allocate(barrierRateQuad(self%countVarianceProgenitorRate))
           ! In the first run, the first crossing rates are computed. In the second run, the non-crossing rates are computed on
           ! slightly different grid points.
@@ -1098,8 +1099,8 @@ contains
                    else
                       varianceMaximumRateLimit=self%varianceMaximumRate
                    end if
-                   ! For computing non-crossing rates, the results are tabulated with respect to $S_{\rm max}-S$ so that interpolation
-                   ! is more accurate when $S$ approaches $S_{\rm max}$.
+                   ! For computing non-crossing rates, the results are tabulated with respect to S_max-S so that interpolation
+                   ! is more accurate when S approaches S_max.
                    do iVariance=0,countVarianceCurrentRate
                       varianceCurrentRateQuad(iVariance)=max(varianceMaximumRateLimit-self%varianceCurrentRateNonCrossing(iVariance),0.0d0)
                    end do
@@ -1275,7 +1276,7 @@ contains
              if (self%useFile) then
                 call File_Lock(self%fileName,fileLock,lockIsShared=.false.)
                 call self%fileWrite()
-                call File_Unlock(fileLock)
+                call File_Unlock(fileLock,sync=.true.)
              end if
 #ifdef USEMPI
           end if
@@ -1299,7 +1300,6 @@ contains
     use :: Table_Labels      , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
-    type            (hdf5Object                     )                                  :: dataFile                     , dataGroup
     double precision                                 , allocatable  , dimension(:    ) :: varianceCurrentTmp           , varianceTmp    , &
          &                                                                                varianceCurrentNonCrossingTmp
     double precision                                 , allocatable  , dimension(:,:  ) :: firstCrossingProbabilityTmp  , nonCrossingRate
@@ -1314,142 +1314,141 @@ contains
     if (.not.File_Exists(self%fileName)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(self%fileName)
-    ! Check if the standard table is populated.
-    if (dataFile%hasGroup('probability')) then
-       ! Deallocate arrays if necessary.
-       if (allocated(self%variance                )) deallocate(self%variance                )
-       if (allocated(self%time                    )) deallocate(self%time                    )
-       if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
-       ! Read the datasets.
-       dataGroup=dataFile%openGroup("probability")
-       call dataGroup%readDataset('variance'                ,varianceTmp                )
-       call dataGroup%readDataset('time'                    ,self%time                  )
-       call dataGroup%readDataset('firstCrossingProbability',firstCrossingProbabilityTmp)
-       call dataGroup%close()
-       ! Set table sizes and limits.
-       self%countVariance=size(varianceTmp)-1
-       self%countTime    =size(self%time  )
-       ! Transfer to tables.
-       allocate(self%variance                (0:self%countVariance               ))
-       allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
-       self%variance                         (0:self%countVariance  )=varianceTmp                (1:self%countVariance+1  )
-       self%firstCrossingProbability         (0:self%countVariance,:)=firstCrossingProbabilityTmp(1:self%countVariance+1,:)
-       deallocate(varianceTmp                )
-       deallocate(firstCrossingProbabilityTmp)
-       ! Set table limits.
-       self%timeMinimum     =+self%time    (                 1)
-       self%timeMaximum     =+self%time    (self%    countTime)
-       self%varianceMaximum =+self%variance(self%countVariance)
-       self%varianceStep    =+self%variance(                 1) &
-            &                -self%variance(                 0)
-       self%tableInitialized=.true.
-       ! Build the interpolators.
-       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
-       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
-       allocate(self%interpolatorVariance)
-       allocate(self%interpolatorTime    )
-       self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
-       self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
-       ! Report.
-       message=var_str('read excursion set first crossing probability from: ')//self%fileName
-       call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMinimum
-       message=var_str('    time minimum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMaximum
-       message=var_str('    time maximum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%varianceMaximum
-       message=var_str('variance maximum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
-       message=var_str('      table size: ')//size(self%time)//' ⨉ '//size(self%variance)
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(f7.3)') dble(sizeof(self%time)+sizeof(self%variance)+sizeof(self%firstCrossingProbability))/1024.0d0**3
-       message=var_str('     memory size: ')//label//' Gib'
-       call displayMessage (message,verbosityLevelWorking)
-       call displayUnindent(''     ,verbosityLevelWorking)
-    end if
-    ! Check if the rate table is populated.
-    if (dataFile%hasGroup('rate')) then
-       ! Deallocate arrays if necessary.
-       if (allocated(self%varianceProgenitorRate        )) deallocate(self%varianceProgenitorRate        )
-       if (allocated(self%varianceCurrentRate           )) deallocate(self%varianceCurrentRate           )
-       if (allocated(self%varianceCurrentRateNonCrossing)) deallocate(self%varianceCurrentRateNonCrossing)
-       if (allocated(self%timeRate                      )) deallocate(self%timeRate                      )
-       if (allocated(self%firstCrossingRate             )) deallocate(self%firstCrossingRate             )
-       if (allocated(self%nonCrossingRate               )) deallocate(self%nonCrossingRate               )
-       ! Read the datasets.
-       dataGroup=dataFile%openGroup("rate")
-       call dataGroup%readDataset  ('varianceProgenitor'        ,varianceTmp                  )
-       call dataGroup%readDataset  ('varianceCurrent'           ,varianceCurrentTmp           )
-       call dataGroup%readDataset  ('varianceCurrentNonCrossing',varianceCurrentNonCrossingTmp)
-       call dataGroup%readDataset  ('time'                      ,self%timeRate                )
-       call dataGroup%readDataset  ('firstCrossingRate'         ,firstCrossingRateTmp         )
-       call dataGroup%readDataset  ('nonCrossingRate'           ,nonCrossingRate              )
-       call dataGroup%readAttribute('massMinimumRateNonCrossing',massMinimumRateNonCrossing   )
-       call dataGroup%close()
-       if (self%massMinimumRateNonCrossing == massMinimumRateNonCrossing) then
-          self%retabulateRateNonCrossing=.false.
-       end if
-       ! Set table sizes and limits.
-       self%countVarianceProgenitorRate        =size(varianceTmp                  )-1
-       self%countVarianceCurrentRate           =size(varianceCurrentTmp           )-1
-       self%countVarianceCurrentRateNonCrossing=size(varianceCurrentNonCrossingTmp)-1
-       self%countTimeRate                      =size(self%timeRate                )
-       ! Transfer to tables.
-       allocate(self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                                              ))
-       allocate(self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate                              ))
-       allocate(self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing                   ))
-       allocate(self%firstCrossingRate             (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate           ,self%countTimeRate))
-       allocate(self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,self%countTimeRate))
-       self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                             )=varianceTmp                  (1:self%countVarianceProgenitorRate+1                                               )
-       self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate             )=varianceCurrentTmp           (                                     1:self%countVarianceCurrentRate           +1  )
-       self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing  )=varianceCurrentNonCrossingTmp(                                     1:self%countVarianceCurrentRateNonCrossing+1  )
-       self%firstCrossingRate             (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate           ,:)=firstCrossingRateTmp         (1:self%countVarianceProgenitorRate+1,1:self%countVarianceCurrentRate           +1,:)
-       self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,:)=nonCrossingRate              (                                     1:self%countVarianceCurrentRateNonCrossing+1,:)
-       deallocate(varianceTmp                  )
-       deallocate(varianceCurrentTmp           )
-       deallocate(varianceCurrentNonCrossingTmp)
-       ! Set table limits.
-       self%varianceMaximumRate =self%varianceProgenitorRate(self%countVarianceProgenitorRate)
-       self%timeMinimumRate     =self%timeRate              (                               1)
-       self%timeMaximumRate     =self%timeRate              (self%countTimeRate              )
-       self%tableInitializedRate=.true.
-       ! Build the interpolators.
-       if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )
-       if (allocated(self%interpolatorVarianceCurrentRate           )) deallocate(self%interpolatorVarianceCurrentRate           )
-       if (allocated(self%interpolatorVarianceCurrentRateNonCrossing)) deallocate(self%interpolatorVarianceCurrentRateNonCrossing)
-       if (allocated(self%interpolatorTimeRate                      )) deallocate(self%interpolatorTimeRate                      )
-       allocate(self%interpolatorVarianceRate                  )
-       allocate(self%interpolatorVarianceCurrentRate           )
-       allocate(self%interpolatorVarianceCurrentRateNonCrossing)
-       allocate(self%interpolatorTimeRate                      )
-       self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        ,extrapolationType=extrapolationTypeFix)
-       self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           ,extrapolationType=extrapolationTypeFix)
-       self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
-       self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
-       ! Report.
-       message=var_str('read excursion set first crossing rates from: ')//self%fileName
-       call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMinimumRate
-       message=var_str('    time minimum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMaximumRate
-       message=var_str('    time maximum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance maximum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
-       message=var_str('      table size: ')//size(self%timeRate)//' ⨉ '//size(self%varianceProgenitorRate)//' ⨉ '//size(self%varianceCurrentRate)
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(f7.3)') dble(sizeof(self%timeRate)+sizeof(self%varianceProgenitorRate)+sizeof(self%varianceCurrentRate)+sizeof(self%firstCrossingRate)+sizeof(self%nonCrossingRate))/1024.0d0**3
-       message=var_str('     memory size: ')//label//' Gib'
-       call displayMessage (message,verbosityLevelWorking)
-       call displayUnindent(''     ,verbosityLevelWorking)
-    end if
-    ! Close the data file.
-    call dataFile%close()
+    hdf5FileScope: block
+      type(hdf5Object) :: dataFile, dataGroup
+      dataFile=hdf5Object(self%fileName,readOnly=.true.)
+      ! Check if the standard table is populated.
+      if (dataFile%hasGroup('probability')) then
+         ! Deallocate arrays if necessary.
+         if (allocated(self%variance                )) deallocate(self%variance                )
+         if (allocated(self%time                    )) deallocate(self%time                    )
+         if (allocated(self%firstCrossingProbability)) deallocate(self%firstCrossingProbability)
+         ! Read the datasets.
+         dataGroup=dataFile%openGroup("probability")
+         call dataGroup%readDataset('variance'                ,varianceTmp                )
+         call dataGroup%readDataset('time'                    ,self%time                  )
+         call dataGroup%readDataset('firstCrossingProbability',firstCrossingProbabilityTmp)
+         ! Set table sizes and limits.
+         self%countVariance=size(varianceTmp)-1
+         self%countTime    =size(self%time  )
+         ! Transfer to tables.
+         allocate(self%variance                (0:self%countVariance               ))
+         allocate(self%firstCrossingProbability(0:self%countVariance,self%countTime))
+         self%variance                         (0:self%countVariance  )=varianceTmp                (1:self%countVariance+1  )
+         self%firstCrossingProbability         (0:self%countVariance,:)=firstCrossingProbabilityTmp(1:self%countVariance+1,:)
+         deallocate(varianceTmp                )
+         deallocate(firstCrossingProbabilityTmp)
+         ! Set table limits.
+         self%timeMinimum     =+self%time    (                 1)
+         self%timeMaximum     =+self%time    (self%    countTime)
+         self%varianceMaximum =+self%variance(self%countVariance)
+         self%varianceStep    =+self%variance(                 1) &
+              &                -self%variance(                 0)
+         self%tableInitialized=.true.
+         ! Build the interpolators.
+         if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+         if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+         allocate(self%interpolatorVariance)
+         allocate(self%interpolatorTime    )
+         self%interpolatorVariance=interpolator(self%variance,extrapolationType=extrapolationTypeFix)
+         self%interpolatorTime    =interpolator(self%time    ,extrapolationType=extrapolationTypeFix)
+         ! Report.
+         message=var_str('read excursion set first crossing probability from: ')//self%fileName
+         call displayIndent  (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMinimum
+         message=var_str('    time minimum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMaximum
+         message=var_str('    time maximum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%varianceMaximum
+         message=var_str('variance maximum: ')//label
+         call displayMessage (message,verbosityLevelWorking)
+         message=var_str('      table size: ')//size(self%time)//' ⨉ '//size(self%variance)
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(f7.3)') dble(sizeof(self%time)+sizeof(self%variance)+sizeof(self%firstCrossingProbability))/1024.0d0**3
+         message=var_str('     memory size: ')//label//' Gib'
+         call displayMessage (message,verbosityLevelWorking)
+         call displayUnindent(''     ,verbosityLevelWorking)
+      end if
+      ! Check if the rate table is populated.
+      if (dataFile%hasGroup('rate')) then
+         ! Deallocate arrays if necessary.
+         if (allocated(self%varianceProgenitorRate        )) deallocate(self%varianceProgenitorRate        )
+         if (allocated(self%varianceCurrentRate           )) deallocate(self%varianceCurrentRate           )
+         if (allocated(self%varianceCurrentRateNonCrossing)) deallocate(self%varianceCurrentRateNonCrossing)
+         if (allocated(self%timeRate                      )) deallocate(self%timeRate                      )
+         if (allocated(self%firstCrossingRate             )) deallocate(self%firstCrossingRate             )
+         if (allocated(self%nonCrossingRate               )) deallocate(self%nonCrossingRate               )
+         ! Read the datasets.
+         dataGroup=dataFile%openGroup("rate")
+         call dataGroup%readDataset  ('varianceProgenitor'        ,varianceTmp                  )
+         call dataGroup%readDataset  ('varianceCurrent'           ,varianceCurrentTmp           )
+         call dataGroup%readDataset  ('varianceCurrentNonCrossing',varianceCurrentNonCrossingTmp)
+         call dataGroup%readDataset  ('time'                      ,self%timeRate                )
+         call dataGroup%readDataset  ('firstCrossingRate'         ,firstCrossingRateTmp         )
+         call dataGroup%readDataset  ('nonCrossingRate'           ,nonCrossingRate              )
+         call dataGroup%readAttribute('massMinimumRateNonCrossing',massMinimumRateNonCrossing   )
+         if (self%massMinimumRateNonCrossing == massMinimumRateNonCrossing) then
+            self%retabulateRateNonCrossing=.false.
+         end if
+         ! Set table sizes and limits.
+         self%countVarianceProgenitorRate        =size(varianceTmp                  )-1
+         self%countVarianceCurrentRate           =size(varianceCurrentTmp           )-1
+         self%countVarianceCurrentRateNonCrossing=size(varianceCurrentNonCrossingTmp)-1
+         self%countTimeRate                      =size(self%timeRate                )
+         ! Transfer to tables.
+         allocate(self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                                              ))
+         allocate(self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate                              ))
+         allocate(self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing                   ))
+         allocate(self%firstCrossingRate             (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate           ,self%countTimeRate))
+         allocate(self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,self%countTimeRate))
+         self%varianceProgenitorRate        (0:self%countVarianceProgenitorRate                                             )=varianceTmp                  (1:self%countVarianceProgenitorRate+1                                               )
+         self%varianceCurrentRate           (                                   0:self%countVarianceCurrentRate             )=varianceCurrentTmp           (                                     1:self%countVarianceCurrentRate           +1  )
+         self%varianceCurrentRateNonCrossing(                                   0:self%countVarianceCurrentRateNonCrossing  )=varianceCurrentNonCrossingTmp(                                     1:self%countVarianceCurrentRateNonCrossing+1  )
+         self%firstCrossingRate             (0:self%countVarianceProgenitorRate,0:self%countVarianceCurrentRate           ,:)=firstCrossingRateTmp         (1:self%countVarianceProgenitorRate+1,1:self%countVarianceCurrentRate           +1,:)
+         self%nonCrossingRate               (                                   0:self%countVarianceCurrentRateNonCrossing,:)=nonCrossingRate              (                                     1:self%countVarianceCurrentRateNonCrossing+1,:)
+         deallocate(varianceTmp                  )
+         deallocate(varianceCurrentTmp           )
+         deallocate(varianceCurrentNonCrossingTmp)
+         ! Set table limits.
+         self%varianceMaximumRate =self%varianceProgenitorRate(self%countVarianceProgenitorRate)
+         self%timeMinimumRate     =self%timeRate              (                               1)
+         self%timeMaximumRate     =self%timeRate              (self%countTimeRate              )
+         self%tableInitializedRate=.true.
+         ! Build the interpolators.
+         if (allocated(self%interpolatorVarianceRate                  )) deallocate(self%interpolatorVarianceRate                  )
+         if (allocated(self%interpolatorVarianceCurrentRate           )) deallocate(self%interpolatorVarianceCurrentRate           )
+         if (allocated(self%interpolatorVarianceCurrentRateNonCrossing)) deallocate(self%interpolatorVarianceCurrentRateNonCrossing)
+         if (allocated(self%interpolatorTimeRate                      )) deallocate(self%interpolatorTimeRate                      )
+         allocate(self%interpolatorVarianceRate                  )
+         allocate(self%interpolatorVarianceCurrentRate           )
+         allocate(self%interpolatorVarianceCurrentRateNonCrossing)
+         allocate(self%interpolatorTimeRate                      )
+         self%interpolatorVarianceRate                  =interpolator(self%varianceProgenitorRate        ,extrapolationType=extrapolationTypeFix)
+         self%interpolatorVarianceCurrentRate           =interpolator(self%varianceCurrentRate           ,extrapolationType=extrapolationTypeFix)
+         self%interpolatorVarianceCurrentRateNonCrossing=interpolator(self%varianceCurrentRateNonCrossing,extrapolationType=extrapolationTypeFix)
+         self%interpolatorTimeRate                      =interpolator(self%timeRate                      ,extrapolationType=extrapolationTypeFix)
+         ! Report.
+         message=var_str('read excursion set first crossing rates from: ')//self%fileName
+         call displayIndent  (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMinimumRate
+         message=var_str('    time minimum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMaximumRate
+         message=var_str('    time maximum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%varianceMaximumRate
+         message=var_str('variance maximum: ')//label
+         call displayMessage (message,verbosityLevelWorking)
+         message=var_str('      table size: ')//size(self%timeRate)//' ⨉ '//size(self%varianceProgenitorRate)//' ⨉ '//size(self%varianceCurrentRate)
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(f7.3)') dble(sizeof(self%timeRate)+sizeof(self%varianceProgenitorRate)+sizeof(self%varianceCurrentRate)+sizeof(self%firstCrossingRate)+sizeof(self%nonCrossingRate))/1024.0d0**3
+         message=var_str('     memory size: ')//label//' Gib'
+         call displayMessage (message,verbosityLevelWorking)
+         call displayUnindent(''     ,verbosityLevelWorking)
+      end if
+    end block hdf5FileScope
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileRead
@@ -1466,7 +1465,6 @@ contains
     use :: String_Handling   , only : operator(//)
     implicit none
     class    (excursionSetFirstCrossingFarahi), intent(inout) :: self
-    type     (hdf5Object                     )                :: dataFile, dataGroup
     type     (varying_string                 )                :: message
     character(len=32                         )                :: label
 
@@ -1476,75 +1474,73 @@ contains
     call self%fileNameInitialize()
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-    ! Check if the standard table is populated.
-    if (self%tableInitialized) then
-       dataGroup=dataFile%openGroup("probability")
-       call dataGroup%writeDataset(self%variance                ,'variance'                ,'The variance at which results are tabulated.'                         )
-       call dataGroup%writeDataset(self%time                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
-       call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
-       call dataGroup%close()
-       ! Report.
-       message=var_str('write excursion set first crossing probability to: ')//self%fileName
-       call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMinimum
-       message=var_str('    time minimum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMaximum
-       message=var_str('    time maximum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%varianceMaximum
-       message=var_str('variance maximum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
-       message=var_str('      table size: ')//size(self%time)//' ⨉ '//size(self%variance)
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(f7.3)') dble(sizeof(self%time)+sizeof(self%variance)+sizeof(self%firstCrossingProbability))/1024.0d0**3
-       message=var_str('     memory size: ')//label//' Gib'
-       call displayUnindent(''     ,verbosityLevelWorking)
-    end if
-    ! Check if the rate table is populated.
-    if (self%tableInitializedRate) then
-       dataGroup=dataFile%openGroup("rate")
-       call dataGroup%writeDataset  (self%varianceProgenitorRate        ,'varianceProgenitor'        ,'The variance at which results are tabulated.'                               )
-       call dataGroup%writeDataset  (self%varianceCurrentRate           ,'varianceCurrent'           ,'The variance of the base halo at which first crossing rates are tabulated.' )
-       call dataGroup%writeDataset  (self%varianceCurrentRateNonCrossing,'varianceCurrentNonCrossing','The variance of the base halo at which non-crossing rates are tabulated.'   )
-       call dataGroup%writeDataset  (self%timeRate                      ,'time'                      ,'The cosmic times at which results are tabulated.'                           )
-       call dataGroup%writeDataset  (self%firstCrossingRate             ,'firstCrossingRate'         ,'The probability rate of first crossing as a function of variances and time.')
-       call dataGroup%writeDataset  (self%nonCrossingRate               ,'nonCrossingRate'           ,'The probability rate of non crossing as a function of variance and time.'   )
-       call dataGroup%writeAttribute(self%massMinimumRateNonCrossing    ,'massMinimumRateNonCrossing'                                                                              )
-       call dataGroup%close()
-       ! Report.
-       message=var_str('wrote excursion set first crossing rates to: ')//self%fileName
-       call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMinimumRate
-       message=var_str('    time minimum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%timeMaximumRate
-       message=var_str('    time maximum: ')//label//' Gyr'
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance maximum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
-       message=var_str('      table size: ')//size(self%timeRate)//' ⨉ '//size(self%varianceProgenitorRate)//' ⨉ '//size(self%varianceCurrentRate)
-       call displayMessage (message,verbosityLevelWorking)
-       write (label,'(f7.3)') dble(sizeof(self%timeRate)+sizeof(self%varianceProgenitorRate)+sizeof(self%varianceCurrentRate)+sizeof(self%firstCrossingRate)+sizeof(self%nonCrossingRate))/1024.0d0**3
-       message=var_str('     memory size: ')//label//' Gib'
-       call displayMessage (message,verbosityLevelWorking)
-       call displayUnindent(''     ,verbosityLevelWorking)
-    end if
-    ! Close the data file.
-    call dataFile%close()
+    hdf5FileScope: block
+      type(hdf5Object) :: dataFile, dataGroup
+      dataFile=hdf5Object(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+      ! Check if the standard table is populated.
+      if (self%tableInitialized) then
+         dataGroup=dataFile%openGroup("probability")
+         call dataGroup%writeDataset(self%variance                ,'variance'                ,'The variance at which results are tabulated.'                         )
+         call dataGroup%writeDataset(self%time                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
+         call dataGroup%writeDataset(self%firstCrossingProbability,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
+         ! Report.
+         message=var_str('write excursion set first crossing probability to: ')//self%fileName
+         call displayIndent  (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMinimum
+         message=var_str('    time minimum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMaximum
+         message=var_str('    time maximum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%varianceMaximum
+         message=var_str('variance maximum: ')//label
+         call displayMessage (message,verbosityLevelWorking)
+         message=var_str('      table size: ')//size(self%time)//' ⨉ '//size(self%variance)
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(f7.3)') dble(sizeof(self%time)+sizeof(self%variance)+sizeof(self%firstCrossingProbability))/1024.0d0**3
+         message=var_str('     memory size: ')//label//' Gib'
+         call displayUnindent(''     ,verbosityLevelWorking)
+      end if
+      ! Check if the rate table is populated.
+      if (self%tableInitializedRate) then
+         dataGroup=dataFile%openGroup("rate")
+         call dataGroup%writeDataset  (self%varianceProgenitorRate        ,'varianceProgenitor'        ,'The variance at which results are tabulated.'                               )
+         call dataGroup%writeDataset  (self%varianceCurrentRate           ,'varianceCurrent'           ,'The variance of the base halo at which first crossing rates are tabulated.' )
+         call dataGroup%writeDataset  (self%varianceCurrentRateNonCrossing,'varianceCurrentNonCrossing','The variance of the base halo at which non-crossing rates are tabulated.'   )
+         call dataGroup%writeDataset  (self%timeRate                      ,'time'                      ,'The cosmic times at which results are tabulated.'                           )
+         call dataGroup%writeDataset  (self%firstCrossingRate             ,'firstCrossingRate'         ,'The probability rate of first crossing as a function of variances and time.')
+         call dataGroup%writeDataset  (self%nonCrossingRate               ,'nonCrossingRate'           ,'The probability rate of non crossing as a function of variance and time.'   )
+         call dataGroup%writeAttribute(self%massMinimumRateNonCrossing    ,'massMinimumRateNonCrossing'                                                                              )
+         ! Report.
+         message=var_str('wrote excursion set first crossing rates to: ')//self%fileName
+         call displayIndent  (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMinimumRate
+         message=var_str('    time minimum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%timeMaximumRate
+         message=var_str('    time maximum: ')//label//' Gyr'
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(e22.16)') self%varianceMaximumRate
+         message=var_str('variance maximum: ')//label
+         call displayMessage (message,verbosityLevelWorking)
+         message=var_str('      table size: ')//size(self%timeRate)//' ⨉ '//size(self%varianceProgenitorRate)//' ⨉ '//size(self%varianceCurrentRate)
+         call displayMessage (message,verbosityLevelWorking)
+         write (label,'(f7.3)') dble(sizeof(self%timeRate)+sizeof(self%varianceProgenitorRate)+sizeof(self%varianceCurrentRate)+sizeof(self%firstCrossingRate)+sizeof(self%nonCrossingRate))/1024.0d0**3
+         message=var_str('     memory size: ')//label//' Gib'
+         call displayMessage (message,verbosityLevelWorking)
+         call displayUnindent(''     ,verbosityLevelWorking)
+      end if
+    end block hdf5FileScope
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{
-    Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using
-    {\normalfont \ttfamily rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
-    point controlled by {\normalfont \ttfamily exponent}. Specifically, suppose we have $N=${\normalfont \ttfamily rangeNumber}
-    points in the range, from $S_\mathrm{min}=${\normalfont \ttfamily rangeMinimum} to $S_\mathrm{max}=${\normalfont \ttfamily
-    rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
+    Builds a numerical range between \mono{rangeMinimum} and \mono{rangeMaximum} using
+    \mono{rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
+    point controlled by \mono{exponent}. Specifically, suppose we have $N=$\mono{rangeNumber}
+    points in the range, from $S_\mathrm{min}=$\mono{rangeMinimum} to $S_\mathrm{max}=$\mono{rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
     \begin{equation}
      f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
     \end{equation}
@@ -1552,7 +1548,7 @@ contains
     $S_\mathrm{min}$ and $S_\mathrm{max}$, while if $n_i=-1$ this will give $S_i$ logarithmically spaced between
     $S_\mathrm{min}$ and $S_\mathrm{max}$. Therefore, if we make $n_i$ vary from $-1$ to $0$ at $i$ ranges from $1$ to $N$ we
     will get a smooth transition from logarithmic to linear spacing. We choose to use $n_i=-1+f_i^\alpha$ where
-    $\alpha=${\normalfont \ttfamily exponent} is a supplied argument.
+    $\alpha=$\mono{exponent} is a supplied argument.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)          :: self

@@ -39,8 +39,8 @@
     }
     }
     \end{verbatim}
-    where the {\normalfont \ttfamily treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
-    generate, and the (optional) {\normalfont \ttfamily treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
+    where the \mono{treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
+    generate, and the (optional) \mono{treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
     assign to each tree.
    </description>
   </mergerTreeBuildMasses>
@@ -119,13 +119,12 @@ contains
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
     type            (hdf5Object                   )                                           :: treeFile
 
-    !$ call     hdf5Access%set        (                                                                        )
-    call        treeFile  %openFile   (self%fileName ,overWrite=.false.,readOnly=.true.)
-    call        treeFile  %readDataset('treeRootMass',          mass                                           )
-    if (treeFile%hasDataset('treeWeight'))                                                                       &
-         & call treeFile  %readDataset('treeWeight'  ,          weight                                         )
-    call        treeFile  %close      (                                                                        )
-    !$ call     hdf5Access%unset      (                                                                        )
+    !$ call hdf5Access%set()
+    treeFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
+    call        treeFile  %readDataset('treeRootMass',mass  )
+    if (treeFile%hasDataset('treeWeight'))                  &
+         & call treeFile  %readDataset('treeWeight'  ,weight)
+    !$ call hdf5Access%unset()
     return
   end subroutine readHDF5Read
 

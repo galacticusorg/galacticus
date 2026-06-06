@@ -27,7 +27,12 @@ Implements a node property extractor class for apparent magnitudes.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMagnitudesApparent">
    <description>
-    A node property extractor which extracts stellar apparent magnitudes in all available bands.
+    A property extractor that returns stellar apparent magnitudes (AB system) in all broadband
+    filters currently activated in the stellar luminosities structure, for a specified galaxy
+    \mono{component} (disk or spheroid). The distance modulus is computed from the luminosity
+    distance (from \refClass{cosmologyFunctionsClass}) with a $+2.5\log_{10}(1+z)$ K-correction
+    for photon frequency compression. Output dataset names follow the pattern
+    \mono{componentMagnitudeApparentStellar:filterName:filterType}.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -45,11 +50,12 @@ Implements a node property extractor class for apparent magnitudes.
      procedure :: names        => magnitudesApparentNames
      procedure :: descriptions => magnitudesApparentDescriptions
      procedure :: unitsInSI    => magnitudesApparentUnitsInSI
+     procedure :: units       => magnitudesApparentUnits
   end type nodePropertyExtractorMagnitudesApparent
 
   interface nodePropertyExtractorMagnitudesApparent
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal
@@ -116,7 +122,7 @@ contains
 
   integer function magnitudesApparentElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Return the number of elements in the \mono{magnitudesApparent} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -130,7 +136,7 @@ contains
 
   function magnitudesApparentExtract(self,node,time,instance) result(magnitudes)
     !!{
-    Implement a {\normalfont \ttfamily magnitudesApparent} property extractor.
+    Implement a \mono{magnitudesApparent} property extractor.
     !!}
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Galactic_Structure_Options    , only : componentTypeDisk  , componentTypeSpheroid
@@ -193,7 +199,7 @@ contains
 
   subroutine magnitudesApparentNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily magnitudesApparent} properties.
+    Return the names of the \mono{magnitudesApparent} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeDecode
@@ -217,7 +223,7 @@ contains
 
   subroutine magnitudesApparentDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily magnitudesApparent} property extractor class.
+    Return descriptions of the \mono{magnitudesApparent} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -243,7 +249,26 @@ contains
     !$GLC attributes unused :: self
 
     allocate(unitsInSI(unitStellarLuminosities%luminosityOutputCount(time)))
-    unitsInSI=0.0d0
+    unitsInSI=1.0d0
     return
   end function magnitudesApparentUnitsInSI
 
+  function magnitudesApparentUnits(self,time) result(units)
+    !!{
+    Return the units of the magnitudesApparent properties.
+    !!}
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
+    use :: Units_MetaData                , only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorMagnitudesApparent), intent(inout)             :: self
+    double precision                                         , intent(in   )             :: time
+    integer                                                                              :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=1,size(units)
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function magnitudesApparentUnits

@@ -23,7 +23,7 @@ Implements a null node operator class.
 
   !![
   <nodeOperator name="nodeOperatorNull">
-   <description>A null node operator class.</description>
+   <description>A null (no-op) node operator class that performs no operations on nodes, serving as a default or placeholder when no physical processes need to be applied by a node operator.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNull

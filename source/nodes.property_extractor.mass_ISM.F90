@@ -23,7 +23,7 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassISM">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>Extracts the total interstellar medium (ISM) gas mass of a galaxy by summing the gaseous mass distributions of the disk and spheroid components. Provides the combined cold gas reservoir for comparison with observational ISM mass estimates from CO, dust, or HI surveys.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassISM
@@ -37,11 +37,12 @@ Implements an ISM mass output analysis property extractor class.
      procedure :: name        => massISMName
      procedure :: description => massISMDescription
      procedure :: unitsInSI   => massISMUnitsInSI
+     procedure :: units       => massISMUnits
   end type nodePropertyExtractorMassISM
 
   interface nodePropertyExtractorMassISM
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassISM} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassISM} property extractor class.
      !!}
      module procedure massISMConstructorParameters
   end interface nodePropertyExtractorMassISM
@@ -50,7 +51,7 @@ contains
 
   function massISMConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassISM} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassISM} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -142,3 +143,17 @@ contains
     massISMUnitsInSI=massSolar
     return
   end function massISMUnitsInSI
+
+  function massISMUnits(self) result(units)
+    !!{
+    Return the units of the massISM property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                    )                :: units
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massISMUnits

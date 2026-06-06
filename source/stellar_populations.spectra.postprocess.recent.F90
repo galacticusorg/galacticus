@@ -24,8 +24,7 @@
   !![
   <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
    <description>
-    A stellar population postprocessor class which suppresses all emission from populations older than {\normalfont \ttfamily
-    [timeLimit]} (in Gyr).
+    A stellar population postprocessor class which suppresses all emission from populations older than \mono{[timeLimit]} (in Gyr).
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]

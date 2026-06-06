@@ -24,7 +24,7 @@
   !![
   <circumgalacticMediumHeating name="circumgalacticMediumHeatingSummation">
    <description>
-    A \gls{cgm} heating class that sums over other heating rate classes.
+    A circumgalactic medium heating class that computes the total CGM heating rate as the sum of contributions from a list of other heating rate classes. This allows multiple heating mechanisms (e.g. AGN feedback, stellar feedback) to be combined additively.
    </description>
    <linkedList type="heaterList" variable="heaters" next="next" object="circumgalacticMediumHeating" objectType="circumgalacticMediumHeatingClass"/>
   </circumgalacticMediumHeating>
@@ -48,7 +48,7 @@
   
   interface circumgalacticMediumHeatingSummation
      !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingSummation} class.
+     Constructors for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingSummation} class which takes a parameter list as input.
+    Constructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function summationConstructorInternal(heaters) result(self)
     !!{
-    Internal constructor for the \refClass{circumgalacticMediumHeatingSummation} cooling function class.
+    Internal constructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{
-    Destructor for the \refClass{circumgalacticMediumHeatingSummation} cooling function class.
+    Destructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation), intent(inout) :: self

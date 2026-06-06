@@ -29,7 +29,7 @@ for sfhType in ( "adaptive", "metallicitySplit" ):
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run:")
         subprocess.run("cat outputs/test-star-formation-histories.log",shell=True)
-        sys.exit()
+        sys.exit(0)
     else:
         print("   ...done")
         print("   Checking for errors...")
@@ -38,7 +38,7 @@ for sfhType in ( "adaptive", "metallicitySplit" ):
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run (errors):")
         subprocess.run("cat outputs/test-star-formation-histories.log",shell=True)
-        sys.exit()
+        sys.exit(0)
     else:
         print("   ...done")
         print("   SUCCESS: model run")
@@ -51,7 +51,7 @@ for sfhType in ( "adaptive", "metallicitySplit" ):
             metallicitySolar = float(match.group(1))*10**int(match.group(2))
     if metallicitySolar is None:
         print("   FAILED: unable to find Solar metallicity")
-        sys.exit()
+        sys.exit(0)
 
     # Extract the initial propeties of the galaxy from the merger tree file.
     tree         = ET.parse('parameters/starFormationHistoryTree.xml')

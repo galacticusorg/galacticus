@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Regression test for issue 142: https://github.com/galacticusorg/galacticus/issues/142 -->
+
 <parameters>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <formatVersion>2</formatVersion>
 
@@ -328,9 +329,9 @@
       <radiusVirialFraction value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold">
-      <massDestructionAbsolute           value="=[mergerTreeMassResolution::massResolution]"/>
-      <massDestructionMassInfallFraction value="0.0e0"                                      />
-      <massDestructionMassTreeFraction   value="0.0e0"                                      />
+      <massDestructionAbsolute           value="=[mergerTreeMassResolution/massResolution]"/>
+      <massDestructionMassInfallFraction value="0.0e0"                                     />
+      <massDestructionMassTreeFraction   value="0.0e0"                                     />
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
@@ -384,6 +385,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
 
   <!-- End baryonic physics -->

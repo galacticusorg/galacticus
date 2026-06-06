@@ -34,8 +34,8 @@
    <description>
      A node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the
      \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} correlation between galaxy growth and dark matter halo
-     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than {\normalfont \ttfamily [redshiftMaximum]},
-     and for halo masses above {\normalfont \ttfamily [massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
+     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than \mono{[redshiftMaximum]},
+     and for halo masses above \mono{[massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -47,7 +47,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{     
-     A {\normalfont \ttfamily nodeOperator} class that inserts an empirical model of the formation history of a galaxy.  At each
+     A \mono{nodeOperator} class that inserts an empirical model of the formation history of a galaxy.  At each
      time step and during mergers, the mass of the central galaxy is computed using the stellar mass--halo mass relation using
      \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} fits.
      !!}
@@ -85,7 +85,7 @@
   
   interface nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{
-     Constructors for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
+     Constructors for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
      !!}
      module procedure empiricalGalaxyUniverseMachineConstructorParameters
      module procedure empiricalGalaxyUniverseMachineConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function empiricalGalaxyUniverseMachineConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class which takes a parameter set as input.
+    Constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -320,7 +320,7 @@ contains
          &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
     !!{
-    Internal constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
+    Internal constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
@@ -359,7 +359,7 @@ contains
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
     !!{
-    Destructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} class.
+    Destructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
     !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self

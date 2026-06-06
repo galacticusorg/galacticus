@@ -45,9 +45,9 @@ module Radiation_Fields
      !!}
      private
      procedure       (crossSectionFunctionTemplate), pointer     , nopass :: crossSectionFunction => null(     )
-     double precision                  , dimension(2)         :: wavelengthRange
-     double precision                                         :: timeMinimum          =  huge(0.0d0), timeMaximum=-huge(0.0d0)
-     type            (interpolator    ), allocatable          :: interpolator_
+     double precision                              , dimension(2)         :: wavelengthRange
+     double precision                                                     :: timeMinimum          =  huge(0.0d0), timeMaximum=-huge(0.0d0)
+     type            (interpolator                )                       :: interpolator_
    contains
      !![
      <methods>
@@ -61,9 +61,13 @@ module Radiation_Fields
   <functionClass>
    <name>radiationField</name>
    <descriptiveName>Radiation Fields</descriptiveName>
-   <description>Class providing radiation fields.</description>
+   <description>Class providing radiation fields---the specific intensity (flux per unit frequency per steradian,
+    in units of ergs~cm$^{-2}$~s$^{-1}$~Hz$^{-1}$~ster$^{-1}$) of a radiation background as a function of
+    wavelength and cosmic time. Radiation fields are used to compute photoionization and photodissociation
+    rates in the \gls{igm} and \gls{cgm} by integrating the flux weighted by relevant cross-sections over
+    wavelength. Implementations include the cosmic microwave background, ultraviolet and X-ray ionizing
+    backgrounds, and stellar radiation fields.</description>
    <default>null</default>
-   <data>type(rateCoefficient), allocatable, dimension(:) :: rateCoefficients</data>
    <method name="flux">
     <description>Return the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
     <type>double precision</type>
@@ -72,12 +76,12 @@ module Radiation_Fields
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="integrateOverCrossSection">
-    <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in {\normalfont \ttfamily wavelengthRange} over a cross section specified by the function {\normalfont \ttfamily crossSectionFunction}.</description>
+    <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in \mono{wavelengthRange} over a cross section specified by the function \mono{crossSectionFunction}.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>double precision                  , dimension(2), intent(in   ) :: wavelengthRange</argument>
+    <argument>double precision                              , dimension(2), intent(in   ) :: wavelengthRange</argument>
     <argument>procedure       (crossSectionFunctionTemplate), pointer                     :: crossSectionFunction</argument>
-    <argument>type            (treeNode        )              , intent(inout) :: node</argument>
+    <argument>type            (treeNode                    )              , intent(inout) :: node</argument>
     <code>
      radiationFieldIntegrateOverCrossSection=radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
     </code>
@@ -88,7 +92,7 @@ module Radiation_Fields
      <pass>yes</pass>
    </method>
    <method name="timeSet">
-     <description>Set the time of the radiation field.</description>
+     <description>Set the cosmic time (in Gyr) at which the radiation field properties---such as the CMB temperature or the UV background intensity---should be evaluated for subsequent flux queries.</description>
      <type>void</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: time</argument>
@@ -98,13 +102,14 @@ module Radiation_Fields
      <type>logical</type>
      <pass>yes</pass>
    </method>
+   <data>type(rateCoefficient), allocatable, dimension(:) :: rateCoefficients</data>
   </functionClass>
   !!]
 
   ! Module global variables for use in integrand routines.
-  class    (radiationFieldClass), pointer :: self_
-  type     (treeNode           ), pointer :: node_
-  procedure(crossSectionFunctionTemplate   ), pointer :: crossSectionFunction_
+  class    (radiationFieldClass         ), pointer :: self_
+  type     (treeNode                    ), pointer :: node_
+  procedure(crossSectionFunctionTemplate), pointer :: crossSectionFunction_
   !$omp threadprivate(self_,node_,crossSectionFunction_)
 
   abstract interface
@@ -130,19 +135,19 @@ contains
     use :: Numerical_Integration       , only : integrator     , GSL_Integ_Gauss15
     use :: Numerical_Ranges            , only : Make_Range     , rangeTypeLogarithmic
     implicit none
-    class           (radiationFieldClass), target      , intent(inout) :: self
-    double precision                     , dimension(2), intent(in   ) :: wavelengthRange
-    procedure       (crossSectionFunctionTemplate   ), pointer                     :: crossSectionFunction
-    type            (treeNode           ), target      , intent(inout) :: node
-    type            (integrator         ), save                        :: integrator_
-    type            (rateCoefficient    ), dimension(:), allocatable   :: rateCoefficients
-    double precision                     , dimension(:), allocatable   :: time                         , rateCoefficient_
-    double precision                     , parameter                   :: countTimesPerDecade  =30.0d0
-    logical                                                            :: integratorInitialized=.false., matched         , &
-         &                                                                recompute
-    double precision                                                   :: timeCurrent
-    integer                                                            :: countTimes                   , i               , &
-         &                                                                indexRateCoefficient
+    class           (radiationFieldClass         ), target      , intent(inout) :: self
+    double precision                              , dimension(2), intent(in   ) :: wavelengthRange
+    procedure       (crossSectionFunctionTemplate), pointer                     :: crossSectionFunction
+    type            (treeNode                    ), target      , intent(inout) :: node
+    type            (integrator                  ), save                        :: integrator_
+    type            (rateCoefficient             ), dimension(:), allocatable   :: rateCoefficients
+    double precision                              , dimension(:), allocatable   :: time                         , rateCoefficient_
+    double precision                              , parameter                   :: countTimesPerDecade  =30.0d0
+    logical                                                                     :: integratorInitialized=.false., matched         , &
+         &                                                                         recompute
+    double precision                                                            :: timeCurrent
+    integer                                                                     :: countTimes                   , i               , &
+         &                                                                         indexRateCoefficient
     !$omp threadprivate(integrator_,integratorInitialized)
 
     ! Construct the integrator if necessary.
@@ -189,9 +194,9 @@ contains
           if (allocated(self%rateCoefficients)) then
              call move_alloc(self%rateCoefficients,rateCoefficients)
              allocate(self%rateCoefficients(size(rateCoefficients)+1))
-             self%rateCoefficients(1:size(rateCoefficients))=rateCoefficients
              do i=1,size(rateCoefficients)
-                call self%rateCoefficients(i)%interpolator_%GSLReallocate(gslFree=.false.)
+                self%rateCoefficients(i)=rateCoefficients(i)
+                call self%rateCoefficients(i)%interpolator_%GSLReallocate()
              end do
              deallocate(rateCoefficients)
           else
@@ -203,8 +208,6 @@ contains
        end if
        ! (Re)compute the table if necessary.
        if (recompute) then
-          if (allocated(self%rateCoefficients(indexRateCoefficient)%interpolator_)) deallocate(self%rateCoefficients(indexRateCoefficient)%interpolator_)
-          allocate(self%rateCoefficients(indexRateCoefficient)%interpolator_)
           self%rateCoefficients(indexRateCoefficient)%timeMinimum=min(self%rateCoefficients(indexRateCoefficient)%timeMinimum,timeCurrent/2.0d0)
           self%rateCoefficients(indexRateCoefficient)%timeMaximum=max(self%rateCoefficients(indexRateCoefficient)%timeMaximum,timeCurrent*2.0d0)
           countTimes=int(log10(self%rateCoefficients(indexRateCoefficient)%timeMaximum/self%rateCoefficients(indexRateCoefficient)%timeMinimum)*countTimesPerDecade+1.0d0)
@@ -261,7 +264,7 @@ contains
     implicit none
     class(rateCoefficient), intent(inout) :: self
 
-    call self%interpolator_%GSLReallocate(gslFree=.false.)
+    call self%interpolator_%GSLReallocate()
     return
   end subroutine rateCoefficientInterpolatorDeepCopy
 

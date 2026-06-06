@@ -32,9 +32,12 @@ module Galactic_Dynamics_Bar_Instabilities
   <functionClass>
    <name>galacticDynamicsBarInstability</name>
    <descriptiveName>Bar instabilities in galactic disks</descriptiveName>
-   <description>
-    Class providing models of bar instabilities in galactic disks.
-   </description>
+   <description>Class providing models of bar instabilities in galactic disks---the timescale on which
+    the stellar disk becomes bar-unstable and channels material into a central pseudo-bulge via the
+    bar. When the disk mass is sufficiently large relative to the stabilizing dark matter halo, the
+    disk is susceptible to the bar-mode instability \citep[e.g.][]{efstathiou_stability_1982}. The
+    returned timescale, external torque, and angular momentum fractions govern the secular mass and
+    angular momentum transfer from disk to bulge component.</description>
    <default>efstathiou1982</default>
    <method name="timescale" >
     <description>

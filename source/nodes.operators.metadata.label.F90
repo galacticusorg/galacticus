@@ -25,7 +25,7 @@ Implements a node operator class that applies labels to nodes during tree initia
 
   !![
   <nodeOperator name="nodeOperatorLabel">
-   <description>A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.</description>
+   <description>A node operator class that assigns a string \mono{label} meta-property to nodes passing a \refClass{galacticFilterClass} test. \mono{onInitialize} applies the label at tree initialization; \mono{onPostEvolution} reapplies it after each differential evolution step, allowing dynamic labeling of nodes that satisfy time-varying filter criteria. Labels can be used to identify special populations for subsequent analysis or filtering.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorLabel
@@ -69,19 +69,19 @@ contains
     <inputParameter>
       <name>label</name>
       <source>parameters</source>
-      <description>The label to apply.</description>
+      <description>The string label to assign as a meta-property to nodes that pass the \refClass{galacticFilterClass} test.</description>
     </inputParameter>
     <inputParameter>
       <name>onInitialize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true set the label on tree initialization.</description>
+      <description>If true, apply the label to qualifying nodes during tree initialization (the \mono{nodeTreeInitialize} phase) so that static tree properties are labelled before evolution begins.</description>
     </inputParameter>
     <inputParameter>
       <name>onPostEvolution</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true set the label after each differential evolution.</description>
+      <description>If true, reapply the label to qualifying nodes after each differential evolution step so that the label reflects time-varying filter criteria evaluated at each output epoch.</description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]    
@@ -100,7 +100,7 @@ contains
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
     type   (nodeOperatorLabel  )                        :: self
-    type   (varying_string     ), intent(inout)         :: label
+    type   (varying_string     ), intent(in   )         :: label
     logical                     , intent(in   )         :: onInitialize   , onPostEvolution
     class  (galacticFilterClass), intent(in   ), target :: galacticFilter_
     !![
@@ -113,7 +113,7 @@ contains
   
   subroutine labelDestructor(self)
     !!{
-    Destructor for  the \refClass{nodeOperatorLabel} galactic filter class.
+    Destructor for  the \refClass{nodeOperatorLabel} node operator class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self

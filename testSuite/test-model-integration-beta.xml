@@ -1,6 +1,6 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <parameters formatVersion="2" version="0.9.4">
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <lastModified/>
   <formatVersion>2</formatVersion>
@@ -73,9 +73,6 @@
   <componentDisk value="verySimpleSize">
     <toleranceAbsoluteMass value="1.0e-6"/>
     <scaleAbsoluteMass value="1.0e6"/>
-    <pruneMassGas value="1.0e6"/>
-    <pruneMassStars value="1.0e6"/>
-    <useAnalyticSolver value="true"/>
   </componentDisk>
   <componentHotHalo value="verySimpleDelayed">
     <scaleRelativeMass value="1.0"/>
@@ -250,6 +247,7 @@
       <timeStepRelative value="0.01"/>
     </mergerTreeEvolveTimestep>
     <mergerTreeEvolveTimestep value="satellite"/>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
   </mergerTreeEvolveTimestep>
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -271,16 +269,19 @@
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
     <!-- Star formation -->
-    <nodeOperator value="starFormationDisks"/>
-    <nodeOperator value="stellarFeedbackDisks">
-      <stellarFeedbackOutflows value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="2.8035155505694409E-002"/>
-        <stellarFeedbackOutflows value="vlctyMxSclng">
-	  <fraction value="6.2513793382530228E-002"/>
-	  <exponentRedshift value="2.6150327842305985"/>
-	  <exponentVelocity value="-4.6058653822166820"/>
+    <nodeOperator value="filtered">
+      <galacticFilter value="haloIsolated"/>
+      <nodeOperator value="starFormationDisks"/>
+      <nodeOperator value="stellarFeedbackDisks">
+	<stellarFeedbackOutflows value="rateLimit">
+          <timescaleOutflowFractionalMinimum value="2.8035155505694409E-002"/>
+          <stellarFeedbackOutflows value="vlctyMxSclng">
+	    <fraction value="6.2513793382530228E-002"/>
+	    <exponentRedshift value="2.6150327842305985"/>
+	    <exponentVelocity value="-4.6058653822166820"/>
+	  </stellarFeedbackOutflows>
 	</stellarFeedbackOutflows>
-      </stellarFeedbackOutflows>
+      </nodeOperator>
     </nodeOperator>
     <!-- CGM physics -->
     <nodeOperator value="CGMOuterRadiusVirialRadius"/>
@@ -297,8 +298,12 @@
     <nodeOperator value="CGMOutflowReincorporation">
       <includeSatellites value="false"/>
     </nodeOperator>
+    <nodeOperator value="diskVerySimpleAnalyticSolver">
+      <pruneMassGas value="0.0"/>
+      <pruneMassStars value="0.0"/>
+    </nodeOperator>
   </nodeOperator>
-
+  
   <!-- Output -->
   <outputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
@@ -308,5 +313,9 @@
   <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="treeWeight"/>
+  </nodePropertyExtractor>
 
 </parameters>

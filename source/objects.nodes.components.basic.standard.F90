@@ -40,7 +40,7 @@ module Node_Component_Basic_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Total mass of the node, assuming universal baryon fraction."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Total mass of the node, assuming universal baryon fraction."/>
     </property>
     <property>
       <name>time</name>
@@ -54,7 +54,7 @@ module Node_Component_Basic_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
       <getFunction>BasicStandardTimeLastIsolated</getFunction>
-      <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
+      <output unitsInSI="gigaYear" unitsDescription="Gyr" unitsQuantity="Gyr" comment="Time at which node was last an isolated halo."/>
     </property>
     <property>
       <name>accretionRate</name>
@@ -70,9 +70,7 @@ module Node_Component_Basic_Standard
 contains
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Basic_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Basic_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Basic_Standard_Scale_Set(node)
     !!{
@@ -99,9 +97,7 @@ contains
   end subroutine Node_Component_Basic_Standard_Scale_Set
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Basic_Standard_Plausibility(node)
     !!{

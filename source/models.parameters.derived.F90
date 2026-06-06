@@ -23,7 +23,7 @@
 
   !![
   <modelParameter name="modelParameterDerived">
-   <description>A model parameter class in which the parameter value is derived from other parameters.</description>
+   <description>A model parameter class in which the parameter value is not sampled directly but instead derived algorithmically from other model parameters via a mathematical expression. The parameter name is set by \mono{[name]} and the derivation formula by \mono{[definition]}, enabling computed quantities to be tracked as named parameters during posterior sampling.</description>
   </modelParameter>
   !!]
   type, extends(modelParameterInactive) :: modelParameterDerived
@@ -31,19 +31,22 @@
      Implementation of a model parameter class in which the parameter value is derived from other parameters.
      !!}
      private
-     type(varying_string) :: definition_
+     type   (varying_string) :: definition_
+     logical                 :: isInteger_
    contains
      !![
      <methods>
-       <method description="Return the definition for this parameter." method="definition" />
+       <method description="Return the definition for this parameter."   method="definition"/>
+       <method description="Return true if the parameter is an integer." method="isInteger" />
      </methods>
      !!]
      procedure :: definition => derivedDefinition
+     procedure :: isInteger  => derivedIsInteger
   end type modelParameterDerived
 
   interface modelParameterDerived
      !!{
-     Constructors for the \refClass{modelParameterDerived} 1D distribution function class.
+     Constructors for the \refClass{modelParameterDerived} model parameter class.
      !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal
@@ -57,38 +60,46 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(modelParameterDerived)                :: self
-    type(inputParameters      ), intent(inout) :: parameters
-    type(varying_string       )                :: name      , definition
+    type   (modelParameterDerived)                :: self
+    type   (inputParameters      ), intent(inout) :: parameters
+    type   (varying_string       )                :: name      , definition
+    logical                                       :: isInteger
 
     !![
     <inputParameter>
       <name>name</name>
-      <description>The name of the parameter.</description>
+      <description>The name of the derived model parameter as it appears in the \glc\ parameter file and posterior sampling output; used to identify this computed quantity in the parameter chain.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>definition</name>
-      <description>The definition of the parameter.</description>
+      <description>The mathematical expression or formula used to derive this parameter's value from other model parameters during posterior sampling.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>isInteger</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true the derived value is treated as an integer, otherwise it is considered to be a float.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=modelParameterDerived(name,definition)
-     !![
-     <inputParametersValidate source="parameters"/>
-     !!]
-   return
+    self=modelParameterDerived(name,definition,isInteger)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
   end function derivedConstructorParameters
 
-  function derivedConstructorInternal(name_,definition_) result(self)
+  function derivedConstructorInternal(name_,definition_,isInteger_) result(self)
     !!{
     Internal constructor for the \refClass{modelParameterDerived} model parameter class.
     !!}
     implicit none
-    type(modelParameterDerived)                :: self
-    type(varying_string       ), intent(in   ) :: name_, definition_
+    type   (modelParameterDerived)                :: self
+    type   (varying_string       ), intent(in   ) :: name_     , definition_
+    logical                       , intent(in   ) :: isInteger_
     !![
-    <constructorAssign variables="name_, definition_"/>
+    <constructorAssign variables="name_, definition_, isInteger_"/>
     !!]
 
     return
@@ -105,4 +116,15 @@ contains
     derivedDefinition=self%definition_
     return
   end function derivedDefinition
+
+  logical function derivedIsInteger(self)
+    !!{
+    Return true if the derived parameter is to be treated as an integer.
+    !!}
+    implicit none
+    class(modelParameterDerived), intent(inout) :: self
+
+    derivedIsInteger=self%isInteger_
+    return
+  end function derivedIsInteger
 

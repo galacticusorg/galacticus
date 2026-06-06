@@ -28,7 +28,7 @@ Implements a merger tree build controller class which builds constrained trees.
 
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerConstrained">
-   <description>A merger tree build controller class which builds constrained trees.</description>
+   <description>A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the \mono{[constructionOption]} parameter, with Brownian bridge endpoints set by \mono{[criticalOverdensity]}, \mono{[variance]}, \mono{[redshift]}, and \mono{[haloMass]}.</description>
   </mergerTreeBuildController>
   !!]
 
@@ -119,7 +119,7 @@ contains
        <inputParameter>
          <name>labelDescription</name>
          <source>parameters</source>
-         <description>A description of the label.</description>
+         <description>A human-readable description of the label applied to constrained nodes in the merger tree, used to document what physical property or criterion the label represents.</description>
        </inputParameter>
        !!]
     end if

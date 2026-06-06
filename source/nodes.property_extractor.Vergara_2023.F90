@@ -38,7 +38,7 @@
      integer  :: radiusNuclearStarClustersID          , blackHoleSeedMassID              , &
          &       velocityNuclearStarClustersID        , ageNuclearStarClustersID         , &
          &       gasMassNuclearStarClustersID         , criticalMassNuclearStarClustersID, &
-         &       redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &                                                                    
+         &       redshiftBlackHoleSeedFormationID     , stellarMassNuclearStarClustersID , &
          &       mergerTreeWeightNuclearStarClustersID   
    contains
      procedure :: elementCount       => blackHoleSeedingVergara2023ElementCount
@@ -46,11 +46,12 @@
      procedure :: names              => blackHoleSeedingVergara2023Names
      procedure :: descriptions       => blackHoleSeedingVergara2023Descriptions
      procedure :: unitsInSI          => blackHoleSeedingVergara2023UnitsInSI
+     procedure :: units       => blackHoleSeedingVergara2023Units
   end type nodePropertyExtractorBlackHoleSeedingVergara2023
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorBlackHoleSeedingVergara2023} property extractor class.
      !!}
      module procedure blackHoleSeedingVergara2023ConstructorParameters
      module procedure blackHoleSeedingVergara2023ConstructorInternal
@@ -96,7 +97,7 @@ contains
 
   integer function blackHoleSeedingVergara2023ElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractors.
+    Return the number of elements in the \mono{blackHoleSeedingVergara2023} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout) :: self
@@ -109,7 +110,7 @@ contains
 
   function blackHoleSeedingVergara2023Extract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily blackHoleSeedingVergara2023} property extractor.
+    Implement a \mono{blackHoleSeedingVergara2023} property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC
     implicit none
@@ -154,7 +155,7 @@ contains
 
   subroutine blackHoleSeedingVergara2023Names(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily blackHoleSeedingVergara2023} properties.
+    Return the names of the \mono{blackHoleSeedingVergara2023} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self
@@ -176,7 +177,7 @@ contains
 
   subroutine blackHoleSeedingVergara2023Descriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily blackHoleSeedingVergara2023} property.
+    Return descriptions of the \mono{blackHoleSeedingVergara2023} property.
     !!}
     implicit none
     class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)                             :: self
@@ -198,7 +199,7 @@ contains
 
   function blackHoleSeedingVergara2023UnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily BlackHoleSeedingVergara2023} properties in the SI system.
+    Return the units of the \mono{BlackHoleSeedingVergara2023} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec, gigayear
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -221,3 +222,29 @@ contains
      &                                     ]
     return
   end function blackHoleSeedingVergara2023UnitsInSI
+
+  function blackHoleSeedingVergara2023Units(self,time) result(units)
+    !!{
+    Return the units of the blackHoleSeedingVergara2023 properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec, gigayear
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                                        ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorBlackHoleSeedingVergara2023), intent(inout)              :: self
+    double precision                                                  , intent(in   )              :: time
+    double precision                                                  , dimension(:) , allocatable :: siValues
+
+    siValues=self%unitsInSI(time)
+    allocate(units(8))
+    units(1)=unitType(1.0d0                                                   )
+    units(2)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(3)=unitType(gigayear  ,description='Gyr'         ,quantity='Gyr'    )
+    units(4)=unitType(megaParsec,description='Mpc'         ,quantity='Mpc'    )
+    units(5)=unitType(kilo      ,description='km/s'        ,quantity='km/s'   )
+    units(6)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(7)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    units(8)=unitType(massSolar ,description='Solar masses',quantity='solMass')
+    return
+  end function blackHoleSeedingVergara2023Units

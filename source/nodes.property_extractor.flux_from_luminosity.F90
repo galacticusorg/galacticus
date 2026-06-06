@@ -25,7 +25,7 @@ Implements a class which extracts fluxes from luminosities.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorFluxFromLuminosity">
-   <description>A property extractor that converts luminosities to fluxes.</description>
+   <description>Converts intrinsic luminosities to observed fluxes by dividing by $4\pi d_\mathrm{L}^2$, where $d_\mathrm{L}$ is the luminosity distance at the output redshift. Enables direct comparison of model predictions to flux-limited observational surveys at $z>0$.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorFluxFromLuminosity
@@ -43,11 +43,12 @@ Implements a class which extracts fluxes from luminosities.
      procedure :: names        => fluxFromLuminosityNames
      procedure :: descriptions => fluxFromLuminosityDescriptions
      procedure :: unitsInSI    => fluxFromLuminosityUnitsInSI
+     procedure :: units        => fluxFromLuminosityUnits
   end type nodePropertyExtractorFluxFromLuminosity
 
   interface nodePropertyExtractorFluxFromLuminosity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
      !!}
      module procedure fluxFromLuminosityConstructorParameters
      module procedure fluxFromLuminosityConstructorInternal
@@ -57,7 +58,7 @@ contains
 
   function fluxFromLuminosityConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +94,7 @@ contains
   
   subroutine fluxFromLuminosityDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFluxFromLuminosity), intent(inout) :: self
@@ -107,7 +108,7 @@ contains
 
   integer function fluxFromLuminosityElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily fluxFromLuminosity} property extractors.
+    Return the number of elements in the \mono{fluxFromLuminosity} property extractors.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -247,3 +248,23 @@ contains
     unitsInSI=ergs/centi**2
     return
   end function fluxFromLuminosityUnitsInSI
+
+  function fluxFromLuminosityUnits(self,time) result(units)
+    !!{
+    Return the units of the fluxFromLuminosity properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                               ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorFluxFromLuminosity), intent(inout)              :: self
+    double precision                                         , intent(in   )              :: time
+    double precision                                         , dimension(:) , allocatable :: siValues
+    integer                                                                               :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='erg/cm²',quantity='erg/cm^2')
+    end do
+    return
+  end function fluxFromLuminosityUnits

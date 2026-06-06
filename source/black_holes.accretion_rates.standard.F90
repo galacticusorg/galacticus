@@ -30,7 +30,7 @@
   !![
   <blackHoleAccretionRate name="blackHoleAccretionRateStandard">
    <description>
-    The standard black hole accretion rate calculation.
+    Computes black hole accretion rates via Bondi-Hoyle accretion from spheroid gas, hot halo gas, and nuclear star cluster gas. Enhancement factors above the classical Bondi rate are set independently via \mono{[bondiHoyleAccretionEnhancementSpheroid]}, \mono{[bondiHoyleAccretionEnhancementHotHalo]}, and \mono{[bondiHoyleAccretionEnhancementNuclearStarCluster]}. The gas temperature assumed for each component and whether to restrict hot halo accretion to the hot-mode only are also configurable.
    </description>
   </blackHoleAccretionRate>
   !!]
@@ -150,7 +150,7 @@ contains
 
   function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateStandard} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none

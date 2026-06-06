@@ -26,7 +26,7 @@
 
   !![
   <task name="taskBuildBroadbandLuminosityTabulations">
-   <description>A task which pre-builds tabulations needed for broadband luminosity calculations.</description>
+   <description>A task which pre-builds and caches tabulations of stellar population broadband luminosities by evaluating the luminosity for a reference stellar population at solar metallicity. This pre-computation allows rapid lookup of broadband luminosities in photometric bands during galaxy evolution.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildBroadbandLuminosityTabulations

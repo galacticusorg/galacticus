@@ -25,9 +25,9 @@ Implements a half-light radii property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
    <description>
     A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
-    each specified luminosity band is extracted as {\normalfont \ttfamily [halfLightRadius\{luminosityID\}]} (in Mpc), where
-    {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
-    within that radius is extracted as {\normalfont \ttfamily [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+    each specified luminosity band is extracted as \mono{[halfLightRadius\{luminosityID\}]} (in Mpc), where
+    \mono{\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
+    within that radius is extracted as \mono{[halfLightMass\{luminosityID\}]} (in $\mathrm{M}_\odot$).
    </description>
   </nodePropertyExtractor>
   !!]
@@ -42,11 +42,12 @@ Implements a half-light radii property extractor class.
      procedure :: names        => radiiHalfLightPropertiesNames
      procedure :: descriptions => radiiHalfLightPropertiesDescriptions
      procedure :: unitsInSI    => radiiHalfLightPropertiesUnitsInSI
+     procedure :: units       => radiiHalfLightPropertiesUnits
   end type nodePropertyExtractorRadiiHalfLightProperties
 
   interface nodePropertyExtractorRadiiHalfLightProperties
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
@@ -71,7 +72,7 @@ contains
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    Return the number of elements in the \mono{radiiHalfLightProperties} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -85,7 +86,7 @@ contains
 
   function radiiHalfLightPropertiesExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily radiiHalfLightProperties} property extractor.
+    Implement a \mono{radiiHalfLightProperties} property extractor.
     !!}
     use :: Galactic_Structure_Options    , only : componentTypeAll       , massTypeAll, massTypeStellar, weightByLuminosity
     use :: Mass_Distributions            , only : massDistributionClass
@@ -124,7 +125,7 @@ contains
 
   subroutine radiiHalfLightPropertiesNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily radiiHalfLightProperties} properties.
+    Return the names of the \mono{radiiHalfLightProperties} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -148,7 +149,7 @@ contains
 
   subroutine radiiHalfLightPropertiesDescriptions(self,time,descriptions)
     !!{
-    Return descriptions of the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    Return descriptions of the \mono{radiiHalfLightProperties} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -186,3 +187,24 @@ contains
     return
   end function radiiHalfLightPropertiesUnitsInSI
 
+  function radiiHalfLightPropertiesUnits(self,time) result(units)
+    !!{
+    Return the units of the radiiHalfLightProperties properties.
+    !!}
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
+    use :: Stellar_Luminosities_Structure  , only : unitStellarLuminosities
+    implicit none
+    type            (unitType                                     ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)             :: self
+    double precision                                               , intent(in   )             :: time
+    integer                                                                                    :: i
+    !$GLC attributes unused :: self
+
+    allocate(units(2*unitStellarLuminosities%luminosityOutputCount(time)))
+    do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
+       units(2*i+1)=unitType(megaParsec,description='Mpc',quantity='Mpc'    )
+       units(2*i+2)=unitType(massSolar ,description='M☉' ,quantity='solMass')
+    end do
+    return
+  end function radiiHalfLightPropertiesUnits

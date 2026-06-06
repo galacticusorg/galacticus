@@ -34,7 +34,10 @@ module Node_Property_Extractors
   <functionClass>
    <name>nodePropertyExtractor</name>
    <descriptiveName>Node Property Extractor</descriptiveName>
-   <description>Class providing extraction of properties from nodes.</description>
+   <description>Class providing extraction of scalar, 1D, or multi-D properties from merger tree nodes for output.
+    Property extractors are used by output analysis classes to retrieve galaxy and halo properties (e.g. stellar mass,
+    dark matter halo mass, star formation rate, positions, velocities) and convert them to formats suitable for
+    comparison with observational data or for writing to the \glc\ output file.</description>
    <default>nodeIndices</default>
    <method name="type" >
     <description>Return the type of the extracted property.</description>
@@ -55,7 +58,7 @@ module Node_Property_Extractors
     </code>
    </method>
    <method name="addInstances" >
-    <description>Add multiple instances of this property to a {\normalfont \ttfamily multiCounter} object.</description>
+    <description>Add multiple instances of this property to a \mono{multiCounter} object.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode    ), intent(inout) :: node</argument>
@@ -73,8 +76,8 @@ module Node_Property_Extractors
   <enumeration>
    <name>galacticComponent</name>
    <description>Specifies the galactic component for various node property extractors.</description>
-   <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="disk"              />
    <entry label="spheroid"          />
    <entry label="nuclearStarCluster"/>

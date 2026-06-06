@@ -26,12 +26,12 @@
 
   !![
   <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
-   <description>An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.</description>
+   <description>An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored. Whether to compute velocity dispersions via the Chandrasekhar integral is controlled by \mono{[chandrasekharIntegralComputeVelocityDispersion]}.</description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileDarkMatterOnly
      !!{
-     A dark matter halo profile class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
+     A class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
      !!}
      private
      class           (cosmologyParametersClass ), pointer :: cosmologyParameters_                           => null()
@@ -90,7 +90,7 @@ contains
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine darkMatterOnlyDestructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} dark matter halo profile class.
+    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self
@@ -124,7 +124,7 @@ contains
 
   function darkMatterOnlyGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : weightByMass
     use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler, kinematicsDistributionSphericalScaler, kinematicsDistributionClass

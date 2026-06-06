@@ -20,12 +20,18 @@
   !!{
   Implements a property extractor class for the density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
-   <description>A property extractor class for the density at a set of radii.</description>
+   <description>A property extractor that returns the mass density profile
+    (in $\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}$) of a galaxy or halo component at a
+    user-specified set of radii. The \mono{radiusSpecifiers} parameter provides a list of radius
+    definitions (e.g.\ multiples of the virial radius, disk radius, or half-mass radius), supporting
+    both galactic structural radii and fixed physical radii. If \mono{includeRadii} is \mono{true},
+    the corresponding radii (in Mpc) are also written to the output file as a second column alongside
+    the density values.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
@@ -51,11 +57,12 @@
      procedure :: names              => densityProfileNames
      procedure :: descriptions       => densityProfileDescriptions
      procedure :: unitsInSI          => densityProfileUnitsInSI
+     procedure :: units              => densityProfileUnits
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityProfile} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
      !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal
@@ -147,7 +154,7 @@ contains
 
   integer function densityProfileElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily densityProfile} property extractors.
+    Return the number of elements in the \mono{densityProfile} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
@@ -160,7 +167,7 @@ contains
 
   function densityProfileSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily densityProfile} property extractors.
+    Return the number of array elements in the \mono{densityProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                           )                :: densityProfileSize
@@ -174,7 +181,7 @@ contains
 
   function densityProfileExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily densityProfile} property extractor.
+    Implement a \mono{densityProfile} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -286,7 +293,7 @@ contains
 
   subroutine densityProfileNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily densityProfile} properties.
+    Return the names of the \mono{densityProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
@@ -302,7 +309,7 @@ contains
 
   subroutine densityProfileDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily densityProfile} property.
+    Return descriptions of the \mono{densityProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
@@ -317,30 +324,32 @@ contains
     return
   end subroutine densityProfileDescriptions
 
-  subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
+    Return column descriptions of the \mono{densityProfile} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                            :: self
     double precision                                     , intent(in   ), optional                  :: time
     type            (varying_string                     ), intent(inout), dimension(:), allocatable :: descriptions
-    double precision                                     , intent(inout), dimension(:), allocatable :: values 
+    double precision                                     , intent(inout), dimension(:), allocatable :: values
     type            (varying_string                     ), intent(  out)                            :: valuesDescription
-    double precision                                     , intent(  out)                            :: valuesUnitsInSI
+    type            (unitType                           ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(1.0d0)
     descriptions     =self%radii%name
     return
   end subroutine densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily densityProfile} properties in the SI system.
+    Return the units of the \mono{densityProfile} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -356,3 +365,20 @@ contains
     return
   end function densityProfileUnitsInSI
 
+  function densityProfileUnits(self,time) result(units)
+    !!{
+    Return the units of the densityProfile properties.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
+    use :: Units_MetaData                  , only : unitType
+    implicit none
+    type            (unitType                           ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorDensityProfile), intent(inout)             :: self
+    double precision                                     , intent(in   ), optional   :: time
+
+    allocate(units(self%elementCount_))
+    units       (1)=unitType(massSolar/megaParsec**3,description='M☉/Mpc³',quantity='solMass/Mpc^3')
+    if (self%includeRadii)                                                                           &
+         & units(2)=unitType(          megaParsec   ,description='Mpc'    ,quantity='Mpc'          )
+    return
+  end function densityProfileUnits

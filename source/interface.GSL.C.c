@@ -17,25 +17,6 @@
 //    You should have received a copy of the GNU General Public License
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-// Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-//           2019
-//    Andrew Benson <abenson@carnegiescience.edu>
-//
-// This file is part of Galacticus.
-//
-//    Galacticus is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
-//
-//    Galacticus is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
 //% Implements Fortran-callable wrappers around GSL functions.
 
 #include <stdlib.h>
@@ -43,6 +24,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
 #include <errno.h>
+#include <string.h>
 
 void gslRngDefault() {
   gsl_rng_env_setup();
@@ -88,4 +70,9 @@ gsl_function_fdf *gslFunctionFdFConstructor(double (*f) (double x, void * params
 void gslFunctionDestructor(gsl_function *f) {
   /* Destroy a gsl_function object. */
   free(f);
+}
+
+void gslErrorDecoder(const int gsl_errno, char *gsl_str, size_t gsl_strlen) {
+  /* Return a GSL error code description */
+  strncpy(gsl_str,(char *)gsl_strerror(gsl_errno),gsl_strlen);  
 }

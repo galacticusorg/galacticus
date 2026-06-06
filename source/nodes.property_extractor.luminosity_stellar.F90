@@ -26,7 +26,13 @@ Implements a stellar mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
-   <description>A stellar luminosity output analysis property extractor class.</description>
+   <description>A property extractor that returns the total stellar luminosity of a node in a
+    specified broadband filter, in units of the AB zero-point. The \mono{filterName} and
+    \mono{filterType} parameters select the photometric band and whether to use rest-frame or
+    observer-frame luminosities. The optional \mono{redshiftBand} shifts the band to a fixed
+    redshift (for K-corrections), and \mono{postprocessChain} applies a named spectral
+    postprocessing chain (e.g.\ \gls{igm} attenuation) before the photometric integration.
+    Luminosity indices are pre-computed per output time for efficiency.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLuminosityStellar
@@ -47,11 +53,12 @@ Implements a stellar mass output analysis property extractor class.
      procedure :: name        => luminosityStellarName
      procedure :: description => luminosityStellarDescription
      procedure :: unitsInSI   => luminosityStellarUnitsInSI
+     procedure :: units       => luminosityStellarUnits
   end type nodePropertyExtractorLuminosityStellar
 
   interface nodePropertyExtractorLuminosityStellar
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityStellar} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
      !!}
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal
@@ -61,7 +68,7 @@ contains
 
   function luminosityStellarConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityStellar} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -130,7 +137,7 @@ contains
 
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLuminosityStellar} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -171,7 +178,7 @@ contains
 
   subroutine luminosityStellarDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityStellar} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
@@ -260,3 +267,16 @@ contains
     luminosityStellarUnitsInSI=luminosityZeroPointAB
     return
   end function luminosityStellarUnitsInSI
+
+  function luminosityStellarUnits(self) result(units)
+    !!{
+    Return the units of the luminosityStellar property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='AB-magnitude zero point',quantity='4.465920e17 W/Hz')
+    return
+  end function luminosityStellarUnits

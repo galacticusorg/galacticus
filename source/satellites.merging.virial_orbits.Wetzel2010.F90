@@ -82,7 +82,7 @@
 
   interface virialOrbitWetzel2010
      !!{
-     Constructors for the \refClass{virialOrbitWetzel2010} virial orbit class.
+     Constructors for the \refClass{virialOrbitWetzel2010} virial orbits class.
      !!}
      module procedure wetzel2010ConstructorParameters
      module procedure wetzel2010ConstructorInternal

@@ -25,7 +25,7 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Particles   , only : darkMatterParticleClass
-  use :: Mass_Distributions      , only : enumerationNonAnalyticSolversType
+  use :: Mass_Distributions      , only : enumerationNonAnalyticSolversType, massDistributionSphericalHeated
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
@@ -38,6 +38,12 @@
     The core-halo mass relation and core radius are computed following \cite{chan_diversity_2022}, while the core
     density normalization follows \cite{schive_understanding_2014}.
    </description>
+   <deepCopy>
+    <functionClass variables="massDistributionHeated_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="massDistributionHeated_"/>
+   </stateStorable>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSolitonNFWHeated
@@ -49,7 +55,7 @@
      class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_                => null()
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_               => null()
      class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_           => null()
-     class           (massDistributionClass            ), pointer :: massDistributionHeated_             => null()
+     type            (massDistributionSphericalHeated  ), pointer :: massDistributionHeated_             => null()
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_                 => null()
      class           (darkMatterParticleClass          ), pointer :: darkMatterParticle_                 => null()
@@ -85,7 +91,7 @@
 
   interface darkMatterProfileDMOSolitonNFWHeated
      !!{
-     Constructors for the {\normalfont \ttfamily solitonNFWHeated} dark matter halo profile class.
+     Constructors for the \mono{solitonNFWHeated} dark matter halo profile class.
      !!}
      module procedure solitonNFWHeatedConstructorParameters
      module procedure solitonNFWHeatedConstructorInternal
@@ -125,31 +131,31 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
     </inputParameter>
     <inputParameter>
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
     </inputParameter>
     <inputParameter>
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, tolerate failures to compute the potential.</description>
+      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of the heated soliton-NFW dark matter profile (e.g. due to extreme heating), allowing the calculation to proceed with a fallback result.</description>
     </inputParameter>
     <inputParameter>
       <name>velocityDispersionApproximate</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+      <description>If \mono{true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If \mono{false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceRelativeVelocityDispersion</name>
@@ -287,7 +293,7 @@ contains
 
   subroutine solitonNFWHeatedDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily solitonNFWHeated} dark matter halo profile class.
+    Destructor for the \mono{solitonNFWHeated} dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -331,7 +337,7 @@ contains
 
   function solitonNFWHeatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the soliton plus NFW fuzzy dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the soliton plus NFW fuzzy dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic
@@ -472,25 +478,20 @@ contains
        allocate(kinematicsDistributionSolitonNFWHeated :: kinematicsDistribution_)
        select type(massDistribution_)
        type is (massDistributionSolitonNFWHeated)
-          select type (massDistributionHeated_ => self%massDistributionHeated_)
-          class is (massDistributionSpherical)
           !![
           <referenceConstruct object="massDistribution_">
             <constructor>
-              massDistributionSolitonNFWHeated(                                                 &amp;
-               &amp;                           radiusCore             =radiusCore             , &amp;
-               &amp;                           radiusSoliton          =radiusSoliton          , &amp;
-               &amp;                           densitySolitonCentral  =densityCore            , &amp;
-               &amp;                           massDistributionHeated_=massDistributionHeated_, &amp;
-               &amp;                           componentType          =componentTypeDarkHalo  , &amp;
-               &amp;                           massType               =massTypeDark             &amp;
+              massDistributionSolitonNFWHeated(                                                      &amp;
+               &amp;                           radiusCore             =     radiusCore             , &amp;
+               &amp;                           radiusSoliton          =     radiusSoliton          , &amp;
+               &amp;                           densitySolitonCentral  =     densityCore            , &amp;
+               &amp;                           massDistributionHeated_=self%massDistributionHeated_, &amp;
+               &amp;                           componentType          =     componentTypeDarkHalo  , &amp;
+               &amp;                           massType               =     massTypeDark             &amp;
                &amp;                          )
             </constructor>
           </referenceConstruct>
           !!]
-          class default
-             call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
-          end select
        end select
        select type (kinematicsDistribution_)
        type is (kinematicsDistributionSolitonNFWHeated)
@@ -541,7 +542,7 @@ contains
          &                                                                             redshift                         , concentration             , &
          &                                                                             randomOffset                     , massCoreNormal            , &
          &                                                                             zeta_0                           , zeta_z
-    integer                                                                         :: sampleCountMaximum=50
+    integer                                                                         :: sampleCountMaximum       =50
     integer                                                                         :: status                           , sampleCount
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
@@ -576,38 +577,35 @@ contains
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
     ! Create the mass distribution.
-    allocate(massDistributionSphericalHeated :: self%massDistributionHeated_)
-    select type(massDistributionHeated_ => self%massDistributionHeated_)
-    type is (massDistributionSphericalHeated)
-       massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
-       massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
-       select type (massDistributionDecorated)
-       class is (massDistributionSpherical)
-          !![
-	  <referenceConstruct isResult="yes" owner="self" nameAssociated="massDistributionHeated_" object="massDistributionHeated_">
-	    <constructor>
-              massDistributionSphericalHeated(                                                                                    &amp;
-               &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
-	       &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
-	       &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
-	       &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
-	       &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
-	       &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
-               &amp;                          massDistribution_                     =     massDistributionDecorated             , &amp;
-               &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
-               &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
-               &amp;                          massType                              =     massTypeDark                            &amp;
-               &amp;                         )
-	    </constructor>
-	  </referenceConstruct>
-	  <objectDestructor name="massDistributionDecorated"/>
-	  <objectDestructor name="massDistributionHeating_" />
-          !!]
-       class default
-          call Error_Report('expected a spherical mass distribution'//{introspection:location})
-       end select
+    allocate(self%massDistributionHeated_)
+    massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
+    massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
+    select type (massDistributionDecorated)
+    class is (massDistributionSpherical)
+       !![
+       <referenceConstruct isResult="yes" owner="self" object="massDistributionHeated_">
+	 <constructor>
+           massDistributionSphericalHeated(                                                                                    &amp;
+            &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
+	    &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
+	    &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
+	    &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
+	    &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
+	    &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
+            &amp;                          massDistribution_                     =     massDistributionDecorated             , &amp;
+            &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
+            &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
+            &amp;                          massType                              =     massTypeDark                            &amp;
+            &amp;                         )
+	 </constructor>
+       </referenceConstruct>
+       <objectDestructor name="massDistributionDecorated"/>
+       <objectDestructor name="massDistributionHeating_" />
+       !!]
+    class default
+       call Error_Report('expected a spherical mass distribution'//{introspection:location})
     end select
-
+    
     ! Compute the core mass.
     massCoreNormal =+darkMatterProfile%floatRank0MetaPropertyGet(self%massCoreNormalID)
 

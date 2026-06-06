@@ -52,7 +52,10 @@ module Linear_Growth
   <functionClass>
    <name>linearGrowth</name>
    <descriptiveName>Linear Growth of Cosmological Structure</descriptiveName>
-   <description>Object providing linear growth of cosmological structure.</description>
+   <description>Class providing the linear growth factor $D(t)$ and its derivatives, which describe how matter density
+    perturbations grow in the linear regime. The growth factor is used to normalize the power spectrum and to relate the
+    amplitude of perturbations at different epochs. Implementations may treat different matter components (dark matter, baryons,
+    radiation) and different approximations to the growth equation.</description>
    <default>collisionlessMatter</default>
    <method name="value" >
     <description>Return the linear growth factor at the given time and mass.</description>

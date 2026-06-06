@@ -23,9 +23,7 @@ Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass t
 
   !![
   <galacticFilter name="galacticFilterGasFractionISM">
-   <description>
-   A galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
-   </description>
+   <description>Passes nodes whose ISM gas fraction (the ratio of ISM gas mass to stellar mass) exceeds a specified threshold, enabling selection of gas-rich galaxies.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterGasFractionISM

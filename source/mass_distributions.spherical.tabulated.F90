@@ -169,7 +169,7 @@ contains
 
   double precision function sphericalTabulatedMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    Computes the mass enclosed within a sphere of given \mono{radius} for spherically-symmetric mass
     distributions using a tabulation.
     !!}
     implicit none
@@ -202,7 +202,7 @@ contains
 
   double precision function sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
     !!{
-    Computes the radius enclosing the given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    Computes the radius enclosing the given \mono{radius} for spherically-symmetric mass
     distributions using a tabulation.
     !!}
     implicit none
@@ -231,7 +231,7 @@ contains
 
   double precision function sphericalTabulatedPotential(self,coordinates,status) result(potential)
     !!{
-    Compute the potential at the given {\normalfont \ttfamily coordinates} in a spherical mass distribution using a tabulation.
+    Compute the potential at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -264,7 +264,7 @@ contains
 
   double precision function sphericalTabulatedPotentialDifference(self,coordinates1,coordinates2,status) result(potentialDifference)
     !!{
-    Compute the potential difference between the given {\normalfont \ttfamily coordinates1} and {\normalfont \ttfamily coordinates2} in a spherical mass distribution using a tabulation.
+    Compute the potential difference between the given \mono{coordinates1} and \mono{coordinates2} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -296,7 +296,7 @@ contains
 
   double precision function sphericalTabulatedVelocityDispersion1D(self,coordinates) result(velocityDispersion)
     !!{
-    Compute the 1D velocity dispersion at the given {\normalfont \ttfamily coordinates} in a spherical mass distribution using a tabulation.
+    Compute the 1D velocity dispersion at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -326,7 +326,7 @@ contains
 
   double precision function sphericalTabulatedEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the energy within a given {\normalfont \ttfamily radius} in a spherical mass distribution using a tabulation.
+    Compute the energy within a given \mono{radius} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
@@ -358,7 +358,7 @@ contains
 
   double precision function sphericalTabulatedFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{    
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in a spherical mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical mass
     distribution using a tabulation.
     !!}
     implicit none
@@ -392,7 +392,7 @@ contains
 
   double precision function sphericalTabulatedRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at a given {\normalfont \ttfamily time} in a spherical mass distribution using a tabulation.
+    Compute the freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -421,7 +421,7 @@ contains
 
   double precision function sphericalTabulatedRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of freefall radius at a given {\normalfont \ttfamily time} in a spherical mass distribution using a tabulation.
+    Compute the rate of increase of freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -643,10 +643,10 @@ contains
                   !$omp barrier
                   workRemains=counter%increment()
                   if (.not.workRemains) exit
-                  !$omp master
+                  !$omp masked
                   call displayCounter(int(100.0d0*dble(iterationCount)/dble(iterationCountTotal)),iterationCount==0,verbosityLevelWorking)
                   iterationCount=iterationCount+1_c_size_t
-                  !$omp end master
+                  !$omp end masked
                   iParameters   =counter%states()
                   parameters_   =exp(log(tabulation%parametersMinimum)+dble(iParameters-1_c_size_t)/tabulation%parametersInverseStep)
                   ! Call the factory function in the child class to get an instance built with the current parameters.
@@ -737,9 +737,9 @@ contains
                   deallocate(instance)
                   nullify   (instance)
                end do
-               !$omp master
+               !$omp masked
                call displayCounterClear(verbosityLevelWorking)
-               !$omp end master
+               !$omp end masked
                tabulating=.false.
                !$omp end parallel
                ! Store tabulation to file.
@@ -940,7 +940,7 @@ contains
     if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
     if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
     !$ call hdf5Access%set()
-    call    file%openFile     (char(fileName)                                                                                         ,readOnly=.true.                    )
+    file=hdf5Object(char(fileName),readOnly=.true.)
     call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
     call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
     call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
@@ -950,7 +950,6 @@ contains
        call file%readAttribute(char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep',tabulation%parametersInverseStep(i))
     end do
     call    file%readDataset  (char(quantityName)                                                                                     ,tabulation%table                   )
-    call    file%close        (                                                                                                                                           )
     !$ call hdf5Access%unset()
     tabulation   %countRadii        =size(tabulation%table,dim=  1)
     do i=1,container%countParameters(tabulation)
@@ -977,7 +976,7 @@ contains
 
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)
     !$ call hdf5Access%set()
-    call    file%openFile      (char(fileName)                     ,overWrite=.true.                                                                                                                                     )
+   file=hdf5Object(char(fileName),overWrite=.true.)
     call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusMaximum           ,char(quantityName)//'RadiusMaximum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusInverseStep       ,char(quantityName)//'RadiusInverseStep'                                                                                                              )
@@ -987,7 +986,6 @@ contains
        call file%writeAttribute(tabulation%parametersInverseStep(i),char(quantityName)//String_Upper_Case_First(char(container%nameParameter(i,tabulation)))//'InverseStep'                                              )
     end do
     call    file%writeDataset  (tabulation%table                   ,char(quantityName)                                                                                     ,'Tabulated '//char(quantityName)//' profile.')
-    call    file%close         (                                                                                                                                                                                         )
     !$ call hdf5Access%unset()
     return
   end subroutine sphericalTabulatedFileWrite

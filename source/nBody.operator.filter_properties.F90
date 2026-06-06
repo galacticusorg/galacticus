@@ -35,7 +35,7 @@ Implements an N-body data operator which filters out particles based on a proper
   
   !![
   <nbodyOperator name="nbodyOperatorFilterProperties">
-   <description>An N-body data operator which filters out particles based on a property range.</description>
+   <description>An N-body data operator which retains only particles whose named property values fall within specified minimum and maximum bounds, enabling selection by mass, concentration, spin, or any other stored property. Property names and their lower and upper limits are specified as arrays via \mono{[names]}, \mono{[minimum]}, and \mono{[maximum]}.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterProperties
@@ -90,12 +90,12 @@ contains
     <inputParameter>
       <name>rangeLow</name>
       <source>parameters</source>
-      <description>The lowest value of each property to pass (``{\normalfont \ttfamily -infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>The lowest value of each property to pass (``\mono{-infinity}'' is interpreted as the lowest possible value for the property.</description>
     </inputParameter>
     <inputParameter>
       <name>rangeHigh</name>
       <source>parameters</source>
-      <description>The highest value of each property to pass (``{\normalfont \ttfamily +infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>The highest value of each property to pass (``\mono{+infinity}'' is interpreted as the lowest possible value for the property.</description>
     </inputParameter>
     !!]
     allocate(propertyRanges(size(propertyNames)))

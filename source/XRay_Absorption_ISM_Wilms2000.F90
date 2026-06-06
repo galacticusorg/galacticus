@@ -18,11 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+Contains a program which wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
 \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
 \gls{ism}. This program assumes that various files from \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-Galacticus::ISMCrossSections} module.
+downloaded into the \mono{aux/XSpec} folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMCrossSections} module.
 !!}
 
 ! Add explicit dependencies on the XSpec files.
@@ -31,12 +30,11 @@ Galacticus::ISMCrossSections} module.
 
 program XRay_Absorption_ISM_Wilms2000
   !!{
-  Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  Wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
   \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
   cross-sections in the \gls{ism}. This program assumes that various files from
-  \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
-  \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-  Galacticus::ISMColumnDensity} module.
+  \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the \mono{aux/XSpec}
+  folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMColumnDensity} module.
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
@@ -44,6 +42,7 @@ program XRay_Absorption_ISM_Wilms2000
   use :: Numerical_Constants_Prefixes , only : kilo
   use :: Numerical_Constants_Units    , only : electronVolt
   use :: Numerical_Ranges             , only : Make_Range
+  use :: Units_MetaData               , only : unitType
   implicit none
   integer                                                                , parameter :: energyCount       =1000
   integer                                                                , parameter :: metallicityCount  =100
@@ -99,28 +98,24 @@ program XRay_Absorption_ISM_Wilms2000
   end do
 
   ! Open the output file.
-  call outputFile%openFile('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
+  outputFile=hdf5Object('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
   ! Write energy table.
   call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",comment="Photon energy in keV",datasetReturned=myDataset)
-  call myDataset %writeAttribute(kilo*electronVolt,"unitsInSI")
-  call myDataset %close()
+  call myDataset %writeAttribute(unitType(kilo*electronVolt,"keV","keV"),"units")
   ! Write metallicity table.
   call outputFile%writeDataset(metallicity,datasetName="metallicity",comment="Metallicity")
   ! Write crossSection table.
   call outputFile%writeDataset(crossSection,datasetName="crossSection",comment="Absorption cross section in cm²",datasetReturned=myDataset)
-  call myDataset %writeAttribute(1.0d-4,"unitsInSI")
-  call myDataset %close()
+  call myDataset %writeAttribute(unitType(1.0d-4,"cm²","cm^2"),"units")
   ! Add meta-data.
   call outputFile%writeAttribute("Created by Galacticus using dotbvabs function from XSpec","description")
   call outputFile%writeAttribute(Formatted_Date_and_Time(),"timestamp")
   call outputFile%writeAttribute("Wilms, Allen & McCray (2000; ApJ, 542, 914; http://adsabs.harvard.edu/abs/2000ApJ...542..914W)","source")
-  ! Close the output file.
-  call outputFile%close()
 end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
   !!{
-  Message display function required by {\normalfont \ttfamily dotbvabs}.
+  Message display function required by \mono{dotbvabs}.
   !!}
   implicit none
   character(len=*), intent(in   ) :: msg
@@ -132,7 +127,7 @@ end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
   !!{
-  Error message function required by {\normalfont \ttfamily dotbvabs}.
+  Error message function required by \mono{dotbvabs}.
   !!}
   use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use :: Error, only : Error_Report
@@ -149,7 +144,7 @@ end subroutine xermsg
 
 real function fgabnd(c)
   !!{
-  Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
+  Function to return the abundance (relative to hydrogen) of elements. Required by \mono{dotbvabs}.
   !!}
   use :: Error, only : Error_Report
   implicit none

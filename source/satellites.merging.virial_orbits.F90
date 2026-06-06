@@ -39,7 +39,7 @@ module Virial_Orbits
    </description>
    <default>benson2005</default>
    <method name="orbit" >
-    <description>Returns an orbit object.</description>
+    <description>Returns a Kepler orbit object describing the orbital parameters (energy, angular momentum, radial and tangential velocities) of a satellite halo at the time it first crosses the virial radius of its host halo.</description>
     <type>type(keplerOrbit)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -63,7 +63,7 @@ module Virial_Orbits
    </code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
+    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>

@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorNodeFormationTimeMassFraction">
-   <description>A node operator class that computes the formation time for each node based on a mass fraction definition.</description>
+   <description>A node operator class that records the halo formation time as the epoch when the main-branch progenitor first assembled a fraction \mono{fractionMassFormation} (default 0.5) of the final halo mass, using the mass accretion history from \refClass{darkMatterHaloMassAccretionHistoryClass}. \mono{assumeMonotonicGrowth} enables a faster algorithm that assumes monotonic mass growth along each branch.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeMassFraction

@@ -24,7 +24,7 @@
   !![
   <circumgalacticMediumHeating name="circumgalacticMediumHeatingZero">
    <description>
-    A \gls{cgm} heating class with zero heating.
+    A null implementation of the circumgalactic medium heating class that returns zero heating rate at all times. Useful for disabling \gls{cgm} heating while testing other physical processes or for models in which feedback heating of the hot gas halo is neglected.
    </description>
   </circumgalacticMediumHeating>
   !!]
@@ -39,7 +39,7 @@
   
   interface circumgalacticMediumHeatingZero
      !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingZero} class.
+     Constructors for the \refClass{circumgalacticMediumHeatingZero} circumgalactic medium heating class.
      !!}
      module procedure zeroConstructorParameters
   end interface circumgalacticMediumHeatingZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingZero} class which takes a parameter list as input.
+    Constructor for the \refClass{circumgalacticMediumHeatingZero} circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

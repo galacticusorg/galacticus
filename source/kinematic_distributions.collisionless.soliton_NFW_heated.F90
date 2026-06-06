@@ -25,7 +25,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionSolitonNFWHeated">
-   <description>A kinematic distribution class for the soliton-NFW heated mass distribution.</description>
+   <description>A kinematic distribution class for a composite soliton-NFW mass distribution subject to heating, as occurs in fuzzy dark matter halos with a quantum-pressure-supported solitonic core embedded in an NFW envelope. The 1D velocity dispersion is computed by solving the isotropic Jeans equation for the heated composite profile.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionSolitonNFWHeated
@@ -119,7 +119,7 @@ contains
 
   double precision function solitonNFWHeatedKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in a soliton-NFW Heated kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in a soliton-NFW Heated kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

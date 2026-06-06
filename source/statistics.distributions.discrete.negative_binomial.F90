@@ -23,7 +23,7 @@
 
   !![
   <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
-   <description>A negative binomial 1D discrete distribution function class.</description>
+   <description>A negative binomial 1D discrete distribution function class, modeling the number of successes $k$ observed before a fixed number of failures $r$ in a sequence of independent Bernoulli trials each with success probability $p$, with probability mass function $P(k) = \binom{k+r-1}{k} p^r (1-p)^k$. Note that the cumulative and inverse CDF methods are not currently implemented; only the probability mass function and its logarithm are available.</description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DNegativeBinomial
@@ -33,12 +33,13 @@
      private
      double precision :: probabilitySuccess, countFailures
    contains
-     procedure :: mass            => negativeBinomialMass
-     procedure :: massLogarithmic => negativeBinomialMassLogarithmic
-     procedure :: cumulative      => negativeBinomialCumulative
-     procedure :: inverse         => negativeBinomialInverse
-     procedure :: minimum         => negativeBinomialMinimum
-     procedure :: maximum         => negativeBinomialMaximum
+     procedure :: mass                    => negativeBinomialMass
+     procedure :: massLogarithmic         => negativeBinomialMassLogarithmic
+     procedure :: cumulative              => negativeBinomialCumulative
+     procedure :: cumulativeComplementary => negativeBinomialCumulativeComplementary
+     procedure :: inverse                 => negativeBinomialInverse
+     procedure :: minimum                 => negativeBinomialMinimum
+     procedure :: maximum                 => negativeBinomialMaximum
   end type distributionFunctionDiscrete1DNegativeBinomial
 
   interface distributionFunctionDiscrete1DNegativeBinomial
@@ -66,12 +67,12 @@ contains
     !![
     <inputParameter>
       <name>probabilitySuccess</name>
-      <description>The probability of success for a single trial.</description>
+      <description>The probability $p \in (0,1]$ of success on a single Bernoulli trial; the distribution models the number of successes before $r$ failures occur, with mean $pr/(1-p)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countFailures</name>
-      <description>The number of failures.</description>
+      <description>The target number of failures $r$ before the experiment stops; the distribution gives the number of successes $k$ observed before the $r$-th failure, with variance $pr/(1-p)^2$.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -86,7 +87,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -142,20 +143,33 @@ contains
     return
   end function negativeBinomialMassLogarithmic
 
-  double precision function negativeBinomialCumulative(self,x)
+  double precision function negativeBinomialCumulative(self,x,status)
     !!{
-    Return the cumulative probability of a negativeBinomial discrete distribution.
+    Return the cumulative probability of a negative binomial discrete distribution.
     !!}
-    use :: Error, only : Error_Report
+    use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
     implicit none
-    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
-    integer                                                , intent(in   ) :: x
-    !$GLC attributes unused :: self, x
+    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout)           :: self
+    integer                                                , intent(in   )           :: x
+    integer                                                , intent(  out), optional :: status
 
-    negativeBinomialCumulative=0.0d0
-    call Error_Report('cumulative distribution function is not implemented'//{introspection:location})
+    negativeBinomialCumulative=Beta_Function_Incomplete_Normalized(self%countFailures,dble(x+1),self%probabilitySuccess,status)
     return
   end function negativeBinomialCumulative
+
+  double precision function negativeBinomialCumulativeComplementary(self,x,status)
+    !!{
+    Return the complementary cumulative probability of a negative binomial discrete distribution.
+    !!}
+    use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
+    implicit none
+    class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout)           :: self
+    integer                                                , intent(in   )           :: x
+    integer                                                , intent(  out), optional :: status
+
+    negativeBinomialCumulativeComplementary=Beta_Function_Incomplete_Normalized(dble(x+1),self%countFailures,1.0d0-self%probabilitySuccess,status)
+    return
+  end function negativeBinomialCumulativeComplementary
 
   integer function negativeBinomialInverse(self,p)
     !!{

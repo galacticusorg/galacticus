@@ -122,8 +122,7 @@ contains
 
   double precision function surfaceDensityThresholdMassActive(self,component)
     !!{
-    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given {\normalfont \ttfamily
-    component} as the mass of gas in the ISM above a given surface density threshold
+    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given \mono{component} as the mass of gas in the ISM above a given surface density threshold
     !!}
     use :: Coordinates               , only : coordinateCylindrical, assignment(=)
     use :: Error                     , only : Error_Report

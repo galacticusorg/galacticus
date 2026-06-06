@@ -23,7 +23,7 @@ Implements the geometry of the SDSS survey with a depth for Local Group dwarf de
 
   !![
   <surveyGeometry name="surveyGeometryLocalGroupSDSS">
-   <description>Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.</description>
+   <description>Implements the angular footprint of the SDSS survey adapted for Local Group dwarf galaxy detectability, with the maximum survey depth set by \mono{[distanceMaximumSurvey]}. This geometry is used to model the detection volume of faint dwarf galaxies in the nearby Universe.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryLocalGroupSDSS

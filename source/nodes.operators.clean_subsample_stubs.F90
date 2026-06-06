@@ -24,7 +24,10 @@
   !![
   <nodeOperator name="nodeOperatorCleanSubsampleStubs">
    <description>
-    A node operator class that cleans any remaining stubs of the merger tree left in place by subsampling.
+    A node operator class that removes stub branches left in merger trees by the subsampling algorithm, which retains only
+    a statistical subset of minor-progenitor branches. \mono{factorMassGrowthConsolidate} sets the maximum allowed mass
+    growth factor between adjacent stub nodes for consolidation (non-positive values disable consolidation). This operator
+    should be applied before any physics operators that depend on correct tree topology.
    </description>
   </nodeOperator>
   !!]

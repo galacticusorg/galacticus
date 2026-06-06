@@ -25,7 +25,7 @@ Implements a property extractor for ``in lightcone'' status.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone">
-   <description>An ``in lightcone'' status property extractor.</description>
+   <description>Extracts a boolean flag (1 or 0) indicating whether a node falls within the observer's past lightcone geometry, accounting for the node's 3D position and cosmic time via the \refClass{geometryLightconeClass} interface. Enables construction of mock observational catalogs from simulations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsInLightcone
@@ -43,7 +43,7 @@ Implements a property extractor for ``in lightcone'' status.
 
   interface nodePropertyExtractorIsInLightcone
      !!{
-     Constructors for the \refClass{nodePropertyExtractorIsInLightcone} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
      !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function isInLightconeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function isInLightconeConstructorInternal(geometryLightcone_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine isInLightconeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorIsInLightcone} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIsInLightcone), intent(inout) :: self
@@ -101,7 +101,7 @@ contains
 
   function isInLightconeExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily isInLightcone} node property extractor.
+    Implement a \mono{isInLightcone} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                         )                          :: isInLightconeExtract
@@ -145,5 +145,3 @@ contains
     isInLightconeDescription=var_str('Node is within the lightcone (1 if true, 0 otherwise).')
     return
   end function isInLightconeDescription
-
-

@@ -26,7 +26,7 @@ Implements an N-body data importer for Millennium database CSV files.
   
   !![
   <nbodyImporter name="nbodyImporterMillenniumCSV">
-   <description>An importer for Millennium database CSV files.</description>
+   <description>An importer for halo catalog data stored in comma-separated value (CSV) format as exported from the Millennium Simulation database, reading halo masses and positions at a specified redshift. The input file path is set by \mono{[fileName]}, the target redshift by \mono{[redshift]}, and a simulation label by \mono{[label]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
@@ -129,7 +129,7 @@ contains
 
   subroutine millenniumCSVDestructor(self)
     !!{
-    Destructor for the \refClass{nbodyImporterMillenniumCSV} importer class.
+    Destructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self

@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteEvaporationSIDM">
-   <description>A node operator class that performs evaporation of satellites due to dark matter self-interactions.</description>
+   <description>Computes mass loss from satellite halos due to dark matter particle evaporation caused by self-interactions with host halo dark matter particles, an additional stripping channel unique to self-interacting dark matter beyond gravitational tidal stripping.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteEvaporationSIDM

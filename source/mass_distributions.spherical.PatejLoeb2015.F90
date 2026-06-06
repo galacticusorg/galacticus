@@ -198,7 +198,7 @@ contains
   
   double precision function patejLoeb2015RadiusDarkMatter(self,radius) result(radiusDarkMatter)
     !!{
-    Return the corresponding radius in the dark matter distribution the specified {\normalfont \ttfamily radius} in a \cite{patej_simple_2015} mass distribution.
+    Return the corresponding radius in the dark matter distribution the specified \mono{radius} in a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
     class           (massDistributionPatejLoeb2015), intent(inout) :: self
@@ -215,22 +215,25 @@ contains
 
   function patejLoeb2015CoordinatesDarkMatter(self,coordinates) result(coordinatesDarkMatter)
     !!{
-    Return the corresponding coordinates in the dark matter distribution the specified {\normalfont \ttfamily radius} in a \cite{patej_simple_2015} mass distribution.
+    Return the corresponding coordinates in the dark matter distribution the specified \mono{radius} in a \cite{patej_simple_2015} mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
-    type (coordinateSpherical          )                :: coordinatesDarkMatter
-    class(massDistributionPatejLoeb2015), intent(inout) :: self
-    class(coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateSpherical          )                :: coordinatesDarkMatter
+    class           (massDistributionPatejLoeb2015), intent(inout) :: self
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    class           (coordinate                   ), allocatable   :: coordinates_
+    double precision                                               :: scaleFactor
 
-    coordinatesDarkMatter=coordinates                                                      &
-         &                *(coordinates%rSpherical()/self%radiusShock)**(self%gamma-1.0d0)
+    scaleFactor=(coordinates%rSpherical()/self%radiusShock)**(self%gamma-1.0d0)
+    call coordinates%scale(scaleFactor,coordinates_)
+    coordinatesDarkMatter=coordinates_
     return
   end function patejLoeb2015CoordinatesDarkMatter
 
   double precision function patejLoeb2015Density(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution.
+    Return the density at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
     class(massDistributionPatejLoeb2015), intent(inout) :: self
@@ -251,7 +254,7 @@ contains
 
   double precision function patejLoeb2015DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution.
+    Return the density at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
     class  (massDistributionPatejLoeb2015), intent(inout), target   :: self
@@ -276,7 +279,7 @@ contains
 
   double precision function patejLoeb2015MassEnclosedBySphere(self,radius) result(massEnclosedBySphere)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for a \cite{patej_simple_2015} mass distribution.
+    Computes the mass enclosed within a sphere of given \mono{radius} for a \cite{patej_simple_2015} mass distribution.
     !!}
     implicit none
     class           (massDistributionPatejLoeb2015), intent(inout), target :: self
@@ -304,7 +307,7 @@ contains
 
   double precision function patejLoeb2015Potential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in a \cite{patej_simple_2015} mass distribution. The
+    Return the potential at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution. The
     potential is given by
     \begin{equation}
       \phi(r) = - \int^\infty_r \mathrm{d}r \frac{\mathrm{G}M(r)}{r^2}.

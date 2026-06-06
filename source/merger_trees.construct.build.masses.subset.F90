@@ -25,7 +25,7 @@
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesSubset">
-   <description>A merger tree masses class which constructs a subset of another class.</description>
+   <description>A merger tree masses class which extracts a contiguous subset of halo masses from a delegate class, enabling parallel processing of mass lists across multiple jobs. The range of entries to extract is specified by \mono{[subsetBegin]} and \mono{[subsetEnd]}, both indexed from 1.</description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSubset

@@ -23,7 +23,7 @@
 
   !![
   <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DBinomial">
-   <description>A binomial 1D discrete distribution function class.</description>
+   <description>A 1D binomial discrete distribution function class, modeling the number of successes $k$ in $n$ independent Bernoulli trials each with success probability $p$, with probability mass function $P(k) = \binom{n}{k} p^k (1-p)^{n-k}$.</description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DBinomial
@@ -69,12 +69,12 @@ contains
     !![
     <inputParameter>
       <name>probabilitySuccess</name>
-      <description>The probability of success for a single trial.</description>
+      <description>The probability $p \in [0,1]$ of success on a single Bernoulli trial, which determines the mean ($np$) and variance ($np(1-p)$) of the resulting binomial distribution.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>countTrials</name>
-      <description>The number of trials.</description>
+      <description>The total number of independent Bernoulli trials $n$, which sets the range of the distribution from 0 to $n$ and controls the overall scale of the mean and variance.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -89,7 +89,7 @@ contains
 
   function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
     !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D distribution function class.
+    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -148,15 +148,18 @@ contains
     return
   end function binomialMassLogarithmic
 
-  double precision function binomialCumulative(self,x)
+  double precision function binomialCumulative(self,x,status)
     !!{
     Return the cumulative probability of a binomial discrete distribution.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
     implicit none
-    class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
-    integer                                        , intent(in   ) :: x
+    class  (distributionFunctionDiscrete1DBinomial), intent(inout)           :: self
+    integer                                        , intent(in   )           :: x
+    integer                                        , intent(  out), optional :: status
 
+    if (present(status)) status=GSL_Success
     if (x < 0 .or. x > self%countTrials) call Error_Report('k∈[0,n]'//{introspection:location})
     binomialCumulative=self%probabilityCumulative(x)
     return

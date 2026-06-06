@@ -126,8 +126,7 @@ contains
 
   double precision function correa2015Time(self,node,mass)
     !!{
-    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
-    node} using the algorithm of \cite{correa_accretion_2015}.
+    Compute the time corresponding to \mono{mass} in the mass accretion history of \mono{node} using the algorithm of \cite{correa_accretion_2015}.
     !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode
@@ -183,8 +182,8 @@ contains
 
   double precision function correa2015MassAccretionRate(self,node,time)
     !!{
-    Compute the mass accretion rate at the given time {\normalfont \ttfamily mass} in the mass accretion history of
-    {\normalfont \ttfamily node} using the algorithm of \cite{correa_accretion_2015}.
+    Compute the mass accretion rate at the given time \mono{mass} in the mass accretion history of
+    \mono{node} using the algorithm of \cite{correa_accretion_2015}.
     !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters
     use :: Galacticus_Nodes            , only : nodeComponentBasic                        , treeNode

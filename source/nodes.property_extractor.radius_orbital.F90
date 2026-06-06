@@ -23,7 +23,7 @@ Implements an orbital radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
-   <description>An orbital radius output analysis property extractor class.</description>
+   <description>Extracts the current 3D orbital radius of a satellite node from the center of its host halo, tracking the satellite's position along its orbit for use in analyses of satellite radial distributions and orbital evolution.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusOrbital
@@ -36,11 +36,12 @@ Implements an orbital radius output analysis property extractor class.
      procedure :: name        => radiusOrbitalName
      procedure :: description => radiusOrbitalDescription
      procedure :: unitsInSI   => radiusOrbitalUnitsInSI
+     procedure :: units       => radiusOrbitalUnits
   end type nodePropertyExtractorRadiusOrbital
 
   interface nodePropertyExtractorRadiusOrbital
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbital} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusOrbital} property extractor class.
      !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital
@@ -49,7 +50,7 @@ contains
 
   function radiusOrbitalConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusOrbital} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusOrbital} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -134,3 +135,16 @@ contains
     radiusOrbitalUnitsInSI=megaParsec
     return
   end function radiusOrbitalUnitsInSI
+
+  function radiusOrbitalUnits(self) result(units)
+    !!{
+    Return the units of the radiusOrbital property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                          )                :: units
+    class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusOrbitalUnits

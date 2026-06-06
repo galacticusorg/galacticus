@@ -24,7 +24,7 @@ Implements a cold dark matter particle class.
 
   !![
   <darkMatterParticle name="darkMatterParticleCDM">
-   <description>Provides a cold dark matter particle.</description>
+   <description>Provides a cold dark matter particle with effectively infinite mass and negligible free-streaming length, representing the standard collisionless \gls{cdm} model in which structure grows hierarchically from small scales upward.</description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleCDM

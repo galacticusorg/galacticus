@@ -23,7 +23,12 @@ Implements a ratio output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRatio">
-   <description>A ratio output analysis property extractor class.</description>
+   <description>A property extractor that returns the ratio of two scalar node properties---the
+    value extracted by \mono{nodePropertyExtractorNumerator} divided by that extracted by
+    \mono{nodePropertyExtractorDenominator}. The output dataset \mono{name} and \mono{description}
+    are specified directly as parameters, allowing arbitrary dimensionless ratios (e.g.\ disk-to-total
+    stellar mass, gas fraction, size ratio) to be computed on-the-fly at output time without defining
+    a dedicated extractor class for each combination.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRatio
@@ -32,7 +37,8 @@ Implements a ratio output analysis property extractor class.
      !!}
      private
      class           (nodePropertyExtractorClass), pointer :: propertyNumerator_ => null(), propertyDenominator_ => null()
-     type            (varying_string            )          :: name_                       , description_
+     type            (varying_string            )          :: name_                       , description_                  , &
+          &                                                   unitsDescription            , unitsQuantity
      double precision                                      :: unitsInSI_
    contains
      final     ::                ratioDestructor
@@ -40,11 +46,12 @@ Implements a ratio output analysis property extractor class.
      procedure :: name        => ratioName
      procedure :: description => ratioDescription
      procedure :: unitsInSI   => ratioUnitsInSI
+     procedure :: units       => ratioUnits
   end type nodePropertyExtractorRatio
 
   interface nodePropertyExtractorRatio
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRatio} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRatio} property extractor class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
@@ -54,7 +61,7 @@ contains
 
   function ratioConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRatio} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,13 +95,15 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error          , only : Error_Report
+    use :: String_Handling, only : String_C_to_Fortran
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_
     character(len=*                     ), intent(in   )         :: name              , description
+    type     (unitType                  )                        :: unitNumerator     , unitDenominator
     !![
     <constructorAssign variables="*propertyNumerator_, *propertyDenominator_"/>
     !!]
@@ -104,6 +113,7 @@ contains
     select type (propertyNumerator_  )
     class is (nodePropertyExtractorScalar)
        self%unitsInSI_=+propertyNumerator_  %unitsInSI()
+       unitNumerator  = propertyNumerator_  %units    ()
     class default
        call Error_Report('numerator property must be a scalar'  //{introspection:location})
     end select
@@ -111,15 +121,17 @@ contains
     class is (nodePropertyExtractorScalar)
        self%unitsInSI_=+self%unitsInSI_                  &
             &          /propertyDenominator_%unitsInSI()
+       unitDenominator= propertyDenominator_%units    ()
     class default
        call Error_Report('denominator property must be a scalar'//{introspection:location})
     end select
+    self%unitsDescription=String_C_to_Fortran(unitNumerator%description)//" / ("//String_C_to_Fortran(unitDenominator%description)//")"//c_null_char
     return
   end function ratioConstructorInternal
 
   subroutine ratioDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRatio} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self
@@ -200,3 +212,16 @@ contains
     return
   end function ratioUnitsInSI
 
+  function ratioUnits(self) result(units)
+    !!{
+    Return the units of the ratio property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                  )                :: units
+    class(nodePropertyExtractorRatio), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description=char(self%unitsDescription),quantity=char(self%unitsQuantity))
+    return
+  end function ratioUnits

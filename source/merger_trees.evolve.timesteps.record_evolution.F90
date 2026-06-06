@@ -38,13 +38,11 @@ main branch galaxy.
     $t_{\mathrm{record},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
     properties of the galaxy will be recorded at the end of the timestep.
   
-    Timesteps are logarithmically spaced in cosmic time between {\normalfont \ttfamily [timeBegin]} and \newline {\normalfont
-    \ttfamily [timeEnd]}, with the total number of timesteps specified by {\normalfont \ttfamily [countSteps]}.
+    Timesteps are logarithmically spaced in cosmic time between \mono{[timeBegin]} and \newline \mono{[timeEnd]}, with the total number of timesteps specified by \mono{[countSteps]}.
   
-    This recorded evolution will be written to the group {\normalfont \ttfamily mainProgenitorEvolution} in the \glc\ output
-    file. Within that group two datasets, {\normalfont \ttfamily time} and {\normalfont \ttfamily expansionFactor}, give the
-    times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, {\normalfont \ttfamily
-    stellarMass&lt;N&gt;} and {\normalfont \ttfamily totalMass&lt;N&gt;} (where {\normalfont \ttfamily &lt;N&gt;} is the merger tree index), give
+    This recorded evolution will be written to the group \mono{mainProgenitorEvolution} in the \glc\ output
+    file. Within that group two datasets, \mono{time} and \mono{expansionFactor}, give the
+    times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, \mono{stellarMass&lt;N&gt;} and \mono{totalMass&lt;N&gt;} (where \mono{&lt;N&gt;} is the merger tree index), give
     the stellar and total baryonic mass of the main branch progenitor at each timestep.
    </description>
   </mergerTreeEvolveTimestep>
@@ -290,6 +288,7 @@ contains
     use            :: ISO_Varying_String              , only : var_str              , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear             , massSolar
+    use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
     implicit none
@@ -310,22 +309,17 @@ contains
           outputGroup=outputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
           if (.not.self%oneTimeDatasetsWritten) then
              call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
-             call dataset    %writeAttribute(gigaYear            ,"unitsInSI"                                                                             )
-             call dataset    %close         (                                                                                                             )
+             call dataset    %writeAttribute(unitType(gigaYear,"Gyr"         ,"Gyr"    ),"units")
              call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
              self%oneTimeDatasetsWritten=.true.
           end if
           datasetName=var_str("stellarMass")//treeIndex
           call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
+          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
           datasetName=var_str("totalMass"  )//treeIndex
           call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
-          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                    )
-          call dataset    %close         (                                                                                                                )
-          call outputGroup%close         (                                                                                                                )
-          !$ call hdf5Access%unset()
-          call    self      %reset()
+          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
+          call    self    %reset         (                                                                                                                )
        end if
     class default
        call Error_Report('incorrect class'//{introspection:location})

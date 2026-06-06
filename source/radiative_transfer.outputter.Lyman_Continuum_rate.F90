@@ -40,7 +40,7 @@
 
   interface radiativeTransferOutputterLymanContinuumRate
      !!{
-     Constructors for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter packet class.
+     Constructors for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class.
      !!}
      module procedure lymanContinuumRateConstructorParameters
      module procedure lymanContinuumRateConstructorInternal

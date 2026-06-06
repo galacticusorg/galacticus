@@ -40,7 +40,7 @@
 
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
-   <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
+   <description>A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by \mono{[fileName]}, with redshift, mass limits, and N-body particle count constraints specified by \mono{[redshift]}, \mono{[massMinimum]}, and \mono{[countMinimum]}.</description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
@@ -71,7 +71,7 @@
 
   interface posteriorSampleLikelihoodSpinDistribution
      !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling convergence class which builds the object from a
+    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -140,7 +140,7 @@ contains
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
       <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
@@ -194,11 +194,10 @@ contains
          &                                                         )
     ! Read the target spin distribution from file.
     !$ call hdf5Access%set()
-    call spinDistributionFile%openFile   (trim(fileName),readOnly=.true.)
+    spinDistributionFile=hdf5Object(trim(fileName),readOnly=.true.)
     call spinDistributionFile%readDataset("spinParameter"    ,self%spin             )
     call spinDistributionFile%readDataset("distribution"     ,self%distribution     )
     call spinDistributionFile%readDataset("distributionError",self%distributionError)
-    call spinDistributionFile%close()
     !$ call hdf5Access%unset()
     ! Compute spin ranges for bins.
     spinIntervalLogarithmic=+log(                            &

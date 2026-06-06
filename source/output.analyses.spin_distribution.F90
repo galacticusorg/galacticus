@@ -25,7 +25,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisSpinDistribution">
-   <description>A stellar mass function output analysis class.</description>
+   <description>Computes the dark matter halo spin parameter distribution within a specified mass range and redshift, accounting for N-body measurement errors via log-normal convolution with truncation range \mono{logNormalRange}; reads bin configuration from file and supports optional target dataset for likelihood evaluation.</description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
@@ -109,7 +109,7 @@ contains
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
       <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="outputTimes"                  name="outputTimes_"                     source="parameters"                                                />
@@ -187,7 +187,7 @@ contains
        <inputParameter>
          <name>timeRecent</name>
          <source>parameters</source>
-         <description>Halos which experienced a major node merger within a time $\Delta t=${\normalfont \ttfamily [timeRecent]} of the analysis time will be excluded from the analysis.</description>
+         <description>Halos which experienced a major node merger within a time $\Delta t=$\mono{[timeRecent]} of the analysis time will be excluded from the analysis.</description>
        </inputParameter>
        <inputParameter>
          <name>particleCountMinimum</name>
@@ -330,7 +330,7 @@ contains
          &                                                                                time
 
     !$ call hdf5Access%set  ()
-    call dataFile%openFile(fileName,readOnly=.true.)
+    dataFile       =hdf5Object(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup%readDataset  ('spin'                              ,spin                              )
@@ -344,9 +344,6 @@ contains
     call attributesGroup%readAttribute('timeRecent'                        ,timeRecent                        )
     call attributesGroup%readAttribute('particleCountMinimum'              ,particleCountMinimum              )
     call attributesGroup%readAttribute('energyEstimateParticleCountMaximum',energyEstimateParticleCountMaximum)
-    call attributesGroup%close        (                                                                       )
-    call simulationGroup%close        (                                                                       )
-    call dataFile       %close        (                                                                       )
     !$ call hdf5Access%unset()
     ! Compute a (diagonal) covariance matrix from the counts.
     allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
@@ -379,6 +376,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                   , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence, &
           &                                                 outputAnalysisDistributionNormalizerUnitarity
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorSpinNBodyErrors
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10          , outputAnalysisPropertyOperatorLog10
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
@@ -431,8 +429,9 @@ contains
     integer                                                            , parameter                                  :: covarianceBinomialBinsPerDecade         =2
     double precision                                                   , parameter                                  :: covarianceBinomialMassHaloMinimum       =3.000d11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                         )                                             :: i                                                , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    <constructorAssign variables="label, comment, time, massMinimum, massMaximum, spinMinimum, spinMaximum, countSpins, timeRecent, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, logNormalRange, errorTolerant, *cosmologyParameters_, *cosmologyFunctions_, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *outputTimes_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
     
     ! Build grid of spins.
@@ -552,17 +551,30 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(spins(2)/spins(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert spins to log10(spins) here.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                 &
+         &                                                     xAxisLabel      =var_str('$\lambda$'                          ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'), &
+         &                                                     xAxisIsLog      =.true.                                        , &
+         &                                                     yAxisIsLog      =.true.                                        , &
+         &                                                     targetLabel     =targetLabel                                   , &
+         &                                                     valueTarget     =functionValueTarget                           , &
+         &                                                     covarianceTarget=functionCovarianceTarget                        &
+         &                                                    )
     self%outputAnalysisVolumeFunction1D=outputAnalysisVolumeFunction1D(                                                     &
          &                                                             var_str('spinDistribution')//label                 , &
          &                                                             comment                                            , &
          &                                                             var_str('spin'                                    ), &
          &                                                             var_str('Spin at the bin center'                  ), &
          &                                                             var_str('dimensionless'                           ), &
-         &                                                             0.0d0                                              , &
+         &                                                             var_str(' '                                       ), &
+         &                                                             .true.                                             , &
+         &                                                             1.0d0                                              , &
          &                                                             var_str('spinDistributionFunction'                ), &
          &                                                             var_str('Spin distribution averaged over each bin'), &
          &                                                             var_str('dimensionless'                           ), &
-         &                                                             0.0d0                                              , &
+         &                                                             var_str(' '                                       ), &
+         &                                                             .true.                                             , &
+         &                                                             1.0d0                                              , &
          &                                                             log10(spins)                                       , &
          &                                                             bufferCount                                        , &
          &                                                             outputWeight                                       , &
@@ -579,13 +591,7 @@ contains
          &                                                             covarianceBinomialMassHaloMinimum                  , &
          &                                                             covarianceBinomialMassHaloMaximum                  , &
          &                                                             .false.                                            , &
-         &                                                             var_str('$\lambda$'                               ), &
-         &                                                             var_str('$\mathrm{d}p/\mathrm{d}\log\lambda$'     ), &
-         &                                                             .true.                                             , &
-         &                                                             .true.                                             , &
-         &                                                             targetLabel                                        , &
-         &                                                             functionValueTarget                                , &
-         &                                                             functionCovarianceTarget                             &
+         &                                                             outputAnalysisTargetData_                            &
          &                                                            )
     !![
     <objectDestructor name="haloSpinDistributionDeltaFunction_"             />
@@ -632,11 +638,11 @@ contains
     integer                                                                         :: status
     
     ! Check for existence of a target distribution.
-    if (allocated(self%functionValueTarget)) then
+    if (allocated(self%targetData_%valueTarget)) then
        ! Finalize analysis.
        call self%finalizeAnalysis()
        ! Find bins which have a measured target value.
-       mask=self%functionValueTarget > 0.0d0
+       mask=self%targetData_%valueTarget > 0.0d0
        if (count(mask) > 0) then
           ! Allocate workspaces.
           allocate(functionCovarianceCombined(count(mask),count(mask)))
@@ -646,15 +652,15 @@ contains
           do i=1,self%binCount
              if (mask(i)) then
                 ii=ii+1
-                functionValueDifference(ii)=+self%functionValue      (i) &
-                     &                      -self%functionValueTarget(i)
+                functionValueDifference(ii)=+self            %functionValue(i) &
+                     &                      -self%targetData_%valueTarget  (i)
                 jj=0
                 do j=1,self%binCount
                    if (mask(j)) then
                       jj=jj+1
                       ! Compute total covariance.
-                      functionCovarianceCombined(ii,jj)=+self%functionCovarianceTarget(i,j) &
-                           &                            +self%functionCovariance      (i,j)
+                      functionCovarianceCombined(ii,jj)=+self%targetData_%covarianceTarget  (i,j) &
+                           &                            +self            %functionCovariance(i,j)
                    end if
                 end do
              end if

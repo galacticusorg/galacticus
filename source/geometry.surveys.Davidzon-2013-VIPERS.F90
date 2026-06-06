@@ -28,9 +28,8 @@ Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
    <description>
     A survey geometry class that describes the survey geometry of \cite{davidzon_vimos_2013}. 
     
-    For the angular mask, we make use of {\normalfont \ttfamily mangle} polygon files provided by I.~Davidzon (private
-    communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the {\normalfont
-    \ttfamily mangle} {\normalfont \ttfamily harmonize} command.
+    For the angular mask, we make use of \mono{mangle} polygon files provided by I.~Davidzon (private
+    communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the \mono{mangle} \mono{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of the tabulated mass function, $\phi$, and number of
     galaxies per bin, $N$, supplied by I.~Davidzon (private communication). The effective volume of each bin is found as $V_i =
@@ -46,7 +45,7 @@ Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
      0.6 \\ 3.148 + 0.0268m &amp; 0.6 &lt; z &lt; 0.8 \\ 3.207 + 0.0273m &amp; 0.8 &lt; z &lt; 1.0 \end{array} \right.
      \label{eq:DavidzonDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}
@@ -224,7 +223,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting distance for this mass. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (self%redshiftBin)
@@ -291,13 +290,10 @@ contains
     class(surveyGeometryDavidzon2013VIPERS)                           , intent(inout) :: self
     type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
-    allocate(mangleFiles(3))
-    mangleFiles=                                                       &
-         &      [                                                      &
-         &       "+"//self%mangleDirectory()//"/maskCombinedBU.ply:"// &
-         &       "-"//self%mangleDirectory()//"/photoW1.BU2.ply:"   // &
-         &       "-"//self%mangleDirectory()//"/photoW4.BU2.ply"       &
-         &      ]
+    allocate(mangleFiles(1))
+    mangleFiles(1)="+"//self%mangleDirectory()//"/maskCombinedBU.ply:"// &
+         &         "-"//self%mangleDirectory()//"/photoW1.BU2.ply:"   // &
+         &         "-"//self%mangleDirectory()//"/photoW4.BU2.ply"
     return
   end subroutine davidzon2013VIPERSMangleFiles
 

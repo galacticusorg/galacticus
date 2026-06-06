@@ -20,14 +20,14 @@
   !!{
   Implements a property extractor class for the projected density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
    <description>
     A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
-    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
     \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
@@ -57,11 +57,12 @@
      procedure :: names              => projectedDensityNames
      procedure :: descriptions       => projectedDensityDescriptions
      procedure :: unitsInSI          => projectedDensityUnitsInSI
+     procedure :: units       => projectedDensityUnits
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal
@@ -163,7 +164,7 @@ contains
 
   integer function projectedDensityElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of elements in the \mono{projectedDensity} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
@@ -176,7 +177,7 @@ contains
 
   function projectedDensitySize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    Return the number of array elements in the \mono{projectedDensity} property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: projectedDensitySize
@@ -190,7 +191,7 @@ contains
 
   function projectedDensityExtract(self,node,time,instance) result(densityProjected)
     !!{
-    Implement a {\normalfont \ttfamily projectedDensity} property extractor.
+    Implement a \mono{projectedDensity} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -360,7 +361,7 @@ contains
 
   subroutine projectedDensityNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily projectedDensity} properties.
+    Return the names of the \mono{projectedDensity} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -377,7 +378,7 @@ contains
 
   subroutine projectedDensityDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    Return descriptions of the \mono{projectedDensity} property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -392,30 +393,32 @@ contains
     return
   end subroutine projectedDensityDescriptions
 
-  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnitsInSI,time)
+  subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    Return column descriptions of the \mono{projectedDensity} property.
     !!}
+    use            :: Units_MetaData, only : unitType
+    use, intrinsic :: ISO_C_Binding , only : c_int
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                            :: self
     double precision                                       , intent(in   ), optional                  :: time
     type            (varying_string                       ), intent(inout), dimension(:), allocatable :: descriptions
     double precision                                       , intent(inout), dimension(:), allocatable :: values
-    type            (varying_string                         ), intent(  out)                            :: valuesDescription
-    double precision                                         , intent(  out)                            :: valuesUnitsInSI
+    type            (varying_string                       ), intent(  out)                            :: valuesDescription
+    type            (unitType                             ), intent(  out)                            :: valuesUnits
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%radiiCount))
     allocate(values      (              0))
     valuesDescription=var_str('')
-    valuesUnitsInSI  =0.0d0
+    valuesUnits      =unitType(1.0d0)
     descriptions     =self%radii%name
     return
   end subroutine projectedDensityColumnDescriptions
 
   function projectedDensityUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily projectedDensity} properties in the SI system.
+    Return the units of the \mono{projectedDensity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -431,3 +434,22 @@ contains
     return
   end function projectedDensityUnitsInSI
 
+  function projectedDensityUnits(self,time) result(units)
+    !!{
+    Return the units of the projectedDensity properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                             ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)             :: self
+    double precision                                       , intent(in   ), optional   :: time
+    double precision                                       , dimension(:), allocatable :: siValues
+    integer                                                                            :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='M☉/Mpc²',quantity='solMass/Mpc**2')
+    end do
+    return
+  end function projectedDensityUnits

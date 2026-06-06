@@ -40,20 +40,18 @@
 Implements an emission line luminosity node property extractor class.
 !!}
 
-  use    :: Numerical_Interpolation          , only : interpolator
-  use    :: ISO_Varying_String               , only : varying_string
-  !$ use :: OMP_Lib                          , only : omp_lock_kind
-  use    :: Output_Times                     , only : outputTimesClass
-  use    :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
-  use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
-  use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
+  use :: Numerical_Interpolation          , only : interpolator
+  use :: ISO_Varying_String               , only : varying_string
+  use :: Output_Times                     , only : outputTimesClass
+  use :: Star_Formation_Rates_Disks       , only : starFormationRateDisksClass
+  use :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
+  use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003">
     <description>
-      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the {\normalfont
-      \ttfamily lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
-      attenuation for emission line luminosities can be specified via the {\normalfont \ttfamily depthOpticalISMCoefficient}
+      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the \mono{lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
+      attenuation for emission line luminosities can be specified via the \mono{depthOpticalISMCoefficient}
       parameter.
     </description>
   </nodePropertyExtractor>
@@ -77,7 +75,6 @@ Implements an emission line luminosity node property extractor class.
      double precision                                                 , dimension(2,3        ) :: filterExtent
      type            (interpolator                      ), allocatable, dimension(:          ) :: interpolator_
      double precision                                                                          :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind                     )                                      :: interpolateLock
    contains
      final     ::                lmnstyEmssnLinePanuzzo2003Destructor
      procedure :: extract     => lmnstyEmssnLinePanuzzo2003Extract
@@ -85,11 +82,12 @@ Implements an emission line luminosity node property extractor class.
      procedure :: name        => lmnstyEmssnLinePanuzzo2003Name
      procedure :: description => lmnstyEmssnLinePanuzzo2003Description
      procedure :: unitsInSI   => lmnstyEmssnLinePanuzzo2003UnitsInSI
+     procedure :: units       => lmnstyEmssnLinePanuzzo2003Units
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal
@@ -128,7 +126,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -172,7 +170,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
@@ -202,16 +200,16 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
-    lines=emissionLinesFile%openGroup('lines')
+    emissionLinesFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
+    lines            =emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})
     end do
-    call emissionLinesFile%readDataset('metallicity'                  ,self%metallicity                 )
-    call emissionLinesFile%readDataset('densityHydrogen'              ,self%densityHydrogen             )
-    call emissionLinesFile%readDataset('ionizingFluxHydrogen'         ,self%ionizingFluxHydrogen        )
-    call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen' ,self%ionizingFluxHeliumToHydrogen)
-    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'   ,self%ionizingFluxOxygenToHelium  )
+    call emissionLinesFile%readDataset('metallicity'                 ,self%metallicity                 )
+    call emissionLinesFile%readDataset('densityHydrogen'             ,self%densityHydrogen             )
+    call emissionLinesFile%readDataset('ionizingFluxHydrogen'        ,self%ionizingFluxHydrogen        )
+    call emissionLinesFile%readDataset('ionizingFluxHeliumToHydrogen',self%ionizingFluxHeliumToHydrogen)
+    call emissionLinesFile%readDataset('ionizingFluxOxygenToHelium'  ,self%ionizingFluxOxygenToHelium  )
     allocate(                                          &
          &   self%luminosity                           &
          &   (                                         &
@@ -233,10 +231,7 @@ contains
        call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
        lineDataset=lines%openDataset(char(self%lineNames(i)))
        call lineDataset%readAttribute('wavelength',self%wavelength(i))
-       call lineDataset%close        (                               )
     end do
-    call lines            %close      (                                                                 )
-    call emissionLinesFile%close      (                                                                 )
     !$ call hdf5Access%unset()
     ! Convert parameters and luminosities to log form.
     self%metallicity                 =log10(self%metallicity                 )
@@ -249,7 +244,7 @@ contains
     allocate(self%ionizingContinuumIndex(self%outputTimes_%count(),3_c_size_t))
     do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
-          self%ionizingContinuumIndex(i,:                        )=-1
+          self%ionizingContinuumIndex(i,:                           )=-1
        else
           self%ionizingContinuumIndex(i,ionizingContinuumHydrogen%ID)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
           self%ionizingContinuumIndex(i,ionizingContinuumHelium  %ID)=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
@@ -267,7 +262,6 @@ contains
     self%interpolator_(interpolantHydrogen   %ID)=interpolator(self%ionizingFluxHydrogen        ,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantHelium     %ID)=interpolator(self%ionizingFluxHeliumToHydrogen,extrapolationType=extrapolationTypeFix)
     self%interpolator_(interpolantOxygen     %ID)=interpolator(self%ionizingFluxOxygenToHelium  ,extrapolationType=extrapolationTypeFix)
-    !$ call OMP_Init_Lock(self%interpolateLock)
     ! Construct name and description.
     self%name_       ="luminosityEmissionLine:"//String_Join(lineNames,"+")
     self%description_="Luminosity of the "     //String_Join(lineNames,"+")//" emission line"
@@ -278,12 +272,11 @@ contains
 
   subroutine lmnstyEmssnLinePanuzzo2003Destructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
 
-    !$ call OMP_Destroy_Lock(self%interpolateLock)
     !![
     <objectDestructor name="self%starFormationRateDisks_"       />
     <objectDestructor name="self%starFormationRateSpheroids_"   />
@@ -531,13 +524,11 @@ contains
     do component=1,2
        if (.not.isPhysical(component)) cycle
        ! Find interpolating factors in all five interpolants, preventing extrapolation beyond the tabulated ranges.
-       !$ call OMP_Set_Lock  (self%interpolateLock)
        call self%interpolator_(interpolantMetallicity%ID)%linearFactors(metallicityGas                 (component),interpolateIndex(0,interpolantMetallicity%ID),interpolateFactor(:,interpolantMetallicity%ID))
        call self%interpolator_(interpolantDensity    %ID)%linearFactors(densityHydrogen                (component),interpolateIndex(0,interpolantDensity    %ID),interpolateFactor(:,interpolantDensity    %ID))
        call self%interpolator_(interpolantHydrogen   %ID)%linearFactors(luminosityLymanContinuum       (component),interpolateIndex(0,interpolantHydrogen   %ID),interpolateFactor(:,interpolantHydrogen   %ID))
        call self%interpolator_(interpolantHelium     %ID)%linearFactors(ratioLuminosityHeliumToHydrogen(component),interpolateIndex(0,interpolantHelium     %ID),interpolateFactor(:,interpolantHelium     %ID))
        call self%interpolator_(interpolantOxygen     %ID)%linearFactors(ratioLuminosityOxygenToHelium  (component),interpolateIndex(0,interpolantOxygen     %ID),interpolateFactor(:,interpolantOxygen     %ID))
-       !$ call OMP_Unset_Lock(self%interpolateLock)
        interpolateIndex (1,:                     )=interpolateIndex(0,:)+1
        interpolateFactor=max(min(interpolateFactor,1.0d0),0.0d0)
        ! Iterate over lines.
@@ -637,3 +628,16 @@ contains
     lmnstyEmssnLinePanuzzo2003UnitsInSI=ergs
     return
   end function lmnstyEmssnLinePanuzzo2003UnitsInSI
+
+  function lmnstyEmssnLinePanuzzo2003Units(self) result(units)
+    !!{
+    Return the units of the lmnstyEmssnLinePanuzzo2003 property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                       )                :: units
+    class(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
+    return
+  end function lmnstyEmssnLinePanuzzo2003Units

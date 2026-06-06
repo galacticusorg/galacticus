@@ -34,7 +34,11 @@ module Merger_Tree_Build_Controllers
   <functionClass>
    <name>mergerTreeBuildController</name>
    <descriptiveName>Merger Tree Build Controllers</descriptiveName>
-   <description>Class providing merger tree build controllers.</description>
+   <description>Class providing merger tree build controllers---logic objects that govern when and how the tree builder places new
+    nodes during tree construction. A controller decides whether a given node should be continued (branched further), constrains
+    the range of allowed ``times'' ($w(t) = \delta_\mathrm{c}(t)/D(t)$) at each node, forces node insertion at specified times,
+    and supplies the branching probability object to use. Controllers enable constrained trees, main-branch-only trees, and other
+    specialized constructions.</description>
    <default>uncontrolled</default>
    <method name="control" >
     <description>Control the behavior of a tree build.</description>

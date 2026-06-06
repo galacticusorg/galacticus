@@ -27,9 +27,7 @@
   
   !![
   <nodeOperator name="nodeOperatorNuclearStarClusterGrowth">
-    <description>
-      A node operator class that handle the gas inflow rate ontothe nuclear star cluster.
-    </description>
+    <description>Computes and applies the gas inflow rate onto the nuclear star cluster (\gls{nsc}) from spheroid gas, driving growth of the \gls{nsc} via differential evolution using a \refClass{nuclearStarClusterGrowthRatesClass} object.</description>
   </nodeOperator>
   !!]
 

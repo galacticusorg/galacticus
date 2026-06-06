@@ -25,7 +25,7 @@ Implements a virial density contrast output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityContrastVirial">
-   <description>A virial density contrast output analysis property extractor class.</description>
+   <description>Extracts the virial density contrast $\Delta_\mathrm{vir}$, the ratio of mean halo density to the critical (or mean) density of the universe used to define the halo boundary. Evaluated at the time the halo was last isolated, this quantity varies with cosmology and redshift.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDensityContrastVirial
@@ -41,11 +41,12 @@ Implements a virial density contrast output analysis property extractor class.
      procedure :: name        => densityContrastVirialName
      procedure :: description => densityContrastVirialDescription
      procedure :: unitsInSI   => densityContrastVirialUnitsInSI
+     procedure :: units       => densityContrastVirialUnits
   end type nodePropertyExtractorDensityContrastVirial
 
   interface nodePropertyExtractorDensityContrastVirial
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityContrastVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
      !!}
      module procedure densityContrastVirialConstructorParameters
      module procedure densityContrastVirialConstructorInternal
@@ -55,7 +56,7 @@ contains
 
   function densityContrastVirialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +77,7 @@ contains
 
   function densityContrastVirialConstructorInternal(virialDensityContrast_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDensityContrastVirial)                        :: self
@@ -90,7 +91,7 @@ contains
 
   subroutine densityContrastVirialDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorDensityContrastVirial} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrastVirial), intent(inout) :: self
@@ -159,3 +160,17 @@ contains
     unitsInSI=1.0d0
     return
   end function densityContrastVirialUnitsInSI
+
+  function densityContrastVirialUnits(self) result(units)
+    !!{
+    Return the units of the densityContrastVirial property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                  )                :: units
+    class(nodePropertyExtractorDensityContrastVirial), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function densityContrastVirialUnits

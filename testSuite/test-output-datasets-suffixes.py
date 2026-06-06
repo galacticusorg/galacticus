@@ -16,7 +16,7 @@ if status.returncode != 0:
     print("   ...done ("+str(status)+")")
     print("   FAILED: model run:")
     subprocess.run("cat outputs/test-output-datasets-suffixes.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 else:
     print("   ...done")
     print("   Checking for errors...")
@@ -25,7 +25,7 @@ else:
         print("   ...done ("+str(status)+")")
         print("   FAILED: model run (errors):")
         subprocess.run("cat outputs/test-output-datasets-suffixes.log",shell=True)
-        sys.exit()
+        sys.exit(0)
     else:
         print("   ...done")
         print("   SUCCESS: model run")

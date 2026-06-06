@@ -40,7 +40,7 @@
   !![
   <virialOrbit name="virialOrbitLossCone">
    <description>
-    A virial orbits class using a loss cone model.
+    A virial orbit class that draws satellite infall orbital parameters using a loss cone model, accounting for the depletion of nearly radial orbits due to merging. The velocity range and resolution of the orbital distribution grid are controlled by the \mono{[velocityMinimum]}, \mono{[velocityMaximum]}, \mono{[velocitiesPerUnit]}, and \mono{[massesPerDecade]} parameters.
    </description>
   </virialOrbit>
   !!]
@@ -104,7 +104,7 @@
 
   interface virialOrbitLossCone
      !!{
-     Constructors for the \refClass{virialOrbitLossCone} virial orbit class.
+     Constructors for the \refClass{virialOrbitLossCone} virial orbits class.
      !!}
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
@@ -846,6 +846,7 @@ contains
     <deepCopyFinalize variables="cosmologyFunctions_ cosmologyParameters_ darkMatterHaloBias_ darkMatterHaloScale_ linearGrowth_ correlationFunctionTwoPoint_ cosmologicalVelocityField_ cosmologicalMassVariance_ criticalOverdensity_ mergerTreeBranchingProbability_"/>
     !!]
     !$omp end critical(virialOrbitLossConeDeepCopy)
+    !$omp barrier
     ! Construct a halo environment.
     radiusEnvironment=+20.0d0
     massEnvironment  =+ 4.0d0                                              &
@@ -874,6 +875,7 @@ contains
     <referenceConstruct object="cosmologicalMassVarianceEnvironmental_">
      <constructor>
       cosmologicalMassVariancePeakBackgroundSplit(                                                                       &amp;
+       &amp;                                      factorMassEnvironment    =1.0d0                                      , &amp;
        &amp;                                      haloEnvironment_         =haloEnvironment_                           , &amp;
        &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
        &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
@@ -1331,9 +1333,9 @@ contains
 
   double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial)
     !!{
-    Compute the time taken along the orbit specified by the pericenter radius, {\normalfont \ttfamily radiusPericenter}, and the
-    tangential velocity at the virial radius, {\normalfont \ttfamily velocityTangentialVirial}, to travel from the pericenter to
-    the given radius, {\normalfont \ttfamily radius}. All quantities are in virial units. Writing
+    Compute the time taken along the orbit specified by the pericenter radius, \mono{radiusPericenter}, and the
+    tangential velocity at the virial radius, \mono{velocityTangentialVirial}, to travel from the pericenter to
+    the given radius, \mono{radius}. All quantities are in virial units. Writing
     \begin{equation}
      v^\prime_\mathrm{r}(r) = \left( -{2 \over r_\mathrm{p}} + {2 \over r} + {v_\theta^2 \over r_\mathrm{p}^2} - {v_\theta^2 \over r^2} \right)^{1/2}
     \end{equation}
@@ -1432,7 +1434,7 @@ contains
           deallocate(self%interpolatorMass                    )
        end if
        !$ call hdf5Access%set()
-       call file%openFile     (                                       char(self%fileName                            ))
+       file=hdf5Object(char(self%fileName))
        call file%readAttribute('time'                                ,     self%time                                 )
        call file%readAttribute('massMinimum'                         ,     self%massMinimum                          )
        call file%readAttribute('massMaximum'                         ,     self%massMaximum                          )
@@ -1446,7 +1448,6 @@ contains
        call file%readDataset  ('velocityDistributionOrbits'          ,     self%velocityDistributionOrbits           )
        call file%readDataset  ('velocityTotalRMS'                    ,     self%velocityTotalRMS                     )
        call file%readDataset  ('velocityDistributionPeak'            ,     self%velocityDistributionPeak             )
-       call file%close        (                                                                                      )
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        self%fileRead=.true.
@@ -1474,21 +1475,20 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    call file%openFile      (char(self%fileName                            )                                       ,overWrite=.true.,readOnly=.false.)
-    call file%writeAttribute(     self%time                                 ,'time'                                                                  )
-    call file%writeAttribute(     self%massMinimum                          ,'massMinimum'                                                           )
-    call file%writeAttribute(     self%massMaximum                          ,'massMaximum'                                                           )
-    call file%writeDataset  (     self%mass                                 ,'mass'                                                                  )
-    call file%writeDataset  (     self%velocityRadialMeanVirial             ,'velocityRadialMeanVirial'                                              )
-    call file%writeDataset  (     self%velocityRadialDispersionVirial       ,'velocityRadialDispersionVirial'                                        )
-    call file%writeDataset  (     self%velocityTangentialMeanVirial         ,'velocityTangentialMeanVirial'                                          )
-    call file%writeDataset  (     self%velocityTangentialDispersionVirial   ,'velocityTangentialDispersionVirial'                                    )
-    call file%writeDataset  (     self%velocityRadialDistributionOrbits     ,'velocityRadialDistributionOrbits'                                      )
-    call file%writeDataset  (     self%velocityTangentialDistributionOrbits ,'velocityTangentialDistributionOrbits'                                  )
-    call file%writeDataset  (     self%velocityDistributionOrbits           ,'velocityDistributionOrbits'                                            )
-    call file%writeDataset  (     self%velocityTotalRMS                     ,'velocityTotalRMS'                                                      )
-    call file%writeDataset  (     self%velocityDistributionPeak             ,'velocityDistributionPeak'                                              )
-    call file%close         (                                                                                                                        )
+    file=hdf5Object(char(self%fileName),overWrite=.true.,readOnly=.false.)
+    call file%writeAttribute(self%time                                ,'time'                                )
+    call file%writeAttribute(self%massMinimum                         ,'massMinimum'                         )
+    call file%writeAttribute(self%massMaximum                         ,'massMaximum'                         )
+    call file%writeDataset  (self%mass                                ,'mass'                                )
+    call file%writeDataset  (self%velocityRadialMeanVirial            ,'velocityRadialMeanVirial'            )
+    call file%writeDataset  (self%velocityRadialDispersionVirial      ,'velocityRadialDispersionVirial'      )
+    call file%writeDataset  (self%velocityTangentialMeanVirial        ,'velocityTangentialMeanVirial'        )
+    call file%writeDataset  (self%velocityTangentialDispersionVirial  ,'velocityTangentialDispersionVirial'  )
+    call file%writeDataset  (self%velocityRadialDistributionOrbits    ,'velocityRadialDistributionOrbits'    )
+    call file%writeDataset  (self%velocityTangentialDistributionOrbits,'velocityTangentialDistributionOrbits')
+    call file%writeDataset  (self%velocityDistributionOrbits          ,'velocityDistributionOrbits'          )
+    call file%writeDataset  (self%velocityTotalRMS                    ,'velocityTotalRMS'                    )
+    call file%writeDataset  (self%velocityDistributionPeak            ,'velocityDistributionPeak'            )
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     ! Mark the file as read, to avoid re-reading it later.

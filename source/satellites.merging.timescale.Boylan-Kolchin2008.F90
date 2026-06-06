@@ -27,8 +27,7 @@
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
    <description>
-    A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
-    \cite{boylan-kolchin_dynamical_2008}.
+    A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of \cite{boylan-kolchin_dynamical_2008}. The predicted timescale can be rescaled by the \mono{[timescaleMultiplier]} parameter.
    </description>
   </satelliteMergingTimescales>
   !!]
@@ -57,7 +56,7 @@ contains
 
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
+    A constructor for the \mono{boylanKolchin2008} satellite merging timescale class which builds the object from a
     parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -89,7 +88,7 @@ contains
 
   function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    Default constructor for the \mono{boylanKolchin2008} satellite merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                        :: self

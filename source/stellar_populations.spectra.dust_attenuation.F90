@@ -31,7 +31,12 @@ module Stellar_Spectra_Dust_Attenuations
   <functionClass>
    <name>stellarSpectraDustAttenuation</name>
    <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
-   <description>Class implementing dust attenuation of stellar spectra.</description>
+   <description>Class implementing dust attenuation of stellar spectra---the wavelength-dependent extinction (in
+    magnitudes) applied to the intrinsic spectral energy distribution of a stellar population to model the
+    absorption and scattering of starlight by interstellar dust grains. The attenuation depends on
+    wavelength (following an extinction curve such as Calzetti or Charlot-Fall), the age of the
+    stellar population (young stars embedded in birth clouds are more obscured), and the overall V-band
+    optical depth. Both separable and non-separable implementations are supported.</description>
    <default>zero</default>
    <method name="attenuation" >
     <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>

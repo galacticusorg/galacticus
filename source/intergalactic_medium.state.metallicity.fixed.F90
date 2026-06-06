@@ -26,13 +26,13 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateMetallicityFixed">
    <description>
-    An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+    An intergalactic medium state decorator class that overrides the metallicity of an underlying \gls{igm} state object with a single constant value given by \mono{[metallicity]}, while passing all other state properties through unchanged. This enables simple models where the \gls{igm} metallicity is assumed to be uniform and time-independent.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityFixed
      !!{
-     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityFixed
      !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class.
      !!}
      module procedure metallicityFixedIGMConstructorParameters
      module procedure metallicityFixedIGMConstructorInternal

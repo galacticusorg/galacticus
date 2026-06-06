@@ -27,7 +27,7 @@ Implements an intracluster medium X-ray luminosity property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
-   <description>An intracluster medium X-ray luminosity property extractor class.</description>
+   <description>Extracts the X-ray luminosity of the intracluster medium by integrating thermal bremsstrahlung and line emission from hot halo gas out to the virial radius, using a cooling function evaluated at each radial shell. Useful for comparison with X-ray cluster survey observations.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayLuminosity
@@ -44,11 +44,12 @@ Implements an intracluster medium X-ray luminosity property extractor class.
      procedure :: name        => icmXRayLuminosityName
      procedure :: description => icmXRayLuminosityDescription
      procedure :: unitsInSI   => icmXRayLuminosityUnitsInSI
+     procedure :: units       => iCMXRayLuminosityUnits
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
      !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
      !!}
      module procedure icmXRayLuminosityConstructorParameters
      module procedure icmXRayLuminosityConstructorInternal
@@ -222,7 +223,7 @@ contains
 
   function icmXRayLuminosityName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return the names of the \mono{icmXRayLuminosity} properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityName
@@ -235,7 +236,7 @@ contains
 
   function icmXRayLuminosityDescription(self)
     !!{
-    Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return descriptions of the \mono{icmXRayLuminosity} properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityDescription
@@ -248,7 +249,7 @@ contains
 
   double precision function icmXRayLuminosityUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
+    Return the units of the \mono{icmXRayLuminosity} properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
@@ -259,3 +260,15 @@ contains
     return
   end function icmXRayLuminosityUnitsInSI
 
+  function icmXRayLuminosityUnits(self) result(units)
+    !!{
+    Return the units of the iCMXRayLuminosity property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='ergs',quantity='erg')
+    return
+  end function icmXRayLuminosityUnits

@@ -23,7 +23,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbitalProjected">
-   <description>A property extractor that extracts the projected orbital radius. Projection is always along the $z$-axis.</description>
+   <description>Extracts the projected orbital radius of a satellite node on the plane of the sky (projected along the $z$-axis), providing the 2D projected separation from the host halo center for comparison with observational satellite radial profiles.</description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>
@@ -44,11 +44,12 @@
      procedure :: name        => radiusOrbitalProjectedName
      procedure :: description => radiusOrbitalProjectedDescription
      procedure :: unitsInSI   => radiusOrbitalProjectedUnitsInSI
+     procedure :: units       => radiusOrbitalProjectedUnits
   end type nodePropertyExtractorRadiusOrbitalProjected
 
   interface nodePropertyExtractorRadiusOrbitalProjected
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
      !!}
      module procedure radiusOrbitalProjectedConstructorParameters
      module procedure radiusOrbitalProjectedConstructorInternal
@@ -58,7 +59,7 @@ contains
 
   function radiusOrbitalProjectedConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +75,7 @@ contains
 
   function radiusOrbitalProjectedConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
@@ -88,7 +89,7 @@ contains
 
   subroutine radiusOrbitalProjectedDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self
@@ -156,3 +157,16 @@ contains
     radiusOrbitalProjectedUnitsInSI=megaParsec
     return
   end function radiusOrbitalProjectedUnitsInSI
+
+  function radiusOrbitalProjectedUnits(self) result(units)
+    !!{
+    Return the units of the radiusOrbitalProjected property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                   )                :: units
+    class(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusOrbitalProjectedUnits

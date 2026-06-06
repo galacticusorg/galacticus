@@ -32,17 +32,20 @@ module Transfer_Functions
   <functionClass>
    <name>transferFunction</name>
    <descriptiveName>Transfer Function</descriptiveName>
-   <description>Class providing transfer functions for power spectra.</description>
+   <description>Class providing transfer functions $T(k)$ for the matter power spectrum. The transfer function encodes the
+    modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality,
+    including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such
+    that the linear power spectrum at late times is $P(k) \propto k^{n_s} T^2(k)$. Implementations may also return the
+    wavenumber at which $T(k)$ is suppressed by a given factor, characterizing the small-scale cutoff scale.</description>
    <default>eisensteinHu1999</default>
-   <data>class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
    <method name="value" >
-    <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
    </method>
    <method name="logarithmicDerivative" >
-    <description>Return the logarithmic derivative of the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+    <description>Return the logarithmic derivative of the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
@@ -62,21 +65,21 @@ module Transfer_Functions
     <pass>yes</pass>
    </method>
    <method name="halfModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="quarterModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="fractionModeMass" >
-    <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by {\normalfont \ttfamily fraction} due to small-scale dark matter particle physics.</description>
+    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by \mono{fraction} due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -88,8 +91,8 @@ module Transfer_Functions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: mass</argument>
     <modules>Numerical_Constants_Math</modules>
+    <argument>double precision, intent(in   ) :: mass</argument>
     <code>
       double precision :: densityMatter
 
@@ -105,6 +108,7 @@ module Transfer_Functions
        &amp;                              )**(1.0d0/3.0d0)
     </code>
    </method>
+   <data>class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
   </functionClass>
   !!]
 

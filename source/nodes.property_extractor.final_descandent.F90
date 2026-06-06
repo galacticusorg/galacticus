@@ -23,7 +23,7 @@ Implements an ISM mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorFinalDescendant">
-   <description>An ISM mass output analysis property extractor class.</description>
+   <description>Extracts the index of the final descendant node at the base of the merger tree for each node, enabling identification of the present-day halo into which a given progenitor will ultimately merge. Facilitates comparisons between progenitor states and their final descendants.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorFinalDescendant
@@ -39,7 +39,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorFinalDescendant
      !!{
-     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant
@@ -48,7 +48,7 @@ contains
 
   function finalDescendantConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function finalDescendantExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily finalDescendant} node property extractor.
+    Implement a \mono{finalDescendant} node property extractor.
     !!}
     implicit none
     integer         (kind_int8                           )                          :: finalDescendantExtract
@@ -86,7 +86,6 @@ contains
     finalDescendantExtract=nodeDescendant%index()
     return
   end function finalDescendantExtract
-
 
   function finalDescendantName(self)
     !!{
@@ -113,6 +112,3 @@ contains
     finalDescendantDescription=var_str('ID of the node which this node will have descended into at the base of the tree.')
     return
   end function finalDescendantDescription
-
-
-

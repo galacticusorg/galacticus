@@ -26,7 +26,7 @@ Implements an HI mass function output analysis class.
 
   !![
   <outputAnalysis name="outputAnalysisMassFunctionHI">
-   <description>An HI mass function output analysis class.</description>
+   <description>Computes the HI gas mass function as a number density per unit log-mass, with user-specified mass bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisMassFunctionHI
@@ -211,15 +211,14 @@ contains
     logical                                                                                :: haveTarget
 
     !$ call hdf5Access%set()
-    call dataFile%openFile   (fileName,readOnly=.true.)
-    call dataFile%readDataset('mass'  ,masses         )
+    dataFile=hdf5Object(fileName,readOnly=.true.)
+    call    dataFile%readDataset  ('mass'                ,masses                  )
     haveTarget=dataFile%hasDataset('massFunctionObserved').and.dataFile%hasDataset('covariance')
     if (haveTarget) then
        call dataFile%readAttribute('label'               ,targetLabel             )
        call dataFile%readDataset  ('massFunctionObserved',functionValueTarget     )
        call dataFile%readDataset  ('covariance'          ,functionCovarianceTarget)
     end if
-    call dataFile%close      (                        )
     !$ call hdf5Access%unset()
     ! Construct the object.
     !![
@@ -246,6 +245,7 @@ contains
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorClass
     use :: Output_Analysis_Molecular_Ratios        , only : outputAnalysisMolecularRatioClass
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorHIMass        , &
@@ -285,6 +285,7 @@ contains
     double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="masses, *outputAnalysisMolecularRatio_, *surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
     !!]
@@ -365,41 +366,48 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(masses(2)/masses(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert masses to log10(masses) here.
-    self%outputAnalysisVolumeFunction1D=                                                                    &
-         & outputAnalysisVolumeFunction1D(                                                                  &
-         &                                'massFunctionHI'//label                                         , &
-         &                                comment                                                         , &
-         &                                var_str('massHI'                                               ), &
-         &                                var_str('HI mass at the bin center'                            ), &
-         &                                var_str('M☉'                                                  ), &
-         &                                massSolar                                                       , &
-         &                                var_str('massFunction'                                         ), &
-         &                                var_str('HI mass function averaged over each bin'              ), &
-         &                                var_str('ᵪMpc⁻³'                                               ), &
-         &                                megaParsec**(-3)                                                , &
-         &                                log10(masses)                                                   , &
-         &                                bufferCount                                                     , &
-         &                                outputWeight                                                    , &
-         &                                nodePropertyExtractor_                                          , &
-         &                                outputAnalysisPropertyOperatorSequence_                         , &
-         &                                outputAnalysisPropertyOperatorAntiLog10_                        , &
-         &                                outputAnalysisWeightOperator_                                   , &
-         &                                outputAnalysisDistributionOperator_                             , &
-         &                                outputAnalysisDistributionNormalizer_                           , &
-         &                                galacticFilter_                                                 , &
-         &                                outputTimes_                                                    , &
-         &                                outputAnalysisCovarianceModelBinomial                           , &
-         &                                covarianceBinomialBinsPerDecade                                 , &
-         &                                covarianceBinomialMassHaloMinimum                               , &
-         &                                covarianceBinomialMassHaloMaximum                               , &
-         &                                .false.                                                         , &
-         &                                var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'          ), &
-         &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\mathrm{HI}$'), &
-         &                                .true.                                                          , &
-         &                                .true.                                                          , &
-         &                                targetLabel                                                     , &
-         &                                functionValueTarget                                             , &
-         &                                functionCovarianceTarget                                          &
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                   &
+         &                                                     xAxisLabel      =var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'          ), &
+         &                                                     yAxisLabel      =var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\mathrm{HI}$'), &
+         &                                                     xAxisIsLog      =.true.                                                          , &
+         &                                                     yAxisIsLog      =.true.                                                          , &
+         &                                                     targetLabel     =targetLabel                                                     , &
+         &                                                     valueTarget     =functionValueTarget                                             , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                          &
+         &                                                    )
+    self%outputAnalysisVolumeFunction1D=                                                      &
+         & outputAnalysisVolumeFunction1D(                                                    &
+         &                                'massFunctionHI'//label                           , &
+         &                                comment                                           , &
+         &                                var_str('massHI'                                 ), &
+         &                                var_str('HI mass at the bin center'              ), &
+         &                                var_str('M☉'                                     ), &
+         &                                var_str('solMass'                                ), &
+         &                                .false.                                           , &
+         &                                massSolar                                         , &
+         &                                var_str('massFunction'                           ), &
+         &                                var_str('HI mass function averaged over each bin'), &
+         &                                var_str('ᵪMpc⁻³'                                 ), &
+         &                                var_str('Mpc^-3'                                 ), &
+         &                                .true.                                            , &
+         &                                megaParsec**(-3)                                  , &
+         &                                log10(masses)                                     , &
+         &                                bufferCount                                       , &
+         &                                outputWeight                                      , &
+         &                                nodePropertyExtractor_                            , &
+         &                                outputAnalysisPropertyOperatorSequence_           , &
+         &                                outputAnalysisPropertyOperatorAntiLog10_          , &
+         &                                outputAnalysisWeightOperator_                     , &
+         &                                outputAnalysisDistributionOperator_               , &
+         &                                outputAnalysisDistributionNormalizer_             , &
+         &                                galacticFilter_                                   , &
+         &                                outputTimes_                                      , &
+         &                                outputAnalysisCovarianceModelBinomial             , &
+         &                                covarianceBinomialBinsPerDecade                   , &
+         &                                covarianceBinomialMassHaloMinimum                 , &
+         &                                covarianceBinomialMassHaloMaximum                 , &
+         &                                .false.                                           , &
+         &                                outputAnalysisTargetData_                           &
          &                               )
     ! Clean up.
     !![

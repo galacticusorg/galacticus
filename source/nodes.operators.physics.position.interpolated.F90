@@ -28,7 +28,10 @@
   !![
   <nodeOperator name="nodeOperatorPositionInterpolated">
    <description>
-    A node operator class that interpolates positions of nodes using the approach of \cite{merson_lightcone_2013}.
+    A node operator class that interpolates the 3D comoving positions of nodes between snapshots using the approach of
+    \cite{merson_lightcone_2013}, enabling construction of lightcones from discrete simulation outputs. \mono{lengthBox}
+    sets the comoving box side length; \mono{wrapPeriodic} controls periodic boundary treatment; \mono{nodeIndicesReport}
+    lists node indices for which detailed interpolation information should be reported during processing.
    </description>
   </nodeOperator>
   !!]

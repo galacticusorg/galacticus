@@ -32,9 +32,11 @@ module Hot_Halo_Outflows_Reincorporations
   <functionClass>
    <name>hotHaloOutflowReincorporation</name>
    <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
-   <description>
-    Class providing models of reincorporation of outflowed mass into the hot halo.
-   </description>
+   <description>Class providing models of the mass reincorporation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) at which
+    gas that was previously ejected from the hot halo by supernova or AGN feedback is returned to the hot
+    gas reservoir. Outflowed gas that escapes the halo but remains bound to the larger structure eventually
+    falls back. The reincorporation timescale controls the delayed recycling of ejected gas and has a
+    significant effect on the stellar mass---halo mass relation, particularly at low masses.</description>
    <default>haloDynamicalTime</default>
    <method name="rate" >
     <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>

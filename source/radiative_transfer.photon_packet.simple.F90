@@ -19,7 +19,7 @@
 
   !![
   <radiativeTransferPhotonPacket name="radiativeTransferPhotonPacketSimple">
-   <description>A simple photon packet class which tracks only wavelength, position, and direction.</description>
+   <description>A simple photon packet class for Monte Carlo radiative transfer that tracks the minimum required properties: wavelength, luminosity, three-dimensional position, and propagation direction. The initial wavelength and luminosity of each packet are set by \mono{[wavelength]} and \mono{[luminosity]}, with wavelength bounds given by \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]}.</description>
   </radiativeTransferPhotonPacket>
   !!]
   type, extends(radiativeTransferPhotonPacketClass) :: radiativeTransferPhotonPacketSimple

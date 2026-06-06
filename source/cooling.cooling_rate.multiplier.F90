@@ -24,7 +24,7 @@
 
   !![
   <coolingRate name="coolingRateMultiplier">
-   <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
+   <description>A cooling rate class which modifies the cooling rate from another class by multiplying it by a fixed constant factor specified via \mono{[multiplier]}. This allows a simple rescaling of any existing cooling rate model without altering its physical dependencies.</description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateMultiplier
@@ -65,7 +65,7 @@ contains
      <name>multiplier</name>
      <source>parameters</source>
      <defaultValue>0.0d0</defaultValue>
-     <description>The value by which cooling rates should be multiplied.</description>
+     <description>A constant multiplicative factor applied to cooling rates computed by the wrapped cooling rate object, allowing uniform rescaling of all cooling rates (e.g. to model suppressed or enhanced cooling).</description>
     </inputParameter>
     <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     !!]
@@ -106,7 +106,7 @@ contains
 
   double precision function multiplierRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is multiplied by
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is multiplied by
     some fixed value.
     !!}
     implicit none

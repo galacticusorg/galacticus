@@ -23,7 +23,7 @@ Implements a massHost property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassHost">
-   <description>A host halo mass property extractor class.</description>
+   <description>Extracts the virial mass of the immediate host (parent) halo for satellite nodes, distinguishing the mass of the surrounding host halo from the subhalo mass itself. Returns $-1$ for isolated (non-satellite) nodes where no host exists.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHost
@@ -36,11 +36,12 @@ Implements a massHost property extractor class.
      procedure :: name        => massHostName
      procedure :: description => massHostDescription
      procedure :: unitsInSI   => massHostUnitsInSI
+     procedure :: units       => massHostUnits
   end type nodePropertyExtractorMassHost
 
   interface nodePropertyExtractorMassHost
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHost} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassHost} property extractor class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost
@@ -125,3 +126,16 @@ contains
     return
   end function massHostUnitsInSI
 
+  function massHostUnits(self) result(units)
+    !!{
+    Return the units of the massHost property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorMassHost), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massHostUnits

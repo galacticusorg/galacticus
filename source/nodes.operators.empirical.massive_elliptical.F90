@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorEmpiricalMassiveElliptical">
-   <description>A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.</description>
+   <description>A node operator class that inserts an empirical evolutionary history for a massive elliptical galaxy growing at a constant specific star formation rate $\phi_\star$ (\mono{rateStarFormationSpecific}) to a final stellar mass \mono{massStellarFinal}. Optional angular momentum growth is set by \mono{angularMomentumPseudoSpecificFinal} and \mono{rateAngularMomentumPseudoSpecificSpecific}; half-mass radius evolution is set by \mono{radiusFinal} and \mono{rateRadiusSpecific}.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalMassiveElliptical
@@ -33,8 +33,8 @@
      \begin{equation}
        M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
      \end{equation}
-     where $M_{\star,0}=${\normalfont \ttfamily [massStellarFinal]} is the stellar mass in the root node of the tree,
-     $\phi_\star=${\normalfont \ttfamily [rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
+     where $M_{\star,0}=$\mono{[massStellarFinal]} is the stellar mass in the root node of the tree,
+     $\phi_\star=$\mono{[rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
      !!}
      private
      double precision :: massStellarFinal                  , rateStarFormationSpecific                , &

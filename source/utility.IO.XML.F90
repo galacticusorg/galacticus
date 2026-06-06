@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements various utility functions for extracting data from XML files.
+Contains a module which implements various utility functions for extracting data from XML files, including DOM tree traversal,
+XPath-like element lookup, data array extraction, and XInclude reference resolution.
 !!}
 
 module IO_XML
   !!{
-  Implements various utility functions for extracting data from XML files.
+  Implements various utility functions for extracting data from XML files using the FoX DOM library, including element
+  search by tag name, array data reading, XPath-style path traversal, and recursive resolution of \mono{xi:include} directives.
   !!}
   use :: FoX_dom           , only : node
   use :: ISO_Varying_String, only : varying_string
@@ -55,7 +57,8 @@ module IO_XML
   
   type :: xincludeNode
      !!{
-     Type used while resolving XInclude references during XML parsing.
+     Type used to track a pending \mono{xi:include} element while resolving XInclude references during XML parsing, storing
+     the parent node, the include element itself, the file to be included, and an optional XPointer expression.
      !!}
      type(node          ), pointer :: nodeParent => null(), nodeXInclude => null()
      type(varying_string)          :: fileName            , xPath
@@ -289,7 +292,7 @@ contains
   
   recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
     !!{
-    Return a list of pointers to all nodes matching a given {\normalfont \ttfamily tagName}.
+    Return a list of pointers to all nodes matching a given \mono{tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
@@ -341,7 +344,7 @@ contains
   
   recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
     !!{
-    Return a count of all nodes matching a given {\normalfont \ttfamily tagName}.
+    Return a count of all nodes matching a given \mono{tagName}.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
@@ -381,7 +384,7 @@ contains
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(element)
     !!{
-    Return a pointer to the first node in an XML node that matches the given {\normalfont \ttfamily tagName}.
+    Return a pointer to the first node in an XML node that matches the given \mono{tagName}.
     !!}
     use :: FoX_dom, only : getParentNode, node
     use :: Error  , only : Error_Report
@@ -439,7 +442,7 @@ contains
 
   logical function XML_Path_Exists(xmlElement,path)
     !!{
-    Return true if the supplied {\normalfont \ttfamily path} exists in the supplied {\normalfont \ttfamily xmlElement}.
+    Return true if the supplied \mono{path} exists in the supplied \mono{xmlElement}.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
           &                getParentNode, node
@@ -487,7 +490,7 @@ contains
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !!{
-    Extracts information from a standard XML {\normalfont \ttfamily extrapolationElement}. Optionally a set of {\normalfont \ttfamily allowedMethods} can be
+    Extracts information from a standard XML \mono{extrapolationElement}. Optionally a set of \mono{allowedMethods} can be
     specified---if the extracted method does not match one of these an error is issued.
     !!}
     use :: FoX_dom     , only : extractDataContent                , node
@@ -569,6 +572,8 @@ contains
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
          &                                                      nameInsert         , fileNameFull  , &
          &                                                      fileName_
+    character(len=1           )                              :: xpointerClose      , fileNameStart
+    character(len=9           )                              :: xpointerOpen
     logical                                                  :: allElements
 
     ! Expand the file name.
@@ -590,7 +595,8 @@ contains
     allElements=.false.
     do while (stackCount > 0)
        ! Construct the full filename.
-       if (extract(stack(stackCount)%fileName,1,1) == "/") then
+       fileNameStart=extract(stack(stackCount)%fileName,1,1)
+       if (fileNameStart == "/") then
           fileNameFull=          stack(stackCount)%fileName
        else
           fileNameFull=filePath//stack(stackCount)%fileName
@@ -607,8 +613,9 @@ contains
           nodeCurrent => nodesCurrent(i)%element
           if (getNodeName(nodeCurrent) == "xi:include") then
              if (.not.hasAttribute(nodeCurrent,"href")) call Error_Report("missing 'href' in XInclude"//{introspection:location})
-             fileNameFull=getAttribute(nodeCurrent,"href")
-             if (extract(fileNameFull,1,1) /= "/") then
+             fileNameFull =getAttribute(nodeCurrent,"href")
+             fileNameStart=extract(fileNameFull,1,1)
+             if (fileNameStart /= "/") then
                 fileNameFull=File_Path(stack(stackCount)%fileName)//getAttribute(nodeCurrent,"href")
                 call setAttribute(nodeCurrent,"href",char(fileNameFull))
              end if
@@ -692,10 +699,12 @@ contains
                 stack(stackCount)%nodeXInclude =>               nodeCurrent
                 if (hasAttribute(nodeCurrent,"xpointer")) then
                    stack(stackCount)%xPath=getAttribute(nodeCurrent,"xpointer")
-                   if     (                                                                                                           &
-                        &   extract(stack(stackCount)%xPath,                          1 ,                          9 ) == "xpointer(" &
-                        &  .and.                                                                                                      &
-                        &   extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath)) == ")"         &
+                   xpointerOpen =extract(stack(stackCount)%xPath,                          1 ,                          9 )
+                   xpointerClose=extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath))
+                   if     (                              &
+                        &   xpointerOpen  == "xpointer(" &
+                        &  .and.                         &
+                        &   xpointerClose == ")"         &
                         & ) then
                       stack(stackCount)%xPath=extract(stack(stackCount)%xPath,10,len(stack(stackCount)%xPath)-1)
                    else

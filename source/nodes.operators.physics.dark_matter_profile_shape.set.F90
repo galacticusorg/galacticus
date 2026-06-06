@@ -25,9 +25,7 @@
   
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileShapeSet">
-   <description>
-    A node operator class that sets dark matter profile shape parameter.
-   </description>
+   <description>Sets the dark matter profile shape parameter for each halo using a \refClass{darkMatterProfileShapeClass} object, updating this parameter at tree initialization and node promotion events.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileShapeSet
@@ -117,8 +115,8 @@ contains
     
   subroutine darkMatterProfileShapeSetNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the shape
-    parameter of {\normalfont \ttfamily node} to be that of its parent.
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the shape
+    parameter of \mono{node} to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

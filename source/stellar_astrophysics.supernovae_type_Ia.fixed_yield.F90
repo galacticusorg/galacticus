@@ -50,7 +50,7 @@ contains
 
   subroutine fixedYieldInitialize(self)
     !!{
-    Read data for the {\normalfont \ttfamily fixedYield} supernovae type Ia class.
+    Read data for the \mono{fixedYield} supernovae type Ia class.
     !!}
     use :: Atomic_Data       , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
     use :: FoX_dom           , only : destroy                       , node                             , extractDataContent
@@ -75,9 +75,9 @@ contains
     self%elementYield=0.0d0
     self%totalYield  =0.0d0
     ! Read in Type Ia yields.
-    fileName=char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'
+    fileName=inputPath(pathTypeDataStatic)//'stellarAstrophysics/Supernovae_Type_Ia_Yields.xml'
     !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(char(fileName),iostat=ioErr)
+    doc => XML_Parse(fileName,iostat=ioErr)
     if (ioErr /= 0) call Error_Report('Unable to parse yields file'//{introspection:location})
     ! Get a list of all isotopes.
     call XML_Get_Elements_By_Tag_Name(doc,"isotope",isotopesList)
@@ -103,7 +103,7 @@ contains
   double precision function fixedYieldYield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex) result(yield)
     !!{
     Compute the cumulative yield from Type Ia supernovae originating per unit interval of secondary star mass with given
-    {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The
+    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. The
     calculation is based on that of \cite{nagashima_metal_2005} with Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The
     number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an
     initial mass function.

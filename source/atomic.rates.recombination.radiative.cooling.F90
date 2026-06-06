@@ -32,9 +32,12 @@ module Atomic_Rates_Recombination_Radiative_Cooling
   <functionClass>
    <name>atomicRecombinationRateRadiativeCooling</name>
    <descriptiveName>Atomic Recombination Cooling</descriptiveName>
-   <description>
-    Class providing atomic recombination cooling rates.
-   </description>
+   <description>Class providing recombination cooling rate coefficients (in cm$^3$ s$^{-1}$) for ions of given atomic
+    number and ionization state at a specified electron temperature. When a free electron recombines radiatively with
+    an ion it releases energy both in the emitted photon and in the kinetic energy difference; the cooling rate
+    coefficient quantifies this energy loss from the gas per recombination event. Case A (all recombinations) and
+    case B (excluding direct recombinations to the ground state) coefficients are supported, consistent with the
+    corresponding radiative recombination rate classes.</description>
    <default>hummer</default>
    <method name="rate" >
     <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>

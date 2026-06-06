@@ -27,25 +27,22 @@ Implements a star formation histories class which records star formation split b
   <starFormationHistory name="starFormationHistoryMetallicitySplit">
    <description>
     A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
-    on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size {\normalfont \ttfamily
-    [timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
-    {\normalfont \ttfamily [timeStepFine]} in the period {\normalfont \ttfamily
-    [timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
+    on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size \mono{[timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
+    \mono{[timeStepFine]} in the period \mono{[timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
     star formation just prior to each output.
 
     The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
     minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
 
-    The metallicity binning is arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]} bins
-    between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
-    units). The metallicity bins are arranged logarithmically in metallicity with {\normalfont \ttfamily [countMetallicities]}
-    bins between {\normalfont \ttfamily [metallicityMinimum]} and {\normalfont \ttfamily [metallicityMaximum]} (specified in Solar
+    The metallicity binning is arranged logarithmically in metallicity with \mono{[countMetallicities]} bins
+    between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
+    units). The metallicity bins are arranged logarithmically in metallicity with \mono{[countMetallicities]}
+    bins between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
     units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
     metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
-    final bin, extending to infinite metallicity, is always added automatically. If {\normalfont \ttfamily
-    [countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
+    final bin, extending to infinite metallicity, is always added automatically. If \mono{[countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
     encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-    via the {\normalfont \ttfamily [metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
+    via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
     automatically.
    </description>
   </starFormationHistory>
@@ -59,7 +56,7 @@ Implements a star formation histories class which records star formation split b
      integer                                                       :: countMetallicities
      double precision                                              :: timeStep                         , timeStepFine          , &
           &                                                           timeFine                         , metallicityMaximum    , &
-          &                                                           metallicityMinimum
+          &                                                           metallicityMinimum               , massScaleAbsolute
      double precision                  , allocatable, dimension(:) :: metallicityTable                 , metallicityBoundaries_
      logical                                                       :: metallicityTableWritten
    contains
@@ -112,7 +109,7 @@ contains
     double precision                                      , allocatable  , dimension(:) :: metallicityBoundaries
     double precision                                                                    :: timeStep             , timeStepFine      , &
          &                                                                                 timeFine             , metallicityMinimum, &
-         &                                                                                 metallicityMaximum
+         &                                                                                 metallicityMaximum   , massScaleAbsolute
     integer                                                                             :: countMetallicities
 
     !![
@@ -132,6 +129,12 @@ contains
       <name>timeFine</name>
       <defaultValue>0.1d0</defaultValue>
       <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massScaleAbsolute</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -173,7 +176,7 @@ contains
     !![
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     <conditionalCall>
-     <call>self=starFormationHistoryMetallicitySplit(outputTimes_,timeStep,timeStepFine,timeFine{conditions})</call>
+     <call>self=starFormationHistoryMetallicitySplit(outputTimes_,timeStep,timeStepFine,timeFine,massScaleAbsolute{conditions})</call>
      <argument name="metallicityBoundaries" value="metallicityBoundaries" condition="     parameters%isPresent('metallicityBoundaries')"/>
      <argument name="countMetallicities"    value="countMetallicities"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
      <argument name="metallicityMinimum"    value="metallicityMinimum"    condition=".not.parameters%isPresent('metallicityBoundaries')"/>
@@ -185,7 +188,7 @@ contains
     return
   end function metallicitySplitConstructorParameters
 
-  function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
+  function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{
     Internal constructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
     !!}
@@ -196,11 +199,11 @@ contains
     double precision                                      , intent(in   ), dimension(:), optional :: metallicityBoundaries
     double precision                                      , intent(in   )              , optional :: metallicityMinimum   , metallicityMaximum
     double precision                                      , intent(in   )                         :: timeStep             , timeStepFine, &
-         &                                                                                           timeFine
+         &                                                                                           timeFine             , massScaleAbsolute
     integer                                               , intent(in   )              , optional :: countMetallicities
     class           (outputTimesClass                    ), intent(in   ), target                 :: outputTimes_
     !![
-    <constructorAssign variables="timeStep, timeStepFine, timeFine, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
+    <constructorAssign variables="timeStep, timeStepFine, timeFine, massScaleAbsolute, metallicityMinimum, metallicityMaximum, countMetallicities, *outputTimes_"/>
     !!]
 
     if (present(metallicityBoundaries)) then
@@ -245,7 +248,7 @@ contains
 
   subroutine metallicitySplitDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryMetallicitySplit} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self
@@ -280,7 +283,7 @@ contains
 
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
@@ -322,7 +325,7 @@ contains
 
   subroutine metallicitySplitUpdate(self,node,indexOutput,historyStarFormation)
     !!{
-    Output the star formation history for {\normalfont \ttfamily node}.
+    Output the star formation history for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -361,11 +364,10 @@ contains
     !!}
     implicit none
     class           (starFormationHistoryMetallicitySplit), intent(inout)               :: self
-    double precision                                      , intent(in   )               :: massStellar                , massGas    
+    double precision                                      , intent(in   )               :: massStellar         , massGas    
     type            (abundances                          ), intent(in   )               :: abundancesStellar
     type            (history                             ), intent(inout)               :: historyStarFormation
     type            (treeNode                            ), intent(inout)               :: node
-    double precision                                      , parameter                   :: massMinimum          =1.0d0
     double precision                                      , allocatable  , dimension(:) :: timeSteps
     integer                                                                             :: iMetallicity
     !$GLC attributes unused :: abundancesStellar, node
@@ -373,7 +375,7 @@ contains
     if (.not.historyStarFormation%exists()) return
     call historyStarFormation%timeSteps(timeSteps)
     forall(iMetallicity=1:self%countMetallicities+1)
-       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,massMinimum)                            &
+       historyStarFormation%data(:,iMetallicity)=+max(massStellar+massGas,self%massScaleAbsolute)                 &
             &                                    *                     timeSteps                                  &
             &                                    /historyStarFormation%time     (size(historyStarFormation%time))
     end forall

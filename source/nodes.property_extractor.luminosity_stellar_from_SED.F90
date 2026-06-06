@@ -34,7 +34,7 @@ Implements a stellar mass output analysis property extractor class.
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED">
-   <description>A stellar luminosity output analysis property extractor class.</description>
+   <description>A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a \refClass{nodePropertyExtractorSED} property extractor object) through a set of broadband filter response functions specified by \mono{filterNames}. For each filter, the filter transmission curve is convolved with the galaxy SED to compute $L_\nu$ in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.</description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>
@@ -61,11 +61,12 @@ Implements a stellar mass output analysis property extractor class.
      procedure :: names        => luminosityStellarFromSEDNames
      procedure :: descriptions => luminosityStellarFromSEDDescriptions
      procedure :: unitsInSI    => luminosityStellarFromSEDUnitsInSI
+     procedure :: units        => luminosityStellarFromSEDUnits
   end type nodePropertyExtractorLuminosityStellarFromSED
 
   interface nodePropertyExtractorLuminosityStellarFromSED
      !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class.
      !!}
      module procedure luminosityStellarFromSEDConstructorParameters
      module procedure luminosityStellarFromSEDConstructorInternal
@@ -75,7 +76,7 @@ contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -132,7 +133,7 @@ contains
   
   subroutine luminosityStellarFromSEDDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -145,7 +146,7 @@ contains
 
   integer function luminosityStellarFromSEDElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily luminosityStellarFromSED} property extractors.
+    Return the number of elements in the \mono{luminosityStellarFromSED} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -296,3 +297,23 @@ contains
     unitsInSI=luminosityZeroPointAB
     return
   end function luminosityStellarFromSEDUnitsInSI
+
+  function luminosityStellarFromSEDUnits(self,time) result(units)
+    !!{
+    Return the units of the luminosityStellarFromSED properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                                     ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)             :: self
+    double precision                                               , intent(in   )             :: time
+    double precision                                               , dimension(:), allocatable :: siValues
+    integer                                                                                    :: i
+
+    siValues=self%unitsInSI(time)
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),description='AB-magnitude zero point',quantity='4.465920e17 W/Hz')
+    end do
+    return
+  end function luminosityStellarFromSEDUnits

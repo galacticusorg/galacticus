@@ -43,6 +43,7 @@ correctly normalized to $z=0$.
      procedure :: power                      => standardPower
      procedure :: powerLogarithmicDerivative => standardPowerLogarithmicDerivative
      procedure :: powerDimensionless         => standardPowerDimensionless
+     procedure :: descriptor                 => standardDescriptor
   end type powerSpectrumStandard
 
   interface powerSpectrumStandard
@@ -81,7 +82,7 @@ contains
 
   function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
     !!{
-    Internal constructor for the standard nonstandard power spectrum class.
+    Internal constructor for the standard power spectrum class.
     !!}
     implicit none
     type (powerSpectrumStandard)                                          :: self
@@ -96,7 +97,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the standard nonstandard power spectrum class.
+    Destructor for the standard power spectrum class.
     !!}
     implicit none
     type(powerSpectrumStandard), intent(inout) :: self
@@ -110,7 +111,7 @@ contains
 
   double precision function standardPower(self,wavenumber,time)
     !!{
-    Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the cosmological power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -124,8 +125,7 @@ contains
 
   double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
     !!{
-    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
-    \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -137,7 +137,7 @@ contains
 
   double precision function standardPowerDimensionless(self,wavenumber,time)
     !!{
-    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -154,3 +154,24 @@ contains
          &                      )**3
     return
   end function standardPowerDimensionless
+
+  subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+      !!{
+      Generate a descriptor for the standard power spectrum class.
+      !!}
+      use Input_Parameters, only : inputParameters
+      implicit none
+      class  (powerSpectrumStandard), intent(inout)           :: self
+      type   (inputParameters      ), intent(inout)           :: descriptor
+      logical                       , intent(in   ), optional :: includeClass, includeFileModificationTimes
+      type   (inputParameters      )                          :: parameters
+      !![
+      <optionalArgument name="includeClass" defaultsTo=".true." />
+      !!]
+      
+      if (includeClass_) call descriptor%addParameter('powerSpectrum','standard')
+      parameters=descriptor%subparameters('powerSpectrum')
+      if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters,includeClass,includeFileModificationTimes)
+      if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters,includeClass,includeFileModificationTimes)
+      return      
+    end subroutine standardDescriptor

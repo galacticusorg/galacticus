@@ -39,7 +39,7 @@ Implements a merger tree branching probability rate modifier which always return
 
   interface mergerTreeBranchingProbabilityModifierIdentity
      !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierIdentity} merger tree branching probability rate modifier class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierIdentity} merger tree branching probability rate class.
      !!}
      module procedure identityConstructorParameters
   end interface mergerTreeBranchingProbabilityModifierIdentity
@@ -48,7 +48,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{
-    A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
+    A constructor for the \mono{identity} merger tree branching probability rate class which builds the
     object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters

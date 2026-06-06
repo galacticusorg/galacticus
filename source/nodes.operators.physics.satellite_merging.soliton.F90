@@ -27,7 +27,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingSoliton">
-   <description>A node operator class that triggers merging of satellites based on their orbital radius.</description>
+   <description>A node operator class for fuzzy dark matter (FDM/wave dark matter) models that triggers satellite merging when the orbital radius falls below the sum of the soliton core radii of the host and satellite halos. \mono{recordMergedSubhaloProperties} optionally records Keplerian orbital elements of merged subhalos; \mono{recordFirstLevelOnly} restricts recording to first-level subhalos.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingSoliton

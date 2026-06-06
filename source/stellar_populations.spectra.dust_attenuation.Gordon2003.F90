@@ -46,7 +46,7 @@
   !![
   <enumeration>
    <name>gordon2003Sample</name>
-   <description>Enumerates the samples available in the {\normalfont \ttfamily gordon2003} dust attenuation class.</description>
+   <description>Enumerates the samples available in the \mono{gordon2003} dust attenuation class.</description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -59,7 +59,7 @@ contains
 
   function gordon2003ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily gordon2003} stellar spectra dust attenuation class.
+    Default constructor for the \mono{gordon2003} stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

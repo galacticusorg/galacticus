@@ -23,7 +23,7 @@ Implements an N-body data operator which deletes named properties from the simul
 
   !![
   <nbodyOperator name="nbodyOperatorDeleteProperties">
-   <description>An N-body data operator which deletes named properties from the simulation.</description>
+   <description>An N-body data operator which removes one or more named properties from the N-body simulation dataset, reducing memory usage or eliminating unwanted quantities before further processing. The list of properties to be deleted is specified as an array of names via the \mono{[names]} parameter.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDeleteProperties

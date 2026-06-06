@@ -138,7 +138,7 @@ contains
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr).</description>
+      <description>The age of the halo (in Gyr) since its formation, determining the total time available for SIDM self-interactions to thermalize the inner halo and produce an isothermal core.</description>
     </inputParameter>
     <inputParameter>
       <name>velocityRelativeMean</name>
@@ -149,7 +149,7 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>componentType</name>
@@ -213,7 +213,7 @@ contains
 
   subroutine sphericalSIDMIsothermalDestructor(self)
     !!{
-    Destructor for the \refClass{massDistributionSphericalSIDMIsothermal} class.
+    Destructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
@@ -253,13 +253,13 @@ contains
     double precision                                         , dimension(              :  ), allocatable :: xi                         , y0                         , &
          &                                                                                                  z0
     double precision                                                                                     :: x
-    type            (multiDMinimizer                        )                              , allocatable :: minimizer_
+    type            (multiDMinimizer                        ), save                        , allocatable :: minimizer_
+    !$omp threadprivate(minimizer_)
     integer                                                                                              :: countXi                    , count
     integer         (c_size_t                               )                                            :: i                          , j                          , &
          &                                                                                                  iteration
     logical                                                                                              :: converged                  , retabulate
     type            (varying_string                         )                                            :: fileName
-    type            (hdf5Object                             )                                            :: file
     type            (lockDescriptor                         )                                            :: fileLock
     character       (len=16                                 )                                            :: labelXiMinimum             , labelXiMaximum
  
@@ -290,14 +290,16 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=.true.)
        ! Restore tables from file.
        !$ call hdf5Access%set()
-       call file%openFile   (char(fileName)                                                )
-       call file%readDataset('xi'                         ,     xi                         )
-       call file%readDataset('radii'                      ,self%radiiDimensionless         )
-       call file%readDataset('y0'                         ,     y0                         )
-       call file%readDataset('z0'                         ,     z0                         )
-       call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
-       call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
-       call file%close      (                                                              )
+       hdf5FileScope: block
+         type(hdf5Object) :: file
+         file=hdf5Object(char(fileName))
+         call file%readDataset('xi'                         ,     xi                         )
+         call file%readDataset('radii'                      ,self%radiiDimensionless         )
+         call file%readDataset('y0'                         ,     y0                         )
+         call file%readDataset('z0'                         ,     z0                         )
+         call file%readDataset('densityProfileDimensionless',self%densityProfileDimensionless)
+         call file%readDataset('massProfileDimensionless'   ,self%massProfileDimensionless   )
+       end block hdf5FileScope
        !$ call hdf5Access%unset()
        self%xiTabulatedMinimum=xi(      1 )
        self%xiTabulatedMaximum=xi(size(xi))
@@ -337,7 +339,7 @@ contains
        ! Start parallel region to solve for halo structure at each value of ξ.
        count=0
        call displayCounter(count,isNew=.true.,verbosity=verbosityLevelWorking)
-       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged,minimizer_)
+       !$omp parallel private(i,j,x,properties,locationMinimum,iteration,converged)
        !! Allocate and construct objects needed by each thread.
        allocate(odeSolver_)
        allocate(minimizer_)
@@ -382,14 +384,16 @@ contains
        ! Write the data to file.
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       call file%openFile    (char(     fileName                   )                              ,overWrite=.true.,readOnly=.false.)
-       call file%writeDataset(          xi                          ,'xi'                                                           )
-       call file%writeDataset(     self%radiiDimensionless          ,'radii'                                                        )
-       call file%writeDataset(          y0                          ,'y0'                                                           )
-       call file%writeDataset(          z0                          ,'z0'                                                           )
-       call file%writeDataset(     self%densityProfileDimensionless ,'densityProfileDimensionless'                                  )
-       call file%writeDataset(     self%massProfileDimensionless    ,'massProfileDimensionless'                                     )
-       call file%close       (                                                                                                      )
+       hdf5FileScopeWrite: block
+         type(hdf5Object) :: file
+         file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
+         call file%writeDataset(     xi                          ,'xi'                         )
+         call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
+         call file%writeDataset(     y0                          ,'y0'                         )
+         call file%writeDataset(     z0                          ,'z0'                         )
+         call file%writeDataset(self%densityProfileDimensionless ,'densityProfileDimensionless')
+         call file%writeDataset(self%massProfileDimensionless    ,'massProfileDimensionless'   )
+       end block hdf5FileScopeWrite
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
        call displayUnindent('done',verbosityLevelWorking)
@@ -522,7 +526,7 @@ contains
 
   double precision function sphericalSIDMIsothermalDensity(self,coordinates) result(density)
     !!{
-    Compute the density at the specified {\normalfont \ttfamily coordinates} for the {\normalfont \ttfamily sphericalSIDMIsothermal}
+    Compute the density at the specified \mono{coordinates} for the \mono{sphericalSIDMIsothermal}
     mass distribution.
     !!}
     implicit none
@@ -553,7 +557,7 @@ contains
 
   double precision function sphericalSIDMIsothermalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a truncated spherical mass distribution.
+    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target   :: self
@@ -585,7 +589,7 @@ contains
   
   double precision function sphericalSIDMIsothermalMassEnclosedBySphere(self,radius) result(mass)
     !!{   
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for the {\normalfont \ttfamily sphericalSIDMIsothermal}
+    Computes the mass enclosed within a sphere of given \mono{radius} for the \mono{sphericalSIDMIsothermal}
     mass distribution.
     !!}
     implicit none
@@ -627,7 +631,7 @@ contains
 
   double precision function sphericalSIDMIsothermalPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an burkert mass distribution.
+    Return the potential at the specified \mono{coordinates} in an burkert mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess

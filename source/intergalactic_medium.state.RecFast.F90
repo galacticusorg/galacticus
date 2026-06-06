@@ -20,7 +20,7 @@
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
   !!{
-  An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
+  An implementation of the \gls{igm} state class in which state is computed using {\normalfont \scshape RecFast}.
   !!}
 
   use :: File_Utilities, only : lockDescriptor
@@ -28,7 +28,7 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateRecFast">
    <description>
-    An intergalactic medium state class which computes the state of the intergalactic medium using the
+    An \gls{igm} state class which computes the state of the intergalactic medium using the
     \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
     \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
     intergalactic medium state as needed, which will then be stored for future use.
@@ -40,12 +40,12 @@
      An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      !!}
      private
-     type (lockDescriptor) :: fileLock
+     type(lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
 
   interface intergalacticMediumStateRecFast
      !!{
-     Constructors for the \refClass{intergalacticMediumStateRecFast} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
      !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
@@ -91,6 +91,7 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
+    use :: Units_MetaData                  , only : unitType
     use :: System_Command                  , only : System_Command_Do
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
@@ -106,8 +107,6 @@ contains
     integer                                                                        :: fileFormatVersion   , i                , &
          &                                                                            countRedshift       , parametersUnit   , &
          &                                                                            recFastUnit
-    type            (hdf5Object                     )                              :: outputFile          , dataset          , &
-         &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
     type            (lockDescriptor                 )                              :: fileLock
     !![
@@ -117,7 +116,7 @@ contains
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
-    self%fileName=char(inputPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    self%fileName=inputPath(pathTypeDataDynamic)//'intergalacticMedium/recFast'
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )
@@ -141,9 +140,11 @@ contains
     if (File_Exists(self%fileName)) then
        ! Check file version number.
        !$ call hdf5Access%set()
-       call outputFile%openFile     (char(self%fileName),overwrite=.false.          ,readOnly=.true.)
-       call outputFile%readAttribute('fileFormat'       ,          fileFormatVersion                )
-       call outputFile%close        (                                                               )
+       hdf5ReadScope: block
+         type(hdf5Object) :: outputFile 
+         outputFile=hdf5Object(char(self%fileName),overwrite=.false.,readOnly=.true.)
+         call outputFile%readAttribute('fileFormat',fileFormatVersion)
+       end block hdf5ReadScope
        !$ call hdf5Access%unset()
        buildFile=fileFormatVersion /= fileFormatVersionCurrent
     else
@@ -184,30 +185,29 @@ contains
        call File_Remove(parameterFile)
        ! Create the output file.
        !$ call hdf5Access%set()
-       call outputFile%openFile      (self%fileName    ,overwrite=.true.)
-       call outputFile%writeDataset  (redshift         ,'redshift'         ,'Redshift'                                            )
-       call outputFile%writeDataset  (electronFraction ,'electronFraction' ,'Electron fraction'                                   )
-       call outputFile%writeDataset  (hIonizedFraction ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
-       call outputFile%writeDataset  (heIonizedFraction,'heIonizedFraction','Fraction of ionized helium'                          )
-       call outputFile%writeDataset  (matterTemperature,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
-       call dataset   %writeAttribute('Kelvin'         ,'units'                                                                   )
-       call dataset   %writeAttribute(1.0d0            ,'unitsInSI'                                                               )
-       call dataset   %close         (                                                                                            )
-       ! Add description and provenance to output structure.
-       call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
-       call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )
-       call outputFile%writeAttribute(1                                                    ,'extrapolationAllowed')
-       provenance=outputFile%openGroup('provenance')
-       call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'                )
-       call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'              )
-       recFastProvenance=provenance%openGroup('recFast'                                                                                            )
-       call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
-       call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )
-       call recFastProvenance%close         (                                                                                                      )
-       call provenance       %close         (                                                                                                      )
-       call outputFile       %close         (                                                                                                      )
+       hdf5WriteScope: block
+         type(hdf5Object) :: outputFile, dataset          , &
+              &             provenance , recFastProvenance
+         outputFile=hdf5Object(self%fileName,overwrite=.true.)
+         call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
+         call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
+         call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
+         call outputFile%writeDataset  (heIonizedFraction  ,'heIonizedFraction','Fraction of ionized helium'                          )
+         call outputFile%writeDataset  (matterTemperature  ,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
+         call dataset   %writeAttribute(unitType(1.0d0,'Kelvin','K'),'units')
+         ! Add description and provenance to output structure.
+         call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description'         )
+         call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat'          )
+         call outputFile%writeAttribute(1                                                    ,'extrapolationAllowed')
+         provenance=outputFile%openGroup('provenance')
+         call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'                )
+         call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'              )
+         recFastProvenance=provenance%openGroup('recFast'                                                                                            )
+         call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
+         call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )
+       end block hdf5WriteScope
        !$ call hdf5Access%unset()
-    end if
+      end if
     call File_Unlock(self%fileLock)
     return
   end function recFastConstructorInternal

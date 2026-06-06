@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -50,7 +50,7 @@
   
    interface massDistributionSoliton
      !!{
-     Constructors for the {\normalfont \ttfamily soliton} mass distribution class.
+     Constructors for the \mono{soliton} mass distribution class.
      !!}
      module procedure solitonConstructorParameters
      module procedure solitonConstructorInternal
@@ -85,36 +85,36 @@
      !![
      <inputParameter>
        <name>radiusCore</name>
-       <description>The soliton core radius.</description>
+       <description>The soliton core radius (in Mpc) characterizing the size of the quantum pressure-supported central core of the fuzzy dark matter halo; the density profile flattens inside this scale.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>densitySolitonCentral</name>
-       <description>The central density of the soliton.</description>
+       <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the overall normalization of the density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}$.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>toleranceRelativePotential</name>
        <defaultValue>1.0d-3</defaultValue>
-       <description>The relative tolerance for numerical solutions.</description>
+       <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the solitonic core profile.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>dimensionless</name>
        <defaultValue>.true.</defaultValue>
-       <description>If true the profile is dimensionless.</description>
+       <description>If true the soliton profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The component type for the profile.</description>
+       <description>The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <inputParameter>
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The mass type for the profile.</description>
+       <description>The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.</description>
        <source>parameters</source>
      </inputParameter>
      <conditionalCall>
@@ -150,11 +150,13 @@
      if (present(radiusCore   )) then
         self%radiusCore             =+radiusCore
      else
+        self%radiusCore             =+0.0d0
         call Error_Report('no means to determine core radius')
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
+        self%densitySolitonCentral  =+0.0d0
         call Error_Report('densitySolitonCentral must be specified')
      end if
      if (present(dimensionless)) then
@@ -188,7 +190,7 @@
    
    double precision function solitonMassEnclosedBySphere(self,radius) result(mass)
      !!{
-     Return the mass at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the mass at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      use :: Numerical_Constants_Math            , only : Pi
@@ -241,7 +243,7 @@
    
    double precision function solitonDensity(self,coordinates) result(density)
      !!{
-     Return the density at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the density at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -261,7 +263,7 @@
    
    double precision function solitonDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
      !!{
-     Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a soliton mass distribution.
+     Return the radial density gradient at the specified \mono{coordinates} in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none

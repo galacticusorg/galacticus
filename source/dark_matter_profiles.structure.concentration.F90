@@ -36,30 +36,34 @@ module Dark_Matter_Profiles_Concentration
    <name>darkMatterProfileConcentration</name>
    <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
    <description>
-    Class providing dark matter profile concentrations.
+    Class providing the concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of dark matter halo density profiles, where
+    $r_\mathrm{vir}$ is the virial radius and $r_\mathrm{s}$ is the characteristic scale radius. The concentration encodes the
+    inner density structure of a halo and depends on halo mass and formation history. Implementations provide both the
+    instantaneous concentration (i.e., including any scatter around the mean) and the mean concentration--mass relation, along
+    with definitions of the density contrast and dark matter profile used in computing the concentration.
    </description>
    <default>gao2008</default>
    <method name="concentration" >
-    <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
+    <description>Returns the concentration parameter for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="concentrationMean" >
-    <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
+    <description>Returns the mean concentration parameter for a \mono{node} of the given mass.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
     <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>
    <method name="darkMatterProfileDMODefinition" >
-    <description>Returns a {\normalfont \ttfamily darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
+    <description>Returns a \mono{darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
     <type>class(darkMatterProfileDMOClass)</type>
     <pass>yes</pass>
    </method>

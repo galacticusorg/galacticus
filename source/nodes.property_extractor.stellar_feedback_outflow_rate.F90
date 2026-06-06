@@ -30,9 +30,8 @@
   <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate">
    <description>
     A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled
-    by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
-    \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding mass outflow rate is extracted as
-    {\normalfont \ttfamily \textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $M_\odot$/Gyr.
+    by the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``\mono{spheroid}'', or ``\mono{total}''. The corresponding mass outflow rate is extracted as
+    \mono{\textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $\mathrm{M}_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -53,11 +52,12 @@
      procedure :: name        => stellarFeedbackOutflowRateName
      procedure :: description => stellarFeedbackOutflowRateDescription
      procedure :: unitsInSI   => stellarFeedbackOutflowRateUnitsInSI
+     procedure :: units       => stellarFeedbackOutflowRateUnits
   end type nodePropertyExtractorStellarFeedbackOutflowRate
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
@@ -285,3 +285,17 @@ contains
     stellarFeedbackOutflowRateUnitsInSI=massSolar/gigaYear
     return
   end function stellarFeedbackOutflowRateUnitsInSI
+
+  function stellarFeedbackOutflowRateUnits(self) result(units)
+    !!{
+    Return the units of the stellarFeedbackOutflowRate property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                       )                :: units
+    class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function stellarFeedbackOutflowRateUnits

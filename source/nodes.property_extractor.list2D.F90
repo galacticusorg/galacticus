@@ -21,7 +21,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorList2D" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a 2D list of floating point properties.</description>
+   <description>An abstract base class for node property extractors that provide a 2D list (array of arrays) of floating-point properties, enabling extraction of variable-length per-node data such as merger histories or multi-epoch quantities.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList2D
@@ -32,12 +32,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return a count of the number of properties extracted."              />
-       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="names"        description="Return the name of the properties extracted."                       />
-       <method method="descriptions" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."         />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the name of the properties extracted."                  />
+       <method method="descriptions" description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(list2DElementCount), deferred :: elementCount
@@ -45,6 +46,7 @@
      procedure(list2DNames       ), deferred :: names
      procedure(list2DDescriptions), deferred :: descriptions
      procedure(list2DUnitsInSI   ), deferred :: unitsInSI
+     procedure                               :: units        => list2DUnits
      procedure                               :: metaData     => list2DMetaData
   end type nodePropertyExtractorList2D
 
@@ -106,7 +108,27 @@
   end interface
 
 contains
-  
+
+  function list2DUnits(self) result(units_)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorList2D}{unitsInSI} array into an array of
+    \mono{unitType}.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                   ), dimension(:), allocatable :: units_
+    class(nodePropertyExtractorList2D), intent(inout)             :: self
+    double precision                  , dimension(:), allocatable :: siValues
+    integer                                                       :: i
+
+    siValues=self%unitsInSI()
+    allocate(units_(size(siValues)))
+    do i=1,size(siValues)
+       units_(i)=unitType(siValues(i))
+    end do
+    return
+  end function list2DUnits
+
   subroutine list2DMetaData(self,node,time,metaDataRank0,metaDataRank1)
     !!{
     Interface for list2D property meta-data.

@@ -25,7 +25,7 @@
 
   !![
   <transferFunction name="transferFunctionAccelerator">
-   <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
+   <description>A transfer function class which accelerates calculations of another transfer function class by pre-tabulating the transfer function over a grid of wavenumbers and then using rapid interpolation for subsequent evaluations. The density of the tabulation grid in wavenumber is set by \mono{[wavenumberPerDecade]}.</description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionAccelerator

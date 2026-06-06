@@ -23,7 +23,7 @@
 
   !![
   <galacticStructureSolver name="galacticStructureSolverNull">
-   <description>An ``null'' solver for galactic structure.</description>
+   <description>A no-op galactic structure solver that performs no radius solving, useful as a placeholder when galactic structure calculations are not needed or as a baseline for testing.</description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverNull
@@ -136,7 +136,7 @@ contains
     !!{
     Solve for the structure of galactic components.
     !!}
-    include 'galactic_structure.radius_solver.plausible.modules.inc'
+    use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities
     implicit none
     class  (galacticStructureSolverNull), intent(inout)           :: self
     type   (treeNode                   ), intent(inout), target   :: node
@@ -145,6 +145,6 @@ contains
 
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    include 'galactic_structure.radius_solver.plausible.inc'
+    call radiusSolverPlausibilities(node)
     return
   end subroutine nullSolve

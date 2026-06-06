@@ -23,7 +23,7 @@
 
   !![
   <nodeOperator name="nodeOperatorNodeFormationTimeCole2000">
-   <description>A node operator class that computes the formation time for each node using the definition of \cite{cole_hierarchical_2000}.</description>
+   <description>A node operator class that records the halo formation time using the definition of \cite{cole_hierarchical_2000}, in which a halo is considered newly formed when its mass has grown by a factor \mono{massFactorReformation} since the previous formation event. \mono{reformationOnPromotionOnly} restricts reformation events to node promotions only (rather than the precise time the mass threshold is crossed during ODE integration).</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeCole2000
@@ -185,7 +185,7 @@ contains
 
   subroutine nodeFormationTimeCole2000Reform(self,node)
     !!{
-    Creates a halo formation time component for {\normalfont \ttfamily node}. This function is also used to ``reform'' the halo, since it
+    Creates a halo formation time component for \mono{node}. This function is also used to ``reform'' the halo, since it
     simply resets the formation time and mass to the current values.
     !!}
     use :: Events_Halo_Formation, only : Event_Halo_Formation

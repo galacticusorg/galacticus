@@ -36,13 +36,13 @@ module Display
   !![
   <enumeration>
    <name>verbosityLevel</name>
-   <description>Verbosity levels for message display.</description>
-   <indexing>0</indexing>
-   <visibility>public</visibility>
+   <description>Enumeration of verbosity levels for controlling the amount of output displayed during a \glc\ run, ranging from \mono{silent} (no output) through \mono{standard}, \mono{working}, \mono{warn}, and \mono{info} to \mono{debug} (maximum diagnostic output).</description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
-   <errorValue>-1</errorValue>
    <validator>yes</validator>
+   <visibility>public</visibility>
+   <indexing>0</indexing>
+   <errorValue>-1</errorValue>
    <entry label="silent"  />
    <entry label="standard"/>
    <entry label="working" />
@@ -268,7 +268,7 @@ contains
 
   subroutine displayMessageChar(message,verbosity)
     !!{
-    Display a message (input as a {\normalfont \ttfamily character} variable).
+    Display a message (input as a \mono{character} variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env, only : output_unit
     !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
@@ -297,7 +297,7 @@ contains
 
   subroutine displayMessageVarStr(message,verbosity)
     !!{
-    Display a message (input as a {\normalfont \ttfamily varying\_string} variable).
+    Display a message (input as a \mono{varying\_string} variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : output_unit
     !$ use            :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num

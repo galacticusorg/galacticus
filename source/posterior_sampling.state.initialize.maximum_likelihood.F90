@@ -27,7 +27,7 @@
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeMaximumLikelihood">
    <description>
     This class initializes state to the maximum likelihood state from a previous simulation---the state will be the same for all
-    chains. The {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous
+    chains. The \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous
     simulation.
   </description>
   </posteriorSampleStateInitialize>
@@ -126,7 +126,8 @@ contains
     allocate(stateVectorMapped(simulationState%dimension()))
     ! Read state from the log files.
     do i=0,mpiSelf%count()-1
-       logFileName=self%logFileRoot//'_'//i//'.log'
+       write (labelValue,'(i4.4)') i
+       logFileName=self%logFileRoot//'_'//trim(labelValue)//'.log'
        open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
        ioStatus=0
        do while (ioStatus == 0)

@@ -25,7 +25,7 @@ Implements a galactic filter which applies another filter to a descendant node o
 
   !![
   <galacticFilter name="galacticFilterDescendantNode">
-   <description>Applies a filter to a descendant node of the given node.</description>
+   <description>Evaluates a wrapped \refClass{galacticFilterClass} not on the current node but on its descendant node, enabling selection criteria based on the future state of a halo's evolution rather than its current properties.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterDescendantNode

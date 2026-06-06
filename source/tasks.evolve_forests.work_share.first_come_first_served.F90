@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
-   <description>A forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.</description>
+   <description>A forest evolution work sharing class implementing dynamic first-come-first-served (FCFS) scheduling, in which each worker atomically increments a shared MPI counter to claim the next available forest. This provides good load balancing across variable-cost forests at the expense of MPI synchronization overhead. Optionally, a subset of active MPI process ranks can be specified.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS
@@ -67,7 +67,7 @@ contains
       <name>doPing</name>
       <defaultValue>.false.</defaultValue>
       <description>
-        If true, the master MPI process will attach to the {\normalfont \ttfamily calculationReset} event and ping the MPI
+        If true, the master MPI process will attach to the \mono{calculationReset} event and ping the MPI
         counter. This can help to ensure that the counter updates regularly.
       </description>
       <source>parameters</source>
@@ -142,7 +142,7 @@ contains
 
   subroutine fcfsDestructor(self)
     !!{
-    Destroy a {\normalfont \ttfamily evolveForestsWorkShareFCFS} object.
+    Destroy a \mono{evolveForestsWorkShareFCFS} object.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
@@ -212,9 +212,9 @@ contains
     !$GLC attributes unused :: self, node, uniqueID
 
 #ifdef USEMPI
-    !$omp master
+    !$omp masked
     if (mpiSelf%isMaster()) forestNumber=forestCounter%get()
-    !$omp end master
+    !$omp end masked
 #endif
     return
   end subroutine fcfsPing

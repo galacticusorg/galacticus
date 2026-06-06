@@ -85,15 +85,15 @@
      !!{
      Constructors for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
      !!}
-     module procedure virialDensityContrastDefinitionParameters
-     module procedure virialDensityContrastDefinitionInternal
+     module procedure virialDensityContrastDefinitionConstructorParameters
+     module procedure virialDensityContrastDefinitionConstructorInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
   integer, parameter :: meanDensityTablePointsPerDecade=100
 
 contains
 
-  recursive function virialDensityContrastDefinitionParameters(parameters) result(self)
+  recursive function virialDensityContrastDefinitionConstructorParameters(parameters) result(self)
     !!{
     Constructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     !!}
@@ -118,11 +118,11 @@ contains
     <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
-  end function virialDensityContrastDefinitionParameters
+  end function virialDensityContrastDefinitionConstructorParameters
 
-  recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
+  recursive function virialDensityContrastDefinitionConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    Default constructor for the \mono{virialDensityContrastDefinition} dark matter halo scales class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -146,7 +146,7 @@ contains
     self%isRecursive               =.false.
     self%parentDeferred            =.false.
     return
-  end function virialDensityContrastDefinitionInternal
+  end function virialDensityContrastDefinitionConstructorInternal
 
   subroutine virialDensityContrastDefinitionAutoHook(self)
     !!{
@@ -199,7 +199,7 @@ contains
 
   double precision function virialDensityContrastDefinitionDynamicalTimescale(self,node)
     !!{
-    Returns the dynamical timescale for {\normalfont \ttfamily node}.
+    Returns the dynamical timescale for \mono{node}.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -228,7 +228,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
     !!{
-    Returns the virial velocity scale for {\normalfont \ttfamily node}.
+    Returns the virial velocity scale for \mono{node}.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -261,7 +261,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
     !!{
-    Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
+    Returns the growth rate of the virial velocity scale for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -290,7 +290,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialTemperature(self,node)
     !!{
-    Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily node}.
+    Returns the virial temperature (in Kelvin) for \mono{node}.
     !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
@@ -320,7 +320,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadius(self,node)
     !!{
-    Returns the virial radius scale for {\normalfont \ttfamily node}.
+    Returns the virial radius scale for \mono{node}.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
@@ -353,7 +353,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,node)
     !!{
-    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
+    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for \mono{node}.
     !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -372,7 +372,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
     !!{
-    Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
+    Returns the growth rate of the virial radius scale for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -395,7 +395,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
     !!{
-    Returns the mean density for {\normalfont \ttfamily node}.
+    Returns the mean density for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -455,7 +455,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
     !!{
-    Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
+    Returns the growth rate of the mean density for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -533,14 +533,7 @@ contains
     !!{
     Perform a deep copy of the object.
     !!}
-    use :: Error             , only : Error_Report
-#ifdef OBJECTDEBUG
-    use :: Display           , only : displayMessage            , verbosityLevelSilent
-    use :: MPI_Utilities     , only : mpiSelf
-    use :: Function_Classes  , only : debugReporting
-    use :: ISO_Varying_String, only : operator(//)              , var_str
-    use :: String_Handling   , only : operator(//)
-#endif
+    use :: Error, only : Error_Report
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout), target :: self
     class(darkMatterHaloScaleClass                          ), intent(inout)         :: destination
@@ -597,9 +590,6 @@ contains
              self%cosmologyParameters_%copiedSelf => destination%cosmologyParameters_
              call destination%cosmologyParameters_%autoHook()
           end if
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyparameters : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyParameters_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
        if (associated(self%cosmologyFunctions_)) then
           if (associated(self%cosmologyFunctions_%copiedSelf)) then
@@ -616,9 +606,6 @@ contains
              self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
              call destination%cosmologyFunctions_%autoHook()
           end if
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): cosmologyfunctions : [destination] : ')//loc(destination)//' : '//loc(destination%cosmologyFunctions_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
        if (associated(self%virialDensityContrast_)) then
           if (associated(self%virialDensityContrast_%copiedSelf)) then
@@ -635,9 +622,6 @@ contains
              self%virialDensityContrast_%copiedSelf => destination%virialDensityContrast_
              call destination%virialDensityContrast_%autoHook()
           end if
-#ifdef OBJECTDEBUG
-          if (debugReporting.and.mpiSelf%isMaster()) call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): virialdensitycontrast : [destination] : ')//loc(destination)//' : '//loc(destination%virialDensityContrast_)//' : '//{introspection:location:compact},verbosityLevelSilent)
-#endif
        end if
        call destination%densityMeanTable%deepCopyActions()
     class default

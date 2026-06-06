@@ -78,7 +78,7 @@ contains
     <inputParameter>
       <name>densityCentral</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The density in the slab mid-plane.</description>
+      <description>The gas density at the slab mid-plane ($z=0$), $\rho_0$, which sets the overall normalization of the Gaussian vertical profile $\rho(z) = \rho_0 \exp(-z^2/2 z_\mathrm{s}^2)$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -152,7 +152,7 @@ contains
 
   double precision function gaussianSlabDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    Return the density at the specified \mono{coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
@@ -174,7 +174,7 @@ contains
 
   double precision function gaussianSlabDensitySphericalAverage(self,radius)
     !!{
-    Return the spherically-averaged density at the specified {\normalfont \ttfamily radius} in a Gaussian slab mass distribution.
+    Return the spherically-averaged density at the specified \mono{radius} in a Gaussian slab mass distribution.
     !!}
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
@@ -214,7 +214,7 @@ contains
 
   double precision function gaussianSlabSurfaceDensity(self,coordinates)
     !!{
-    Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    Return the surface density at the specified \mono{coordinates} in a Gaussian slab mass distribution.
     !!}
     use :: Coordinates             , only : coordinate
     use :: Numerical_Constants_Math, only : Pi

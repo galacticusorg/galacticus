@@ -23,7 +23,7 @@ Implements an N-body data operator which adds attributes to the data.
 
   !![
   <nbodyOperator name="nbodyOperatorAddAttributes">
-   <description>An N-body data operator which adds attributes to the data.</description>
+   <description>An N-body data operator which attaches named scalar attributes to the simulation dataset, enabling metadata such as simulation parameters or analysis flags to be stored alongside particle data. Attribute names and corresponding values are specified as arrays via the \mono{[names]} and \mono{[values]} parameters.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorAddAttributes

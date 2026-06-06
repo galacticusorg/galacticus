@@ -25,7 +25,7 @@ Implements an analysis weight operator class which weights by a property value.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
-   <description>An analysis weight operator class which weights by a property value.</description>
+   <description>Weights each node's contribution to an output analysis by the value of a specified node property, enabling property-weighted statistics such as mass-weighted quantities or luminosity-weighted distributions.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
@@ -42,7 +42,7 @@ Implements an analysis weight operator class which weights by a property value.
 
   interface outputAnalysisWeightOperatorProperty
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorProperty} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class.
      !!}
      module procedure propertyConstructorParameters
      module procedure propertyConstructorInternal

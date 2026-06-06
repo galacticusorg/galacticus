@@ -46,14 +46,14 @@ module Node_Component_Hot_Halo_VS_Delayed
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the hot halo."/>
     </property>
     <property>
       <name>outflowedAbundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the outflowed phase of the hot halo."/>
     </property>
    </properties>
    <bindings>
@@ -69,9 +69,7 @@ module Node_Component_Hot_Halo_VS_Delayed
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Hot_Halo_VS_Delayed_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
     !!{
@@ -141,13 +139,11 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Hot_Halo_VS_Delayed_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Hot_Halo_VS_Delayed_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, &

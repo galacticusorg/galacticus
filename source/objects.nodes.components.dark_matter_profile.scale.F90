@@ -47,7 +47,7 @@ module Node_Component_Dark_Matter_Profile_Scale
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Scale radius of the dark matter profile [Mpc]."/>
       <classDefault>-1.0d0</classDefault>
     </property>
    </properties>
@@ -81,9 +81,7 @@ module Node_Component_Dark_Matter_Profile_Scale
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Initialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
     !!{
@@ -105,9 +103,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
     
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
     !!{
@@ -129,9 +125,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize()
     !!{
@@ -151,10 +145,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
-   <after>Node_Component_Basic_Standard_Plausibility</after>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Dark_Matter_Profile_Scale_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
     !!{
@@ -185,13 +176,11 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Dark_Matter_Profile_Scale_Scale_Set"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
@@ -211,9 +200,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Dark_Matter_Profile_Scale_State_Store"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -234,9 +221,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Scale_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Dark_Matter_Profile_Scale_State_Restore"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

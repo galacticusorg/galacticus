@@ -49,7 +49,7 @@ module Merger_Tree_Read_Importers
    contains
      !![
      <methods>
-       <method description="Multiply by another {\normalfont \ttfamily importerUnits} object." method="operator(*)" />
+       <method description="Multiply by another \mono{importerUnits} object." method="operator(*)" />
        <method description="Raise to the given integer power."                                 method="operator(**)"/>
        <method description="Return true if the provided units are equal."                      method="operator(==)"/>
        <method description="Return true if the provided units are not equal."                  method="operator(/=)"/>
@@ -107,23 +107,18 @@ module Merger_Tree_Read_Importers
   !![
   <functionClass>
    <name>mergerTreeImporter</name>
+   <descriptiveName>Merger Tree Importer</descriptiveName>
    <description>
     Class providing functions for importing merger trees. When merger trees are to be read from file, a number of different
     file formats are supported. This ``importer'' class is used to read these files and place the contents into internal data
     structures that \glc\ can then manipulate.
    </description>
-   <descriptiveName>Merger Tree Importer</descriptiveName>
    <default>galacticus</default>
    <method name="open" >
-    <description>Opens the file.</description>
+    <description>Opens the merger tree file specified by \mono{fileName} for reading, initializing any internal state required by the importer before data can be loaded.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(varying_string), intent(in   ) :: fileName</argument>
-   </method>
-   <method name="close" >
-    <description>Closes the file.</description>
-    <type>void</type>
-    <pass>yes</pass>
    </method>
    <method name="treesHaveSubhalos" >
     <description>Returns a Boolean integer specifying whether or not the trees have subhalos.</description>
@@ -161,7 +156,7 @@ module Merger_Tree_Read_Importers
     <pass>yes</pass>
    </method>
    <method name="cubeLength" >
-    <description>Returns the length of the simulation cube.</description>
+    <description>Returns the comoving side length (in Mpc) of the periodic simulation cube at the given \mono{time}; used to apply periodic boundary conditions when reading positions.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time</argument>
@@ -173,7 +168,7 @@ module Merger_Tree_Read_Importers
     <pass>yes</pass>
    </method>
    <method name="treeIndex" >
-    <description>Returns the index of the $i^\mathrm{th}$ tree.</description>
+    <description>Returns the unique integer identifier of the $i^\mathrm{th}$ tree in the file, used to label the tree in output datasets.</description>
     <type>integer(kind=kind_int8)</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: i</argument>
@@ -197,12 +192,12 @@ module Merger_Tree_Read_Importers
     <argument>logical, intent(in   ) :: positions, velocities</argument>
    </method>
    <method name="scaleRadiiAvailable" >
-    <description>Return true if scale radii are available.</description>
+    <description>Return true if halo scale radii are available in this merger tree file, so the importer can populate \mono{scaleRadius} fields when loading nodes.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="particleCountAvailable" >
-    <description>Return true if particle counts are available.</description>
+    <description>Return true if particle counts per halo are available in this merger tree file, so the importer can populate \mono{particleCount} fields when loading nodes.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
@@ -232,12 +227,12 @@ module Merger_Tree_Read_Importers
     <pass>yes</pass>
    </method>
    <method name="spin3DAvailable" >
-    <description>Return true if spin (vectors) are available.</description>
+    <description>Return true if 3D spin vectors are available in this merger tree file, so the importer can populate \mono{spin3D} fields when loading nodes.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="import" >
-    <description>Imports the $i^\mathrm{th}$ tree.</description>
+    <description>Imports all nodes for the $i^\mathrm{th}$ tree from the open file into the \mono{nodes} array, reading only those fields requested via the optional arguments.</description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                 , intent(in   )                            :: i</argument>
@@ -255,7 +250,7 @@ module Merger_Tree_Read_Importers
     <argument>double precision          , intent(  out), dimension(:,:) :: position, velocity</argument>
    </method>
    <method name="subhaloTraceCount" >
-    <description>Returns the length of a node's subhalo trace.</description>
+    <description>Returns the number of snapshot epochs recorded in the subhalo trace for the given \mono{node}, i.e.\ the length of the time, position, and velocity arrays to be allocated before calling \mono{subhaloTrace}.</description>
     <type>integer(kind=c_size_t)</type>
     <pass>yes</pass>
     <argument>class(nodeData), intent(in   ) :: node</argument>
@@ -267,7 +262,7 @@ contains
 
   function importerUnitsMultiply(units1,units2)
     !!{
-    Multiply to {\normalfont \ttfamily importerUnits} objects.
+    Multiply to \mono{importerUnits} objects.
     !!}
     implicit none
     type (importerUnits)                :: importerUnitsMultiply
@@ -283,7 +278,7 @@ contains
 
   function importerUnitsExponentiate(units1,exponent)
     !!{
-    Exponentiate {\normalfont \ttfamily importerUnits} objects.
+    Exponentiate \mono{importerUnits} objects.
     !!}
     implicit none
     type   (importerUnits)                :: importerUnitsExponentiate
@@ -299,7 +294,7 @@ contains
 
   logical function importerUnitsAreEqual(units1,units2)
     !!{
-    Test whether two {\normalfont \ttfamily importerUnits} objects are equal.
+    Test whether two \mono{importerUnits} objects are equal.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -317,7 +312,7 @@ contains
 
   logical function importerUnitsAreNotEqual(units1,units2)
     !!{
-    Test whether two {\normalfont \ttfamily importerUnits} objects are not equal.
+    Test whether two \mono{importerUnits} objects are not equal.
     !!}
     implicit none
     class(importerUnits), intent(in   ) :: units1

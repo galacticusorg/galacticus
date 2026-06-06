@@ -32,7 +32,12 @@ module NBody_Importers
   <functionClass>
    <name>nbodyImporter</name>
    <descriptiveName>N-Body Simulation Data Importer</descriptiveName>
-   <description>Class providing importing of data from N-body simulations.</description>
+   <description>Class providing importers of particle data from N-body simulations---routines that read
+    position, velocity, mass, and halo catalogues from simulation output files and return them as
+    \mono{nBodyData} objects for subsequent analysis. Implementations support a variety of N-body
+    output formats (e.g.\ GADGET HDF5, plain text) and optionally detect whether the source file is
+    HDF5-formatted (allowing new derived properties to be written back). The imported data serve as
+    input for N-body operator chains that compute halo statistics or populate galaxies.</description>
    <default>gadgetHDF5</default>
    <method name="import" >
     <description>Import position and velocity data from the named N-body data file.</description>

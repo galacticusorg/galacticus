@@ -65,21 +65,21 @@ contains
       <name>timeMinimum</name>
       <source>parameters</source>
       <defaultValue>40.0d-3</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2012}</defaultSource>
+      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
       <description>The minimum time before which the delay time distribution is zero.</description>
     </inputParameter>
     <inputParameter>
       <name>exponent</name>
       <source>parameters</source>
       <defaultValue>-1.07d0</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2012}</defaultSource>
-      <description>The exponent $\alpha$ in the delay time distribution.</description>
+      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
+      <description>The power-law index $\alpha$ in the Type Ia supernova delay time distribution $\mathrm{d}N/\mathrm{d}t \propto t^\alpha$ (differential form), describing how the rate declines with time after star formation; the default value of $-1.07$ follows \cite{freundlich_delay_2021}.</description>
     </inputParameter>
     <inputParameter>
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>0.21d-3</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2012}</defaultSource>
+      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
       <description>The normalization $R_1$ of the delay time distribution at 1~Gyr in units of Gyr$^{-1}\,\mathrm{M}_\odot^{-1}$.</description>
     </inputParameter>
     !!]

@@ -23,7 +23,7 @@
 
   !![
   <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeFixed">
-   <description>Atomic radiative recombination rates with a fixed rate coefficient.</description>
+   <description>Computes atomic radiative recombination rates using a fixed, constant rate coefficient specified by \mono{[rateCoefficient]} in units of cm$^3$~s$^{-1}$. This provides a simple, temperature-independent approximation to the recombination rate for use in ionization and cooling calculations.</description>
   </atomicRecombinationRateRadiative>
   !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeFixed

@@ -18,26 +18,33 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which downloads content from a supplied URL.
+Contains a module which downloads content from a supplied URL (or list of URLs).
 !!}
 
 module System_Download
   !!{
-  Downloads content from a supplied URL.
+  Downloads content from a supplied URL. A scalar URL may be provided, or a 1D array of URLs to be tried in turn---if the
+  download from one URL fails, the next is used as a fallback.
   !!}
   implicit none
   private
   public :: download
 
   interface download
-     module procedure downloadChar
-     module procedure downloadVarStr
+     module procedure downloadCharChar
+     module procedure downloadVarStrVarStr
+     module procedure downloadVarStrChar
+     module procedure downloadCharVarStr
+     module procedure downloadCharArrayChar
+     module procedure downloadCharArrayVarStr
+     module procedure downloadVarStrArrayChar
+     module procedure downloadVarStrArrayVarStr
   end interface download
 
   ! Available downloaders.
   logical :: downloadUsingWget  =.false., downloadUsingCurl=.false., &
        &     downloadInitialized=.false.
-  
+
 contains
 
   subroutine downloadInitialize()
@@ -59,64 +66,202 @@ contains
           downloadInitialized=.true.
        end if
        !$omp end critical(downloadInitialize)
-    end if    
+    end if
     return
   end subroutine downloadInitialize
-  
-  subroutine downloadVarStr(url,outputFileName,retries,retryWait,status)
+
+  subroutine downloadVarStrVarStr(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
     type   (varying_string), intent(in   )           :: url    , outputFileName
     integer                , intent(in   ), optional :: retries, retryWait
     integer                , intent(  out), optional :: status
-    
-    call download(char(url),char(outputFileName),retries,retryWait,status)
-    return
-  end subroutine downloadVarStr
+    type   (varying_string), dimension(1)            :: urls
 
-  subroutine downloadChar(url,outputFileName,retries,retryWait,status)
+    urls(1)=url
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    return
+  end subroutine downloadVarStrVarStr
+
+  subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,status)
     !!{
-    Download content from the given {\normalfont url} to the given {\normalfont \ttfamily outputFileName}.
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
-    use :: Error         , only : Error_Report     , errorStatusFail, errorStatusSuccess
-    use :: System_Command, only : System_Command_Do
-    use :: File_Utilities, only : File_Exists      , File_Remove
+    use :: ISO_Varying_String, only : varying_string
     implicit none
-    character(len=*), intent(in   )           :: url    , outputFileName
-    integer         , intent(in   ), optional :: retries, retryWait
-    integer         , intent(  out), optional :: status
-    integer                                   :: status_, tries
+    type     (varying_string), intent(in   )           :: url
+    character(len=*         ), intent(in   )           :: outputFileName
+    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(  out), optional :: status
+    type   (varying_string), dimension(1)            :: urls
+
+    urls(1)=url
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    return
+  end subroutine downloadVarStrChar
+
+  subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : char, var_str, varying_string, assignment(=)
+    implicit none
+    character(len=*         ), intent(in   )           :: url
+    type     (varying_string), intent(in   )           :: outputFileName
+    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(  out), optional :: status
+    type     (varying_string), dimension(1)            :: urls
+
+    urls(1)=url
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    return
+  end subroutine downloadCharVarStr
+
+  subroutine downloadCharChar(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    implicit none
+    character(len=*         ), intent(in   )           :: url    , outputFileName
+    integer                  , intent(in   ), optional :: retries, retryWait
+    integer                  , intent(  out), optional :: status
+    type     (varying_string), dimension(1)            :: urls
+
+    urls(1)=url
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    return
+  end subroutine downloadCharChar
+
+  subroutine downloadVarStrArrayVarStr(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string
+    implicit none
+    type   (varying_string), intent(in   ), dimension(:) :: url
+    type   (varying_string), intent(in   )               :: outputFileName
+    integer                , intent(in   ), optional     :: retries       , retryWait
+    integer                , intent(  out), optional     :: status
+
+    call downloadMultiple(url,char(outputFileName),retries,retryWait,status)
+    return
+  end subroutine downloadVarStrArrayVarStr
+
+  subroutine downloadVarStrArrayChar(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : varying_string
+    implicit none
+    type     (varying_string), intent(in   ), dimension(:) :: url
+    character(len=*         ), intent(in   )               :: outputFileName
+    integer                  , intent(in   ), optional     :: retries       , retryWait
+    integer                  , intent(  out), optional     :: status
+
+    call downloadMultiple(url,outputFileName,retries,retryWait,status)
+    return
+  end subroutine downloadVarStrArrayChar
+
+  subroutine downloadCharArrayVarStr(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : char, varying_string, assignment(=)
+    implicit none
+    character(len=*         ), intent(in   ), dimension(:        ) :: url
+    type     (varying_string), intent(in   )                       :: outputFileName
+    integer                  , intent(in   ), optional             :: retries       , retryWait
+    integer                  , intent(  out), optional             :: status
+    type     (varying_string)               , dimension(size(url)) :: urls
+    integer                                                        :: i
+
+    do i=1,size(url)
+       urls(i)=url(i)
+    end do
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    return
+  end subroutine downloadCharArrayVarStr
+
+  subroutine downloadCharArrayChar(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    implicit none
+    character(len=*       ), intent(in   ), dimension(:        ) :: url
+    character(len=*       ), intent(in   )                       :: outputFileName
+    integer                , intent(in   ), optional             :: retries       , retryWait
+    integer                , intent(  out), optional             :: status
+    type   (varying_string)               , dimension(size(url)) :: urls
+    integer                                                      :: i
+
+    do i=1,size(url)
+       urls(i)=url(i)
+    end do
+    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    return
+  end subroutine downloadCharArrayChar
+
+  subroutine downloadMultiple(url,outputFileName,retries,retryWait,status)
+    !!{
+    Download content to the given \mono{outputFileName}, trying each URL in {\normalfont url} in turn. If the download from one
+    URL fails (even after any retries), the next URL is used as a fallback. The download is considered successful as soon as any
+    URL succeeds.
+    !!}
+    use :: Error             , only : Error_Report     , errorStatusFail, errorStatusSuccess
+    use :: File_Utilities    , only : File_Exists      , File_Remove
+    use :: ISO_Varying_String, only : varying_string   , char           , operator(//)      , assignment(=)
+    use :: System_Command    , only : System_Command_Do
+    implicit none
+    type     (varying_string), intent(in   ), dimension(:) :: url
+    character(len=*         ), intent(in   )               :: outputFileName
+    integer                  , intent(in   ), optional     :: retries       , retryWait
+    integer                  , intent(  out), optional     :: status
+    integer                                                :: status_       , tries    , i
+    type     (varying_string)                              :: urlList
     !![
     <optionalArgument name="retries"   defaultsTo="0" />
     <optionalArgument name="retryWait" defaultsTo="60"/>
     !!]
-    
+
     call downloadInitialize()
     if (present(status)) status=0
-    tries=0
-    do while (tries <= retries_)
-       status_=errorStatusFail
-       if      (downloadUsingWget) then
-          call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
-       else if (downloadUsingCurl) then
-          call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
-       else if (.not.present(status)) then
-          call Error_Report('no downloader available'//{introspection:location})
-       end if
-       if (status_ == 0) then
-          if (present(status)) status=status_
-          return
-       end if
-       tries=tries+1
-       if (File_Exists(outputFileName)) call File_Remove(outputFileName)
-       call sleep(retryWait_)
+    status_=errorStatusFail
+    do i=1,size(url)
+       tries=0
+       do while (tries <= retries_)
+          status_=errorStatusFail
+          if      (downloadUsingWget) then
+             call System_Command_Do('wget --no-check-certificate "'//char(url(i))//'" -O '      //trim(outputFileName),status_)
+          else if (downloadUsingCurl) then
+             call System_Command_Do('curl --insecure --location "' //char(url(i))//'" --output '//trim(outputFileName),status_)
+          else if (.not.present(status)) then
+             call Error_Report('no downloader available'//{introspection:location})
+          end if
+          if (status_ == errorStatusSuccess) then
+             if (present(status)) status=status_
+             return
+          end if
+          tries=tries+1
+          if (File_Exists(outputFileName)) call File_Remove(outputFileName)
+          ! Wait before the next attempt, unless this was the final attempt of the final URL.
+          if (tries <= retries_ .or. i < size(url)) call sleep(retryWait_)
+       end do
     end do
-    if (     present(status)                   )  status=status_
-    if (.not.present(status) .and. status_ /= 0) call Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
+    if (present(status)) status=status_
+    if (.not.present(status) .and. status_ /= errorStatusSuccess) then
+       urlList=''
+       do i=1,size(url)
+          if (i > 1) urlList=urlList//', '
+          urlList=urlList//char(url(i))
+       end do
+       call Error_Report('failed to download from "'//char(urlList)//'"'//{introspection:location})
+    end if
     return
-  end subroutine downloadChar
+  end subroutine downloadMultiple
 
 end module System_Download

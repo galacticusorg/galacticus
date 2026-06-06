@@ -108,7 +108,7 @@ contains
 
   double precision function cole2000Rate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     model.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode

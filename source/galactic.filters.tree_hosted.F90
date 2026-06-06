@@ -23,7 +23,7 @@ Implements a filter which passes only nodes that are hosted in a merger tree.
 
   !![
   <galacticFilter name="galacticFilterTreeHosted">
-   <description>A filter which passes only nodes that are hosted in a merger tree.</description>
+   <description>Passes only nodes that are currently hosted in a merger tree, filtering out any unhosted nodes that may exist outside the tree structure.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterTreeHosted

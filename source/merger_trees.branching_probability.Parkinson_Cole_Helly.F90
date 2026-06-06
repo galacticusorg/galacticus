@@ -29,10 +29,9 @@ Implements a merger tree branching probability class using the algorithm of \cit
   <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
    <description>
     A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
-    $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters {\normalfont \ttfamily [G0]},
-    {\normalfont \ttfamily [gamma]} and {\normalfont \ttfamily [gamma2]} respectively. Additionally, the parameter {\normalfont
-    \ttfamily accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
-    {\normalfont \ttfamily accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
+    $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters \mono{[G0]},
+    \mono{[gamma]} and \mono{[gamma2]} respectively. Additionally, the parameter \mono{accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
+    \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
     the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
     we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
     \begin{equation}
@@ -44,9 +43,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
     on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
   
     Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
-    slow. Two parameters control the accuracy and application of these functions. First, {\normalfont \ttfamily
-    [precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
-    computed. Second, if {\normalfont \ttfamily [hypergeometricTabulate]}$=${\normalfont \ttfamily true} then these functions
+    slow. Two parameters control the accuracy and application of these functions. First, \mono{[precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
+    computed. Second, if \mono{[hypergeometricTabulate]}$=$\mono{true} then these functions
     will be tabulated for rapid lookup (at some loss of precision).
    </description>
   </mergerTreeBranchingProbability>
@@ -101,7 +99,7 @@ Implements a merger tree branching probability class using the algorithm of \cit
 
   interface mergerTreeBranchingProbabilityParkinsonColeHelly
      !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree builder class.
+     Constructors for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree branching probability class.
      !!}
      module procedure parkinsonColeHellyConstructorParameters
      module procedure parkinsonColeHellyConstructorInternal
@@ -159,7 +157,7 @@ contains
       <name>accuracyFirstOrder</name>
       <defaultValue>0.1d0</defaultValue>
       <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-         algorithm, so that it never exceeds {\normalfont \ttfamily accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+         algorithm, so that it never exceeds \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -376,8 +374,7 @@ contains
 
     double precision function massBranchGeneric()
       !!{
-      Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-      \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
+      Determine the mass of one of the halos to which the given halo branches, given the branching probability, \mono{probability}. Typically, \mono{probabilityFraction} is found by multiplying \mono{probability}
       by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       corresponding to this value.
       !!}
@@ -501,8 +498,7 @@ contains
 
   double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
-    deltaCritical} should be allowed to take.
+    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} should be allowed to take.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -536,8 +532,8 @@ contains
 
   double precision function parkinsonColeHellyRate(self,mass,deltaCritical,time,massBranch,node)
     !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
-    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass {\normalfont \ttfamily massBranch}.
+    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
+    \mono{deltaCritical} will undergo a branching to progenitors with mass \mono{massBranch}.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
@@ -562,8 +558,8 @@ contains
 
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
-    {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
+    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
+    \mono{deltaCritical} will undergo a branching to progenitors with mass greater than \mono{massResolution}.
     !!}
     use :: Display        , only : displayGreen    , displayBlue             , displayYellow     , displayReset
     use :: Error          , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
@@ -704,9 +700,8 @@ contains
   
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !!{
-    Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
-    haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
-    {\normalfont \ttfamily massResolution}.
+    Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
+    \mono{massResolution}.
     !!}
     use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
     use            :: Error                   , only : Error_Report
@@ -758,7 +753,7 @@ contains
     ! Iterative over available bounds.
     parkinsonColeHellyProbabilityBound=0.0d0
     do iBound=1,2
-       ! Determine if CDM assumptions can be used. Do this only is these have been explicitly allowed, if this is our first
+       ! Determine if CDM assumptions can be used. Do this only if these have been explicitly allowed, if this is our first
        ! pass through the bounds evaluation, and if both αs are sufficiently large. (This last condition is required
        ! since we raise quantities to the power of 1/α which can cause problems for very small α.)
        usingCDMAssumptions= self%cdmAssumptions                       &
@@ -925,8 +920,8 @@ contains
 
   double precision function parkinsonColeHellyFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
-    $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
+    Return the fraction of mass accreted in subresolution halos, i.e. those below \mono{massResolution}, per unit change in
+    $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time \mono{deltaCritical}. The integral is computed analytically in
     terms of the $_2F_1$ hypergeometric function.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -1069,6 +1064,8 @@ contains
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     use :: Table_Labels            , only : extrapolationTypeAbort
+    use :: Display                 , only : displayGreen          , displayBlue, displayYellow, displayReset
+    use :: Error                   , only : Error_Report
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)           :: self
     double precision                                                  , intent(in   )           :: mass                              , massResolution
@@ -1117,6 +1114,13 @@ contains
           ! Evaluate σ and α.
           call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
           massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
+          if (abs(halfMassAlpha) <= alphaMinimum)                                                                                                                                                                                                                      &
+               & call Error_Report(                                                                                                                                                                                                                                    &
+               &                   'CDM assumptions were requested, but seem to be violated: unexpected |α| = |dlogσ/dlogM| ≪ 1'//char(10)                                                                                                                                         // &
+               &                   displayGreen()//'HELP:'//displayReset()//' set <'//displayBlue()//'cdmAssumptions'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"false"'//displayReset()//'/> '                         // &
+               &                   'in class <'//displayBlue()//'mergerTreeBranchingProbability'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"parkinsonColeHelly"'//displayReset()//'/> to avoid making these assumptions'// &
+               &                   {introspection:location}                                                                                                                                                                                                            &
+               &                  )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
           call self%upperBoundHypergeometric%populate(                                                                             &
                &                                      +sqrtTwoOverPi                                                               &

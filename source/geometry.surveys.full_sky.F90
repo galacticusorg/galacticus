@@ -25,7 +25,7 @@ Implements survey geometries over the full sky.
 
   !![
   <surveyGeometry name="surveyGeometryFullSky">
-   <description>Implements survey geometries over the full sky.</description>
+   <description>Implements a survey geometry covering the full sky over a specified distance or redshift range. The survey volume is bounded by \mono{[redshiftMinimum]} and \mono{[redshiftMaximum]}, with all sky positions included, making this suitable for theoretical or volume-limited analyses without angular masking.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
@@ -73,13 +73,13 @@ contains
       <name>redshiftMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift for the survey.</description>
+      <description>The minimum redshift of the full-sky survey volume; sources below this redshift are excluded from the survey sample.</description>
     </inputParameter>
     <inputParameter>
       <name>redshiftMaximum</name>
       <defaultValue>huge(1.0d0)</defaultValue>
       <source>parameters</source>
-      <description>The maximum redshift for the survey.</description>
+      <description>The maximum redshift of the full-sky survey volume; sources above this redshift are excluded from the survey sample.</description>
     </inputParameter>
     !!]
     ! Build the object.

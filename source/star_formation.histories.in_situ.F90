@@ -24,8 +24,7 @@ Implements a star formation histories class which records \emph{in situ} star fo
   !![
   <starFormationHistory name="starFormationHistoryInSitu">
    <description>
-     A star formation histories class which records \emph{in situ} star formation. Another {\normalfont \ttfamily
-     starFormationHistory} object is used to provide the base star formation history. This class tracks a second copy which is
+     A star formation histories class which records \emph{in situ} star formation. Another \mono{starFormationHistory} object is used to provide the base star formation history. This class tracks a second copy which is
      identical but excludes any star formation from merging galaxies.
    </description>
   </starFormationHistory>
@@ -109,7 +108,7 @@ contains
 
   subroutine inSituDestructor(self)
     !!{
-    Destructor for the \refClass{starFormationHistoryInSitu} star formation histories class.
+    Destructor for the \refClass{starFormationHistoryInSitu} star formation history class.
     !!}
     implicit none
     type(starFormationHistoryInSitu), intent(inout) :: self
@@ -143,7 +142,7 @@ contains
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     use :: Error, only : Error_Report
     implicit none

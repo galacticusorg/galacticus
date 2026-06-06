@@ -35,9 +35,11 @@ module Black_Hole_Binary_Separations
   <functionClass>
    <name>blackHoleBinarySeparationGrowthRate</name>
    <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
-   <description>
-    Class providing models of black hole binary separation growth rates.
-   </description>
+   <description>Class providing models of the rate of change of the binary separation (in Mpc Gyr$^{-1}$)
+    for a black hole binary during its inspiral toward coalescence. After the initial dynamical friction
+    phase brings the two black holes close together, the hardening of the binary is driven by three-body
+    stellar scattering, viscous gas torques, or gravitational wave emission depending on the separation.
+    The separation growth rate (which is negative for inspiral) determines the merger timescale.</description>
    <default>zero</default>
    <method name="growthRate" >
     <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>

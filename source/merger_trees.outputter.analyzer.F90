@@ -89,7 +89,7 @@ contains
 
   subroutine analyzerDestructor(self)
     !!{
-    Destructor  for the {\normalfont \ttfamily analyzer} merger tree outputter class.
+    Destructor  for the \mono{analyzer} merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterAnalyzer), intent(inout) :: self
@@ -100,22 +100,24 @@ contains
     return
   end subroutine analyzerDestructor
 
-  subroutine analyzerOutputTree(self,tree,indexOutput,time)
+  subroutine analyzerOutputTree(self,tree,indexOutput,time,outputType)
     !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class           (mergerTreeOutputterAnalyzer), intent(inout)          :: self
-    type            (mergerTree                 ), intent(inout), target  :: tree
-    integer         (c_size_t                   ), intent(in   )          :: indexOutput
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   )               , pointer :: node
-    class           (nodeComponentBasic         )               , pointer :: basic
-    type            (mergerTree                 )               , pointer :: treeCurrent
-    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
+    class           (mergerTreeOutputterAnalyzer   ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type            (treeNode                      )               , pointer  :: node
+    class           (nodeComponentBasic            )               , pointer  :: basic
+    type            (mergerTree                    )               , pointer  :: treeCurrent
+    type            (mergerTreeWalkerAllNodes      )                          :: treeWalker
+    !$GLC attributes unused :: outputType
 
     ! Iterate over trees.
     treeCurrent => tree
@@ -138,16 +140,17 @@ contains
     return
   end subroutine analyzerOutputTree
 
-  subroutine analyzerOutputNode(self,node,indexOutput)
+  subroutine analyzerOutputNode(self,node,indexOutput,outputType)
     !!{
     Perform no output.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
-    type   (treeNode                   ), intent(inout) :: node
-    integer(c_size_t                   ), intent(in   ) :: indexOutput
-    !$GLC attributes unused :: self, node, indexOutput
+    class  (mergerTreeOutputterAnalyzer   ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    !$GLC attributes unused :: self, node, indexOutput, outputType
 
     call Error_Report('output of single nodes is not supported'//{introspection:location})
     return

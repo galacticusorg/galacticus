@@ -39,21 +39,21 @@ Implements a merger tree evolution timestepping class which limits the step the 
     which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
     t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
   
-    Volume-averaged properties are stored to the {\normalfont \ttfamily globalHistory} group of the output file. Currently, the
+    Volume-averaged properties are stored to the \mono{globalHistory} group of the output file. Currently, the
     properties stored are:
     \begin{description}
-     \item[{\normalfont \ttfamily historyTime}] Cosmic time (in Gyr);
-     \item[{\normalfont \ttfamily historyExpansion}] Expansion factor;
-     \item[{\normalfont \ttfamily historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[{\normalfont \ttfamily historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[{\normalfont \ttfamily historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
-     \item[{\normalfont \ttfamily historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
-     \item[{\normalfont \ttfamily historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
-     \item[{\normalfont \ttfamily historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
-     \item[{\normalfont \ttfamily historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
-     \item[{\normalfont \ttfamily historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
+     \item[\mono{historyTime}] Cosmic time (in Gyr);
+     \item[\mono{historyExpansion}] Expansion factor;
+     \item[\mono{historyStarFormationRate}] Volume averaged star formation rate (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
+     \item[\mono{historyStellarDensity}] Volume averaged stellar mass density (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyGasDensity}] Volume averaged cooled gas density (in $\mathrm{M}_\odot/$Mpc$^3$).
+     \item[\mono{historyNodeDensity}] Volume averaged resolved node density (in $\mathrm{M}_\odot/$Mpc$^3$).
     \end{description}
-    Dimensionful datasets have a {\normalfont \ttfamily unitsInSI} attribute which gives their units\index{units} in the SI
+    Dimensionful datasets have a \mono{unitsInSI} attribute which gives their units\index{units} in the SI
     system.
    </description>
   </mergerTreeEvolveTimestep>
@@ -221,7 +221,7 @@ contains
 
   double precision function historyTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
     !!{
-    Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
+    Determine a suitable timestep for \mono{node} using the history method.
     !!}
     use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
@@ -372,6 +372,7 @@ contains
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar, megaParsec
+    use :: Units_MetaData                  , only : unitType
     implicit none
     class           (*         ), intent(inout)               :: self
     double precision            , allocatable  , dimension(:) :: rateStarFormationDisk , rateStarFormationSpheroid, &
@@ -387,12 +388,10 @@ contains
        if (.not.historyGroup%hasDataset('time')) then
           ! Write non-cumulative datasets on the first write.
           call historyGroup  %writeDataset  (self%time                       ,"time"             ,"Time [Gyr]"                       ,datasetReturned=historyDataset)
-          call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI"                                                                           )
-          call historyDataset%close         (                                                                                                                       )
+          call historyDataset%writeAttribute(unitType(gigaYear                        ,"Gyr"        ,"Gyr"                                ),"units")
           call historyGroup  %writeDataset  (self%expansionFactor            ,"expansionFactor"  ,"Expansion factor []"                                             )
           call historyGroup  %writeDataset  (self%rateStarFormation          ,"rateStarFormation","Star formation rate [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
-          call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                           )
-          call historyDataset%close         (                                                                                                                       )
+          call historyDataset%writeAttribute(unitType(massSolar/gigaYear/megaParsec**3,"M☉/Gyr/Mpc³","solMass/Gyr/Mpc^3",isComoving=.true.),"units")
        else
           ! Read existing datasets, and accumulate.
           call historyGroup%readDataset('rateStarFormationDisk'    ,rateStarFormationDisk    )
@@ -414,31 +413,22 @@ contains
        end if
        ! Accumulate other datasets. (We are doing this inside an hdf5Access lock, so OpenMP threads will not conflict here.)
        call historyGroup  %writeDataset  (self%rateStarFormationDisk      ,"rateStarFormationDisk"    ,"Star formation rate in disks [M⊙/Gyr/Mpc³]"    ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/gigaYear/megaParsec**3,"M☉/Gyr/Mpc³","solMass/Gyr/Mpc^3",isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%rateStarFormationSpheroid  ,"rateStarFormationSpheroid","Star formation rate in spheroids [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/gigaYear/megaParsec**3,"M☉/Gyr/Mpc³","solMass/Gyr/Mpc^3",isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityStellar             ,"densityStellar"           ,"Stellar mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityStellarDisk         ,"densityStellarDisk"       ,"Stellar mass density in disks [M⊙/Mpc³]"       ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityStellarSpheroid     ,"densityStellarSpheroid"   ,"Stellar mass density in spheroids [M⊙/Mpc³]"   ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityColdGas             ,"densityColdGas"           ,"Gas mass density [M⊙/Mpc³]"                    ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityHotHaloGas          ,"densityHotHaloGas"        ,"Hot gas mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        call historyGroup  %writeDataset  (self%densityNode                ,"densityNode"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
-       call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
-       call historyDataset%close         (                                                                                                                                            )
-       call historyGroup  %close         (                                                                                                                                            )
-       !$ call hdf5Access %unset         (                                                                                                                                            )
+       call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
+       !$ call hdf5Access %unset()
     class default
        call Error_Report('incorrect class'//{introspection:location})
     end select

@@ -32,7 +32,12 @@ module Satellite_Oprhan_Distributions
   <functionClass>
    <name>satelliteOrphanDistribution</name>
    <descriptiveName>Satellite Orphan Distributions</descriptiveName>
-   <description>Class providing distributions for orphan satellites.</description>
+   <description>Class providing distributions for orphan satellites---galaxies whose host dark matter subhalo has been
+    disrupted or fallen below the mass resolution limit, so they no longer have an explicit subhalo tracked in the
+    merger tree. Since orphans retain stellar mass and continue to orbit, their positions and velocities must be
+    modelled statistically. Implementations return the spatial extent of the orphan distribution, and sample
+    physical positions and peculiar velocities for individual orphan satellites, typically by assuming they trace
+    the dark matter distribution or follow their last-known orbit.</description>
    <default>traceDarkMatter</default>
    <method name="extent" >
     <description>The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.</description>

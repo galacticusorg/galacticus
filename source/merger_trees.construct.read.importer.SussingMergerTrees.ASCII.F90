@@ -25,8 +25,7 @@
   <mergerTreeImporter name="mergerTreeImporterSussingASCII">
    <description>
     A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013},
-    along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the {\normalfont \ttfamily
-    [mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
+    along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the \mono{[mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
     \begin{verbatim}
     simulation.txt
     MergerTree+AHF.txt
@@ -80,11 +79,10 @@
     
     Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to
     read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is
-    specified by the {\normalfont \ttfamily [subvolumeCount]} parameter. The specific subvolume to process is specified by the
-    {\normalfont \ttfamily [subvolumeIndex]} parameter, which should give the index (running from $0$ to {\normalfont \ttfamily
-    [subvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the
+    specified by the \mono{[subvolumeCount]} parameter. The specific subvolume to process is specified by the
+    \mono{[subvolumeIndex]} parameter, which should give the index (running from $0$ to \mono{[subvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the
     edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc$/h$ to
-    follow the format convention) is specified via the {\normalfont \ttfamily [subvolumeBuffer]} parameter.
+    follow the format convention) is specified via the \mono{[subvolumeBuffer]} parameter.
    </description>
   </mergerTreeImporter>
   !!]
@@ -110,7 +108,7 @@
 
   interface mergerTreeImporterSussingASCII
      !!{
-     Constructors for the \refClass{mergerTreeImporterSussingASCII} ASCII format merger tree importer class.
+     Constructors for the \refClass{mergerTreeImporterSussingASCII} merger tree importer class.
      !!}
      module procedure sussingASCIIConstructorParameters
      module procedure sussingASCIIConstructorInternal
@@ -120,7 +118,7 @@
   !![
   <enumeration>
    <name>sussingHaloFormat</name>
-   <description>Halo file formats.</description>
+   <description>Enumeration of supported halo catalog file format versions for the ``Sussing Merger Trees'' ASCII importer: \mono{old} and \mono{new} refer to distinct AHF column layouts, while \mono{all} accepts either format.</description>
    <entry label="old"/>
    <entry label="new"/>
    <entry label="all"/>
@@ -165,14 +163,14 @@ contains
       <name>forestFirst</name>
       <variable>self%forestFirst</variable>
       <defaultValue>1</defaultValue>
-      <description>Index of first forest to include.</description>
+      <description>The 1-based index of the first forest in the file to include when reading a subset of forests; forests before this index are skipped.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>forestLast</name>
       <variable>self%forestLast</variable>
       <defaultValue>-1</defaultValue>
-      <description>Index of last forest to include.</description>
+      <description>The 1-based index of the last forest in the file to include when reading a subset of forests; a value of $-1$ includes all forests through the end of the file.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -233,7 +231,7 @@ contains
 
   subroutine sussingASCIIOpen(self,fileName)
     !!{
-    Validate a {\normalfont \ttfamily sussing} ASCII format merger tree file.
+    Validate a \mono{sussing} ASCII format merger tree file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage         , verbosityLevelWarn
@@ -360,13 +358,12 @@ contains
        end if
     end do
     close(fileUnit)
-    call parameterRegEx%destroy()
     return
   end subroutine sussingASCIIOpen
 
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
     !!{
-    Load a {\normalfont \ttfamily sussing} ASCII format merger tree data.
+    Load a \mono{sussing} ASCII format merger tree data.
     !!}
     use            :: Array_Utilities                 , only : Array_Reverse
     use            :: Arrays_Search                   , only : searchArray            , searchIndexed

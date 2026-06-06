@@ -25,7 +25,7 @@ Implements a redshift property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}''.</description>
+   <description>Extracts the current cosmological redshift at which a node exists, computed from the node's cosmic time, and outputs it as the scalar property named ``\mono{redshift}''.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
@@ -40,11 +40,12 @@ Implements a redshift property extractor class.
      procedure :: name        => redshiftName
      procedure :: description => redshiftDescription
      procedure :: unitsInSI   => redshiftUnitsInSI
+     procedure :: units       => redshiftUnits
   end type nodePropertyExtractorRedshift
 
   interface nodePropertyExtractorRedshift
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshift} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRedshift} property extractor class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal
@@ -155,7 +156,20 @@ contains
     class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    redshiftUnitsInSI=0.0d0
+    redshiftUnitsInSI=1.0d0
     return
   end function redshiftUnitsInSI
 
+  function redshiftUnits(self) result(units)
+    !!{
+    Return the units of the redshift property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                     )                :: units
+    class(nodePropertyExtractorRedshift), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function redshiftUnits

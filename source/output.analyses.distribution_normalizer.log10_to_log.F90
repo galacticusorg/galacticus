@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog">
-   <description>A $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.</description>
+   <description>Converts distribution normalizations from $\log_{10}$ scaling to natural $\log$ scaling, enabling comparison of model predictions to observed distributions that use different logarithmic bases.</description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerLog10ToLog

@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorBlackHolesWinds">
-   <description>A node operator class that implements winds driven by accretion onto black holes.</description>
+   <description>Computes AGN-driven winds from accreting black holes, coupling the wind mechanical power to the surrounding gas and halo, providing a feedback mechanism that quenches star formation and expels gas from massive galaxies.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesWinds

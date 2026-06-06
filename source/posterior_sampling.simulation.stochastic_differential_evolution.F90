@@ -24,13 +24,13 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn">
    <description>
-    This option extends the {\normalfont \ttfamily differentialEvolution} option to run chains at a temperature matched to the
+    This option extends the \mono{differentialEvolution} option to run chains at a temperature matched to the
     uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the
     uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from
-    random fluctuations.  In addition to the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of
+    random fluctuations.  In addition to the options for the \mono{differentialEvolution} algorithm, the details of
     the algorithm are controlled by the following parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily temperatureScale}] The temperature scaling factor, $alpha$, described below.
+    \item[\mono{temperatureScale}] The temperature scaling factor, $alpha$, described below.
     \end{description}
     In computing the acceptance probability for transitions between states, the chain temperature is set to
     \begin{equation}
@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationStochasticDffrntlEvltn
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationStochasticDffrntlEvltn} posterior sampling simulation class.
      !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal
@@ -97,7 +97,7 @@ contains
     return
   end function stochasticDifferentialEvolutionConstructorParameters
 
-  function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
+  function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
     !!{
     Internal constructor for the ``stochasticDifferentialEvolution'' simulation class.
     !!}
@@ -114,13 +114,14 @@ contains
     class           (randomNumberGeneratorClass                     ), intent(in   ), target               :: randomNumberGenerator_
     integer                                                          , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                                    stateSwapCount                          , logFlushCount           , &
-         &                                                                                                    reportCount                             , recomputeCount
+         &                                                                                                    reportCount                             , recomputeCount          , &
+         &                                                                                                    slowStepCount
     character       (len=*                                          ), intent(in   )                       :: logFileRoot                             , interactionRoot
     logical                                                          , intent(in   )                       :: sampleOutliers                          , appendLogs              , &
          &                                                                                                    loadBalance                             , ignoreChainNumberAdvice
     double precision                                                 , intent(in   )                       :: temperatureScale
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(temperatureScale)
     return
   end function stochasticDifferentialEvolutionConstructorInternal

@@ -30,7 +30,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
     <description>
       Exponentially truncated dark matter halo profiles \cite{kazantzidis_2006} are constructed via the
-      \refClass{massDistributionSphericalTruncatedExponential} class.
+      \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -77,13 +77,13 @@ contains
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
     </inputParameter>
     <inputParameter>
       <name>radiusFractionalDecay</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>The truncation scale (in units of the virial radius).</description>
+      <description>The truncation scale radius expressed as a fraction of the virial radius; the exponentially truncated dark matter profile decays as $\exp(-r/r_\mathrm{trunc})$ for $r > r_\mathrm{trunc} = $ \mono{[radiusFractionalDecay]} $\times r_\mathrm{virial}$, suppressing the profile at large radii.</description>
     </inputParameter>    
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -99,7 +99,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOTruncatedExponential} dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -134,7 +134,7 @@ contains
 
   function truncatedExponentialGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                        , massTypeDark                   , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalTruncatedExponential, kinematicsDistributionTruncated, massDistributionSpherical

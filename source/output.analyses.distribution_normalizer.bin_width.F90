@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth">
-   <description>A bin width output analysis distribution normalizer class.</description>
+   <description>An output analysis distribution normalizer class that divides each bin's count by the width of that bin, converting raw counts into a number density per unit property interval (e.g.\ $\mathrm{d}N/\mathrm{d}\log_{10}M$).</description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerBinWidth

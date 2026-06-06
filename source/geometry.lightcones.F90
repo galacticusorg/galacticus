@@ -33,7 +33,12 @@ module Geometry_Lightcones
   <functionClass>
    <name>geometryLightcone</name>
    <descriptiveName>Lightcone Geometries</descriptiveName>
-   <description>Class providing geometries of lightcones.</description>
+   <description>Class providing lightcone geometries---the spatial and temporal selection function that
+    defines which galaxies from the simulation volume are observable by a survey. A lightcone selects
+    objects whose simulated positions intersect the observer's past light cone, accounting for periodic
+    box replication. Implementations provide the minimum and maximum comoving lookback time, test
+    whether a node lies within the cone, compute the position and velocity at lightcone crossing, and
+    return the solid angle of the survey.</description>
    <default>null</default>
    <method name="timeMinimum" >
     <description>Returns the minimum time in the lightcone.</description>
@@ -65,35 +70,36 @@ module Geometry_Lightcones
     <pass>yes</pass>
    </method>
    <method name="position" >
-    <description>Returns the position vector of a {\normalfont \ttfamily node} (in units of Mpc) in the lightcone coordinate system.</description>
+    <description>Returns the position vector of a \mono{node} (in units of Mpc) in the lightcone coordinate system.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout), target :: node</argument>
     <argument>integer(c_size_t), intent(in   )         :: instance</argument>
    </method>
    <method name="velocity" >
-    <description>Returns the velocity vector of a {\normalfont \ttfamily node} (in units of km/s) in the lightcone coordinate system.</description>
+    <description>Returns the velocity vector of a \mono{node} (in units of km/s) in the lightcone coordinate system.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout) :: node</argument>
     <argument>integer(c_size_t), intent(in   ) :: instance</argument>
    </method>
    <method name="timeLightconeCrossing" >
-    <description>Returns the next time in the interval from the current node time to {\normalfont \ttfamily timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
+    <description>Returns the next time in the interval from the current node time to \mono{timeEnd} at which any replicant of this node will cross the lightcone. If no crossing occurs during this interval a very large value is returned instead.</description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type            (treeNode), intent(inout)                                      :: node                  </argument>
+    <selfTarget>yes</selfTarget>
+    <argument>type            (treeNode), intent(inout), target                              :: node                  </argument>
     <argument>double precision          , intent(in   )                                      :: timeStart    , timeEnd</argument>
     <argument>double precision          , intent(inout), dimension(:), allocatable, optional :: timesCrossing         </argument>
    </method>
    <method name="positionLightconeCrossing" >
-    <description>Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+    <description>Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the \mono{timeLightconeCrossing} method.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="velocityLightconeCrossing" >
-    <description>Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the {\normalfont \ttfamily timeLightconeCrossing} method.</description>
+    <description>Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the \mono{timeLightconeCrossing} method.</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorHierarchy">
-   <description>
-     A node property extractor which extracts meta-properties related to the position of a node within the (sub-)halo hierarchy.
-   </description>
+   <description>Extracts meta-properties describing the structural position of a node within the halo hierarchy, such as its depth level in the subhalo nesting, enabling analysis of multi-level substructure in merger trees.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorHierarchy
@@ -37,11 +35,12 @@
      procedure :: names        => hierarchyNames
      procedure :: descriptions => hierarchyDescriptions
      procedure :: unitsInSI    => hierarchyUnitsInSI
+     procedure :: units       => hierarchyUnits
   end type nodePropertyExtractorHierarchy
 
   interface nodePropertyExtractorHierarchy
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHierarchy} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -67,7 +66,7 @@ contains
 
   function hierarchyConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHierarchy) :: self
@@ -82,7 +81,7 @@ contains
 
   integer function hierarchyElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily hierarchy} property extractors.
+    Return the number of elements in the \mono{hierarchy} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout) :: self
@@ -119,7 +118,7 @@ contains
 
   subroutine hierarchyNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily hierarchy} properties.
+    Return the names of the \mono{hierarchy} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout)                             :: self
@@ -136,7 +135,7 @@ contains
 
   subroutine hierarchyDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily hierarchy} properties.
+    Return the descriptions of the \mono{hierarchy} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout)                             :: self
@@ -153,7 +152,7 @@ contains
 
   function hierarchyUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily hierarchy} properties in the SI system.
+    Return the units of the \mono{hierarchy} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -163,7 +162,25 @@ contains
    !$GLC attributes unused :: self, time
 
     allocate(hierarchyUnitsInSI(3))
-    hierarchyUnitsInSI=0.0d0
+    hierarchyUnitsInSI=1.0d0
     return
   end function hierarchyUnitsInSI
 
+  function hierarchyUnits(self,time) result(units)
+    !!{
+    Return the units of the hierarchy properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                      ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorHierarchy), intent(inout)             :: self
+    double precision                                , intent(in   )             :: time
+    integer                                                                     :: i
+    !$GLC attributes unused :: self, time
+
+    allocate(units(3))
+    do i=1,3
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function hierarchyUnits

@@ -51,7 +51,7 @@ Implements a cosmological volume corrector analysis weight operator class.
 
   interface outputAnalysisWeightOperatorCsmlgyVolume
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis weight operator class.
      !!}
      module procedure csmlgyVolumeConstructorParameters
      module procedure csmlgyVolumeConstructorInternal

@@ -25,9 +25,7 @@ Implements a tidal radius property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal">
-   <description>
-    A tidal radius property extractor class. Extracts the tidal radius in the halo in Mpc.
-   </description>
+   <description>Extracts the tidal radius of each halo in Mpc, defined as the radius at which the tidal forces from the host halo equal the self-gravity of the subhalo, beyond which mass is susceptible to stripping.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusTidal
@@ -42,11 +40,12 @@ Implements a tidal radius property extractor class.
      procedure :: name        => radiusTidalName
      procedure :: description => radiusTidalDescription
      procedure :: unitsInSI   => radiusTidalUnitsInSI
+     procedure :: units       => radiusTidalUnits
   end type nodePropertyExtractorRadiusTidal
 
   interface nodePropertyExtractorRadiusTidal
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal
@@ -155,4 +154,16 @@ contains
     return
   end function radiusTidalUnitsInSI
 
+  function radiusTidalUnits(self) result(units)
+    !!{
+    Return the units of the radiusTidal property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                        )                :: units
+    class(nodePropertyExtractorRadiusTidal), intent(inout) :: self
+    !$GLC attributes unused :: self
 
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusTidalUnits

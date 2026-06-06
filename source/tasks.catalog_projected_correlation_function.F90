@@ -26,7 +26,7 @@
   <enumeration>
    <name>randomSampleCountType</name>
    <description>Used to specify the type of random sample count.</description>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="fixed"        />
    <entry label="multiplicative"/>
   </enumeration>
@@ -34,7 +34,7 @@
   
   !![
   <task name="taskCatalogProjectedCorrelationFunction">
-   <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
+   <description>A task which reads a galaxy catalog from an IRATE-format N-body halo file, applies a survey geometry mask, shifts galaxies into redshift space, and computes the projected two-point correlation function $w_\mathrm{p}(r_\mathrm{p})$ by integrating the 3D correlation function along the line of sight to a maximum separation $\pi_\mathrm{max}$.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
@@ -155,7 +155,7 @@ contains
     <inputParameter>
       <name>randomSampleCount</name>
       <defaultValue>var_str('*10')</defaultValue>
-      <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
+      <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``\mono{*}'', a multiplicative factor.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -178,7 +178,7 @@ contains
     <inputParameter>
       <name>halfIntegral</name>
       <defaultValue>.false.</defaultValue>
-      <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
+      <description>Set to \mono{true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -258,7 +258,6 @@ contains
        call Error_Report('unknown randomSampleCountType'//{introspection:location})
     end if
     self%parameters=inputParameters(parameters)
-    call self%parameters%parametersGroupCopy(parameters)
     return
   end function catalogProjectedCorrelationFunctionConstructorInternal
 
@@ -288,10 +287,12 @@ contains
     use :: Error                           , only : Error_Report                     , errorStatusSuccess
     use :: Output_HDF5                     , only : outputFile
     use :: IO_HDF5                         , only : hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Units_MetaData                  , only : unitType
     use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate  , Points_Survey_Geometry, &
           &                                         Points_Translate
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
@@ -440,17 +441,15 @@ contains
          &                             halfIntegral                            =self%halfIntegral             &
          &                            )
     ! Write correlations to file.
+    !$ call hdf5Access%set()
     correlationFunctionGroup=outputFile%openGroup('projectedCorrelationFunction')
     call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,comment='Galaxy separation.'                                ,datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
     call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,comment='Projected correlation function from the full mock.',datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
     call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',comment='Projected correlation function from survey region.',datasetReturned=dataset)
-    call dataset%writeAttribute(megaParsec,'unitsInSI')
-    call dataset%close         (                      )
-    call correlationFunctionGroup%close()
+    call dataset%writeAttribute(unitType(megaParsec,"Mpc","Mpc"),'units')
+    !$ call hdf5Access%unset()
     ! Clean up.
     deallocate(galaxyPosition)
     deallocate(galaxyVelocity)

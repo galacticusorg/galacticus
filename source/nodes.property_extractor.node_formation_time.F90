@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeFormationTime">
-   <description>
-     A node property extractor which extracts the formation time of each node.
-   </description>
+   <description>Extracts the cosmic formation time of each node, defined as the time at which the node first exceeded a specified mass threshold, providing a proxy for the assembly epoch of each halo.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorNodeFormationTime
@@ -35,11 +33,12 @@
      procedure :: name        => nodeFormationTimeName
      procedure :: description => nodeFormationTimeDescription
      procedure :: unitsInSI   => nodeFormationTimeUnitsInSI
+     procedure :: units       => nodeFormationTimeUnits
   end type nodePropertyExtractorNodeFormationTime
 
   interface nodePropertyExtractorNodeFormationTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
      !!}
      module procedure nodeFormationTimeConstructorParameters
      module procedure nodeFormationTimeConstructorInternal
@@ -65,7 +64,7 @@ contains
 
   function nodeFormationTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeFormationTime) :: self
@@ -95,7 +94,7 @@ contains
   
   function nodeFormationTimeName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily nodeFormationTime} properties.
+    Return the names of the \mono{nodeFormationTime} properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeName
@@ -108,7 +107,7 @@ contains
 
   function nodeFormationTimeDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily nodeFormationTime} properties.
+    Return the descriptions of the \mono{nodeFormationTime} properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeDescription
@@ -121,7 +120,7 @@ contains
 
   double precision function nodeFormationTimeUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily nodeFormationTime} properties in the SI system.
+    Return the units of the \mono{nodeFormationTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -131,3 +130,17 @@ contains
     nodeFormationTimeUnitsInSI=gigaYear
     return
   end function nodeFormationTimeUnitsInSI
+
+  function nodeFormationTimeUnits(self) result(units)
+    !!{
+    Return the units of the nodeFormationTime property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorNodeFormationTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function nodeFormationTimeUnits

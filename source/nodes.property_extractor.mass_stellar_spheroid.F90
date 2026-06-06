@@ -23,7 +23,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
-   <description>A spheroid stellar mass output analysis property extractor class.</description>
+   <description>Extracts the stellar mass contained in the spheroid (bulge) component of a galaxy node, used to study bulge growth via mergers and disk instabilities and to calibrate the bulge-to-total mass ratio.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid
@@ -37,11 +37,12 @@ Implements a spheroid stellar mass output analysis property extractor class.
      procedure :: name        => massStellarSpheroidName
      procedure :: description => massStellarSpheroidDescription
      procedure :: unitsInSI   => massStellarSpheroidUnitsInSI
+     procedure :: units       => massStellarSpheroidUnits
   end type nodePropertyExtractorMassStellarSpheroid
 
   interface nodePropertyExtractorMassStellarSpheroid
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} property extractor class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid
@@ -50,7 +51,7 @@ contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMassStellarSpheroid} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMassStellarSpheroid} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -128,7 +129,7 @@ contains
 
   double precision function massStellarSpheroidUnitsInSI(self)
     !!{
-    Return the units of the massStellarSpheroid property in the SI system.
+    Return the units of the spheroid stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -138,3 +139,17 @@ contains
     massStellarSpheroidUnitsInSI=massSolar
     return
   end function massStellarSpheroidUnitsInSI
+
+  function massStellarSpheroidUnits(self) result(units)
+    !!{
+    Return the units of the spheroid stellar mass property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                )                :: units
+    class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Solar masses',quantity='solMass')
+    return
+  end function massStellarSpheroidUnits

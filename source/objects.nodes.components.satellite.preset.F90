@@ -57,7 +57,7 @@ module Node_Component_Satellite_Preset
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <getFunction>SatellitePresetMergeBoundMass</getFunction>
       <classDefault>selfBasic%mass()</classDefault>
-      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
     </property>
     <property>
       <name>boundMassHistory</name>
@@ -98,9 +98,7 @@ module Node_Component_Satellite_Preset
 contains
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Satellite_Preset_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Preset_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Initialize(parameters_)
     !!{
@@ -122,9 +120,7 @@ contains
   end subroutine Node_Component_Satellite_Preset_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Satellite_Preset_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Preset_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Uninitialize()
     !!{
@@ -144,7 +140,7 @@ contains
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     from the parent.
     !!}
     use :: Galacticus_Nodes, only : treeNode
@@ -161,7 +157,7 @@ contains
   subroutine interTreeSatelliteInsert(self,node,replaceNode)
     !!{
     A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    assigned to the \mono{replaceNode} so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory

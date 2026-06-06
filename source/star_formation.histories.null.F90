@@ -23,7 +23,7 @@ Implements a null star formation histories class.
 
   !![
   <starFormationHistory name="starFormationHistoryNull">
-   <description>A null star formation histories class.</description>
+   <description>A null star formation histories class that performs no recording or tracking of star formation history, used when detailed star formation history information is not required in the simulation.</description>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryNull
@@ -81,7 +81,7 @@ contains
 
   subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
     !!{
-    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    Set the rate the star formation history for \mono{node}.
     !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self

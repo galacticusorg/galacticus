@@ -26,13 +26,13 @@
   !![
   <intergalacticMediumState name="intergalacticMediumStateMetallicityPolynomial">
    <description>
-    An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+    An intergalactic medium state decorator class that overrides the metallicity of an underlying \gls{igm} state with a redshift-dependent polynomial, $Z(z)/Z_\odot = 10^{\sum_i c_i [\log_{10}(1+z)]^i}$, where the polynomial coefficients $c_i$ are provided via \mono{[coefficients]}. All other state properties are passed through unchanged.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityPolynomial
      !!{
-     An intergalactic medium state class which provides a fixed metallicity for the \gls{igm}, given by {\normalfont \ttfamily [metallicity]}.
+     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityPolynomial
      !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} intergalactic medium state class.
+     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class.
      !!}
      module procedure metallicityPolynomialIGMConstructorParameters
      module procedure metallicityPolynomialIGMConstructorInternal

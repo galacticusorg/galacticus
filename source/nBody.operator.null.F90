@@ -23,7 +23,7 @@ Implements a null N-body data operator.
 
   !![
   <nbodyOperator name="nbodyOperatorNull">
-   <description>A null N-body data operator.</description>
+   <description>A null (no-op) N-body data operator that performs no transformation on the simulation data, used as a default or placeholder in operator pipelines.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorNull

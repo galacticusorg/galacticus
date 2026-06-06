@@ -25,7 +25,7 @@
 
   !![
   <distributionFunction1D name="distributionFunction1DBeta">
-   <description>A beta 1D distribution function class.</description>
+   <description>A 1D beta distribution function class, implementing the beta distribution $p(x) \propto x^{\alpha-1}(1-x)^{\beta-1}$ with support on $[0,1]$, parameterized by shape parameters $\alpha > 0$ and $\beta > 0$.</description>
   </distributionFunction1D>
   !!]
     type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
@@ -73,12 +73,12 @@ contains
     !![
     <inputParameter>
       <name>alpha</name>
-      <description>The $\alpha$ parameter of the beta distribution function.</description>
+      <description>The first shape parameter $\alpha > 0$ of the beta distribution; when $\alpha > 1$ the density rises towards 1, when $\alpha &lt; 1$ it diverges towards 0, and when $\alpha = 1$ it is uniform along that axis.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>beta</name>
-      <description>The $\beta$ parameter of the beta distribution function.</description>
+      <description>The second shape parameter $\beta > 0$ of the beta distribution; when $\beta > 1$ the density rises towards 0, when $\beta &lt; 1$ it diverges towards 1, and when $\beta = 1$ it is uniform along that axis.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>

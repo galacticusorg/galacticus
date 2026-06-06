@@ -40,7 +40,7 @@ Implements the survey geometry used by \cite{martin_arecibo_2010}.
     sample with power-law function as shown in Fig.~\ref{fig:ALFALFALineWidthMassRelation}. We find that the median line width
     can be approximated by
     \begin{equation}
-     \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/M_\odot),
+     \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/\mathrm{M}_\odot),
      \label{eq:ALFALFALineWidthMassRelation}
     \end{equation}
     with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integrated flux limit, $S_\mathrm{int}$, for a
@@ -175,7 +175,7 @@ contains
        ! Get the logarithm of the mass.
        logarithmicMass=log10(mass)
        ! Find the median line width for this mass. (See
-       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.pl for details.)
+       ! constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/lineWidthMassRelation.py for details.)
        lineWidth=10.0d0**(lineWidthCoefficient0+lineWidthCoefficient1*logarithmicMass)
        ! Compute the limiting integrated flux using equation (A1) of Martin et al. (2010).
        if (lineWidth < lineWidthCharacteristic) then

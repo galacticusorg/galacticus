@@ -40,12 +40,10 @@
     {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
     \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
     \end{equation}
-    with $\tau_\mathrm{infall}=${\normalfont \ttfamily [timescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily
-    [timescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [exponentRedshift]},
-    $\beta_\mathrm{infall}=${\normalfont \ttfamily [exponentCutOff]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily
-    [exponentVelocity]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOffExponentRedshift},
-    $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [velocityCutOff]}, and $\Delta \log_{10}
-    \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [widthCutOff]}.
+    with $\tau_\mathrm{infall}=$\mono{[timescale]}, $\tau_\mathrm{infall,min}=$\mono{[timescaleMinimum]}, $\alpha_\mathrm{infall}=$\mono{[exponentRedshift]},
+    $\beta_\mathrm{infall}=$\mono{[exponentCutOff]}, $\gamma_\mathrm{infall}=$\mono{[exponentVelocity]}, $\delta_\mathrm{infall}=$\mono{[velocityCutOffExponentRedshift},
+    $\mathcal{V}_\mathrm{infall}=$\mono{[velocityCutOff]}, and $\Delta \log_{10}
+    \mathcal{V}_\mathrm{infall}=$\mono{[widthCutOff]}.
    </description>
   </coolingRate>
   !!]
@@ -236,7 +234,7 @@ contains
 
   double precision function velocityMaximumScalingRate(self,node)
     !!{
-    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
+    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode
     use :: Mass_Distributions, only : massDistributionClass

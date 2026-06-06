@@ -21,7 +21,7 @@
 
   !![
   <evolveForestsWorkShare name="evolveForestsWorkShareStride">
-   <description>A forest evolution work sharing class in which forests are assigned by another work sharing class, but then strode over in steps of a specified size.</description>
+   <description>A forest evolution work sharing class that wraps another work sharing strategy and applies a stride and offset to the resulting forest indices, so that only every $N$-th forest (offset by a given amount) is processed. This enables subsampling of forests or splitting a forest set across independent runs without modifying the underlying assignment algorithm.</description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareStride

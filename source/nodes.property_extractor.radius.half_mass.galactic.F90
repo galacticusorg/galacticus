@@ -23,7 +23,7 @@ Implements a half-galactic mass radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassGalactic">
-   <description>A half-galactic mass output analysis property extractor class.</description>
+   <description>Extracts the half-galactic-mass radius, the 3D radius enclosing half of the total galactic mass (stars plus gas) in both disk and spheroid components, used to characterize the physical extent of galaxies across cosmic time.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMassGalactic
@@ -36,11 +36,12 @@ Implements a half-galactic mass radius output analysis property extractor class.
      procedure :: name        => radiusHalfMassGalacticName
      procedure :: description => radiusHalfMassGalacticDescription
      procedure :: unitsInSI   => radiusHalfMassGalacticUnitsInSI
+     procedure :: units       => radiusHalfMassGalacticUnits
   end type nodePropertyExtractorRadiusHalfMassGalactic
 
   interface nodePropertyExtractorRadiusHalfMassGalactic
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} property extractor class.
      !!}
      module procedure radiusHalfMassGalacticConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassGalactic
@@ -49,7 +50,7 @@ contains
 
   function radiusHalfMassGalacticConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassGalactic} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -122,3 +123,16 @@ contains
     radiusHalfMassGalacticUnitsInSI=megaParsec
     return
   end function radiusHalfMassGalacticUnitsInSI
+
+  function radiusHalfMassGalacticUnits(self) result(units)
+    !!{
+    Return the units of the radiusHalfMassGalactic property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                   )                :: units
+    class(nodePropertyExtractorRadiusHalfMassGalactic), intent(inout) :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusHalfMassGalacticUnits

@@ -25,7 +25,7 @@
   <nodePropertyExtractor name="nodePropertyExtractorBranchMostMassive">
    <description>
     A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-    extracted as {\normalfont \ttfamily nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
+    extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
     massive branch and a value of 0 indicating that it is not.
    </description>
   </nodePropertyExtractor>
@@ -33,7 +33,7 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBranchMostMassive
      !!{
      A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-     extracted as {\normalfont \ttfamily nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
+     extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
      massive branch and a value of 0 indicating that it is not.
      !!}
      private
@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorBranchMostMassive
      !!{
-     Constructors for the \refClass{nodePropertyExtractorBranchMostMassive} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorBranchMostMassive} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBranchMostMassive} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBranchMostMassive) :: self
@@ -85,7 +85,7 @@ contains
 
   function branchMostMassiveExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily branchMostMassive} node property extractor.
+    Implement a \mono{branchMostMassive} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

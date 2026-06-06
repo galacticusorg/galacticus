@@ -27,7 +27,7 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   !![
   <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation">
-   <description>A black hole-velocity dispersion mass relation output analysis class using the data from \cite{mcconnell_revisiting_2013}.</description>
+   <description>Computes the relation between supermassive black hole mass and host bulge stellar velocity dispersion using the observational data from \cite{mcconnell_revisiting_2013}, with configurable random and systematic error polynomial coefficients for both black hole mass and velocity dispersion.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleVelocityDispersionRelation
@@ -69,6 +69,7 @@ contains
     class           (darkMatterHaloScaleClass                         ), pointer                     :: darkMatterHaloScale_
     double precision                                                                                 :: randomErrorMinimum                         , randomErrorMaximum
     double precision                                                   , parameter                   :: toleranceRelative                   =1.0d-3
+    logical                                                                                          :: report
 
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
@@ -101,12 +102,18 @@ contains
       <defaultValue>0.01d0</defaultValue>
       <description>The minimum random error for velocity dispersions.</description>
     </inputParameter>
+    <inputParameter>
+      <name>report</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, report on statistics accumulation.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_)
+    self=outputAnalysisBlackHoleVelocityDispersionRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative=1.0d-3,darkMatterHaloScale_=darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -116,7 +123,7 @@ contains
     return
   end function blackHoleVelocityDispersionRelationConstructorParameters
 
-  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
+  function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
     !!{
     Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class for internal use.
     !!}
@@ -133,6 +140,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : kilo
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data           , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10            , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorMinMax, &
           &                                               outputAnalysisPropertyOperatorSequence             , outputAnalysisPropertyOperatorSystmtcPolynomial, propertyOperatorList
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -142,6 +150,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                , &
          &                                                                                                  toleranceRelative
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
+    logical                                                              , intent(in   )                 :: report
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     class           (darkMatterHaloScaleClass                           ), intent(in   ), target         :: darkMatterHaloScale_
@@ -173,17 +182,17 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     type            (varying_string                                     )               , dimension(1  ) :: radiusSpecifiers
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
+    <constructorAssign variables="systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient, randomErrorMinimum, randomErrorMaximum, report, *cosmologyFunctions_, *outputTimes_, toleranceRelative, *darkMatterHaloScale_"/>
     !!]
     
     !$ call hdf5Access%set()
-    call dataFile%openFile     (char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.             )
-    call dataFile%readDataset  ('velocityDispersionBinned'                                                                                           ,          velocities         )
-    call dataFile%readAttribute('label'                                                                                                              ,          targetLabel        )
-    call dataFile%readDataset  ('massBlackHoleMean'                                                                                                  ,          functionValueTarget)
-    call dataFile%readDataset  ('massBlackHoleMeanError'                                                                                             ,          functionErrorTarget)
-    call dataFile%close        (                                                                                                                                                   )
+    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.)
+    call dataFile%readDataset  ('velocityDispersionBinned',velocities         )
+    call dataFile%readAttribute('label'                   ,targetLabel        )
+    call dataFile%readDataset  ('massBlackHoleMean'       ,functionValueTarget)
+    call dataFile%readDataset  ('massBlackHoleMeanError'  ,functionErrorTarget)
     !$ call hdf5Access%unset()
     allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
     functionCovarianceTarget=0.0d0
@@ -307,16 +316,29 @@ contains
     <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole             (                                                                                              )"/>
     !!]
     ! Build the object.
+    outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                    &
+         &                                                     xAxisLabel      =var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'             ), &
+         &                                                     yAxisLabel      =var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
+         &                                                     xAxisIsLog      =.true.                                                           , &
+         &                                                     yAxisIsLog      =.false.                                                          , &
+         &                                                     targetLabel     =targetLabel                                                      , &
+         &                                                     valueTarget     =functionValueTarget                                              , &
+         &                                                     covarianceTarget=functionCovarianceTarget                                           &
+         &                                                    )
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
          &                                                         var_str('blackHoleVelocityDispersionRelation'                   ), &
          &                                                         var_str('Black hole mass-VelocityDispersion mass relation'      ), &
          &                                                         var_str('velocityDispersion'                                    ), &
          &                                                         var_str('Velocity dispersion of spheroid'                       ), &
          &                                                         var_str('km/s'                                                  ), &
+         &                                                         var_str('km/s'                                                  ), &
+         &                                                         .false.                                                          , &
          &                                                         kilo                                                             , &
          &                                                         var_str('massBlackHole'                                         ), &
          &                                                         var_str('Mean logarithmic (base-10) mass of central black hole' ), &
          &                                                         var_str('M☉'                                                    ), &
+         &                                                         var_str('solMass'                                               ), &
+         &                                                         .false.                                                          , &
          &                                                         massSolar                                                        , &
          &                                                         velocities                                                       , &
          &                                                         bufferCount                                                      , &
@@ -335,14 +357,10 @@ contains
          &                                                         covarianceBinomialMassHaloMinimum                                , &
          &                                                         covarianceBinomialMassHaloMaximum                                , &
          &                                                         likelihoodNormalize                                              , &
-         &                                                         var_str('$\sigma_{\star,\mathrm{spheroid}}$ [km/s]'             ), &
-         &                                                         var_str('$\langle \log_{10} M_\bullet/\mathrm{M}_\odot \rangle$'), &
-         &                                                         .true.                                                           , &
-         &                                                         .false.                                                          , &
-         &                                                         targetLabel                                                      , &
-         &                                                         functionValueTarget                                              , &
-         &                                                         functionCovarianceTarget                                           &
+         &                                                         outputAnalysisTargetData_                                          &
          &                                                        )
+    ! Activate reporting if requested.
+    if (report) call self%setReporting(.true.,"black hole M-σ")
     ! Clean up.
     !![
     <objectDestructor name="galacticFilter_"                                 />

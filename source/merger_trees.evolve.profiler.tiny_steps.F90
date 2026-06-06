@@ -24,7 +24,7 @@
   !![
   <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerTinySteps">
    <description>
-    A merger tree evolve profiler that warns about tiny steps.
+    A merger tree evolve profiler that monitors timestep sizes during galaxy evolution and issues warnings when steps fall below a threshold, helping to diagnose stiff ODE systems or convergence problems. The warning threshold is set by \mono{[timeStepTiny]} and the minimum recorded step size is tracked via \mono{[timeStepMinimum]}.
    </description>
   </mergerTreeEvolveProfiler>
   !!]

@@ -51,7 +51,7 @@ module Hashes
   public :: {Type¦label}Hash
 
   type :: {Type¦label}Container
-  private
+     private
      {Type¦intrinsic}{Type¦attributes} :: object {Type¦initializor}
   end type {Type¦label}Container
 
@@ -68,19 +68,22 @@ module Hashes
    contains
      !![
      <methods>
-       <method description="Initialize the hash."                                                                      method="initialize"/>
-       <method description="Set the value of a key in the hash."                                                       method="set"       />
-       <method description="Delete a key from the hash."                                                               method="delete"    />
-       <method description="Return the value for the given key."                                                       method="value"     />
-       <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key"       />
-       <method description="Return an array of all keys in the hash."                                                  method="keys"      />
-       <method description="Return an array of all values in the hash."                                                method="values"    />
-       <method description="Return true if the specified key exists in the hash."                                      method="exists"    />
-       <method description="Return the number of keys in the hash."                                                    method="size"      />
-       <method description="Destroy the hash."                                                                         method="destroy"   />
+       <method description="Initialize the hash."                                                                      method="initialize"   />
+       <method description="Set the value of a key in the hash."                                                       method="set"          />
+       <method description="Delete a key from the hash."                                                               method="delete"       />
+       <method description="Return the value for the given key."                                                       method="value"        />
+       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the hash."                  method="key"          />
+       <method description="Return an array of all keys in the hash."                                                  method="keys"         />
+       <method description="Return an array of all values in the hash."                                                method="values"       />
+       <method description="Return true if the specified key exists in the hash."                                      method="exists"       />
+       <method description="Return the number of keys in the hash."                                                    method="size"         />
+       <method description="Destroy the hash."                                                                         method="destroy"      />
+       <method description="Assign hash objects."                                                                      method="assignment(=)"/>
      </methods>
      !!]
      final     ::                             {Type¦label}Destructor
+     procedure ::                             {Type¦label}Assign
+     generic   :: assignment(=)            => {Type¦label}Assign
      procedure :: initialize               => {Type¦label}Initialize
      procedure :: {Type¦label}SetVarStr
      procedure :: {Type¦label}SetChar
@@ -139,9 +142,39 @@ contains
     return
   end subroutine {Type¦label}Initialize
 
+  subroutine {Type¦label}Assign(to,from)
+    !!{
+    Assignment operator for hashes.
+    !!}
+    implicit none
+    class  ({Type¦label}Hash), intent(  out) :: to
+    class  ({Type¦label}Hash), intent(in   ) :: from
+    integer                                  :: i
+
+    to%allocatedSize=from%allocatedSize
+    to%elementCount =from%elementCount
+    to%indexPrevious=from%indexPrevious
+    to%keyPrevious  =from%keyPrevious
+    if (allocated(to  %hashValues)) deallocate(to%hashValues                       )
+    if (allocated(to  %hashKeys  )) deallocate(to%hashKeys                         )
+    if (allocated(from%hashValues)) then
+       allocate(to%hashValues(size(from%hashValues)))
+       do i=1,size(from%hashValues)
+          to%hashValues(i)=from%hashValues(i)
+       end do
+    end if
+    if (allocated(from%hashKeys  )) then
+       allocate(to%hashKeys(size(from%hashKeys)))
+       do i=1,size(from%hashKeys)
+          to%hashKeys(i)=from%hashKeys(i)
+       end do
+    end if
+    return
+  end subroutine {Type¦label}Assign
+
   integer function {Type¦label}Size(self)
     !!{
-    Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
+    Returns the number of elements in the specified \mono{Hash}.
     !!}
     implicit none
     class({Type¦label}Hash), intent(in   ) :: self
@@ -152,7 +185,7 @@ contains
 
   logical function {Type¦label}ExistsChar(self,keyCH)
     !!{
-    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -167,7 +200,7 @@ contains
 
   logical function {Type¦label}ExistsVarStr(self,key)
     !!{
-    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
     !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -184,7 +217,7 @@ contains
 
   subroutine {Type¦label}DeleteChar(self,keyCH)
     !!{
-    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily self}.
+    Deletes entry \mono{key} from \mono{self}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -199,7 +232,7 @@ contains
 
   subroutine {Type¦label}DeleteVarStr(self,key)
     !!{
-    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+    Deletes entry \mono{key} from \mono{Hash}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -230,7 +263,7 @@ contains
 
   function {Type¦label}KeyInt(self,indexValue) result (key)
     !!{
-    Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily self}.
+    Returns the key of entry number \mono{index} in \mono{self}.
     !!}
     implicit none
     type   (varying_string  )                :: key
@@ -243,7 +276,7 @@ contains
 
   subroutine {Type¦label}Keys(self,keys)
     !!{
-    Returns an array of all keys in {\normalfont \ttfamily self}.
+    Returns an array of all keys in \mono{self}.
     !!}
     implicit none
     type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
@@ -257,7 +290,7 @@ contains
 
   subroutine {Type¦label}Values(self,values)
     !!{
-    Returns an array of all values in {\normalfont \ttfamily self}.
+    Returns an array of all values in \mono{self}.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -280,20 +313,22 @@ contains
 
   function {Type¦label}ValueInt(self,indexValue)
     !!{
-    Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
+    Returns the value of entry number \mono{index} in \mono{Hash}.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
     class           ({Type¦label}Hash), intent(in   )   :: self
     integer                           , intent(in   )   :: indexValue
 
+    if (indexValue < 1 .or. indexValue > self%size()) call Error_Report('index is out of range'//{introspection:location})
     {Type¦label}ValueInt {Type¦assignment} self%hashValues(indexValue)%object
     return
   end function {Type¦label}ValueInt
 
   function {Type¦label}ValueChar(self,keyCH)
     !!{
-    Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+    Returns the value of \mono{Key} in \mono{Hash}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -309,7 +344,7 @@ contains
 
   function {Type¦label}ValueVarStr(self,key)
     !!{
-    Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self}.
+    Returns the value of \mono{key} in \mono{self}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -335,7 +370,7 @@ contains
 
   subroutine {Type¦label}SetChar(self,keyCH,value)
     !!{
-    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    Sets the value of \mono{key} in \mono{self} to \mono{value}.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -352,7 +387,7 @@ contains
 
   subroutine {Type¦label}SetVarStr(self,key,value)
     !!{
-    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    Sets the value of \mono{key} in \mono{self} to \mono{value}.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -452,7 +487,7 @@ contains
 
   subroutine {Type¦label}Destroy(self)
     !!{
-    Destroys {\normalfont \ttfamily self}.
+    Destroys \mono{self}.
     !!}
     implicit none
     class  ({Type¦label}Hash), intent(inout) :: self
@@ -470,7 +505,7 @@ contains
 
   subroutine {Type¦label}Destructor(self)
     !!{
-    Destroys {\normalfont \ttfamily self}.
+    Destroys \mono{self}.
     !!}
     implicit none
     type({Type¦label}Hash), intent(inout) :: self

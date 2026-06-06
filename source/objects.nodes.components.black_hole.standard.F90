@@ -50,7 +50,7 @@ module Node_Component_Black_Hole_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of the black hole."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of the black hole."/>
     </property>
     <property>
       <name>spin</name>
@@ -58,7 +58,7 @@ module Node_Component_Black_Hole_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
       <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
-      <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
+      <output unitsInSI="1.0d0" comment="Spin of the black hole."/>
     </property>
     <property>
       <name>radialPosition</name>
@@ -100,9 +100,7 @@ module Node_Component_Black_Hole_Standard
 
 contains
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Black_Hole_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Black_Hole_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Initialize(parameters)
     !!{
@@ -132,9 +130,7 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Initialize
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Black_Hole_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters)
     !!{
@@ -163,9 +159,7 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Black_Hole_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
     !!{
@@ -187,14 +181,11 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize
   !![
-
-  <scaleSetTask>
-   <unitName>Node_Component_Black_Hole_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Black_Hole_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
       &                             treeNode
@@ -258,7 +249,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    Merge any black hole associated with \mono{node} before it merges with its host halo.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
     use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger
@@ -414,15 +405,12 @@ contains
     call    mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
     call    mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
     call    mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
-    call    mergersGroup%close       (                                                                                                      )
     !$ call hdf5Access  %unset       (                                                                                                      )
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
   !![
-  <postStepTask>
-    <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Black_Hole_Standard_Post_Evolve"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !!{
@@ -468,9 +456,7 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Post_Evolve
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Black_Hole_Standard_State_Store"/>
   !!]
 
   subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
@@ -491,9 +477,7 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_State_Store
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Black_Hole_Standard_State_Restore"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
     !!{

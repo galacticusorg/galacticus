@@ -35,11 +35,9 @@
       guesses for the tangent points of the envelope and original transfer function. These guesses for the tangent points are
       iteratively updated to remove regions when the envelope function fails (i.e. is below the original function).
 
-      If {\normalfont \ttfamily [transferFunctionReference]} is supplied then half-, quarter-, and fraction-mode masses relative
-      to that reference transfer function can be computed using the envelope function. If {\normalfont \ttfamily
-      [envelopeModeMassesOnly]} is set to true, then the envelope transfer function is used \emph{only} for calculation of these
-      mode masses---the original (non-envelope) transfer function is returned in all other cases. If {\normalfont \ttfamily
-      [envelopeModeMassesOnly]} is set to false then the enveloped transfer function is used for \emph{all} calculations.
+      If \mono{[transferFunctionReference]} is supplied then half-, quarter-, and fraction-mode masses relative
+      to that reference transfer function can be computed using the envelope function. If \mono{[envelopeModeMassesOnly]} is set to true, then the envelope transfer function is used \emph{only} for calculation of these
+      mode masses---the original (non-envelope) transfer function is returned in all other cases. If \mono{[envelopeModeMassesOnly]} is set to false then the enveloped transfer function is used for \emph{all} calculations.
     </description>
   </transferFunction>
   !!]

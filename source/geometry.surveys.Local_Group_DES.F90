@@ -24,7 +24,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
 
   !![
   <surveyGeometry name="surveyGeometryLocalGroupDES">
-   <description>Implements the geometry of the DES survey for Local Group dwarfs.</description>
+   <description>Implements the angular footprint and maximum detection distance of the Dark Energy Survey (DES) as applied to Local Group dwarf galaxy searches. The survey volume is defined by \gls{mangle} polygon files, with the maximum survey distance set by \mono{[distanceMaximumSurvey]}.</description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES
@@ -53,7 +53,7 @@ contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the \refClass{surveyGeometryLocalGroupDES} conditional mass function class which takes a parameter set as input.
+    Constructor for the \refClass{surveyGeometryLocalGroupDES} survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   integer function localGroupDESAngularPowerMaximumDegree(self)
     !!{
-    Return the maximum degree for which angular power is computed for the {\normalfont \ttfamily localGroupDES} survey.
+    Return the maximum degree for which angular power is computed for the \mono{localGroupDES} survey.
     !!}
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
@@ -167,9 +167,6 @@ contains
     type (varying_string             ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(1))
-    mangleFiles=                                                &
-         &      [                                               &
-         &       self%mangleDirectory()//"darkEnergySurvey.ply" &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"darkEnergySurvey.ply"
     return
   end subroutine localGroupDESMangleFiles

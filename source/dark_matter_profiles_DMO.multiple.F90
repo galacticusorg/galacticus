@@ -27,7 +27,7 @@
   <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
    <description>
     A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
-    to any other {\normalfont \ttfamily darkMatterProfileDMO} available.
+    to any other \mono{darkMatterProfileDMO} available.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -76,7 +76,7 @@ contains
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self
@@ -104,7 +104,7 @@ contains
 
   function multipleGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_

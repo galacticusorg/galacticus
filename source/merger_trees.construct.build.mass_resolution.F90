@@ -32,9 +32,11 @@ module Merger_Trees_Build_Mass_Resolution
   <functionClass>
    <name>mergerTreeMassResolution</name>
    <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
-   <description>
-    Class providing mass resolutions to use when building merger trees.
-   </description>
+   <description>Class providing the minimum progenitor halo mass (mass resolution) to resolve when building
+    a merger tree. Branches below this mass are not followed individually; instead their accreted mass is
+    treated as smooth, unresolved accretion onto the main progenitor. The mass resolution controls the
+    trade-off between completeness of the merger history and computational cost, and can be set as a fixed
+    value, a fraction of the root halo mass, or adaptively based on tree size.</description>
    <default>fixed</default>
    <method name="resolution" >
     <description>Gives the mass resolution to use for the given tree.</description>

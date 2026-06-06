@@ -34,9 +34,7 @@ module Stellar_Luminosities_Initialization
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Stellar_Luminosities_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Stellar_Luminosities_Initialize"/>
   !!]
   subroutine Stellar_Luminosities_Initialize(parameters)
     !!{

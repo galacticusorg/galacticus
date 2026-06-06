@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerTime">
-   <description>
-     A node property extractor which extracts the time of the last major merger for each node.
-   </description>
+   <description>Extracts the cosmic time of the most recent major halo merger event for each node, where major mergers are defined by a configurable mass ratio threshold applied to the merging halo pair.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorNodeMajorMergerTime
@@ -35,11 +33,12 @@
      procedure :: name        => nodeMajorMergerTimeName
      procedure :: description => nodeMajorMergerTimeDescription
      procedure :: unitsInSI   => nodeMajorMergerTimeUnitsInSI
+     procedure :: units       => nodeMajorMergerTimeUnits
   end type nodePropertyExtractorNodeMajorMergerTime
 
   interface nodePropertyExtractorNodeMajorMergerTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -65,7 +64,7 @@ contains
 
   function nodeMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerTime) :: self
@@ -95,7 +94,7 @@ contains
   
   function nodeMajorMergerTimeName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily nodeMajorMergerTime} properties.
+    Return the names of the \mono{nodeMajorMergerTime} properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeName
@@ -108,7 +107,7 @@ contains
 
   function nodeMajorMergerTimeDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily nodeMajorMergerTime} properties.
+    Return the descriptions of the \mono{nodeMajorMergerTime} properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeDescription
@@ -121,7 +120,7 @@ contains
 
   double precision function nodeMajorMergerTimeUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily nodeMajorMergerTime} properties in the SI system.
+    Return the units of the \mono{nodeMajorMergerTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -131,3 +130,17 @@ contains
     nodeMajorMergerTimeUnitsInSI=gigaYear
     return
   end function nodeMajorMergerTimeUnitsInSI
+
+  function nodeMajorMergerTimeUnits(self) result(units)
+    !!{
+    Return the units of the node major merger time property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                                )                :: units
+    class(nodePropertyExtractorNodeMajorMergerTime), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Gyr',quantity='Gyr')
+    return
+  end function nodeMajorMergerTimeUnits

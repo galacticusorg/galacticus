@@ -21,17 +21,6 @@
 Contains custom functions for the standard hot halo component.
 !!}
 
-double precision function Node_Component_Hot_Halo_Standard_Mass_Total(self)
-  !!{
-  Return the total active mass in the hot halo.
-  !!}
-  implicit none
-  class(nodeComponentHotHaloStandard), intent(inout) :: self
-
-  Node_Component_Hot_Halo_Standard_Mass_Total=self%mass()
-  return
-end function Node_Component_Hot_Halo_Standard_Mass_Total
-
 double precision function Node_Component_Hot_Halo_Standard_Mass_Baryonic(self) result(massBaryonic)
   !!{
   Return the baryonic mass for the hot halo standard component.

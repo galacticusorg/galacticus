@@ -1,0 +1,7 @@
+<changes>
+  <change type="replace" path="nbodyHaloMassError">
+     <nbodyHaloMassError value="null"/>
+  </change>
+  <change type="update" path="progenitorMassFunctionParameters/fillInZeroBins" value="false"/>
+  <change type="update" path="outputFileName" append="true" value="_true"/>
+</changes>

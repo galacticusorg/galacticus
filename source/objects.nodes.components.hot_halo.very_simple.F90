@@ -40,21 +40,21 @@ module Node_Component_Hot_Halo_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the hot halo."/>
     </property>
     <property>
       <name>abundances</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the hot halo."/>
     </property>
     <property>
       <name>unaccretedMass</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas that failed to accrete into the hot halo."/>
     </property>
     <property>
       <name>outflowingMass</name>
@@ -73,7 +73,7 @@ module Node_Component_Hot_Halo_Very_Simple
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" isNonNegative="true" />
-      <output unitsInSI="megaParsec" comment="Outer radius of the hot halo."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Outer radius of the hot halo."/>
     </property>
    </properties>
    <bindings>
@@ -86,9 +86,7 @@ module Node_Component_Hot_Halo_Very_Simple
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Hot_Halo_Very_Simple_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Hot_Halo_Very_Simple_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize(parameters)
     !!{
@@ -143,13 +141,11 @@ contains
   end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Hot_Halo_Very_Simple_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Hot_Halo_Very_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode, &

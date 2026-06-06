@@ -179,7 +179,7 @@ contains
 
   double precision function zhao2009Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    Return the concentration of the dark matter halo profile of \mono{node}
     using the \cite{zhao_accurate_2009} algorithm.
     !!}
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time

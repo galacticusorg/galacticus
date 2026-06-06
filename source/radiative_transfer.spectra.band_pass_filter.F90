@@ -20,7 +20,7 @@
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter">
    <description>
-    A photon spectrum class which simply truncates some other photon spectrum class outside of some band.
+    A photon spectrum class that applies a wavelength band-pass filter to another photon spectrum, returning zero luminosity outside the specified wavelength range. The passband is controlled by the \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]} parameters (in units of \AA).
    </description>
   </radiativeTransferSpectrum>
   !!]
@@ -84,7 +84,7 @@ contains
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine bandPassFilterDestructor(self)
     !!{
-    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer photon packet class.
+    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self

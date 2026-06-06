@@ -76,12 +76,12 @@ contains
     !![
     <inputParameter>
       <name>mass</name>
-      <description>The mass of the halo.</description>
+      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo whose accretion flow is being modeled via the 2-halo correlation function.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>redshift</name>
-      <description>The redshift of the halo.</description>
+      <description>The cosmological redshift of the halo, used to convert to cosmic time for evaluating the correlation function-based accretion flow density profile.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -139,7 +139,7 @@ contains
 
   subroutine correlationFunctionDestructor(self)
     !!{
-    Destructor for the \refClass{massDistributionCorrelationFunction} accretion flow mass distribution class.
+    Destructor for the \refClass{massDistributionCorrelationFunction} mass distribution class.
     !!}
     implicit none
     type(massDistributionCorrelationFunction), intent(inout) :: self
@@ -152,7 +152,7 @@ contains
 
   double precision function correlationFunctionDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the density at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class(massDistributionCorrelationFunction), intent(inout) :: self
@@ -168,7 +168,7 @@ contains
 
   double precision function correlationFunctionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the radial density gradient at the specified {\normalfont \ttfamily coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    Return the radial density gradient at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class  (massDistributionCorrelationFunction), intent(inout), target   :: self

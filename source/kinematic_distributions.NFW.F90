@@ -23,7 +23,7 @@
 
   !![
   <kinematicsDistribution name="kinematicsDistributionNFW">
-   <description>A kinematic distribution class for NFW mass distributions.</description>
+   <description>A kinematic distribution class that computes the collisionless 1D velocity dispersion profile for Navarro-Frenk-White (NFW) dark matter mass distributions by solving the Jeans equation. A series approximation for the velocity dispersion integral can be selected via \mono{[useSeriesApproximation]} to improve numerical efficiency.</description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionNFW
@@ -60,8 +60,8 @@ contains
     !![
     <inputParameter>
     <name>useSeriesApproximation</name>
-    <defaultValue>.false.</defaultValue>
-    <description>If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution.</description>
+    <defaultValue>.true.</defaultValue>
+    <description>If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution. The approximation matches the exact (dilogarithm-based) form to better than $5\times 10^{-6}$ in relative terms across $r/r_\mathrm{s} \in [10^{-4},10^4]$ (see \mono{tests.kinematic\_distributions.NFW}).</description>
     <source>parameters</source>
     </inputParameter>
     !!]
@@ -99,7 +99,7 @@ contains
 
   double precision function nfwVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
     !!{
-    Return the 1D velocity dispersion at the specified {\normalfont \ttfamily coordinates} in an NFW kinematic distribution.
+    Return the 1D velocity dispersion at the specified \mono{coordinates} in an NFW kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi
@@ -113,10 +113,10 @@ contains
     double precision                           , parameter                          :: maximumRadiusForExactSolution   =1.0d+2    
     double precision                           , parameter                          :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2 ! Precomputed NFW normalization factor for unit radius.
     integer                                    , parameter                          :: maximumExpansionOrder           =7
-    double precision                           , dimension(maximumExpansionOrder+1) :: coefficient                           , radiusPower
+    double precision                           , dimension(maximumExpansionOrder+1) :: coefficient
     double precision                                                                :: logRadius                             , onePlusRadius           , &
          &                                                                             logOnePlusRadius                      , velocityDispersionSquare, &
-         &                                                                             radius
+         &                                                                             radius                                , x
     integer                                                                         :: i
 
     massDistribution__ => massDistribution_
@@ -132,8 +132,7 @@ contains
              else
                 if      (radius < 0.33d0) then
                    ! Expand around 0.
-                   radiusPower(1)= 1.0d0
-                   radiusPower(2)= radius
+                   x             = radius
                    logRadius     = log(radius)
                    coefficient(1)=  0.0d0
                    coefficient(2)=  1.0d0/   4.0d0*(-23.0d0       + 2.0d0*Pi**2- 2.0d0*logRadius)
@@ -145,8 +144,7 @@ contains
                    coefficient(8)=-17.0d0/1050.0d0
                 else if (radius <  0.68d0) then
                    ! Expand around 1/2.
-                   radiusPower(1)= 1.0d0
-                   radiusPower(2)= radius-0.5d0
+                   x             = radius-0.5d0
                    coefficient(1)= 9.2256912491493508d-2
                    coefficient(2)= 1.8995942538987498d-2
                    coefficient(3)=-6.1247239215578800d-2
@@ -157,8 +155,7 @@ contains
                    coefficient(8)= 5.1242111712986012d-1
                 else if (radius < 1.35d0) then
                    ! Expand around 1.
-                   radiusPower(1)= 1.0d0
-                   radiusPower(2)= radius-1.0d0
+                   x             = radius-1.0d0
                    coefficient(1)= 9.3439401238895310d-2
                    coefficient(2)=-6.2683780821546887d-3
                    coefficient(3)=-8.2007484513808621d-3
@@ -169,8 +166,7 @@ contains
                    coefficient(8)= 5.5035102596088475d-3
                 else if (radius < 2.66d0) then
                    ! Expand around 2.
-                   radiusPower(1)= 1.0d0
-                   radiusPower(2)= radius-2.0d0
+                   x             = radius-2.0d0
                    coefficient(1)= 8.4126434467263518d-2
                    coefficient(2)=-9.8388986218866523d-3
                    coefficient(3)= 6.1288152708705594d-4
@@ -181,8 +177,7 @@ contains
                    coefficient(8)= 4.3068151103206337d-5
                 else
                    ! Expand around infinity.
-                   radiusPower(1)= 1.0d0
-                   radiusPower(2)= 1.0d0/radius
+                   x             = 1.0d0/radius
                    logRadius     = log(radius)
                    coefficient(1)=     0.0d0
                    coefficient(2)=(-   3.0d0+   4.0d0*logRadius)/    16.0d0
@@ -193,10 +188,13 @@ contains
                    coefficient(7)=(-1271.0d0+2520.0d0*logRadius)/211680.0d0
                    coefficient(8)=(  341.0d0- 360.0d0*logRadius)/ 43200.0d0
                 end if
-                do i=3,maximumExpansionOrder+1
-                   radiusPower(i)=radiusPower(i-1)*radiusPower(2)
+                ! Evaluate the polynomial via Horner's method.
+                velocityDispersionSquare=coefficient(maximumExpansionOrder+1)
+                do i=maximumExpansionOrder,1,-1
+                   velocityDispersionSquare=+velocityDispersionSquare    &
+                        &                   *x                           &
+                        &                   +coefficient             (i)
                 end do
-                velocityDispersionSquare=sum(coefficient*radiusPower)
              end if
           else
              if (radius == 1.0d0) then

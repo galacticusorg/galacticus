@@ -23,7 +23,7 @@ Implements an N-body data operator which flags particles that have been always i
 
   !![
   <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated">
-   <description>An N-body data operator which flags particles that have been always isolated.</description>
+   <description>An N-body data operator which identifies and flags particles that have remained isolated throughout the simulation, never having been part of a larger halo, by tracking their merger history. A particle is considered always-isolated unless its virial mass increased by more than the factor specified by \mono{[massGrowthFactor]}, which ignores transient accretion events.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFlagAlwaysIsolated

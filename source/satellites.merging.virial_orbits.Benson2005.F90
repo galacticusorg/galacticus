@@ -68,7 +68,7 @@
 
   interface virialOrbitBenson2005
      !!{
-     Constructors for the \refClass{virialOrbitBenson2005} virial orbit class.
+     Constructors for the \refClass{virialOrbitBenson2005} virial orbits class.
      !!}
      module procedure benson2005ConstructorParameters
      module procedure benson2005ConstructorInternal

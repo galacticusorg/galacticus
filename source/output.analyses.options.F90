@@ -30,7 +30,7 @@ module Output_Analyses_Options
   !![
   <enumeration>
    <name>outputAnalysisPropertyType</name>
-   <description>Property types.</description>
+   <description>Enumeration of the scaling types used for output analysis properties, distinguishing linear, logarithmic (base-10), magnitude, and unknown scalings.</description>
    <entry label="linear"    />
    <entry label="log10"     />
    <entry label="magnitude" />
@@ -41,7 +41,7 @@ module Output_Analyses_Options
   !![
   <enumeration>
    <name>outputAnalysisPropertyQuantity</name>
-   <description>Property quantities.</description>
+   <description>Enumeration of the physical quantity types represented by output analysis properties, such as mass, star formation rate, luminosity, or unknown.</description>
    <entry label="unknown"          />
    <entry label="mass"             />
    <entry label="starFormationRate"/>
@@ -59,4 +59,38 @@ module Output_Analyses_Options
   </enumeration>
   !!]
 
+  !![
+  <enumeration>
+   <name>outputAnalysisState</name>
+   <description>Output analyses states.</description>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <entry label="unknown" />
+   <entry label="zero"    />
+   <entry label="positive"/>
+   <entry label="negative"/>
+  </enumeration>
+  !!]
+
+contains
+
+  function outputAnalysisState(distribution) result(state)
+    !!{
+    Determine the state of an output analysis distribution.
+    !!}
+    implicit none
+    type            (enumerationOutputAnalysisStateType)               :: state
+    double precision                                    , dimension(:) :: distribution
+
+    state=outputAnalysisStateUnknown
+    if      (all(distribution == 0.0d0)) then
+       state=outputAnalysisStateZero
+    else if (all(distribution >= 0.0d0)) then
+       state=outputAnalysisStatePositive
+    else if (all(distribution <= 0.0d0)) then
+       state=outputAnalysisStateNegative
+    end if
+    return
+  end function outputAnalysisState
+  
 end module Output_Analyses_Options

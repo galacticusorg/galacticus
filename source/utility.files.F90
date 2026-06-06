@@ -28,9 +28,10 @@ module File_Utilities
   !!{
   Implements various file-related utilities.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
-  use            :: ISO_Varying_String, only : varying_string
-  use            :: Locks             , only : ompLock
+  use   , intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
+  use               :: ISO_Varying_String, only : varying_string
+  use               :: Locks             , only : ompLock
+  !$ use            :: Resource_Manager  , only : resourceManager
   implicit none
   private
   public :: Count_Lines_in_File, File_Exists           , File_Rename   , File_Lock       , &
@@ -40,7 +41,7 @@ module File_Utilities
 
   interface Count_Lines_in_File
      !!{
-     Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
+     Generic interface for \mono{Count\_Lines\_in\_File} function.
      !!}
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
@@ -121,7 +122,7 @@ module File_Utilities
   interface
      function mkdir_C(name) bind(c,name='mkdir_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
+       Template for a C function that calls \mono{mkdir()} to make a directory.
        !!}
        import
        integer  (c_int ) :: mkdir_C
@@ -132,7 +133,7 @@ module File_Utilities
   interface
      function rmdir_C(name) bind(c,name='rmdir_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily rmdir()} to remove a directory.
+       Template for a C function that calls \mono{rmdir()} to remove a directory.
        !!}
        import
        integer  (c_int ) :: rmdir_C
@@ -143,7 +144,7 @@ module File_Utilities
   interface
      function unlink_C(name) bind(c,name='unlink_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily unlink()} to remove a file.
+       Template for a C function that calls \mono{unlink()} to remove a file.
        !!}
        import
        integer  (c_int ) :: unlink_C
@@ -154,7 +155,7 @@ module File_Utilities
   interface
      function rename_C(nameOld,nameNew) bind(c,name='rename_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily rename()} to rename a file.
+       Template for a C function that calls \mono{rename()} to rename a file.
        !!}
        import
        integer  (c_int ) :: rename_C
@@ -165,7 +166,7 @@ module File_Utilities
   interface
      function flock_C(name,ld,lockIsShared,timeSleep,countAttempts) bind(c,name='flock_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
+       Template for a C function that calls \mono{flock()} to lock a file.
        !!}
        import
        integer  (c_int )        :: flock_C
@@ -179,7 +180,7 @@ module File_Utilities
   interface
      subroutine funlock_C(ld) bind(c,name='funlock_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file.
+       Template for a C function that calls \mono{flock()} to unlock a file.
        !!}
        import
        type(c_ptr) :: ld
@@ -199,7 +200,7 @@ module File_Utilities
   interface
      function access_C(name) bind(c,name='access_C')
        !!{
-       Template for a C function that calls {\normalfont \ttfamily access()} to check for file existence.
+       Template for a C function that calls \mono{access()} to check for file existence.
        !!}
        import
        integer  (c_int ) :: access_C
@@ -231,12 +232,101 @@ module File_Utilities
   logical          :: posixOpenMPFileLockInitialized=.false.
   integer          :: posixOpenMPFileLockCount      =0
   !$omp threadprivate(posixOpenMPFileLockCount)
+
+  type, public :: file
+     !!{
+     Type used for files.
+     !!}
+     !$ type(resourceManager)          :: unitManager
+     integer                 , pointer :: unit        => null()
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assignment operator."/>
+     </methods>
+     !!]
+     final     ::                  fileDestructor
+     procedure ::                  fileAssign
+     generic   :: assignment(=) => fileAssign
+  end type file
+
+  interface file
+     module procedure fileConstructorVarStr
+     module procedure fileConstructorChar
+  end interface file
   
 contains
 
+  function fileConstructorVarStr(fileName,form,status,position) result(self)
+    !!{
+    Constructor for file objects.
+    !!}
+    use :: ISO_Varying_String, only : char
+    type     (file          )                          :: self
+    type     (varying_string), intent(in   )           :: fileName
+    character(len=*         ), intent(in   )           :: form    , status
+    character(len=*         ), intent(in   ), optional :: position
+
+    self=file(char(fileName),form,status,position)
+    return
+  end function fileConstructorVarStr
+  
+  function fileConstructorChar(fileName,form,status,position) result(self)
+    !!{
+    Constructor for file objects.
+    !!}
+    type     (file )                          :: self
+    character(len=*), intent(in   )           :: fileName     , form, &
+         &                                       status
+    character(len=*), intent(in   ), optional :: position
+    class    (    *), pointer                 :: dummyPointer_
+
+    allocate(self%unit)
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
+      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    !!]
+    !$ dummyPointer_    => self%unit
+    !$ self%unitManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]    
+    if (present(position)) then
+       open(newUnit=self%unit,file=fileName,form=form,status=status,position=position)
+    else
+       open(newUnit=self%unit,file=fileName,form=form,status=status                  )
+    end if
+    return
+  end function fileConstructorChar
+  
+  subroutine fileDestructor(self)
+    !!{
+    Destructor for file objects.
+    !!}
+    implicit none
+    type(file), intent(inout) :: self
+
+    if (self%unitManager%count() == 1) close(self%unit)
+    call self%unitManager%release()
+    return
+  end subroutine fileDestructor
+
+  subroutine fileAssign(to,from)
+    !!{
+    Assignment operator for the \mono{file} class.
+    !!}
+    implicit none
+    class(file), intent(  out) :: to
+    class(file), intent(in   ) :: from
+
+    !$ to%unitManager =  from%unitManager
+    !$ to%unit        => from%unit
+    return
+  end subroutine fileAssign
+  
   logical function File_Exists_VarStr(fileName)
     !!{
-    Checks for existence of file {\normalfont \ttfamily fileName} (version for varying string argument).
+    Checks for existence of file \mono{fileName} (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -248,7 +338,7 @@ contains
 
   logical function File_Exists_Char(fileName)
     !!{
-    Checks for existence of file {\normalfont \ttfamily fileName} (version for character argument).
+    Checks for existence of file \mono{fileName} (version for character argument).
     !!}
     use :: ISO_Varying_String, only : char, extract, operator(==), len
     implicit none
@@ -285,7 +375,7 @@ contains
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
     !!{
-    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
+    Returns the number of lines in the file \mono{in\_file} (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -302,7 +392,7 @@ contains
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
     !!{
-    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
+    Returns the number of lines in the file \mono{in\_file} (version for character argument).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -482,7 +572,7 @@ contains
 
     subroutine Get_Paths(pathsLength)
       !!{
-      Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      Retrieve the \mono{PATH} environment variable.
       !!}
       use :: ISO_Varying_String, only : assignment(=)
       implicit none
@@ -517,7 +607,7 @@ contains
     use :: Error             , only : Error_Report       , Kernel_EACCES, Kernel_ELOOP , Kernel_EMLINK , &
          &                            Kernel_ENAMETOOLONG, Kernel_ENOENT, Kernel_ENOSPC, Kernel_ENOTDIR, &
          &                            Kernel_EROFS
-    use :: ISO_Varying_String, only : trim               , var_str
+    use :: ISO_Varying_String, only : trim
     implicit none
     character(len=* ), intent(in   ) :: pathName
     integer  (c_int )                :: status
@@ -525,10 +615,10 @@ contains
     character(len=24)                :: reason
 
     ! Quick return if the path exists.
-    if (File_Exists(var_str(pathName))) return
+    if (File_Exists(pathName)) return
     do i=2,len(trim(pathName))
        if (pathName(i:i) == "/") then
-          if (File_Exists(var_str(pathName(1:i-1)))) cycle
+          if (File_Exists(pathName(1:i-1))) cycle
           !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
           if (status /= 0) then
@@ -708,17 +798,21 @@ contains
     implicit none
     character(len=*), intent(in   ) :: directoryName
     integer  (c_int)                :: status
+    character(len=4)                :: errorCode
 
     if (File_Exists(directoryName)) then
        status=rmdir_C(trim(directoryName)//char(0))
-       if (status /= 0) call Error_Report('failed to remove directory "'//trim(directoryName)//'"'//{introspection:location})
+       if (status /= 0) then
+          write (errorCode,'(i4)') status
+          call Error_Report('failed to remove directory "'//trim(directoryName)//'" - received error code '//trim(adjustl(errorCode))//{introspection:location})
+       end if
     end if
     return
   end subroutine Directory_Remove_Char
 
   function File_Name_Expand_VarStr(fileNameIn) result(fileNameOut)
     !!{
-    Expands placeholders for Galacticus paths in file names.
+    Expands placeholders for \glc\ paths in file names.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -751,7 +845,7 @@ contains
 
   function File_Name_Expand_Char(fileNameIn) result(fileNameOut)
     !!{
-    Expands placeholders for Galacticus paths in file names.
+    Expands placeholders for \glc\ paths in file names.
     !!}
     use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
     use :: ISO_Varying_String, only : assignment(=), replace            , index             , extract     , &

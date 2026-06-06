@@ -34,9 +34,12 @@ module Chemical_States
   <functionClass>
    <name>chemicalState</name>
    <descriptiveName>Chemical State</descriptiveName>
-   <description>
-    Class providing chemical state of gas.
-   </description>
+   <description>Class providing the chemical state of gas, specifically the free electron number density (in
+    cm$^{-3}$) and its logarithmic gradients with respect to temperature and total density, as functions of hydrogen
+    number density, temperature, elemental abundances, and an ambient radiation field. The electron density enters
+    cooling rates, recombination rates, and the Jeans mass, while the logarithmic slopes are needed for implicit
+    solvers and stability analyses. Implementations range from collisional ionization equilibrium (\gls{cie}) tables
+    to non-equilibrium photoionization models.</description>
    <default>atomicCIECloudy</default>
    <method name="electronDensity" >
     <description>Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>

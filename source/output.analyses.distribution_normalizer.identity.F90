@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity">
-   <description>An identity output analysis distribution normalizer class.</description>
+   <description>An identity (no-op) output analysis distribution normalizer class that leaves the distribution and its covariance unchanged, used as the default when no normalization is required.</description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerIdentity

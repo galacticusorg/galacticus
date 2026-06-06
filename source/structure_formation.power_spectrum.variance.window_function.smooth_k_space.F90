@@ -27,7 +27,7 @@
 
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace">
-   <description>A smooth window function for filtering of power spectra.</description>
+   <description>A smooth window function for filtering of power spectra in wavenumber space, defined as $W(kR) = 1/[1+(kR)^\beta]$, providing a tunable, sharp-but-smooth transition between large and small scales. The shape exponent $\beta$ and normalization relative to a top-hat filter are set by \mono{[beta]} and \mono{[normalization]}.</description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSmoothKSpace
@@ -119,7 +119,7 @@ contains
     return
   end subroutine smoothKSpaceDestructor
 
-  double precision function smoothKSpaceValue(self,wavenumber,smoothingMass)
+  double precision function smoothKSpaceValue(self,wavenumber,smoothingMass,time)
     !!{
     Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
     spectrum.
@@ -127,8 +127,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
-    double precision                                         , intent(in   ) :: smoothingMass, wavenumber
+    double precision                                         , intent(in   ) :: smoothingMass, wavenumber, &
+         &                                                                      time
     double precision                                                         :: smoothRadius , x
+    !$GLC attributes unused :: time
 
     smoothRadius=+(                                             &
          &         +3.0d0                                       &

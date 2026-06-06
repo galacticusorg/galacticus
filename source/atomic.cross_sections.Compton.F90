@@ -33,7 +33,7 @@ contains
 
   function Atomic_Cross_Section_Compton(photonEnergy)
     !!{
-    Returns the Compton cross section (in cm$^2$) for the specified {\normalfont \ttfamily photonEnergy} (in keV) from \cite{klein_uber_1929}.
+    Returns the Compton cross section (in cm$^2$) for the specified \mono{photonEnergy} (in keV) from \cite{klein_uber_1929}.
     !!}
     use :: Numerical_Constants_Physical, only : electronMass, speedLight, thomsonCrossSection
     use :: Numerical_Constants_Prefixes, only : hecto       , kilo

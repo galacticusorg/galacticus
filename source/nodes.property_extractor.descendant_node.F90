@@ -25,7 +25,7 @@ Implements an output analysis property extractor class that extracts a property 
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDescendantNode">
-   <description>An output analysis property extractor class that extracts a property from a descendant node of the given node.</description>
+   <description>A property extractor that traverses the merger tree forward in time from the current node and applies a scalar \refClass{nodePropertyExtractorClass} to the descendant node found at redshift \mono{redshiftDescendant}. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from \mono{redshiftDescendant} via \refClass{cosmologyFunctionsClass}). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDescendantNode
@@ -42,11 +42,12 @@ Implements an output analysis property extractor class that extracts a property 
      procedure :: name        => descendantNodeName
      procedure :: description => descendantNodeDescription
      procedure :: unitsInSI   => descendantNodeUnitsInSI
+     procedure :: units       => descendantNodeUnits
   end type nodePropertyExtractorDescendantNode
 
   interface nodePropertyExtractorDescendantNode
      !!{
-     Constructors for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
+     Constructors for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -56,7 +57,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class which takes a parameter set as input.
     !!}
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -92,7 +93,7 @@ contains
 
   function descendantNodeConstructorInternal(timeDescendant,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendantNode)                        :: self
@@ -109,7 +110,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorDescendantNode} node property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendantNode), intent(inout) :: self
@@ -186,3 +187,16 @@ contains
     descendantNodeUnitsInSI=self%nodePropertyExtractor_%unitsInSI()
     return
   end function descendantNodeUnitsInSI
+
+  function descendantNodeUnits(self) result(units)
+    !!{
+    Return the units of the descendantNode property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                           )                :: units
+    class(nodePropertyExtractorDescendantNode), intent(inout) :: self
+
+    units=self%nodePropertyExtractor_%units()
+    return
+  end function descendantNodeUnits

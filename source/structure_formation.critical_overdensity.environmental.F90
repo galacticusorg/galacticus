@@ -23,7 +23,7 @@ Implements an environmental critical overdensity class.
 
   !![
   <criticalOverdensity name="criticalOverdensityEnvironmental">
-   <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
+   <description>The critical overdensity for collapse is computed by taking the value from another critical overdensity class and multiplying it by an environment-dependent factor, allowing the collapse threshold to vary with local density environment. The environmental dependence is controlled by the \mono{[a]} parameter.</description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental
@@ -75,7 +75,7 @@ contains
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter controlling environmental dependence of critical overdensity.</description>
+      <description>The linear coefficient $a$ that multiplies the large-scale environmental overdensity when computing the environment-dependent shift to the critical overdensity for halo collapse (a value of 0 gives no environmental dependence).</description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>

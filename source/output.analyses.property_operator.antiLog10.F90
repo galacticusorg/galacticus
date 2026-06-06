@@ -23,7 +23,7 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorAntiLog10">
-   <description>An anti-$\log_{10}()$ output analysis property operator class.</description>
+   <description>Applies the inverse $\log_{10}$ transformation ($10^x$) to a property value, converting from logarithmic to linear scale as part of an output analysis property operator pipeline.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorAntiLog10
@@ -37,7 +37,7 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorAntiLog10
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis property operator class.
      !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10

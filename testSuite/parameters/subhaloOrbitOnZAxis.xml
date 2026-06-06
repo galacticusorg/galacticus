@@ -1,10 +1,14 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Test model: The merger tree processed has a subhalo which lies precisely along the z-axis relative     -->
+
 <!-- to its host. This previously caused a problem as the z-axis was used in determining a coordinate basis -->
+
 <!-- for the tangential velocity. This is now handled by checking for subhalos lying precisely along the    -->
+
 <!-- z-axis and using a different axis in such cases.                                                       -->
+
 <parameters>
-  <lastModified revision="e4897b4d895b215ba5092568a0b8a86a93dab836" time="2025-12-01T22:22:32"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -21,7 +25,7 @@
     <temperatureCMB value=" 2.72548"/>
   </cosmologyParameters>
   <simulation ignoreWarnings="true">
-    <massParticle value="=1.2e9/([cosmologyParameters::HubbleConstant]/100.0)" ignoreWarnings="true"/>
+    <massParticle value="=1.2e9/([cosmologyParameters/HubbleConstant]/100.0)" ignoreWarnings="true"/>
   </simulation>
   <!-- Power spectrum options -->
   <cosmologicalMassVariance value="filteredPower">
@@ -327,7 +331,7 @@
     <nodeOperator value="barInstability">
       <galacticDynamicsBarInstability value="efstathiou1982">
         <fractionAngularMomentumRetainedSpheroid value="0.2"/>
-        <fractionAngularMomentumRetainedDisk value="=1.0-[.::fractionAngularMomentumRetainedSpheroid]"/>
+        <fractionAngularMomentumRetainedDisk value="=1.0-[./fractionAngularMomentumRetainedSpheroid]"/>
         <stabilityThresholdGaseous value="0.7"/>
         <stabilityThresholdStellar value="1.1"/>
       </galacticDynamicsBarInstability>
@@ -373,15 +377,16 @@
     <correlationMassExponent value="1.000e0"/>
     <correlationNormalization value="1.000e0"/>
     <correlationRedshiftExponent value="0.000e0"/>
-    <massParticle value="=[simulation::massParticle]"/>
+    <massParticle value="=[simulation/massParticle]"/>
   </nbodyHaloMassError>
   <sigmaThreshold value="5.0"/>
 </nodeOperator>
 
     <nodeOperator value="positionInterpolated">
-      <lengthBox value="=[geometryLightcone::lengthReplication]*(([cosmologyParameters::HubbleConstant]/100.0)^[geometryLightcone::lengthHubbleExponent])*([geometryLightcone::lengthUnitsInSI]/3.08567758e+22)"/>
+      <lengthBox value="=[geometryLightcone/lengthReplication]*(([cosmologyParameters/HubbleConstant]/100.0)^[geometryLightcone/lengthHubbleExponent])*([geometryLightcone/lengthUnitsInSI]/3.08567758e+22)"/>
       <wrapPeriodic value="false"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   <starFormationHistory value="fixedAges">
       <ageMinimum value="0.001"/>
@@ -477,7 +482,6 @@
   
     <mergerTreeOperator value="pruneLightcone">
       <splitTrees value="true"/>
-      <bufferIsolatedHalos value="true"/>
     </mergerTreeOperator>
   
 

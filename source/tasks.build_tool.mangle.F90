@@ -19,12 +19,12 @@
 
   !![
   <task name="taskBuildToolMangle">
-   <description>A task which builds the {\normalfont \ttfamily mangle} tool.</description>
+   <description>A task which downloads, compiles, and installs the \mono{mangle} angular mask software, making it available for defining and manipulating survey angular geometries used in galaxy clustering and correlation function analyses.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolMangle
      !!{
-     Implementation of a task which builds the {\normalfont \ttfamily mangle} tool.
+     Implementation of a task which builds the \mono{mangle} tool.
      !!}
      private
    contains

@@ -28,14 +28,18 @@ Implements a virial radius output analysis property extractor class.
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusVirial">
-   <description>A virial radius output analysis property extractor class.</description>
+   <description>A property extractor that returns the virial radius (in Mpc) of the dark-matter-only
+    halo---the radius enclosing the density contrast specified by the \mono{virialDensityContrastDefinition}
+    object, with the profile computed using \refClass{darkMatterProfileDMOClass}. Two density contrast
+    objects must be provided: one for the profile interpolation and one for the mass definition. If
+    \mono{useLastIsolatedTime} is \mono{true}, the density contrast is evaluated at the halo's last
+    isolated time rather than the current time, yielding the conventionally-defined virial radius.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVirial
      !!{
      A virial radius property extractor output analysis class. The property extracted is the ''\gls{dmou}'' virial radius,
-     defined as the radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily
-     virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
+     defined as the radius enclosing a density contrast as defined by the supplied \mono{virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
      presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of virial
      radius).
      !!}
@@ -51,11 +55,12 @@ Implements a virial radius output analysis property extractor class.
      procedure :: name        => radiusVirialName
      procedure :: description => radiusVirialDescription
      procedure :: unitsInSI   => radiusVirialUnitsInSI
+     procedure :: units       => radiusVirialUnits
   end type nodePropertyExtractorRadiusVirial
 
   interface nodePropertyExtractorRadiusVirial
      !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
      !!}
      module procedure radiusVirialConstructorParameters
      module procedure radiusVirialConstructorInternal
@@ -65,7 +70,7 @@ contains
 
   function radiusVirialConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +109,7 @@ contains
 
   function radiusVirialConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorRadiusVirial)                        :: self
@@ -122,7 +127,7 @@ contains
 
   subroutine radiusVirialDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusVirial} output analysis property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorRadiusVirial} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVirial), intent(inout) :: self
@@ -209,3 +214,17 @@ contains
     radiusVirialUnitsInSI=megaParsec
     return
   end function radiusVirialUnitsInSI
+
+  function radiusVirialUnits(self) result(units)
+    !!{
+    Return the units of the radiusVirial property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                         )                :: units
+    class(nodePropertyExtractorRadiusVirial), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='Mpc',quantity='Mpc')
+    return
+  end function radiusVirialUnits

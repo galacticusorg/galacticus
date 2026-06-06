@@ -26,7 +26,13 @@
 
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015">
-   <description>
+   <description>A satellite dynamical friction class which computes the Coulomb logarithm following the model of
+    \cite{petts_semi-analytic_2015}. The minimum impact parameter is taken to be $b_\mathrm{min} = \max(r_{1/2,\mathrm{sat}},
+    G M_\mathrm{sat} / v_\mathrm{orbital}^2)$, where $r_{1/2,\mathrm{sat}}$ is the half-mass radius of the dark matter
+    component of the satellite, and the maximum is $b_\mathrm{max} = r_\mathrm{orbital}/|\gamma|$ for $|\gamma| > 1$
+    (where $\gamma$ is the logarithmic density slope of the host at the satellite position), or $r_\mathrm{orbital}$
+    otherwise. The \mono{[logarithmCoulombApproximate]} parameter controls whether the Coulomb logarithm is evaluated as
+    $\ln\Lambda$ (for $\Lambda \geq 1$, else zero) or the approximate form $\frac{1}{2}\ln(1+\Lambda^2)$.
    </description>
   </satelliteDynamicalFriction>
   !!]

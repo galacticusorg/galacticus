@@ -34,8 +34,8 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
       to perform the integrations \citep{du_substructure_2017}, and with a \href{https://en.wikipedia.org/wiki/Brownian_bridge}{Brownian bridge} constraint.
 
       Specifically, the trajectories are constrained to pass through a point $(S_2,\delta_2)$ (specified by the parameter
-      {\normalfont \ttfamily [varianceConstrained]} and {\normalfont \ttfamily [criticalOverdensityConstrained]}, or equivalently
-      by the parameters {\normalfont \ttfamily [massConstrained]} and {\normalfont \ttfamily [timeConstrained]}---note that
+      \mono{[varianceConstrained]} and \mono{[criticalOverdensityConstrained]}, or equivalently
+      by the parameters \mono{[massConstrained]} and \mono{[timeConstrained]}---note that
       $(S_2,\delta_2)$ here follow the convention in excursion set literature that $S_2$ is the variance evaluated at the present
       day, while $\delta_2$ the the critical overdensity for collapse divided by the linear growth factor), and, of course, always
       pass through the initial point $(S_1,\delta_1)$ corresponding to the current halo.
@@ -159,12 +159,12 @@ contains
        <inputParameter>
          <name>criticalOverdensityConstrained</name>
          <source>parameters</source>
-         <description>The critical overdensity at the end of the Brownian bridge.</description>
+         <description>The linear theory critical overdensity $\delta_\mathrm{c}$ (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with \mono{varianceConstrained} to pin the random walk to a specific progenitor halo.</description>
        </inputParameter>
        <inputParameter>
          <name>varianceConstrained</name>
          <source>parameters</source>
-         <description>The variance at the end of the Brownian bridge.</description>
+         <description>The mass variance $\sigma^2(M)$ corresponding to the constrained end-point mass of the Brownian bridge; together with \mono{criticalOverdensityConstrained} it specifies the progenitor mass to which the excursion-set random walk is conditioned.</description>
        </inputParameter>
        !!]
        massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
@@ -182,12 +182,12 @@ contains
        <inputParameter>
          <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The redshift at the end of the Brownian bridge.</description>
+         <description>The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.</description>
        </inputParameter>
        <inputParameter>
          <name>massConstrained</name>
          <source>parameters</source>
-         <description>The halo mass at the end of the Brownian bridge.</description>
+         <description>The halo mass ($\mathrm{M}_\odot$) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance $\sigma^2(M)$ that pins the excursion-set random walk to a specific progenitor scale.</description>
        </inputParameter>
        !!]
        expansionFactor               =+self%cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
@@ -489,29 +489,28 @@ contains
     use :: IO_HDF5    , only : hdf5Object
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout)               :: self
-    type            (hdf5Object                                           )                              :: dataFile          , dataGroup
     double precision                                                       , allocatable  , dimension(:) :: linearGrowthFactor
     integer                                                                                              :: i
-    
+
     ! Write the primary data.
     call self%excursionSetFirstCrossingFarahiMidpoint%fileWrite()
     ! Don't write anything if neither table is initialized.
     if (.not.self%tableInitializedRate) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.false.)
-    ! Check if the rate table is populated.
-    if (self%tableInitializedRate) then
-       allocate(linearGrowthFactor(size(self%timeRate)))
-       do i=1,size(self%timeRate)
-          linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeRate(i))
-       end do
-       dataGroup=dataFile%openGroup("rate")
-       call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
-       call dataGroup%close()
-    end if
-    ! Close the data file.
-    call dataFile%close()
+    hdf5WriteScope: block
+      type(hdf5Object) :: dataFile, dataGroup
+      dataFile=hdf5Object(self%fileName,overWrite=.false.)
+      ! Check if the rate table is populated.
+      if (self%tableInitializedRate) then
+         allocate(linearGrowthFactor(size(self%timeRate)))
+         do i=1,size(self%timeRate)
+            linearGrowthFactor(i)=self%linearGrowth_%value(time=self%timeRate(i))
+         end do
+         dataGroup=dataFile%openGroup("rate")
+         call dataGroup%writeDataset(linearGrowthFactor,'linearGrowthFactor','The linear growth factors at the times at which results are tabulated.')
+      end if
+    end block hdf5WriteScope
     !$ call hdf5Access%unset()
     return
   end subroutine farahiMidpointBrownianBridgeFileWrite

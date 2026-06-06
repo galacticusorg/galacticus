@@ -31,19 +31,29 @@ module Math_Operators_Unary
   <functionClass>
    <name>operatorUnary</name>
    <descriptiveName>Unary Operators</descriptiveName>
-   <description>Class providing unary operators.</description>
+   <description>Class providing unary operators---invertible scalar mappings $f: \mathbb{R} \to \mathbb{R}$
+    that transform a value and can be reversed. Common examples include the identity, logarithm,
+    and various monotonic reparametrizations. These operators are used in parameter estimation and
+    output analysis to transform model parameters or property values before comparison with
+    observations (e.g.\ converting between linear and logarithmic scales).</description>
    <default>identity</default>
    <method name="operate" >
+     <description>Apply the unary operator to the scalar input \mono{x}, returning the transformed value $f(x)$.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
-     <description>Operate on the given value.</description>
    </method>
    <method name="unoperate" >
+     <description>Reverse the unary operation by applying the inverse mapping $f^{-1}$ to the scalar input \mono{f}, returning the original value $x$ such that operate$(x) = f$.</description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
-     <description>Reverse the operation.</description>
+   </method>
+   <method name="jacobian" >
+     <description>Compute the Jacobian of the operation.</description>
+     <type>double precision</type>
+     <pass>yes</pass>
+     <argument>double precision, intent(in   ) :: x</argument>
    </method>
   </functionClass>
   !!]

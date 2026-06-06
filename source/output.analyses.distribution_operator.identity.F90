@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
-   <description>A identity output analysis distribution operator class.</description>
+   <description>An identity (no-op) output analysis distribution operator class that returns the input scalar property as a delta-function distribution with all weight placed in the single bin containing the value, with no smearing applied.</description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorIdentity
@@ -38,7 +38,7 @@
 
   interface outputAnalysisDistributionOperatorIdentity
      !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis class.
+     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis distribution operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity

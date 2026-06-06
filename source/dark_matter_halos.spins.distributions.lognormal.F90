@@ -27,8 +27,7 @@
   !![
   <haloSpinDistribution name="haloSpinDistributionLogNormal">
    <description>
-    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median $\bar{\lambda}=${\normalfont \ttfamily
-    [median]} and width $\sigma=${\normalfont \ttfamily [sigma]}. Specifically, the distribution function for spin, $\lambda$, is
+    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median $\bar{\lambda}=$\mono{[median]} and width $\sigma=$\mono{[sigma]}. Specifically, the distribution function for spin, $\lambda$, is
     \begin{equation}
     p(\lambda) = \frac{1}{\sqrt{2 \pi} \sigma \lambda} \exp\left[ - \frac{1}{2} \left(\frac{\log\lambda-\log\bar{\lambda}}{\sigma}\right)^2\right].
     \end{equation}
@@ -80,7 +79,7 @@ contains
       <variable>median</variable>
       <defaultValue>0.03687d0</defaultValue>
       <defaultSource>\citep{bett_spin_2007}</defaultSource>
-      <description>The median spin in a log-normal spin distribution.</description>
+      <description>The median value of the dimensionless Bullock spin parameter $\lambda$ in the log-normal distribution, representing the typical angular momentum content of dark matter halos at the present day.</description>
     </inputParameter>
     <inputParameter>
       <name>sigma</name>
@@ -88,7 +87,7 @@ contains
       <variable>sigma</variable>
       <defaultValue>0.5102d0</defaultValue>
       <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
-      <description>The width of a log-normal spin distribution.</description>
+      <description>The standard deviation $\sigma$ of $\ln\lambda$ in the log-normal spin distribution, controlling the spread of spin parameters across the halo population; larger values produce a broader distribution of angular momenta.</description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -132,8 +131,7 @@ contains
 
   double precision function logNormalSample(self,node)
     !!{
-    Sample from a log-normal spin parameter distribution for the given {\normalfont
-    \ttfamily node}.
+    Sample from a log-normal spin parameter distribution for the given \mono{node}.
     !!}
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
@@ -149,7 +147,7 @@ contains
 
   double precision function logNormalDistribution(self,node)
     !!{
-    Return the spin parameter distribution for the given {\normalfont \ttfamily node}
+    Return the spin parameter distribution for the given \mono{node}
     assuming a log-normal distribution.
     !!}
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale

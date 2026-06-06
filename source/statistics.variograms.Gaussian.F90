@@ -55,7 +55,7 @@
 
   interface variogramGaussian
      !!{
-     Constructors for the \refClass{variogramGaussian} posterior sampling likelihood class.
+     Constructors for the \refClass{variogramGaussian} variogram class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -77,7 +77,7 @@ contains
     !![
     <inputParameter>
       <name>variogramFitOption</name>
-      <description>Option controlling how the variogram is to be fit.</description>
+      <description>Option controlling how the binned semi-variance data are aggregated before fitting the Gaussian variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -132,7 +132,7 @@ contains
 
   double precision function gaussianVariogram(self,separation)
     !!{
-    Compute the variogram at the given {\normalfont \ttfamily separation}. Here we use the ``gaussian model'':
+    Compute the variogram at the given \mono{separation}. Here we use the ``gaussian model'':
     \begin{equation}
       \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h^2}{a^2}\right)]
     \end{equation}

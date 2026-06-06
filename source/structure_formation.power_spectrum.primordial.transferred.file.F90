@@ -108,17 +108,17 @@
           }
           DATASET "redshift" {
              DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+             DATASPACE  SIMPLE { ( 10 ) / ( 10 ) }
           }
           DATASET "power" {
              DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ), ( 1000 ) / ( 1000 ) }
+             DATASPACE  SIMPLE { ( 10 ) / ( 10 ), ( 1000 ) / ( 1000 ) }
           }
        }
        }
        \end{verbatim}
-      The `power` dataset should tabulate the transferred power spectrum as a function of $(k,z)$ where $k$ is wavenumber and $z$
-      is redshift.
+      The `power` dataset should tabulate the transferred power spectrum as a function of $(z,k)$ where $z$
+      is redshift and $k$ is wavenumber.
     </description>
     <runTimeFileDependencies paths="fileName"/>
   </powerSpectrumPrimordialTransferred>
@@ -250,13 +250,13 @@ contains
     type            (enumerationExtrapolationTypeType      )                              :: extrapolateWavenumber  , extrapolateRedshift
     integer                                                                               :: versionNumber          , i
     type            (hdf5Object                            )                              :: fileObject             , parametersObject
-    type            (varying_string                        )                              :: limitTypeVar
+    type            (varying_string                        )                              :: limitTypeVar           , message
 
     ! Check that the file exists.
     if (.not.File_Exists(fileName)) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    call fileObject%openFile(fileName,readOnly=.true.)
+    fileObject=hdf5Object(fileName,readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report(var_str('file has the incorrect format version number (expected fileFormat=1, found fileFormat=')//versionNumber//')'//{introspection:location})
@@ -283,7 +283,6 @@ contains
             & call displayMessage(displayMagenta()//"WARNING:"//displayReset()//' temperatureCMB from transfer function file does not match internal value' )
     end select
     deallocate(cosmologyParametersFile)
-    call parametersObject%close()
     ! Get extrapolation methods.
     call fileObject%readAttribute('extrapolationWavenumber',limitTypeVar)
     extrapolateWavenumber=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
@@ -293,9 +292,13 @@ contains
     call fileObject%readDataset('wavenumber',wavenumber)
     call fileObject%readDataset('redshift'  ,redshift  )
     call fileObject%readDataset('power'     ,power     )
-    ! Close the file.
-    call fileObject%close()
     !$ call hdf5Access%unset()
+    ! Validate data.
+    if (any(shape(power) /= [size(wavenumber),size(redshift)])) then
+       message='dimensions of `power` are mismatched with those of `redshift` and `wavenumber` arrays'
+       if (all(shape(power) == [size(redshift),size(wavenumber)])) message=message//' (it appears that the axes of your `power` array may be transposed - they should be [redshift,wavenumber] in the HDF5 dataset)'
+       call Error_Report(message//{introspection:location})
+    end if
     ! Construct the tabulated power spectrum and interpolators. Note that the tabulated power must be in order of increasing time, so sort on redshift and index in reverse.
     order=sortIndex(redshift)
     allocate(self%wavenumberLogarithmic(size(wavenumber)               ))
@@ -324,8 +327,7 @@ contains
   
   double precision function filePower(self,wavenumber,time)
     !!{
-    Return the transferred primordial power spectrum at the given {\normalfont \ttfamily
-    wavenumber}.
+    Return the transferred primordial power spectrum at the given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self
@@ -352,7 +354,7 @@ contains
   double precision function fileLogarithmicDerivative(self,wavenumber,time)
     !!{
     Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given {\normalfont \ttfamily wavenumber}.
+    given \mono{wavenumber}.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self

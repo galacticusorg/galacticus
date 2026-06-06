@@ -25,9 +25,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerRecentCount">
-   <description>
-   Implements a node property extractor which extracts the number of recent node major mergers.
-   </description>
+   <description>Extracts the count of major halo merger events that occurred within a configurable lookback time window, enabling statistical analysis of recent merger activity across the halo population.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorNodeMajorMergerRecentCount
@@ -46,7 +44,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
      !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -56,7 +54,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +75,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(outputTimes_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorNodeMajorMergerRecentCount)                        :: self
@@ -94,7 +92,7 @@ contains
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} node operator class.
+    Destructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self
@@ -107,7 +105,7 @@ contains
 
   function nodeMajorMergerRecentCountExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily nodeMajorMergerRecentCount} node property extractor.
+    Implement a \mono{nodeMajorMergerRecentCount} node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

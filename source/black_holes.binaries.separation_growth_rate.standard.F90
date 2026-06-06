@@ -58,8 +58,7 @@
     X_i = V_\mathrm{c} / \sqrt{2} \sigma.
     \end{equation}
     In all of the above equations, the velocity dispersion $\sigma_i$ is computed from the spherical Jeans equation assuming an
-    isotropic velocity dispersion if {\normalfont \ttfamily [computeVelocityDispersion]}$=${\normalfont \ttfamily
-    true}. Otherwise, $\sigma_i$ is set to the halo virial velocity for dark matter and to the spheroid characteristic velocity
+    isotropic velocity dispersion if \mono{[computeVelocityDispersion]}$=$\mono{true}. Otherwise, $\sigma_i$ is set to the halo virial velocity for dark matter and to the spheroid characteristic velocity
     for the spheroid.
     
     In calculating the rate of hardening due to scattering of stars, the stellar density is reduced by a factor
@@ -68,7 +67,7 @@
     f_\rho = \hbox{min}\left\{ \left[ { 4 a \sigma_\mathrm{spheroid}^2 \over 3 \mathrm{G} (M_{\bullet, 1}+M_{\bullet, 2})}
     \log\left({\mathrm{G} M_{\bullet, 2} \over 4 \sigma_\mathrm{spheroid}^2 a }\right) \right]^2 , 1 \right\},
     \end{equation}
-    if {\normalfont \ttfamily [stellarDensityChangeBinaryMotion]}$=${\normalfont \ttfamily true} to account for the ejection of
+    if \mono{[stellarDensityChangeBinaryMotion]}$=$\mono{true} to account for the ejection of
     stars from the loss cone.
    </description>
   </blackHoleBinarySeparationGrowthRate>
@@ -88,7 +87,7 @@
 
   interface blackHoleBinarySeparationGrowthRateStandard
      !!{
-     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary recoil class.
+     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -112,14 +111,14 @@ contains
     <inputParameter>
       <name>stellarDensityChangeBinaryMotion</name>
       <defaultValue>.true.</defaultValue>
-      <description>The change in density due to the black hole's motion.</description>
+      <description>If true, account for the change in stellar density caused by the black hole binary's motion through the stellar background when computing the hardening rate of the binary via stellar scattering.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>computeVelocityDispersion</name>
       <defaultValue>.false.</defaultValue>
       <description>Specifies whether or not the velocity dispersion of dark matter and stars should be computed using Jeans equation
-         in black hole binary hardening calculations. If {\normalfont \ttfamily false}, then the velocity dispersions are assumed to equal
+         in black hole binary hardening calculations. If \mono{false}, then the velocity dispersions are assumed to equal
          the characteristic velocity of dark matter and spheroid.</description>
       <source>parameters</source>
     </inputParameter>
@@ -135,7 +134,7 @@ contains
 
   function standardConstructorInternal(stellarDensityChangeBinaryMotion,computeVelocityDispersion,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth class.
+    Internal constructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth rate class.
     !!}
     implicit none
     type   (blackHoleBinarySeparationGrowthRateStandard)                        :: self
@@ -150,7 +149,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{
-    Destructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth class.
+    Destructor for the \refClass{blackHoleBinarySeparationGrowthRateStandard} black hole binary separation growth rate class.
     !!}
     implicit none
     type(blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self

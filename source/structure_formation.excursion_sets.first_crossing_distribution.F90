@@ -34,26 +34,31 @@ module Excursion_Sets_First_Crossings
    <name>excursionSetFirstCrossing</name>
    <descriptiveName>Excursion Set First Crossing Statistics</descriptiveName>
    <description>
-    Class providing first crossing statistics for the excursion set problem.
+    Class providing the first-crossing distribution in the extended Press-Schechter excursion set
+    framework---the probability that a random walk in the density field, starting from variance
+    $\sigma^2_0$ at time $t$, first crosses the collapse barrier at a larger variance $\sigma^2 >
+    \sigma^2_0$. This distribution gives the halo mass function (via the unconditional first-crossing
+    probability) and the conditional mass function of progenitors (via the transition rate between
+    variances). Implementations depend on the choice of barrier shape and random walk statistics,
+    with a flat barrier and Markovian walks recovering the analytic Press-Schechter result.
    </description>
    <default>linearBarrier</default>
-   <data>logical :: coordinatedMPI_=.false. </data>
    <method name="probability" >
-    <description>Return the probability for a trajectory to make its first crossing of the barrier at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
+    <description>Return the probability for a trajectory to make its first crossing of the barrier at the given \mono{variance} and \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, time</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="rate" >
-    <description>Return the rate of first crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time} to transition to a first crossing at the given {\normalfont \ttfamily varianceProgenitor}.</description>
+    <description>Return the rate of first crossing for excursion sets beginning at the given \mono{variance} and \mono{time} to transition to a first crossing at the given \mono{varianceProgenitor}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, varianceProgenitor, time</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="rateNonCrossing" >
-    <description>Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
+    <description>Return the rate of non-crossing for excursion sets beginning at the given \mono{variance} and \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance, massMinimum, time</argument>
@@ -68,6 +73,7 @@ module Excursion_Sets_First_Crossings
       self%coordinatedMPI_=state
     </code>
    </method>
+   <data>logical :: coordinatedMPI_=.false. </data>
   </functionClass>
   !!]
 

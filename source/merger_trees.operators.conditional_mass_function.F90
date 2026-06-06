@@ -21,9 +21,8 @@
   Implements a merger tree operator which accumulates conditional mass functions for trees.
   !!}
 
-  use    :: Cosmology_Functions              , only : cosmologyFunctionsClass
-  !$ use :: OMP_Lib                          , only : omp_lock_kind
-  use    :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
+  use :: Cosmology_Functions              , only : cosmologyFunctionsClass
+  use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
@@ -36,18 +35,18 @@
     (the ratio of progenitor to parent halo mass), and at pairs of parent/progenitor
     redshifts. The following parameters control the operator:
     \begin{description}
-    \item[{\normalfont \ttfamily countMassParent}] The number of bins in parent halo mass to use;
-    \item[{\normalfont \ttfamily massParentMinimum}] The minimum parent halo mass to consider;
-    \item[{\normalfont \ttfamily massParentMaximum}] The maximum parent halo mass to consider;
-    \item[{\normalfont \ttfamily massRatioCount}] The number of bins in mass ratio to use;
-    \item[{\normalfont \ttfamily massRatioMinimum}] The minimum mass ratio to consider;
-    \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
-    \item[{\normalfont \ttfamily redshiftsParent}] A list of redshifts at which to identify parent halos;
-    \item[{\normalfont \ttfamily redshiftsProgenitor}] A corresponding list of redshifts at which to identify progenitor halos;
-    \item[{\normalfont \ttfamily depthProgenitorPrimary}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
-    \item[{\normalfont \ttfamily depthHierarchySubhalo}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
-    \item[{\normalfont \ttfamily fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
-    \item[{\normalfont \ttfamily nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
+    \item[\mono{countMassParent}] The number of bins in parent halo mass to use;
+    \item[\mono{massParentMinimum}] The minimum parent halo mass to consider;
+    \item[\mono{massParentMaximum}] The maximum parent halo mass to consider;
+    \item[\mono{massRatioCount}] The number of bins in mass ratio to use;
+    \item[\mono{massRatioMinimum}] The minimum mass ratio to consider;
+    \item[\mono{massRatioMaximum}] The maximum mass ratio to consider;
+    \item[\mono{redshiftsParent}] A list of redshifts at which to identify parent halos;
+    \item[\mono{redshiftsProgenitor}] A corresponding list of redshifts at which to identify progenitor halos;
+    \item[\mono{depthProgenitorPrimary}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
+    \item[\mono{depthHierarchySubhalo}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
+    \item[\mono{fractionTimeFormationRate}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
+    \item[\mono{nameGroupOutput}] The name of the \gls{hdf5} group to which mass functions will be written.
     \end{description}
     If the operator finds the named \gls{hdf5} group already in existence, it will accumulate its
     mass functions to those already written to the group, weighting by the inverse of the variance
@@ -135,12 +134,11 @@
       }
     }
     \end{verbatim}
-    Where {\normalfont \ttfamily Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
-    Nparent} is the number of bins in mass ratio, {\normalfont \ttfamily Nz} is the number of
-    parent/progenitor redshift pairs, {\normalfont \ttfamily Ndepth} is the maximum depth in the
-    ranking of most-massive progenitor mass functions, {\normalfont \ttfamily Nhierarchy} is the
+    Where \mono{Nratio} is the number of bins in mass ratio, \mono{Nparent} is the number of bins in mass ratio, \mono{Nz} is the number of
+    parent/progenitor redshift pairs, \mono{Ndepth} is the maximum depth in the
+    ranking of most-massive progenitor mass functions, \mono{Nhierarchy} is the
     maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the
-    {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
+    \mono{formationRateFunction} dataset stores two different versions of the
     formation rate function. The first uses the mass of the forming halo at the time of formation,
     the second uses the mass of the node immediately prior to it becoming a subhalo.
   
@@ -178,7 +176,6 @@
      logical                                                                        :: alwaysIsolatedHalosOnly                       , primaryProgenitorStatisticsValid     , &
           &                                                                            extendedStatistics                            , computeCovariances
      type            (varying_string         )                                      :: nameGroupOutput
-     !$ integer      (omp_lock_kind          )                                      :: accumulateLock
    contains
      !![
      <methods>
@@ -207,7 +204,6 @@ contains
     !!{
     Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     !!}
-    !$ use :: OMP_Lib          , only : OMP_Init_Lock
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     type            (inputParameters                ), intent(inout), target       :: parameters
@@ -571,8 +567,6 @@ contains
        self%subhaloMassFunction                  =0.0d0
        self%subhaloMassFunctionError             =0.0d0
     end if
-    ! Initialize OpenMP lock.
-    !$ call OMP_Init_Lock(self%accumulateLock)
     ! Get required meta-property.
     !![
     <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum" type="integer" id="self%nodeHierarchyLevelMaximumID"/>
@@ -584,7 +578,6 @@ contains
     !!{
     Destructor for the merger tree operator function class.
     !!}
-    !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
 
@@ -592,20 +585,17 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"/>
     <objectDestructor name="self%haloMassError_"     />
     !!]
-    ! Destroy OpenMP lock.
-    !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine conditionalMFDestructor
 
   subroutine conditionalMFOperatePreEvolution(self,tree)
     !!{
-    Compute conditional mass function on {\normalfont \ttfamily tree}.
+    Compute conditional mass function on \mono{tree}.
     !!}
-    use    :: Error               , only : Error_Report
-    use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
-    use    :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
-    use    :: Numerical_Comparison, only : Values_Agree
-    !$ use :: OMP_Lib             , only : OMP_Set_Lock                 , OMP_Unset_Lock
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
+    use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                               , target :: self
     type            (mergerTree                     ), intent(inout)                               , target :: tree
@@ -655,14 +645,12 @@ contains
                &                    self%massParentLogarithmicBinWidthInverse, &
                &                    self%countMassParent                       &
                &                   )
-          !$ call OMP_Set_Lock(self%accumulateLock)
           self%normalizationSubhaloMassFunction     (:)=+self       %normalizationSubhaloMassFunction     (:) &
                &                                        +weights1D                                            &
                &                                        *treeCurrent%volumeWeight
           self%normalizationSubhaloMassFunctionError(:)=+self       %normalizationSubhaloMAssFunctionError(:) &
                &                                        +weights1D               **2                          &
                &                                        *treeCurrent%volumeWeight**2
-          !$ call OMP_Unset_Lock(self%accumulateLock)
        end if
        ! Walk the tree, accumulating statistics.
        treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
@@ -734,7 +722,6 @@ contains
                            &                         self%massParentLogarithmicBinWidthInverse   , &
                            &                         self%countMassParent                          &
                            &                        )
-                      !$ call OMP_Set_Lock(self%accumulateLock)
                       self%normalization     (i,:)=+self       %normalization     (i,:) &
                            &                       +weights1D                           &
                            &                       *treeCurrent%volumeWeight
@@ -749,7 +736,6 @@ contains
                                  &                                *treeCurrent%volumeWeight**2
                          end forall
                       end if
-                      !$ call OMP_Unset_Lock(self%accumulateLock)
                    end if
                    ! Check if the branch spans the progenitor time.
                    if     (                                        &
@@ -832,7 +818,6 @@ contains
                                     &                           self%massRatioCount                         , &
                                     &                           1                                             &
                                     &                          )
-                               !$ call OMP_Set_Lock(self%accumulateLock)
                                self%conditionalMassFunction     (i,:,:)=+self          %conditionalMassFunction     (i,:,:) &
                                     &                                   +weights2D                                          &
                                     &                                   *treeCurrent   %volumeWeight
@@ -853,7 +838,6 @@ contains
                                      end forall
                                   end forall
                                end if
-                               !$ call OMP_Unset_Lock(self%accumulateLock)
                                ! Check for formation.
                                if (self%extendedStatistics) then
                                   if (branchBegin > self%timeProgenitors(i)*(1.0d0-self%fractionTimeFormationRate) .and. .not.associated(nodeChild%firstChild)) then
@@ -871,14 +855,12 @@ contains
                                           &                           self%massRatioCount                         , &
                                           &                           1                                             &
                                           &                          )
-                                     !$ call OMP_Set_Lock(self%accumulateLock)
                                      self%formationRateFunction     (i,:,:,1)=+self          %formationRateFunction     (i,:,:,1) &
                                           &                                   +weights2D                                          &
                                           &                                   *treeCurrent   %volumeWeight
                                      self%formationRateFunctionError(i,:,:,1)=+self          %formationRateFunctionError(i,:,:,1) &
                                           &                                   +weights2D                  **2                     &
                                           &                                   *treeCurrent   %volumeWeight**2
-                                     !$ call OMP_Unset_Lock(self%accumulateLock)
                                      ! Find the mass of this node just prior to it becoming a subhalo.
                                      descendantNode => node
                                      do while (associated(descendantNode%parent).and.associated(descendantNode%parent%firstChild,descendantNode))
@@ -898,14 +880,12 @@ contains
                                           &                           self%massRatioCount                         , &
                                           &                           1                                             &
                                           &                          )
-                                     !$ call OMP_Set_Lock(self%accumulateLock)
                                      self%formationRateFunction     (i,:,:,2)=+self          %formationRateFunction     (i,:,:,2) &
                                           &                                   +weights2D                                          &
                                           &                                   *treeCurrent   %volumeWeight
                                      self%formationRateFunctionError(i,:,:,2)=+self          %formationRateFunctionError(i,:,:,2) &
                                           &                                   +weights2D                  **2                     &
                                           &                                   *treeCurrent   %volumeWeight**2
-                                     !$ call OMP_Unset_Lock(self%accumulateLock)
                                   end if
                                   ! Accumulate to the primary progenitor mass array if necessary.
                                   if (self%primaryProgenitorStatisticsValid) then
@@ -973,14 +953,12 @@ contains
                               &                           self%massRatioCount                      , &
                               &                           1                                          &
                               &                          )
-                         !$ call OMP_Set_Lock(self%accumulateLock)
                          self%subhaloMassFunction     (:,:,depthHierarchy)=+self          %subhaloMassFunction     (:,:,depthHierarchy) &
                               &                                            +weights2D                                                   &
                               &                                            *treeCurrent   %volumeWeight
                          self%subhaloMassFunctionError(:,:,depthHierarchy)=+self          %subhaloMassFunctionError(:,:,depthHierarchy) &
                               &                                            +weights2D                  **2                              &
                               &                                            *treeCurrent   %volumeWeight**2
-                         !$ call OMP_Unset_Lock(self%accumulateLock)
                       end if
                    end if
                 end if
@@ -1003,7 +981,6 @@ contains
                            &                   )                                                           &
                            &                +1
                       if (binMassRatio  >= 1 .and. binMassRatio  <= self%massRatioCount) then
-                         !$ call OMP_Set_Lock(self%accumulateLock)
                          self          %primaryProgenitorMassFunction     (i,binMassParent,binMassRatio,iPrimary)= &
                               & +  self%primaryProgenitorMassFunction     (i,binMassParent,binMassRatio,iPrimary)  &
                               & +       primaryProgenitorMass             (i,binMassParent,             iPrimary)  &
@@ -1014,7 +991,6 @@ contains
                               &   +     primaryProgenitorMass             (i,binMassParent,             iPrimary)  &
                               &   *treeCurrent%volumeWeight                                                        &
                               &  )**2
-                         !$ call OMP_Unset_Lock(self%accumulateLock)
                       end if
                    end if
                 end do
@@ -1457,6 +1433,7 @@ contains
     use    :: HDF5_Access                     , only : hdf5Access
     use    :: IO_HDF5                         , only : hdf5Object
     use    :: Numerical_Constants_Astronomical, only : massSolar
+    use    :: Units_MetaData                  , only : unitType
     !$ use :: OMP_Lib                         , only : OMP_Get_Num_Threads
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                         :: self
@@ -1583,11 +1560,9 @@ contains
        ! Our group does not already exist. Simply write the data.
        conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
-       call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-       call massDataset                 %close         (                                                                                                                                                     )
+       call massDataset                 %writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)
-       call massDataset                 %writeAttribute(massSolar                              ,"unitsInSI"                                                                                                  )
-       call massDataset                 %close         (                                                                                                                                                     )
+       call massDataset                 %writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsParent                   ,"redshiftParent"                    ,"Redshift of parent node []"                                            )
        call conditionalMassFunctionGroup%writeDataset  (self%redshiftsProgenitor               ,"redshiftProgenitor"                ,"Redshift of progenitor node []"                                        )
        accumulationCount=0
@@ -1705,7 +1680,6 @@ contains
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunction                  ,"subhaloMassFunction"                  ,"Unevolved subhalo mass functions []"                       )
        call conditionalMassFunctionGroup%writeDataset  (self%subhaloMassFunctionError             ,"subhaloMassFunctionError"             ,"Unevolved subhalo mass function errors []"                 )
     end if
-    call    conditionalMassFunctionGroup%close         (                                                                                                                                               )
     call    outputFile                  %flush         (                                                                                                                                               )
     !$ call hdf5Access%unset()
     return

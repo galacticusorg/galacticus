@@ -10,11 +10,11 @@ The exact way in which masses within \glc\ are defined and used in specified in 
 
 \subsection{Masses in the Basic Component}
 
-The {\normalfont \ttfamily basic} component (see \S\ref{sec:ComponentBasicProperties}) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
+The \mono{basic} component (see \S\ref{sec:ComponentBasicProperties}) tracks the mass of each halo as defined in the merger tree. As such, it should be considered to be the mass which the halo would have if baryonic matter behaved just as dark matter. Note that these masses are inclusive of subhalos---that is, the mass of a host halo includes the mass of all of its subhalos.
 
 \subsection{Dark Matter Profiles}
 
-The dark matter profile functions (see \refPhysics{darkMatterProfileDMO}) return masses and densities etc. which are normalized to match the mass of the {\normalfont \ttfamily basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
+The dark matter profile functions (see \refPhysics{darkMatterProfileDMO}) return masses and densities etc. which are normalized to match the mass of the \mono{basic} component at the virial radius of the halo. As such, their returned values should be considered to represent the case where baryonic matter behaves as dark matter. This is a convention, and is useful for calculations of large scale structure for example.
 
 \subsection{Galactic Structure Functions}
 
@@ -22,15 +22,15 @@ The various galactic structure functions assume that the masses/densities/etc. r
 
 \subsection{Satellite Virial Orbits}
 
-These functions (see \refPhysics{virialOrbit}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{virialOrbit}) typically use the \mono{basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Satellite Merging Timescales}
 
-These functions (see \refPhysics{satelliteMergingTimescales}) typically use the {\normalfont \ttfamily basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
+These functions (see \refPhysics{satelliteMergingTimescales}) typically use the \mono{basic} component mass in determining parameters of an orbit, since they are typically calibrated to simulations of collisionless matter only.
 
 \subsection{Dynamical Friction}
 
-These functions (see \refPhysics{satelliteDynamicalFriction}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the {\normalfont \ttfamily basic} component mass which is in the form of dark matter.
+These functions (see \refPhysics{satelliteDynamicalFriction}) evaluate densities through the relevant galactic structure function, and so correctly account for the fraction of the \mono{basic} component mass which is in the form of dark matter.
 
 \subsection{Galactic Structure Radius Solvers}
 
@@ -69,10 +69,10 @@ Each radius specifier should take the form:
 \end{verbatim}
 The elements of this colon-separated specifier determine the radius at which a property is computed, which components/mass types should be counted, and whether baryonic loading of the halo should be accounted for. The elements have the following meaning:
 \begin{description}
- \item [{\normalfont \ttfamily radius}] the numerical value of the radius at which to compute the property (with units specified by the {\normalfont \ttfamily radiusType} element);
- \item [{\normalfont \ttfamily radiusType}] specifies the units of the {\normalfont \ttfamily radius} element---valid options are {\normalfont \ttfamily diskRadius}, {\normalfont \ttfamily hotHaloOuterRadius}, {\normalfont \ttfamily diskHalfMassRadius}, {\normalfont \ttfamily spheroidRadius}, {\normalfont \ttfamily spheroidHalfMassRadius}, {\normalfont \ttfamily darkMatterScaleRadius}, {\normalfont \ttfamily virialRadius}, just {\normalfont \ttfamily radius} (which implies radii are given in units of Mpc), {\normalfont \ttfamily galacticMassFraction\{\textless fraction\textgreater\}}, {\normalfont \ttfamily stellarMassFraction\{\textless fraction\textgreater\}}, or \newline {\normalfont \ttfamily galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final three form specify a radius containing a fixed {\normalfont \ttfamily \textless fraction\textgreater} of the galactic or stellar mass, or light respectively (for the case of galactic light, {\normalfont \ttfamily \textless luminosity\textgreater} specifies the band, e.g. {\normalfont \ttfamily SDSS\_r:rest:z0.0000});
- \item [{\normalfont \ttfamily componentType}] specifies which components of the node should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily disk}, {\normalfont \ttfamily spheroid}, {\normalfont \ttfamily hotHalo}, {\normalfont \ttfamily darkHalo}, and {\normalfont \ttfamily blackHole};
- \item [{\normalfont \ttfamily massType}] specifies which types of mass should be counted---allowed values are {\normalfont \ttfamily all}, {\normalfont \ttfamily dark}, {\normalfont \ttfamily baryonic}, {\normalfont \ttfamily galactic}, {\normalfont \ttfamily gaseous}, {\normalfont \ttfamily stellar}, and {\normalfont \ttfamily blackHole}.
+ \item [\mono{radius}] the numerical value of the radius at which to compute the property (with units specified by the \mono{radiusType} element);
+ \item [\mono{radiusType}] specifies the units of the \mono{radius} element---valid options are \mono{diskRadius}, \mono{hotHaloOuterRadius}, \mono{diskHalfMassRadius}, \mono{spheroidRadius}, \mono{spheroidHalfMassRadius}, \mono{darkMatterScaleRadius}, \mono{virialRadius}, just \mono{radius} (which implies radii are given in units of Mpc), \mono{galacticMassFraction\{\textless fraction\textgreater\}}, \mono{stellarMassFraction\{\textless fraction\textgreater\}}, or \newline \mono{galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final three form specify a radius containing a fixed \mono{\textless fraction\textgreater} of the galactic or stellar mass, or light respectively (for the case of galactic light, \mono{\textless luminosity\textgreater} specifies the band, e.g. \mono{SDSS\_r:rest:z0.0000});
+ \item [\mono{componentType}] specifies which components of the node should be counted---allowed values are \mono{all}, \mono{disk}, \mono{spheroid}, \mono{hotHalo}, \mono{darkHalo}, and \mono{blackHole};
+ \item [\mono{massType}] specifies which types of mass should be counted---allowed values are \mono{all}, \mono{dark}, \mono{baryonic}, \mono{galactic}, \mono{gaseous}, \mono{stellar}, and \mono{blackHole}.
 \end{description}
 
 \section{Half-mode and quarter-mode masses}

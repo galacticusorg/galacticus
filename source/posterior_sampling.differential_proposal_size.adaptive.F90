@@ -21,20 +21,22 @@
   Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
   !!}
 
+  use :: File_Utilities, only : file
+
   !![
   <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
    <description>
     This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
     controlled by the following sub-parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily [gammaInitial]}] The initial value for $\gamma$.
-    \item[{\normalfont \ttfamily [gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
+    \item[\mono{[gammaInitial]}] The initial value for $\gamma$.
+    \item[\mono{[gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
       acceptance rate is out of range.
-    \item[{\normalfont \ttfamily [gammaMinimum]}] The smallest value allowed for $\gamma$.
-    \item[{\normalfont \ttfamily [gammaMaximum]}] The largest value allowed for $\gamma$.
-    \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
-    \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
-    \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate.
+    \item[\mono{[gammaMinimum]}] The smallest value allowed for $\gamma$.
+    \item[\mono{[gammaMaximum]}] The largest value allowed for $\gamma$.
+    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
+    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
+    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate.
     \end{description}
    </description>
   </posteriorSampleDffrntlEvltnProposalSize>
@@ -44,12 +46,15 @@
      Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
      !!}
      private
-     double precision :: gammaCurrent            , gammaAdjustFactor    , &
-          &              gammaInitial
-     double precision :: gammaMinimum            , gammaMaximum
-     double precision :: acceptanceRateMinimum   , acceptanceRateMaximum
-     integer          :: updateCount             , lastUpdateCount
-     logical          :: outliersInAcceptanceRate
+     double precision                  :: gammaCurrent            , gammaAdjustFactor    , &
+          &                               gammaInitial
+     double precision                  :: gammaMinimum            , gammaMaximum
+     double precision                  :: acceptanceRateMinimum   , acceptanceRateMaximum
+     integer                           :: updateCount             , lastUpdateCount
+     logical                           :: outliersInAcceptanceRate, appendLog            , &
+          &                               restoreFromLog          , flushLog
+     type            (varying_string ) :: logFileName
+     type            (file           ) :: logFile
    contains
      procedure :: gamma => adaptiveGamma
   end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
@@ -77,37 +82,44 @@ contains
          &                                                                               gammaMaximum            , gammaAdjustFactor    , &
          &                                                                               acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                                           :: updateCount
-    logical                                                                           :: outliersInAcceptanceRate
+    logical                                                                           :: outliersInAcceptanceRate, appendLog            , &
+          &                                                                              restoreFromLog          , flushLog
+    type            (varying_string                                 )                 :: logFileName
 
     !![
     <inputParameter>
+      <name>logFileName</name>
+      <description>The name of a file to which to log reports of adjustments to $\gamma$. If empty, no reports are logged.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
       <name>gammaInitial</name>
-      <description>The initial proposal size, $\gamma$.</description>
+      <description>The initial value of the proposal scaling parameter $\gamma$ used before the acceptance rate has been assessed and any adaptive adjustment has been made.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaMinimum</name>
-      <description>The minimum allowed proposal size, $\gamma$.</description>
+      <description>The minimum value to which the proposal scaling parameter $\gamma$ is permitted to be reduced during adaptive adjustment, preventing the step size from becoming vanishingly small.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaMaximum</name>
-      <description>The maximum allowed proposal size, $\gamma$.</description>
+      <description>The maximum value to which the proposal scaling parameter $\gamma$ is permitted to be increased during adaptive adjustment, preventing excessively large steps that would degrade acceptance rates.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>gammaAdjustFactor</name>
-      <description>The factor by which to adjust the proposal size, $\gamma$.</description>
+      <description>The multiplicative factor by which $\gamma$ is increased or decreased at each adaptation step when the current acceptance rate falls outside the target range.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>acceptanceRateMinimum</name>
-      <description>The minimum acceptable acceptance rate.</description>
+      <description>The minimum acceptable chain acceptance rate; if the measured acceptance rate falls below this threshold $\gamma$ is reduced to produce smaller, more easily accepted proposals.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>acceptanceRateMaximum</name>
-      <description>The maximum acceptable acceptance rate.</description>
+      <description>The maximum acceptable chain acceptance rate; if the measured acceptance rate exceeds this threshold $\gamma$ is increased to produce larger proposals that explore the posterior more efficiently.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -121,31 +133,71 @@ contains
       <description>The number of steps between potential updates of the proposal size.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>appendLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, append to the existing log file, otherwise overwrite.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>restoreFromLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, restore the value of $\gamma$ from the log file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>flushLog</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, logs are flushed to file after every update.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
-    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function adaptiveConstructorParameters
 
-  function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
+  function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} differential evolution proposal size class.
+    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class.
     !!}
+    use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
+    type            (varying_string                                 ), intent(in   ) :: logFileName
     double precision                                                 , intent(in   ) :: gammaInitial            , gammaAdjustFactor    , &
          &                                                                              gammaMinimum            , gammaMaximum         , &
          &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
-    logical                                                          , intent(in   ) :: outliersInAcceptanceRate
+    logical                                                          , intent(in   ) :: outliersInAcceptanceRate, appendLog            , &
+         &                                                                              restoreFromLog          , flushLog
+    character       (len=32                                         )                :: line
+    integer                                                                          :: ioStatus                , logFileUnit
     !![
-    <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
+    <constructorAssign variables="logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate, appendLog, restoreFromLog, flushLog"/>
     !!]
 
     self%gammaCurrent   =gammaInitial
+    if (self%restoreFromLog .and. logFileName /= '') then
+       open(newunit=logFileUnit,file=char(logFileName),status='old',form='formatted',iostat=ioStatus)
+       do while (ioStatus == 0)
+          read (logFileUnit,'(a)',iostat=ioStatus) line
+          if (ioStatus /= 0) exit
+          if (index(line,"Adjusting") /= 0) read (line(index(trim(line)," ",back=.true.)+1:len_trim(line)),*) self%gammaCurrent
+       end do
+       close(logFileUnit)
+       call mpiBarrier()
+    end if
     self%lastUpdateCount=0
+    if (mpiSelf%rank() == 0 .and. logFileName /= '') then
+       if (self%appendLog) then
+          self%logFile=file(logFileName,form='formatted',status='unknown',position='append')
+       else
+          self%logFile=file(logFileName,form='formatted',status='unknown'                  )
+       end if
+    end if
     return
   end function adaptiveConstructorInternal
 
@@ -186,7 +238,7 @@ contains
              acceptanceRate=mpiSelf%average(simulationState%acceptanceRate(),mask=.not.areOutliers)
           end if
        end if
-       if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+       if (mpiSelf%rank() == 0) then
           if (acceptanceRate < 0.0d0) then
              label="unknown"
           else
@@ -194,21 +246,33 @@ contains
           end if
           message='After '
           message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
-          call displayMessage(message)
+          if (displayVerbosity() >= verbosityLevelStandard) call displayMessage(message)
+          if (associated(self%logFile%unit)) then
+             write (self%logFile%unit,*) char(message)
+             if (self%flushLog) call flush(self%logFile%unit)
+          end if
        end if
        ! If the acceptance rate is out of range, adjust γ.
        if (acceptanceRate >= 0.0d0) then
           if      (acceptanceRate > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
              self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+             if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call displayMessage('Adjusting γ up to '//label)
+                if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ up to '//label)
+                if (associated(self%logFile%unit)) then
+                   write (self%logFile%unit,*) 'Adjusting γ up to '//label
+                   if (self%flushLog) call flush(self%logFile%unit)
+                end if
              end if
           else if (acceptanceRate < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
              self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-             if (mpiSelf%rank() == 0 .and. displayVerbosity() >= verbosityLevelStandard) then
+             if (mpiSelf%rank() == 0) then
                 write (label,'(f8.5)') self%gammaCurrent
-                call displayMessage('Adjusting γ down to '//label)
+                if (displayVerbosity() >= verbosityLevelStandard) call displayMessage('Adjusting γ down to '//label)
+                if (associated(self%logFile%unit)) then
+                   write (self%logFile%unit,*) 'Adjusting γ down to '//label
+                   if (self%flushLog) call flush(self%logFile%unit)
+                end if
              end if
           end if
        end if

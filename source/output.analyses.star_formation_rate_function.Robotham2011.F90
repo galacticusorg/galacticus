@@ -26,7 +26,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisStarFormationRateFunctionRobotham2011">
-   <description>A \cite{robotham_galaxy_2011} star formation rate function output analysis class.</description>
+   <description>Computes the galaxy star formation rate function for comparison with the \cite{robotham_galaxy_2011} measurements, with star formation rate random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormationRateFunction) :: outputAnalysisStarFormationRateFunctionRobotham2011

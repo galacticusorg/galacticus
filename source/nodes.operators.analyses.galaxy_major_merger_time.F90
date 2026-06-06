@@ -26,7 +26,7 @@
 
   !![
   <nodeOperator name="nodeOperatorGalaxyMajorMergerTime">
-   <description>A node operator class that computes the time of the most recent major merger between galaxies.</description>
+   <description>A node operator class that records the cosmic time of each galaxy--galaxy major merger event as a meta-property of the basic node component. A merger is classified as major based on the stellar mass movements determined by \refClass{mergerMassMovementsClass}. \mono{countTimesMaximum} caps the number of merger times accumulated per node, enabling targeted study of the recent major merger history of galaxies.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMajorMergerTime

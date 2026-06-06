@@ -33,9 +33,18 @@
      !!{
      Type used for output group information.
      !!}
-     logical             :: doubleAttributesWritten, integerAttributesWritten, &
-          &                 opened
-     type   (hdf5Object) :: hdf5Group              , nodeDataGroup
+     logical                                 :: doubleAttributesWritten, integerAttributesWritten, &
+          &                                     opened
+     type   (hdf5Object                    ) :: hdf5Group              , nodeDataGroup
+     type   (enumerationOutputGroupTypeType) :: type_
+   contains
+     !![
+     <methods>
+       <method method="assignment(=)" description="Assign outputGroup objects."/>
+     </methods>
+     !!]
+     procedure :: outputGroupAssign
+     generic   :: assignment(=)     =>  outputGroupAssign
   end type outputGroup
 
   ! Parameters controlling the size of output data.
@@ -52,7 +61,7 @@
   
   !![
   <mergerTreeOutputter name="mergerTreeOutputterStandard">
-   <description>The standard merger tree outputter.</description>
+   <description>The standard merger tree outputter which writes galaxy and halo properties to HDF5 output files at each requested output time during galaxy evolution. Output is organized into groups named by \mono{[outputsGroupName]}, with optional dataset reference output controlled by the \mono{[outputReferences]} parameter.</description>
    <stateStorable>
     <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
@@ -86,7 +95,7 @@
    contains
      !![
      <methods>
-       <method description="Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}." method="makeGroup"             />
+       <method description="Make an group in the \glc\ file in which to store \mono{tree}." method="makeGroup"             />
        <method description="Dump the contents of the integer properties buffer to the \glc\ output file."    method="dumpIntegerBuffer"     />
        <method description="Dump the contents of the double properties buffer to the \glc\ output file."     method="dumpDoubleBuffer"      />
        <method description="Extend the size of the integer buffer."                                          method="extendIntegerBuffer"   />
@@ -101,7 +110,6 @@
      final     ::                           standardDestructor
      procedure :: outputTree             => standardOutputTree
      procedure :: outputNode             => standardOutputNode
-     procedure :: finalize               => standardFinalize
      procedure :: makeGroup              => standardMakeGroup
      procedure :: dumpIntegerBuffer      => standardDumpIntegerBuffer
      procedure :: extendIntegerBuffer    => standardExtendIntegerBuffer
@@ -210,7 +218,6 @@ contains
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self
 
-    call self%finalize()
     !![
     <objectDestructor name="self%galacticFilter_"       />
     <objectDestructor name="self%cosmologyFunctions_"   />
@@ -219,9 +226,9 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardOutputTree(self,tree,indexOutput,time)
+  subroutine standardOutputTree(self,tree,indexOutput,time,outputType)
     !!{
-    Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    Write properties of nodes in \mono{tree} to the \glc\ output file.
     !!}
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
@@ -230,20 +237,24 @@ contains
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)          :: self
-    type            (mergerTree                 ), intent(inout), target  :: tree
-    integer         (c_size_t                   ), intent(in   )          :: indexOutput
-    double precision                             , intent(in   )          :: time
-    type            (treeNode                   )               , pointer :: node
-    integer         (kind=hsize_t               ), dimension(1)           :: referenceLength , referenceStart
-    class           (nodeComponentBasic         )               , pointer :: basic
-    type            (mergerTree                 )               , pointer :: currentTree
-    type            (mergerTreeWalkerAllNodes   )                         :: treeWalker
-    integer                                                               :: iProperty
-    type            (hdf5Object                 )                         :: toDataset
-
+    class           (mergerTreeOutputterStandard   ), intent(inout)           :: self
+    type            (mergerTree                    ), intent(inout), target   :: tree
+    integer         (c_size_t                      ), intent(in   )           :: indexOutput
+    double precision                                , intent(in   )           :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    type            (treeNode                      )               , pointer  :: node
+    integer         (kind=hsize_t                  ), dimension(1)            :: referenceLength , referenceStart
+    class           (nodeComponentBasic            )               , pointer  :: basic
+    type            (mergerTree                    )               , pointer  :: currentTree
+    type            (mergerTreeWalkerAllNodes      )                          :: treeWalker
+    integer                                                                   :: iProperty
+    type            (hdf5Object                    )                          :: toDataset
+    !![
+    <optionalArgument name="outputType" defaultsTo="outputGroupTypeTree"/>
+    !!]
+    
     ! Create an output group.
-    call self%outputGroupCreate(indexOutput,time)
+    call self%outputGroupCreate(indexOutput,time,outputType_)
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
@@ -287,11 +298,9 @@ contains
           if      (allocated(self%integerProperty).and.size(self%integerProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
-             call toDataset%close()
           else if (allocated(self% doubleProperty).and.size(self% doubleProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
-             call toDataset%close()
           else
              ! Datasets do not yet exist therefore the start reference must be zero.
              referenceStart(1)=0
@@ -305,18 +314,14 @@ contains
                 do iProperty=1,self%integerPropertyCount
                    toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%integerProperty(iProperty)%name,referenceStart+1,referenceLength)
-                   call toDataset%close()
                 end do
              end if
              if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
                 do iProperty=1,self%doublePropertyCount
                    toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
                    call currentTree%hdf5Group%createReference1D(toDataset,self%doubleProperty(iProperty)%name,referenceStart+1,referenceLength)
-                   call toDataset%close()
                 end do
              end if
-             ! Close the tree group.
-             call currentTree%hdf5Group%close()
           end if
           ! Store the start position and length of the node data for this tree, along with its volume weight.
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
@@ -333,20 +338,24 @@ contains
     return
   end subroutine standardOutputTree
 
-  subroutine standardOutputNode(self,node,indexOutput)
+  subroutine standardOutputNode(self,node,indexOutput,outputType)
     !!{
     Output a single node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (mergerTreeOutputterStandard), intent(inout) :: self
-    type   (treeNode                   ), intent(inout) :: node
-    integer(c_size_t                   ), intent(in   ) :: indexOutput
-    class  (nodeComponentBasic         ), pointer       :: basic
-    
+    class  (mergerTreeOutputterStandard   ), intent(inout)           :: self
+    type   (treeNode                      ), intent(inout)           :: node
+    integer(c_size_t                      ), intent(in   )           :: indexOutput
+    type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
+    class  (nodeComponentBasic            ), pointer                 :: basic
+    !![
+    <optionalArgument name="outputType" defaultsTo="outputGroupTypeNode"/>
+    !!]
+
     ! Create an output group.
     basic => node%basic()
-    call self%outputGroupCreate(indexOutput,basic%time())
+    call self%outputGroupCreate(indexOutput,basic%time(),outputType_)
     ! Initialize output buffers.
     ! Count up the number of properties to be output.
     call self%propertiesCount       (basic%time(),node)
@@ -674,37 +683,16 @@ contains
     !!]
     return
   end subroutine standardOutput
-  
-  subroutine standardFinalize(self)
-    !!{
-    Finalize merger tree output by closing any open groups.
-    !!}
-    use :: HDF5_Access, only : hdf5Access
-    implicit none
-    class  (mergerTreeOutputterStandard), intent(inout) :: self
-    integer(c_size_t                   )                :: iGroup
-
-    ! Close any open output groups.
-    !$ call hdf5Access%set()
-    do iGroup=1,self%outputGroupsCount
-       if (self%outputGroups(iGroup)%opened) then
-          if (self%outputGroups(iGroup)%nodeDataGroup%isOpen()) call self%outputGroups(iGroup)%nodeDataGroup%close()
-          if (self%outputGroups(iGroup)%hdf5Group    %isOpen()) call self%outputGroups(iGroup)%hdf5Group    %close()
-       end if
-    end do
-    if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
-    !$ call hdf5Access%unset()
-    return
-  end subroutine standardFinalize
 
   subroutine standardMakeGroup(self,tree,indexOutput)
     !!{
-    Make an group in the \glc\ file in which to store {\normalfont \ttfamily tree}.
+    Make an group in the \glc\ file in which to store \mono{tree}.
     !!}
     use            :: Galacticus_Nodes                , only : mergerTree
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : megaParsec
     use            :: String_Handling                 , only : operator(//)
+    use            :: Units_MetaData                  , only : unitType
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
@@ -720,8 +708,8 @@ contains
     ! Create a group for the tree.
     tree%hdf5Group=self%outputGroups(indexOutput)%hdf5Group%openGroup(char(groupName),char(description))
     ! Add the merger tree weight to the group.
-    call tree%hdf5Group%writeAttribute(tree%volumeWeight  ,"volumeWeight"         )
-    call tree%hdf5Group%writeAttribute(1.0d0/megaParsec**3,"volumeWeightUnitsInSI")
+    call tree%hdf5Group%writeAttribute(tree%volumeWeight                                    ,"volumeWeight"         )
+    call tree%hdf5Group%writeAttribute(unitType(1.0d0/megaParsec**3,'Mpc⁻³','Mpc^-3',.true.),"volumeWeightUnitsInSI")
     return
   end subroutine standardMakeGroup
 
@@ -764,17 +752,15 @@ contains
                   &                                                         appendTo       =.true.                                                                    &
                   &                                                        )
           end if
-          if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%unitsInSI /= 0.0d0) then
+          if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%units%unitsInSI /= 0.0d0) then
              dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
-             call dataset%writeAttribute(self%integerProperty(iProperty)%unitsInSI,"unitsInSI")
-             call dataset%close         (                                                     )
+             call dataset%writeAttribute(self%integerProperty(iProperty)%units,"units")
              do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank0%size()
                 call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
              end do
              do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank1%size()
                 call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
              end do
-             call        dataset%close         (                                                                   )
           end if
        end do
        self%integerPropertiesWritten=self%integerPropertiesWritten+self%integerBufferCount
@@ -832,16 +818,15 @@ contains
                   &                                                         appendTo       =.true.                                                                  &
                   &                                                        )
           end if
-          if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%unitsInSI /= 0.0d0) then
+          if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%units%unitsInSI /= 0.0d0) then
              dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
-             call        dataset%writeAttribute(self%doubleProperty(iProperty)%unitsInSI       ,"unitsInSI"        )
+             call        dataset%writeAttribute(self%doubleProperty(iProperty)%units            ,"units"            )
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaDataRank0%size()
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
              end do
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaDataRank1%size()
                 call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
              end do
-             call        dataset%close         (                                                                   )
              if (allocated(self%doubleProperty(iProperty)%rank1Descriptors     ) .and. size(self%doubleProperty(iProperty)%rank1Descriptors     ) > 0) then
                 call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
                      &                                                              self%doubleProperty(iProperty)%rank1Descriptors                                 , &
@@ -855,9 +840,8 @@ contains
                      &                                                         trim(self%doubleProperty(iProperty)%name                  )//"ColumnValues"          , &
                      &                                                         char(self%doubleProperty(iProperty)%rank1DescriptorComment)                            &
                      &                                                        )
-             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
-             call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnitsInSI,"unitsInSI")
-             call dataset%close()
+                dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
+                call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnits    ,"units"    )
              end if
           end if
        end do
@@ -1062,8 +1046,11 @@ contains
     if (allocated(self%integerProperty)) then
        do i=1,size(self%integerProperty)
           if (allocated(self%integerProperty(i)%metaDataRank0)) deallocate(self%integerProperty(i)%metaDataRank0)
+          if (allocated(self%integerProperty(i)%metaDataRank1)) deallocate(self%integerProperty(i)%metaDataRank1)
           allocate(self%integerProperty(i)%metaDataRank0)
-          self%integerProperty(i)%metaDataRank0=doubleHash()
+          allocate(self%integerProperty(i)%metaDataRank1)
+          self%integerProperty(i)%metaDataRank0=     doubleHash()
+          self%integerProperty(i)%metaDataRank1=rank1DoubleHash()
        end do
     end if
     if (allocated(self%doubleProperty )) then
@@ -1087,7 +1074,7 @@ contains
        ! Scalar property extractor - get the name, description, and units.
        self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
        self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
-       self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
+       self%doubleProperty (doubleProperty +1                                                                 )%units     =extractor_%units      (                       )
        call    extractor_%metaData(node      ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorTuple        )
@@ -1096,7 +1083,7 @@ contains
        call extractor_%descriptions(time,descriptionsTmp)
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%units     =extractor_%units      (                   time)
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
        end do
@@ -1109,11 +1096,11 @@ contains
        call extractor_%descriptions(descriptionsTmp,time)
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%units     =extractor_%units      (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
-          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI,time)
+          call extractor_%columnDescriptions(self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnits,time)
        end do
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(node,i     ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
@@ -1127,7 +1114,7 @@ contains
        call extractor_%descriptions(descriptionsTmp     )
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
        call    extractor_%metaData(node            ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorList2D       )
@@ -1136,14 +1123,14 @@ contains
        call extractor_%descriptions(descriptionsTmp     )
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
        call    extractor_%metaData(node  ,time,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )
        self%integerProperty(integerProperty+1                                                                 )%comment  =extractor_%description (                       )
-       self%integerProperty(integerProperty+1                                                                 )%unitsInSI=extractor_%unitsInSI   (                       )
+       self%integerProperty(integerProperty+1                                                                 )%units    =extractor_%units      (                       )
        call    extractor_%metaData(node       ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        integerProperty=integerProperty+1
     class is (nodePropertyExtractorIntegerTuple )
@@ -1152,7 +1139,7 @@ contains
        call extractor_%descriptions(time,descriptionsTmp)
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%name     =namesTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%comment  =descriptionsTmp
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%unitsInSI=extractor_%unitsInSI   (                   time)
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%units    =extractor_%units      (                   time)
        do i=1,extractor_%elementCount(                   time)
           call extractor_%metaData(node,i     ,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        end do
@@ -1165,7 +1152,7 @@ contains
        call extractor_%descriptions(descriptionsTmp     )
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%name      =namesTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%comment   =descriptionsTmp
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%unitsInSI =extractor_%unitsInSI  (                       )
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
        call    extractor_%metaData(node            ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
        integerProperty =integerProperty +1
     class is (nodePropertyExtractorMulti        )
@@ -1175,14 +1162,14 @@ contains
           call extractor_%descriptions(elementTypeDouble ,time,descriptionsTmp)
           self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%name      =namesTmp
           self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%comment   =descriptionsTmp
-          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%unitsInSI =extractor_%unitsInSI   (elementTypeDouble ,time)
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%units     =extractor_%units      (elementTypeDouble ,time)
           do i=1,extractor_%elementCount(elementTypeDouble,time)
              call extractor_%metaData(node,elementTypeDouble,time,i,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
           end do
           do i=1,extractor_%elementCount(elementTypeDouble,time)
              if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors     )
              if (allocated(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)) deallocate(self%doubleProperty(doubleProperty+i)%rank1DescriptorValues)
-             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnitsInSI)
+             call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors,self%doubleProperty(doubleProperty+i)%rank1DescriptorValues,self%doubleProperty(doubleProperty+i)%rank1DescriptorComment,self%doubleProperty(doubleProperty+i)%rank1DescriptorUnits)
           end do
           doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
           deallocate(namesTmp       )
@@ -1193,7 +1180,7 @@ contains
           call extractor_%descriptions(elementTypeInteger,time,descriptionsTmp)
           self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%name     =namesTmp
           self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%comment  =descriptionsTmp
-          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%unitsInSI=extractor_%unitsInSI   (elementTypeInteger,time)
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%units    =extractor_%units      (elementTypeInteger,time)
           do i=1,extractor_%elementCount(elementTypeInteger,time)
              call extractor_%metaData(node,elementTypeInteger,time,i,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+i)%metaDataRank1)
           end do
@@ -1234,7 +1221,7 @@ contains
     return
   end subroutine standardPropertyNamesEstablish
 
-  subroutine standardOutputGroupCreate(self,indexOutput,time)
+  subroutine standardOutputGroupCreate(self,indexOutput,time,outputType)
     !!{
     Create a group in which to store this output.
     !!}
@@ -1244,12 +1231,14 @@ contains
     use            :: Numerical_Constants_Astronomical, only : gigaYear    , megaParsec
     use            :: String_Handling                 , only : operator(//)
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)               :: self
-    integer         (c_size_t                   ), intent(in   )               :: indexOutput
-    double precision                             , intent(in   )               :: time
-    type            (outputGroup                ), allocatable  , dimension(:) :: outputGroupsTemporary
-    type            (varying_string             )                              :: description          , groupName
-    double precision                                                           :: expansionFactor      , distanceComoving
+    class           (mergerTreeOutputterStandard   ), intent(inout)               :: self
+    integer         (c_size_t                      ), intent(in   )               :: indexOutput
+    double precision                                , intent(in   )               :: time
+    type            (enumerationOutputGroupTypeType), intent(in   ), optional     :: outputType
+    type            (outputGroup                   ), allocatable  , dimension(:) :: outputGroupsTemporary
+    type            (varying_string                )                              :: description          , groupName
+    double precision                                                              :: expansionFactor      , distanceComoving
+    integer                                                                       :: i
     
     !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
@@ -1258,7 +1247,19 @@ contains
           call Move_Alloc(self%outputGroups,outputGroupsTemporary)
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
-          self%outputGroups(1:size(outputGroupsTemporary))=outputGroupsTemporary
+          !![
+	  <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
+	    <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	    <description>
+	      Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+	    </description>
+	  !!]
+          do i=1,size(outputGroupsTemporary)
+             self%outputGroups(i)=outputGroupsTemporary(i)
+          end do
+          !![
+	  </workaround>
+          !!]
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%opened                  =.false.
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%integerAttributesWritten=.false.
           self%outputGroups(size(outputGroupsTemporary)+1:size(self%outputGroups))%doubleAttributesWritten =.false.
@@ -1292,6 +1293,8 @@ contains
        self%outputGroups(indexOutput)%opened                  =.true.
        self%outputGroups(indexOutput)%integerAttributesWritten=.false.
        self%outputGroups(indexOutput)%doubleAttributesWritten =.false.
+       ! Record the "type" of output for this group.
+       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(enumerationOutputGroupTypeDecode(outputType,includePrefix=.false.),'outputType')
        ! Add the time to this group.
        expansionFactor    =+self%cosmologyFunctions_%expansionFactor (time)
        if (expansionFactor > 1.0d0) then
@@ -1310,3 +1313,16 @@ contains
     end if
     return
   end subroutine standardOutputGroupCreate
+
+  subroutine outputGroupAssign(to,from)
+    implicit none
+    class(outputGroup), intent(  out) :: to
+    class(outputGroup), intent(in   ) :: from
+
+    to%doubleAttributesWritten =from%doubleAttributesWritten
+    to%integerAttributesWritten=from%integerAttributesWritten
+    to%opened                  =from%opened
+    to%hdf5Group               =from%hdf5Group
+    to%nodeDataGroup           =from%nodeDataGroup
+    return
+  end subroutine outputGroupAssign

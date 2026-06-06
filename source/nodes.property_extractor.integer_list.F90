@@ -17,12 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Kind_Numbers  , only : kind_int8
+  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerList" abstract="yes">
-   <description>An abstract output analysis property extractor class which provides a list of integer properties.</description>
+   <description>Abstract base class for extractors that return a variable-length list of integer values per node, defining the interface (element count, names, descriptions, and units) for extractors that output sequences of integer-valued node properties in output analysis.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerList
@@ -33,12 +34,13 @@
    contains
      !![
      <methods>
-       <method method="elementCount" description="Return a count of the number of properties extracted."              />
-       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
-       <method method="names"        description="Return the name of the properties extracted."                       />
-       <method method="descriptions" description="Return a description of the properties extracted."                  />
-       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
-       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
+       <method method="elementCount" description="Return a count of the number of properties extracted."         />
+       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="names"        description="Return the name of the properties extracted."                  />
+       <method method="descriptions" description="Return a description of the properties extracted."             />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
+       <method method="units"        description="Return an object containing units metadata for the properties."/>
+       <method method="metaData"     description="Populate a hash with meta-data for the property."              />
      </methods>
      !!]
      procedure(integerListElementCount), deferred :: elementCount
@@ -46,6 +48,7 @@
      procedure(integerListNames       ), deferred :: names
      procedure(integerListDescriptions), deferred :: descriptions
      procedure(integerListUnitsInSI   ), deferred :: unitsInSI
+     procedure                                    :: units        => integerListUnits
      procedure                                    :: metaData     => integerListMetaData
   end type nodePropertyExtractorIntegerList
 
@@ -107,7 +110,26 @@
   end interface
 
 contains
-  
+
+  function integerListUnits(self) result(units)
+    !!{
+    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerList} \mono{unitsInSI} array into an array of
+    \mono{unitType}.
+    !!}
+    implicit none
+    type (unitType                          ), dimension(:), allocatable :: units
+    class(nodePropertyExtractorIntegerList  ), intent(inout)             :: self
+    double precision                         , dimension(:), allocatable :: siValues
+    integer                                                              :: i
+
+    siValues=self%unitsInSI()
+    allocate(units(size(siValues)))
+    do i=1,size(siValues)
+       units(i)=unitType(siValues(i),isComoving=.false.)
+    end do
+    return
+  end function integerListUnits
+
   subroutine integerListMetaData(self,node,metaDataRank0,metaDataRank1)
     !!{
     Interface for list property meta-data.

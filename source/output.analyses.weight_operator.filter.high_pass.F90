@@ -23,7 +23,7 @@ Implements a high-pass filter analysis weight operator class.
 
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorFilterHighPass">
-   <description>A high-pass filter analysis weight operator class.</description>
+   <description>An output analysis weight operator that multiplies galaxy weights by a high-pass filter function, suppressing contributions from galaxies with properties below \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) during statistical comparisons.</description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorFilterHighPass
@@ -38,7 +38,7 @@ Implements a high-pass filter analysis weight operator class.
 
   interface outputAnalysisWeightOperatorFilterHighPass
      !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis class.
+     Constructors for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis weight operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis weight operator class.
     !!}
     implicit none
     type            (outputAnalysisWeightOperatorFilterHighPass)                          :: self

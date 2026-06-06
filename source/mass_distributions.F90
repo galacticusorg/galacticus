@@ -40,7 +40,12 @@ module Mass_Distributions
   <functionClass>
    <name>massDistribution</name>
    <descriptiveName>Mass Distributions</descriptiveName>
-   <description>Class providing mass distributions.</description>
+   <description>Class providing mass distributions---fully general descriptions of the spatial distribution of mass
+    (dark matter, gas, stars, or black holes) in a galaxy or halo. Implementations provide the density profile
+    $\rho(\mathbf{x})$, gravitational potential $\Phi(\mathbf{x})$, enclosed mass $M(r)$, surface density, rotation
+    curve, and velocity dispersion via the Jeans equation. The class also tracks the component and mass type of the
+    distribution and supports arbitrary geometries, enabling self-consistent multi-component dynamical models of
+    galaxies and halos.</description>
    <destructor>
     <code>
      call kinematicsDistributionDestructor(self)
@@ -76,7 +81,7 @@ module Mass_Distributions
      </code>
    </method>
    <method name="subset">
-      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and {\normalfont \ttfamily massType}.</description>
+      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and \mono{massType}.</description>
       <type>class(massDistributionClass)</type>
       <pass>yes</pass>
       <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -199,9 +204,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Galactic_Structure_Options</modules>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
-    <modules>Galactic_Structure_Options</modules>
     <code>
       double precision :: potential1, potential2
 
@@ -226,9 +231,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Galactic_Structure_Options</modules>
     <argument>class(coordinate                       ), intent(in   )           :: coordinates1, coordinates2</argument>
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status                    </argument>
-    <modules>Galactic_Structure_Options</modules>
     <code>
       massDistributionPotentialDifferenceNumerical=massDistributionPotentialDifferenceNumerical_(self,coordinates1,coordinates2,status)
     </code>
@@ -262,8 +267,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
@@ -312,8 +317,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
@@ -363,9 +368,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder</modules>
     <argument>double precision, intent(in   )           :: density    </argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
-    <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
@@ -406,9 +411,9 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder</modules>
     <argument>double precision, intent(in   )           :: densitySurface</argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
-    <modules>Root_Finder</modules>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
@@ -448,8 +453,8 @@ module Mass_Distributions
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
-    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <modules>Root_Finder</modules>
+    <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
       type            (rootFinder)            :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
@@ -574,13 +579,13 @@ module Mass_Distributions
     <argument>class           (coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
    </method>
    <method name="radiusFreefall" >
-    <description>Return the radius at which the freefall time to the center equals the given {\normalfont \ttfamily time}.</description>
+    <description>Return the radius at which the freefall time to the center equals the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="radiusFreefallIncreaseRate" >
-    <description>Return the rate of increase of the freefall radius corresponding to the given {\normalfont \ttfamily time}.</description>
+    <description>Return the rate of increase of the freefall radius corresponding to the given \mono{time}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
@@ -651,7 +656,7 @@ module Mass_Distributions
     </code>
    </method>
    <data>class           (kinematicsDistributionClass ), pointer :: kinematicsDistribution_                 => null()              </data>
-   <data>logical                                                 :: dimensionless                                                  </data>
+   <data>logical                                                 :: dimensionless                           =  .false.             </data>
    <data>logical                                                 :: tolerateVelocityMaximumFailure          =  .false.             </data>
    <data>type            (enumerationComponentTypeType)          :: componentType                           =  componentTypeUnknown</data>
    <data>type            (enumerationMassTypeType     )          :: massType                                =  massTypeUnknown     </data>
@@ -664,7 +669,11 @@ module Mass_Distributions
   <functionClass>
    <name>kinematicsDistribution</name>
    <descriptiveName>Kinematics Distributions</descriptiveName>
-   <description>Class providing kinematics distributions.</description>
+   <description>Class providing kinematics distributions for mass distribution components---the temperature,
+    velocity dispersion, and mean radial velocity of particles (or fluid elements) as a function of position.
+    For collisional (gaseous) components the temperature profile enters the cooling and feedback calculations;
+    for collisionless (stellar and dark matter) components the velocity dispersion is computed by solving the
+    spherical Jeans equation given the mass distribution and its potential.</description>
    <method name="isCollisional" >
     <description>Return true if the kinematics is collisional.</description>
     <type>logical</type>
@@ -734,12 +743,12 @@ module Mass_Distributions
     </code>
    </method>
    <method name="jeansEquationIntegrand" >
-    <description>Integrand for Jeans equation.</description>
+    <description>Evaluate the integrand of the Jeans equation at the given \mono{radius}, returning $\mathrm{G}M(r)\rho(r)/r^2$ needed for numerical integration of the spherical Jeans equation to obtain the line-of-sight velocity dispersion.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <modules>Numerical_Constants_Astronomical Coordinates</modules>
     <argument>double precision                       , intent(in   ) :: radius                                      </argument>
     <argument>class           (massDistributionClass), intent(inout) :: massDistribution_, massDistributionEmbedding</argument>
-    <modules>Numerical_Constants_Astronomical Coordinates</modules>
     <code>
       type(coordinateSpherical) :: coordinates
       if (radius > 0.0d0) then
@@ -808,7 +817,11 @@ module Mass_Distributions
   <functionClass>
    <name>massDistributionHeating</name>
    <descriptiveName>Heating of Mass Distributions</descriptiveName>
-   <description>Class providing heating models for mass distributions.</description>
+   <description>Class providing heating models for mass distributions---the specific energy deposited into the
+    dark matter or stellar distribution as a function of radius, arising from processes such as tidal heating,
+    dynamical friction, or baryonic feedback. The specific energy and its radial gradient are used to modify the
+    density profile of the mass distribution, capturing the effect of non-gravitational energy injection on the
+    structure of halos and galaxies.</description>
    <method name="specificEnergy" >
     <description>Return the specific energy at the given radius.</description>
     <type>double precision</type>
@@ -835,7 +848,7 @@ module Mass_Distributions
   !![
   <enumeration>
    <name>massDistributionSymmetry</name>
-   <description>Specifies the symmetry of {\normalfont \ttfamily massDistribution} objects.</description>
+   <description>Specifies the symmetry of \mono{massDistribution} objects.</description>
    <visibility>public</visibility>
    <entry label="none"        />
    <entry label="cylindrical" />
@@ -849,8 +862,8 @@ module Mass_Distributions
    <name>nonAnalyticSolvers</name>
    <description>Used to specify the type of solution to use when no analytic solution is available.</description>
    <encodeFunction>yes</encodeFunction>
-   <visibility>public</visibility>
    <validator>yes</validator>
+   <visibility>public</visibility>
    <entry label="fallThrough"/>
    <entry label="numerical"  />
   </enumeration>

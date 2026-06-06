@@ -71,19 +71,27 @@ contains
     return
   end function shakuraSunyaevConstructorParameters
 
-  double precision function shakuraSunyaevEfficiencyRadiative(self,blackHole,accretionRateMass)
+  double precision function shakuraSunyaevEfficiencyRadiative(self,blackHole,accretionRateMass,accretionDiskType) result(efficiencyRadiative)
     !!{
     Return the radiative efficiency of a \cite{shakura_black_1973} accretion disk.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Specific_Energy, orbitPrograde, unitsGravitational
     implicit none
-    class           (accretionDisksShakuraSunyaev), intent(inout) :: self
-    class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
-    double precision                              , intent(in   ) :: accretionRateMass
+    class           (accretionDisksShakuraSunyaev    ), intent(inout)           :: self
+    class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole
+    double precision                                  , intent(in   )           :: accretionRateMass
+    type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType
     !$GLC attributes unused :: self, accretionRateMass
+    !![
+    <optionalArgument name="accretionDiskType" defaultsTo="accretionDiskTypeAny"/>
+    !!]
 
-    shakuraSunyaevEfficiencyRadiative=+1.0d0                                                                                   &
-         &                            -Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsGravitational,orbit=orbitPrograde)
+    if (accretionDiskType_ == accretionDiskTypeAny .or. accretionDiskType_ == accretionDiskTypeThin) then
+       efficiencyRadiative=+1.0d0                                                                                   &
+            &              -Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsGravitational,orbit=orbitPrograde)
+    else
+       efficiencyRadiative=+0.0d0
+    end if
     return
   end function shakuraSunyaevEfficiencyRadiative
 

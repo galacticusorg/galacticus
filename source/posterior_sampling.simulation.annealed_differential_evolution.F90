@@ -24,20 +24,20 @@
   !![
   <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn">
    <description>
-    This class the {\normalfont \ttfamily differentialEvolution} class to include an annealing schedule---the simulation begins at
+    This class extends the \mono{differentialEvolution} class to include an annealing schedule---the simulation begins at
     high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to
-    the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+    the options for the \mono{differentialEvolution} algorithm, the details of the algorithm are controlled by the
     following sub-parameters:
     \begin{description}
-    \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
-    \item[{\normalfont \ttfamily [temperatureLevels]}] The number of temperature levels to use.
+    \item[\mono{[temperatureMaximum]}] The maximum temperature to use when tempering.
+    \item[\mono{[temperatureLevels]}] The number of temperature levels to use.
     \end{description}
     
     The temperature at level $i$ is given by:
     \begin{equation}
     \log T_i = {i-1 \over N-1} \log T_\mathrm{max},
     \end{equation}
-    where $T_\mathrm{max}=${\normalfont \ttfamily [temperatureMaximum]} and $N=${\normalfont \ttfamily [temperatureLevels]}.
+    where $T_\mathrm{max}=$\mono{[temperatureMaximum]} and $N=$\mono{[temperatureLevels]}.
    </description>
   </posteriorSampleSimulation>
   !!]
@@ -63,7 +63,7 @@
 
   interface posteriorSampleSimulationAnnealedDffrntlEvltn
      !!{
-     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling convergence class.
+     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling simulation class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal
@@ -104,7 +104,7 @@ contains
     return
   end function annealedDifferentialEvolutionConstructorParameters
 
-  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
+  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
     !!{
     Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
     !!}
@@ -122,13 +122,13 @@ contains
     integer                                                        , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
          &                                                                                                  stateSwapCount                          , logFlushCount           , &
          &                                                                                                  reportCount                             , temperatureLevelCount   , &
-         &                                                                                                  recomputeCount
+         &                                                                                                  recomputeCount                          , slowStepCount
     character       (len=*                                        ), intent(in   )                       :: logFileRoot                             , interactionRoot
     logical                                                        , intent(in   )                       :: sampleOutliers                          , appendLogs              , &
          &                                                                                                  loadBalance                             , ignoreChainNumberAdvice
     double precision                                               , intent(in   )                       :: temperatureMaximum
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice)
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     return
   end function annealedDifferentialEvolutionConstructorInternal
@@ -143,8 +143,9 @@ contains
     double precision                                               , intent(in   ) :: temperatureMaximum
     integer                                                                        :: i
 
-    self%temperatureLevelCount=temperatureLevelCount
-    self%temperatureMaximum   =temperatureMaximum
+    self%temperatureLevelCurrent=temperatureLevelCount
+    self%temperatureLevelCount  =temperatureLevelCount
+    self%temperatureMaximum     =temperatureMaximum
     allocate(self%temperatures(temperatureLevelCount))
     if (temperatureLevelCount == 1) then
        self%temperatures(1)=1.0d0

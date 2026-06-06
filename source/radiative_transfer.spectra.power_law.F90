@@ -24,8 +24,7 @@
     \begin{equation}
      L_\lambda (\lambda) = \begin{array}{cc} A (\lambda/\lambda_\mathrm{min})^\alpha &amp; \hbox{if } \lambda_\mathrm{min} \le \lambda &lt; \lambda_\mathrm{max} \\ 0 &amp; \hbox{otherwise,} \end{array}
     \end{equation}
-    where $A=${\normalfont \ttfamily normalization}, $\alpha=${\normalfont \ttfamily exponent}, $\lambda_\mathrm{min}=${\normalfont
-    \ttfamily wavelengthMinimum}, and $\lambda_\mathrm{max}=${\normalfont \ttfamily wavelengthMaximum}.
+    where $A=$\mono{normalization}, $\alpha=$\mono{exponent}, $\lambda_\mathrm{min}=$\mono{wavelengthMinimum}, and $\lambda_\mathrm{max}=$\mono{wavelengthMaximum}.
    </description>
   </radiativeTransferSpectrum>
   !!]
@@ -94,7 +93,7 @@ contains
 
   function powerLawConstructorInternal(wavelengthMinimum,wavelengthMaximum,exponent,normalization) result(self)
     !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer photon packet class.
+    Internal constructor for the \refClass{radiativeTransferSpectrumPowerLaw} radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self

@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccelerator">
    <description>
-    An accelerator class for the dark matter profile DMO class.
+    An accelerator wrapper for dark-matter-only profile classes that caches recently computed profile quantities (enclosed mass, density, potential, etc.) and returns interpolated estimates when the requested radius is close to a cached value, significantly speeding up calculations that repeatedly query the profile at nearby radii.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -65,13 +65,13 @@ contains
       <name>toleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
-      <description>The tolerance with which to accept accelerated estimates.</description>
+      <description>The relative tolerance within which a cached (accelerated) profile estimate is accepted; if the requested radius differs from the cached value by more than this fractional amount, the full profile calculation is recomputed.</description>
     </inputParameter>
     <inputParameter>
       <name>factorRadiusMaximum</name>
       <defaultValue>3.0d0</defaultValue>
       <source>parameters</source>
-      <description>The maximum factor by which to interpolate in radius.</description>
+      <description>The maximum radial extrapolation factor allowed when using cached profile values for the dark-matter-only profile; if the requested radius exceeds the cached radius by more than this factor, the full calculation is recomputed.</description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" parameterName="darkMatterProfileDMO" source="parameters"/>
     !!]
@@ -85,7 +85,7 @@ contains
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfileDMO_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccelerator} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileDMOAccelerator} dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccelerator)                        :: self
@@ -113,7 +113,7 @@ contains
 
   function acceleratorGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalAccelerator, kinematicsDistributionCollisionless, massDistributionSpherical, nonAnalyticSolversNumerical

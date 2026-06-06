@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorSatelliteDecelerationSIDM">
-   <description>A node operator class that performs deceleration of satellites due to dark matter self-interactions.</description>
+   <description>Computes the deceleration of satellite dark matter halos due to self-interactions with the host halo's dark matter, applying a drag force that supplements dynamical friction and can accelerate orbital decay in self-interacting dark matter models.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDecelerationSIDM

@@ -393,7 +393,7 @@ contains
 
   double precision function coolingRadiusRoot(radius)
     !!{
-    Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
+    Root function which evaluates the difference between the cooling time at \mono{radius} and the time available for cooling.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass, kinematicsDistributionClass
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)

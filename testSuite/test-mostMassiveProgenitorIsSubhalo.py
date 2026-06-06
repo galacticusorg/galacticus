@@ -16,14 +16,14 @@ print("...done ("+str(status)+")")
 if status.returncode != 0:
     print("FAILED: model run:")
     subprocess.run("cat outputs/mostMassiveProgenitorIsSubhalo.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("Checking for errors...")
 status = subprocess.run("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/mostMassiveProgenitorIsSubhalo.log",shell=True)
 print("...done ("+str(status)+")")
 if status.returncode == 0:
     print("FAILED: model run (errors):")
     subprocess.run("cat outputs/mostMassiveProgenitorIsSubhalo.log",shell=True)
-    sys.exit()
+    sys.exit(0)
 print("SUCCESS: model run")
 
 # Check for jumps in the mass accretion history - these would occur if the most massive progenitor was not correctly promoted.
@@ -43,5 +43,5 @@ for output in outputs.keys():
             rmax = np.max(ratio)
             if rmax > 5.0:
                 print("FAIL: Large jump in MAH of: "+str(rmax)+" "+str(idx[i]))
-                sys.exit()
+                sys.exit(0)
 print("SUCCESS: most massive subhalo promotion")

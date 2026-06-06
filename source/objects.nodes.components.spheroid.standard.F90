@@ -45,7 +45,6 @@ module Node_Component_Spheroid_Standard
    <class>spheroid</class>
    <name>standard</name>
    <isDefault>true</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
@@ -58,7 +57,7 @@ module Node_Component_Spheroid_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
-      <output unitsInSI="massSolar" comment="Mass of stars in the standard spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the standard spheroid."/>
     </property>
     <property>
       <name>massStellarFormed</name>
@@ -71,35 +70,35 @@ module Node_Component_Spheroid_Standard
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard spheroid."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
-      <output unitsInSI="massSolar" comment="Mass of gas in the standard spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard spheroid."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard spheroid."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard spheroid."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true"/>
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard spheroid."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of the standard spheroid."/>
     </property>
     <property>
       <name>radius</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaParsec" comment="Scale length of the standard spheroid."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Scale length of the standard spheroid."/>
     </property>
     <property>
       <name>halfMassRadius</name>
@@ -113,14 +112,14 @@ module Node_Component_Spheroid_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="kilo" comment="Circular velocity at the scale length of the standard spheroid."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity at the scale length of the standard spheroid."/>
     </property>
     <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of spheroid stars."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -190,9 +189,7 @@ module Node_Component_Spheroid_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_Spheroid_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Initialize(parameters)
     !!{
@@ -217,7 +214,6 @@ contains
        call spheroidStandardComponent%             massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
        call spheroidStandardComponent%    starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
        call spheroidStandardComponent%stellarPropertiesHistoryRateFunction(Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate)
-       call spheroidStandardComponent%                   createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
@@ -259,9 +255,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_Spheroid_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters)
     !!{
@@ -361,9 +355,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Spheroid_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_Spheroid_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
     !!{
@@ -393,9 +385,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_Spheroid_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !!{
@@ -448,9 +438,7 @@ contains
   end subroutine postEvolve
 
   !![
-  <postStepTask>
-    <unitName>Node_Component_Spheroid_Standard_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_Spheroid_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !!{
@@ -664,7 +652,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate(self,rate,interrupt,interruptProcedure)
     !!{
     Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
-    units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+    units of $\mathrm{M}_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
     !!}
     use :: Abundances_Structure, only : abundances   , operator(*)
     use :: Error               , only : Error_Report
@@ -791,13 +779,11 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_Spheroid_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_Spheroid_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
+    Set scales for properties of \mono{node}. Note that gas masses get an additional scaling down since they can approach
     zero and we'd like to prevent them from becoming negative.
     !!}
     use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances               , &
@@ -892,13 +878,11 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Scale_Set
 
   !![
-  <inactiveSetTask>
-   <unitName>Node_Component_Spheroid_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_Spheroid_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     implicit none
@@ -917,7 +901,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any standard spheroid associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1241,10 +1225,7 @@ contains
   end subroutine satelliteMerger
 
   !![
-  <radiusSolverPlausibility>
-   <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
-   <after>Node_Component_Basic_Standard_Plausibility</after>
-  </radiusSolverPlausibility>
+  <radiusSolverPlausibility function="Node_Component_Spheroid_Standard_Radius_Solver_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !!{
@@ -1354,9 +1335,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set
 
   !![
-  <radiusSolverTask>
-   <unitName>Node_Component_Spheroid_Standard_Radius_Solver</unitName>
-  </radiusSolverTask>
+  <radiusSolverTask function="Node_Component_Spheroid_Standard_Radius_Solver"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
@@ -1461,7 +1440,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
+    Extend the range of a star formation history in a standard spheroid component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
@@ -1482,7 +1461,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
+    Extend the range of a stellar properties history in a standard spheroid component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
@@ -1537,9 +1516,7 @@ contains
   end subroutine mergerTreeExtraOutput
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_Spheroid_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1562,9 +1539,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_Spheroid_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

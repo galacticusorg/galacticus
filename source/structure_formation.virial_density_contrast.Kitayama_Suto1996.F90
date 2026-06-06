@@ -26,9 +26,6 @@
   !![
   <virialDensityContrast name="virialDensityContrastKitayamaSuto1996">
    <description>
-  !!]
-
-  !![
     A virial density contrast class using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in
     flat cosmological models (an error will be reported in non-flat models). Specifically,
     \begin{equation}
@@ -97,7 +94,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{
-    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} virial density contrast class.
+    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self

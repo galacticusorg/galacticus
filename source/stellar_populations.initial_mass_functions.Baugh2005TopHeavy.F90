@@ -25,10 +25,10 @@
   <initialMassFunction name="initialMassFunctionBaugh2005TopHeavy">
    <description>
     A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}:
-    The {\normalfont \ttfamily Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
+    The \mono{Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
     \begin{equation}
      \phi(M) \propto 
-     M^{-1} \hbox{ for } 0.15M_\odot &lt; M &lt; 125M_\odot
+     M^{-1} \hbox{ for } 0.15\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot
     \end{equation}
    </description>
   </initialMassFunction>

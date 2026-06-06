@@ -19,7 +19,7 @@
 
   !![
   <task name="taskBuildToolCLASS">
-   <description>A task which builds the CLASS tool.</description>
+   <description>A task which downloads, compiles, and installs the CLASS (Cosmic Linear Anisotropy Solving System) Boltzmann code, making it available as an alternative to CAMB for computing CMB anisotropies, matter transfer functions, and linear power spectra.</description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCLASS

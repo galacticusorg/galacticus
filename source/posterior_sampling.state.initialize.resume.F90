@@ -27,7 +27,7 @@
   <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
    <description>
     This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
-    {\normalfont \ttfamily [logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
+    \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
   </description>
   </posteriorSampleStateInitialize>
   !!]
@@ -66,12 +66,12 @@ contains
     !![
     <inputParameter>
       <name>logFileRoot</name>
-      <description>The root file name of the state files from which to resume.</description>
+      <description>The root file name (without chain-index suffix) of the binary state files written by a previous run, from which chain positions and optionally full simulation state are restored to resume sampling.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>restoreState</name>
-      <description>If true, restore the state of the simulation.</description>
+      <description>If true, restore the full internal simulation state (step counter, acceptance counts, covariance estimates) from the state files in addition to restoring the chain parameter vectors.</description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -106,7 +106,7 @@ contains
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
-    use :: String_Handling             , only : operator(//)
+    use :: String_Handling             , only : operator(//)             , String_Count_Words
     implicit none
     class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
     class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
@@ -119,10 +119,11 @@ contains
     type            (varying_string                      )                              :: logFileName         , message
     integer                                                                             :: stateCount          , mpiRank          , &
          &                                                                                 logFileUnit         , ioStatus         , &
-         &                                                                                 i
+         &                                                                                 i                   , lineNumber
     double precision                                                                    :: logPosterior_       , logLikelihood_
     logical                                                                             :: converged           , first
-    character       (len=12                )                                            :: labelValue          , labelMinimum     , &
+    character       (len=4096                            )                              :: line
+    character       (len=  12                            )                              :: labelValue          , labelMinimum     , &
          &                                                                                 labelMaximum
 
     ! Assume we have no information about the likelihood of the state by default.
@@ -134,30 +135,38 @@ contains
     ! Read state from the log file.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
     open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-    ioStatus=0
-    first   =.true.
+    ioStatus  =0
+    first     =.true.
+    lineNumber=0
     do while (ioStatus == 0)
-       read (logFileUnit,*,iostat=ioStatus) stateCount          , &
-            &                               mpiRank             , &
-            &                               timeEvaluatePrevious, &
-            &                               converged           , &
-            &                               logPosterior_       , &
-            &                               logLikelihood_      , &
-            &                               stateVector
-       if (ioStatus == 0) then
-          ! Map the state.
-          do i=1,size(stateVector)
-             stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
-          end do
-          ! Restore the state object.
-          if (self%restoreState) then
-             call simulationState%restore(stateVectorMapped,first         )
-             call modelLikelihood%restore(stateVectorMapped,logLikelihood_)
-             logLikelihood=logLikelihood_
-             logPosterior =logPosterior_
-          end if
-          first=.false.
+       read (logFileUnit,'(a)',iostat=ioStatus) line
+       lineNumber=lineNumber+1
+       if (ioStatus  /=  0 ) cycle
+       if (line(1:1) == "#") cycle
+       read (line,*,iostat=ioStatus) &
+            & stateCount          ,  &
+            & mpiRank             ,  &
+            & timeEvaluatePrevious,  &
+            & converged           ,  &
+            & logPosterior_       ,  &
+            & logLikelihood_      ,  &
+            & stateVector
+       if (ioStatus /= 0) then
+          write (labelValue,*) lineNumber
+          call Error_Report(var_str("failed to read chain file '")//char(logFileName)//"' [line: "//trim(adjustl(labelValue))//"] - expected "//int(6+size(stateVector))//"columns, found "//String_Count_Words(line)//{introspection:location})
        end if
+       ! Map the state.
+       do i=1,size(stateVector)
+          stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
+       end do
+       ! Restore the state object.
+       if (self%restoreState) then
+          call simulationState%restore(stateVectorMapped,first         )
+          call modelLikelihood%restore(stateVectorMapped,logLikelihood_)
+          logLikelihood=logLikelihood_
+          logPosterior =logPosterior_
+       end if
+       first=.false.
     end do
     close(logFileUnit)
     ! Set the simulation state.

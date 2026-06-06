@@ -29,8 +29,7 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
     A survey geometry class that describes the survey geometry of \cite{moustakas_primus:_2013}. 
     
     For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)
-    corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} {\normalfont
-    \ttfamily harmonize} command.
+    corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} \mono{harmonize} command.
     
     To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in
     Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting
@@ -45,7 +44,7 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
     z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) &amp; &amp; \hbox{ELAIS-S1}
      \label{eq:MoustakasDepthPolynomial}
     \end{eqnarray}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
     stellar mass.
     
     \begin{figure}
@@ -237,7 +236,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
-    ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        select case (field)
@@ -334,14 +333,11 @@ contains
     type (varying_string                   ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
     allocate(mangleFiles(5))
-    mangleFiles=                                                                    &
-         &      [                                                                   &
-         &       self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"    , &
-         &       self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply" , &
-         &       self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply", &
-         &       self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"      , &
-         &       self%mangleDirectory()//"es1_field_galex_window_2mask.ply"         &
-         &      ]
+    mangleFiles(1)=self%mangleDirectory()//"cosmos_field_galex_window_2mask.ply"
+    mangleFiles(2)=self%mangleDirectory()//"xmm_swire_field_galex_window_2mask.ply"
+    mangleFiles(3)=self%mangleDirectory()//"cfhtls_xmm_field_galex_window_2mask.ply"
+    mangleFiles(4)=self%mangleDirectory()//"cdfs_field_galex_window_2mask.ply"
+    mangleFiles(5)=self%mangleDirectory()//"es1_field_galex_window_2mask.ply"
     return
   end subroutine moustakas2013PRIMUSMangleFiles
 

@@ -24,7 +24,7 @@
   
   !![
   <galacticFilter name="galacticFilterPrimaryDescendantNode">
-   <description>Applies a filter to all descendant nodes of the given node and passes if any primary descendant passes.</description>
+   <description>Applies a delegate galactic filter to all primary descendant nodes of the given node along the main progenitor branch and passes if any such primary descendant satisfies that filter. The \mono{[allowSelf]} parameter controls whether the node itself is included among the candidates tested.</description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterPrimaryDescendantNode

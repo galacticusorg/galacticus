@@ -30,7 +30,7 @@
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
-   <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
+   <description>Computes dark matter halo concentrations using the accretion-history-based fitting function of \cite{correa_accretion_2015}, which relates concentration to the mass accretion history of the halo through a power-law relation in redshift. The normalization of the concentration-mass relation is calibrated by the free parameter \mono{[A]}.</description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -70,7 +70,7 @@ contains
 
   function correa2015ConstructorParameters(parameters) result(self)
     !!{
-    Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
+    Default constructor for the \mono{correa2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationCorrea2015)                :: self
@@ -163,7 +163,7 @@ contains
 
   subroutine correa2015Destructor(self)
     !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationCorrea2015} dark matter profile concentration class.
+    Destructor for the \refClass{darkMatterProfileConcentrationCorrea2015} dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
@@ -181,7 +181,7 @@ contains
 
   double precision function correa2015Concentration(self,node)
     !!{
-    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    Return the concentration of the dark matter halo profile of \mono{node} using the
     \cite{correa_accretion_2015} algorithm.
     !!}
     use :: Dark_Matter_Halos_Correa2015, only : Dark_Matter_Halo_Correa2015_Fit_Parameters

@@ -26,7 +26,7 @@
   !![
   <blackHoleAccretionRate name="blackHoleAccretionRateSpheroidTracking">
    <description>
-    A black hole accretion rate calculation that tracks the growth of the spheroid.
+    A black hole accretion rate class that drives black hole growth in proportion to the stellar mass growth rate of the host spheroid. The ratio of black hole growth to spheroid stellar mass growth is set by the \mono{[growthRatioToStellarSpheroid]} parameter.
    </description>
   </blackHoleAccretionRate>
   !!]
@@ -82,7 +82,7 @@ contains
 
   function spheroidTrackingConstructorInternal(growthRatioToStellarSpheroid,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} node operator class.
+    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class.
     !!}
     implicit none
     type            (blackHoleAccretionRateSpheroidTracking)                        :: self

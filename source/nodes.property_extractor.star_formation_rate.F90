@@ -29,9 +29,8 @@ Implements a star formation rate property extractor class.
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate">
    <description>
     A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by
-    the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
-    \ttfamily spheroid}'', ``{\normalfont \ttfamily nsc}'' or ``{\normalfont \ttfamily total}''. The corresponding star formation
-    rate is extracted as {\normalfont \ttfamily \textless\ component\textgreater\ StarFormationRate} in units of $M_\odot$/Gyr.
+    the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``\mono{spheroid}'', ``\mono{nsc}'' or ``\mono{total}''. The corresponding star formation
+    rate is extracted as \mono{\textless\ component\textgreater\ StarFormationRate} in units of $\mathrm{M}_\odot$/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -52,11 +51,12 @@ Implements a star formation rate property extractor class.
      procedure :: name        => starFormationRateName
      procedure :: description => starFormationRateDescription
      procedure :: unitsInSI   => starFormationRateUnitsInSI
+     procedure :: units       => starFormationRateUnits
   end type nodePropertyExtractorStarFormationRate
 
   interface nodePropertyExtractorStarFormationRate
      !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRate} output analysis class.
+     Constructors for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -240,3 +240,17 @@ contains
     starFormationRateUnitsInSI=massSolar/gigaYear
     return
   end function starFormationRateUnitsInSI
+
+  function starFormationRateUnits(self) result(units)
+    !!{
+    Return the units of the star formation rat property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorStarFormationRate), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(self%unitsInSI(),description='M☉/Gyr',quantity='solMass/Gyr')
+    return
+  end function starFormationRateUnits

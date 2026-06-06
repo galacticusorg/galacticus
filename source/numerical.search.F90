@@ -72,7 +72,7 @@ contains
 
   function searchArrayDouble(arrayToSearch,valueToFind)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
     to find the index $i$ such that $x(i) \le v < x(i+1)$.
     !!}
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function searchArray{Type¦label}(arrayToSearch,valueToFind)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
     to find the index $i$ such that $x(i) \le v < x(i+1)$.
     !!}
     {Type¦match¦^(varstr)$¦  use :: ISO_Varying_String, only : varying_string, operator(<), operator(>), operator(<=), operator(>=)¦}
@@ -104,11 +104,13 @@ contains
     {Type¦intrinsic}                        , intent(in   ) :: valueToFind
     integer         (c_size_t)                              :: jLower                 , jMidpoint, &
          &                                                     jUpper
-    logical                                                 :: isInside
+    logical                                                 :: isInside               , isAscending
 
+    ! Determine array ordering once; this is invariant for the call.
+    isAscending=arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)
     ! Check whether valueToFind is outside range of arrayToSearch().
     isInside=.true.
-    if (arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
+    if (isAscending) then ! arrayToSearch() is in ascending order.
        if      (valueToFind < arrayToSearch(1                                )) then
           isInside=.false.
           searchArray{Type¦label}=                                 0_c_size_t
@@ -131,7 +133,7 @@ contains
        jUpper=size(arrayToSearch,kind=c_size_t)+1
        do while (jUpper-jLower > 1)
           jMidpoint=(jUpper+jLower)/2
-          if ((arrayToSearch(size(arrayToSearch,kind=c_size_t)) >= arrayToSearch(1)) .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
+          if (isAscending .eqv. (valueToFind >= arrayToSearch(jMidpoint))) then
              jLower=jMidpoint
           else
              jUpper=jMidpoint
@@ -144,8 +146,7 @@ contains
 
   function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
     !!{
-    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
-    \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
+    Searches an array, $x=($\mono{arrayToSearch}$)$, for the entry closest to value, $v(=$\mono{valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     within which the two values must match.
     !!}
     use :: Error               , only : Error_Report, errorStatusFail, errorStatusSuccess
@@ -198,8 +199,8 @@ contains
 
   function searchIndexedInteger8(arrayToSearch,arrayIndex,valueToFind)
     !!{
-    Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by
-    {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that
+    Searches a long integer array, $x=($\mono{arrayToSearch}$)$, which is rank ordered when indexed by
+    \mono{arrayIndex}, for value, $v(=$\mono{valueToFind}$)$, to find the index $i$ such that
     $x(i) \le v < x(i+1)$.
     !!}
     use :: Kind_Numbers , only : kind_int8

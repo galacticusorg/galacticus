@@ -23,7 +23,7 @@ Implements a correlation function output analysis class for the \cite{hearin_dar
 
   !![
   <outputAnalysis name="outputAnalysisCorrelationFunctionHearin2013SDSS">
-   <description>A correlation function output analysis class for the \cite{hearin_dark_2013} analysis.</description>
+   <description>Computes the galaxy two-point correlation function split by color for comparison with the \cite{hearin_dark_2013} SDSS analysis, with stellar mass random/systematic error polynomial coefficients and binomial covariance matrix parameters for halo mass range.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisCorrelationFunction) :: outputAnalysisCorrelationFunctionHearin2013SDSS

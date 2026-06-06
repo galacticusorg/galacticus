@@ -46,7 +46,6 @@ module Node_Component_NSC_Standard
    <class>NSC</class>
    <name>standard</name>
    <isDefault>false</isDefault>
-   <createFunction isDeferred="true" />
    <properties>
     <property>
       <name>isInitialized</name>
@@ -65,7 +64,7 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of stars in the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of stars in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>massStellarFormed</name>
@@ -78,28 +77,28 @@ module Node_Component_NSC_Standard
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the stellar phase of the standard nuclear star cluster."/>
     </property>
     <property>
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of gas in the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard nuclear star cluster."/>
     </property>
     <property>
       <name>abundancesGas</name>
       <type>abundances</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of metals in the gas phase of the standard nuclear star cluster."/>
     </property>
     <property>
       <name>angularMomentum</name>
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-      <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard nuclear star cluster."/>
+      <output unitsInSI="massSolar*megaParsec*kilo" unitsDescription="Msun Mpc km/s" unitsQuantity="solMass Mpc km/s" comment="Angular momentum of the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Angular_Momentum</getFunction>
     </property>
     <property>
@@ -107,7 +106,7 @@ module Node_Component_NSC_Standard
       <type>double</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-      <output unitsInSI="megaParsec" comment="Radial scale length in the standard nuclear star cluster."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Radius</getFunction>
     </property>
     <property>
@@ -115,7 +114,7 @@ module Node_Component_NSC_Standard
       <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
       <type>double</type>
       <rank>0</rank>
-      <output unitsInSI="megaParsec" comment="Radial scale length in the standard nuclear star cluster."/>
+      <output unitsInSI="megaParsec" unitsDescription="Mpc" unitsQuantity="Mpc" comment="Radial scale length in the standard nuclear star cluster."/>
       <getFunction>Node_Component_NSC_Standard_Half_Mass_Radius</getFunction>
     </property>
     <property>
@@ -124,14 +123,14 @@ module Node_Component_NSC_Standard
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
       <getFunction>Node_Component_NSC_Standard_Velocity</getFunction>
-      <output unitsInSI="kilo" comment="Circular velocity of the standard nuclear star cluster at scale length."/>
+      <output unitsInSI="kilo" unitsDescription="km/s" unitsQuantity="km/s" comment="Circular velocity of the standard nuclear star cluster at scale length."/>
     </property>
     <property>
       <name>luminositiesStellar</name>
       <type>stellarLuminosities</type>
       <rank>0</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of nuclear star cluster stars."/>
+      <output unitsInSI="luminosityZeroPointAB" unitsDescription="AB-magnitude zero point" unitsQuantity="4.465920e17 W/Hz" comment="Luminosity of nuclear star cluster stars."/>
     </property>
     <property>
       <name>stellarPropertiesHistory</name>
@@ -191,9 +190,7 @@ module Node_Component_NSC_Standard
 contains
 
   !![
-  <nodeComponentInitializationTask>
-   <unitName>Node_Component_NSC_Standard_Initialize</unitName>
-  </nodeComponentInitializationTask>
+  <nodeComponentInitializationTask function="Node_Component_NSC_Standard_Initialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Initialize(parameters)
     !!{
@@ -251,9 +248,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Initialize
 
   !![
-  <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_NSC_Standard_Thread_Initialize</unitName>
-  </nodeComponentThreadInitializationTask>
+  <nodeComponentThreadInitializationTask function="Node_Component_NSC_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Thread_Initialize(parameters)
     !!{
@@ -323,9 +318,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Thread_Initialize
 
   !![
-  <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_NSC_Standard_Thread_Uninitialize</unitName>
-  </nodeComponentThreadUninitializationTask>
+  <nodeComponentThreadUninitializationTask function="Node_Component_NSC_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Thread_Uninitialize()
     !!{
@@ -355,9 +348,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Thread_Uninitialize
 
   !![
-  <preEvolveTask>
-  <unitName>Node_Component_NSC_Standard_Pre_Evolve</unitName>
-  </preEvolveTask>
+  <preEvolveTask function="Node_Component_NSC_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_NSC_Standard_Pre_Evolve(node)
     !!{
@@ -410,9 +401,7 @@ contains
   end subroutine postEvolve
 
   !![
-  <postStepTask>
-    <unitName>Node_Component_NSC_Standard_Post_Step</unitName>
-  </postStepTask>
+  <postStepTask function="Node_Component_NSC_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_NSC_Standard_Post_Step(node,status)
     !!{
@@ -702,13 +691,11 @@ contains
   end subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Rate
 
   !![
-  <scaleSetTask>
-   <unitName>Node_Component_NSC_Standard_Scale_Set</unitName>
-  </scaleSetTask>
+  <scaleSetTask function="Node_Component_NSC_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_NSC_Standard_Scale_Set(node)
     !!{
-    Set scales for properties of {\normalfont \ttfamily node}.
+    Set scales for properties of \mono{node}.
     !!}
     use :: Abundances_Structure          , only : abs                   , abundances      , max                     , operator(*)            , &
           &                                       unitAbundances
@@ -843,13 +830,11 @@ contains
   end subroutine Node_Component_NSC_Standard_Create
 
   !![
-  <inactiveSetTask>
-   <unitName>Node_Component_NSC_Standard_Inactive</unitName>
-  </inactiveSetTask>
+  <inactiveSetTask function="Node_Component_NSC_Standard_Inactive"/>
   !!]
   subroutine Node_Component_NSC_Standard_Inactive(node)
     !!{
-    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    Set Jacobian zero status for properties of \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentNSCStandard, treeNode
     implicit none
@@ -868,7 +853,7 @@ contains
 
   subroutine satelliteMerger(self,node)
     !!{
-    Transfer any standard nuclear star cluster associated with {\normalfont \ttfamily node} to its host halo.
+    Transfer any standard nuclear star cluster associated with \mono{node} to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1199,7 +1184,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a star formation history in a standard nuclear star cluster component for {\normalfont \ttfamily node}.
+    Extend the range of a star formation history in a standard nuclear star cluster component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1220,7 +1205,7 @@ contains
 
   subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
     !!{
-    Extend the range of a stellar properties history in a standard nuclear star cluster component for {\normalfont \ttfamily node}.
+    Extend the range of a stellar properties history in a standard nuclear star cluster component for \mono{node}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1274,9 +1259,7 @@ contains
    end subroutine mergerTreeExtraOutput
 
   !![
-  <stateStoreTask>
-   <unitName>Node_Component_NSC_Standard_State_Store</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="Node_Component_NSC_Standard_State_Store"/>
   !!]
   subroutine Node_Component_NSC_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1298,9 +1281,7 @@ contains
   end subroutine Node_Component_NSC_Standard_State_Store
 
   !![
-  <stateRetrieveTask>
-   <unitName>Node_Component_NSC_Standard_State_Retrieve</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="Node_Component_NSC_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_NSC_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
     !!{

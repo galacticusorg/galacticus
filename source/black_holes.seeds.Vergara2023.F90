@@ -69,7 +69,7 @@ contains
 
   function vergara2023ConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{blackHoleSeedsVergara2023} node operator class which takes a parameter set as input.
+    Constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,13 +84,13 @@ contains
     <inputParameter>
       <name>massSingleStar</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the mass of a single star in Solar units.</description>
+      <description>Specifies the typical mass of a single star (in Solar masses) used in the \cite{vergara_global_2023} stellar cluster collapse model for computing the black hole seed mass from a dense star cluster.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>radiusSingleStar</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the radius of a single star in Solar units.</description>
+      <description>Specifies the typical radius of a single star (in Solar radii) used in the \cite{vergara_global_2023} stellar cluster collapse model for determining the cross-sections relevant to the seed formation process.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -123,7 +123,7 @@ contains
   
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{blackHoleSeedsVergara2023} node operator class.
+    Internal constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsVergara2023)                        :: self

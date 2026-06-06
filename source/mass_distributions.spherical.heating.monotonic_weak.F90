@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingMonotonicWeak
      !!{
-     Constructors for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

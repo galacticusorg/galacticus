@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity">
-   <description>A unitarity output analysis distribution normalizer class.</description>
+   <description>An output analysis distribution normalizer class that rescales the distribution so that its total (sum over all bins) equals unity, converting raw counts into a probability distribution.</description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerUnitarity

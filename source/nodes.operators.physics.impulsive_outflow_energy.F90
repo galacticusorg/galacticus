@@ -42,8 +42,7 @@
       \begin{equation}
        f(x) = ( 1 + \beta x )^\gamma,
       \end{equation}
-      where $\beta=${\normalfont \ttfamily [impulsiveCorrectionScale]} and $\gamma=${\normalfont \ttfamily
-      [impulsiveCorrectionExponent]}.
+      where $\beta=$\mono{[impulsiveCorrectionScale]} and $\gamma=$\mono{[impulsiveCorrectionExponent]}.
 
       In practice, this operator accumulates just
       \begin{equation}

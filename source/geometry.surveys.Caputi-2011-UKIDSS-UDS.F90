@@ -33,8 +33,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
     
     To estimate the depth of the \cite{caputi_stellar_2011} sample as a function of galaxy stellar mass we make use of semi-analytic
     models in the Millennium Database. Specifically, we use the \glspl{sam} of \cite{guo_dwarf_2011} and
-    \cite{henriques_confronting_2012} specifically the {\normalfont \ttfamily Guo2010a..MR} and {\normalfont \ttfamily
-      Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
+    \cite{henriques_confronting_2012} specifically the \mono{Guo2010a..MR} and \mono{Henriques2012a.wmap1.BC03\_001} tables in the Millennium Database. For each snapshot in the database, we extract the stellar
     masses and observed-frame IRAC 4.5$\mu$m apparent magnitudes (including dust extinction), and determine the median apparent
     magnitude as a function of stellar mass. Using the limiting apparent magnitude of the \cite{caputi_stellar_2011} sample,
     $i_{4.5}=24$, we infer the corresponding absolute magnitude at each redshift and, using our derived apparent magnitude--stellar
@@ -48,7 +47,7 @@ Implements the survey geometry used by \cite{caputi_stellar_2011}.
      z(M_\star) = -56.247 + 5.881 m,
      \label{eq:UKIDSSUDSDepthPolynomial}
     \end{equation}
-    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
     
     \begin{figure}
      \begin{center}
@@ -210,7 +209,7 @@ contains
     if (present(luminosity       )) call Error_Report(       '`luminosity` is not supported'//{introspection:location})
     if (present(starFormationRate)) call Error_Report('`starFormationRate` is not supported'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
-    ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
+    ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.py for details.)
     if (present(mass)) then
        logarithmicMass=log10(mass)
        redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
@@ -256,8 +255,7 @@ contains
 
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
     !!{
-    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
-    constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
+    Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see \mono{constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.py}).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -278,7 +276,7 @@ contains
     !!}
     use :: File_Utilities , only : File_Exists
     use :: Error          , only : Error_Report
-    use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5Object
     use :: String_Handling, only : operator(//)
@@ -290,17 +288,16 @@ contains
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
          & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(inputPath(pathTypeDataDynamic)//"surveyGeometry/UKIDDS_UDS/surveyGeometryRandoms.pl")
+       call System_Command_Do(inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py")
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    call surveyGeometryRandomsFile%openFile(char(inputPath(pathTypeDataDynamic)//&
+    surveyGeometryRandomsFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//&
          &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )
-    call surveyGeometryRandomsFile%close()
     !$ call hdf5Access%unset()
     return
   end subroutine caputi2011UKIDSSUDSRandomsInitialize

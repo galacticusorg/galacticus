@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating scales class which takes a parameter set as input.
+    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
 
   function nullGet(self,node) result(massDistributionHeating_)
     !!{
-    Return the dark matter mass distribution heating for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution heating for the given \mono{node}.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingNull
     implicit none

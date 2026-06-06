@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisHeatedLikelihood">
-   <description>A merger tree analysis class which wraps another class and ``heats'' its likelihood to a given temperature.</description>
+   <description>Wraps another \refClass{outputAnalysisClass} and raises its log-likelihood to the power $1/T$ where $T$ is the \mono{temperature} parameter, effectively flattening the posterior for use in parallel tempering or annealing inference methods.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisHeatedLikelihood
@@ -54,7 +54,7 @@ contains
 
   function heatedLikelihoodConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{outputAnalysisHeatedLikelihood} merger tree analysis class which takes a parameter set as input.
+    Constructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function heatedLikelihoodConstructorInternal(temperature,outputAnalysis_) result(self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisHeatedLikelihood} analysis class.
+    Internal constructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class.
     !!}
     implicit none
     type            (outputAnalysisHeatedLikelihood)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine heatedLikelihoodDestructor(self)
     !!{
-    Destructor for the \refClass{outputAnalysisHeatedLikelihood} analysis class.
+    Destructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class.
     !!}
     implicit none
     type(outputAnalysisHeatedLikelihood), intent(inout) :: self

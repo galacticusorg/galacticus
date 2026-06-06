@@ -25,7 +25,7 @@
 
   !![
   <nodeOperator name="nodeOperatorGalaxyGasMajorMergerTime">
-   <description>A node operator class that records the times of gas-mass-based major mergers between galaxies.</description>
+   <description>A node operator class that records the cosmic time of each galaxy--galaxy merger in which the cold gas mass ratio of the merging pair exceeds \mono{ratioGasMajorMerger} (default 0.25). Times are accumulated as a rank-1 meta-property of the basic node component; \mono{countTimesMaximum} caps the number of merger times stored per node. This enables analysis of the gas-rich merger history of galaxies across cosmic time.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyGasMajorMergerTime

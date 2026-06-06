@@ -1,12 +1,17 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Contains a tree with an initial satellite in a progenitor-less host. In -->
+
 <!-- such cases, when the host is cloned to provide its own primry           -->
+
 <!-- progenitor, we must remove any satellites from the original host (since -->
+
 <!-- they are now attached to the cloned host). Failure to do so can lead to -->
+
 <!-- an infinite loop when trying to walk the tree (with satellites).        -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-22T21:34:03"/>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
   <verbosityLevel value="standard"/>
   <componentDarkMatterProfile value="scaleFree"/>

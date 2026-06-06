@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO">
-    <description>A concentration distribution function output analysis class for COCO CDM data.</description>
+    <description>Computes the halo concentration distribution function for comparison with the COCO cold dark matter N-body simulation data, selecting one of 7 mass bin distributions via \mono{distributionNumber} and setting a minimum fractional root variance floor via \mono{rootVarianceFractionalMinimum}.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisConcentrationDistribution) :: outputAnalysisConcentrationDistributionCDMCOCO

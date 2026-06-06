@@ -24,7 +24,7 @@
 
   !![
   <outputAnalysis name="outputAnalysisLocalGroupStellarMassHaloMassRelation">
-   <description>An output analysis class for the Local Group stellar mass-halo mass relation.</description>
+   <description>Computes the stellar mass--halo mass relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass random/systematic error polynomial coefficients, binomial covariance matrix parameters, and position-type selection.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupStellarMassHaloMassRelation
@@ -171,6 +171,7 @@ contains
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorRandomErrorPlynml
+    use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10             , outputAnalysisPropertyOperatorLog10       , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSystmtcPolynomial, &
           &                                                 propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
@@ -212,17 +213,17 @@ contains
     double precision                                                        , parameter                     :: massStellarThreshold                            =+1.0d-3
     integer         (c_size_t                                              )                                :: i                                                           , bufferCount
     type            (hdf5Object                                            )                                :: fileData
+    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    call fileData%openFile(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
+    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/stellarHaloMassRelation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('massStellar'       ,massStellarData       )
     call fileData%readDataset('massStellarScatter',massStellarScatterData)
-    call fileData%close      (                                           )
     !$ call hdf5Access%unset()
     ! Construct mass bins.
     allocate(masses                  (size(massHaloData)                   ))
@@ -362,6 +363,15 @@ contains
     allocate(outputAnalysisMeanFunction1D :: self%outputAnalysis_)
     select type (outputAnalysis_ => self%outputAnalysis_)
     type is (outputAnalysisMeanFunction1D)
+       outputAnalysisTargetData_=outputAnalysisTargetDataStandard(                                                                                  &
+           &                                                      xAxisLabel      =var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                  ), &
+           &                                                      yAxisLabel      =var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$' ), &
+           &                                                      xAxisIsLog      =.true.                                                         , &
+           &                                                      yAxisIsLog      =.false.                                                        , &
+           &                                                      targetLabel     =var_str('Nadler et al. (2020)'                                ), &
+           &                                                      valueTarget     =functionValueTarget                                            , &
+           &                                                      covarianceTarget=functionCovarianceTarget                                         &
+           &                                                     )
        !![
        <referenceConstruct isResult="yes" object="outputAnalysis_">
 	 <constructor>
@@ -371,11 +381,15 @@ contains
 	   &amp;                        var_str('massHalo'                                                 ), &amp;
 	   &amp;                        var_str('Halo mass at the bin center'                              ), &amp;
 	   &amp;                        var_str('M☉'                                                       ), &amp;
+           &amp;                        var_str('solMass'                                                  ), &amp;
+           &amp;                        .false.                                                             , &amp;
 	   &amp;                        massSolar                                                           , &amp;
 	   &amp;                        var_str('massStellarMean'                                          ), &amp;
-           &amp;                        var_str('Mean logarithmic stellar mass; ⟨log₁₀(M★/M☉)⟩'           ), &amp;
+           &amp;                        var_str('Mean logarithmic stellar mass; ⟨log₁₀(M★/M☉)⟩'            ), &amp;
            &amp;                        var_str('dimensionless'                                            ), &amp;
-           &amp;                        0.0d0                                                               , &amp;
+           &amp;                        var_str(' '                                                        ), &amp;
+           &amp;                        .false.                                                             , &amp;
+           &amp;                        1.0d0                                                               , &amp;
 	   &amp;                        masses                                                              , &amp;
 	   &amp;                        bufferCount                                                         , &amp;
 	   &amp;                        outputWeight                                                        , &amp;
@@ -393,13 +407,7 @@ contains
 	   &amp;                        covarianceBinomialMassHaloMinimum                                   , &amp;
 	   &amp;                        covarianceBinomialMassHaloMaximum                                   , &amp;
            &amp;                        likelihoodNormalize                                                 , &amp;
-           &amp;                        var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'                       ), &amp;
-           &amp;                        var_str('$\langle\log_{10}(M_\star/\mathrm{M}_\odot)\rangle$'      ), &amp;
-           &amp;                        .true.                                                              , &amp;
-           &amp;                        .false.                                                             , &amp;
-           &amp;                        var_str('Nadler et al. (2020)'                                     ), &amp;
-           &amp;                        functionValueTarget                                                 , &amp;
-           &amp;                        functionCovarianceTarget                                              &amp;
+           &amp;                        outputAnalysisTargetData_                                             &amp;
 	   &amp;                       )
 	 </constructor>
        </referenceConstruct>
@@ -446,7 +454,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationAnalyze(self,node,iOutput)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
@@ -459,7 +467,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationReduce(self,reduced)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis reduction.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -477,7 +485,7 @@ contains
 
   subroutine localGroupStellarMassHaloMassRelationFinalize(self,groupName)
     !!{
-    Implement a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis finalization.
+    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout)           :: self
@@ -489,7 +497,7 @@ contains
 
   double precision function localGroupStellarMassHaloMassRelationLogLikelihood(self)
     !!{
-    Return the log-likelihood of a {\normalfont \ttfamily localGroupStellarMassHaloMassRelation} output analysis.
+    Return the log-likelihood of a \mono{localGroupStellarMassHaloMassRelation} output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self

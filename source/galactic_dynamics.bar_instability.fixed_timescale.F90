@@ -23,7 +23,7 @@
 
   !![
   <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityFixedTimescale">
-   <description>A simple model for galactic disk bar instability in which the timescale is fixed.</description>
+   <description>A simple model for galactic disk bar instability in which the bar formation timescale is a fixed constant set by \mono{[timescale]}. Angular momentum redistributed during bar formation is partitioned between the disk and spheroid according to \mono{[fractionAngularMomentumRetainedDisk]} and \mono{[fractionAngularMomentumRetainedSpheroid]}.</description>
   </galacticDynamicsBarInstability>
   !!]
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityFixedTimescale
@@ -63,7 +63,7 @@ contains
     <inputParameter>
       <name>timescale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale for bar instability.</description>
+      <description>The fixed timescale (in Gyr) for bar instability; the disk is depleted exponentially on this timescale, with the redistributed mass transferred to the spheroid.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>

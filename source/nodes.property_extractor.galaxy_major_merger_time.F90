@@ -19,9 +19,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMajorMergerTime">
-   <description>
-     A node property extractor which extracts the time of the last major merger for each galaxy.
-   </description>
+   <description>Extracts the cosmic time of the most recent major merger event for each galaxy, where major mergers are identified by a configurable mass ratio threshold applied to merging halos.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMajorMergerTime
@@ -36,11 +34,12 @@
      procedure :: names        => galaxyMajorMergerTimeNames
      procedure :: descriptions => galaxyMajorMergerTimeDescriptions
      procedure :: unitsInSI    => galaxyMajorMergerTimeUnitsInSI
+     procedure :: units        => galaxyMajorMergerTimeUnits
   end type nodePropertyExtractorGalaxyMajorMergerTime
 
   interface nodePropertyExtractorGalaxyMajorMergerTime
      !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} property extractor class.
      !!}
      module procedure galaxyMajorMergerTimeConstructorParameters
      module procedure galaxyMajorMergerTimeConstructorInternal
@@ -66,7 +65,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorInternal() result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMajorMergerTime} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMajorMergerTime) :: self
@@ -112,7 +111,7 @@ contains
   
   subroutine galaxyMajorMergerTimeNames(self,names)
     !!{
-    Return the names of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
+    Return the names of the \mono{galaxyMajorMergerTime} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
@@ -126,7 +125,7 @@ contains
 
   subroutine galaxyMajorMergerTimeDescriptions(self,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily galaxyMajorMergerTime} properties.
+    Return the descriptions of the \mono{galaxyMajorMergerTime} properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)                             :: self
@@ -140,7 +139,7 @@ contains
 
   function galaxyMajorMergerTimeUnitsInSI(self) result(unitsInSI)
     !!{
-    Return the units of the {\normalfont \ttfamily galaxyMajorMergerTime} properties in the SI system.
+    Return the units of the \mono{galaxyMajorMergerTime} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -152,3 +151,19 @@ contains
     unitsInSI(1)=gigaYear
     return
   end function galaxyMajorMergerTimeUnitsInSI
+
+  function galaxyMajorMergerTimeUnits(self) result(units)
+    !!{
+    Return the units of the galaxyMajorMergerTime properties.
+    !!}
+    use :: Units_MetaData                  , only : unitType
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    implicit none
+    type (unitType                                  ), dimension(:) , allocatable :: units
+    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)              :: self
+    !$GLC attributes unused :: self
+
+    allocate(units(1))
+    units(1)=unitType(gigaYear,description='Gyr',quantity='Gyr')
+    return
+  end function galaxyMajorMergerTimeUnits

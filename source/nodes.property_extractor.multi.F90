@@ -21,7 +21,8 @@
   Implements a multi node property extractor class.
   !!}
 
-  use :: Hashes, only : doubleHash, rank1DoubleHash
+  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Units_MetaData, only : unitType
 
   type, public :: multiExtractorList
      class(nodePropertyExtractorClass), pointer :: extractor_ => null()
@@ -30,7 +31,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMulti">
-   <description>A multi output extractor property extractor class.</description>
+   <description>Combines multiple individual property extractors into a single extractor, iterating through a list of \refClass{nodePropertyExtractorClass} objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.</description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
@@ -44,15 +45,16 @@
    contains
      !![
      <methods>
-       <method description="Return a description of the columns."                                        method="columnDescriptions"/>
-       <method description="Return the number of properties in the tuple."                               method="elementCount"      />
-       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"     />
-       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"    />
-       <method description="Return the names of the properties extracted."                               method="names"             />
-       <method description="Return descriptions of the properties extracted."                            method="descriptions"      />
-       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"         />
-       <method description="Return the ranks of the properties extracted."                               method="ranks"             />
-       <method description="Populate a hash with meta-data for the property."                            method="metaData"          />
+       <method description="Return a description of the columns."                           method="columnDescriptions"/>
+       <method description="Return the number of properties in the tuple."                  method="elementCount"      />
+       <method description="Extract the double properties from the given \mono{node}."      method="extractDouble"     />
+       <method description="Extract the integer properties from the given \mono{node}."     method="extractInteger"    />
+       <method description="Return the names of the properties extracted."                  method="names"             />
+       <method description="Return descriptions of the properties extracted."               method="descriptions"      />
+       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI"         />
+       <method description="Return an object containing units metadata for the properties." method="units"             />
+       <method description="Return the ranks of the properties extracted."                  method="ranks"             />
+       <method description="Populate a hash with meta-data for the property."               method="metaData"          />
      </methods>
      !!]
      final     ::                       multiDestructor
@@ -63,6 +65,7 @@
      procedure :: names              => multiNames
      procedure :: descriptions       => multiDescriptions
      procedure :: unitsInSI          => multiUnitsInSI
+     procedure :: units              => multiUnits
      procedure :: ranks              => multiRanks
      procedure :: addInstances       => multiAddInstances
      procedure :: metaData           => multiMetaData
@@ -70,7 +73,7 @@
 
   interface nodePropertyExtractorMulti
      !!{
-     Constructors for the \refClass{nodePropertyExtractorMulti} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorMulti} property extractor class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -90,7 +93,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorMulti} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +124,7 @@ contains
 
   function multiConstructorInternal(extractors) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti)                         :: self
@@ -141,7 +144,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorMulti} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self
@@ -509,11 +512,12 @@ contains
     return
   end subroutine multiNames
 
-  subroutine multiColumnDescriptions(self,elementType,i,time,descriptions,values,valuesDescription,valuesUnitsInSI)
+  subroutine multiColumnDescriptions(self,elementType,i,time,descriptions,values,valuesDescription,valuesUnits)
     !!{
     Return column descriptions of the multiple properties.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error       , only : Error_Report
+    use :: Units_MetaData, only : unitType
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout)                             :: self
     type            (enumerationElementTypeType), intent(in   )                             :: elementType
@@ -522,7 +526,7 @@ contains
     type            (varying_string            ), intent(  out), dimension(:) , allocatable :: descriptions
     double precision                            , intent(  out), dimension(:) , allocatable :: values
     type            (varying_string            ), intent(  out)                             :: valuesDescription
-    double precision                            , intent(  out)                             :: valuesUnitsInSI
+    type            (unitType                  ), intent(  out)                             :: valuesUnits
     type            (multiExtractorList        ), pointer                                   :: extractor_
     integer                                                                                 :: elementCount     , offset
 
@@ -567,7 +571,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                call extractor_%columnDescriptions(descriptions,values,valuesDescription,valuesUnitsInSI,time)
+                call extractor_%columnDescriptions(descriptions,values,valuesDescription,valuesUnits,time)
                 return
              end if
           end if
@@ -598,7 +602,7 @@ contains
        class is (nodePropertyExtractorMulti        )
           elementCount=extractor_%elementCount(elementType,time)
           if (offset+elementCount >= i) then
-             call extractor_%columnDescriptions(elementType,i-offset,time,descriptions,values,valuesDescription,valuesUnitsInSI)
+             call extractor_%columnDescriptions(elementType,i-offset,time,descriptions,values,valuesDescription,valuesUnits)
              return
           end if
        class default
@@ -781,6 +785,79 @@ contains
     end do
     return
   end function multiUnitsInSI
+
+  function multiUnits(self,elementType,time)
+    !!{
+    Return the units of the multiple properties as \mono{unitType} objects, delegating to each sub-extractor's
+    \mono{nodePropertyExtractorClass}{units} method.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    type            (unitType                    ), dimension(:) , allocatable :: multiUnits
+    class           (nodePropertyExtractorMulti  ), intent(inout)              :: self
+    type            (enumerationElementTypeType  ), intent(in   )              :: elementType
+    double precision                              , intent(in   )              :: time
+    type            (multiExtractorList          ), pointer                    :: extractor_
+    integer                                                                    :: offset     , elementCount
+
+    allocate(multiUnits(self%elementCount(elementType,time)))
+    offset     =  0
+    extractor_ => self%extractors
+    do while (associated(extractor_))
+       elementCount=0
+       select type (extractor_ => extractor_%extractor_)
+       class is (nodePropertyExtractorScalar       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiUnits(offset+1)=extractor_%units(    )
+          end if
+       class is (nodePropertyExtractorTuple        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount(time)
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(time)
+          end if
+       class is (nodePropertyExtractorIntegerScalar)
+          if (elementType == elementTypeInteger) then
+             elementCount=1
+             multiUnits(offset+1)=extractor_%units(    )
+          end if
+       class is (nodePropertyExtractorIntegerTuple )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount(time)
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(time)
+          end if
+       class is (nodePropertyExtractorArray        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount(time)
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(time)
+          end if
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(    )
+          end if
+       class is (nodePropertyExtractorIntegerList  )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount()
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(    )
+          end if
+       class is (nodePropertyExtractorList2D       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount()
+             multiUnits(offset+1:offset+elementCount)=extractor_%units(    )
+          end if
+       class is (nodePropertyExtractorMulti        )
+          elementCount=extractor_%elementCount(elementType,time)
+          if (elementCount > 0)                                                                      &
+               & multiUnits(offset+1:offset+elementCount)=extractor_%units(elementType,time)
+       class default
+          call Error_Report('unsupported property extractor type'//{introspection:location})
+       end select
+       offset     =  offset         +elementCount
+       extractor_ => extractor_%next
+    end do
+    return
+  end function multiUnits
 
   function multiRanks(self,elementType,time)
     !!{

@@ -66,7 +66,7 @@
 
   interface massDistributionHeatingMonotonic
      !!{
-     Constructors for the \refClass{massDistributionHeatingMonotonic} mass distribution class.
+     Constructors for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function monotonicConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution class which builds the object from a parameter
+    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class which builds the object from a parameter
     set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters

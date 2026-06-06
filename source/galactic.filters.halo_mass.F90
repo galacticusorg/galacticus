@@ -29,7 +29,7 @@ Implements a galactic high-pass filter for halo mass under a given definition.
   <galacticFilter name="galacticFilterHaloMass">
    <description>
    A high-pass filter for basic mass. Halos with a halo mass greater than or equal to a fixed threshold,
-   $M_0=${\normalfont \ttfamily [massThreshold]}.
+   $M_0=$\mono{[massThreshold]}.
    </description>
   </galacticFilter>
   !!]
@@ -75,7 +75,7 @@ contains
     <inputParameter>
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
+      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />

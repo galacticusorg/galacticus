@@ -25,7 +25,7 @@ Implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
   !![
   <haloMassFunction name="haloMassFunctionShethTormen">
    <description>
-    A dark matter halo mass function class using the function given by \cite{sheth_ellipsoidal_2001}.
+    The dark matter halo mass function is computed using the ellipsoidal collapse fitting function of \cite{sheth_ellipsoidal_2001}, which improves upon the Press-Schechter formalism by accounting for non-spherical collapse. The shape parameters $a$, $p$ and normalization $A$ of the fit can each be specified via input parameters.
    </description>
   </haloMassFunction>
   !!]
@@ -197,7 +197,7 @@ contains
 
   double precision function shethTormenA(self,time,mass)
     !!{
-    Return the parameter $a$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the parameter $a$ in the \mono{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -210,7 +210,7 @@ contains
 
   double precision function shethTormenP(self,time,mass)
     !!{
-    Return the parameter $p$ in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the parameter $p$ in the \mono{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -223,7 +223,7 @@ contains
 
   double precision function shethTormenNormalization(self,time,mass)
     !!{
-    Return the normalization, $A$, in the {\normalfont \ttfamily shethTormen} halo mass function at the given time and mass.
+    Return the normalization, $A$, in the \mono{shethTormen} halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self

@@ -23,7 +23,7 @@ Implements a node operator class that shifts preset named properties at node pro
 
   !![
   <nodeOperator name="nodeOperatorPresetNamedShift">
-   <description>A node operator class that shifts preset named properties at node promotion.</description>
+   <description>Propagates preset named node properties from a progenitor to its promoted descendant, ensuring user-defined named scalar or array properties set from external data are correctly inherited when nodes are promoted in the merger tree.</description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPresetNamedShift

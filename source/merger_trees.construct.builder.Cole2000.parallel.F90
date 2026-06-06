@@ -25,7 +25,7 @@
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000Parallel">
    <description>
-     A merger tree builder class derived fro the \refClass{mergerTreeBuilderCole2000} class which implements a recursive tree
+     A merger tree builder class derived fro the \refClass{mergerTreeBuilderCole2000} merger tree builder class which implements a recursive tree
      construction algorithm utilizing OpenMP task parallelism.
    </description>
   </mergerTreeBuilder>
@@ -110,7 +110,7 @@ contains
       <name>branchIntervalStep</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
+      <description>If \mono{false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If \mono{true} draw branching intervals from a negative exponential distribution.</description>
     </inputParameter>
     <inputParameter>
       <name>toleranceResolutionSelf</name>

@@ -37,32 +37,24 @@ module Cosmological_Density_Field
   <functionClass>
    <name>criticalOverdensity</name>
    <descriptiveName>Critical Overdensity</descriptiveName>
-   <description>Object providing critical overdensities.</description>
+   <description>Object providing critical overdensities for gravitational collapse---the linear theory overdensity
+    $\delta_\mathrm{c}$ that a region must have in order to have collapsed by a given cosmic time. In the Einstein-de~Sitter
+    cosmology $\delta_\mathrm{c} \approx 1.686$; implementations may include corrections for dark energy, ellipsoidal collapse, or
+    environmental density. The critical overdensity enters the Press-Schechter and excursion-set formalisms that predict the halo
+    mass function and merger tree branching probabilities.</description>
    <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
-   <data>integer         (kind_int8                    )              :: lastUniqueID                =  -1_kind_int8, lastTreeID                 =-1_kind_int8</data>
-   <data>double precision                                             :: criticalOverdensityTarget                  , mass                                    </data>
-   <data>double precision                                             :: time                                       , timeNow                    =-huge(0.0d0)</data>
-   <data>double precision                                             :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
-   <data>double precision                                             :: massPrevious                =  -huge(0.0d0)                                          </data>
-   <data>type            (table1DLinearLinear          )              :: collapseThreshold                                                                    </data>
-   <data>double precision                                             :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
-   <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
-   <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
-   <data>logical                                                      :: massPresent                                , nodePresent                             </data>
-   <data>logical                                                      :: treePresent                                                                          </data>
-   <data>logical                                                      :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
-   <data>logical                                                      :: isNodeDependent_                           , isTreeDependent_                        </data>
-   <data>class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_         => null()                                                </data>
-   <data>class           (linearGrowthClass            ), pointer     :: linearGrowth_               => null()                                                </data>
-   <data>class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_   => null()                                                </data>
-   <data>type            (rootFinder                   ), allocatable :: finderTimeOfCollapse                                                                 </data>
-   <data>
-    <scope>module</scope>
-    <threadprivate>yes</threadprivate>
-    <content>class(criticalOverdensityClass), pointer :: globalSelf => null()</content>
-   </data>
+   <destructor>
+    <modules>
+     <name>Events_Hooks</name>
+     <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
+    </modules>
+    <code>
+     if (calculationResetEvent%isAttached(self,criticalOverdensityCalculationReset)) call calculationResetEvent%detach(self,criticalOverdensityCalculationReset)
+     return
+    </code>
+   </destructor>
    <method name="value" >
-    <description>Return the critical overdensity at the given time and mass.</description>
+    <description>Return the linear theory critical overdensity $\delta_\mathrm{c}$ for gravitational collapse at the specified cosmic time and optional halo mass, accepting either a cosmic time or expansion factor to identify the epoch.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
@@ -71,7 +63,7 @@ module Cosmological_Density_Field
     <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
    </method>
    <method name="timeOfCollapse" >
-    <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
+    <description>Returns the time of collapse for a perturbation of linear theory overdensity \mono{criticalOverdensity}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -81,14 +73,14 @@ module Cosmological_Density_Field
     <function>criticalOverdensityTimeOfCollapse</function>
    </method>
    <method name="collapsingMass" >
-    <description>Return the mass scale just collapsing at the given cosmic time.</description>
+    <description>Return the mass $M_*(t)$ of halos just collapsing at the given cosmic time (or expansion factor), i.e.\ the mass at which $\sigma(M_*,t) = \delta_\mathrm{c}(t)$.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
+    <modules>Root_Finder Error</modules>
     <argument>double precision          , intent(in   ), optional         :: time      , expansionFactor</argument>
     <argument>logical                   , intent(in   ), optional         :: collapsing                 </argument>
     <argument>type            (treeNode), intent(inout), optional, target :: node                       </argument>
-    <modules>Root_Finder Error</modules>
     <code>
      double precision            , parameter :: massGuess        =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
           &amp;                                 toleranceRelative=1.0d-06, massTiny         =1.0d-30
@@ -140,20 +132,43 @@ module Cosmological_Density_Field
     <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
    </method>
    <method name="isMassDependent" >
-    <description>Return true if the critical overdensity is dependent on the mass of the halo.</description>
+    <description>Return true if the critical overdensity $\delta_\mathrm{c}$ depends on halo mass (as in ellipsoidal collapse models), signalling that the mass argument must be supplied and cached values are mass-specific.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="isNodeDependent" >
-    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object (not just the {\normalfont \ttfamily node\%hostTree} object).</description>
+    <description>Return true if the critical overdensity is dependent on the \mono{node} object (not just the \mono{node\%hostTree} object).</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="isTreeDependent" >
-    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node\%hostTree} object.</description>
+    <description>Return true if the critical overdensity is dependent on the \mono{node\%hostTree} object.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
+   <data>integer         (kind_int8                    )              :: lastUniqueID                =  -1_kind_int8, lastTreeID                 =-1_kind_int8</data>
+   <data>double precision                                             :: countTimeCollapsePerUnit    =   1.0d4                                                </data>
+   <data>double precision                                             :: criticalOverdensityTarget                  , mass                                    </data>
+   <data>double precision                                             :: time                                       , timeNow                    =-huge(0.0d0)</data>
+   <data>double precision                                             :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
+   <data>double precision                                             :: massPrevious                =  -huge(0.0d0)                                          </data>
+   <data>type            (table1DLinearLinear          )              :: collapseThreshold                                                                    </data>
+   <data>double precision                                             :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
+   <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
+   <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
+   <data>logical                                                      :: massPresent                                , nodePresent                             </data>
+   <data>logical                                                      :: treePresent                                                                          </data>
+   <data>logical                                                      :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
+   <data>logical                                                      :: isNodeDependent_                           , isTreeDependent_                        </data>
+   <data>class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_         => null()                                                </data>
+   <data>class           (linearGrowthClass            ), pointer     :: linearGrowth_               => null()                                                </data>
+   <data>class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_   => null()                                                </data>
+   <data>type            (rootFinder                   ), allocatable :: finderTimeOfCollapse                                                                 </data>
+   <data>
+    <scope>module</scope>
+    <threadprivate>yes</threadprivate>
+    <content>class(criticalOverdensityClass), pointer :: globalSelf => null()</content>
+   </data>
    <autoHook>
     <modules>
      <name>Events_Hooks</name>
@@ -164,16 +179,6 @@ module Cosmological_Density_Field
      return
     </code>
    </autoHook>
-   <destructor>
-    <modules>
-     <name>Events_Hooks</name>
-     <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
-    </modules>
-    <code>
-     if (calculationResetEvent%isAttached(self,criticalOverdensityCalculationReset)) call calculationResetEvent%detach(self,criticalOverdensityCalculationReset)
-     return
-    </code>
-   </destructor>
   </functionClass>
   !!]
 
@@ -181,34 +186,39 @@ module Cosmological_Density_Field
   <functionClass>
    <name>haloEnvironment</name>
    <descriptiveName>Halo Environment</descriptiveName>
-   <description>Class providing halo environment.</description>
+   <description>Class providing models of the large-scale environment of dark matter halos---the linear and
+    non-linear overdensity of the surrounding density field on a characteristic smoothing scale (typically
+    several Mpc). Environmental overdensity modulates halo formation rates (assembly bias), the critical
+    overdensity for collapse, and the \gls{igm} photo-ionization background. Implementations provide the
+    overdensity PDF/CDF, its value for individual nodes, and the radius and mean mass of the environmental
+    region, ranging from a uniform (field) environment to constrained local density models.</description>
    <default>uniform</default>
    <method name="overdensityLinear" >
-    <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the linear (pre-collapse) large-scale environmental overdensity for the given \mono{node}, optionally evaluated at the present day rather than at the node's cosmic time.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: node</argument>
     <argument>logical          , intent(in   ), optional :: presentDay</argument>
    </method>
    <method name="overdensityLinearGradientTime" >
-    <description>Return the gradient with time of the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the gradient with time of the environmental linear overdensity for the given \mono{node}.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: node</argument>
    </method>
    <method name="overdensityNonLinear" >
-    <description>Return the environmental non-linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <description>Return the non-linear (post-collapse) large-scale environmental overdensity for the given \mono{node}, accounting for gravitational non-linear evolution of the surrounding density field.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="environmentRadius" >
-    <description>Return the radius of the region used to defined the environment.</description>
+    <description>Return the radius (in Mpc) of the spherical region over which the large-scale density is averaged to define the halo environment.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="environmentMass" >
-    <description>Return the mean mass contained in the region used to defined the environment.</description>
+    <description>Return the mean mass (in $\mathrm{M}_\odot$) enclosed within the environmental smoothing region, equal to the background matter density times the volume of the sphere of radius \mono{environmentRadius}.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>  
@@ -233,24 +243,24 @@ module Cosmological_Density_Field
    <method name="pdf" >
     <description>Return the \gls{pdf} of the environmental overdensity for the given overdensity.</description>
     <type>double precision</type>
-    <argument>double precision, intent(in   ) :: overdensity</argument>
     <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: overdensity</argument>
    </method>
    <method name="cdf" >
     <description>Return the \gls{cdf} of the environmental overdensity for the given overdensity.</description>
     <type>double precision</type>
-    <argument>double precision, intent(in   ) :: overdensity</argument>
     <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: overdensity</argument>
    </method>
    <method name="overdensityLinearSet" >
-    <description>Set the environmental overdensity for the give node.</description>
+    <description>Set the linear environmental overdensity for the given \mono{node}, allowing external code (e.g., constrained realization samplers) to assign a specific large-scale density to the node's host region.</description>
     <type>void</type>
+    <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
     <argument>double precision          , intent(in   ) :: overdensity</argument>
-    <pass>yes</pass>
    </method>
    <method name="overdensityIsSettable" >
-    <description>Return true if the overdensity is settable.</description>
+    <description>Return true if the environmental overdensity can be set externally via \mono{overdensityLinearSet}, allowing the caller to determine at runtime whether the environment model supports direct assignment.</description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -277,7 +287,7 @@ module Cosmological_Density_Field
     </code>
    </method>
    <method name="isTreeDependent" >
-    <description>Return true if the environment is tree dependent.</description>
+    <description>Return true if the environmental overdensity depends on the host merger tree (i.e., on \mono{node\%hostTree}), as opposed to depending only on the individual node or being completely node-independent.</description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -292,22 +302,37 @@ module Cosmological_Density_Field
   <functionClass>
    <name>cosmologicalMassVariance</name>
    <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
-   <description>
-    A class providing the mass variance, $\sigma(M)$, of the cosmological density field.
-   </description>
+   <description>Class providing the rms mass variance $\sigma(M,t)$ of the cosmological density field---the
+    standard deviation of the linear density contrast when smoothed on the scale enclosing mass $M$ at
+    cosmic time $t$. The variance is the fundamental ingredient of the Press-Schechter and excursion-set
+    formalisms: the halo mass function, merger tree branching rates, and bias all depend on $\sigma(M)$ and
+    its logarithmic gradient $\mathrm{d}\ln\sigma/\mathrm{d}\ln M$. Implementations typically filter the
+    linear matter power spectrum through a window function (e.g.\ top-hat in real space) and integrate over
+    wavenumber, with normalization set by $\sigma_8$.</description>
    <default>filteredPower</default>
+   <method name="descriptorNormalizationOnly" >
+    <description>Return a descriptor for this object suitable for normalization-only usage.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Input_Parameters</modules>
+    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <code>
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
+    </code>
+   </method>
    <method name="powerNormalization" >
-    <description>Return the normalization of the power spectrum.</description>
+    <description>Return the overall amplitude normalization of the linear matter power spectrum, used to scale the dimensionless power $\Delta^2(k)$ so that the integrated variance matches the observed $\sigma_8$.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="sigma8" >
-    <description>Return the value of $\sigma_8$.</description>
+    <description>Return $\sigma_8$, the rms linear density fluctuation smoothed with a top-hat filter of radius $8\,h^{-1}\,\mathrm{Mpc}$, which sets the overall normalization of the matter power spectrum.</description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="rootVariance" >
-    <description>Return the root-variance of the cosmological density field.</description>
+    <description>Return $\sigma(M,t)$, the rms linear density contrast smoothed on the scale enclosing mass $M$ at cosmic time $t$, computed from the filtered linear matter power spectrum and used as the fundamental input to excursion-set and Press-Schechter halo statistics.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass, time</argument>
@@ -332,13 +357,13 @@ module Cosmological_Density_Field
     <argument>double precision, intent(  out) :: rootVariance, rootVarianceLogarithmicGradient</argument>
    </method>
    <method name="mass" >
-    <description>Return the mass corresponding to the given {\normalfont \ttfamily rootVariance} of the cosmological density field.</description>
+    <description>Return the mass corresponding to the given \mono{rootVariance} of the cosmological density field.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: rootVariance, time</argument>
    </method>
    <method name="growthIsMassDependent" >
-    <description>Return true if the growth of the variance with time is mass-dependent.</description>
+    <description>Return true if the growth of $\sigma(M,t)$ with cosmic time is mass-dependent (e.g.\ in warm or fuzzy dark matter models where the transfer function suppresses power on small scales), requiring the variance to be recomputed at each mass when the epoch changes.</description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
@@ -349,7 +374,7 @@ contains
 
   double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node,status)
     !!{
-    Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
+    Returns the time of collapse for a perturbation of linear theory overdensity \mono{criticalOverdensity}.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -362,7 +387,6 @@ contains
     integer                                   , intent(  out), optional             :: status
     double precision                          , parameter                           :: toleranceRelative                =1.0d-12, toleranceAbsolute       =0.0d0, &
          &                                                                             fractionTimeCollapseGrowthMinimum=1.0d-03
-    integer                                   , parameter                           :: countPerUnit                     =10000
     double precision                          , allocatable  , dimension(:)         :: threshold
     double precision                                                                :: timeBigCrunch                            , timeGuess                     , &
          &                                                                             collapseThresholdMinimum                 , collapseThresholdMaximum      , &
@@ -477,14 +501,17 @@ contains
           ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
           ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
           ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
+          ! First confirm that the collapse time count is valid.
+          if (self%countTimeCollapsePerUnit <= 0.0d0) call Error_Report('`countTimeCollapsePerUnit` > 0 is required'//{introspection:location})
+          ! Now make the table if needed.
           remakeTable=.false.
           if (.not.self%collapseThresholdInitialized) then
              remakeTable                  =.true.
              self%collapseThresholdMinimum=      criticalOverdensity
              self%collapseThresholdMaximum=2.0d0*criticalOverdensity
-             countThresholds              =int(dble(countPerUnit)*(self%collapseThresholdMaximum-self%collapseThresholdMinimum))+2
+             countThresholds              =int(self%countTimeCollapsePerUnit*(self%collapseThresholdMaximum-self%collapseThresholdMinimum))+2
              ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
-             self%collapseThresholdMaximum=self%collapseThresholdMinimum+dble(countThresholds-1)/dble(countPerUnit)
+             self%collapseThresholdMaximum=self%collapseThresholdMinimum+dble(countThresholds-1)/self%countTimeCollapsePerUnit
              allocate(threshold(countThresholds))
              threshold=-huge(0.0d0)
           else if (criticalOverdensity < self%collapseThresholdMinimum .or. criticalOverdensity > self%collapseThresholdMaximum) then
@@ -494,12 +521,12 @@ contains
              ! Determine how many points the table must be extended by in each direction to span the new required range.
              countNewLower=0
              countNewUpper=0
-             if (self%collapseThresholdMinimum > collapseThresholdMinimum) countNewLower=int((+self%collapseThresholdMinimum-collapseThresholdMinimum)*dble(countPerUnit)+1.0d0)
-             if (self%collapseThresholdMaximum < collapseThresholdMaximum) countNewUpper=int((-self%collapseThresholdMaximum+collapseThresholdMaximum)*dble(countPerUnit)+1.0d0)
+             if (self%collapseThresholdMinimum > collapseThresholdMinimum) countNewLower=int((+self%collapseThresholdMinimum-collapseThresholdMinimum)*self%countTimeCollapsePerUnit+1.0d0)
+             if (self%collapseThresholdMaximum < collapseThresholdMaximum) countNewUpper=int((-self%collapseThresholdMaximum+collapseThresholdMaximum)*self%countTimeCollapsePerUnit+1.0d0)
              countThresholds=self%collapseThreshold%size()+countNewLower+countNewUpper
              ! Adjust the limits of the table by an integer number of steps.
-             self%collapseThresholdMinimum=self%collapseThresholdMinimum-dble(countNewLower)/dble(countPerUnit)
-             self%collapseThresholdMaximum=self%collapseThresholdMaximum+dble(countNewUpper)/dble(countPerUnit)
+             self%collapseThresholdMinimum=self%collapseThresholdMinimum-dble(countNewLower)/self%countTimeCollapsePerUnit
+             self%collapseThresholdMaximum=self%collapseThresholdMaximum+dble(countNewUpper)/self%countTimeCollapsePerUnit
              allocate(threshold(countThresholds))
              threshold=-huge(0.0d0)
              ! Populate the table with pre-existing results.

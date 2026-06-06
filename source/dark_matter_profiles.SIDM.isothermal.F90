@@ -35,7 +35,7 @@
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileSIDMIsothermal
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et al. (2022).
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
      !!}
      private
      class(darkMatterProfileClass  ), pointer :: darkMatterProfile_   => null()
@@ -85,7 +85,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter profile class.
+    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function sidmIsothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                         , massTypeDark                        , weightByMass
@@ -205,7 +205,7 @@ contains
 
   subroutine sidmIsothermalInitialize(self,node,massDistributionBaryonic)
     !!{
-    Initialize the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Initialize the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galactic_Structure_Options, only : massTypeBaryonic
     implicit none

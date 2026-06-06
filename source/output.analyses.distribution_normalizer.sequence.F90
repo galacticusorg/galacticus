@@ -23,7 +23,7 @@
 
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
-   <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
+   <description>An output analysis distribution normalizer class that applies a linked list of child \refClass{outputAnalysisDistributionNormalizerClass} objects in sequence, enabling composite normalization pipelines (e.g.\ bin-width division followed by volume normalization).</description>
    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
   </outputAnalysisDistributionNormalizer>
   !!]

@@ -23,7 +23,7 @@ Implements a multiplication analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMultiply">
-   <description>A high-pass filter analysis property operator class.</description>
+   <description>An output analysis property operator that multiplies a galaxy property value by a fixed scalar \mono{multiplier}, useful for unit conversions or rescaling properties before binning or likelihood computation.</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMultiply
@@ -38,7 +38,7 @@ Implements a multiplication analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMultiply
      !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis class.
+     Constructors for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
      !!}
      module procedure multiplyConstructorParameters
      module procedure multiplyConstructorInternal
@@ -62,7 +62,7 @@ contains
       <name>multiplier</name>
       <source>parameters</source>
       <variable>multiplier</variable>
-      <description>Multiplying factor.</description>
+      <description>The fixed scalar value by which the galaxy property is multiplied, enabling unit conversions or rescaling before binning or likelihood computation.</description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorMultiply(multiplier)
@@ -74,7 +74,7 @@ contains
 
   function multiplyConstructorInternal(multiplier) result (self)
     !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis distribution operator class.
+    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self

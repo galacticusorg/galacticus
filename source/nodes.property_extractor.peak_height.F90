@@ -22,7 +22,7 @@
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
-   <description>A property extractor class for peak height of the halo.</description>
+   <description>Extracts the peak height $\nu = \delta_c / \sigma(M)$ of a dark matter halo, the ratio of the linear collapse threshold to the mass-variance, which parametrizes halo formation probability and is used in excursion-set and bias analyses.</description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPeakHeight
@@ -40,11 +40,12 @@
      procedure :: names        => peakHeightNames
      procedure :: descriptions => peakHeightDescriptions
      procedure :: unitsInSI    => peakHeightUnitsInSI
+     procedure :: units       => peakHeightUnits
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
      !!{
-     Constructors for the \refClass{nodePropertyExtractorPeakHeight} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
      !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
@@ -81,7 +82,7 @@ contains
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self
@@ -112,7 +113,7 @@ contains
 
   integer function peakHeightElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily peakHeight} property extractors.
+    Return the number of elements in the \mono{peakHeight} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout) :: self
@@ -157,7 +158,7 @@ contains
 
   subroutine peakHeightNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily peakHeight} properties.
+    Return the names of the \mono{peakHeight} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
@@ -175,7 +176,7 @@ contains
 
   subroutine peakHeightDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily peakHeight} properties.
+    Return the descriptions of the \mono{peakHeight} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
@@ -193,7 +194,7 @@ contains
 
   function peakHeightUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily peakHeight} properties in the SI system.
+    Return the units of the \mono{peakHeight} properties in the SI system.
     !!}
     implicit none
     double precision                                 , dimension(:) , allocatable :: peakHeightUnitsInSI
@@ -202,6 +203,24 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(peakHeightUnitsInSI(4))
-    peakHeightUnitsInSI=[0.0d0,0.0d0,0.0d0,0.0d0]
+    peakHeightUnitsInSI=[1.0d0,1.0d0,1.0d0,1.0d0]
     return
   end function peakHeightUnitsInSI
+
+  function peakHeightUnits(self,time) result(units)
+    !!{
+    Return the units of the peakHeight properties.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type            (unitType                       ), dimension(:), allocatable :: units
+    class           (nodePropertyExtractorPeakHeight), intent(inout)             :: self
+    double precision                                 , intent(in   )             :: time
+    integer                                                                      :: i
+
+    allocate(units(4))
+    do i=1,4
+       units(i)=unitType(1.0d0)
+    end do
+    return
+  end function peakHeightUnits

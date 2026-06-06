@@ -35,7 +35,7 @@
       \right)^{1/2}+\delta_\mathrm{c}(z_0),
     \end{equation}
     where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-    mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter.
+    mass assembled at formation time (given by the \mono{[massFractionFormation]} parameter.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -55,11 +55,12 @@
      procedure :: name        => haloCollapseEpochName
      procedure :: description => haloCollapseEpochDescription
      procedure :: unitsInSI   => haloCollapseEpochUnitsInSI
+     procedure :: units       => haloCollapseEpochUnits
   end type nodePropertyExtractorHaloCollapseEpoch
 
   interface nodePropertyExtractorHaloCollapseEpoch
      !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
      !!}
      module procedure haloCollapseEpochConstructorParameters
      module procedure haloCollapseEpochConstructorInternal
@@ -103,7 +104,7 @@ contains
 
   function haloCollapseEpochConstructorInternal(massFractionFormation,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorHaloCollapseEpoch)                        :: self
@@ -120,7 +121,7 @@ contains
 
   subroutine haloCollapseEpochDestructor(self)
     !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} output extractor property extractor class.
+    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
@@ -186,7 +187,7 @@ contains
   
   function haloCollapseEpochName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily haloCollapseEpoch} properties.
+    Return the names of the \mono{haloCollapseEpoch} properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochName
@@ -199,7 +200,7 @@ contains
 
   function haloCollapseEpochDescription(self)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily haloCollapseEpoch} properties.
+    Return the descriptions of the \mono{haloCollapseEpoch} properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochDescription
@@ -212,7 +213,7 @@ contains
 
   double precision function haloCollapseEpochUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily haloCollapseEpoch} properties in the SI system.
+    Return the units of the \mono{haloCollapseEpoch} properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
@@ -221,3 +222,17 @@ contains
     haloCollapseEpochUnitsInSI=1.0d0
     return
   end function haloCollapseEpochUnitsInSI
+
+  function haloCollapseEpochUnits(self) result(units)
+    !!{
+    Return the units of the haloCollapseEpoch property.
+    !!}
+    use :: Units_MetaData, only : unitType
+    implicit none
+    type (unitType                              )                :: units
+    class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    units=unitType(1.0d0)
+    return
+  end function haloCollapseEpochUnits

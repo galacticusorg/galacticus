@@ -23,7 +23,7 @@ Implements a galactic filter class which is the ``any'' combination of a set of 
 
   !![
   <galacticFilter name="galacticFilterAny">
-   <description>A galactic filter class which is the ``any'' combination of a set of other filters.</description>
+   <description>Implements a logical \mono{OR} combination of multiple \refClass{galacticFilterClass} objects, passing nodes that satisfy at least one filter in the list, enabling flexible union-based selection criteria from simpler component filters.</description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
   !!]
@@ -82,7 +82,7 @@ contains
 
   function anyConstructorInternal(filters) result(self)
     !!{
-    Internal constructor for the \refClass{galacticFilterAny} filter class.
+    Internal constructor for the \refClass{galacticFilterAny} galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny)                        :: self
@@ -124,7 +124,7 @@ contains
 
   logical function anyPasses(self,node)
     !!{
-    Apply a set of filters to a {\normalfont \ttfamily node} combined with ``any'' operations.
+    Apply a set of filters to a \mono{node} combined with ``any'' operations.
     !!}
     implicit none
     class(galacticFilterAny), intent(inout)         :: self

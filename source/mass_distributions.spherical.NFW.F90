@@ -128,25 +128,25 @@ contains
     <inputParameter>
       <name>scaleLength</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the NFW profile.</description>
+      <description>The NFW scale radius (in Mpc) $r_\mathrm{s}$ at which the density profile transitions from the inner $\rho \propto r^{-1}$ to the outer $\rho \propto r^{-3}$ slope.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the NFW profile.</description>
+      <description>The total mass (in $\mathrm{M}_\odot$) of the NFW profile, used to set the density normalization when the concentration and virial radius are provided.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>concentration</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The concentration of the NFW profile.</description>
+      <description>The halo concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of the NFW profile, controlling how centrally concentrated the dark matter density profile is.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
       <name>virialRadius</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The virial radius of the NFW profile.</description>
+      <description>The virial radius (in Mpc) $r_\mathrm{vir}$ of the NFW halo, which defines the outer boundary of the profile at which the mean enclosed density equals the virial overdensity threshold.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -204,13 +204,14 @@ contains
     if      (                            &
          &   present(scaleLength  )      &
          &  ) then
-       self%scaleLength         =scaleLength
+       self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
          &   present(virialRadius )      &
          &  ) then
        self%scaleLength=virialRadius/concentration
     else
+       self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
     end if
     ! Determine density normalization.
@@ -225,6 +226,7 @@ contains
        radiusScaleFree          =+virialRadius/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     else
+       self%densityNormalization=+0.00
        call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
@@ -252,7 +254,7 @@ contains
 
   double precision function nfwDensity(self,coordinates)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW mass distribution.
+    Return the density at the specified \mono{coordinates} in an NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
@@ -270,7 +272,7 @@ contains
 
   double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
+    Return the density at the specified \mono{coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -291,15 +293,16 @@ contains
        else
           call Error_Report('gradient is divergent at r=0'//{introspection:location})
        end if
+    else if (logarithmic_) then
+       ! Closed form for the logarithmic slope: dln ρ/dln r = -(1+3x)/(1+x) with x=r/r_s.
+       densityGradientRadial=-(1.0d0+3.0d0*radiusScaleFree)   &
+            &                /(1.0d0+      radiusScaleFree)
     else
        densityGradientRadial=-self       %densityNormalization &
             &                /self       %scaleLength          &
             &                /             radiusScaleFree **2 &
             &                *(1.0d0+3.0d0*radiusScaleFree)    &
             &                /(1.0d0+      radiusScaleFree)**3
-       if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
-            &                                  /self       %density              (coordinates) &
-            &                                  *coordinates%rSpherical           (           )
     end if
     return
   end function nfwDensityGradientRadial
@@ -390,7 +393,7 @@ contains
 
   double precision function nfwMassEnclosedBySphere(self,radius) result(mass)
     !!{
-    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for nfw mass distributions.
+    Computes the mass enclosed within a sphere of given \mono{radius} for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -661,7 +664,7 @@ contains
 
   double precision function nfwPotential(self,coordinates,status) result(potential)
     !!{
-    Return the potential at the specified {\normalfont \ttfamily coordinates} in an nfw mass distribution.
+    Return the potential at the specified \mono{coordinates} in an nfw mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -744,7 +747,7 @@ contains
   
   double precision function nfwFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
     !!{
-    Compute the Fourier transform of the density profile at the given {\normalfont \ttfamily wavenumber} in an NFW mass
+    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an NFW mass
     distribution, using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     !!}
     use :: Exponential_Integrals, only : Cosine_Integral, Sine_Integral
@@ -766,7 +769,7 @@ contains
   
   double precision function nfwRadiusFreefall(self,time) result(radius)
     !!{
-    Compute the freefall radius at the given {\normalfont \ttfamily time} in an NFW mass distribution.
+    Compute the freefall radius at the given \mono{time} in an NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -794,7 +797,7 @@ contains
   
   double precision function nfwRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
     !!{
-    Compute the rate of increase of the freefall radius at the given {\normalfont \ttfamily time} in an nfw mass
+    Compute the rate of increase of the freefall radius at the given \mono{time} in an nfw mass
     distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
@@ -824,7 +827,7 @@ contains
   
   subroutine nfwTimeFreefallTabulate(self,timeScaleFree)
     !!{
-    Tabulate the freefall radius at the given {\normalfont \ttfamily time} in an NFW mass distribution.
+    Tabulate the freefall radius at the given \mono{time} in an NFW mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -915,7 +918,7 @@ contains
   
   double precision function nfwEnergyPotential(self,radiusOuter) result(energy)
     !!{
-    Compute the potential energy within a given {\normalfont \ttfamily radius} in an NFW mass distribution. This is
+    Compute the potential energy within a given \mono{radius} in an NFW mass distribution. This is
     \begin{eqnarray}
       W &=& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \frac{m^2(x)}{x^2} \mathrm{d} x, \nonumber \\
         &-& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \left[ \frac{x}{1+x} - \frac{\log^2(1+x)}{x} + \frac{\left\{\log(1+x)-x/(1+x)\right\}^2}{x} \right],
@@ -946,7 +949,7 @@ contains
 
   double precision function nfwEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
     !!{
-    Compute the kinetic energy within a given {\normalfont \ttfamily radius} in an NFW mass distribution. This is
+    Compute the kinetic energy within a given \mono{radius} in an NFW mass distribution. This is
     \begin{eqnarray}
       T &=& 6 \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \rho(x) \sigma^2(x) x^2 \mathrm{d} x, \nonumber \\
         &=& \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \left[ 6 x^3 \text{Li}_2(-x)+x^3 (-\log (x))+\log (x+1) \left(3 x^3 \log (x+1)+((x-6) x+3) x-2\right)+\left(x \left(\pi ^2 x-7\right)+5\right) x+\frac{3}{x+1} \right],
@@ -1038,9 +1041,7 @@ contains
   end subroutine nfwDescriptor
 
   !![
-  <stateStoreTask>
-   <unitName>massDistributionNFWStateStore</unitName>
-  </stateStoreTask>
+  <stateStoreTask function="massDistributionNFWStateStore"/>
   !!]
   subroutine massDistributionNFWStateStore(stateFile,gslStateFile,stateOperationID)
     !!{
@@ -1064,9 +1065,7 @@ contains
   end subroutine massDistributionNFWStateStore
 
   !![
-  <stateRetrieveTask>
-   <unitName>massDistributionNFWStateRestore</unitName>
-  </stateRetrieveTask>
+  <stateRetrieveTask function="massDistributionNFWStateRestore"/>
   !!]
   subroutine massDistributionNFWStateRestore(stateFile,gslStateFile,stateOperationID)
     !!{

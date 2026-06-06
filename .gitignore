@@ -52,4 +52,8 @@ doc/GalacticusAccented.bib
 source/FFTlog
 source/texfrag
 __pycache__
+*.egg-info
+.pytest_cache
 .DS_Store
+.vscode
+.ipynb_checkpoints

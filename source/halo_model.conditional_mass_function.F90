@@ -42,9 +42,12 @@ module Conditional_Mass_Functions
   <functionClass>
    <name>conditionalMassFunction</name>
    <descriptiveName>Conditional Mass Function</descriptiveName>
-   <description>
-    Class providing empirical models of conditional mass functions.
-   </description>
+   <description>Class providing empirical models of the conditional stellar mass function (CSMF)---the mean
+    number of galaxies $\langle N(M_\star|M_\mathrm{halo})\rangle$ of stellar mass $M_\star$ hosted by
+    a dark matter halo of mass $M_\mathrm{halo}$, separately for central and satellite galaxies. The
+    CSMF is the key ingredient of halo occupation distribution (HOD) and stellar-to-halo mass relation
+    (SHMR) models used to populate $N$-body simulations with galaxies and to interpret galaxy
+    clustering observations without running a full semi-analytic model.</description>
    <default>behroozi2010</default>
    <method name="massFunction" >
     <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>

@@ -23,7 +23,7 @@ Implements a luminosity function output analysis class for the \cite{stefanon_ev
 
   !![
   <outputAnalysis name="outputAnalysisLuminosityFunctionStefanonMarchesini2013">
-   <description>A  luminosity function output analysis class for the \cite{stefanon_evolution_2013} analysis.</description>
+   <description>Computes the near-infrared galaxy luminosity function in J or H band at one of four redshift intervals for comparison with the \cite{stefanon_evolution_2013} survey measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunction) :: outputAnalysisLuminosityFunctionStefanonMarchesini2013
