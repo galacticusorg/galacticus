@@ -156,7 +156,7 @@ contains
     double precision                                         , intent(in   ) :: velocityRelative
     double precision                                         , intent(in   ) :: theta
 
-    ! Currently isotropic scattering is assumed.
+    ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
     sidmVelocityDependentCrossSectionSelfInteractionDifferential=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 * sin(theta) / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1 - cos(theta)))**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferential
@@ -170,7 +170,7 @@ contains
     double precision                                         , intent(in   ) :: velocityRelative
     double precision                                         , intent(in   ) :: Costheta
 
-    ! Currently isotropic scattering is assumed.
+    ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
     sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1 - Costheta))**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos

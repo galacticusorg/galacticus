@@ -128,9 +128,7 @@ contains
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalSIDMIsothermal, kinematicsDistributionSIDMIsothermal, nonAnalyticSolversNumerical, massDistributionSpherical
-    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
     implicit none
-!    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
     class           (massDistributionClass               ), pointer                 :: massDistribution_
     type            (kinematicsDistributionSIDMIsothermal), pointer                 :: kinematicsDistribution_
     class           (darkMatterProfileDMOSIDMIsothermal  ), intent(inout)           :: self

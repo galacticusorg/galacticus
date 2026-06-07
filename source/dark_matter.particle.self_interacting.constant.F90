@@ -160,8 +160,8 @@ contains
 
   double precision function sidmConstantCrossSectionSelfInteractionDifferentialCos(self,Costheta,velocityRelative)
     !!{
-    Return the momentum transfer self-interaction cross section, in units of
-cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, in units of
+    cm$^2$ g$^{-1}$ ster$^{-1}$, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self

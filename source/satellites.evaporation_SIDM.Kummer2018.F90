@@ -153,11 +153,10 @@ contains
    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
    use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
    use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
-   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal 
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, gigaYear, massSolar
     use :: Vectors                         , only : Vector_Magnitude
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                      , milli                      , kilo
-    use :: Numerical_Constants_Astronomical, only : megaParsec                                 , gigaYear                   , massSolar
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -198,12 +197,12 @@ contains
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! Compute the normalization of the scattering rate in units such that
-       ! when multiplied by a velocity in km s?~A?¹, and a
-       ! density in units of M?~X~I Mpc?~A?³, we get a rate in unitss of Gyr??~A?¹.
-       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital)*centi**2/milli         & ! Convert cross-section from cm² g?~A?¹ to m² kg?~A?¹.
-            &                           * kilo                       & ! Convertvelocity from km s?~A?¹ to m s?~A?¹.
-            &                           * massSolar   /megaParsec**3 & ! Convertdensity from M?~X~I Mpc?~A?³ to kg m?~A?³.
-            &                           * gigaYear                     ! Convertrate from s?~A?¹ to Gyr?~A?¹.
+       ! when multiplied by a velocity in km s⁻¹, and a
+       ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
+       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital)*centi**2/milli         & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
+            &                           * kilo                       & ! Convert velocity from km s⁻¹ to m s⁻¹.
+            &                           * massSolar   /megaParsec**3 & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
+            &                           * gigaYear                     ! Convert rate from s⁻¹ to Gyr⁻¹.
     class default
        ! No scattering.
        self%rateScatteringNormalization=+0.0d0
@@ -377,7 +376,7 @@ contains
     class           (satelliteEvaporationSIDMKummer2018         ), intent(inout) :: self
     double precision                                             , intent(in   ) :: x
     double precision                                             , intent(in   ) :: speedOrbital
-    double precision                                                             :: q, velocityCharacteristic = 24.33d0, xCritical = 1.0d0
+    double precision                                                             :: xCritical = 1.0d0
 
     if (x > self%xMaximum .or. speedOrbital > self%vMaximum .or. speedOrbital < self%vMinimum) then 
        if (x < xCritical) call self%tabulate(x+1.0d0,MIN(speedOrbital/2,self%vMinimum),MAX(2*speedOrbital,self%vMaximum))
@@ -386,10 +385,8 @@ contains
        kummer2018EvaporationFactor=self%evaporationFactor_%interpolate(x,speedOrbital)
     else
        kummer2018EvaporationFactor=0.0d0
-    !!{
-    If we change xCritical to 100 then this evaaporation factor should be -1.
-    !!}
-    end if 
+       ! Note: with xCritical set to 100, this evaporation factor would instead be -1.
+    end if
 
     return
   end function kummer2018EvaporationFactor

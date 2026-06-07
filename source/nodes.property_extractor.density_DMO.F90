@@ -318,7 +318,7 @@ contains
     !$GLC attributes unused :: time
 
     allocate(descriptions(self%elementCount_))
-    descriptions       (1)="Dark matter only density at a given radius [M☉/Mpc⁻³]."
+    descriptions       (1)="Dark matter only density at a given radius [M☉/Mpc³]."
     if (self%includeRadii)                                                             &
          & descriptions(2)="Radius at which dark matter only density is output [Mpc]."
     return
