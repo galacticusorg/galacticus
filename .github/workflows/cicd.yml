@@ -509,7 +509,9 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
+          # Disable link-time optimization: on Apple Silicon the DWARF emitted by LTO causes the dsymutil
+          # step below to be OOM-killed (see the LTO option in the Makefile).
+          make -j`sysctl -n hw.activecpu` USEGIT2=no LTO=disabled Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
