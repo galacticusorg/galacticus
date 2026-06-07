@@ -125,8 +125,6 @@ contains
     double precision                                                                      :: Veff
     double precision                                                                      :: numeratorIntegral
 
-!    print *, 'begining of effective cross section function'
-    
     Veff = 0.64d0*Vmax
 
     boundaries (1,:) = (/0.0d0,10.0d0*Veff/)
@@ -138,11 +136,7 @@ contains
     allocate(integratorNumerator)
     call integratorNumerator%setIntegrand(integrandNumerator)
 
-!    print *, 'call intrgrator ...'
-
     numeratorIntegral = integratorNumerator%integrate(boundaries)
-
-!    print *, 'numerator integral ...', numeratorIntegral
 
     effectiveCrossSection_ = numeratorIntegral/(512.0d0*Veff_**8)
     return

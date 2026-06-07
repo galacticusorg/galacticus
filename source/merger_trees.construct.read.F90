@@ -2126,7 +2126,6 @@ contains
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call darkMatterProfile%scaleSet(nodes(iNode)%scaleRadius)
-                write (0,*) "SCALE RADIUS ",nodes(iNode)%nodeIndex,nodes(iNode)%scaleRadius,darkMatterProfile%scale()
                 useFallbackScaleMethod=.false.
              else if (nodes(iNode)%halfMassRadius > 0.0d0) then
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
