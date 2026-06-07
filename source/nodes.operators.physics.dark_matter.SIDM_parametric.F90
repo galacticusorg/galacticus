@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that maps the CDM solution to SIDM based on the parametric model introduced in Yang et al. 2023: arXiv:2305.16176
+  Implements a node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
   !!}
   
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory  , darkMatterHaloMassAccretionHistoryClass
@@ -34,18 +34,18 @@
   !![
   <nodeOperator name="nodeOperatorSIDMParametric">
    <description>
-     A node operator class that maps the CDM solution to SIDM based on the parametric model introduced in Yang et al. 2023: arXiv:2305.16176
+     A node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSIDMParametric
      !!{
-     A node operator class that maps the CDM solution to SIDM based on the parametric model introduced in Yang et al. 2023: arXiv:2305.16176
+     A node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
        !!}
      private
      class(darkMatterParticleClass                ), pointer :: darkMatterParticle_        => null()
      class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
-     class(darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_
+     class(darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_            => null()
      class(cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_              => null()
      class(cosmologyParametersClass               ), pointer :: cosmologyParameters_  => null()
      class(darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_  => null()
@@ -53,11 +53,6 @@
      class(darkMatterProfileConcentrationClass    ), pointer :: darkMatterProfileConcentration_ => null()
      integer                                                 :: tauID, VmaxSIDMID, RmaxSIDMID, nodeFormationTimeSIDMID, RhosSIDMID, RsSIDMID, RcSIDMID
    contains
-     !![
-     <methods>
-       <method method="calculateTau" description="Computes tau, VmaxSIDM and RmaxSIDM for each node."/>
-     </methods>
-     !!]
      final     ::                                        SIDMParametricDestructor
      procedure :: nodeTreeInitialize                  => SIDMParametricNodeTreeInitialize
      procedure :: nodePromote                         => SIDMParametricNodePromote
@@ -136,8 +131,6 @@ contains
     class(virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: darkMatterProfileConcentration_
 
-    double precision                                         :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution=5.0d2 
-
     !![
     <constructorAssign variables="*darkMatterParticle_, *darkMatterHaloMassAccretionHistory_, *darkMatterProfileDMO_, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterHaloScale_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
     !!]
@@ -197,11 +190,13 @@ contains
     type (mergerTreeBuilderSmoothAccretion),          pointer :: mergerTreeBuilderSmoothAccretion_
     type (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
 
-    double precision :: formationMassFraction = 0.5d0
+    double precision, parameter :: formationMassFraction = 0.5d0
+    double precision, parameter :: alpha                 = 2.0d0  ! Coefficient of the halo mass-growth term in the tau evolution.
+    double precision, parameter :: massHaloDeclineFactor = 0.99d0 ! Fractional halo mass decline per step used when extrapolating the tree below resolution.
     double precision :: timeFormation
     double precision :: VmaxSIDMPrevious, tc, tau, dtr, VmaxSIDM, RmaxSIDM, RmaxCDM, RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxCDM
-    double precision :: dt, tau_old, Mhalo, dMdt, Gamma, alpha=2.0d0
-    double precision :: massHaloDeclineFactor=0.99d0, timeEarliest=0.0d0, massResolution
+    double precision :: dt, tau_old, Mhalo, dMdt, Gamma
+    double precision :: timeEarliest, massResolution
 
 
     call self%nodeInitialize(node)
@@ -305,15 +300,6 @@ contains
 
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID, tau)
-
-             dtr = (basicNew%time() - basicNewChild%time())/tc
-             if (dtr > 0.05d0) then
-                print *, 'Gravothermal evolution too fast, dtr: ', dtr
-             end if
-
-             if (alpha * Gamma * dt > 0.05d0) then
-                print *, 'Mass growth term too large: ', alpha*Gamma*dt
-             end if
 
              VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau,massDistribution_%velocityRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !dt/tc
              RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau,massDistribution_%radiusRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !(basicNew%time() - basicNewChild%time())/tc
@@ -505,14 +491,14 @@ contains
     class(nodeComponentBasic), pointer :: basic, basicParent
     class(nodeComponentDarkMatterProfile), pointer :: darkMatterProfile
 
+    double precision, parameter :: alpha = 2.0d0  ! Coefficient of the halo mass-growth term in the tau evolution.
     double precision :: timeFormation
-    double precision :: formationMassFraction = 0.5d0
     double precision :: tau, time, timePrevious, tc
     double precision :: RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c
-    double precision :: VmaxSIDM=0.0d0, RmaxSIDM=0.0d0, VmaxSIDMPrevious, RmaxSIDMPrevious, VmaxCDM, RmaxCDM, VmaxCDMPrevious, RmaxCDMPrevious
+    double precision :: VmaxSIDM, RmaxSIDM, VmaxSIDMPrevious, RmaxSIDMPrevious, VmaxCDM, RmaxCDM, VmaxCDMPrevious, RmaxCDMPrevious
     double precision :: dtr
-    double precision :: tau, VmaxSIDM, tc, dvdt, drdt, RmaxSIDM
-    double precision :: Mhalo, dMdt, Gamma, alpha=2.0d0, dtaudt
+    double precision :: dvdt, drdt
+    double precision :: Mhalo, dMdt, Gamma, dtaudt
 
     logical, intent(inout) :: interrupt
     procedure(interruptTask), intent(inout), pointer :: functionInterrupt
@@ -567,19 +553,25 @@ contains
 
   double precision function get_tc(self, node, Vmax, Rvmax, VmaxSIDM)
     !!{
-    Evaluating tc based on Eq. 2.2 from Yang et al. 2024:https://arxiv.org/pdf/2305.16176
+    Evaluate the gravothermal evolution timescale $t_\mathrm{c}$ following eqn.~(2.2) of \cite{yang_parametric_2024}.
     !!}
-    use Numerical_Constants_Math, only: Pi
-    use :: Numerical_Constants_astronomical, only : gravitationalConstant_internal
-    use :: Error, only : Error_Report
-    use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
+    use :: Numerical_Constants_Math         , only : Pi
+    use :: Numerical_Constants_Astronomical , only : gravitationalConstant_internal
+    use :: Numerical_Constants_Prefixes     , only : kilo
+    use :: Error                            , only : Error_Report
+    use :: Dark_Matter_Particles            , only : darkMatterParticleSelfInteractingDarkMatter
 
-    class(nodeOperatorSIDMParametric), intent(inout) :: self
-    type(treeNode), intent(in) :: node
-    double precision, intent(in) :: Vmax, Rvmax, VmaxSIDM
-
-    double precision :: sigmaeff, reff, rhoeff, C = 0.75, gravitationalConstant 
-    !type(effectiveCrossSection) :: sigmaeff
+    class           (nodeOperatorSIDMParametric), intent(inout) :: self
+    type            (treeNode                  ), intent(in   ) :: node
+    double precision                            , intent(in   ) :: Vmax                  , Rvmax , VmaxSIDM
+    double precision                            , parameter     :: timescaleNormalization=150.0d0  ! Numerical coefficient in the gravothermal timescale (eqn. 2.2).
+    double precision                            , parameter     :: C                     =0.75d0   ! Calibration constant relating t_c to the relaxation time.
+    double precision                            , parameter     :: radiusMaximumToScale  =2.1626d0 ! r_max/r_s for an NFW profile.
+    double precision                            , parameter     :: velocityMaximumToScale=1.648d0  ! V_max normalization coefficient for an NFW profile.
+    double precision                            , parameter     :: crossSectionConversion=2.09d-10 ! Converts the cross section per unit mass from cm^2 g^-1 to kpc^2 M_sun^-1.
+    double precision                                            :: sigmaeff              , reff  , rhoeff  , &
+         &                                                         gravitationalConstant
+    !$GLC attributes unused :: node
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
@@ -588,18 +580,22 @@ contains
        call Error_Report('unexpected class'//{introspection:location})
     end select
 
-    gravitationalConstant = gravitationalConstant_internal*1e3
-
-    !need to convert Rvmax to kpc
-    reff = Rvmax*1e3 / 2.1626 
-    rhoeff = (Vmax / (1.648 * reff))**2 / gravitationalConstant
-
-    !the constant 2.09e-10 is multiplied for unit conversion of sigma
-    get_tc = (150.0d0 / C) * (1.0d0 / (sigmaeff * 2.09e-10 * rhoeff * reff)) * (1.0d0 / sqrt(4.0d0 * Pi * gravitationalConstant * rhoeff))
+    ! Work in kpc length units (the internal length unit is Mpc, so apply a factor of kilo to lengths and to G).
+    gravitationalConstant = gravitationalConstant_internal*kilo
+    reff                  = Rvmax*kilo/radiusMaximumToScale
+    rhoeff                = (Vmax/(velocityMaximumToScale*reff))**2/gravitationalConstant
+    get_tc                = (timescaleNormalization/C)                                     &
+         &                  *(1.0d0/(sigmaeff*crossSectionConversion*rhoeff*reff))         &
+         &                  *(1.0d0/sqrt(4.0d0*Pi*gravitationalConstant*rhoeff))
 
   end function get_tc
 
   double precision function dvmaxt(tau, Vmaxt)
+    !!{
+    Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular velocity with respect to the
+    dimensionless gravothermal time $\tau$, scaled by the CDM maximum circular velocity {\normalfont \ttfamily Vmaxt}, using the
+    polynomial fit of \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
+    !!}
     double precision, intent(in   ) :: tau, Vmaxt
     double precision :: tau_local
 
@@ -615,6 +611,11 @@ contains
   end function dvmaxt
 
   double precision function drmaxt(tau, Rmaxt)
+    !!{
+    Return the derivative $\mathrm{d}R_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum-circular-velocity radius with respect to
+    the dimensionless gravothermal time $\tau$, scaled by the CDM radius {\normalfont \ttfamily Rmaxt}, using the polynomial fit of
+    \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
+    !!}
     double precision, intent(in   ) :: tau, Rmaxt
     double precision :: tau_local
 
@@ -630,6 +631,11 @@ contains
   end function drmaxt
 
   double precision function Rmax_NFW(RmaxSIDM, tau)
+    !!{
+    Map an SIDM maximum-circular-velocity radius {\normalfont \ttfamily RmaxSIDM} back to the equivalent CDM (NFW) value by
+    inverting the $R_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to
+    the range $[0,1]$.
+    !!}
     double precision, intent(in) :: RmaxSIDM, tau
     double precision :: tau_local
 
@@ -644,6 +650,11 @@ contains
   end function Rmax_NFW
 
   double precision function Vmax_NFW(VmaxSIDM, tau)
+    !!{
+    Map an SIDM maximum circular velocity {\normalfont \ttfamily VmaxSIDM} back to the equivalent CDM (NFW) value by inverting the
+    $V_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to the range
+    $[0,1]$.
+    !!}
     double precision, intent(in) :: VmaxSIDM, tau
     double precision :: tau_local
 
@@ -658,12 +669,20 @@ contains
   end function Vmax_NFW
 
   double precision function r_s0(Rmax)
+    !!{
+    Return the NFW scale radius corresponding to a maximum-circular-velocity radius {\normalfont \ttfamily Rmax}, using the
+    standard NFW relation $r_\mathrm{s}=R_\mathrm{max}/2.163$.
+    !!}
     double precision, intent(in) :: Rmax
 
     r_s0 = Rmax / 2.163d0
   end function r_s0
 
   double precision function rho_s0(Rs, Vmax)
+    !!{
+    Return the NFW characteristic density corresponding to a scale radius {\normalfont \ttfamily Rs} and maximum circular velocity
+    {\normalfont \ttfamily Vmax}.
+    !!}
     use Numerical_Constants_Math, only: Pi
     use :: Numerical_Constants_astronomical, only : gravitationalConstant_internal
     double precision, intent(in) :: Rs, Vmax
@@ -672,6 +691,11 @@ contains
   end function rho_s0
 
   double precision function get_rho_s(rho_s0, tau)
+    !!{
+    Return the SIDM parametric-profile characteristic density as a function of the dimensionless gravothermal time $\tau$,
+    normalized to the initial NFW characteristic density {\normalfont \ttfamily rho\_s0}, using the fit of
+    \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to the range $[0,1]$.
+    !!}
     double precision, intent(in) :: rho_s0, tau
     double precision :: tau_local
 
@@ -686,6 +710,11 @@ contains
   end function get_rho_s
 
   double precision function get_r_s(r_s0, tau)
+    !!{
+    Return the SIDM parametric-profile scale radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
+    initial NFW scale radius {\normalfont \ttfamily r\_s0}, using the fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily
+    tau} is clamped to the range $[0,1]$.
+    !!}
     double precision, intent(in) :: r_s0, tau
     double precision :: tau_local
 
@@ -700,6 +729,11 @@ contains
   end function get_r_s
 
   double precision function get_r_c(r_s0, tau)
+    !!{
+    Return the SIDM parametric-profile core radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
+    initial NFW scale radius {\normalfont \ttfamily r\_s0}, using the fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily
+    tau} is clamped to the range $[0,1]$.
+    !!}
     double precision, intent(in) :: r_s0, tau
     double precision :: tau_local
 
