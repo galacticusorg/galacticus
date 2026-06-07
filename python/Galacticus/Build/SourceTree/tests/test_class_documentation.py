@@ -569,6 +569,88 @@ def test_class_documentation_records_types_from_other_source_files(tmp_path,
     assert '<virialOrbitJiang2014>' in content, content
 
 
+def test_submodule_interface_blob_resolves_method_type(tmp_path, monkeypatch):
+    """A function-class implementation compiled as a submodule has each of
+    its contained procedures' *module interfaces* inserted into the parent
+    tree by `_emit_submodule_function_interface` as raw `code` nodes — not
+    parsed `function`/`subroutine` nodes.  `walk_tree` therefore never
+    yields them as function nodes, so `_process_function` cannot attach a
+    return type to a method bound to one.
+
+    For an auxiliary helper type defined alongside the implementation (e.g.
+    `domainIteratorCartesian3D`, whose `<methods>` directive describes a
+    `next` method bound to `logical function domainIteratorCartesian3DNext`),
+    the type-less method made the consumer (`scripts/doc/extractData.py`)
+    emit an EMPTY `\\begin{description}…\\end{description}` — which LaTeX
+    rejects, failing the documentation build.
+
+    ClassDocumentation now serialises and re-parses the tree to recover
+    those interface bodies as proper function nodes.  This test reproduces
+    the build-time shape — a structured `type` node plus the interface as a
+    raw `code` blob — and asserts the resolved return type reaches the
+    output XML."""
+    import Galacticus.Build.SourceTree.Process as proc_pkg
+    from Galacticus.Build.SourceTree import parse_code, walk_tree
+    from Galacticus.Build.SourceTree.Process.ClassDocumentation import (
+        process_class_documentation,
+    )
+
+    monkeypatch.setenv('GALACTICUS_BUILD_DOCS', 'yes')
+    monkeypatch.setenv('BUILDPATH', str(tmp_path))
+    monkeypatch.setattr(proc_pkg, '_PROCESS_TREE_DEPTH', 1)
+    from Galacticus.Build.SourceTree.Process import ClassDocumentation as cd
+    monkeypatch.setattr(cd, '_OUTPUT_PREVIOUS', [])
+
+    # Parse a module containing ONLY the helper type — so we get a proper
+    # `type` node with its `<methods>` directive and `procedure :: next =>`
+    # binding, but NO walkable `function` node for the bound implementation.
+    src = (
+        "module testInterfaceBlob\n"
+        "  type, extends(domainIterator) :: domainIteratorCartesian3D\n"
+        "   contains\n"
+        "     !![\n"
+        "     <methods>\n"
+        '       <method description="Move to the next cell." method="next" />\n'
+        "     </methods>\n"
+        "     !!]\n"
+        "     procedure :: next => domainIteratorCartesian3DNext\n"
+        "  end type domainIteratorCartesian3D\n"
+        "end module testInterfaceBlob\n"
+    )
+    tree = parse_code(src, name='testInterfaceBlob.F90')
+
+    # Locate the type node and splice in the procedure's module interface as
+    # a raw `code` blob — exactly how `_emit_submodule_function_interface`
+    # represents it in the in-memory tree.
+    type_node = next(n for n in walk_tree(tree) if n.get('type') == 'type')
+    interface_blob = {
+        'type':       'code',
+        'content':    (
+            "interface\n"
+            "module   logical function domainIteratorCartesian3DNext(self)\n"
+            "class(domainIteratorCartesian3D), intent(inout) :: self\n"
+            "  end function domainIteratorCartesian3DNext\n"
+            "end interface\n"
+        ),
+        'parent':     type_node.get('parent'),
+        'firstChild': None,
+        'sibling':    type_node.get('sibling'),
+    }
+    type_node['sibling'] = interface_blob
+
+    # Sanity: there is NO walkable function node before the re-parse step.
+    assert not any(n.get('type') == 'function' for n in walk_tree(tree))
+
+    process_class_documentation(tree, {})
+
+    out = tmp_path / 'testInterfaceBlob.classes.xml'
+    assert out.exists(), list(tmp_path.iterdir())
+    content = out.read_text()
+    # The `next` method's record must now carry a resolved return type
+    # (`logical`) rather than an empty/absent `<type>`.
+    assert '<intrinsic>logical</intrinsic>' in content, content
+
+
 def test_class_documentation_keeps_native_types(tmp_path, monkeypatch):
     """A type whose `source` matches the outer tree IS processed."""
     import Galacticus.Build.SourceTree.Process as proc_pkg

@@ -20,7 +20,7 @@ from List.ExtraUtils                     import as_array
 from XML.Utils                           import xml_to_dict
 from Fortran.Utils                       import UNIT_OPENERS
 from Galacticus.Build.Directives         import extract_directives
-from Galacticus.Build.SourceTree         import walk_tree, parse_file
+from Galacticus.Build.SourceTree         import walk_tree, parse_file, parse_code
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 from Galacticus.Build.SourceTree.Process import (
     register_postprocess, is_inner_process_tree_call,
@@ -541,6 +541,70 @@ def _write_classes_xml(tree, classes):
 
 
 # ---------------------------------------------------------------------------
+# Submodule interface-blob recovery
+# ---------------------------------------------------------------------------
+
+def _recover_interface_blob_functions(trees, wanted_names, seen_names):
+    """Yield `function`/`subroutine` nodes recovered from the raw `code`
+    interface blobs FunctionClass inserts for submodule-compiled procedures.
+
+    `_emit_submodule_function_interface` represents each contained
+    procedure's module interface as a short run of consecutive `code`
+    nodes (`interface` / `module … function NAME(…)` / argument
+    declarations / `end function … end interface`).  We collect the code
+    nodes of each tree in document order, slice out each
+    `interface … end interface` run, and re-parse only the runs that
+    mention a `wanted_names` (lower-cased) function — i.e. one a described
+    method bound to but that the direct walk could not type.  Parsing these
+    small blobs individually avoids `parse_code`'s super-linear cost on the
+    whole (possibly tens-of-thousands-of-lines) assembled module.
+
+    `seen_names` (lower-cased) is updated in place so a procedure is only
+    recovered once even if its interface appears in more than one tree.
+    """
+    for t in trees:
+        code_chunks = [
+            (n.get('content') or '')
+            for n in walk_tree(t)
+            if n.get('type') == 'code'
+        ]
+        i = 0
+        total = len(code_chunks)
+        while i < total:
+            chunk = code_chunks[i]
+            if not (chunk.lstrip().startswith('interface') and 'module' in chunk):
+                i += 1
+                continue
+            # Accumulate the interface block up to (and including) its
+            # `end interface` terminator.
+            block = [chunk]
+            j = i
+            while 'end interface' not in code_chunks[j] and j + 1 < total:
+                j += 1
+                block.append(code_chunks[j])
+            i = j + 1
+
+            block_text = ''.join(block)
+            lowered = block_text.lower()
+            if not any(name in lowered for name in wanted_names):
+                continue
+            try:
+                reparsed = parse_code(block_text)
+            except Exception:
+                # Re-parsing is best-effort enrichment; never abort the
+                # documentation pass over a single malformed blob.
+                continue
+            for node in walk_tree(reparsed):
+                if node.get('type') not in ('subroutine', 'function'):
+                    continue
+                name_lc = (node.get('name') or '').lower()
+                if not name_lc or name_lc in seen_names:
+                    continue
+                seen_names.add(name_lc)
+                yield node
+
+
+# ---------------------------------------------------------------------------
 # Main dispatcher
 # ---------------------------------------------------------------------------
 
@@ -620,8 +684,59 @@ def process_class_documentation(tree, options):
             elif ntype in ('subroutine', 'function'):
                 function_list.append(node)
 
+    # First pass: resolve method return types / arguments from the
+    # function and subroutine nodes that walk_tree yielded directly.
     for function in function_list:
         _process_function(function, classes)
+
+    # Second pass (only if needed): recover bound functions that
+    # FunctionClass emitted as raw `code` blobs rather than parsed nodes.
+    # When a functionClass implementation is compiled as a *submodule* (see
+    # "Split functionClass modules into submodules", 83f62a184a),
+    # `_emit_submodule_function_interface` inserts each contained
+    # procedure's *module interface* into the parent module's tree as a
+    # short run of plain `code` nodes — `interface`, then
+    # `module logical function domainIteratorCartesian3DNext(self)`, the
+    # dummy-argument declarations, then `end function … end interface`.
+    # `walk_tree` never yields these as `function`/`subroutine` nodes, so
+    # the first pass cannot attach a return type to a method bound to one.
+    # For an auxiliary helper type (e.g. `domainIteratorCartesian3D`,
+    # defined alongside a `<computationalDomain>` implementation) whose
+    # `<methods>` directive describes such a method, the type-less method
+    # makes the consumer (`scripts/doc/extractData.py`) emit an EMPTY
+    # `\begin{description}…\end{description}`, which LaTeX rejects
+    # ("Something's wrong--perhaps a missing \item").
+    #
+    # Recover each such function by re-parsing JUST its own little
+    # `interface … end interface` blob (one per contained procedure) back
+    # into a structured node carrying the return type in its opener.  We
+    # deliberately do NOT serialize-and-re-parse the whole tree: `parse_code`
+    # is super-linear in input size, and the largest assembled functionClass
+    # modules (output.analyses, nodes.operators) run to tens of thousands of
+    # lines — a whole-tree re-parse there costs many minutes.  Parsing only
+    # the handful of small interface blobs naming an unresolved bound
+    # function keeps the cost bounded.  The gate (`unresolved` non-empty)
+    # also skips the work entirely for the common case where every method
+    # already resolved; subroutine-typed methods resolve to
+    # `type == 'subroutine'`, so they don't trip it.
+    unresolved = set()
+    for class_record in classes.values():
+        for method in class_record.get('descriptions') or []:
+            if 'type' in method:
+                continue
+            for bound in method.get('boundFunctions') or []:
+                unresolved.add(bound.lower())
+            interface = method.get('interface')
+            if interface:
+                unresolved.add(interface.lower())
+
+    if unresolved:
+        seen_function_names = {
+            (f.get('name') or '').lower() for f in function_list
+        }
+        for function in _recover_interface_blob_functions(
+                trees, unresolved, seen_function_names):
+            _process_function(function, classes)
 
     # Scrub in-memory-only helpers and already-reported classes.
     for class_record in list(classes.values()):
