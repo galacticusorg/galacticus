@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of \cite{yang_parametric_2024}.
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM\_parametric'' model of \cite{yang_parametric_2024}.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
@@ -27,14 +27,14 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMParametric">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``SIDM_parametric'' model of
-      \cite{yang_parametric_2024} are built via the \refClass{massDistributionSphericalSIDMParametric} class.
+      Dark matter halo profiles for self-interacting dark matter following the ``SIDM\_parametric'' model of
+      \cite{yang_parametric_2024} are built via the \refClass{massDistributionSIDMParametricProfile} class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMParametric
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM_parametric'' model
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM\_parametric'' model
      of \cite{yang_parametric_2024}.
      !!}
      private
@@ -96,6 +96,7 @@ contains
     Internal constructor for the {\normalfont \ttfamily sidmParametric} dark matter profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
+    use :: Error                , only : Error_Report
     implicit none
     type (darkMatterProfileDMOSIDMParametric)                        :: self
     class(darkMatterParticleClass           ), intent(in   ), target :: darkMatterParticle_
@@ -143,17 +144,14 @@ contains
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass
-    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, massDistributionNFW, kinematicsDistributionCollisionlessTabulated,kinematicsDistributionNFW,  nonAnalyticSolversNumerical, massDistributionSpherical, kinematicsDistributionClass
-    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+    use :: Mass_Distributions        , only : massDistributionSIDMParametricProfile, massDistributionNFW, kinematicsDistributionCollisionlessTabulated, kinematicsDistributionNFW, kinematicsDistributionClass
     implicit none
-!    class           (darkMatterHaloScaleClass            ), pointer                 :: darkMatterHaloScale_
     class           (massDistributionClass               ), pointer                 :: massDistribution_
     class            (kinematicsDistributionClass ), pointer                 :: kinematicsDistribution_
     class           (darkMatterProfileDMOSIDMParametric  ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
-    class           (massDistributionClass               ), pointer                 :: massDistributionDecorated
     class           (nodeComponentBasic                  ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile),       pointer                 :: darkMatterProfile
 
@@ -202,12 +200,6 @@ contains
        allocate(massDistributionSIDMParametricProfile :: massDistribution_)
        select type(massDistribution_)
        type is (massDistributionSIDMParametricProfile)
-!       massDistributionDecorated => self%darkMatterProfileDMO_%get  (node,weightBy,weightIndex)
-          basic             => node%basic            ()
-          darkMatterProfile => node%darkMatterProfile()
-          !       select type (massDistributionDecorated)
-          !       class is (massDistributionSpherical)
-          !       print *, 'NodeIndex, r_s:', node%index(),darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
           !![
 	  <referenceConstruct object="massDistribution_">
             <constructor>
@@ -222,9 +214,6 @@ contains
 	    </constructor>
 	  </referenceConstruct>
           !!]
-          !       class default
-          !          call Error_Report('expected a spherical mass distribution'//{introspection:location})
-          !       end select
        end select
        allocate(kinematicsDistributionCollisionlessTabulated :: kinematicsDistribution_)
        select type (kinematicsDistribution_)

@@ -121,7 +121,7 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     select type (darkMatterProfile    )
     type is (nodeComponentDarkMatterProfile    )
-       ! Disk does not yet exist.
+       ! The dark matter profile component does not yet exist, so return zero values.
        tauSIDMParametric  =0.0d0
        VmaxSIDMParametric =0.0d0
        RmaxSIDMParametric =0.0d0  
@@ -183,8 +183,8 @@ contains
     allocate(descriptions(6))
     descriptions(1)=var_str('Dimensionless time variable.'    )
     descriptions(2)=var_str('Maximum velocity of the dark matter profile assuming the SIDM Parametric model [km/s].')
-    descriptions(3)=var_str('Radius at wich the maximum velocity of the dadrk matter profile occurs, assuming the SIDM Parametric model [Mpc].')
-    descriptions(4)=var_str('Scale desnsity (SIDM) [M_sun/Mpc^3].')
+    descriptions(3)=var_str('Radius at which the maximum velocity of the dark matter profile occurs, assuming the SIDM Parametric model [Mpc].')
+    descriptions(4)=var_str('Scale density (SIDM) [M_sun/Mpc^3].')
     descriptions(5)=var_str('Scale radius (SIDM) [Mpc].')
     descriptions(6)=var_str('Core size [Mpc].')
     return
@@ -195,7 +195,7 @@ contains
     Return the units of the {\normalfont \ttfamily SIDMParametric} properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes,     only : kilo
-    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar
     implicit none
     double precision                                              , dimension(:) , allocatable :: SIDMParametricUnitsInSI
     class           (nodePropertyExtractorSIDMParametric         ), intent(inout)              :: self
@@ -203,9 +203,10 @@ contains
    !$GLC attributes unused :: self, time
 
     allocate(SIDMParametricUnitsInSI(6))
+    SIDMParametricUnitsInSI(1)=1.0d0          ! tau is dimensionless.
     SIDMParametricUnitsInSI(2)=kilo
     SIDMParametricUnitsInSI(3)=megaParsec
-    SIDMParametricUnitsInSI(4)=kilo/megaParsec**3
+    SIDMParametricUnitsInSI(4)=massSolar/megaParsec**3
     SIDMParametricUnitsInSI(5)=megaParsec
     SIDMParametricUnitsInSI(6)=megaParsec
     return
