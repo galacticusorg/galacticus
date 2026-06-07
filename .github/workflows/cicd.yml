@@ -1081,6 +1081,7 @@ jobs:
                       tests.hashes.cryptographic.exe,
                       tests.integration.exe,
                       tests.integration2.exe,
+                      tests.integration_2D.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.interpolation.exe,
