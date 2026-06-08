@@ -30,9 +30,21 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
         exclude_from_all    = False
         found_program       = False
 
+        in_doc_block = False
+
         try:
             with open(file_full, 'r', errors='replace') as fh:
                 for line in fh:
+                    # Skip lines inside `!!{ ... !!}` LaTeX documentation blocks,
+                    # whose unprefixed prose can otherwise look like a `program`
+                    # statement.
+                    if in_doc_block:
+                        if '!!}' in line:
+                            in_doc_block = False
+                        continue
+                    if re.match(r'^\s*!!\{', line) and '!!}' not in line.split('!!{', 1)[1]:
+                        in_doc_block = True
+                        continue
                     if re.match(r'^\s*!/\s+exclude', line):
                         exclude_from_all = True
                     if re.match(r'^\s*program\s', line, re.IGNORECASE):
