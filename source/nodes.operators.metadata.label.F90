@@ -35,7 +35,8 @@ Implements a node operator class that applies labels to nodes during tree initia
      private
      type   (varying_string     )          :: label
      integer                               :: labelID
-     logical                               :: onInitialize             , onPostEvolution
+     logical                               :: onInitialize             , onPostEvolution, &
+          &                                   persistent
      class  (galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
      final     ::                              labelDestructor
@@ -63,7 +64,8 @@ contains
     type   (inputParameters    ), intent(inout) :: parameters
     class  (galacticFilterClass), pointer       :: galacticFilter_
     type   (varying_string     )                :: label
-    logical                                     :: onInitialize   , onPostEvolution
+    logical                                     :: onInitialize   , onPostEvolution, &
+         &                                         persistent
 
     !![
     <inputParameter>
@@ -75,7 +77,7 @@ contains
       <name>onInitialize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, apply the label to qualifying nodes during tree initialization (the \mono{nodeTreeInitialize} phase) so that static tree properties are labelled before evolution begins.</description>
+      <description>If true, apply the label to qualifying nodes during tree initialization (the \mono{nodeTreeInitialize} phase) so that static tree properties are labeled before evolution begins.</description>
     </inputParameter>
     <inputParameter>
       <name>onPostEvolution</name>
@@ -83,9 +85,15 @@ contains
       <defaultValue>.false.</defaultValue>
       <description>If true, reapply the label to qualifying nodes after each differential evolution step so that the label reflects time-varying filter criteria evaluated at each output epoch.</description>
     </inputParameter>
+    <inputParameter>
+      <name>persistent</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, the label is persistent---once set, it is never unset. Otherwise, labels are not persistent---they switch between set and unset at each timestep. Note that this option has no effect for the \mono{[onInitialize]=true}, \mono{[onPostEvolution]=false} case since in that case labels are applied only once (during tree initialization).</description>
+    </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]    
-    self=nodeOperatorLabel(label,onInitialize,onPostEvolution,galacticFilter_)
+    self=nodeOperatorLabel(label,onInitialize,onPostEvolution,persistent,galacticFilter_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="galacticFilter_"/>
@@ -93,7 +101,7 @@ contains
     return
   end function labelConstructorParameters
 
-  function labelConstructorInternal(label,onInitialize,onPostEvolution,galacticFilter_) result(self)
+  function labelConstructorInternal(label,onInitialize,onPostEvolution,persistent,galacticFilter_) result(self)
     !!{
     Constructor for the \refClass{nodeOperatorLabel} node operator class which takes a parameter set as input.
     !!}
@@ -101,10 +109,11 @@ contains
     implicit none
     type   (nodeOperatorLabel  )                        :: self
     type   (varying_string     ), intent(in   )         :: label
-    logical                     , intent(in   )         :: onInitialize   , onPostEvolution
+    logical                     , intent(in   )         :: onInitialize   , onPostEvolution, &
+         &                                                 persistent
     class  (galacticFilterClass), intent(in   ), target :: galacticFilter_
     !![
-    <constructorAssign variables="label, onInitialize, onPostEvolution, *galacticFilter_"/>
+    <constructorAssign variables="label, onInitialize, onPostEvolution, persistent, *galacticFilter_"/>
     !!]
 
     self%labelID=nodeLabelRegister(char(label))
@@ -142,12 +151,18 @@ contains
     !!{
     Initialize node branch tip indices.
     !!}
-    use :: Nodes_Labels, only : nodeLabelSet
+    use :: Nodes_Labels, only : nodeLabelSet, nodeLabelUnset
     implicit none
     class  (nodeOperatorLabel), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
+    logical                                   :: passes
     
-    if (self%onPostEvolution .and. self%galacticFilter_%passes(node)) &
-         & call nodeLabelSet(self%labelID,node)
+    if (.not.self%onPostEvolution) return
+    passes=self%galacticFilter_%passes(node)
+    if (passes) then
+       call nodeLabelSet  (self%labelID,node)
+    else if (.not.self%persistent) then
+       call nodeLabelUnset(self%labelID,node)
+    end if
     return
   end subroutine labelDifferentialEvolutionPost
