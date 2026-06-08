@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by the SIDM parametric "tau calculation" unit test (source/tests.tau_calculation.F90). -->
+<!-- It enables the dark matter profile component (with a settable scale radius) in addition to the basic component. -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+</parameters>

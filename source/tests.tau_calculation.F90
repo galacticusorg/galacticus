@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024
+!!           2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,328 +17,222 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!!{
+Tests of the inputs to the SIDM parametric model of \cite{yang_parametric_2024} (implemented by the
+\refClass{nodeOperatorSIDMParametric} class). A cold dark matter (CDM) halo mass accretion history, extracted from an N-body
+simulation, is read from file; for each step the maximum circular velocity and virial radius of the corresponding NFW halo are
+computed and compared against the values tabulated in the simulation. This validates the CDM-side quantities from which the
+parametric SIDM solution is built.
+
+The reference data files {\normalfont \ttfamily testSuite/data/SIDM/data\_799\_cdm\_NFW.txt} and {\normalfont \ttfamily
+testSuite/data/SIDM/data\_799\_cdm.txt} are tabulated from an N-body simulation and committed alongside this test.
+!!}
+
 program Tests_Tau_Calculation
-  use :: Display            , only : displayVerbositySet     , verbosityLevelStandard
-  use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceFilteredPower
-  use :: Cosmology_Functions, only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters,only : cosmologyParametersSimple
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleSelfInteractingDarkMatter, darkMatterParticleSIDMVelocityDependent
-  !use :: Dark_Matter_Particles, only :: darkMatterParticleSelfInteractingDarkMatterConstant
-  !use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOPenarrubia2010, darkMatterProfileDMONFW
-  use :: Events_Hooks                , only : eventsHooksInitialize
-  use :: Galacticus_Nodes   , only : mergerTree              , treeNode              , treeNodeList, nodeComponentBasic, nodeComponentDarkmatterProfile, nodeComponentBasicStandard, nodeClassHierarchyInitialize
-  use :: Node_Components           , only : Node_Components_Initialize, Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
-  use :: ISO_Varying_String , only : assignment(=)           , varying_string
-  use :: Input_Parameters   , only : inputParameters
-  use :: Kind_Numbers       , only : kind_int8
-  !use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-  use :: Unit_Tests         , only : Assert                  , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-  use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastFixed, fixedDensityTypeCritical, virialDensityContrastBryanNorman1998
-!  use :: tauCalculationClassModule, only : tauCalculation, tauCalculationClass
-  use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryCorrea2015
-  use :: Nodes_Operators , only : nodeOperatorSIDMParametric
-  use :: Linear_Growth   , only : linearGrowthCollisionlessMatter
-  use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
-  use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
-  use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionTopHat
-  use :: Transfer_Functions                   , only : transferFunctionEisensteinHu1999
-
+  use :: Cosmological_Density_Field                , only : cosmologicalMassVarianceFilteredPower
+  use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
+  use :: Dark_Matter_Halo_Mass_Accretion_Histories , only : darkMatterHaloMassAccretionHistoryCorrea2015
+  use :: Dark_Matter_Halo_Scales                   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+  use :: Dark_Matter_Particles                     , only : darkMatterParticleCDM                             , darkMatterParticleSIDMVelocityDependent
+  use :: Dark_Matter_Profiles_Concentration        , only : darkMatterProfileConcentrationFixed
+  use :: Dark_Matter_Profiles_DMO                  , only : darkMatterProfileDMONFW
+  use :: Display                                   , only : displayVerbositySet                               , verbosityLevelStandard
+  use :: Error                                     , only : Error_Report
+  use :: Events_Hooks                              , only : eventsHooksInitialize
+  use :: File_Utilities                            , only : Count_Lines_In_File
+  use :: Functions_Global_Utilities                , only : Functions_Global_Set
+  use :: Galacticus_Nodes                          , only : mergerTree                                        , nodeClassHierarchyInitialize           , nodeComponentBasic, nodeComponentDarkMatterProfile, &
+       &                                                    treeNode                                          , treeNodeList
+  use :: Input_Parameters                          , only : inputParameters
+  use :: Linear_Growth                             , only : linearGrowthCollisionlessMatter
+  use :: Mass_Distributions                        , only : massDistributionClass
+  use :: Node_Components                           , only : Node_Components_Initialize                         , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Nodes_Operators                           , only : nodeOperatorSIDMParametric
+  use :: Power_Spectra_Primordial                  , only : powerSpectrumPrimordialPowerLaw
+  use :: Power_Spectra_Primordial_Transferred      , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Window_Functions           , only : powerSpectrumWindowFunctionTopHat
+  use :: Transfer_Functions                        , only : transferFunctionEisensteinHu1999
+  use :: Unit_Tests                                , only : Assert                                            , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Virial_Density_Contrast                   , only : virialDensityContrastBryanNorman1998
   implicit none
-  type   (varying_string          )            :: parameterFile
-  integer(kind=kind_int8          ), parameter :: N = 214
-  type   (treeNodeList            )            :: nodes        (N)
-  !logical                                      :: nodeFound    (N)
-  type   (mergerTree              )            :: tree
-  type   (treeNode                ), pointer   :: node
-  type   (cosmologyParametersSimple)     , pointer :: cosmologyParameters_
-  type   (cosmologyFunctionsMatterLambda), pointer :: cosmologyFunctions_
-  type   (darkMatterProfileDMONFW), pointer    :: darkMatterProfileDMONFW_ 
-  type   (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: darkMatterHaloScale_ 
-  !type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_
-  !type   (virialDensityContrastFixed), pointer :: virialDensityContrast_
-  type   (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrast_
-  !type   (darkMatterParticleSelfInteractingDarkMatter) :: darkMatterParticle_
-  type   (darkMatterParticleCDM)                   :: darkMatterParticleCDM_ 
-  type   (darkMatterParticleSIDMVelocityDependent) :: darkMatterParticle_
-  !type   (darkMatterParticleSelfInteractingDarkMatterConstant) :: darkMatterParticle_
-  type   (nodeOperatorSIDMParametric), pointer :: nodeOperatorSIDMParametric_
-  type   (darkMatterHaloMassAccretionHistoryCorrea2015) :: darkMatterHaloMassAccretionHistory_
-  type   (linearGrowthCollisionlessMatter             ) :: linearGrowth_
-  type   (cosmologicalMassVarianceFilteredPower       ) :: cosmologicalMassVariance_
-  type   (powerSpectrumPrimordialPowerLaw             ) :: powerSpectrumPrimordial_
-  type   (powerSpectrumPrimordialTransferredSimple    ) :: powerSpectrumPrimordialTransferred_
-  type   (powerSpectrumWindowFunctionTopHat           ) :: powerSpectrumWindowFunction_
-  type   (transferFunctionEisensteinHu1999            ) :: transferFunction_
-
-
-  class(nodeComponentBasic),             pointer :: basic
-  class(nodeComponentDarkmatterProfile), pointer :: darkMatterProfile
-  !class(darkMatterProfileDMONFW),      pointer :: darkMatterProfile
-
-  integer(kind=kind_int8          )            :: i, io_status
-  type   (inputParameters         )          :: parameters
-  !type   (mergerTreeWalkerAllNodes)            :: treeWalker
-  !real(kind=8)                                 :: time_test(N), scale_a(N), mvir_test(N), rvir_test(N), Vmax_test(N), Rvmax_test(N)
-  double precision                             :: time_test(N), scale_a(N), mvir_test(N), rvir_test(N), Vmax_test(N), Rvmax_test(N), rs_test(N), velocityMaximum(N), radiusVelocityMaximum(N), radiusScale(N), massVirial(N), radiusVirial(N)
- 
-  character(len=256)                           :: line
-  double precision :: temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8
-  double precision :: h = 0.7
-  double precision :: RmaxSIDM, VmaxSIDM
-
-  integer :: output_unit
-  integer :: tauID, VmaxSIDMID, RmaxSIDMID 
-!  type(tauCalculation) :: tauCalc_
-
+  ! Hubble parameter (h=H0/100) of the simulation from which the reference data were extracted.
+  double precision                                                         , parameter   :: hubbleParameter      =0.7d0
+  ! Reference data files (CDM halo mass accretion history from an N-body simulation).
+  character       (len=*                                          )        , parameter   :: fileNameNFW          ='testSuite/data/SIDM/data_799_cdm_NFW.txt', &
+       &                                                                                    fileNameCDM          ='testSuite/data/SIDM/data_799_cdm.txt'
+  type            (inputParameters                                )                       :: parameters
+  ! Cosmology, power spectrum, and structure-formation objects.
+  type            (cosmologyParametersSimple                      )        , pointer      :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                 )        , pointer      :: cosmologyFunctions_
+  type            (virialDensityContrastBryanNorman1998           )        , pointer      :: virialDensityContrast_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition)     , pointer      :: darkMatterHaloScale_
+  type            (darkMatterProfileDMONFW                        )        , pointer      :: darkMatterProfileDMONFW_
+  type            (nodeOperatorSIDMParametric                     )        , pointer      :: nodeOperator_
+  type            (darkMatterParticleCDM                          )                       :: darkMatterParticleCDM_
+  type            (darkMatterParticleSIDMVelocityDependent        )                       :: darkMatterParticle_
+  type            (linearGrowthCollisionlessMatter               )                        :: linearGrowth_
+  type            (powerSpectrumPrimordialPowerLaw               )                        :: powerSpectrumPrimordial_
+  type            (powerSpectrumPrimordialTransferredSimple      )                        :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumWindowFunctionTopHat             )                        :: powerSpectrumWindowFunction_
+  type            (transferFunctionEisensteinHu1999             )                         :: transferFunction_
+  type            (cosmologicalMassVarianceFilteredPower         )                        :: cosmologicalMassVariance_
+  type            (darkMatterHaloMassAccretionHistoryCorrea2015  )                        :: darkMatterHaloMassAccretionHistory_
+  type            (darkMatterProfileConcentrationFixed           )                        :: darkMatterProfileConcentration_
+  ! Tree, nodes, and components.
+  type            (mergerTree                                     )                       :: tree
+  type            (treeNodeList                                   ), allocatable, dimension(:) :: nodes
+  class           (nodeComponentBasic                             )        , pointer      :: basic
+  class           (nodeComponentDarkMatterProfile                )         , pointer      :: darkMatterProfile
+  class           (massDistributionClass                         )         , pointer      :: massDistribution_
+  ! Reference data and computed quantities.
+  double precision                                                , allocatable, dimension(:) :: expansionFactor    , massVirialData    , radiusVirialData    , &
+       &                                                                                         radiusVelocityMaximumData, timeData    , radiusScale        , &
+       &                                                                                         velocityMaximumData, velocityMaximum   , radiusVirial
+  integer                                                                                 :: countData          , unitFile          , ioStatus            , i
+  double precision                                                                        :: column1            , column2           , column3             , column4, &
+       &                                                                                     column5            , column6           , column7             , column8
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("SIDM parametric model tests: tau calculation")
+  call Unit_Tests_Begin_Group("SIDM parametric model: CDM accretion-history inputs")
 
+  ! Read the parameter file and initialize the node-component hierarchy.
+  parameters=inputParameters('testSuite/parameters/nodes/nodes_modified.xml')
+  call eventsHooksInitialize           (          )
+  call Functions_Global_Set            (          )
+  call nodeClassHierarchyInitialize    (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)
 
-  ! Open the parameter file.
-  parameterFile='testSuite/parameters/nodes/nodes_modified.xml'
-  parameters=inputParameters(parameterFile)
+  ! Build the cosmology, power spectrum, and structure-formation object stack. These are the dependencies required to construct
+  ! the SIDM parametric node operator, and to compute NFW halo properties for comparison with the simulation data.
+  allocate(cosmologyParameters_    )
+  allocate(cosmologyFunctions_     )
+  allocate(virialDensityContrast_  )
+  allocate(darkMatterHaloScale_    )
+  allocate(darkMatterProfileDMONFW_)
+  allocate(nodeOperator_           )
+  cosmologyParameters_                =cosmologyParametersSimple                         (OmegaMatter=0.2815d0,OmegaBaryon=0.0465d0,OmegaDarkEnergy=0.7185d0,temperatureCMB=2.78d0,HubbleConstant=100.0d0*hubbleParameter)
+  cosmologyFunctions_                 =cosmologyFunctionsMatterLambda                    (cosmologyParameters_=cosmologyParameters_)
+  virialDensityContrast_              =virialDensityContrastBryanNorman1998              (allowUnsupportedCosmology=.false.,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
+  darkMatterHaloScale_                =darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_)
+  darkMatterProfileDMONFW_            =darkMatterProfileDMONFW                           (velocityDispersionUseSeriesExpansion=.false.,darkMatterHaloScale_=darkMatterHaloScale_)
+  darkMatterParticleCDM_              =darkMatterParticleCDM                             (                                                          )
+  darkMatterParticle_                 =darkMatterParticleSIDMVelocityDependent           (velocityCharacteristic=24.3289794155754d0,sigma0=147.10088d0,darkMatterParticle_=darkMatterParticleCDM_)
+  linearGrowth_                       =linearGrowthCollisionlessMatter                   (cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
+  powerSpectrumWindowFunction_        =powerSpectrumWindowFunctionTopHat                 (cosmologyParameters_=cosmologyParameters_)
+  powerSpectrumPrimordial_            =powerSpectrumPrimordialPowerLaw                   (index_=0.971d0,running=0.0d0,runningRunning=0.0d0,wavenumberReference=1.0d0,runningSmallScalesOnly=.false.)
+  transferFunction_                   =transferFunctionEisensteinHu1999                  (neutrinoNumberEffective=3.046d0,neutrinoMassSummed=0.0d0,darkMatterParticle_=darkMatterParticleCDM_,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
+  powerSpectrumPrimordialTransferred_ =powerSpectrumPrimordialTransferredSimple          (powerSpectrumPrimordial_=powerSpectrumPrimordial_,transferFunction_=transferFunction_,linearGrowth_=linearGrowth_)
+  cosmologicalMassVariance_           =cosmologicalMassVarianceFilteredPower             ( &
+       &                                                                                  sigma8                                  =0.82d0                             , &
+       &                                                                                  tolerance                               =4.0d-6                             , &
+       &                                                                                  toleranceTopHat                         =1.0d-6                             , &
+       &                                                                                  rootVarianceLogarithmicGradientTolerance=1.0d-12                            , &
+       &                                                                                  nonMonotonicIsFatal                     =.true.                             , &
+       &                                                                                  monotonicInterpolation                  =.false.                            , &
+       &                                                                                  truncateAtParticleHorizon               =.false.                            , &
+       &                                                                                  storeTabulations                        =.true.                             , &
+       &                                                                                  integrationFailureIsFatal               =.true.                             , &
+       &                                                                                  cosmologyParameters_                    =cosmologyParameters_               , &
+       &                                                                                  cosmologyFunctions_                     =cosmologyFunctions_                , &
+       &                                                                                  linearGrowth_                           =linearGrowth_                      , &
+       &                                                                                  powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferred_, &
+       &                                                                                  powerSpectrumWindowFunction_            =powerSpectrumWindowFunction_         &
+       &                                                                                 )
+  darkMatterHaloMassAccretionHistory_ =darkMatterHaloMassAccretionHistoryCorrea2015      (cosmologyFunctions_=cosmologyFunctions_,linearGrowth_=linearGrowth_,cosmologicalMassVariance_=cosmologicalMassVariance_)
+  darkMatterProfileConcentration_     =darkMatterProfileConcentrationFixed               (concentration_=5.0d0,virialDensityContrast_=virialDensityContrast_,darkMatterProfileDMO_=darkMatterProfileDMONFW_)
+  nodeOperator_                       =nodeOperatorSIDMParametric                         ( &
+       &                                                                                  darkMatterParticle_                =darkMatterParticle_                , &
+       &                                                                                  darkMatterHaloMassAccretionHistory_=darkMatterHaloMassAccretionHistory_, &
+       &                                                                                  darkMatterProfileDMO_              =darkMatterProfileDMONFW_           , &
+       &                                                                                  cosmologyFunctions_                =cosmologyFunctions_                , &
+       &                                                                                  cosmologyParameters_               =cosmologyParameters_               , &
+       &                                                                                  darkMatterHaloScale_               =darkMatterHaloScale_               , &
+       &                                                                                  virialDensityContrast_             =virialDensityContrast_             , &
+       &                                                                                  darkMatterProfileConcentration_    =darkMatterProfileConcentration_      &
+       &                                                                                 )
 
-  ! Initialize the Galacticus nodes objects module.
-  !call eventsHooksInitialize       (          )
-  !call Functions_Global_Set        (          )
-  call nodeClassHierarchyInitialize(parameters)
-  !call Node_Components_Initialize  (parameters)
-  !call Node_Components_Thread_Initialize(parameters)
+  ! Read the reference CDM data. The number of data lines is determined from the file (excluding the single header line). Both
+  ! files are tabulated from earliest to latest time; we fill our arrays in reverse so that index 1 corresponds to the final
+  ! (base) halo and increasing index corresponds to its progenitors.
+  countData=Count_Lines_In_File(fileNameNFW)-1
+  allocate(expansionFactor          (countData))
+  allocate(massVirialData           (countData))
+  allocate(radiusVirialData         (countData))
+  allocate(radiusVelocityMaximumData(countData))
+  allocate(timeData                 (countData))
+  allocate(radiusScale              (countData))
+  allocate(velocityMaximumData      (countData))
+  allocate(velocityMaximum          (countData))
+  allocate(radiusVirial             (countData))
+  allocate(nodes                    (countData))
 
-  allocate(cosmologyParameters_               )
-  allocate(cosmologyFunctions_                )
-  allocate(virialDensityContrast_             )
-  allocate(darkMatterHaloScale_               )
-  allocate(darkMatterProfileDMONFW_           )
-!  allocate(darkMatterParticleCDM_             )
-!  allocate(darkMatterParticle_                )
-!  allocate(linearGrowth_                      )
-!  allocate(cosmologicalMassVariance_          )
-!  allocate(darkMatterHaloMassAccretionHistory_)
-  allocate(nodeOperatorSIDMParametric_        )
-!  allocate(taucalc_                                         )
-  !allocate(darkMatterParticleSIDMVelDep_                    )
-
-  cosmologyParameters_ = cosmologyParametersSimple( &
-       OmegaMatter=0.2815d0, &
-       OmegaBaryon=0.0465d0, &
-       OmegaDarkEnergy=0.7185d0, &
-       temperatureCMB=2.7800d0, &
-       HubbleConstant=70.0d0)
-       !HubbleConstant=69.3000d0)
-  cosmologyFunctions_ = cosmologyFunctionsMatterLambda(cosmologyParameters_)
-  !virialDensityContrast_ = virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(tableStore=.false., cosmologyFunctions_ = cosmologyFunctions_)
-  !virialDensityContrast_ = virialDensityContrastFixed(densityContrastValue = 200.0d0, densityType = fixedDensityTypeCritical, turnAroundOverVirialRadius = 2.0d0, cosmologyParameters_ = cosmologyParameters_, cosmologyFunctions_ = cosmologyFunctions_)
-  virialDensityContrast_ = virialDensityContrastBryanNorman1998(allowUnsupportedCosmology = .false., cosmologyParameters_ = cosmologyParameters_, cosmologyFunctions_ = cosmologyFunctions_)
-  darkMatterHaloScale_ = darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_ = cosmologyParameters_, cosmologyFunctions_ = cosmologyFunctions_, virialDensityContrast_ = virialDensityContrast_)
-  darkMatterProfileDMONFW_ = darkMatterProfileDMONFW(velocityDispersionUseSeriesExpansion=.false., darkMatterHaloScale_ = darkMatterHaloScale_)
-  !darkMatterParticle_ = darkMatterParticleSelfInteractingDarkMatter()
-  darkMatterParticleCDM_ = darkMatterParticleCDM()
-  darkMatterParticle_ = darkMatterParticleSIDMVelocityDependent(velocityCharacteristic = 24.3289794155754d0, sigma0 = 147.10088d0, darkMatterParticle_ = darkMatterParticleCDM_)
-  !darkMatterParticle_=darkMatterParticleSelfInteractingDarkMatterConstant(sigma,darkMatterParticleCDM_)
-!  tauCalc_ = tauCalculation(darkMatterParticle_ = darkMatterParticle_)
-  linearGrowth_ = linearGrowthCollisionlessMatter(cosmologyParameters_ = cosmologyParameters_, cosmologyFunctions_ = cosmologyFunctions_)
-  powerSpectrumWindowFunction_ = powerSpectrumWindowFunctionTopHat(cosmologyParameters_ = cosmologyParameters_)
-  powerSpectrumPrimordial_ = powerSpectrumPrimordialPowerLaw( &
-       index_ = 0.971d0, &
-       running = +0.0d0, &
-       runningRunning = +0.0d0, &
-       wavenumberReference = +1.0d0, &
-       runningSmallScalesOnly = .false.)
-  transferFunction_ = transferFunctionEisensteinHu1999( &
-       neutrinoNumberEffective = 3.046d0, &
-       neutrinoMassSummed = 0.0d0, &
-       darkMatterParticle_ = darkMatterParticleCDM_, &
-       cosmologyParameters_ = cosmologyParameters_, &
-       cosmologyFunctions_ = cosmologyFunctions_)
-  powerSpectrumPrimordialTransferred_ = powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_ = powerSpectrumPrimordial_, transferFunction_ = transferFunction_, linearGrowth_ = linearGrowth_)
-  cosmologicalMassVariance_ = cosmologicalMassVarianceFilteredPower(&
-       sigma8 = 0.82d0, &
-       tolerance = 4.0d-6, &
-       toleranceTopHat = 1.0d-6, &
-       nonMonotonicIsFatal = .true., &
-       monotonicInterpolation = .false., &
-       truncateAtParticleHorizon = .false., &
-       cosmologyParameters_ = cosmologyParameters_, &
-       cosmologyFunctions_ = cosmologyFunctions_, &
-       linearGrowth_ = linearGrowth_, &
-       powerSpectrumPrimordialTransferred_ = powerSpectrumPrimordialTransferred_, &
-       powerSpectrumWindowFunction_ = powerSpectrumWindowFunction_)
-  darkMatterHaloMassAccretionHistory_ = darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_ = cosmologyFunctions_, linearGrowth_ = linearGrowth_, cosmologicalMassVariance_ = cosmologicalMassVariance_) 
-  nodeOperatorSIDMParametric_ = nodeOperatorSIDMParametric(darkMatterParticle_ = darkMatterParticle_, darkMatterHaloMassAccretionHistory_ = darkMatterHaloMassAccretionHistory_, darkMatterProfileDMO_ = darkMatterProfileDMONFW_)
-
-  ! Read the data from file
-  open(unit=10, file='data_799_cdm_NFW.txt', status='old', action='read')
-  read(10, '(A)', iostat=io_status) ! Skip the header line
-  if (io_status /= 0) then
-    print *, 'Error reading file'
-    stop
-  end if
-  i = N
-  do 
-    read(10, '(A)', iostat=io_status) line
-    if (io_status /= 0) exit
-    read(line, *) temp1, temp2, temp3, temp4
-    scale_a(i) = temp1
-    mvir_test(i) = temp2/h
-    rvir_test(i) = temp3*scale_a(i)/h
-    Rvmax_test(i) = temp4*scale_a(i)/h
-
-    time_test(i) = cosmologyFunctions_%cosmicTime(scale_a(i))
-    rs_test(i) = Rvmax_test(i)/2.1626d0
-
-    i = i - 1
+  ! Read the NFW halo properties: expansion factor, virial mass, virial radius, and radius of maximum circular velocity.
+  open(newUnit=unitFile,file=fileNameNFW,status='old',action='read',iostat=ioStatus)
+  if (ioStatus /= 0) call Error_Report('unable to open reference data file "'//fileNameNFW//'"'//{introspection:location})
+  read(unitFile,*) ! Skip the header line.
+  do i=countData,1,-1
+     read(unitFile,*) column1,column2,column3,column4
+     expansionFactor          (i)=column1
+     massVirialData           (i)=column2/hubbleParameter                       ! [M_sun]   (remove factor of h).
+     radiusVirialData         (i)=column3*expansionFactor(i)/hubbleParameter    ! [kpc]     (comoving, /h -> physical).
+     radiusVelocityMaximumData(i)=column4*expansionFactor(i)/hubbleParameter    ! [kpc]
+     timeData                 (i)=cosmologyFunctions_%cosmicTime(expansionFactor(i))
+     radiusScale              (i)=radiusVelocityMaximumData(i)/2.1626d0          ! NFW scale radius [kpc].
   end do
-  close(10)
+  close(unitFile)
 
-  ! Read the data from file
-  open(unit=10, file='data_799_cdm.txt', status='old', action='read')
-  read(10, '(A)', iostat=io_status) ! Skip the header line
-  if (io_status /= 0) then
-    print *, 'Error reading file'
-    stop
-  end if
-  i = N
-  do
-    read(10, '(A)', iostat=io_status) line
-    if (io_status /= 0) exit
-    read(line, *) temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8
-    !scale_a(i) = temp1
-    !mvir_test(i) = temp2/h
-    !rvir_test(i) = temp5*scale_a(i)/h
-    !rs_test(i) = temp6*scale_a(i)/h
-    Vmax_test(i) = temp7
-    !Rvmax_test(i) = temp8*scale_a(i)/h
-
-    !time_test(i) = cosmologyFunctions_%cosmicTime(scale_a(i))
-    !rs_test(i) = Rvmax_test(i)/2.1626d0
-
-    i = i - 1
+  ! Read the maximum circular velocity (column 7) from the CDM data file.
+  open(newUnit=unitFile,file=fileNameCDM,status='old',action='read',iostat=ioStatus)
+  if (ioStatus /= 0) call Error_Report('unable to open reference data file "'//fileNameCDM//'"'//{introspection:location})
+  read(unitFile,*) ! Skip the header line.
+  do i=countData,1,-1
+     read(unitFile,*) column1,column2,column3,column4,column5,column6,column7,column8
+     velocityMaximumData(i)=column7                                             ! [km/s].
   end do
-  close(10)
+  close(unitFile)
 
-  !print *, 'a_scale from file'
-  do i=1, 214
-  !   print *, scale_a(i)
-  !   print *, time_test(i)
-  !   print *, Rvmax_test(i)
-  end do  
-
-  ! Create nodes.
-  do i=1,N
+  ! Create the nodes and link them into a single (smooth-accretion) branch.
+  do i=1,countData
      nodes(i)%node => treeNode()
-
-     nodes(i)%node%parent => null()
-     nodes(i)%node%firstChild => null()
-     nodes(i)%node%sibling => null()
   end do
-
-  ! Set child nodes.
-  do i=1,N-1
-     nodes(i)%node%firstChild => nodes(i+1)%node
-     nodes(i+1)%node%parent => nodes(i)%node
+  do i=1,countData-1
+     nodes(i  )%node%firstChild => nodes(i+1)%node
+     nodes(i+1)%node%parent     => nodes(i  )%node
   end do
-
-  do i=1,N
-     
-     basic => nodes(i)%node%basic(autoCreate=.true.)
-     call basic%massSet(mvir_test(i))
-     call basic%timeSet(time_test(i)) 
-
-     darkMatterProfile => nodes(i)%node%darkMatterProfile(autoCreate=.true.)
-     call darkMatterProfile%scaleSet(rs_test(i)/1e3)
-
-     !print *, scale_a(i)    
- 
-     velocityMaximum(i)=darkMatterProfileDMONFW_%circularVelocityMaximum(nodes(i)%node)
-     !call Assert("maximum Velocity comparison:", velocityMaximum(i),Vmax_test(i), relTol=1.0d-3)
-
-     radiusVelocityMaximum(i)=darkMatterProfileDMONFW_%radiusCircularVelocityMaximum(nodes(i)%node)
-     radiusScale(i)=darkMatterProfile%scale()
-     massVirial(i)= basic%mass()
-
-     radiusVirial(i)=darkMatterHaloScale_%radiusVirial(nodes(i)%node)
-
-     print *, 'massVirial: ', massVirial(i)
-     print *, 'velocityMaximum: ', velocityMaximum(i)
-     !call Assert("maximum Velocity radius comparison:", radiusVelocityMaximum(i),Rvmax_test(i), relTol=1.0d-3)
-
-     ! Call the tauCalculationClass subroutine
-     !call tauCalculationClass(tauCalc, nodes(i)%node)
-
-     ! Retrieve the computed values of VmaxSIDM and RmaxSIDM
-     !call darkMatterProfile%floatRank0MetaPropertyGet(tauCalc%VmaxSIDMID, VmaxSIDM)
-     !call darkMatterProfile%floatRank0MetaPropertyGet(tauCalc%RmaxSIDMID, RmaxSIDM)
-
-     !!call nodeOperatorSIDMParametric_%calculateTau(nodes(i)%node)
-     !call nodeOperatorSIDMParametric_%differentialEvolutionScales(nodes(i)%node)
-     !call nodeOperatorSIDMParametric_%differentialEvolution(nodes(i)%node)
-
-  end do
- 
-  do i=1,N
-     basic => nodes(i)%node%basic(autoCreate=.true.)
-     darkMatterProfile => nodes(i)%node%darkMatterProfile(autoCreate=.true.)
-
-     !!tauID = nodeOperatorSIDMParametric_%getTauID()
-     !!VmaxSIDMID = nodeOperatorSIDMParametric_%getVmaxSIDMID()
-!     RmaxSIDMID = nodeOperatorSIDMParametric_%getRmaxSIDMID()
-
-!     call darkMatterProfile%floatRank0MetaPropertyGet(nodeOperatorSIDMParametric_%VmaxSIDMID, VmaxSIDM)
-!     call darkMatterProfile%floatRank0MetaPropertyGet(nodeOperatorSIDMParametric_%RmaxSIDMID, RmaxSIDM)
-     !!VmaxSIDM=darkMatterProfile%floatRank0MetaPropertyGet(VmaxSIDMID)
-!     RmaxSIDM=darkMatterProfile%floatRank0MetaPropertyGet(RmaxSIDMID)
-
-!     call darkMatterProfile%floatRank0MetaPropertyGet(VmaxSIDMID, VmaxSIDM)
-!     call darkMatterProfile%floatRank0MetaPropertyGet(RmaxSIDMID, RmaxSIDM)
-
-!     print *, RmaxSIDM
-     !!print *, VmaxSIDM
-     !call tauCalc_%VmaxSIDM(nodes(i)%node)
-     !call tauCalc_%RmaxSIDM(nodes(i)%node)
-
-
-!     call Assert("virial radius: ", radiusVirial(i)*1e3, rvir_test(i), relTol=1.0d-2)
-!     call Assert("mass radius: ", massVirial(i), mvir_test(i), relTol=1.0d-2)
-!     call Assert("max Velocity: ", velocityMaximum(i), Vmax_test(i), relTol=1.0d-2)
-     !call Assert("scale radius: ", radiusScale(i), rs_test(i), relTol=1.0d-3)
-
-  end do
-
-  ! Open the output file
-!  open(unit=20, file='output_data.txt', status='replace', action='write')
-!  write(20, '(A)') 'time_test rs_test Rs Rvmax_test Rvmax Vmax_test Vmax Rvir_test Rvir Mvir_test Mvir' ! Write header line
-
-!  do i=1,N
-     ! Write the data to the output file
-!     write(20, '(F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6, 2X, F20.6)') time_test(i), rs_test(i), radiusScale(i), Rvmax_test(i), radiusVelocityMaximum(i), Vmax_test(i), velocityMaximum(i), rvir_test(i), radiusVirial(i), mvir_test(i), massVirial(i)  
-!  end do
-
- ! Close the output file
-!  close(20)
-
-  ! Set the base node of our tree.
   tree%nodeBase => nodes(1)%node
 
-  !call Assert('All nodes walked to',all(nodeFound),.true.)
+  ! For each node, set the basic and dark matter profile properties from the data and compute the NFW maximum circular velocity
+  ! and virial radius.
+  do i=1,countData
+     basic             => nodes(i)%node%basic            (autoCreate=.true.)
+     call basic%massSet(massVirialData(i))
+     call basic%timeSet(timeData      (i))
+     darkMatterProfile => nodes(i)%node%darkMatterProfile(autoCreate=.true.)
+     call darkMatterProfile%scaleSet(radiusScale(i)/1.0d3)                      ! kpc -> Mpc.
+     massDistribution_ => darkMatterProfileDMONFW_%get(nodes(i)%node)
+     velocityMaximum(i)=massDistribution_%velocityRotationCurveMaximum()        ! [km/s].
+     radiusVirial   (i)=darkMatterHaloScale_%radiusVirial(nodes(i)%node)        ! [Mpc].
+  end do
 
-  ! Destroy nodes.
-  do i=1,N
+  ! Compare the computed NFW properties against the simulation reference values, requiring agreement to better than 1%.
+  call Assert("NFW maximum circular velocity vs simulation",velocityMaximum       ,velocityMaximumData,relTol=1.0d-2)
+  call Assert("NFW virial radius vs simulation"            ,radiusVirial*1.0d3     ,radiusVirialData   ,relTol=1.0d-2)
+
+  ! Destroy the nodes.
+  do i=1,countData
      call nodes(i)%node%destroy()
   end do
-  
+
+  ! Clean up.
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
 
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-  !call nodeClassHierarchyFinalize         ()
+  call Unit_Tests_Finish   ()
 
 end program Tests_Tau_Calculation
-
-
