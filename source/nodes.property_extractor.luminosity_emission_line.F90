@@ -787,8 +787,8 @@ contains
     ! have entries for zero age populations. In such cases we allow for extrapolation below the smallest age present in the table.
     extrapolationTime      (1)=extrapolationTypeExtrapolate
     extrapolationTime      (2)=extrapolationTypeAbort
-    interpolatorTime          =interpolator(self%ages         )
-    interpolatorMetallicity   =interpolator(self%metallicities)
+    interpolatorTime          =interpolator(self%ages         ,extrapolationType=extrapolationTime)
+    interpolatorMetallicity   =interpolator(self%metallicities                                    )
     !$omp masked
     if (parallelize_) then
        !$omp critical(gfortranInternalIO)
