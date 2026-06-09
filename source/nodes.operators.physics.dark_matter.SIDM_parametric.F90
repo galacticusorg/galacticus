@@ -52,6 +52,7 @@
      class(virialDensityContrastClass             ), pointer :: virialDensityContrast_  => null()
      class(darkMatterProfileConcentrationClass    ), pointer :: darkMatterProfileConcentration_ => null()
      integer                                                 :: tauID, VmaxSIDMID, RmaxSIDMID, nodeFormationTimeSIDMID, RhosSIDMID, RsSIDMID, RcSIDMID
+     double precision                                        :: alpha, C
    contains
      final     ::                                        SIDMParametricDestructor
      procedure :: nodeTreeInitialize                  => SIDMParametricNodeTreeInitialize
@@ -77,7 +78,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily SIDMParametric} node operator class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodeOperatorSIDMParametric)                  :: self
     type (inputParameters             ), intent(inout) :: parameters
@@ -89,8 +90,21 @@ contains
     class(darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_
     class(virialDensityContrastClass             ), pointer :: virialDensityContrast_
     class(darkMatterProfileConcentrationClass    ), pointer :: darkMatterProfileConcentration_
+    double precision                                        :: alpha, C
 
     !![
+    <inputParameter>
+      <name>alpha</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The coefficient $\alpha$ of the halo mass-growth term in the gravothermal $\tau$ evolution, $\dot\tau = 1/t_\mathrm{c} - \alpha \, (\dot{M}/M) \, \tau$. The default value of $2.0$ is the best-fit value found by \cite{raut_extended_2026}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>C</name>
+      <defaultValue>0.75d0</defaultValue>
+      <description>The calibration constant $C$ relating the gravothermal collapse timescale $t_\mathrm{c}$ to the relaxation time (eqn.~2.2 of \cite{yang_parametric_2024}). The default value of $0.75$ is the best-fit value found by \cite{raut_extended_2026}.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -100,7 +114,7 @@ contains
     <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
     <objectBuilder class="darkMatterProfileConcentration"    name="darkMatterProfileConcentration_"    source="parameters"/>
     !!]
-    self=nodeOperatorSIDMParametric(darkMatterParticle_,darkMatterHaloMassAccretionHistory_, darkMatterProfileDMO_, cosmologyFunctions_, cosmologyParameters_, darkMatterHaloScale_, virialDensityContrast_, darkMatterProfileConcentration_)
+    self=nodeOperatorSIDMParametric(alpha, C, darkMatterParticle_,darkMatterHaloMassAccretionHistory_, darkMatterProfileDMO_, cosmologyFunctions_, cosmologyParameters_, darkMatterHaloScale_, virialDensityContrast_, darkMatterProfileConcentration_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"/>
@@ -115,13 +129,14 @@ contains
     return
   end function SIDMParametricConstructorParameters
 
-  function SIDMParametricConstructorInternal(darkMatterParticle_, darkMatterHaloMassAccretionHistory_, darkMatterProfileDMO_, cosmologyFunctions_, cosmologyParameters_, darkMatterHaloScale_, virialDensityContrast_, darkMatterProfileConcentration_) result(self)
+  function SIDMParametricConstructorInternal(alpha, C, darkMatterParticle_, darkMatterHaloMassAccretionHistory_, darkMatterProfileDMO_, cosmologyFunctions_, cosmologyParameters_, darkMatterHaloScale_, virialDensityContrast_, darkMatterProfileConcentration_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily SIDMParametric} node operator class.
     !!}
 
     implicit none
     type (nodeOperatorSIDMParametric)                        :: self
+    double precision                 , intent(in   )         :: alpha, C
     class(darkMatterParticleClass   ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterHaloMassAccretionHistoryClass), intent(in   ),target  :: darkMatterHaloMassAccretionHistory_
     class(darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
@@ -132,7 +147,7 @@ contains
     class(darkMatterProfileConcentrationClass), intent(in   ), target :: darkMatterProfileConcentration_
 
     !![
-    <constructorAssign variables="*darkMatterParticle_, *darkMatterHaloMassAccretionHistory_, *darkMatterProfileDMO_, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterHaloScale_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
+    <constructorAssign variables="alpha, C, *darkMatterParticle_, *darkMatterHaloMassAccretionHistory_, *darkMatterProfileDMO_, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterHaloScale_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
     !!]
 
     !![
@@ -191,7 +206,6 @@ contains
     type (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
 
     double precision, parameter :: formationMassFraction = 0.5d0
-    double precision, parameter :: alpha                 = 2.0d0  ! Coefficient of the halo mass-growth term in the tau evolution.
     double precision, parameter :: massHaloDeclineFactor = 0.99d0 ! Fractional halo mass decline per step used when extrapolating the tree below resolution.
     double precision :: timeFormation
     double precision :: VmaxSIDMPrevious, tc, tau, dtr, VmaxSIDM, RmaxSIDM, RmaxCDM, RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c, VmaxCDM
@@ -296,13 +310,13 @@ contains
              Gamma = dMdt / Mhalo
 
              tau_old = darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)
-             tau = tau_old + dt * (1.d0/tc - alpha * Gamma * tau_old) 
+             tau = tau_old + dt * (1.d0/tc - self%alpha * Gamma * tau_old) 
 
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID, tau)
 
-             VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau,massDistribution_%velocityRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !dt/tc
-             RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau,massDistribution_%radiusRotationCurveMaximum()) * dt * (1.d0/tc - alpha * Gamma * tau_old) !(basicNew%time() - basicNewChild%time())/tc
+             VmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%VmaxSIDMID) + dvmaxt(tau,massDistribution_%velocityRotationCurveMaximum()) * dt * (1.d0/tc - self%alpha * Gamma * tau_old) !dt/tc
+             RmaxSIDM = darkMatterProfileChild%floatRank0MetaPropertyGet(self%RmaxSIDMID) + drmaxt(tau,massDistribution_%radiusRotationCurveMaximum()) * dt * (1.d0/tc - self%alpha * Gamma * tau_old) !(basicNew%time() - basicNewChild%time())/tc
 
              call darkMatterProfile%floatRank0MetaPropertySet(self%VmaxSIDMID, VmaxSIDM)
 
@@ -491,7 +505,6 @@ contains
     class(nodeComponentBasic), pointer :: basic, basicParent
     class(nodeComponentDarkMatterProfile), pointer :: darkMatterProfile
 
-    double precision, parameter :: alpha = 2.0d0  ! Coefficient of the halo mass-growth term in the tau evolution.
     double precision :: timeFormation
     double precision :: tau, time, timePrevious, tc
     double precision :: RmaxNFW0, VmaxNFW0, r_sNFW0, rho_sNFW0, rho_s, r_s, r_c
@@ -523,7 +536,7 @@ contains
             Mhalo = basic%mass()
             dMdt  = basic%accretionRate()
             Gamma = dMdt / Mhalo
-            dtaudt = 1.0d0/tc - alpha * Gamma * tau
+            dtaudt = 1.0d0/tc - self%alpha * Gamma * tau
 
             call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID, dtaudt)
 
@@ -565,7 +578,6 @@ contains
     type            (treeNode                  ), intent(in   ) :: node
     double precision                            , intent(in   ) :: Vmax                  , Rvmax , VmaxSIDM
     double precision                            , parameter     :: timescaleNormalization=150.0d0  ! Numerical coefficient in the gravothermal timescale (eqn. 2.2).
-    double precision                            , parameter     :: C                     =0.75d0   ! Calibration constant relating t_c to the relaxation time.
     double precision                            , parameter     :: radiusMaximumToScale  =2.1626d0 ! r_max/r_s for an NFW profile.
     double precision                            , parameter     :: velocityMaximumToScale=1.648d0  ! V_max normalization coefficient for an NFW profile.
     double precision                            , parameter     :: crossSectionConversion=2.09d-10 ! Converts the cross section per unit mass from cm^2 g^-1 to kpc^2 M_sun^-1.
@@ -584,7 +596,7 @@ contains
     gravitationalConstant = gravitationalConstant_internal*kilo
     reff                  = Rvmax*kilo/radiusMaximumToScale
     rhoeff                = (Vmax/(velocityMaximumToScale*reff))**2/gravitationalConstant
-    get_tc                = (timescaleNormalization/C)                                     &
+    get_tc                = (timescaleNormalization/self%C)                                &
          &                  *(1.0d0/(sigmaeff*crossSectionConversion*rhoeff*reff))         &
          &                  *(1.0d0/sqrt(4.0d0*Pi*gravitationalConstant*rhoeff))
 

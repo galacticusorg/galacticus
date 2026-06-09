@@ -145,6 +145,8 @@ program Tests_Tau_Calculation
   darkMatterHaloMassAccretionHistory_ =darkMatterHaloMassAccretionHistoryCorrea2015      (cosmologyFunctions_=cosmologyFunctions_,linearGrowth_=linearGrowth_,cosmologicalMassVariance_=cosmologicalMassVariance_)
   darkMatterProfileConcentration_     =darkMatterProfileConcentrationFixed               (concentration_=5.0d0,virialDensityContrast_=virialDensityContrast_,darkMatterProfileDMO_=darkMatterProfileDMONFW_)
   nodeOperator_                       =nodeOperatorSIDMParametric                         ( &
+       &                                                                                  alpha                              =2.0d0                              , &
+       &                                                                                  C                                  =0.75d0                             , &
        &                                                                                  darkMatterParticle_                =darkMatterParticle_                , &
        &                                                                                  darkMatterHaloMassAccretionHistory_=darkMatterHaloMassAccretionHistory_, &
        &                                                                                  darkMatterProfileDMO_              =darkMatterProfileDMONFW_           , &
