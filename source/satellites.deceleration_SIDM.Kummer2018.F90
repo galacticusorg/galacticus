@@ -262,7 +262,7 @@ contains
             &              +speedOrbital  **2 &
             &              +velocityEscape**2 &
             &             )
-       x            =+      velocityEscape    &
+       x            =+      speedHalfMass     &
             &        /      speedOrbital
        ! Find the combined velocity dispersion of satellite and host, and evaluate the correction factor given in Appendix A of
        ! Kummer et al. (2018).
