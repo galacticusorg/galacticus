@@ -77,7 +77,7 @@ contains
       <name>velocityCharacteristic</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The velocity beyond which the cross section drops as v$^{-4}$.</description>
+      <description>The characteristic velocity scale, $v_\mathrm{c}$, above which the self-interaction becomes velocity-suppressed. The total cross section is $\sigma(v) = \sigma_0 \, v_\mathrm{c}^2/(v_\mathrm{c}^2+v^2)$, which is approximately constant for $v \ll v_\mathrm{c}$ and falls as $v^{-2}$ for $v \gg v_\mathrm{c}$.</description>
     </inputParameter>
     <inputParameter>
       <name>sigma0</name>
@@ -196,6 +196,9 @@ contains
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
     double precision                              , intent(in   ) :: velocityRelative
 
+    ! This is the analytic integral (3/2) * integral[ (1-cos^2(theta)) dsigma/dcos(theta) ], i.e. the viscosity cross section in the
+    ! convention normalized such that isotropic scattering gives sigma_V = sigma. Note that this 3/2 normalization differs from the
+    ! bare (1-cos^2(theta)) weight used in the effective cross section integrand (see dark_matter.particle.self_interacting.F90).
     sidmVelocityDependentCrossSectionViscosity=6*self%sigma0*((self%velocityCharacteristic/velocityRelative)**4)*((1+2*(self%velocityCharacteristic/velocityRelative)**2)*log(1+(velocityRelative/self%velocityCharacteristic)**2)-2)
     return
   end function sidmVelocityDependentCrossSectionViscosity
