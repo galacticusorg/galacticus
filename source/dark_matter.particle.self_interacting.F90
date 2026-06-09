@@ -36,7 +36,7 @@ Implements a selfInteracting dark matter particle class.
      <methods>
        <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
        <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential"/>
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferentialCos"/>
+       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, of the dark matter particle as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionDifferentialCos"/>
        <method description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionMomentumTransfer" />
        <method description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionViscosity" />
      </methods>
@@ -73,7 +73,7 @@ Implements a selfInteracting dark matter particle class.
 
      double precision function crossSectionSelfInteractionDifferentialCosTemplate(self,Costheta,velocityRelative)
        !!{
-       Interface for differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$ ster$^{-1}$, of a self-interacting dark matter particle.
+       Interface for differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
        !!}
        import darkMatterParticleSelfInteractingDarkMatter
        class (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
@@ -108,10 +108,17 @@ Implements a selfInteracting dark matter particle class.
 
 contains
 
-  double precision function integrandNumerator(v,Costheta)
-    double precision, intent(in   ) :: v, Costheta
+  double precision function integrandNumerator(v,cosTheta)
+    !!{
+    Integrand of the numerator of the effective cross section, $\sigma_\mathrm{eff}$, of \cite{yang_parametric_2024} (their
+    eqn.~1.1). The integrand is $(\mathrm{d}\sigma/\mathrm{d}\cos\theta)\,\sin^2\theta\,v^5\,f_\mathrm{MB}(v)$, where the kinetic-theory
+    conductivity kernel contributes $\sin^2\theta\,v^5$ and the Maxwell--Boltzmann relative-velocity distribution contributes
+    $f_\mathrm{MB}(v) \propto v^2 \exp[-v^2/(4 v_\mathrm{eff}^2)]$. The two factors of $v$ combine to give the $v^7$ below, and
+    $\sin^2\theta = 1-\cos^2\theta$.
+    !!}
+    double precision, intent(in   ) :: v, cosTheta
 
-    integrandNumerator = self_%crossSectionSelfInteractionDifferentialCos(Costheta,v)*v**7*(1.0d0-Costheta**2)*exp(-v**2/(4.0d0*Veff_**2))
+    integrandNumerator = self_%crossSectionSelfInteractionDifferentialCos(cosTheta,v)*v**7*(1.0d0-cosTheta**2)*exp(-v**2/(4.0d0*Veff_**2))
     return
   end function integrandNumerator
 
@@ -138,6 +145,10 @@ contains
 
     numeratorIntegral = integratorNumerator%integrate(boundaries)
 
+    ! Normalize by the (cross-section-independent) denominator of eqn.~1.1 of Yang et al. (2024; JCAP; 2; 32), evaluated
+    ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
+    ! "2" in the numerator of that equation, (4/3) = integral over cos(θ) of sin²(θ), and 768 Veff⁸ = integral over v of v⁷
+    ! exp(-v²/4 Veff²).
     effectiveCrossSection_ = numeratorIntegral/(512.0d0*Veff_**8)
     return
   end function effectiveCrossSection_

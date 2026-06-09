@@ -31,8 +31,8 @@ Contains a module which implements a selfInteracting dark matter particle class.
      A selfInteracting dark matter particle class.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
-     double precision                                   :: sigma0, velocityCharacteristic 
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+     double precision                                   :: sigma0                       , velocityCharacteristic 
    contains
      !![
      <methods>
@@ -157,21 +157,21 @@ contains
     double precision                                         , intent(in   ) :: theta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    sidmVelocityDependentCrossSectionSelfInteractionDifferential=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 * sin(theta) / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1 - cos(theta)))**2
+    sidmVelocityDependentCrossSectionSelfInteractionDifferential=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 * sin(theta) / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1.0d0-cos(theta)))**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferential
 
-  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos(self,Costheta,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative)
     !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$ ster$^{-1}$, of a self-interacting dark matter particle.
+    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
     implicit none
     class           (darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
     double precision                                         , intent(in   ) :: velocityRelative
-    double precision                                         , intent(in   ) :: Costheta
+    double precision                                         , intent(in   ) :: cosTheta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1 - Costheta))**2
+    sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1.0d0-cosTheta))**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos
 

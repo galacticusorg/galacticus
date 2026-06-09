@@ -153,22 +153,23 @@ contains
 
     ! Currently isotropic scattering is assumed.
     sidmConstantCrossSectionSelfInteractionDifferential=+self%crossSectionSelfInteraction(velocityRelative) &
-         &                                                   *0.5d0                              &
-         &                                                   *sin(theta)
+         &                                              *0.5d0                                              &
+         &                                              *sin(theta)
     return
   end function sidmConstantCrossSectionSelfInteractionDifferential
 
-  double precision function sidmConstantCrossSectionSelfInteractionDifferentialCos(self,Costheta,velocityRelative)
+  double precision function sidmConstantCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative)
     !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, in units of
-    cm$^2$ g$^{-1}$ ster$^{-1}$, of a self-interacting dark matter particle.
+    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of
+    $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
+    double precision                                          , intent(in   ) :: velocityRelative, cosTheta
 
-    double precision                                          , intent(in   ) :: velocityRelative, Costheta
-
-    sidmConstantCrossSectionSelfInteractionDifferentialCos=self%crossSectionSelfInteraction_
+    ! Currently isotropic scattering is assumed.
+    sidmConstantCrossSectionSelfInteractionDifferentialCos=+self%crossSectionSelfInteraction_ &
+         &                                                 *0.5d0
     return
   end function sidmConstantCrossSectionSelfInteractionDifferentialCos
 
@@ -178,7 +179,6 @@ contains
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
-
     double precision                                          , intent(in   ) :: velocityRelative
 
     sidmConstantCrossSectionMomentumTransfer=self%crossSectionSelfInteraction_
