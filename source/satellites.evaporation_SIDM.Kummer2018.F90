@@ -241,7 +241,7 @@ contains
           coordinatesHalfMass=[radiusHalfMass,0.0d0,0.0d0]
           potentialEscape    =+massDistribution_%potentialDifference(coordinatesBoundary,coordinatesHalfMass) &
                &              +gravitationalConstant_internal                                                 &
-               &              *massBoundary                                                                   &
+               &              *massDistribution_%massEnclosedBySphere(radiusBoundary)                          &
                &              /radiusBoundary
           if (potentialEscape > 0.0d0) then
              velocityEscape=sqrt(2.0d0*potentialEscape)
@@ -274,16 +274,16 @@ contains
        <objectDestructor name="kinematics_"          />
        <objectDestructor name="kinematicsHost_"      />
        !!]
-       ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy or host
+       ! Get the speed of a host particle at the half-mass radius of the subhalo - this is the sum of the kinetic energy of host
        ! particles in the rest-frame of the subhalo, plus the energy they gain by falling in to the half-mass radius of the
        ! subhalo. We include the correction factor of the velocity dispersion as suggested in equation (A4) of Kummer et
        ! al. (2018).
        speedHalfMass=+sqrt(                       &
             &              +speedOrbital      **2 &
-            &              +velocityDispersion**2 &
             &              +velocityEscape    **2 &
+            &              +velocityDispersion**2 &
             &             )
-       x            =+      velocityEscape        &
+       x            =+      speedHalfMass         &
             &        /      speedOrbital
        ! Evaporation occurs for x<1.
        if (x < 1.0d0) then 
