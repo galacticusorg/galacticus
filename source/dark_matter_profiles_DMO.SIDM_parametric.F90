@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM\_parametric'' model of \cite{yang_parametric_2024}.
+  An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM parametric'' model of \cite{yang_parametric_2024}.
   !!}
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
@@ -27,14 +27,14 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMParametric">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``SIDM\_parametric'' model of
+      Dark matter halo profiles for self-interacting dark matter following the ``SIDM parametric'' model of
       \cite{yang_parametric_2024} are built via the \refClass{massDistributionSIDMParametricProfile} class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMParametric
      !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM\_parametric'' model
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``SIDM parametric'' model
      of \cite{yang_parametric_2024}.
      !!}
      private

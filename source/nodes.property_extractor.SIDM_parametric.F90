@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorSIDMParametric
      !!{
-     Constructors for the ``SIDMParametric'' output extractor class.
+     Constructors for the \refClass{nodePropertyExtractorSIDMParametric} class.
      !!}
      module procedure SIDMParametricConstructorParameters
      module procedure SIDMParametricConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function SIDMParametricConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``SIDMParametric'' property extractor class which takes a parameter set as input.
+    Constructor for the \refClass{nodePropertyExtractorSIDMParametric} class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function SIDMParametricConstructorInternal() result(self)
     !!{
-    Internal constructor for the ``SIDMParametric'' output extractor property extractor class.
+    Internal constructor for the \refClass{nodePropertyExtractorSIDMParametric} class.
     !!}
     implicit none
     type(nodePropertyExtractorSIDMParametric) :: self
@@ -97,10 +97,9 @@ contains
 
   function SIDMParametricExtract(self,node,time,instance)
     !!{
-    Implement a SIDMParametric output extractor.
+    Extract parameters of the SIDM parametric model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkmatterProfile 
-    !use :: Nodes_Operators , only : nodeOperatorSIDMParametric
     implicit none
     double precision                                     , dimension(:) , allocatable :: SIDMParametricExtract
     class           (nodePropertyExtractorSIDMParametric), intent(inout), target      :: self
