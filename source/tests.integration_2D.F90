@@ -32,45 +32,37 @@ Contains a 2D integration test for unit tests.
     use :: Unit_Tests                  , only: Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
     implicit none
     double precision              , dimension(2,2) :: boundaries
-    type            (integrator2D), allocatable    :: integrator_
+    type            (integrator2D)                 :: integrator_
     double precision                               :: integral
-    
+
     ! Set verbosity level.
     call displayVerbositySet(verbosityLevelStandard)
     ! Begin unit tests.
-    call Unit_Tests_Begin_Group("Numerical integration (2D)")    
+    call Unit_Tests_Begin_Group("Numerical integration (2D)")
     ! Test simple integrations.
     !! First integrand.
-    allocate(integrator_)
     boundaries(1,:)=[-1.0d0,+1.0d0]
     boundaries(2,:)=[-1.0d0,+1.0d0]
-    call integrator_%setIntegrand(Integrand1)
+    integrator_=integrator2D(Integrand1)
     integral=integrator_%integrate(boundaries)
-    deallocate(integrator_)
     call Assert("integrate f(x,y)=sin(x²) cos(y) from x=-1 to 1, y=-1 to 1", integral, 1.04433d0, relTol=1.0d-2)
     !! Second integrand.
-    allocate(integrator_)
     boundaries(1,:)=[-1.0d0,+1.0d0]
     boundaries(2,:)=[-1.0d0,+1.0d0]
-    call integrator_%setIntegrand(Integrand2)
+    integrator_=integrator2D(Integrand2)
     integral=integrator_%integrate(boundaries)
-    deallocate(integrator_)
     call Assert("integrate f(x)=x² cos(y) from x=-1 to 1, y=-1 to 1", integral, 1.12196d0, absTol=1.0d-2)
     !! Third integrand.
-    allocate(integrator_)
     boundaries(1,:)=[+0.0d0,+1.0d0]
     boundaries(2,:)=[-1.0d0,+1.0d0]
-    call integrator_%setIntegrand(Integrand3)
+    integrator_=integrator2D(Integrand3)
     integral=integrator_%integrate(boundaries)
-    deallocate(integrator_)
     call Assert("integrate f(x)=√x y² from x=0 to 1, y=-1 to 1", integral, 0.444444d0, relTol=1.0d-2)
     !! Fourth integrand.
-    allocate(integrator_)
     boundaries(1,:)=[+0.0d0,+1.0d0]
     boundaries(2,:)=[+0.0d0,+2.0d0]
-    call integrator_%setIntegrand(Integrand4)
+    integrator_=integrator2D(Integrand4)
     integral=integrator_%integrate(boundaries)
-    deallocate(integrator_)
     call Assert("integrate f(x,y)=y/√x from x=0 to 1 and y=0 to 2", integral, 4.0d0, relTol=1.0d-2)
     ! End unit tests.
     call Unit_Tests_End_Group()

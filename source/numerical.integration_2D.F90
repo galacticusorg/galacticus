@@ -25,113 +25,114 @@ module Numerical_Integration_2D
   !!{
   Implements a simple two-dimensional integrator.
   !!}
+  use :: Numerical_Integration, only : integrator
   implicit none
   private
   public :: integrator2D
 
   type :: integrator2D
      !!{
-     A simple 2D integrator.
+     A simple 2D integrator. The integrand and tolerances are fixed at construction, and the (one-dimensional) integrator
+     objects used for the inner and outer integrals are built once in the constructor and reused on each call to
+     {\normalfont \ttfamily integrate}.
      !!}
      private
-     procedure       (integrandTemplate), nopass        , pointer :: integrand
+     procedure       (integrandTemplate), nopass        , pointer :: integrand   => null()
      double precision                   , dimension(2,2)          :: boundaries
+     type            (integrator        )                         :: integratorX           , integratorY
    contains
      !![
      <methods>
-       <method method="integrate"    description="Perform integration over a 2D region."/>
-       <method method="setIntegrand" description="The the integrand for 2D integration."/>
+       <method method="integrate" description="Perform integration over a 2D region."/>
      </methods>
      !!]
-     procedure :: integrate    => integrator2DIntegrate
-     procedure :: setIntegrand => integrator2DSetIntegrand
+     procedure :: integrate => integrator2DIntegrate
   end type integrator2D
-  
+
   interface integrator2D
      !!{
      Constructors for the \refClass{integrator2D} class.
      !!}
-    module procedure :: integrator2DConstructor
+     module procedure :: integrator2DConstructor
   end interface integrator2D
 
   abstract interface
      !!{
      Template for 2D integrands.
      !!}
-    double precision function integrandTemplate(x, y)
-      double precision, intent(in) :: x, y
-    end function integrandTemplate
+     double precision function integrandTemplate(x,y)
+       double precision, intent(in) :: x, y
+     end function integrandTemplate
   end interface
+
+  ! Thread-private state used to communicate the active object and the current value of the outer integration variable to the
+  ! module-level integrand functions. The underlying 1D integrator invokes its integrand through a plain procedure pointer which
+  ! can carry no object state, so this state is passed here instead. As a consequence a given integrator2D object must not be
+  ! shared between threads (each thread should construct its own).
+  class           (integrator2D), pointer :: self_ => null()
+  double precision                        :: x_
+  !$omp threadprivate(self_,x_)
 
 contains
 
-  function integrator2DConstructor() result(self)
+  function integrator2DConstructor(integrand,toleranceRelative,toleranceAbsolute) result(self)
     !!{
-    Constructor for the \refClass{integrator2D} class.
+    Constructor for the \refClass{integrator2D} class. The {\normalfont \ttfamily integrand} is the two-dimensional function to
+    be integrated. The (optional) {\normalfont \ttfamily toleranceRelative} and {\normalfont \ttfamily toleranceAbsolute}
+    arguments set the relative and absolute tolerances used for both the inner and outer integrals.
     !!}
     implicit none
-    type(integrator2D) :: self
+    type            (integrator2D     )                          :: self
+    procedure       (integrandTemplate)                          :: integrand
+    double precision                   , intent(in   ), optional :: toleranceRelative, toleranceAbsolute
+    !![
+    <optionalArgument name="toleranceRelative" defaultsTo="1.0d-2"/>
+    <optionalArgument name="toleranceAbsolute" defaultsTo="0.0d0" />
+    !!]
 
-    self%integrand => null()
+    self%integrand   => integrand
+    self%integratorX =  integrator(integrator2DIntegrandX,toleranceRelative=toleranceRelative_,toleranceAbsolute=toleranceAbsolute_)
+    self%integratorY =  integrator(integrator2DIntegrandY,toleranceRelative=toleranceRelative_,toleranceAbsolute=toleranceAbsolute_)
     return
   end function integrator2DConstructor
-  
-  subroutine integrator2DSetIntegrand(self,integrand)
-    !!{
-    Set the integrand for 2D integration.
-    !!}
-    class    (integrator2D     ), intent(inout) :: self
-    procedure(integrandTemplate)                :: integrand
-    
-    self%integrand => integrand
-    return
-  end subroutine integrator2DSetIntegrand
 
   double precision function integrator2DIntegrate(self,boundaries)
     !!{
-    Perform integration over a 2D region.
+    Perform integration over a 2D region. {\normalfont \ttfamily boundaries} holds the integration limits, with
+    {\normalfont \ttfamily boundaries(1,:)} the limits of the outer ($x$) integral and {\normalfont \ttfamily boundaries(2,:)}
+    the limits of the inner ($y$) integral.
     !!}
-    use :: Numerical_Integration, only: integrator
-    use :: Coordinates          , only: coordinateCartesian
     implicit none
-    class           (integrator2D), intent(inout), target         :: self
+    class           (integrator2D), intent(inout), target        :: self
     double precision              , intent(in   ), dimension(2,2) :: boundaries
-    type            (integrator  )                                :: integrator_
-    double precision                                              :: x_         , y_
 
-    self%boundaries      =boundaries
-    integrator_          =integrator(integrator2DIntegrandX,toleranceRelative=1.0d-2)
-    integrator2DIntegrate=integrator_%integrate(boundaries(1,1),boundaries(1,2))
+    self%boundaries      =  boundaries
+    self_                => self
+    integrator2DIntegrate=  self%integratorX%integrate(boundaries(1,1),boundaries(1,2))
     return
-
-  contains
-
-    double precision function integrator2DIntegrandX(x)
-      !!{
-      Perform the integrand integrated over $y$.
-      !!}
-      implicit none
-      double precision            , intent(in) :: x
-      type            (integrator)             :: integrator_
-
-      x_                    =x
-      integrator_           =integrator           (integrator2DIntegrandY,toleranceRelative=1.0d-2)
-      integrator2DIntegrandX=integrator_%integrate(self%boundaries(2,1), self%boundaries(2,2))
-      return
-    end function integrator2DIntegrandX
-
-    double precision function integrator2DIntegrandY(y)
-      !!{
-      Evaluate the 2D integrand.
-      !!}
-      implicit none
-      double precision, intent(in) :: y
-      
-      y_                    =y
-      integrator2DIntegrandY=self%integrand(x_,y_)
-      return
-    end function integrator2DIntegrandY
-    
   end function integrator2DIntegrate
+
+  double precision function integrator2DIntegrandX(x)
+    !!{
+    Evaluate the inner ($y$) integral at fixed $x$.
+    !!}
+    implicit none
+    double precision, intent(in) :: x
+
+    x_                    =x
+    integrator2DIntegrandX=self_%integratorY%integrate(self_%boundaries(2,1),self_%boundaries(2,2))
+    return
+  end function integrator2DIntegrandX
+
+  double precision function integrator2DIntegrandY(y)
+    !!{
+    Evaluate the 2D integrand at the current outer-integration $x$ and the given $y$.
+    !!}
+    implicit none
+    double precision, intent(in) :: y
+
+    integrator2DIntegrandY=self_%integrand(x_,y)
+    return
+  end function integrator2DIntegrandY
 
 end module Numerical_Integration_2D

@@ -141,7 +141,7 @@ contains
     class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target  :: self
     double precision                                             , intent(in   )           :: velocityMaximum
     double precision                                             , parameter               :: factorVelocityEffective=0.64d0
-    type            (integrator2D)                               , allocatable             :: integratorNumerator
+    type            (integrator2D)                                                         :: integratorNumerator
     double precision                                             , dimension(2,2)          :: boundaries
     double precision                                                                       :: velocityEffective
     double precision                                                                       :: numeratorIntegral
@@ -155,11 +155,9 @@ contains
     ! Set sub-module scope copies.
     velocityEffective_ =  velocityEffective
     self_              => self
-    ! Build an integrator.
-    allocate(integratorNumerator)
-    call integratorNumerator%setIntegrand(integrandNumerator)
-    ! Compute the numerator of the expression.
-    numeratorIntegral=integratorNumerator%integrate(boundaries)
+    ! Build the integrator for the numerator and compute it.
+    integratorNumerator=integrator2D(integrandNumerator)
+    numeratorIntegral  =integratorNumerator%integrate(boundaries)
     ! Normalize by the (cross-section-independent) denominator of eqn.~1.1 of Yang et al. (2024; JCAP; 2; 32), evaluated
     ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
     ! "2" in the numerator of that equation, (4/3) = integral over cos(θ) of sin²(θ), and 768 Veff⁸ = integral over v of v⁷
