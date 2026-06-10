@@ -128,7 +128,7 @@ contains
          &             *velocity**7                                                         &
          &             *(1.0d0-cosTheta**2)                                                 &
          &             *exp(                                                                &
-         &                  +velocity          **2                                          &
+         &                  -velocity          **2                                          &
          &                  /4.0d0                                                          &
          &                  /velocityEffective_**2                                          &
          &              )
@@ -140,13 +140,13 @@ contains
     Evaluate the effective cross section.
     !!}
     use :: Numerical_Integration_2D, only : integrator2D
-    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target  :: self
-    double precision                                             , intent(in   )           :: velocityMaximum
-    double precision                                             , parameter               :: factorVelocityEffective=0.64d0
-    type            (integrator2D)                                                         :: integratorNumerator
-    double precision                                             , dimension(2,2)          :: boundaries
-    double precision                                                                       :: velocityEffective
-    double precision                                                                       :: numeratorIntegral
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target :: self
+    double precision                                             , intent(in   )          :: velocityMaximum
+    double precision                                             , parameter              :: factorVelocityEffective=0.64d0
+    type            (integrator2D                               )                         :: integratorNumerator
+    double precision                                             , dimension(2,2)         :: boundaries
+    double precision                                                                      :: velocityEffective
+    double precision                                                                      :: numeratorIntegral
 
     ! Effective velocity dispersion of the Maxwell-Boltzmann weighting: ν_eff = 0.64*Vmax for an NFW halo
     ! (Yang et al. 2024; JCAP; 2; 32).
