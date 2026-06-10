@@ -126,7 +126,10 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make -j4 all 2>&1 | tee build.log
+          # Disable link-time optimization: `make all` builds a very large number of executables, and running
+          # LTO on each one makes this job prohibitively slow. LTO is retained in jobs that build only a single
+          # executable (e.g. Galacticus.exe). See the LTO option in the Makefile.
+          make -j4 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -360,7 +363,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/doc/buildDocumentation.sh -f yes -p 4 -o yes 2>&1 | tee docBuild.log
+          # Disable link-time optimization (`-l disabled`): the documentation build runs `make all`, which
+          # builds a very large number of executables, and running LTO on each one makes this job prohibitively
+          # slow. See the LTO option in the Makefile.
+          ./scripts/doc/buildDocumentation.sh -f yes -p 4 -o yes -l disabled 2>&1 | tee docBuild.log
           grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: missing method description warnings found in docBuild.log" && false)
       - name: Upload docs
         uses: actions/upload-artifact@v7
