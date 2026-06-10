@@ -32,7 +32,7 @@ Contains a module which implements a selfInteracting dark matter particle class.
      !!}
      private
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
-     double precision                                   :: sigma0                       , velocityCharacteristic 
+     double precision                                   :: sigma0                       , velocityCharacteristic_
    contains
      !![
      <methods>
@@ -40,10 +40,12 @@ Contains a module which implements a selfInteracting dark matter particle class.
        <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$."/>
        <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                  />
        <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                          />
+       <method method="velocityCharacteristic"                      description="Return the characteristic velocity scale, $v_\mathrm{c}$, of the velocity-dependent cross section, in units of km s$^{-1}$."                                       />
      </methods>
      !!]
      final     ::                                                sidmVelocityDependentDestructor
      procedure :: mass                                        => sidmVelocityDependentMass
+     procedure :: velocityCharacteristic                      => sidmVelocityDependentVelocityCharacteristic
      procedure :: crossSectionSelfInteraction                 => sidmVelocityDependentCrossSectionSelfInteraction
      procedure :: crossSectionSelfInteractionDifferential     => sidmVelocityDependentCrossSectionSelfInteractionDifferential
      procedure :: crossSectionSelfInteractionDifferentialCos  => sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos
@@ -104,9 +106,9 @@ contains
     class           (darkMatterParticleClass                ), intent(in   ), target :: darkMatterParticle_
     double precision                                         , intent(in   )         :: velocityCharacteristic, sigma0
     !![
-    <constructorAssign variables="velocityCharacteristic,sigma0,*darkMatterParticle_"/>
+    <constructorAssign variables="sigma0,*darkMatterParticle_"/>
     !!]
-
+    self%velocityCharacteristic_=velocityCharacteristic
     return
   end function sidmVelocityDependentConstructorInternal
 
@@ -134,6 +136,18 @@ contains
     return
   end function sidmVelocityDependentMass
 
+  double precision function sidmVelocityDependentVelocityCharacteristic(self)
+    !!{
+    Return the characteristic velocity scale, $v_\mathrm{c}$, in units of km s$^{-1}$, of the velocity-dependent
+    self-interaction cross section.
+    !!}
+    implicit none
+    class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
+
+    sidmVelocityDependentVelocityCharacteristic=self%velocityCharacteristic_
+    return
+  end function sidmVelocityDependentVelocityCharacteristic
+
   double precision function sidmVelocityDependentCrossSectionSelfInteraction(self,velocityRelative) result(crossSection)
     !!{
     Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
@@ -143,9 +157,9 @@ contains
     double precision                              , intent(in   ) :: velocityRelative
 
     crossSection=+  self%sigma0                    &
-         &       *  self%velocityCharacteristic**2 &
+         &       *  self%velocityCharacteristic_**2 &
          &       /(                                &
-         &         +self%velocityCharacteristic**2 &
+         &         +self%velocityCharacteristic_**2 &
          &         +     velocityRelative      **2 &
          &        )
     return
@@ -162,12 +176,12 @@ contains
     double precision                                         , intent(in   ) :: theta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    crossSection=+  self%velocityCharacteristic**4 &
+    crossSection=+  self%velocityCharacteristic_**4 &
          &       *  self%sigma0                    &
          &       *0.5d0                            &
          &       *         sin(theta)              &
          &       /(                                &
-         &         +self%velocityCharacteristic**2 &
+         &         +self%velocityCharacteristic_**2 &
          &         +0.5d0                          &
          &         *     velocityRelative      **2 &
          &         *(1.0d0-cos(theta))             &
@@ -185,11 +199,11 @@ contains
     double precision                                         , intent(in   ) :: cosTheta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    crossSection=+  self%velocityCharacteristic**4 &
+    crossSection=+  self%velocityCharacteristic_**4 &
          &       *  self%sigma0                    &
          &       *0.5d0                            &
          &       /(                                &
-         &         +self%velocityCharacteristic**2 &
+         &         +self%velocityCharacteristic_**2 &
          &         + 0.5d0                         &
          &         *     velocityRelative      **2 &
          &         *(1.0d0-cosTheta)               &
@@ -208,7 +222,7 @@ contains
     crossSection=+2.0d0                                      &
          &       *self%sigma0                                &
          &       *(                                          &
-         &         +       self%velocityCharacteristic       &
+         &         +       self%velocityCharacteristic_       &
          &         /            velocityRelative             &
          &        )**4                                       &
          &       *(                                          &
@@ -216,14 +230,14 @@ contains
          &              +1.0d0                               &
          &              +(                                   &
          &                +     velocityRelative             &
-         &                /self%velocityCharacteristic       &
+         &                /self%velocityCharacteristic_       &
          &               )**2                                &
          &             )                                     &
          &         -   (                                     &
          &              +          velocityRelative      **2 &
          &              /(                                   &
          &                +        velocityRelative      **2 &
-         &                +   self%velocityCharacteristic**2 &
+         &                +   self%velocityCharacteristic_**2 &
          &               )                                   &
          &             )                                     &
          &        )
@@ -243,10 +257,10 @@ contains
     ! bare (1-cos²(theta)) weight used in the effective cross section integrand (see dark_matter.particle.self_interacting.F90).
     crossSection=+6.0d0                                                                &
          &       *self%sigma0                                                          &
-         &       /                  (velocityRelative/self%velocityCharacteristic)**4  &
+         &       /                  (velocityRelative/self%velocityCharacteristic_)**4  &
          &       *(                                                                    &
-         &         +   (1.0d0+2.0d0/(velocityRelative/self%velocityCharacteristic)**2) &
-         &         *log(1.0d0+      (velocityRelative/self%velocityCharacteristic)**2) &
+         &         +   (1.0d0+2.0d0/(velocityRelative/self%velocityCharacteristic_)**2) &
+         &         *log(1.0d0+      (velocityRelative/self%velocityCharacteristic_)**2) &
          &         -2.0d0                                                              &
          &        )
     return
