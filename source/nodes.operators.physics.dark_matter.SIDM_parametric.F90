@@ -69,7 +69,7 @@
   
   interface nodeOperatorSIDMParametric
      !!{
-     Constructors for the {\normalfont \ttfamily SIDMParametric} node operator class.
+     Constructors for the \mono{SIDMParametric} node operator class.
      !!}
      module procedure SIDMParametricConstructorParameters
      module procedure SIDMParametricConstructorInternal
@@ -79,7 +79,7 @@ contains
   
   function SIDMParametricConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily SIDMParametric} node operator class which takes a parameter set as input.
+    Constructor for the \mono{SIDMParametric} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   function SIDMParametricConstructorInternal(alpha,C,darkMatterParticle_,darkMatterHaloMassAccretionHistory_,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,darkMatterHaloScale_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily SIDMParametric} node operator class.
+    Internal constructor for the \mono{SIDMParametric} node operator class.
     !!}
 
     implicit none
@@ -167,7 +167,7 @@ contains
 
   subroutine SIDMParametricDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily SIDMParametric} node operator class.
+    Destructor for the \mono{SIDMParametric} node operator class.
     !!}
     implicit none
     type(nodeOperatorSIDMParametric), intent(inout) :: self
@@ -445,7 +445,7 @@ contains
 
   subroutine SIDMParametricNodePromote(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent.
+    Ensure that \mono{node} is ready for promotion to its parent.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -598,7 +598,7 @@ contains
   double precision function dvmaxt(tau, Vmaxt)
     !!{
     Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular velocity with respect to the
-    dimensionless gravothermal time $\tau$, scaled by the CDM maximum circular velocity {\normalfont \ttfamily Vmaxt}, using the
+    dimensionless gravothermal time $\tau$, scaled by the CDM maximum circular velocity \mono{Vmaxt}, using the
     polynomial fit of \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
     !!}
     implicit none
@@ -616,7 +616,7 @@ contains
   double precision function drmaxt(tau, Rmaxt)
     !!{
     Return the derivative $\mathrm{d}R_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum-circular-velocity radius with respect to
-    the dimensionless gravothermal time $\tau$, scaled by the CDM radius {\normalfont \ttfamily Rmaxt}, using the polynomial fit of
+    the dimensionless gravothermal time $\tau$, scaled by the CDM radius \mono{Rmaxt}, using the polynomial fit of
     \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
     !!}
     implicit none
@@ -633,8 +633,8 @@ contains
 
   double precision function Rmax_NFW(RmaxSIDM, tau)
     !!{
-    Map an SIDM maximum-circular-velocity radius {\normalfont \ttfamily RmaxSIDM} back to the equivalent CDM (NFW) value by
-    inverting the $R_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to
+    Map an SIDM maximum-circular-velocity radius \mono{RmaxSIDM} back to the equivalent CDM (NFW) value by
+    inverting the $R_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to
     the range $[0,1]$.
     !!}
     implicit none
@@ -648,8 +648,8 @@ contains
 
   double precision function Vmax_NFW(VmaxSIDM, tau)
     !!{
-    Map an SIDM maximum circular velocity {\normalfont \ttfamily VmaxSIDM} back to the equivalent CDM (NFW) value by inverting the
-    $V_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to the range
+    Map an SIDM maximum circular velocity \mono{VmaxSIDM} back to the equivalent CDM (NFW) value by inverting the
+    $V_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the range
     $[0,1]$.
     !!}
     implicit none
@@ -663,7 +663,7 @@ contains
 
   double precision function r_s0(Rmax)
     !!{
-    Return the NFW scale radius corresponding to a maximum-circular-velocity radius {\normalfont \ttfamily Rmax}, using the
+    Return the NFW scale radius corresponding to a maximum-circular-velocity radius \mono{Rmax}, using the
     standard NFW relation $r_\mathrm{s}=R_\mathrm{max}/2.163$.
     !!}
     implicit none
@@ -675,8 +675,8 @@ contains
 
   double precision function rho_s0(Rs, Vmax)
     !!{
-    Return the NFW characteristic density corresponding to a scale radius {\normalfont \ttfamily Rs} and maximum circular velocity
-    {\normalfont \ttfamily Vmax}.
+    Return the NFW characteristic density corresponding to a scale radius \mono{Rs} and maximum circular velocity
+    \mono{Vmax}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_astronomical, only : gravitationalConstant_internal
@@ -690,8 +690,8 @@ contains
   double precision function get_rho_s(rho_s0, tau)
     !!{
     Return the SIDM parametric-profile characteristic density as a function of the dimensionless gravothermal time $\tau$,
-    normalized to the initial NFW characteristic density {\normalfont \ttfamily rho\_s0}, using the fit of
-    \cite{yang_parametric_2024}. {\normalfont \ttfamily tau} is clamped to the range $[0,1]$.
+    normalized to the initial NFW characteristic density \mono{rho\_s0}, using the fit of
+    \cite{yang_parametric_2024}. \mono{tau} is clamped to the range $[0,1]$.
     !!}
     implicit none
     double precision, intent(in) :: rho_s0, tau
@@ -705,8 +705,7 @@ contains
   double precision function get_r_s(r_s0, tau)
     !!{
     Return the SIDM parametric-profile scale radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
-    initial NFW scale radius {\normalfont \ttfamily r\_s0}, using the fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily
-    tau} is clamped to the range $[0,1]$.
+    initial NFW scale radius \mono{r\_s0}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the range $[0,1]$.
     !!}
     implicit none
     double precision, intent(in) :: r_s0, tau
@@ -720,8 +719,7 @@ contains
   double precision function get_r_c(r_s0, tau)
     !!{
     Return the SIDM parametric-profile core radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
-    initial NFW scale radius {\normalfont \ttfamily r\_s0}, using the fit of \cite{yang_parametric_2024}. {\normalfont \ttfamily
-    tau} is clamped to the range $[0,1]$.
+    initial NFW scale radius \mono{r\_s0}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the range $[0,1]$.
     !!}
     implicit none
     double precision, intent(in) :: r_s0, tau

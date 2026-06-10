@@ -50,7 +50,7 @@
 
   interface darkMatterProfileDMOSIDMParametric
      !!{
-     Constructors for the {\normalfont \ttfamily sidmParametric} dark matter halo profile class.
+     Constructors for the \mono{sidmParametric} dark matter halo profile class.
      !!}
      module procedure sidmParametricConstructorParameters
      module procedure sidmParametricConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function sidmParametricConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily sidmParametric} dark matter halo profile class which takes a parameter set as input.
+    Constructor for the \mono{sidmParametric} dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function sidmParametricConstructorInternal(beta,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily sidmParametric} dark matter profile class.
+    Internal constructor for the \mono{sidmParametric} dark matter profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     use :: Error                , only : Error_Report
@@ -122,7 +122,7 @@ contains
 
   subroutine sidmParametricDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily sidmParametric} dark matter halo profile class.
+    Destructor for the \mono{sidmParametric} dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMParametric), intent(inout) :: self
@@ -136,7 +136,7 @@ contains
 
   function sidmParametricGet(self,node,weightBy,weightIndex) result(massDistribution_)
     !!{
-    Return the dark matter mass distribution for the given {\normalfont \ttfamily node}.
+    Return the dark matter mass distribution for the given \mono{node}.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                   , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                , massTypeDark                  , weightByMass

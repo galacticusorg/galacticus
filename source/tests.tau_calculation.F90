@@ -24,8 +24,8 @@ simulation, is read from file; for each step the maximum circular velocity and v
 computed and compared against the values tabulated in the simulation. This validates the CDM-side quantities from which the
 parametric SIDM solution is built.
 
-The reference data files {\normalfont \ttfamily testSuite/data/SIDM/data\_799\_cdm\_NFW.txt} and {\normalfont \ttfamily
-testSuite/data/SIDM/data\_799\_cdm.txt} are tabulated from an N-body simulation and committed alongside this test.
+The reference data files \mono{testSuite/data/SIDM/data\_799\_cdm\_NFW.txt} and \mono{testSuite/data/SIDM/data\_799\_cdm.txt}
+are tabulated from an N-body simulation and committed alongside this test.
 !!}
 
 program Tests_Tau_Calculation

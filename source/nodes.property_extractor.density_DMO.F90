@@ -159,7 +159,7 @@ contains
 
   integer function densityDMOProfileElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily densityDMOProfile} property extractors.
+    Return the number of elements in the \mono{densityDMOProfile} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) :: self
@@ -172,7 +172,7 @@ contains
 
   function densityDMOProfileSize(self,time)
     !!{
-    Return the number of array elements in the {\normalfont \ttfamily densityDMOProfile} property extractors.
+    Return the number of array elements in the \mono{densityDMOProfile} property extractors.
     !!}
     implicit none
     integer         (c_size_t                              )                :: densityDMOProfileSize
@@ -186,7 +186,7 @@ contains
 
   function densityDMOProfileExtract(self,node,time,instance)
     !!{
-    Implement a {\normalfont \ttfamily densityDMOProfile} property extractor.
+    Implement a \mono{densityDMOProfile} property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -293,7 +293,7 @@ contains
 
   subroutine densityDMOProfileNames(self,names,time)
     !!{
-    Return the names of the {\normalfont \ttfamily densityDMOProfile} properties.
+    Return the names of the \mono{densityDMOProfile} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout)                             :: self
@@ -309,7 +309,7 @@ contains
 
   subroutine densityDMOProfileDescriptions(self,descriptions,time)
     !!{
-    Return descriptions of the {\normalfont \ttfamily densityDMOProfile} property.
+    Return descriptions of the \mono{densityDMOProfile} property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout)                             :: self
@@ -326,7 +326,7 @@ contains
 
   subroutine densityDMOProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
     !!{
-    Return column descriptions of the {\normalfont \ttfamily densityDMOProfile} property.
+    Return column descriptions of the \mono{densityDMOProfile} property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -348,7 +348,7 @@ contains
 
   function densityDMOProfileUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily densityDMOProfile} properties in the SI system.
+    Return the units of the \mono{densityDMOProfile} properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -366,7 +366,7 @@ contains
 
   function densityDMOProfileUnits(self,time) result(units)
     !!{
-    Return the units of the {\normalfont \ttfamily densityDMOProfile} properties.
+    Return the units of the \mono{densityDMOProfile} properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     use :: Units_MetaData                  , only : unitType

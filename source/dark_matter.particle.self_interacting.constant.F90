@@ -53,7 +53,7 @@ Contains a module which implements a selfInteracting dark matter particle class.
 
   interface darkMatterParticleSelfInteractingDarkMatterConstant
      !!{
-     Constructors for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+     Constructors for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
      !!}
      module procedure sidmConstantConstructorParameters
      module procedure sidmConstantConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sidmConstantConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function sidmConstantConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+    Internal constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatterConstant)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine sidmConstantDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    Destructor for the \mono{selfInteractingDarkMatter} dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self

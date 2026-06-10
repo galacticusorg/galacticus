@@ -53,7 +53,7 @@ Contains a module which implements a selfInteracting dark matter particle class.
 
   interface darkMatterParticleSIDMVelocityDependent
      !!{
-     Constructors for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+     Constructors for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
      !!}
      module procedure sidmVelocityDependentConstructorParameters
      module procedure sidmVelocityDependentConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sidmVelocityDependentConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    Constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function sidmVelocityDependentConstructorInternal(velocityCharacteristic,sigma0,darkMatterParticle_) result(self)
     !!{
-    Internal constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+    Internal constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSIDMVelocityDependent)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine sidmVelocityDependentDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    Destructor for the \mono{selfInteractingDarkMatter} dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self

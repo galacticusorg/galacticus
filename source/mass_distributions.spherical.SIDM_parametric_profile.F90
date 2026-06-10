@@ -174,7 +174,7 @@ contains
   
   double precision function SIDMParametricProfileDensity(self,coordinates) result(density)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDM parametric mass distribution.
+    Return the density at the specified \mono{coordinates} in a SIDM parametric mass distribution.
     !!}
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout) :: self
@@ -196,7 +196,7 @@ contains
 
   double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{
-    Return the density at the specified {\normalfont \ttfamily coordinates} in a SIDM parametric mass distribution.
+    Return the density at the specified \mono{coordinates} in a SIDM parametric mass distribution.
     !!}
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout), target   :: self

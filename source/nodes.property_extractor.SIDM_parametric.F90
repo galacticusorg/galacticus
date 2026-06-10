@@ -84,7 +84,7 @@ contains
 
   integer function SIDMParametricElementCount(self,time)
     !!{
-    Return the number of elements in the {\normalfont \ttfamily SIDMParametric} property extractors.
+    Return the number of elements in the \mono{SIDMParametric} property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout) :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine SIDMParametricNames(self,time,names)
     !!{
-    Return the names of the {\normalfont \ttfamily SIDMParametric} properties.
+    Return the names of the \mono{SIDMParametric} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout)                             :: self
@@ -169,7 +169,7 @@ contains
 
   subroutine SIDMParametricDescriptions(self,time,descriptions)
     !!{
-    Return the descriptions of the {\normalfont \ttfamily SIDMParametric} properties.
+    Return the descriptions of the \mono{SIDMParametric} properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout)                            :: self
@@ -189,7 +189,7 @@ contains
 
   function SIDMParametricUnitsInSI(self,time)
     !!{
-    Return the units of the {\normalfont \ttfamily SIDMParametric} properties in the SI system.
+    Return the units of the \mono{SIDMParametric} properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes,     only : kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar
