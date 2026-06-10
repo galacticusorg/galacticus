@@ -66,7 +66,6 @@
      procedure :: differentialEvolution               => SIDMParametriCalculateTauDifferentialEvolution
      procedure :: differentialEvolutionAnalytics      => SIDMParametriDifferentialVmaxAnalytics
      procedure :: differentialEvolutionSolveAnalytics => SIDMParametriDifferentialVmaxSolveAnalytics
-
   end type nodeOperatorSIDMParametric
   
   interface nodeOperatorSIDMParametric
@@ -76,6 +75,15 @@
      module procedure SIDMParametricConstructorParameters
      module procedure SIDMParametricConstructorInternal
   end interface nodeOperatorSIDMParametric
+
+  ! Constants related to NFW profiles.
+  !! The ratio of the radius of the peak of the rotation curve to the scale radius.
+  double precision, parameter :: radiusMaximumToScaleNFW=2.1625815870646120d0
+  !! The factor, f,  appearing in the expression:
+  !    ρₛ = (Vₘₐₓ/f rₛ)^2 / G
+  !  and which is equal to:
+  !    f = √{4π(log(2)-½)} Vₛ/Vₘₐₓ
+  double precision, parameter :: densityScaleFactorNFW  =1.6483500453640068d0
   
 contains
   
@@ -200,8 +208,8 @@ contains
     class           (nodeOperatorSIDMParametric               ), intent(inout), target  :: self
     class           (massDistributionClass                    ),                pointer :: massDistribution_        
     type            (treeNode                                 ), intent(inout), target  :: node
-    type            (treeNode                                 )               , pointer :: nodeParent                              , nodeBase              , &
-         &                                                                                 nodeChild                               , nodeNew
+    type            (treeNode                                 )               , pointer :: nodeParent                              , nodeChild             , &
+         &                                                                                 nodeNew
     type            (mergerTree                               )                         :: treeNew
     class           (nodeComponentBasic                       )               , pointer :: basic                                   , basicParent           , &
          &                                                                                 basicNode                               , basicChild            , &
@@ -213,11 +221,11 @@ contains
     type            (mergerTreeBuilderSmoothAccretion         )               , pointer :: mergerTreeBuilderSmoothAccretion_
     type            (darkMatterProfileScaleRadiusConcentration)               , pointer :: darkMatterProfileScaleRadius_
     double precision                                           , parameter              :: formationMassFraction            =0.50d0
+    double precision                                           , parameter              :: formationTimeFraction            =0.50d0
     ! Fractional halo mass decline per step used when extrapolating the tree below resolution.
     double precision                                           , parameter              :: massHaloDeclineFactor            =0.99d0
     double precision                                                                    :: timeFormation
     double precision                                                                    :: VmaxSIDMPrevious                        , tc                    , &
-         &                                                                                 tau                                     , dtr                   , &
          &                                                                                 VmaxSIDM                                , RmaxSIDM              , &
          &                                                                                 RmaxCDM                                 , RmaxNFW0              , &
          &                                                                                 VmaxNFW0                                , r_sNFW0               , &
@@ -226,8 +234,8 @@ contains
          &                                                                                 VmaxCDM                                 , Gamma                 , &
          &                                                                                 dt                                      , tau_old               , &
          &                                                                                 Mhalo                                   , dMdt                  , &
-         &                                                                                 timeEarliest                            , massResolution
-
+         &                                                                                 timeEarliest                            , massResolution        , &
+         &                                                                                 tau
 
     call self%nodeInitialize(node)
     nodeParent => node
@@ -263,12 +271,14 @@ contains
     ! For leaf nodes, grow a sub-resolution merger tree to allow us to determine the formation time if necessary.
     if (.not.associated(node%firstChild)) then
        if (basic%time() > basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)) then
-          ! If this node is at the tip of the branch and the time associated to it is larger than the formation time of the
+          ! If this node is at the tip of the branch and the time associated with it is larger than the formation time of the
           ! branch then we need to build the rest of the tree (extrapolate back in time) to start the parametric SIDM
           ! calculation from the formation time. We build the tree with smooth accretion only. 
-          ! The mass resolution is set to be the current node mass times the formation mass fraction.
-          massResolution=formationMassFraction*basic%mass()
-          timeEarliest  =basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID) - 1
+          !! The mass resolution is set to be the current node mass times the formation mass fraction.          
+          !! The earliest allowed time is set to a fraction of the formation time to ensure that the full history for which SIDM
+          !! evolution is needed is captured.
+          massResolution=+formationMassFraction*basic%mass                     (                            )
+          timeEarliest  =+formationTimeFraction*basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
           ! Construct objects needed to build the merger tree.
           allocate(mergerTreeMassResolutionFixed_   )
           allocate(mergerTreeBuilderSmoothAccretion_)
@@ -312,6 +322,7 @@ contains
           allocate(treeNew%nodeBase)
           call node                             %copyNodeTo(treeNew%nodeBase)
           call mergerTreeBuilderSmoothAccretion_%build     (treeNew         )
+          nodeNew   => null()
           nodeChild => treeNew%nodeBase
           do while (associated(nodeChild))
              basicChild        => nodeChild%basic            (                 )
@@ -336,7 +347,7 @@ contains
                   &                    +massDistribution_     %velocityRotationCurveMaximum(               )
              ! Compute the evolution for this step.
              dt     =basicNew%time()-basicNewChild%time()
-             tc     =get_tc(self,nodeNew,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),VmaxSIDMPrevious)
+             tc     =get_tc(self,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),VmaxSIDMPrevious)
              Mhalo  =basicNewChild%mass         ()
              dMdt   =basicNewChild%accretionRate()
              Gamma  =dMdt/Mhalo
@@ -509,25 +520,15 @@ contains
     procedure       (interruptTask                 ), intent(inout), pointer :: functionInterrupt
     integer                                         , intent(in   )          :: propertyType
     class           (nodeOperatorSIDMParametric    ), intent(inout), target  :: self
-    type            (treeNode                      )               , pointer :: nodeFinal        , nodeWork        , &
-         &                                                                      nodeStart        , nodeParent
     class           (massDistributionClass         )               , pointer :: massDistribution_
     class           (nodeComponentBasic            )               , pointer :: basic            , basicParent
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: timeFormation    , dtr             , &
-         &                                                                      tau              , time            , &
-         &                                                                      timePrevious     , tc              , &
-         &                                                                      RmaxNFW0         , VmaxNFW0        , &
-         &                                                                      r_sNFW0          , rho_sNFW0       , &
-         &                                                                      rho_s            , r_s             , &
-         &                                                                      VmaxSIDM         , RmaxSIDM        , &
-         &                                                                      VmaxSIDMPrevious , RmaxSIDMPrevious, &
-         &                                                                      VmaxCDM          , RmaxCDM         , &
-         &                                                                      VmaxCDMPrevious  , RmaxCDMPrevious , &
-         &                                                                      dvdt             , drdt            , &
-         &                                                                      Mhalo            , dMdt            , &
-         &                                                                      Gamma            , dtaudt          , &
-         &                                                                      r_c
+    double precision                                                         :: timeFormation    , tc         , &
+         &                                                                      tau              , time       , &
+         &                                                                      VmaxSIDM         , RmaxSIDM   , &
+         &                                                                      dvdt             , drdt       , &
+         &                                                                      Mhalo            , dMdt       , &
+         &                                                                      Gamma            , dtaudt
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     basic             => node %basic                    (                            )
@@ -537,7 +538,7 @@ contains
     if (time > timeFormation) then
        massDistribution_ => self%darkMatterProfileDMO_%get(node)
        VmaxSIDM          =  darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-       tc                =  get_tc(self,node,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),VmaxSIDM)
+       tc                =  get_tc(self,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),VmaxSIDM)
        tau               =  darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
        Mhalo             =  basic%mass()
        dMdt              =  basic%accretionRate()
@@ -559,59 +560,77 @@ contains
     return
   end subroutine SIDMParametriCalculateTauDifferentialEvolution
 
-  double precision function get_tc(self,node,Vmax,Rvmax, VmaxSIDM)
+  double precision function get_tc(self,Vmax,Rvmax,VmaxSIDM)
     !!{
     Evaluate the gravothermal evolution timescale $t_\mathrm{c}$ following eqn.~(2.2) of \cite{yang_parametric_2024}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal             , megaParsec, massSolar, MpcPerKmPerSToGyr
+    use :: Numerical_Constants_Prefixes    , only : kilo                                       , centi     , milli
     use :: Error                           , only : Error_Report
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     class           (nodeOperatorSIDMParametric), intent(inout) :: self
-    type            (treeNode                  ), intent(in   ) :: node
-    double precision                            , intent(in   ) :: Vmax                  , Rvmax      , &
+    double precision                            , intent(in   ) :: Vmax                          , Rvmax, &
          &                                                         VmaxSIDM
-    double precision                            , parameter     :: timescaleNormalization=150.0000d+00 ! Numerical coefficient in the gravothermal timescale (eqn. 2.2).
-    double precision                            , parameter     :: radiusMaximumToScale  =  2.1626d+00 ! r_max/r_s for an NFW profile.
-    double precision                            , parameter     :: velocityMaximumToScale=  1.6480d+00 ! V_max normalization coefficient for an NFW profile.
-    double precision                            , parameter     :: crossSectionConversion=  2.0900d-10 ! Converts the cross section per unit mass from cm^2 g^-1 to kpc^2 M_sun^-1.
-    double precision                                            :: sigmaeff              , reff       , &
-         &                                                         gravitationalConstant , rhoeff
-    !$GLC attributes unused :: node
+    ! Numerical coefficient in the gravothermal timescale (Yang et al. 2024; JCAP; 2; 32; eqn. 2.2).
+    double precision                            , parameter     :: timescaleNormalization=150.0d0
+    double precision                                            :: sigmaeff                      , reff , &
+         &                                                         rhoeff
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-       sigmaeff=darkMatterParticle_%crossSectionEffective(VmaxSIDM)
+       ! Get the effective cross section and convert to units of Mpc²/M☉.
+       sigmaeff=+darkMatterParticle_%crossSectionEffective(VmaxSIDM) &
+            &   *(centi     **2/milli    )                           &
+            &   /(megaParsec**2/massSolar)
     class default
+       sigmaeff=+0.0d0
        call Error_Report('unexpected class'//{introspection:location})
     end select
-    ! Work in kpc length units (the internal length unit is Mpc, so apply a factor of kilo to lengths and to G).
-    gravitationalConstant=gravitationalConstant_internal*kilo
-    reff                 =Rvmax*kilo/radiusMaximumToScale
-    rhoeff               =(Vmax/(velocityMaximumToScale*reff))**2/gravitationalConstant
-    get_tc               =(timescaleNormalization/self%C)                                &
-         &                *(1.0d0/(sigmaeff*crossSectionConversion*rhoeff*reff))         &
-         &                *(1.0d0/sqrt(4.0d0*Pi*gravitationalConstant*rhoeff))
+    reff   =+Rvmax                   &
+         &  /radiusMaximumToScaleNFW
+    rhoeff = rho_s0(reff,Vmax)
+    get_tc =+timescaleNormalization                &
+         &  /self%C                                &
+         &  /sigmaeff                              &
+         &  /rhoeff                                &
+         &  /reff                                  &
+         &  /sqrt(                                 &
+         &         +4.0d0                          &
+         &         *Pi                             &
+         &         *gravitationalConstant_internal &
+         &         *rhoeff                         &
+         &        )                                &
+         &  *MpcPerKmPerSToGyr
     return
   end function get_tc
 
   double precision function dvmaxt(tau, Vmaxt)
     !!{
-    Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular velocity with respect to the
-    dimensionless gravothermal time $\tau$, scaled by the CDM maximum circular velocity \mono{Vmaxt}, using the
-    polynomial fit of \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
+    Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular
+    velocity with respect to the dimensionless gravothermal time $\tau$, scaled by the CDM
+    maximum circular velocity \mono{Vmaxt}, using the polynomial fit of
+    \cite[][eqn.~2.4]{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed
+    regime).
     !!}
     implicit none
     double precision, intent(in   ) :: tau, Vmaxt
 
     if (tau > 1.0d0) then
-      dvmaxt = 0.0d0
+       dvmaxt=+ 0.000000000000000d0
     else if (tau <= 1.0d0) then
-      dvmaxt = 0.17774902d0 - 13.195824689999998d0 * tau ** 2 + 66.62092676d0 * tau ** 3 - 94.33706049999999d0 * tau ** 4 + 63.53766111d0 * tau ** 6 - 21.925108889999997d0 * tau ** 8
+       ! This is the derivative with respect to τ of equation 2.4 of Yang et al. 2024; JCAP; 2; 32. The exact values (more precise
+       ! than those in the published paper) were taken from Daneng Yang's code.
+       dvmaxt=+Vmaxt                         &
+            & *(+ 0.177749020000000d0        &
+            &   -13.195824689999998d0*tau**2 &
+            &   +66.620926760000000d0*tau**3 &
+            &   -94.337060499999990d0*tau**4 &
+            &   +63.537661110000000d0*tau**6 &
+            &   -21.925108889999997d0*tau**8 &
+            & )
     end if
-    dvmaxt=dvmaxt*Vmaxt
     return
   end function dvmaxt
 
@@ -625,11 +644,18 @@ contains
     double precision, intent(in   ) :: tau, Rmaxt
 
     if (tau > 1.0d0) then
-      drmaxt=0.0d0
-    else if (tau <= 1.0d0) then
-      drmaxt=0.00762288d0 - 1.43996392d0 * tau + 1.01282643d0 * tau ** 2 - 0.55015288d0 * tau ** 3
+      drmaxt=+0.0d0
+    else
+       ! This is the derivative with respect to τ of equation 2.4 of Yang et al. 2024; JCAP; 2; 32. The exact values (more precise
+       ! than those in the published paper) were taken from Daneng Yang's code.
+       drmaxt=+Rmaxt                 &
+            & *(                     &
+            &   +0.00762288d0        &
+            &   -1.43996392d0*tau    &
+            &   +1.01282643d0*tau**2 &
+            &   -0.55015288d0*tau**3 &
+            &  )
     end if
-    drmaxt=drmaxt*Rmaxt
     return
   end function drmaxt
 
@@ -643,8 +669,16 @@ contains
     double precision, intent(in) :: RmaxSIDM, tau
     double precision             :: tau_
 
-    tau_=min(max(tau,0.0d0),1.0d0)
-    Rmax_NFW=RmaxSIDM/(1.0d0+0.007623d0*tau_-0.7200d0*tau_**2+0.3376d0*tau_**3-0.1375d0*tau_**4)
+    ! This is equation 2.4 of Yang et al. 2024; JCAP; 2; 32.
+    tau_    =min(max(tau,0.0d0),1.0d0)
+    Rmax_NFW=+RmaxSIDM             &
+         &   /(                    &
+         &     +1.000000d0         &
+         &     +0.007623d0*tau_    &
+         &     -0.720000d0*tau_**2 &
+         &     +0.337600d0*tau_**3 &
+         &     -0.137500d0*tau_**4 &
+         &    )
     return
   end function Rmax_NFW
 
@@ -658,26 +692,37 @@ contains
     double precision, intent(in) :: VmaxSIDM, tau
     double precision             :: tau_
 
-    tau_=min(max(tau,0.0d0),1.0d0)
-    Vmax_NFW = VmaxSIDM / (1 + 0.1777d0 * tau_ - 4.399d0 * tau_ ** 3 + 16.66d0 * tau_ ** 4 - 18.87d0 * tau_ ** 5 + 9.077d0 * tau_ ** 7 - 2.436d0 * tau_ ** 9)
+    ! This is equation 2.4 of Yang et al. 2024; JCAP; 2; 32.
+    tau_    =min(max(tau,0.0d0),1.0d0)
+    Vmax_NFW=+VmaxSIDM           &
+         &   /(                  &
+         &     +1.0000d0         &
+         &     +0.1777d0*tau_    &
+         &     -4.3990d0*tau_**3 &
+         &     +16.660d0*tau_**4 &
+         &     -18.870d0*tau_**5 &
+         &     +9.0770d0*tau_**7 &
+         &     -2.4360d0*tau_**9 &
+         &    )
     return
   end function Vmax_NFW
 
   double precision function r_s0(Rmax)
     !!{
     Return the NFW scale radius corresponding to a maximum-circular-velocity radius \mono{Rmax}, using the
-    standard NFW relation $r_\mathrm{s}=R_\mathrm{max}/2.163$.
+    standard NFW relation $r_\mathrm{s} \approx R_\mathrm{max}/2.163$.
     !!}
     implicit none
     double precision, intent(in) :: Rmax
 
-    r_s0=Rmax / 2.163d0
+    r_s0   =+Rmax                    &
+         &  /radiusMaximumToScaleNFW
     return
   end function r_s0
 
   double precision function rho_s0(Rs, Vmax)
     !!{
-    Return the NFW characteristic density corresponding to a scale radius \mono{Rs} and maximum circular velocity
+    Return the NFW characteristic density corresponding to a given scale radius \mono{Rs} and maximum circular velocity
     \mono{Vmax}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -685,7 +730,12 @@ contains
     implicit none
     double precision, intent(in) :: Rs, Vmax
 
-    rho_s0 = Vmax ** 2 / (0.465d0 ** 2 * 4.0d0 * Pi * gravitationalConstant_internal * Rs ** 2)
+    rho_s0=+(                              &
+         &   +Vmax                         &
+         &   /densityScaleFactorNFW        &
+         &   /Rs                           &
+         &  )**2                           &
+         & /gravitationalConstant_internal
     return
   end function rho_s0
 
@@ -699,8 +749,19 @@ contains
     double precision, intent(in) :: rho_s0, tau
     double precision             :: tau_
 
-    tau_=min(max(tau,0.0d0),1.0d0)
-    get_rho_s = rho_s0 * (2.033d0 + 0.7381d0 * tau_ + 7.264d0 * tau_ ** 5 - 12.73d0 * tau_ ** 7 + 9.915d0 * tau_ ** 9 + (1.0d0 - 2.033d0) * log(tau_ + 0.001d0) / log(0.001d0))
+    ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
+    tau_     =min(max(tau,0.0d0),1.0d0)
+    get_rho_s=+rho_s0              &
+         &    *(                   &
+         &      +2.033d0           &
+         &      +0.7381d0*tau_     &
+         &      +7.2640d0*tau_**5  &
+         &      -12.730d0*tau_**7  &
+         &      +9.9150d0*tau_**9  &
+         &      +(1.0d0-2.033d0)   &
+         &      *log(tau_+0.001d0) &
+         &      /log(    +0.001d0) &
+         &     )
     return
   end function get_rho_s
 
@@ -712,9 +773,19 @@ contains
     implicit none
     double precision, intent(in) :: r_s0, tau
     double precision             :: tau_
-
-    tau_=min(max(tau,0.0d0),1.0d0)
-    get_r_s = r_s0 * (0.7178d0 - 0.1026d0 * tau_ + 0.2474d0 * tau_ ** 2 - 0.4079d0 * tau_ ** 3 + (1.0d0 - 0.7178d0) * log(tau_ + 0.001d0) / log(0.001d0))
+    
+    ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
+    tau_   =min(max(tau,0.0d0),1.0d0)
+    get_r_s=+r_s0               &
+         & *(                   &
+         &   +0.7178d0          &
+         &   -0.1026d0*tau_     &
+         &   +0.2474d0*tau_**2  &
+         &   -0.4079d0*tau_**3  &
+         &   +(1.0d0-0.7178d0)  &
+         &   *log(tau_+0.001d0) &
+         &   /log(    +0.001d0) &
+         &  )
     return
   end function get_r_s
 
@@ -727,8 +798,16 @@ contains
     double precision, intent(in) :: r_s0, tau
     double precision             :: tau_
 
-    tau_=min(max(tau,0.0d0),1.0d0)
-    get_r_c = r_s0 * (2.555d0 * sqrt(tau_) - 3.632d0 * tau_ + 2.131d0 * tau_ ** 2 - 1.415d0 * tau_ ** 3 + 0.4683d0 * tau_ ** 4)
+    ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
+    tau_   =min(max(tau,0.0d0),1.0d0)
+    get_r_c=+r_s0                     &
+         &  *(                        &
+         &    +2.5550d0*sqrt(tau_)    &
+         &    -3.6320d0*    tau_      &
+         &    +2.1310d0*    tau_  **2 &
+         &    -1.4150d0*    tau_  **3 &
+         &    +0.4683d0*    tau_  **4 &
+         &   )
     return
   end function get_r_c
 
