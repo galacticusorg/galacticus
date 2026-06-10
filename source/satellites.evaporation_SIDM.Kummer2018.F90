@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Niusha Ahvazi
+
   !!{
   Implementation of a satellite evaporation due to dark matter self-interactions using the model of
   \cite{kummer_effective_2018}.

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Niusha Ahvazi
+
 !!{
 Contains a module that provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
 !!}

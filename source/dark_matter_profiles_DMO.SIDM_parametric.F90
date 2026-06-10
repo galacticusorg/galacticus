@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Niusha Ahvazi
+
   !!{
   An implementation of dark matter halo profiles for self-interacting dark matter following the ``SIDM parametric'' model of \cite{yang_parametric_2024}.
   !!}

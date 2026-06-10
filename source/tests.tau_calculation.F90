@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Niusha Ahvazi
+
 !!{
 Tests of the inputs to the SIDM parametric model of \cite{yang_parametric_2024} (implemented by the
 \refClass{nodeOperatorSIDMParametric} class). A cold dark matter (CDM) halo mass accretion history, extracted from an N-body
