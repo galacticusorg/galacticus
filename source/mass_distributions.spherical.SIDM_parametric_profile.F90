@@ -216,7 +216,7 @@ contains
             &                +1.0d0/(1.0d0+(radius/self%radiusCore )**self%beta) &
             &                -2.0d0*radius/(radius+self%radiusScale)
        ! Convert to non-logarithmic form if necessary.
-       if (.not.logarithmic_) &
+       if (.not.logarithmic_)                                                &
             & densityGradientRadial=+     densityGradientRadial              &
             &                       *self%density              (coordinates) &
             &                       /     radius
@@ -239,7 +239,7 @@ contains
     if (density >= self%densityCentral) then
        ! Above the central density, return a radius of zero.
        radius=0.0d0
-    else if (density >  self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
+    else if (density > self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
        ! For densities close to, but below the central density, use a series solution.
        radius=+0.5d0                       &
             & *(                           &
@@ -266,7 +266,7 @@ contains
 
     if (density >= self%densityCentral) then
        ! Above the central density, return a radius of zero.
-       radius=0.0d0
+       radius=+0.0d0
     else if (density >  self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
        ! For densities close to, but below the central density, use a series solution.
        radius=+0.5d0                       &
@@ -327,7 +327,7 @@ contains
        containerSIDMParametricProfile%nameParameters                               (2)='beta'
        containerSIDMParametricProfile%descriptionParameters                        (2)='The β parameter.'
        ! Record that the table is now initialized.
-       containerSIDMParametricProfileInitialized                                =.true.
+       containerSIDMParametricProfileInitialized                                      =.true.
     end if
     allocate(parameters(2))
     densityNormalization    =  +self%densityNormalization

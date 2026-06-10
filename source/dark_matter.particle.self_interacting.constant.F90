@@ -36,10 +36,10 @@ Contains a module which implements a selfInteracting dark matter particle class.
    contains
      !![
      <methods>
-       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential"/>
-       <method description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionMomentumTransfer" />
-       <method description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionViscosity" />
+       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                    />
+       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$."/>
+       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                  />
+       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                          />
      </methods>
      !!]
      final     ::                                                sidmConstantDestructor
@@ -67,10 +67,10 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (darkMatterParticleSelfInteractingDarkMatterConstant)        :: self
-    type            (inputParameters                            ), intent(inout) :: parameters
-    class           (darkMatterParticleClass                    ), pointer       :: darkMatterParticle_
-    double precision                                                             :: crossSectionSelfInteraction
+    type            (darkMatterParticleSelfInteractingDarkMatterConstant)                :: self
+    type            (inputParameters                                    ), intent(inout) :: parameters
+    class           (darkMatterParticleClass                            ), pointer       :: darkMatterParticle_
+    double precision                                                                     :: crossSectionSelfInteraction
 
     !![
     <inputParameter>
@@ -78,7 +78,7 @@ contains
       <source>parameters</source>
       <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
     </inputParameter>
-    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     !!]
     self=darkMatterParticleSelfInteractingDarkMatterConstant(crossSectionSelfInteraction,darkMatterParticle_)
     !![
@@ -93,9 +93,9 @@ contains
     Internal constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
     !!}
     implicit none
-    type            (darkMatterParticleSelfInteractingDarkMatterConstant)                :: self
-    class           (darkMatterParticleClass                    ), intent(in   ), target :: darkMatterParticle_
-    double precision                                             , intent(in   )         :: crossSectionSelfInteraction
+    type            (darkMatterParticleSelfInteractingDarkMatterConstant)                        :: self
+    class           (darkMatterParticleClass                            ), intent(in   ), target :: darkMatterParticle_
+    double precision                                                     , intent(in   )         :: crossSectionSelfInteraction
     !![
     <constructorAssign variables="*darkMatterParticle_"/>
     !!]
@@ -112,7 +112,7 @@ contains
     type(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterParticle_" />
+    <objectDestructor name="self%darkMatterParticle_"/>
     !!]
     return
   end subroutine sidmConstantDestructor
@@ -134,7 +134,6 @@ contains
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
-   
     double precision                                          , intent(in   ) :: velocityRelative
 
     sidmConstantCrossSectionSelfInteraction=self%crossSectionSelfInteraction_

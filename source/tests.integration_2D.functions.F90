@@ -18,32 +18,61 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
+Contains a module that provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
 !!}
 
 module Test_Integration2D_Functions
+  !!{
+  Provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
+  !!}
   implicit none
-  contains
+  public
 
-  double precision function Integrand1(x, y)
+contains
+  
+  double precision function integrand1(x, y)
+    !!{
+    Integrand function used in tests.
+    !!}
+    implicit none
     double precision, intent(in) :: x, y
-    Integrand1 = sin(x**2) * cos(y)
-  end function Integrand1
-
-  double precision function Integrand2(x, y)
+    
+    integrand1=sin(x**2)*cos(y)
+    return
+  end function integrand1
+  
+  double precision function integrand2(x, y)
+    !!{
+    Integrand function used in tests.
+    !!}
+    implicit none
     double precision, intent(in) :: x, y
-    Integrand2 = x**2 * cos(y)
-  end function Integrand2
-
-  double precision function Integrand3(x, y)
+    
+    integrand2=x**2*cos(y)
+    return
+  end function integrand2
+  
+  double precision function integrand3(x, y)
+    !!{
+    Integrand function used in tests.
+    !!}
+    implicit none
     double precision, intent(in) :: x, y
-    Integrand3 = sqrt(x) * y**2
-  end function Integrand3
-
-  double precision function Integrand4(x, y)
+    
+    integrand3=sqrt(x)*y**2
+    return
+  end function integrand3
+  
+  double precision function integrand4(x, y)
+    !!{
+    Integrand function used in tests.
+    !!}
+    implicit none
     double precision, intent(in) :: x, y
-    Integrand4 = y / sqrt(x)
-  end function Integrand4
-
+    
+    integrand4=y/sqrt(x)
+    return
+  end function integrand4
+  
 end module Test_Integration2D_Functions
 

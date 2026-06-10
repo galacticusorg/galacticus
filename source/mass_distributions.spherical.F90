@@ -304,7 +304,7 @@ contains
           end if
           radiusIntegralUpper   =radii(i  )
           ! Evaluate the integral.
-          masses           (i)=+4.0d0*Pi*integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
+          masses(i)=+4.0d0*Pi*integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
           if (status /= errorStatusSuccess .and. .not.self%tolerateEnclosedMassIntegrationFailure) then
              ! Failed to integrate the mass profile.
              block

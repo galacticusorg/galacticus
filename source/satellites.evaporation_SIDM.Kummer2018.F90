@@ -44,8 +44,8 @@
      class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_        => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
      type            (interpolator2D           ), allocatable :: evaporationFactor_
-     double precision                                         :: rateScatteringNormalization          , xMaximum, &
-          &                                                      vMinimum                             , vMaximum, &
+     double precision                                         :: rateScatteringNormalization          , xMaximum       , &
+          &                                                      velocityMinimum                      , velocityMaximum, &
           &                                                      fractionDarkMatter
    contains
      !![
@@ -117,9 +117,9 @@ contains
 
     ! Initialize the maximum tabulated x to an unphysical value. This will force tabulation on the first attempt to evaluate the
     ! evaporation factor.
-    self%xMaximum=-     1.0d0
-    self%vMinimum=+huge(0.0d0)
-    self%vMaximum=-huge(0.0d0)
+    self%xMaximum       =-     1.0d0
+    self%velocityMinimum=+huge(0.0d0)
+    self%velocityMaximum=-huge(0.0d0)
     ! Evaluate the universal dark matter fraction.
     self%fractionDarkMatter=+(                                         & 
          &                    +self%cosmologyParameters_%OmegaMatter() &
@@ -145,15 +145,15 @@ contains
     return
   end subroutine kummer2018Destructor
 
- double precision function kummer2018MassLossRate(self,node)
+  double precision function kummer2018MassLossRate(self,node)
     !!{
     Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-   use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
-   use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
-   use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
-   use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, gigaYear, massSolar
+    use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite                     , nodeComponentBasic
+    use :: Mass_Distributions              , only : massDistributionClass                      , kinematicsDistributionClass
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal             , megaParsec                 , gigaYear     , massSolar
     use :: Vectors                         , only : Vector_Magnitude
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                      , milli                      , kilo
@@ -175,34 +175,34 @@ contains
          &                                                                 x                     , radiusHalfMass             , &
          &                                                                 velocityDispersion    , potentialEscape
     type            (coordinateSpherical                )                :: coordinates          , coordinatesHost            , &
-         &                                                                  coordinatesBoundary   , coordinatesHalfMass
+         &                                                                  coordinatesBoundary  , coordinatesHalfMass
     type            (coordinateCartesian                )                :: coordinatesCartesian
     
     ! Set zero mass loss rate by default.
     kummer2018MassLossRate=0.0d0
     ! Evaluate satellite and host properties.
-    nodeHost                     =>  node                               %mergesWith(                                           )
-    satellite                    =>  node                               %satellite (                                           )
-    massDistributionHost_        =>  nodeHost                     %massDistribution(                                           )
-    position                     =   satellite                          %position  (                                           )
-    velocity                     =   satellite                          %velocity  (                                           )
-    radiusOrbital                =   Vector_Magnitude                              (         position                          )
-    speedOrbital                 =   Vector_Magnitude                              (         velocity                          )
-    coordinatesCartesian  =                                                      position
-    densityHost           =   massDistributionHost_%density         (coordinatesCartesian)
+    nodeHost               =>  node                 %mergesWith      (                    )
+    satellite              =>  node                 %satellite       (                    )
+    massDistributionHost_  =>  nodeHost             %massDistribution(                    )
+    position               =   satellite            %position        (                    )
+    velocity               =   satellite            %velocity        (                    )
+    radiusOrbital          =   Vector_Magnitude                      (position            )
+    speedOrbital           =   Vector_Magnitude                      (velocity            )
+    coordinatesCartesian   =                                          position
+    densityHost            =   massDistributionHost_%density         (coordinatesCartesian)
     !![
     <objectDestructor name="massDistributionHost_"/>
     !!]
     ! repositioned select block + if-expersion
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-       ! Compute the normalization of the scattering rate in units such that
-       ! when multiplied by a velocity in km s⁻¹, and a
+       ! Compute the normalization of the scattering rate in units such that when multiplied by a velocity in km s⁻¹, and a
        ! density in units of M⊙ Mpc⁻³, we get a rate in units of Gyr⁻¹.
-       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital)*centi**2/milli         & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
-            &                           * kilo                       & ! Convert velocity from km s⁻¹ to m s⁻¹.
-            &                           * massSolar   /megaParsec**3 & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
-            &                           * gigaYear                     ! Convert rate from s⁻¹ to Gyr⁻¹.
+       self%rateScatteringNormalization=+darkMatterParticle_%crossSectionSelfInteraction(speedOrbital) &
+            &                           *centi    **2/milli                                            & ! Convert cross-section from cm² g⁻¹ to m² kg⁻¹.
+            &                           *kilo                                                          & ! Convert velocity from km s⁻¹ to m s⁻¹.
+            &                           *massSolar   /megaParsec**3                                    & ! Convert density from M⊙ Mpc⁻³ to kg m⁻³.
+            &                           *gigaYear                                                        ! Convert rate from s⁻¹ to Gyr⁻¹.
     class default
        ! No scattering.
        self%rateScatteringNormalization=+0.0d0
@@ -227,9 +227,9 @@ contains
        massDistribution_    => node%massDistribution(                           )
        massDistributionDark => node%massDistribution(massType=      massTypeDark)
        if (      massBoundary > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
-          radiusBoundary=self                %darkMatterHaloScale_%radiusVirial       (           node        )
+          radiusBoundary=self                %darkMatterHaloScale_%radiusVirial       (     node        )
        else
-          radiusBoundary=massDistributionDark                     %radiusEnclosingMass(mass=      massBoundary)
+          radiusBoundary=massDistributionDark                     %radiusEnclosingMass(mass=massBoundary)
        end if
        if (0.5d0*massBoundary > massDistributionDark%massEnclosedBySphere(self%darkMatterHaloScale_%radiusVirial(node))) then
           radiusHalfMass=self                %darkMatterHaloScale_%radiusVirial       (     node        )
@@ -241,7 +241,7 @@ contains
           coordinatesHalfMass=[radiusHalfMass,0.0d0,0.0d0]
           potentialEscape    =+massDistribution_%potentialDifference(coordinatesBoundary,coordinatesHalfMass) &
                &              +gravitationalConstant_internal                                                 &
-               &              *massDistribution_%massEnclosedBySphere(radiusBoundary)                          &
+               &              *massDistribution_%massEnclosedBySphere(radiusBoundary)                         &
                &              /radiusBoundary
           if (potentialEscape > 0.0d0) then
              velocityEscape=sqrt(2.0d0*potentialEscape)
@@ -299,7 +299,7 @@ contains
     return
   end function kummer2018MassLossRate
 
-  subroutine kummer2018Tabulate(self,xMaximum,vMinimum,vMaximum)
+  subroutine kummer2018Tabulate(self,xMaximum,velocityMinimum,velocityMaximum)
     !!{
     Tabulate the evaporation factor, $\chi_\mathrm{d}$.
     !!}
@@ -309,50 +309,48 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     use :: Error                   , only : Error_Report
     implicit none
-    class           (satelliteEvaporationSIDMKummer2018         ), intent(inout)               :: self
-    double precision                                             , intent(in   )               :: xMaximum, vMinimum, vMaximum
-    class           (darkMatterParticleSelfInteractingDarkMatter), pointer                     :: darkMatterParticleSIDM_
+    class           (satelliteEvaporationSIDMKummer2018         ), intent(inout)                 :: self
+    double precision                                             , intent(in   )                 :: xMaximum                  , velocityMinimum   , &
+         &                                                                                          velocityMaximum
+    class           (darkMatterParticleSelfInteractingDarkMatter), pointer                       :: darkMatterParticleSIDM_
     double precision                                             , allocatable  , dimension(:,:) :: evaporationFactor_
-    double precision                                             , allocatable  , dimension(:) :: x, v
-    integer                                                      , parameter                   :: countPerUnit           =10, countPerDex           =10
-    type            (integrator                                 )                              :: integrator_
-    double precision                                                                           :: thetaCritical
-    integer                                                                                    :: i, j                         , countX, countV
+    double precision                                             , allocatable  , dimension(:  ) :: x                         , velocity
+    integer                                                      , parameter                     :: countPerUnit           =10, countPerDex    =10
+    type            (integrator                                 )                                :: integrator_
+    double precision                                                                             :: thetaCritical
+    integer                                                                                      :: i                         , j                 , &
+         &                                                                                          countX                    , countVelocity
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! Tabulate the χ_d factor.
        self%xMaximum=xMaximum
-       countX       =int(xMaximum*dble(countPerUnit))+1
-       allocate(x                (countX))
-
-       self%vMaximum=vMaximum
-       self%vMinimum=vMinimum
-       countV = int(LOG10(vMaximum/vMinimum) * countPerDex) + 1
-       allocate(v                 (countV))
-
-       allocate(evaporationFactor_(countX,countV))
-
-       x                       = Make_Range(0.0d0,xMaximum,countX,rangeTypeLinear)
-       v                       = Make_Range(vMinimum,vMaximum,countV,rangeTypeLogarithmic)
+       self%velocityMaximum=velocityMaximum
+       self%velocityMinimum=velocityMinimum
+       countX       =int(      xMaximum                        *dble(countPerUnit))+1
+       countVelocity=int(log10(velocityMaximum/velocityMinimum)*     countPerDex  )+1
+       allocate(x                 (countX              ))
+       allocate(velocity          (       countVelocity))
+       allocate(evaporationFactor_(countX,countVelocity))
+       x                       =  Make_Range(0.0d0          ,xMaximum       ,countX       ,rangeTypeLinear     )
+       velocity                =  Make_Range(velocityMinimum,velocityMaximum,countVelocity,rangeTypeLogarithmic)
        darkMatterParticleSIDM_ => darkMatterParticle_
        integrator_             =  integrator(integrandEvaporationFactor,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
        do i=1,countX
-          thetaCritical        =+acos(                  & ! Equation (2) from Kummer et al. (2018).
-               &                      +(+x(i)**2-1.0d0) &
-               &                      /(+x(i)**2+1.0d0) &
-               &                     )
-          do j=1,countV
-
+          thetaCritical=acos(                  & ! Equation (2) from Kummer et al. (2018).
+               &             +(+x(i)**2-1.0d0) &
+               &             /(+x(i)**2+1.0d0) &
+               &            )
+          do j=1,countVelocity
              evaporationFactor_(i,j)=+integrator_        %integrate                  (Pi-thetaCritical,thetaCritical) &
-               &               /darkMatterParticle_%crossSectionSelfInteraction(v(j)                              )
+                  &                  /darkMatterParticle_%crossSectionSelfInteraction(velocity(j)                   )
           end do
        end do
        if (allocated(self%evaporationFactor_)) deallocate(self%evaporationFactor_)
        allocate(self%evaporationFactor_)
-       self%evaporationFactor_=interpolator2D(x,v,evaporationFactor_)
+       self%evaporationFactor_=interpolator2D(x,velocity,evaporationFactor_)
     class default
-    call Error_Report('this class expects an SIDMparticle'//{introspection:location})
+       call Error_Report('this class expects an SIDM particle'//{introspection:location})
     end select
     return
 
@@ -365,30 +363,40 @@ contains
       implicit none
       double precision, intent(in   ) :: theta
 
-      integrandEvaporationFactor=+darkMatterParticleSIDM_%crossSectionSelfInteractionDifferential(theta, v(j))
+      integrandEvaporationFactor=+darkMatterParticleSIDM_%crossSectionSelfInteractionDifferential(theta,velocity(j))
       return
     end function integrandEvaporationFactor
 
   end subroutine kummer2018Tabulate
   
   double precision function kummer2018EvaporationFactor(self,x,speedOrbital)
+    !!{
+    Evaluate the evaporation factor from \cite{kummer_effective_2018}.
+    !!}
     implicit none
-    class           (satelliteEvaporationSIDMKummer2018         ), intent(inout) :: self
-    double precision                                             , intent(in   ) :: x
-    double precision                                             , intent(in   ) :: speedOrbital
-    double precision                                                             :: xCritical = 1.0d0
+    class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
+    double precision                                    , intent(in   ) :: x
+    double precision                                    , intent(in   ) :: speedOrbital
+    double precision                                                    :: xCritical   =1.0d0
 
-    if (x > self%xMaximum .or. speedOrbital > self%vMaximum .or. speedOrbital < self%vMinimum) then 
-       if (x < xCritical) call self%tabulate(x+1.0d0,MIN(speedOrbital/2,self%vMinimum),MAX(2*speedOrbital,self%vMaximum))
-    end if 
+    if     (                                                                   &
+         &   x            > self%xMaximum                                      &
+         &  .or.                                                               &
+         &   speedOrbital > self%velocityMaximum                               &
+         &  .or.                                                               &
+         &   speedOrbital < self%velocityMinimum                               &
+         & ) then 
+       if (x < xCritical)                                                      &
+            & call self%tabulate(                                              &
+            &                    x+1.0d0                                     , &
+            &                    min(0.5d0*speedOrbital,self%velocityMinimum), &
+            &                    max(2.0d0*speedOrbital,self%velocityMaximum)  &
+            &                   )
+    end if
     if (x < xCritical) then
        kummer2018EvaporationFactor=self%evaporationFactor_%interpolate(x,speedOrbital)
     else
        kummer2018EvaporationFactor=0.0d0
-       ! Note: with xCritical set to 100, this evaporation factor would instead be -1.
     end if
-
     return
   end function kummer2018EvaporationFactor
-
-

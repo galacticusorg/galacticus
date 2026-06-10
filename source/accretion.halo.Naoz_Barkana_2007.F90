@@ -26,7 +26,7 @@
   
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
   use :: Virial_Density_Contrast              , only : virialDensityContrastClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
 
   !![
   <accretionHalo name="accretionHaloNaozBarkana2007">
@@ -75,7 +75,7 @@
      integer         (kind=kind_int8                       )          :: lastUniqueID
      class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
      class           (virialDensityContrastClass           ), pointer :: virialDensityContrast_            => null()
-     class           (darkMatterProfileDMOClass            ), pointer :: darkMatterProfileDMO_            => null()
+     class           (darkMatterProfileDMOClass            ), pointer :: darkMatterProfileDMO_             => null()
    contains
      !![
      <methods>
@@ -145,7 +145,7 @@ contains
     </inputParameter>
     <objectBuilder class="intergalacticMediumFilteringMass" name="self%intergalacticMediumFilteringMass_" source="parameters"/>
     <objectBuilder class="virialDensityContrast"            name="self%virialDensityContrast_"            source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"            name="self%darkMatterProfileDMO_"            source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"             name="self%darkMatterProfileDMO_"             source="parameters"/>
     <inputParametersValidate source="parameters"/>
     !!]
     call self%initialize()
@@ -160,9 +160,9 @@ contains
     use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
-    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
-         &                                                                            rateAdjust                      , massMinimum                   
-    logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
+    double precision                                       , intent(in   )         :: timeReionization                 , velocitySuppressionReionization, &
+         &                                                                            rateAdjust                       , massMinimum                   
+    logical                                                , intent(in   )         :: accretionNegativeAllowed         , accretionNewGrowthOnly
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
     class           (accretionHaloTotalClass              ), intent(in   ), target :: accretionHaloTotal_
@@ -219,7 +219,7 @@ contains
     !![
     <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     <objectDestructor name="self%virialDensityContrast_"           />
-    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%darkMatterProfileDMO_"            />
     !!]
     return
   end subroutine naozBarkana2007Destructor

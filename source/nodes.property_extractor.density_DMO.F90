@@ -163,7 +163,7 @@ contains
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) :: self
-    double precision                                     , intent(in   ) :: time
+    double precision                                        , intent(in   ) :: time
     !$GLC attributes unused :: time
 
     densityDMOProfileElementCount=self%elementCount_
@@ -175,9 +175,9 @@ contains
     Return the number of array elements in the {\normalfont \ttfamily densityDMOProfile} property extractors.
     !!}
     implicit none
-    integer         (c_size_t                           )                :: densityDMOProfileSize
+    integer         (c_size_t                              )                :: densityDMOProfileSize
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) :: self
-    double precision                                     , intent(in   ) :: time
+    double precision                                        , intent(in   ) :: time
     !$GLC attributes unused :: time
 
     densityDMOProfileSize=self%radiiCount
@@ -200,20 +200,20 @@ contains
     use :: Numerical_Constants_Math            , only : Pi
     use :: Error                               , only : Error_Report
     implicit none
-    double precision                                     , dimension(:,:), allocatable :: densityDMOProfileExtract
+    double precision                                        , dimension(:,:), allocatable :: densityDMOProfileExtract
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) , target      :: self
-    type            (treeNode                           ), intent(inout) , target      :: node
-    double precision                                     , intent(in   )               :: time
-    type            (multiCounter                       ), intent(inout) , optional    :: instance
-    class           (nodeComponentHotHalo               ), pointer                     :: hotHalo
-    class           (nodeComponentDisk                  ), pointer                     :: disk
-    class           (nodeComponentSpheroid              ), pointer                     :: spheroid
-    class           (nodeComponentNSC                   ), pointer                     :: nuclearStarCluster
-    class           (nodeComponentDarkMatterProfile     ), pointer                     :: darkMatterProfile
-    class           (massDistributionClass              ), pointer                     :: massDistribution_
-    type            (coordinateSpherical                )                              :: coordinates
-    integer                                                                            :: i
-    double precision                                                                   :: radius                , radiusVirial
+    type            (treeNode                              ), intent(inout) , target      :: node
+    double precision                                        , intent(in   )               :: time
+    type            (multiCounter                          ), intent(inout) , optional    :: instance
+    class           (nodeComponentHotHalo                  ), pointer                     :: hotHalo
+    class           (nodeComponentDisk                     ), pointer                     :: disk
+    class           (nodeComponentSpheroid                 ), pointer                     :: spheroid
+    class           (nodeComponentNSC                      ), pointer                     :: nuclearStarCluster
+    class           (nodeComponentDarkMatterProfile        ), pointer                     :: darkMatterProfile
+    class           (massDistributionClass                 ), pointer                     :: massDistribution_
+    type            (coordinateSpherical                   )                              :: coordinates
+    integer                                                                               :: i
+    double precision                                                                      :: radius                , radiusVirial
     !$GLC attributes unused :: time, instance
 
     allocate(densityDMOProfileExtract(self%radiiCount,self%elementCount_))

@@ -74,8 +74,9 @@ contains
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (massDistributionClass               ), pointer       :: massDistribution_
     class           (darkMatterParticleClass             ), pointer       :: darkMatterParticle_
-    double precision                                                      :: factorRadiusCore   , timeAge, velocityRelativeMean
-    type            (varying_string                      )                :: componentType      , massType, &
+    double precision                                                      :: factorRadiusCore    , timeAge , &
+         &                                                                   velocityRelativeMean
+    type            (varying_string                      )                :: componentType       , massType, &
          &                                                                   nonAnalyticSolver
 
     !![
@@ -131,7 +132,7 @@ contains
     return
   end function sphericalSIDMCoreNFWConstructorParameters
 
-  function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,velocityRelativeMean, nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
+  function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{
     Internal constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
     !!}
@@ -141,7 +142,8 @@ contains
     class           (massDistributionNFW                 ), intent(in   ), target   :: massDistribution_
     class           (darkMatterParticleClass             ), intent(in   ), target   :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType   ), intent(in   )           :: nonAnalyticSolver
-    double precision                                      , intent(in   )           :: factorRadiusCore   , timeAge, velocityRelativeMean
+    double precision                                      , intent(in   )           :: factorRadiusCore    , timeAge, &
+         &                                                                             velocityRelativeMean
     type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     !![

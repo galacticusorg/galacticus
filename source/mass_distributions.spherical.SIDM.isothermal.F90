@@ -130,9 +130,9 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (massDistributionClass                  ), pointer       :: massDistribution_
     class           (darkMatterParticleClass                ), pointer       :: darkMatterParticle_
-    type            (varying_string                         )                :: componentType      , massType, &
+    type            (varying_string                         )                :: componentType      , massType            , &
          &                                                                      nonAnalyticSolver
-    double precision                                                         :: timeAge, velocityRelativeMean
+    double precision                                                         :: timeAge            , velocityRelativeMean
 
     !![
     <inputParameter>
@@ -187,7 +187,7 @@ contains
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     type            (massDistributionSphericalSIDMIsothermal)                          :: self
-    double precision                                         , intent(in   )           :: timeAge, velocityRelativeMean
+    double precision                                         , intent(in   )           :: timeAge            , velocityRelativeMean
     class           (massDistributionSpherical              ), intent(in   ), target   :: massDistribution_
     class           (darkMatterParticleClass                ), intent(in   ), target   :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType      ), intent(in   )           :: nonAnalyticSolver

@@ -36,10 +36,10 @@ Contains a module which implements a selfInteracting dark matter particle class.
    contains
      !![
      <methods>
-       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                     method="crossSectionSelfInteraction"            />
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential"/>
-       <method description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionMomentumTransfer" />
-       <method description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteractionViscosity" />
+       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                    />
+       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$."/>
+       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                  />
+       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                          />
      </methods>
      !!]
      final     ::                                                sidmVelocityDependentDestructor
@@ -70,7 +70,7 @@ contains
     type            (darkMatterParticleSIDMVelocityDependent)                    :: self
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterParticleClass                    ), pointer       :: darkMatterParticle_
-    double precision                                                             :: sigma0, velocityCharacteristic
+    double precision                                                             :: sigma0             , velocityCharacteristic
 
     !![
     <inputParameter>
@@ -90,7 +90,7 @@ contains
     self=darkMatterParticleSIDMVelocityDependent(velocityCharacteristic,sigma0,darkMatterParticle_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="darkMatterParticle_"/>
     !!]
     return
   end function sidmVelocityDependentConstructorParameters
@@ -101,12 +101,13 @@ contains
     !!}
     implicit none
     type            (darkMatterParticleSIDMVelocityDependent)                        :: self
-    class           (darkMatterParticleClass                    ), intent(in   ), target :: darkMatterParticle_
-    double precision                                             , intent(in   )         :: velocityCharacteristic,sigma0
+    class           (darkMatterParticleClass                ), intent(in   ), target :: darkMatterParticle_
+    double precision                                         , intent(in   )         :: velocityCharacteristic, sigma0
     !![
     <constructorAssign variables="velocityCharacteristic,sigma0,*darkMatterParticle_"/>
     !!]
 
+    return
   end function sidmVelocityDependentConstructorInternal
 
   subroutine sidmVelocityDependentDestructor(self)
@@ -133,20 +134,24 @@ contains
     return
   end function sidmVelocityDependentMass
 
-  double precision function sidmVelocityDependentCrossSectionSelfInteraction(self,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionSelfInteraction(self,velocityRelative) result(crossSection)
     !!{
     Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
-   
     double precision                              , intent(in   ) :: velocityRelative
 
-    sidmVelocityDependentCrossSectionSelfInteraction=self%sigma0*(self%velocityCharacteristic)**2/((self%velocityCharacteristic)**2 + velocityRelative**2)
+    crossSection=+  self%sigma0                    &
+         &       *  self%velocityCharacteristic**2 &
+         &       /(                                &
+         &         +self%velocityCharacteristic**2 &
+         &         +     velocityRelative      **2 &
+         &        )
     return
   end function sidmVelocityDependentCrossSectionSelfInteraction
 
-  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferential(self,theta,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferential(self,theta,velocityRelative) result(crossSection)
     !!{
     Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
     ster$^{-1}$, of a self-interacting dark matter particle.
@@ -157,11 +162,20 @@ contains
     double precision                                         , intent(in   ) :: theta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    sidmVelocityDependentCrossSectionSelfInteractionDifferential=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 * sin(theta) / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1.0d0-cos(theta)))**2
+    crossSection=+  self%velocityCharacteristic**4 &
+         &       *  self%sigma0                    &
+         &       *0.5d0                            &
+         &       *         sin(theta)              &
+         &       /(                                &
+         &         +self%velocityCharacteristic**2 &
+         &         +0.5d0                          &
+         &         *     velocityRelative      **2 &
+         &         *(1.0d0-cos(theta))             &
+         &        )**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferential
 
-  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative) result(crossSection)
     !!{
     Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
@@ -171,12 +185,19 @@ contains
     double precision                                         , intent(in   ) :: cosTheta
 
     ! Anisotropic (forward-peaked) differential cross section for the velocity-dependent model.
-    sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos=+(self%velocityCharacteristic)**4 * (self%sigma0) *0.5d0 / ((self%velocityCharacteristic)**2 + 0.5d0 * velocityRelative**2 * (1.0d0-cosTheta))**2
+    crossSection=+  self%velocityCharacteristic**4 &
+         &       *  self%sigma0                    &
+         &       *0.5d0                            &
+         &       /(                                &
+         &         +self%velocityCharacteristic**2 &
+         &         + 0.5d0                         &
+         &         *     velocityRelative      **2 &
+         &         *(1.0d0-cosTheta)               &
+         &        )**2
     return
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos
 
-
-  double precision function sidmVelocityDependentCrossSectionMomentumTransfer(self,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionMomentumTransfer(self,velocityRelative) result(crossSection)
     !!{
     Return the momentum transfer self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
@@ -184,11 +205,32 @@ contains
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
     double precision                              , intent(in   ) :: velocityRelative
 
-    sidmVelocityDependentCrossSectionMomentumTransfer=2*self%sigma0*((self%velocityCharacteristic/velocityRelative)**4)*(log(1+(velocityRelative/self%velocityCharacteristic)**2)-((velocityRelative**2)/(velocityRelative**2 + (self%velocityCharacteristic)**2)))
+    crossSection=+2.0d0                                      &
+         &       *self%sigma0                                &
+         &       *(                                          &
+         &         +       self%velocityCharacteristic       &
+         &         /            velocityRelative             &
+         &        )**4                                       &
+         &       *(                                          &
+         &         +log(                                     &
+         &              +1.0d0                               &
+         &              +(                                   &
+         &                +     velocityRelative             &
+         &                /self%velocityCharacteristic       &
+         &               )**2                                &
+         &             )                                     &
+         &         -   (                                     &
+         &              +          velocityRelative      **2 &
+         &              /(                                   &
+         &                +        velocityRelative      **2 &
+         &                +   self%velocityCharacteristic**2 &
+         &               )                                   &
+         &             )                                     &
+         &        )
     return
   end function sidmVelocityDependentCrossSectionMomentumTransfer
 
-  double precision function sidmVelocityDependentCrossSectionViscosity(self,velocityRelative)
+  double precision function sidmVelocityDependentCrossSectionViscosity(self,velocityRelative) result(crossSection)
     !!{
     Return the viscosity self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
     !!}
@@ -196,10 +238,17 @@ contains
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
     double precision                              , intent(in   ) :: velocityRelative
 
-    ! This is the analytic integral (3/2) * integral[ (1-cos^2(theta)) dsigma/dcos(theta) ], i.e. the viscosity cross section in the
-    ! convention normalized such that isotropic scattering gives sigma_V = sigma. Note that this 3/2 normalization differs from the
-    ! bare (1-cos^2(theta)) weight used in the effective cross section integrand (see dark_matter.particle.self_interacting.F90).
-    sidmVelocityDependentCrossSectionViscosity=6*self%sigma0*((self%velocityCharacteristic/velocityRelative)**4)*((1+2*(self%velocityCharacteristic/velocityRelative)**2)*log(1+(velocityRelative/self%velocityCharacteristic)**2)-2)
+    ! This is the analytic integral (3/2) * integral[ (1-cos²(θ)) dσ/dcos(θ) ], i.e. the viscosity cross section in the
+    ! convention normalized such that isotropic scattering gives σ_V = σ. Note that this 3/2 normalization differs from the
+    ! bare (1-cos²(theta)) weight used in the effective cross section integrand (see dark_matter.particle.self_interacting.F90).
+    crossSection=+6.0d0                                                                &
+         &       *self%sigma0                                                          &
+         &       /                  (velocityRelative/self%velocityCharacteristic)**4  &
+         &       *(                                                                    &
+         &         +   (1.0d0+2.0d0/(velocityRelative/self%velocityCharacteristic)**2) &
+         &         *log(1.0d0+      (velocityRelative/self%velocityCharacteristic)**2) &
+         &         -2.0d0                                                              &
+         &        )
     return
   end function sidmVelocityDependentCrossSectionViscosity
 

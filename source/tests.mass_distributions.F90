@@ -25,23 +25,23 @@ program Test_Mass_Distributions
   !!{
   Tests mass distributions.
   !!}
-  use :: Coordinates               , only : assignment(=)                               , coordinateSpherical                , coordinateCartesian
-  use :: Display                   , only : displayVerbositySet                         , verbosityLevelStandard
+  use :: Coordinates               , only : assignment(=)                        , coordinateSpherical                , coordinateCartesian
+  use :: Display                   , only : displayVerbositySet                  , verbosityLevelStandard
   use :: Error_Functions           , only : Error_Function
   use :: Error                     , only : Error_Report
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Galactic_Structure_Options, only : componentTypeSpheroid                , componentTypeDisk
   use :: IO_HDF5                   , only : ioHDF5AccessInitialize
   use :: Linear_Algebra            , only : assignment(=)                        , vector
-  use :: Mass_Distributions        , only : massDistributionBetaProfile          , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid   , &
-       &                                    massDistributionHernquist            , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite           , &
-       &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler     , &
-       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                 , &
-       &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal, &
-       &                                    massDistributionSIDMParametricProfile, kinematicsDistributionCollisionlessTabulated
+  use :: Mass_Distributions        , only : massDistributionBetaProfile          , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
+       &                                    massDistributionHernquist            , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite                   , &
+       &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
+       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
+       &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
+       &                                    massDistributionSIDMParametricProfile
   use :: Numerical_Constants_Math  , only : Pi                                   , e
   use :: Tensors                   , only : assignment(=)
-  use :: Unit_Tests                , only : Assert                                      , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated                   , &
        &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid                  , &
@@ -87,7 +87,7 @@ program Test_Mass_Distributions
   double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                     , &
        &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical             , &
        &                                                                                                        massFraction                                                                                                            , time
-  double precision                                         , parameter                                       :: epsilonFiniteDifference      =0.01d0
+  double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
   double precision                                         , dimension(3  )                                  :: acceleration

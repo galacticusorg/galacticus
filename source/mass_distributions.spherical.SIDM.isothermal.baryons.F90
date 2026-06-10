@@ -116,7 +116,7 @@ contains
     class           (*                                             ), pointer       :: initializationSelf    , initializationArgument
     type            (varying_string                                )                :: componentType         , massType                , &
          &                                                                             nonAnalyticSolver
-    double precision                                                                :: timeAge, velocityRelativeMean
+    double precision                                                                :: timeAge               , velocityRelativeMean
 
     !![
     <inputParameter>

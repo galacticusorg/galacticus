@@ -76,8 +76,8 @@ contains
     <addMetaProperty component="darkMatterProfile" name="VmaxSIDM" id="self%VmaxSIDMID" isEvolvable="yes" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="RmaxSIDM" id="self%RmaxSIDMID" isEvolvable="yes" isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="RhosSIDM" id="self%RhosSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RsSIDM"   id="self%RsSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RcSIDM"   id="self%RcSIDMID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="RsSIDM"   id="self%RsSIDMID"   isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="RcSIDM"   id="self%RcSIDMID"   isEvolvable="yes" isCreator="no"/>
     !!]
     return
   end function SIDMParametricConstructorInternal
@@ -102,50 +102,48 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkmatterProfile 
     !use :: Nodes_Operators , only : nodeOperatorSIDMParametric
     implicit none
-    double precision                                              , dimension(:) , allocatable :: SIDMParametricExtract
-    class           (nodePropertyExtractorSIDMParametric         ), intent(inout), target      :: self
-    !type            (nodeOperatorSIDMParametric                  )               , pointer     :: nodeOperatorSIDMParametric_ 
-    type            (treeNode                                    ), intent(inout), target      :: node
-    double precision                                              , intent(in   )              :: time
-    type            (multiCounter                                ), intent(inout), optional    :: instance
-    !class           (nodeComponentDisk                           )               , pointer     :: disk
-    !class           (nodeComponentSpheroid                       )               , pointer     :: spheroid
-    class           (nodeComponentBasic                          )               , pointer     :: basic
-    class           (nodeComponentDarkmatterProfile              )               , pointer     :: darkMatterProfile
-
-    double precision                                                                           :: tauSIDMParametric, VmaxSIDMParametric, RmaxSIDMParametric, RhosSIDMParametric, RsSIDMParametric, RcSIDMParametric
+    double precision                                     , dimension(:) , allocatable :: SIDMParametricExtract
+    class           (nodePropertyExtractorSIDMParametric), intent(inout), target      :: self
+    type            (treeNode                           ), intent(inout), target      :: node
+    double precision                                     , intent(in   )              :: time
+    type            (multiCounter                       ), intent(inout), optional    :: instance
+    class           (nodeComponentBasic                 )               , pointer     :: basic
+    class           (nodeComponentDarkmatterProfile     )               , pointer     :: darkMatterProfile
+    double precision                                                                  :: tauSIDMParametric     , VmaxSIDMParametric, &
+         &                                                                               RmaxSIDMParametric    , RhosSIDMParametric, &
+         &                                                                               RsSIDMParametric      , RcSIDMParametric
     !$GLC attributes unused :: time, instance
 
     ! Extract required quantities.
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
-    select type (darkMatterProfile    )
-    type is (nodeComponentDarkMatterProfile    )
+    select type (darkMatterProfile)
+    type is (nodeComponentDarkMatterProfile)
        ! The dark matter profile component does not yet exist, so return zero values.
-       tauSIDMParametric  =0.0d0
-       VmaxSIDMParametric =0.0d0
-       RmaxSIDMParametric =0.0d0  
-       RhosSIDMParametric =0.0d0
-       RsSIDMParametric   =0.0d0
-       RcSIDMParametric   =0.0d0
+       tauSIDMParametric =0.0d0
+       VmaxSIDMParametric=0.0d0
+       RmaxSIDMParametric=0.0d0  
+       RhosSIDMParametric=0.0d0
+       RsSIDMParametric  =0.0d0
+       RcSIDMParametric  =0.0d0
     class default
-       tauSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-       VmaxSIDMParametric =darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)
-       RmaxSIDMParametric =darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)
-       RhosSIDMParametric =darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID)
-       RsSIDMParametric   =darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID)
-       RcSIDMParametric   =darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID)
+       tauSIDMParametric =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID     )
+       VmaxSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)
+       RmaxSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)
+       RhosSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID)
+       RsSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID  )
+       RcSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID  )
     end select
     ! Set return results.
     allocate(SIDMParametricExtract(6))
-    SIDMParametricExtract=[             &
-         &                          tauSIDMParametric    , &
-         &                          VmaxSIDMParametric   , &
-         &                          RmaxSIDMParametric   , &
-         &                          RhosSIDMParametric   , &
-         &                          RsSIDMParametric     , &
-         &                          RcSIDMParametric       &
-         &                         ]
+    SIDMParametricExtract=[                    &
+         &                 tauSIDMParametric , &
+         &                 VmaxSIDMParametric, &
+         &                 RmaxSIDMParametric, &
+         &                 RhosSIDMParametric, &
+         &                 RsSIDMParametric  , &
+         &                 RcSIDMParametric    &
+         &                ]
     return
   end function SIDMParametricExtract
 
@@ -154,9 +152,9 @@ contains
     Return the names of the {\normalfont \ttfamily SIDMParametric} properties.
     !!}
     implicit none
-    class           (nodePropertyExtractorSIDMParametric         ), intent(inout)                             :: self
-    double precision                                              , intent(in   )                             :: time
-    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
+    class           (nodePropertyExtractorSIDMParametric), intent(inout)                             :: self
+    double precision                                     , intent(in   )                             :: time
+    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
     allocate(names(6))
@@ -164,9 +162,8 @@ contains
     names(2)=var_str('darkMatterProfileSIDMParametricVmax')
     names(3)=var_str('darkMatterProfileSIDMParametricRmax')
     names(4)=var_str('darkMatterProfileSIDMParametricRhos')
-    names(5)=var_str('darkMatterProfileSIDMParametricRs')
-    names(6)=var_str('darkMatterProfileSIDMParametricRc')
-
+    names(5)=var_str('darkMatterProfileSIDMParametricRs'  )
+    names(6)=var_str('darkMatterProfileSIDMParametricRc'  )
     return
   end subroutine SIDMParametricNames
 
@@ -175,18 +172,18 @@ contains
     Return the descriptions of the {\normalfont \ttfamily SIDMParametric} properties.
     !!}
     implicit none
-    class           (nodePropertyExtractorSIDMParametric         ), intent(inout)                             :: self
-    double precision                                              , intent(in   )                             :: time
-    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
+    class           (nodePropertyExtractorSIDMParametric), intent(inout)                            :: self
+    double precision                                     , intent(in   )                            :: time
+    type            (varying_string                     ), intent(inout), dimension(:), allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(6))
-    descriptions(1)=var_str('Dimensionless time variable.'    )
-    descriptions(2)=var_str('Maximum velocity of the dark matter profile assuming the SIDM Parametric model [km/s].')
+    descriptions(1)=var_str('Dimensionless time variable.'                                                                                     )
+    descriptions(2)=var_str('Maximum velocity of the dark matter profile assuming the SIDM Parametric model [km/s].'                           )
     descriptions(3)=var_str('Radius at which the maximum velocity of the dark matter profile occurs, assuming the SIDM Parametric model [Mpc].')
-    descriptions(4)=var_str('Scale density (SIDM) [M_sun/Mpc^3].')
-    descriptions(5)=var_str('Scale radius (SIDM) [Mpc].')
-    descriptions(6)=var_str('Core size [Mpc].')
+    descriptions(4)=var_str('Scale density (SIDM) [M☉/Mpc³].'                                                                                  )
+    descriptions(5)=var_str('Scale radius (SIDM) [Mpc].'                                                                                       )
+    descriptions(6)=var_str('Core size [Mpc].'                                                                                                 )
     return
   end subroutine SIDMParametricDescriptions
 
@@ -197,18 +194,18 @@ contains
     use :: Numerical_Constants_Prefixes,     only : kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar
     implicit none
-    double precision                                              , dimension(:) , allocatable :: SIDMParametricUnitsInSI
-    class           (nodePropertyExtractorSIDMParametric         ), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
-   !$GLC attributes unused :: self, time
+    double precision                                     , dimension(:) , allocatable :: SIDMParametricUnitsInSI
+    class           (nodePropertyExtractorSIDMParametric), intent(inout)              :: self
+    double precision                                     , intent(in   )              :: time
+    !$GLC attributes unused :: self, time
 
     allocate(SIDMParametricUnitsInSI(6))
-    SIDMParametricUnitsInSI(1)=1.0d0          ! tau is dimensionless.
+    SIDMParametricUnitsInSI(1)=1.0d0                   ! τ is dimensionless.
     SIDMParametricUnitsInSI(2)=kilo
-    SIDMParametricUnitsInSI(3)=megaParsec
+    SIDMParametricUnitsInSI(3)=          megaParsec
     SIDMParametricUnitsInSI(4)=massSolar/megaParsec**3
-    SIDMParametricUnitsInSI(5)=megaParsec
-    SIDMParametricUnitsInSI(6)=megaParsec
+    SIDMParametricUnitsInSI(5)=          megaParsec
+    SIDMParametricUnitsInSI(6)=          megaParsec
     return
   end function SIDMParametricUnitsInSI
 
