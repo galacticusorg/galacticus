@@ -51,6 +51,7 @@ Contains a module which implements a selfInteracting dark matter particle class.
      procedure :: crossSectionSelfInteractionDifferentialCos  => sidmConstantCrossSectionSelfInteractionDifferentialCos
      procedure :: crossSectionSelfInteractionMomentumTransfer => sidmConstantCrossSectionMomentumTransfer
      procedure :: crossSectionSelfInteractionViscosity        => sidmConstantCrossSectionViscosity
+     procedure :: crossSectionEffective                       => sidmConstantCrossSectionEffective
   end type darkMatterParticleSelfInteractingDarkMatterConstant
 
   interface darkMatterParticleSelfInteractingDarkMatterConstant
@@ -141,6 +142,21 @@ contains
     sidmConstantCrossSectionSelfInteraction=self%crossSectionSelfInteraction_
     return
   end function sidmConstantCrossSectionSelfInteraction
+
+  double precision function sidmConstantCrossSectionEffective(self,velocityMaximum)
+    !!{
+    Return the effective self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a
+    self-interacting dark matter particle. For this constant cross-section model, this is just
+    the usual cross-section.
+    !!}
+    implicit none
+    class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
+    double precision                                          , intent(in   ) :: velocityMaximum
+    !$GLC attributes unused :: velocityMaximum
+
+    sidmConstantCrossSectionEffective=self%crossSectionSelfInteraction_
+    return
+  end function sidmConstantCrossSectionEffective
 
   double precision function sidmConstantCrossSectionSelfInteractionDifferential(self,theta,velocityRelative)
     !!{
