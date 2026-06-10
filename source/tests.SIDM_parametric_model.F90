@@ -30,7 +30,7 @@ The reference data files \mono{testSuite/data/SIDM/data\_799\_cdm\_NFW.txt} and 
 are tabulated from an N-body simulation and committed alongside this test.
 !!}
 
-program Tests_Tau_Calculation
+program Tests_SIDM_Parametric_Model
   use :: Cosmological_Density_Field                , only : cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
@@ -102,7 +102,7 @@ program Tests_Tau_Calculation
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("SIDM parametric model: CDM accretion-history inputs")
   ! Read the parameter file and initialize the node-component hierarchy.
-  parameters=inputParameters('testSuite/parameters/nodes/nodes_modified.xml')
+  parameters=inputParameters('testSuite/parameters/nodes/nodes_SIDM_parametric.xml')
   call eventsHooksInitialize            (          )
   call Functions_Global_Set             (          )
   call nodeClassHierarchyInitialize     (parameters)
@@ -282,4 +282,4 @@ program Tests_Tau_Calculation
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
-end program Tests_Tau_Calculation
+end program Tests_SIDM_Parametric_Model

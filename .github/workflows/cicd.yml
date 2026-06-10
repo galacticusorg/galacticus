@@ -1082,7 +1082,7 @@ jobs:
                       tests.integration.exe,
                       tests.integration2.exe,
                       tests.integration_2D.exe,
-                      tests.tau_calculation.exe,
+                      tests.SIDM_parametric_model.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.interpolation.exe,

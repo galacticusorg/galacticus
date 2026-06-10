@@ -1,6 +1,6 @@
 # SIDM parametric model test data
 
-Reference data used by `source/tests.tau_calculation.F90`, extracted from an N-body simulation.
+Reference data used by `source/tests.SIDM_parametric_model.F90`, extracted from an N-body simulation.
 
 - `data_799_cdm_NFW.txt` — CDM NFW halo mass accretion history. One header line, then rows of:
   `expansionFactor  virialMass[Msun/h]  virialRadius[kpc/h,comoving]  radiusVmax[kpc/h,comoving]`
