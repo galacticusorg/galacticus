@@ -23,6 +23,8 @@
 Implements a selfInteracting dark matter particle class.
 !!}
 
+  use :: Numerical_Interpolation, only : interpolator
+
   !![
   <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter" abstract="yes">
     <description>
@@ -37,6 +39,9 @@ Implements a selfInteracting dark matter particle class.
      A self-interacting dark matter particle class.
      !!}
      private
+     ! Lazily-built tabulation of the effective cross section as a function of maximum circular velocity.
+     type   (interpolator), allocatable :: crossSectionEffectiveTable_
+     logical                            :: crossSectionEffectiveTabulated=.false.
    contains
      !![
      <methods>
@@ -53,6 +58,7 @@ Implements a selfInteracting dark matter particle class.
      procedure(crossSectionSelfInteractionMomentumTransferTemplate), deferred :: crossSectionSelfInteractionMomentumTransfer
      procedure(crossSectionSelfInteractionViscosityTemplate       ), deferred :: crossSectionSelfInteractionViscosity
      procedure                                                                :: crossSectionEffective                       => crossSectionEffective_
+     procedure                                                                :: crossSectionEffectiveTabulate               => crossSectionEffectiveTabulate_
   end type darkMatterParticleSelfInteractingDarkMatter
 
   abstract interface
@@ -112,6 +118,10 @@ Implements a selfInteracting dark matter particle class.
   class (darkMatterParticleSelfInteractingDarkMatter) , pointer :: self_
   !$omp threadprivate (self_)
 
+  ! Range (in km s⁻¹) and resolution of the tabulation of the effective cross section as a function of maximum circular velocity.
+  double precision, parameter :: crossSectionEffectiveVelocityMinimum=1.0d-1, crossSectionEffectiveVelocityMaximum=1.0d+4
+  integer         , parameter :: crossSectionEffectiveCountPerDecade =10
+
 contains
 
   double precision function integrandNumerator(velocity,cosTheta)
@@ -137,9 +147,62 @@ contains
 
   double precision function crossSectionEffective_(self,velocityMaximum)
     !!{
-    Evaluate the effective cross section.
+    Return the effective self-interaction cross section, $\sigma_\mathrm{eff}$, for a halo of maximum circular velocity
+    \mono{velocityMaximum}. As the direct evaluation is an expensive 2-D integral, the result is obtained by interpolation in a
+    table that is built (lazily, on first use) as a function of maximum circular velocity.
+    !!}
+    implicit none
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+    double precision                                             , intent(in   ) :: velocityMaximum
+
+    ! Build the tabulation on first use. A double-checked lock makes the one-time build thread safe while leaving subsequent
+    ! lookups lock free.
+    if (.not.self%crossSectionEffectiveTabulated) then
+       !$omp critical(darkMatterParticleSelfInteractingCrossSectionEffective)
+       if (.not.self%crossSectionEffectiveTabulated) then
+          call self%crossSectionEffectiveTabulate()
+          self%crossSectionEffectiveTabulated=.true.
+       end if
+       !$omp end critical(darkMatterParticleSelfInteractingCrossSectionEffective)
+    end if
+    ! Interpolate in log-log space (the cross section is positive and varies over orders of magnitude).
+    crossSectionEffective_=10.0d0**self%crossSectionEffectiveTable_%interpolate(log10(velocityMaximum))
+    return
+  end function crossSectionEffective_
+
+  subroutine crossSectionEffectiveTabulate_(self)
+    !!{
+    Tabulate the effective self-interaction cross section as a function of maximum circular velocity, over a fixed range that
+    comfortably brackets the maximum circular velocities of dark matter halos. The tabulation is stored in $\log_{10}$ of both
+    quantities.
+    !!}
+    use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
+    implicit none
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout)               :: self
+    double precision                                             , allocatable  , dimension(:) :: velocityMaximum, crossSectionEffective
+    integer                                                                                    :: count          , i
+
+    count=int(log10(crossSectionEffectiveVelocityMaximum/crossSectionEffectiveVelocityMinimum)*dble(crossSectionEffectiveCountPerDecade))+1
+    allocate(velocityMaximum      (count))
+    allocate(crossSectionEffective(count))
+    velocityMaximum=Make_Range(crossSectionEffectiveVelocityMinimum,crossSectionEffectiveVelocityMaximum,count,rangeTypeLogarithmic)
+    do i=1,count
+       crossSectionEffective(i)=crossSectionEffectiveCompute(self,velocityMaximum(i))
+    end do
+    if (allocated(self%crossSectionEffectiveTable_)) deallocate(self%crossSectionEffectiveTable_)
+    allocate(self%crossSectionEffectiveTable_)
+    self%crossSectionEffectiveTable_=interpolator(log10(velocityMaximum),log10(crossSectionEffective),extrapolationType=extrapolationTypeFix)
+    return
+  end subroutine crossSectionEffectiveTabulate_
+
+  double precision function crossSectionEffectiveCompute(self,velocityMaximum)
+    !!{
+    Evaluate the effective self-interaction cross section at a single maximum circular velocity by direct 2-D integration of
+    eqn.~1.1 of \cite{yang_parametric_2024}.
     !!}
     use :: Numerical_Integration_2D, only : integrator2D
+    implicit none
     class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target :: self
     double precision                                             , intent(in   )          :: velocityMaximum
     double precision                                             , parameter              :: factorVelocityEffective=0.64d0
@@ -164,7 +227,7 @@ contains
     ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
     ! "2" in the numerator of that equation, (4/3) = integral over cos(θ) of sin²(θ), and 768 Veff⁸ = integral over v of v⁷
     ! exp(-v²/4 Veff²).
-    crossSectionEffective_=numeratorIntegral/(512.0d0*velocityEffective_**8)
+    crossSectionEffectiveCompute=numeratorIntegral/(512.0d0*velocityEffective_**8)
     return
-  end function crossSectionEffective_
+  end function crossSectionEffectiveCompute
 
