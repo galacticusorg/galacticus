@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes for the no-interaction (sigma0 -> 0) variant of the parametric SIDM test. With a negligible self-interaction cross -->
+<!-- section the gravothermal evolution does not proceed (tau ~ 0), so the SIDM halo should reduce to the CDM halo.            -->
+<changes>
+  <change type="update" path="darkMatterParticle/sigma0" value="1.0e-6"/>
+  <change type="update" path="outputFileName"            value="testSuite/outputs/SIDM_parametric_noInteraction.hdf5"/>
+</changes>

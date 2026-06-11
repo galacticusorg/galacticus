@@ -1392,7 +1392,8 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
-                test-library-interfaces.py ]
+                test-library-interfaces.py,
+                test-SIDM-parametric.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
