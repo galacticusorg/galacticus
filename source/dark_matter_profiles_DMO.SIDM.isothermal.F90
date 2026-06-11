@@ -22,6 +22,7 @@
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
@@ -38,6 +39,7 @@
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
    contains
      final     ::        sidmIsothermalDestructor
      procedure :: get => sidmIsothermalGet    
@@ -63,21 +65,24 @@ contains
     type (inputParameters                   ), intent(inout) :: parameters
     class(darkMatterParticleClass           ), pointer       :: darkMatterParticle_
     class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
+    class(darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
 
     !![
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOSIDMIsothermal(darkMatterProfileDMO_,darkMatterParticle_)
+    self=darkMatterProfileDMOSIDMIsothermal(darkMatterProfileDMO_,darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"  />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function sidmIsothermalConstructorParameters
 
-  function sidmIsothermalConstructorInternal(darkMatterProfileDMO_,darkMatterParticle_) result(self)
+  function sidmIsothermalConstructorInternal(darkMatterProfileDMO_,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class.
     !!}
@@ -86,8 +91,9 @@ contains
     type (darkMatterProfileDMOSIDMIsothermal)                        :: self
     class(darkMatterParticleClass           ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    class(darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_, *darkMatterParticle_"/>
+    <constructorAssign variables="*darkMatterProfileDMO_, *darkMatterParticle_, *darkMatterHaloScale_"/>
     !!]
 
     ! Validate the dark matter particle type.
@@ -110,6 +116,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterParticle_"  />
+    <objectDestructor name="self%darkMatterHaloScale_"  />
     !!]
     return
   end subroutine sidmIsothermalDestructor
@@ -151,7 +158,8 @@ contains
 	    <constructor>
               massDistributionSphericalSIDMIsothermal(                                                         &amp;
 	      &amp;                                   timeAge            =basic%time                       (), &amp;
-	      &amp;                                   nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
+              &amp;                                   velocityRelativeMean=self%darkMatterHaloScale_%velocityVirial(node), &amp;
+              &amp;                                   nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
 	      &amp;                                   massDistribution_  =      massDistributionDecorated    , &amp;
 	      &amp;                                   darkMatterParticle_=self %darkMatterParticle_          , &amp;
               &amp;                                   componentType      =      componentTypeDarkHalo        , &amp;

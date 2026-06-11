@@ -130,15 +130,20 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (massDistributionClass                  ), pointer       :: massDistribution_
     class           (darkMatterParticleClass                ), pointer       :: darkMatterParticle_
-    type            (varying_string                         )                :: componentType      , massType, &
+    type            (varying_string                         )                :: componentType      , massType            , &
          &                                                                      nonAnalyticSolver
-    double precision                                                         :: timeAge
+    double precision                                                         :: timeAge            , velocityRelativeMean
 
     !![
     <inputParameter>
       <name>timeAge</name>
       <source>parameters</source>
       <description>The age of the halo (in Gyr) since its formation, determining the total time available for SIDM self-interactions to thermalize the inner halo and produce an isothermal core.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityRelativeMean</name>
+      <source>parameters</source>
+      <description>Mean relative velocity to calculate self interaction cross section.</description>
     </inputParameter>
     <inputParameter>
       <name>nonAnalyticSolver</name>
@@ -163,7 +168,7 @@ contains
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalSIDMIsothermal(timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalSIDMIsothermal(timeAge,velocityRelativeMean,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -175,21 +180,21 @@ contains
     return
   end function sphericalSIDMIsothermalConstructorParameters
 
-  function sphericalSIDMIsothermalConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
+  function sphericalSIDMIsothermalConstructorInternal(timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{
     Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     type            (massDistributionSphericalSIDMIsothermal)                          :: self
-    double precision                                         , intent(in   )           :: timeAge
+    double precision                                         , intent(in   )           :: timeAge            , velocityRelativeMean
     class           (massDistributionSpherical              ), intent(in   ), target   :: massDistribution_
     class           (darkMatterParticleClass                ), intent(in   ), target   :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType      ), intent(in   )           :: nonAnalyticSolver
     type            (enumerationComponentTypeType           ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="timeAge, nonAnalyticSolver, componentType, massType, *massDistribution_, *darkMatterParticle_"/>
+    <constructorAssign variables="timeAge, velocityRelativeMean, nonAnalyticSolver, componentType, massType, *massDistribution_, *darkMatterParticle_"/>
     !!]
 
     ! Validate the dark matter particle type.

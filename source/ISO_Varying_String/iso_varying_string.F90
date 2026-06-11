@@ -504,7 +504,7 @@ contains
 
     !![
     <workaround type="gfortran" >
-      <description>Construct {\normalfont \ttfamily string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+      <description>Construct \mono{string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
     !!]
     string_a_vs   = var_str(string_a)
     concat_string = op_concat_VS_VS(string_a_vs, string_b)
@@ -531,7 +531,7 @@ contains
 
     !![
     <workaround type="gfortran" >
-      <description>Construct {\normalfont \ttfamily string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+      <description>Construct \mono{string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
     !!]
     string_b_vs   = var_str(string_b)
     concat_string = op_concat_VS_VS(string_a, string_b_vs)

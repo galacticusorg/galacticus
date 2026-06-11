@@ -304,9 +304,25 @@ contains
           end if
           radiusIntegralUpper   =radii(i  )
           ! Evaluate the integral.
-          masses           (i)=+4.0d0*Pi*integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
-          if (status /= errorStatusSuccess .and. .not.self%tolerateEnclosedMassIntegrationFailure) &
-               & call Error_Report('enclosed mass profile integration failed'//{introspection:location})
+          masses(i)=+4.0d0*Pi*integrator_%integrate(radiusIntegralLower,radiusIntegralUpper,status=status)
+          if (status /= errorStatusSuccess .and. .not.self%tolerateEnclosedMassIntegrationFailure) then
+             ! Failed to integrate the mass profile.
+             block
+               use :: File_Utilities, only : File_Name_Temporary
+               type     (varying_string ) :: message   , fileName
+               character(len=12         ) :: labelLower, labelUpper
+               type     (inputParameters) :: descriptor
+
+               fileName  =File_Name_Temporary("massDistributionFailedMassIntegration.xml")
+               descriptor=inputParameters    (                                           )
+               call self      %descriptor    (descriptor)
+               call descriptor%serializeToXML(fileName  )
+               write (labelLower,'(e12.6)') radiusIntegralLower
+               write (labelUpper,'(e12.6)') radiusIntegralUpper
+               message="integration of enclosed mass profile failed between r = ("//trim(adjustl(labelLower)//", "//trim(adjustl(labelUpper))//") Mpc (massDistribution descriptor written to '"//fileName//"')")
+               call Error_Report(message//{introspection:location})
+             end block
+          end if
           if (i > 1) masses(i)=+masses(i  ) &
                &               +masses(i-1)
        end do

@@ -79,12 +79,12 @@ contains
        result(zi)
     !!{
     Perform interpolation on a set of points irregularly spaced on a 2D surface.
-    On {\normalfont \ttfamily reset=.true.} (or the first call) the triangulation, closest-neighbour
+    On \mono{reset=.true.} (or the first call) the triangulation, closest-neighbour
     indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch.
-    On subsequent calls ({\normalfont \ttfamily reset=.false.}) the triangulation and closest-neighbour
+    On subsequent calls (\mono{reset=.false.}) the triangulation and closest-neighbour
     indices are reused but the partial derivatives are re-estimated, which correctly handles the case
     where the Z values change between calls while the XY positions do not.
-    The function is fully thread-safe: all state is held in {\normalfont \ttfamily workspace} and
+    The function is fully thread-safe: all state is held in \mono{workspace} and
     no global or module-level variables are accessed.
     !!}
     implicit none
@@ -184,7 +184,7 @@ contains
 
   double precision function interpolateOne(ws, xii, yii)
     !!{
-    Locate the triangle containing {\normalfont \ttfamily (xii,yii)} and interpolate.
+    Locate the triangle containing \mono{(xii,yii)} and interpolate.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -201,10 +201,10 @@ contains
 
   subroutine buildTriangulation(ws)
     !!{
-    Triangulate the data points stored in {\normalfont \ttfamily ws}.  Produces a Delaunay-like triangulation using
-    the max-min-angle criterion (Lawson).  On return, {\normalfont \ttfamily ws\%ipt}, {\normalfont \ttfamily ws\%ipl},
-    {\normalfont \ttfamily ws\%nTriangles} and {\normalfont \ttfamily ws\%nBorder} are set.
-    Port of {\normalfont \ttfamily idtang} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Triangulate the data points stored in \mono{ws}.  Produces a Delaunay-like triangulation using
+    the max-min-angle criterion (Lawson).  On return, \mono{ws\%ipt}, \mono{ws\%ipl},
+    \mono{ws\%nTriangles} and \mono{ws\%nBorder} are set.
+    Port of \mono{idtang} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     type(interpolator2DIrregular), intent(inout) :: ws
@@ -503,9 +503,9 @@ contains
 
   integer function triangleSwapCheck(x, y, i1, i2, i3, i4)
     !!{
-    Determine whether swapping the shared diagonal of the quadrilateral formed by points {\normalfont \ttfamily i1}--{\normalfont
-    \ttfamily i4} improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise.
-    Port of {\normalfont \ttfamily idxchg} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Determine whether swapping the shared diagonal of the quadrilateral formed by points \mono{i1}--\mono{i4}
+    improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise.
+    Port of \mono{idxchg} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     double precision, dimension(:), intent(in) :: x, y
@@ -545,11 +545,10 @@ contains
 
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
     !!{
-    For each of the {\normalfont \ttfamily ndp} data points, select the {\normalfont \ttfamily ncp} closest neighbours,
-    ensuring they are not all collinear.  Output is stored in {\normalfont \ttfamily ipc(ncp*ndp)}, with the {\normalfont
-    \ttfamily ncp} neighbours of point {\normalfont \ttfamily ip1} at indices {\normalfont \ttfamily (ip1-1)*ncp+1 ..
-    ip1*ncp}.  On error {\normalfont \ttfamily ipc(1)} is set to 0.
-    Port of {\normalfont \ttfamily idcldp} from the original BIVAR package \citep{akima_algorithm_1978}.
+    For each of the \mono{ndp} data points, select the \mono{ncp} closest neighbours,
+    ensuring they are not all collinear.  Output is stored in \mono{ipc(ncp*ndp)}, with the \mono{ncp}
+    neighbours of point \mono{ip1} at indices \mono{(ip1-1)*ncp+1 .. ip1*ncp}.  On error \mono{ipc(1)} is set to 0.
+    Port of \mono{idcldp} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -657,10 +656,10 @@ contains
 
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
     !!{
-    Estimate first- and second-order partial derivatives at each data point using the {\normalfont \ttfamily ncp} closest
-    neighbours.  Output {\normalfont \ttfamily pd(5*ndp)} stores ZX, ZY, ZXX, ZXY, ZYY for point {\normalfont \ttfamily ip0}
-    at indices {\normalfont \ttfamily 5*ip0-4 .. 5*ip0}.
-    Port of {\normalfont \ttfamily idpdrv} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Estimate first- and second-order partial derivatives at each data point using the \mono{ncp} closest
+    neighbours.  Output \mono{pd(5*ndp)} stores ZX, ZY, ZXX, ZXY, ZYY for point \mono{ip0}
+    at indices \mono{5*ip0-4 .. 5*ip0}.
+    Port of \mono{idpdrv} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -749,12 +748,12 @@ contains
 
   subroutine buildSectionGrid(ws)
     !!{
-    Build the 9-section spatial lookup grid over the triangulation stored in {\normalfont \ttfamily ws}.
-    On return {\normalfont \ttfamily ws\%xs1}, {\normalfont \ttfamily ws\%xs2}, {\normalfont \ttfamily ws\%ys1},
-    {\normalfont \ttfamily ws\%ys2}, {\normalfont \ttfamily ws\%ntsc}, {\normalfont \ttfamily ws\%sectionData},
-    and {\normalfont \ttfamily ws\%triBounds} are populated and {\normalfont \ttfamily ws\%gridReady} is set to
-    {\normalfont \ttfamily .true.}.
-    Port of the initialisation block of {\normalfont \ttfamily idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Build the 9-section spatial lookup grid over the triangulation stored in \mono{ws}.
+    On return \mono{ws\%xs1}, \mono{ws\%xs2}, \mono{ws\%ys1},
+    \mono{ws\%ys2}, \mono{ws\%ntsc}, \mono{ws\%sectionData},
+    and \mono{ws\%triBounds} are populated and \mono{ws\%gridReady} is set to
+    \mono{.true.}.
+    Port of the initialisation block of \mono{idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -836,11 +835,11 @@ contains
 
   integer function locatePoint(ws, xii, yii)
     !!{
-    Locate the triangle or border-segment region containing {\normalfont \ttfamily (xii,yii)}.
-    Returns {\normalfont \ttfamily iti} in {\normalfont \ttfamily 1..nTriangles} for interior points;
-    returns {\normalfont \ttfamily il1*(nTriangles+nBorder)+il2} for exterior points, encoding the
-    nearest border-segment pair.  Updates {\normalfont \ttfamily ws\%lastTriangle} for subsequent calls.
-    Port of the lookup block of {\normalfont \ttfamily idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Locate the triangle or border-segment region containing \mono{(xii,yii)}.
+    Returns \mono{iti} in \mono{1..nTriangles} for interior points;
+    returns \mono{il1*(nTriangles+nBorder)+il2} for exterior points, encoding the
+    nearest border-segment pair.  Updates \mono{ws\%lastTriangle} for subsequent calls.
+    Port of the lookup block of \mono{idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -964,19 +963,19 @@ contains
 
   double precision function interpolatePoint(ws, xii, yii, iti)
     !!{
-    Evaluate the interpolated (or extrapolated) Z value at {\normalfont \ttfamily (xii,yii)} given the
-    location code {\normalfont \ttfamily iti} returned by {\normalfont \ttfamily locatePoint}.
+    Evaluate the interpolated (or extrapolated) Z value at \mono{(xii,yii)} given the
+    location code \mono{iti} returned by \mono{locatePoint}.
     Three cases are handled:
     \begin{description}
-      \item[Interior triangle {\normalfont \ttfamily (iti <= nTriangles+nBorder)}]
+      \item[Interior triangle \mono{(iti <= nTriangles+nBorder)}]
         5th-degree quintic Bézier surface in barycentric UV coordinates \citep{akima_algorithm_1978}.
-      \item[Border segment {\normalfont \ttfamily (il1==il2)}]
+      \item[Border segment \mono{(il1==il2)}]
         Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
-      \item[Exterior corner {\normalfont \ttfamily (il1/=il2)}]
+      \item[Exterior corner \mono{(il1/=il2)}]
         2nd-degree Taylor expansion centred on the shared corner vertex.
     \end{description}
-    Port of {\normalfont \ttfamily idptip} from the original BIVAR package \citep{akima_algorithm_1978}.
-    Coefficient caching (the original {\normalfont \ttfamily itpv} flag) is omitted since in
+    Port of \mono{idptip} from the original BIVAR package \citep{akima_algorithm_1978}.
+    Coefficient caching (the original \mono{itpv} flag) is omitted since in
     Galacticus usage the cache was never effective.
     !!}
     implicit none
