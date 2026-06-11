@@ -348,10 +348,9 @@ contains
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
              !![
-	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
-	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
 	       <description>
-		 Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+		 Defined assignment for components not used when those are ALLOCATABLE.
 	       </description>
 	     !!]
              do iLuminosity=1,size(luminosityTablesTemporary)
