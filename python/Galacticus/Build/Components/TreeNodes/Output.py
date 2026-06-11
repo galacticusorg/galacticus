@@ -62,6 +62,12 @@ def Tree_Node_Output_Count(build):
                 'intrinsic':  'integer',
                 'variables':  ['i'],
             },
+            {
+                'intrinsic':  'class',
+                'type':       'nodeComponent',
+                'attributes': ['pointer'],
+                'variables':  ['component_'],
+            },
         ],
     }
 
@@ -74,12 +80,11 @@ def Tree_Node_Output_Count(build):
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
         content += (
-            f"if (allocated(self%component{cap})) then\n"
-            f"  do i=1,size(self%component{cap})\n"
-            f"    call self%component{cap}(i)%outputCount("
+            f"if (.not.allocated(self%component{cap})) component_ => self%{class_dict['name']}()\n"
+            f"do i=1,size(self%component{cap})\n"
+            f"  call self%component{cap}(i)%outputCount("
             f"integerPropertyCount,doublePropertyCount,time,instance=i)\n"
-            f"  end do\n"
-            f"end if\n"
+            f"end do\n"
         )
     function['content'] = content
     _bind(build, 'outputCount', function)
@@ -136,6 +141,12 @@ def Tree_Node_Output_Names(build):
                 'intrinsic':  'integer',
                 'variables':  ['i'],
             },
+            {
+                'intrinsic':  'class',
+                'type':       'nodeComponent',
+                'attributes': ['pointer'],
+                'variables':  ['component_'],
+            },
         ],
     }
 
@@ -165,13 +176,12 @@ def Tree_Node_Output_Names(build):
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
         content += (
-            f"if (allocated(self%component{cap})) then\n"
-            f"  do i=1,size(self%component{cap})\n"
-            f"    call self%component{cap}(i)%outputNames("
+            f"if (.not.allocated(self%component{cap})) component_ => self%{class_dict['name']}()\n"
+            f"do i=1,size(self%component{cap})\n"
+            f"  call self%component{cap}(i)%outputNames("
             f"integerProperty,integerProperties,"
             f"doubleProperty,doubleProperties,time,instance=i)\n"
-            f"  end do\n"
-            f"end if\n"
+            f"end do\n"
         )
     function['content'] = content
     _bind(build, 'outputNames', function)
@@ -234,6 +244,12 @@ def Tree_Node_Output(build):
                 'intrinsic':  'integer',
                 'variables':  ['i'],
             },
+            {
+                'intrinsic':  'class',
+                'type':       'nodeComponent',
+                'attributes': ['pointer'],
+                'variables':  ['component_'],
+            },
         ],
     }
 
@@ -254,14 +270,13 @@ def Tree_Node_Output(build):
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
         content += (
-            f"if (allocated(self%component{cap})) then\n"
-            f"  do i=1,size(self%component{cap})\n"
-            f"    call self%component{cap}(i)%output("
+            f"if (.not.allocated(self%component{cap})) component_ => self%{class_dict['name']}()\n"
+            f"do i=1,size(self%component{cap})\n"
+            f"  call self%component{cap}(i)%output("
             f"integerProperty,integerBufferCount,integerProperties,"
             f"doubleProperty,doubleBufferCount,doubleProperties,"
             f"time,outputInstance,instance=i)\n"
-            f"  end do\n"
-            f"end if\n"
+            f"end do\n"
         )
     function['content'] = content
     _bind(build, 'output', function)

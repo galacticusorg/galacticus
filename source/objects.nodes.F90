@@ -635,33 +635,25 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Is_On_Main_Branch
 
-  logical function Tree_Node_Is_Satellite(self)
+  logical function Tree_Node_Is_Satellite(self) result(isSatellite)
     !!{
     Returns true if \mono{self} is a satellite.
     !!}
-    use :: Error, only : Error_Report
     implicit none
     class(treeNode), intent(in   ), target :: self
-    type (treeNode), pointer               :: childNode, parentNode, selfActual
+    type (treeNode), pointer               :: childNode, parentNode
 
-    select type (self)
-    type is (treeNode)
-       selfActual => self
-    class default
-       selfActual => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
-    parentNode => selfActual%parent
+    parentNode => self%parent
     select case (associated(parentNode))
     case (.false.)
-       Tree_Node_Is_Satellite=.false.
+       isSatellite=.false.
        return
     case (.true.)
        childNode => parentNode%firstChild
-       Tree_Node_Is_Satellite=.true.
+       isSatellite=.true.
        do while (associated(childNode))
-          if (associated(childNode,selfActual)) then
-             Tree_Node_Is_Satellite=.false.
+          if (associated(childNode,self)) then
+             isSatellite=.false.
              exit
           end if
           childNode => childNode%sibling
@@ -704,21 +696,14 @@ module Galacticus_Nodes
     !!{
     Returns a pointer to the earliest progenitor of \mono{self}.
     !!}
-    use :: Error, only : Error_Report
     implicit none
-    type (treeNode), pointer       :: progenitorNode
-    class(treeNode), intent(inout) :: self
+    type (treeNode)               , pointer :: progenitorNode
+    class(treeNode), intent(inout), target  :: self
 
-    select type (self)
-    type is (treeNode)
-       progenitorNode => self
-       do while (associated(progenitorNode%firstChild))
-          progenitorNode => progenitorNode%firstChild
-       end do
-    class default
-       progenitorNode => null()
-       call Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
-    end select
+    progenitorNode => self
+    do while (associated(progenitorNode%firstChild))
+       progenitorNode => progenitorNode%firstChild
+    end do
     return
   end function Tree_Node_Get_Earliest_Progenitor
 
@@ -746,37 +731,29 @@ module Galacticus_Nodes
     Remove \mono{self} from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
-    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, &
+         &                                          node
     type (varying_string)                        :: message
 
-    select type (self)
-    type is (treeNode)
-       selfActual => self
-    class default
-       selfActual => null()
-       call Error_Report('treeNode of unknown class'//{introspection:location})
-    end select
-
     ! Remove from the parent node satellite list.
-    nodeHost => selfActual%parent
+    nodeHost => self%parent
     if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
-       message=message//selfActual%index()//'] being removed from host node ['//nodeHost%index()//']'
+       message=message//self%index()//'] being removed from host node ['//nodeHost%index()//']'
        call displayMessage(message,verbosityLevelInfo)
     end if
-    if (associated(nodeHost%firstSatellite,selfActual)) then
+    if (associated(nodeHost%firstSatellite,self)) then
        ! This is the first satellite, unlink it, and link to any sibling.
-       nodeHost%firstSatellite => selfActual%sibling
+       nodeHost%firstSatellite => self%sibling
     else
        node         => nodeHost%firstSatellite
        nodePrevious => null()
        do while (associated(node))
-          if (associated(node,selfActual)) then
+          if (associated(node,self)) then
              ! Found our node, link its older sibling to its younger sibling.
              nodePrevious%sibling => node%sibling
              exit
@@ -793,36 +770,28 @@ module Galacticus_Nodes
     Remove \mono{self} from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, verbosityLevelInfo
-    use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, &
+         &                                          node
     type (varying_string)                        :: message
 
-    select type (self)
-    type is (treeNode)
-       selfActual => self
-    class default
-       selfActual => null()
-       call Error_Report('treeNode of unknown class'//{introspection:location})
-    end select
-
     ! Remove from the mergee list of any merge target.
-    if (associated(selfActual%mergeTarget)) then
-       nodeHost => selfActual%mergeTarget
+    if (associated(self%mergeTarget)) then
+       nodeHost => self%mergeTarget
        message='Mergee node ['
-       message=message//selfActual%index()//'] being removed from merge target ['//nodeHost%index()//']'
+       message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
        call displayMessage(message,verbosityLevelInfo)
-       if (associated(nodeHost%firstMergee,selfActual)) then
+       if (associated(nodeHost%firstMergee,self)) then
           ! This is the first mergee, unlink it, and link to any sibling.
-          nodeHost%firstMergee => selfActual%siblingMergee
+          nodeHost%firstMergee => self%siblingMergee
        else
           node         => nodeHost%firstMergee
           nodePrevious => null()
           do while (associated(node))
-             if (associated(node,selfActual)) then
+             if (associated(node,self)) then
                 ! Found our node, link its older sibling to its younger sibling.
                 nodePrevious%siblingMergee => node%siblingMergee
                 exit
@@ -1474,26 +1443,6 @@ module Galacticus_Nodes
     Boolean_True=.true.
     return
   end function Boolean_True
-
-  subroutine nodeComponentGetError(nameComponent,indexNode)
-    !!{
-    Function used to report errors when attempting to get a component from a node. Error reporting is handled here to avoid
-    having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
-    called a very large number of times).
-    !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
-    use :: String_Handling   , only : operator(//)
-    implicit none
-    character(len=*         ), intent(in   ) :: nameComponent
-    integer  (kind_int8     ), intent(in   ) :: indexNode
-    type     (varying_string)                :: message
-
-    message='"'//nameComponent//'" component is not allocated in node '
-    message=message//indexNode
-    call Error_Report(message//{introspection:location})
-    return
-  end subroutine nodeComponentGetError
   
   function universeConstructor() result(self)
     !!{
@@ -1523,27 +1472,24 @@ module Galacticus_Nodes
     class(mergerTree), intent(inout) :: tree
     type (treeEvent ), pointer       :: event, eventNext
 
-    select type (tree)
-    type is (mergerTree)
-       ! Destroy all nodes.
-       if (associated(tree%nodeBase)) then
-          call tree%nodeBase%destroyBranch()
-          deallocate(tree%nodeBase)
-       end if
-       ! Destroy any events attached to this tree.
-       event => tree%event
-       do while (associated(event))
-          eventNext => event%next
-          deallocate(event)
-          event => eventNext
-       end do
-       ! Destroy the property hash.
-       call tree%properties%destroy()
-       ! Destroy the random number generator.
-       !![
-       <objectDestructor name="tree%randomNumberGenerator_"/>
-       !!]
-    end select
+    ! Destroy all nodes.
+    if (associated(tree%nodeBase)) then
+       call tree%nodeBase%destroyBranch()
+       deallocate(tree%nodeBase)
+    end if
+    ! Destroy any events attached to this tree.
+    event => tree%event
+    do while (associated(event))
+       eventNext => event%next
+       deallocate(event)
+       event => eventNext
+    end do
+    ! Destroy the property hash.
+    call tree%properties%destroy()
+    ! Destroy the random number generator.
+    !![
+    <objectDestructor name="tree%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine Merger_Tree_Destroy
 

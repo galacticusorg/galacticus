@@ -26,22 +26,9 @@ def Tree_Node_Creation(build):
                 'formationNode', 'event')
     nullify_block = ''.join(f"nullify (self%{p})\n" for p in pointers)
 
-    active = build.get('componentClassListActive') or []
-    allocate_block = ''.join(
-        f"allocate(self%component{c}(1))\n" for c in active
-    )
-    host_block = ''.join(
-        f"   self%component{c}(1)%hostNode => self\n" for c in active
-    )
-
     content = (
         "! Ensure pointers are nullified.\n"
         f"{nullify_block}"
-        f"{allocate_block}"
-        "select type (self)\n"
-        "type is (treeNode)\n"
-        f"{host_block}"
-        "end select\n"
         "! Assign a host tree if supplied.\n"
         "if (present(hostTree)) then\n"
         "   self%hostTree => hostTree\n"
@@ -106,10 +93,8 @@ def Tree_Node_Builder(build):
     )
 
     head = (
-        "select type (self)\n"
-        "type is (treeNode)\n"
-        "   call componentIndex%initialize()\n"
-        "   !$omp critical (FoX_DOM_Access)\n"
+        "call componentIndex%initialize()\n"
+        "!$omp critical (FoX_DOM_Access)\n"
     )
 
     counts = ""
@@ -162,9 +147,8 @@ def Tree_Node_Builder(build):
         )
 
     tail = (
-        "  end do\n"
-        "  call componentIndex%destroy()\n"
-        "end select\n"
+        "end do\n"
+        "call componentIndex%destroy()\n"
     )
 
     function = {
@@ -183,7 +167,7 @@ def Tree_Node_Builder(build):
             {
                 'intrinsic':  'class',
                 'type':       'treeNode',
-                'attributes': ['intent(inout)'],
+                'attributes': ['intent(inout)', 'target'],
                 'variables':  ['self'],
             },
             {
@@ -368,13 +352,10 @@ def Tree_Node_Class_Creation(build, class_dict):
         f"      allocate(self%component{cap}(1),source=default{cap}Component)\n"
         "   end select\n"
         "end if\n"
-        "select type (self)\n"
-        "type is (treeNode)\n"
         f"  do i=1,size(self%component{cap})\n"
         f"    self%component{cap}(i)%hostNode => self\n"
         f"    call self%component{cap}(i)%initialize()\n"
         "  end do\n"
-        "end select\n"
     )
 
     function = {
