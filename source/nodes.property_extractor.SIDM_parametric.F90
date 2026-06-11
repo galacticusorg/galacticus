@@ -161,12 +161,12 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(names(6))
-    names(1)=var_str('darkMatterProfileSIDMParametrictau' )
-    names(2)=var_str('darkMatterProfileSIDMParametricVmax')
-    names(3)=var_str('darkMatterProfileSIDMParametricRmax')
-    names(4)=var_str('darkMatterProfileSIDMParametricRhos')
-    names(5)=var_str('darkMatterProfileSIDMParametricRs'  )
-    names(6)=var_str('darkMatterProfileSIDMParametricRc'  )
+    names(1)=var_str('darkMatterProfileSIDMParametricTau'            )
+    names(2)=var_str('darkMatterProfileSIDMParametricVelocityMaximum')
+    names(3)=var_str('darkMatterProfileSIDMParametricRadiusMaximum'  )
+    names(4)=var_str('darkMatterProfileSIDMParametricDensityScale'   )
+    names(5)=var_str('darkMatterProfileSIDMParametricRadiusScale'    )
+    names(6)=var_str('darkMatterProfileSIDMParametricRadiusCore'     )
     return
   end subroutine SIDMParametricNames
 
