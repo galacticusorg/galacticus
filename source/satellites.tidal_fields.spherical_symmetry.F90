@@ -34,10 +34,10 @@
     \end{equation}
     where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
     of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega_\mathrm{p}$ is the orbital angular
-    velocity at pericenter. The term $f_\mathrm{boost}=${\normalfont \ttfamily [factorBoost]} scales the overall tidal field. Note
-    that the centrifugal term, $\omega_\mathrm{p}^2$, is included only if the {\normalfont \ttfamily
-    includeCentrifugalAcceleration} argument is set to true. The tidal field is evaluated at the current orbital position of the
-    satellite by default, but can be evaluated at the orbital pericenter if the {\normalfont \ttfamily atPericenter} argument is
+    velocity at pericenter. The term $f_\mathrm{boost}=$\mono{[factorBoost]} scales the overall tidal field. Note
+    that the centrifugal term, $\omega_\mathrm{p}^2$, is included only if the \mono{includeCentrifugalAcceleration}
+    argument is set to true. The tidal field is evaluated at the current orbital position of the
+    satellite by default, but can be evaluated at the orbital pericenter if the \mono{atPericenter} argument is
     set to true.
    </description>
   </satelliteTidalField>

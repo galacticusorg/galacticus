@@ -27,9 +27,9 @@
   <satelliteTidalField name="satelliteTidalFieldStandard">
    <description>
     A satellite tidal field class that computes the tidal field in arbitrary geometry. Note that the centrifugal term,
-    $\omega_\mathrm{p}^2$, is included only if the {\normalfont \ttfamily includeCentrifugalAcceleration} argument is set to
+    $\omega_\mathrm{p}^2$, is included only if the \mono{includeCentrifugalAcceleration} argument is set to
     true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the
-    orbital pericenter if the {\normalfont \ttfamily atPericenter} argument is set to true.
+    orbital pericenter if the \mono{atPericenter} argument is set to true.
    </description>
   </satelliteTidalField>
   !!]
