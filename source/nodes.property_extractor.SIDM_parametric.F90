@@ -31,7 +31,7 @@
      A property extractor which extracts dark matter profile properties for the SIDM parametric model.
      !!}
      private
-     integer:: tauID, VmaxSIDMID, RmaxSIDMID, RhosSIDMID, RsSIDMID, RcSIDMID
+     integer:: tauID, velocityMaximumSIDMID, radiusMaximumSIDMID, densityScaleSIDMID, radiusScaleSIDMID, radiusCoreSIDMID
    contains
      procedure :: elementCount => SIDMParametricElementCount
      procedure :: extract      => SIDMParametricExtract
@@ -74,12 +74,12 @@ contains
     type(nodePropertyExtractorSIDMParametric) :: self
     
     !![
-    <addMetaProperty component="darkMatterProfile" name="tau"      id="self%tauID"      isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="VmaxSIDM" id="self%VmaxSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RmaxSIDM" id="self%RmaxSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RhosSIDM" id="self%RhosSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RsSIDM"   id="self%RsSIDMID"   isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RcSIDM"   id="self%RcSIDMID"   isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="tau"                 id="self%tauID"                 isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="velocityMaximumSIDM" id="self%velocityMaximumSIDMID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusMaximumSIDM"   id="self%radiusMaximumSIDMID"   isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="densityScaleSIDM"    id="self%densityScaleSIDMID"    isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusScaleSIDM"     id="self%radiusScaleSIDMID"     isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusCoreSIDM"      id="self%radiusCoreSIDMID"      isEvolvable="yes" isCreator="no"/>
     !!]
     return
   end function SIDMParametricConstructorInternal
@@ -110,9 +110,9 @@ contains
     type            (multiCounter                       ), intent(inout), optional    :: instance
     class           (nodeComponentBasic                 )               , pointer     :: basic
     class           (nodeComponentDarkmatterProfile     )               , pointer     :: darkMatterProfile
-    double precision                                                                  :: tauSIDMParametric     , VmaxSIDMParametric, &
-         &                                                                               RmaxSIDMParametric    , RhosSIDMParametric, &
-         &                                                                               RsSIDMParametric      , RcSIDMParametric
+    double precision                                                                  :: tauSIDMParametric          , velocityMaximumSIDMParametric, &
+         &                                                                               radiusMaximumSIDMParametric, densityScaleSIDMParametric   , &
+         &                                                                               radiusScaleSIDMParametric  , radiusCoreSIDMParametric
     !$GLC attributes unused :: time, instance
 
     ! Extract required quantities.
@@ -121,29 +121,29 @@ contains
     select type (darkMatterProfile)
     type is (nodeComponentDarkMatterProfile)
        ! The dark matter profile component does not yet exist, so return zero values.
-       tauSIDMParametric =0.0d0
-       VmaxSIDMParametric=0.0d0
-       RmaxSIDMParametric=0.0d0  
-       RhosSIDMParametric=0.0d0
-       RsSIDMParametric  =0.0d0
-       RcSIDMParametric  =0.0d0
+       tauSIDMParametric            =0.0d0
+       velocityMaximumSIDMParametric=0.0d0
+       radiusMaximumSIDMParametric  =0.0d0  
+       densityScaleSIDMParametric   =0.0d0
+       radiusScaleSIDMParametric    =0.0d0
+       radiusCoreSIDMParametric     =0.0d0
     class default
-       tauSIDMParametric =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID     )
-       VmaxSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%VmaxSIDMID)
-       RmaxSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%RmaxSIDMID)
-       RhosSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID)
-       RsSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID  )
-       RcSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID  )
+       tauSIDMParametric            =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID     )
+       velocityMaximumSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)
+       radiusMaximumSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID)
+       densityScaleSIDMParametric   =darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID)
+       radiusScaleSIDMParametric    =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID  )
+       radiusCoreSIDMParametric     =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID  )
     end select
     ! Set return results.
     allocate(SIDMParametricExtract(6))
     SIDMParametricExtract=[                    &
-         &                 tauSIDMParametric , &
-         &                 VmaxSIDMParametric, &
-         &                 RmaxSIDMParametric, &
-         &                 RhosSIDMParametric, &
-         &                 RsSIDMParametric  , &
-         &                 RcSIDMParametric    &
+         &                 tauSIDMParametric            , &
+         &                 velocityMaximumSIDMParametric, &
+         &                 radiusMaximumSIDMParametric  , &
+         &                 densityScaleSIDMParametric   , &
+         &                 radiusScaleSIDMParametric    , &
+         &                 radiusCoreSIDMParametric      &
          &                ]
     return
   end function SIDMParametricExtract

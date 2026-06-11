@@ -42,8 +42,8 @@
      private
      class(darkMatterParticleClass ), pointer :: darkMatterParticle_   => null()
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_  => null()
-     integer                                  :: RhosSIDMID                     , RsSIDMID, &
-          &                                      RcSIDMID
+     integer                                  :: densityScaleSIDMID, radiusScaleSIDMID, &
+          &                                      radiusCoreSIDMID
      double precision                         :: beta
    contains
      final     ::        sidmParametricDestructor
@@ -115,9 +115,9 @@ contains
        call Error_Report('SIDM parametric dark matter profile expects a self-interacting dark matter particle'//{introspection:location})
     end select    
     !![
-    <addMetaProperty component="darkMatterProfile" name="RhosSIDM" id="self%RhosSIDMID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RsSIDM"   id="self%RsSIDMID"   isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="darkMatterProfile" name="RcSIDM"   id="self%RcSIDMID"   isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="densityScaleSIDM" id="self%densityScaleSIDMID" isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusScaleSIDM"  id="self%radiusScaleSIDMID"  isEvolvable="yes" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="radiusCoreSIDM"   id="self%radiusCoreSIDMID"   isEvolvable="yes" isCreator="no"/>
     !!]
     return
   end function sidmParametricConstructorInternal
@@ -165,7 +165,7 @@ contains
     basic             => node%basic            ()
     darkMatterProfile => node%darkMatterProfile()
     ! Use NFW for zero core radius.
-    if (darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID) == 0.0d0) then
+    if (darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID) == 0.0d0) then
        allocate(massDistributionNFW :: massDistribution_)
        select type(massDistribution_)
        type is (massDistributionNFW)
@@ -173,8 +173,8 @@ contains
 	  <referenceConstruct object="massDistribution_">
             <constructor>
               massDistributionNFW(                                                                                    &amp;
-	      &amp;               densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
-              &amp;               scaleLength         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID  ), &amp;
+	      &amp;               densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID), &amp;
+              &amp;               scaleLength         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID), &amp;
               &amp;               componentType       =                   componentTypeDarkHalo                     , &amp;
               &amp;               massType            =                   massTypeDark                                &amp;
               &amp;              )
@@ -203,9 +203,9 @@ contains
             <constructor>
               massDistributionSIDMParametricProfile(                                                                                      &amp;
 	      &amp;                                   beta                = self             %beta                                      , &amp;
-              &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%RhosSIDMID), &amp;
-              &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%RsSIDMID  ), &amp;
-	      &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%RcSIDMID  ), &amp;
+              &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID), &amp;
+              &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID), &amp;
+	      &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID), &amp;
               &amp;                                   componentType       =                   componentTypeDarkHalo                     , &amp;
               &amp;                                   massType            =                   massTypeDark                                &amp;
               &amp;                                  )
