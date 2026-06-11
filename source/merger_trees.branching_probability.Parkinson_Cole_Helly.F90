@@ -393,6 +393,7 @@ contains
       self  %probabilityMinimumMassLog =  log(      massResolution)
       self  %probabilityMaximumMassLog =  log(0.5d0*haloMass      )
       self  %probabilitySeek           =  probabilityFraction
+      self  %probabilityMaximum        =  huge(0.0d0)
       ! Check the sign of the root function at half the halo mass.
       if (parkinsonColeHellyMassBranchRoot(self%probabilityMaximumMassLog) >= 0.0d0) then
          ! The root function is zero, or very close to it (which can happen due to rounding errors
@@ -454,7 +455,7 @@ contains
 
     if      (logMassMaximum < self_%probabilityMinimumMassLog) then
        parkinsonColeHellyMassBranchRoot=self_%probabilitySeek   +self_%probabilityGradientMinimum*(logMassMaximum-self_%probabilityMinimumMassLog)
-    else if (logMassMaximum > self_%probabilityMaximumMassLog) then
+    else if (logMassMaximum > self_%probabilityMaximumMassLog .and. self_%probabilityMaximum < huge(0.0d0)) then
        parkinsonColeHellyMassBranchRoot=self_%probabilityMaximum+self_%probabilityGradientMaximum*(logMassMaximum-self_%probabilityMaximumMassLog)
     else
        massMaximum=+exp(logMassMaximum)

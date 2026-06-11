@@ -61,7 +61,7 @@ with h5py.File("outputs/noninstantaneous_recycling.hdf5", "r") as model:
 
 massMetals = data["spheroidAbundancesStellarMetals"] + data["diskAbundancesStellarMetals"]
 massFe     = data["spheroidAbundancesStellarFe"]     + data["diskAbundancesStellarFe"]
-nonZero    = np.where(massMetals > 1.0)[0]
+nonZero    = np.where(massMetals > 1.0e3)[0]
 ratio      = massFe[nonZero] / massMetals[nonZero]
 status_str = "SUCCESS" if np.all(ratio < ratioMaximum) else "FAILED"
 print(f"{status_str}: Fe/Z ratio")

@@ -50,9 +50,9 @@
   end interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
 
   ! Variables used in root finding.
-  double precision :: OmegaBaryonEpochal
+  double precision :: OmegaBaryonEpochal, expansionFactor_, hubbleTimeEpochalSquared
   logical          :: baryonsCluster
-  !$omp threadprivate(OmegaBaryonEpochal,baryonsCluster)
+  !$omp threadprivate(OmegaBaryonEpochal,baryonsCluster,expansionFactor_,hubbleTimeEpochalSquared)
 
 contains
 
@@ -174,18 +174,19 @@ contains
     !!{
     Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
     !!}
-    use :: Display    , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
-          &                    verbosityLevelWorking
-    use :: Error      , only : Error_Report
-    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
-    use :: Tables     , only : table1DLogarithmicLinear
+    !$ use :: OMP_Lib    , only : OMP_Get_Thread_Num       , OMP_Get_Max_Threads
+    use    :: Display    , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                       verbosityLevelWorking
+    use    :: Error      , only : Error_Report
+    use    :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use    :: Tables     , only : table1DLogarithmicLinear
     implicit none
     class           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)             , intent(inout)  :: self
     double precision                                                                 , intent(in   )  :: time
     type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType     )             , intent(in   )  :: calculationType
     class           (table1D                                           ), allocatable, intent(inout)  :: sphericalCollapse_
     class           (linearGrowthClass                                 ), pointer                     :: linearGrowth_                  => null()
-    double precision                                                    , parameter                   :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-12
+    double precision                                                    , parameter                   :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-9
     double precision                                                                 , dimension(2  ) :: timeRange
     double precision                                                    , allocatable, dimension(:  ) :: timesPrevious
     double precision                                                    , allocatable, dimension(:,:) :: valuesPrevious
@@ -195,7 +196,7 @@ contains
     integer                                                                                           :: countTimes                               , iTime                                  , &
          &                                                                                               iCount                                   , iTimeMinimum                           , &
          &                                                                                               iTimeMaximum                             , countTimesEffective
-    double precision                                                                                  :: expansionFactor                          , epsilonPerturbation                    , &
+    double precision                                                                                  :: fractionDarkMatter                       , epsilonPerturbation                    , &
          &                                                                                               epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
          &                                                                                               densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
          &                                                                                               radiusExpansionMaximum                   , timeExpansionMaximum                   , &
@@ -203,7 +204,7 @@ contains
          &                                                                                               timeEnergyFixed                          , timeInitial                            , &
          &                                                                                               y                                        , timeMinimum                            , &
          &                                                                                               timeMaximum                              , r                                      , &
-         &                                                                                               z                                        , fractionDarkMatter
+         &                                                                                               z
     double complex                                                                                    :: a                                        , b                                      , &
          &                                                                                               x
     type            (varying_string                                    )                              :: message
@@ -277,23 +278,24 @@ contains
             &              isNew    =.true.               , &
             &              verbosity=verbosityLevelWorking  &
             &             )
-       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)
+       !$omp parallel private(epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_) num_threads(min(OMP_Get_Max_Threads(),countTimesEffective))
        !$omp critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        allocate(cosmologyFunctions_,mold=self%cosmologyFunctions_)
-       !![
-       <deepCopyReset variables="self%cosmologyFunctions_"/>
-       <deepCopy source="self%cosmologyFunctions_" destination="cosmologyFunctions_"/>
-       <deepCopyFinalize variables="cosmologyFunctions_"/>
-       !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           allocate(linearGrowth_,mold=self%linearGrowth_)
           !![
-          <deepCopyReset variables="self%linearGrowth_"/>
-          <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
-          <deepCopyFinalize variables="linearGrowth_"/>
+          <deepCopyReset variables="self%cosmologyFunctions_ self%linearGrowth_"/>
+          <deepCopy source="self%linearGrowth_"       destination="linearGrowth_"      />
+ 	  <deepCopy source="self%cosmologyFunctions_" destination="cosmologyFunctions_"/>
+          <deepCopyFinalize variables="cosmologyFunctions_ linearGrowth_"/>
           !!]
        else
           linearGrowth_ => null()
+          !![
+	  <deepCopyReset variables="self%cosmologyFunctions_"/>
+	  <deepCopy source="self%cosmologyFunctions_" destination="cosmologyFunctions_"/>
+	  <deepCopyFinalize variables="cosmologyFunctions_"/>
+          !!]
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !$omp barrier
@@ -305,13 +307,15 @@ contains
                   &                                          iTime                    &
                   &                          )
           else
-             call displayCounter(                                                       &
-                  &              int(100.0d0*dble(iCount-1)/dble(countTimesEffective)), &
-                  &              isNew=.false.                                        , &
-                  &              verbosity=verbosityLevelWorking                        &
-                  &             )
+             if (OMP_Get_Thread_Num() == 0)                                                    &
+                  & call displayCounter(                                                       &
+                  &                     int(100.0d0*dble(iCount-1)/dble(countTimesEffective)), &
+                  &                     isNew=.false.                                        , &
+                  &                     verbosity=verbosityLevelWorking                        &
+                  &                    )
              ! Get the current expansion factor.
-             expansionFactor=cosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
+             time_           =sphericalCollapse_ %x              (iTime)
+             expansionFactor_=cosmologyFunctions_%expansionFactor(time_)
              ! Initial guess for the range of the initial perturbation amplitude. Since we expect a collapsing perturbation to have
              ! linear theory amplitude of order unity at the time of collapse, and since linear perturbations grow proportional to
              ! the expansion factor in an Einstein-de Sitter universe with no baryons, we use an initial guess for the lower and
@@ -319,17 +323,17 @@ contains
              epsilonPerturbationMinimum=1.0d-1*expansionFactorInitialFraction
              epsilonPerturbationMaximum=1.0d+1*expansionFactorInitialFraction
              ! Evaluate cosmological parameters at the present time.
-             OmegaMatterEpochal    =+     cosmologyFunctions_%omegaMatterEpochal     (expansionFactor=expansionFactor)
+             OmegaMatterEpochal      =+     cosmologyFunctions_%omegaMatterEpochal     (expansionFactor=expansionFactor_)
              if (self%baryonsCluster) then
-                OmegaBaryonEpochal =+0.0d0
+                OmegaBaryonEpochal   =+0.0d0
              else
-                OmegaBaryonEpochal =+                          OmegaMatterEpochal                                      &
-                     &              *self%cosmologyParameters_%OmegaBaryon           (                               ) &
-                     &              /self%cosmologyParameters_%OmegaMatter           (                               )
+                OmegaBaryonEpochal   =+                          OmegaMatterEpochal                                       &
+                     &                *self%cosmologyParameters_%OmegaBaryon           (                                ) &
+                     &                /self%cosmologyParameters_%OmegaMatter           (                                )
              end if
-             OmegaDarkEnergyEpochal=+     cosmologyFunctions_ %omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
-             hubbleTimeEpochal     =+     cosmologyFunctions_ %expansionRate         (                expansionFactor)
-             time_                 =+     sphericalCollapse_  %x                     (                iTime          )
+             OmegaDarkEnergyEpochal  =+     cosmologyFunctions_ %omegaDarkEnergyEpochal(expansionFactor=expansionFactor_)
+             hubbleTimeEpochal       =+     cosmologyFunctions_ %expansionRate         (                expansionFactor_)
+             hubbleTimeEpochalSquared=+hubbleTimeEpochal**2
              ! Check dark energy equation of state is within acceptable range.
              if (cosmologyFunctions_%equationOfStateDarkEnergy(time=time_) >= -1.0d0/3.0d0) &
                   & call Error_Report('ω<-⅓ required'//{introspection:location})
@@ -348,12 +352,12 @@ contains
              select case (calculationType%ID)
              case (cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity%ID)
                 ! Critical linear overdensity.
-                normalization=+linearGrowth_%value                                                                                (time_) &
-                     &        /linearGrowth_%value(                                                                                       &
-                     &                             cosmologyFunctions_%cosmicTime(                                                        &
-                     &                                                            +expansionFactorInitialFraction                         &
-                     &                                                            *cosmologyFunctions_            %expansionFactor(time_) &
-                     &                                                           )                                                        &
+                normalization=+linearGrowth_%value                                                               (time_) &
+                     &        /linearGrowth_%value(                                                                      &
+                     &                             cosmologyFunctions_%cosmicTime(                                       &
+                     &                                                            +expansionFactorInitialFraction        &
+                     &                                                            *expansionFactor_                      &
+                     &                                                           )                                       &
                      &                            )
                 call sphericalCollapse_%populate(                                   &
                      &                           normalization*epsilonPerturbation, &
@@ -379,7 +383,7 @@ contains
                      &                                  )
                 amplitudePerturbation=epsilonPerturbation
                 ! Compute the corresponding time of maximum expansion.
-                timeInitial                    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactor(time_)*expansionFactorInitialFraction)
+                timeInitial                    =cosmologyFunctions_%cosmicTime(expansionFactor_*expansionFactorInitialFraction)
                 ! Guess that the time of maximum expansion occurred at close to half of the current time.
                 timeRange                      =[0.45d0,0.55d0]*time_
                 timeExpansionMaximum           =finderExpansionMaximum%find(rootRange=timeRange)
@@ -387,7 +391,7 @@ contains
                 ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
                 call baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,timeExpansionMaximum,radiusExpansionMaximum)
                 ! Compute the density contrast of the perturbation at maximum expansion.
-                densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
+                densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor_/radiusExpansionMaximum)**3
                 ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38; but modified to include the effects of baryons)
                 ! to give the ratio of virial to turnaround radii, x.
                 select case (self%energyFixedAt%ID)
@@ -403,7 +407,7 @@ contains
                         &                  /cosmologyFunctions_%omegaMatterEpochal    (time=timeExpansionMaximum) &
                         &                  /densityContrastExpansionMaximum
                    y                 =     +expansionFactorExpansionMaximum**cosmologyFunctions_%exponentDarkEnergy(time=timeExpansionMaximum) &
-                        &                  /expansionFactor                **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
+                        &                  /expansionFactor_               **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
                    a                 =+1.0d0-(1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
                    b                 =      +(1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time_          ))*q/y
                 else
@@ -417,7 +421,7 @@ contains
                         &             /fractionDarkMatter                                                    &
                         &             /densityContrastExpansionMaximum
                    y                 = expansionFactorExpansionMaximum**cosmologyFunctions_%exponentDarkEnergy(time=timeExpansionMaximum) &
-                        &             /expansionFactor                **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
+                        &             /expansionFactor_               **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
                    r                 =+  self%cosmologyParameters_%OmegaBaryon() &
                         &             /(                                         &
                         &               +self%cosmologyParameters_%OmegaMatter() &
@@ -426,7 +430,7 @@ contains
                         &             /densityContrastExpansionMaximum
                    z                 =+(                                    &
                         &               +expansionFactorExpansionMaximum    &
-                        &               /expansionFactor                    &
+                        &               /expansionFactor_                   &
                         &              )**3
                    a                 =+1.0d0+r        -(1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
                    b                 =      -r/z/2.0d0+(1.0d0+3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time_          ))*q/y
@@ -475,7 +479,7 @@ contains
        end if
        !$omp end parallel
        call displayCounterClear(       verbosity=verbosityLevelWorking)
-       call displayUnindent     ('done',verbosity=verbosityLevelWorking)
+       call displayUnindent    ('done',verbosity=verbosityLevelWorking)
     end select
     return
   end subroutine baryonsDarkMatterDarkEnergyTabulate
@@ -511,14 +515,16 @@ contains
     !!}
     use :: Error                , only : Error_Report
     use :: Interface_GSL        , only : GSL_Success
-    use :: Numerical_ODE_Solvers, only : odeSolver
+    use :: Numerical_ODE_Solvers, only : odeSolver   , gsl_odeiv2_step_rk8pd
     implicit none
     double precision           , intent(in   )                        :: perturbationOverdensityInitial           , time
     double precision           , intent(  out)             , optional :: expansionRatePerturbation                , radiusPerturbation
     integer         (c_size_t ), parameter                            :: countProperties               =2_c_size_t
     double precision           , dimension(countProperties)           :: propertyValues
-    double precision           , parameter                            :: odeToleranceAbsolute          =0.0d0     , odeToleranceRelative             =1.0d-12
-    type            (odeSolver)                                       :: solver
+    double precision           , parameter                            :: odeToleranceAbsolute          =0.0d0     , odeToleranceRelative             =1.0d-9
+    type            (odeSolver), save                                 :: solver
+    logical                    , save                                 :: solverInitialized             =.false.
+    !$omp threadprivate(solver,solverInitialized)
     double precision                                                  :: expansionFactorInitial                   , radiusDifferenceGrowthRateInitial        , &
          &                                                               timeInitial                              , exponent                                 , &
          &                                                               radiusDifferenceInitial
@@ -530,7 +536,7 @@ contains
     ! Specify a sufficiently early time.
     expansionFactorInitial=expansionFactorInitialFraction
     ! Find the corresponding cosmic time.
-    timeInitial=cosmologyFunctions_%cosmicTime(expansionFactorInitial*cosmologyFunctions_%expansionFactor(time_))
+    timeInitial=cosmologyFunctions_%cosmicTime(expansionFactorInitial*expansionFactor_)
     ! Determine the initial growth rate of the overdensity assuming the matter-dominated phase growth factor is proportional to the expansion factor.
     if (baryonsCluster) then
        ! Baryons are assumed to cluster, so the usual matter dominated solution of D(a)=a applies.
@@ -570,7 +576,10 @@ contains
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
-       solver=odeSolver(countProperties,baryonsDarkMatterDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       if (.not.solverInitialized) then
+          solver           =odeSolver(countProperties,baryonsDarkMatterDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,stepperType=gsl_odeiv2_step_rk8pd)
+          solverInitialized=.true.
+       end if
        call solver%solve(timeInitial,time,propertyValues,status=odeStatus)
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
@@ -586,11 +595,11 @@ contains
     ! rate) since we've solved the the radius and expansion rate of the perturbation relative to the expansion factor.
     if (present(radiusPerturbation       )) radiusPerturbation       =+propertyValues                                                       (   1)  &
          &                                                            +                                  cosmologyFunctions_%expansionFactor(time)  &
-         &                                                            /                                  cosmologyFunctions_%expansionFactor(time_)
+         &                                                            /                                                      expansionFactor_
     if (present(expansionRatePerturbation)) expansionRatePerturbation=+propertyValues                                                       (   2)  &
          &                                                            +cosmologyFunctions_%expansionRate(cosmologyFunctions_%expansionFactor(time)) &
          &                                                            *                                  cosmologyFunctions_%expansionFactor(time)  &
-         &                                                            /                                  cosmologyFunctions_%expansionFactor(time_)
+         &                                                            /                                                      expansionFactor_
     return
   end subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver
 
@@ -603,27 +612,30 @@ contains
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: y
     double precision, intent(  out), dimension(:) :: dydt
-    double precision                              :: expansionFactor
+    double precision                              :: expansionFactor                , expansionFactorInverseCube, &
+         &                                           yPlusExpansionFactorInverseCube
 
     expansionFactor  =+cosmologyFunctions_%expansionFactor(time) &
-         &            /cosmologyFunctions_%expansionFactor(time_)
+         &            /                    expansionFactor_
     if (y(1) <= -expansionFactor) then
        dydt(1:2)=0.0d0
     else
+       expansionFactorInverseCube     =      expansionFactor **(-3)
+       yPlusExpansionFactorInverseCube=(y(1)+expansionFactor)**(-3)
        dydt(1  )=+  y(2)
-       dydt(2  )=-0.5d0                                                                                                                                                                                                                    &
-            &    *hubbleTimeEpochal**2                                                                                                                                                                                                     &
-            &    *(                                                                                                                                                                                                                        &
-            &      +y(1)                                                                                                                                                                                                                   &
-            &      *(                                                                                                                                                                                                                      &
-            &         +(OmegaMatterEpochal    -OmegaBaryonEpochal)                                                                       *(y(1)+expansionFactor)**(-3)                                                                     &
-            &         +                        OmegaBaryonEpochal                                                                        *                              expansionFactor**(-3)                                              &
-            &         + OmegaDarkEnergyEpochal                    *(3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*                              expansionFactor**cosmologyFunctions_%exponentDarkEnergy(time=time) &
-            &        )                                                                                                                                                                                                                     &
-            &      +expansionFactor                                                                                                                                                                                                        &
-            &      *(                                                                                                                                                                                                                      &
-            &         +(OmegaMatterEpochal    -OmegaBaryonEpochal)                                                                       *((y(1)+expansionFactor)**(-3)-expansionFactor**(-3))                                             &
-            &        )                                                                                                                                                                                                                     &
+       dydt(2  )=-0.5d0                                                                                                                                                                                                                                  &
+            &    *hubbleTimeEpochalSquared                                                                                                                                                                                                               &
+            &    *(                                                                                                                                                                                                                                      &
+            &      +y(1)                                                                                                                                                                                                                                 &
+            &      *(                                                                                                                                                                                                                                    &
+            &         +(OmegaMatterEpochal    -OmegaBaryonEpochal)                                                                       *yPlusExpansionFactorInverseCube                                                                                &
+            &         +                        OmegaBaryonEpochal                                                                        *                                 expansionFactorInverseCube                                                    &
+            &         + OmegaDarkEnergyEpochal                    *(3.0d0*cosmologyFunctions_%equationOfStateDarkEnergy(time=time)+1.0d0)*                                 expansionFactor           **cosmologyFunctions_%exponentDarkEnergy(time=time) &
+            &        )                                                                                                                                                                                                                                   &
+            &      +expansionFactor                                                                                                                                                                                                                      &
+            &      *(                                                                                                                                                                                                                                    &
+            &         +(OmegaMatterEpochal    -OmegaBaryonEpochal)                                                                       *(yPlusExpansionFactorInverseCube-expansionFactorInverseCube)                                                   &
+            &        )                                                                                                                                                                                                                                   &
             &     )
     end if
     ! Return success.

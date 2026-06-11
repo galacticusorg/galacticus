@@ -116,47 +116,52 @@ def Tree_Node_Class_Get(build, class_dict):
             },
             {
                 'intrinsic':  'integer',
-                'variables':  ['instanceActual'],
+                'variables':  ['instance_'],
             },
             {
                 'intrinsic':  'logical',
-                'variables':  ['autoCreateActual'],
+                'variables':  ['autoCreate_'],
             },
         ],
     }
 
     if name in (build.get('componentClassListActive') or []):
         function['content'] = (
-            "if (.not.present(autoCreate).and..not.present(instance)) then\n"
+            f"if (.not.present(autoCreate).and..not.present(instance).and.allocated(self%component{cap})) then\n"
+            "    ! Rapid path for the most common call pattern - component exists, no auto-creation is\n"
+            "    ! allowed, and no instance is specified (so the first instance will be used).\n"
             f"   component => self%component{cap}(1)\n"
             "else\n"
-            "   instanceActual=1\n"
-            "   if (present(instance)) instanceActual=instance\n"
-            "   autoCreateActual=.false.\n"
-            "   if (present(autoCreate)) autoCreateActual=autoCreate\n"
-            f"   if (autoCreateActual.and.allocated(self%component{cap})) then\n"
-            "      ! If we are allowed to autocreate the component and it "
-            "still has generic type then deallocate it to force it to be "
-            "created later.\n"
-            f"      if (same_type_as(self%component{cap}(1),{cap}Class)) "
-            f"deallocate(self%component{cap})\n"
-            "   end if\n"
+            "   ! Set default instance and auto-creation options.\n"
+            "   instance_=1\n"
+            "   if (present(instance)) instance_=instance\n"
+            "   autoCreate_=.false.\n"
+            "   if (present(autoCreate)) autoCreate_=autoCreate\n"
+            "   ! If we are allowed to auto-create the component and it has generic type then deallocate it\n"
+            "   ! to force it to be created later.\n"
+            f"   if (autoCreate_.and.allocated(self%component{cap}).and.same_type_as(self%component{cap}(1),{cap}Class)) &\n"
+            f"        & deallocate(self%component{cap})\n"
+            "   ! If the component is not yet allocated, allocate it now.\n"
             f"   if (.not.allocated(self%component{cap})) then\n"
-            "     if (autoCreateActual) then\n"
-            f"        call self%{name}Create()\n"
-            "     else\n"
-            f"        call nodeComponentGetError('{name}',self%index())\n"
-            "     end if\n"
+            "      if (autoCreate_) then\n"
+            "         ! Auto-creation is allowed - create the component.\n"
+            f"         call self%{name}Create()\n"
+            "      else\n"
+            "         ! Auto-creation is not allowed - create a generic type.\n"
+            f"         allocate(self%component{cap}(1))\n"
+            f"         self%component{cap}(1)%hostNode => self\n"
+            "      end if\n"
             "   end if\n"
-            f"   component => self%component{cap}(instanceActual)\n"
+            "   ! Return the requested component.\n"
+            f"   component => self%component{cap}(instance_)\n"
             "end if\n"
         )
     else:
         function['content'] = (
-            "!$GLC attributes unused :: self, instance, instanceActual\n"
-            "autoCreateActual=.false.\n"
-            "if (present(autoCreate)) autoCreateActual=autoCreate\n"
-            "if (autoCreateActual) then\n"
+            "!$GLC attributes unused :: self, instance, instance_\n"
+            "autoCreate_=.false.\n"
+            "if (present(autoCreate)) autoCreate_=autoCreate\n"
+            "if (autoCreate_) then\n"
             " ! Support for this component was not compiled, so we can not "
             "create it.\n"
             " component => null()\n"

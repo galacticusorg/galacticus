@@ -17,9 +17,10 @@ SUFFIX=
 DIR=./work/build/
 CLEAN=no
 OPTIMIZE=no
+LTO=enabled
 
 # Get options.
-while getopts ":p:f:d:s:c:o:" option; do
+while getopts ":p:f:d:s:c:o:l:" option; do
 case "${option}"
 in
 f) FORCE=${OPTARG};;
@@ -28,6 +29,7 @@ d) DIR=${OPTARG};;
 s) SUFFIX=${OPTARG};;
 c) CLEAN=${OPTARG};;
 o) OPTIMIZE=${OPTARG};;
+l) LTO=${OPTARG};;
 \?) echo "Invalid option: $OPTARG";;
 :) echo "Invalid option: $OPTARG requires an argument";;
 esac
@@ -44,7 +46,7 @@ if [ "$FORCE" = "yes" ]; then
     rm -rf $DIR
 fi
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
-make -j$PPN GALACTICUS_BUILD_DOCS=yes SUFFIX=$SUFFIX BUILDPATH=$DIR all
+make -j$PPN GALACTICUS_BUILD_DOCS=yes SUFFIX=$SUFFIX BUILDPATH=$DIR LTO=$LTO all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1
