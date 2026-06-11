@@ -54,7 +54,7 @@ contains
     \mono{velocityMaximumSIDM}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, massSolar, MpcPerKmPerSToGyr
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec                                 , massSolar, MpcPerKmPerSToGyr
     use :: Numerical_Constants_Prefixes    , only : centi                         , milli
     use :: Error                           , only : Error_Report
     use :: Dark_Matter_Particles           , only : darkMatterParticleClass       , darkMatterParticleSelfInteractingDarkMatter
@@ -95,7 +95,7 @@ contains
     return
   end function timescaleCollapse
 
-  double precision function velocityMaximumRateTau(tau, velocityMaximum)
+  double precision function velocityMaximumRateTau(tau,velocityMaximum)
     !!{
     Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular
     velocity with respect to the dimensionless gravothermal time $\tau$, scaled by the CDM
@@ -107,7 +107,7 @@ contains
     double precision, intent(in   ) :: tau, velocityMaximum
 
     if (tau > 1.0d0) then
-       velocityMaximumRateTau=+ 0.000000000000000d0
+       velocityMaximumRateTau=+   0.000000000000000d0
     else if (tau <= 1.0d0) then
        ! This is the derivative with respect to τ of equation 2.4 of Yang et al. 2024; JCAP; 2; 32. The exact values (more precise
        ! than those in the published paper) were taken from Daneng Yang's code.
@@ -123,7 +123,7 @@ contains
     return
   end function velocityMaximumRateTau
 
-  double precision function radiusMaximumRateTau(tau, radiusMaximum)
+  double precision function radiusMaximumRateTau(tau,radiusMaximum)
     !!{
     Return the derivative $\mathrm{d}R_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum-circular-velocity radius with respect to
     the dimensionless gravothermal time $\tau$, scaled by the CDM radius \mono{radiusMaximum}, using the polynomial fit of
@@ -148,7 +148,7 @@ contains
     return
   end function radiusMaximumRateTau
 
-  double precision function radiusMaximumNFW(radiusMaximumSIDM, tau)
+  double precision function radiusMaximumNFW(radiusMaximumSIDM,tau)
     !!{
     Map an SIDM maximum-circular-velocity radius \mono{radiusMaximumSIDM} back to the equivalent CDM (NFW) value by
     inverting the $R_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to
@@ -209,7 +209,7 @@ contains
     return
   end function radiusScaleNFW
 
-  double precision function densityScaleNFW(radiusScale_, velocityMaximum)
+  double precision function densityScaleNFW(radiusScale_,velocityMaximum)
     !!{
     Return the NFW characteristic density corresponding to a given scale radius \mono{radiusScale\_} and maximum circular velocity
     \mono{velocityMaximum}.
@@ -227,7 +227,7 @@ contains
     return
   end function densityScaleNFW
 
-  double precision function densityScale(densityScaleInitial, tau)
+  double precision function densityScale(densityScaleInitial,tau)
     !!{
     Return the SIDM parametric-profile characteristic density as a function of the dimensionless gravothermal time $\tau$,
     normalized to the initial NFW characteristic density \mono{densityScaleInitial}, using the fit of
@@ -253,7 +253,7 @@ contains
     return
   end function densityScale
 
-  double precision function radiusScale(radiusScaleInitial, tau)
+  double precision function radiusScale(radiusScaleInitial,tau)
     !!{
     Return the SIDM parametric-profile scale radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
     initial NFW scale radius \mono{radiusScaleInitial}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the
@@ -278,7 +278,7 @@ contains
     return
   end function radiusScale
 
-  double precision function radiusCore(radiusScaleInitial, tau)
+  double precision function radiusCore(radiusScaleInitial,tau)
     !!{
     Return the SIDM parametric-profile core radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
     initial NFW scale radius \mono{radiusScaleInitial}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the
