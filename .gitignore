@@ -1,5 +1,8 @@
 # Ignore the work directory as it is created as needed #
 *~
+*.swp
+*.swo
+*.swn
 *.exe
 galacticusConfig.xml
 galacticus.py

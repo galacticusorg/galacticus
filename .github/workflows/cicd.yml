@@ -1081,6 +1081,11 @@ jobs:
                       tests.hashes.cryptographic.exe,
                       tests.integration.exe,
                       tests.integration2.exe,
+                      tests.integration_2D.exe,
+                      tests.SIDM_parametric_model.exe,
+                      tests.SIDM_cross_sections.exe,
+                      tests.SIDM_parametric_maps.exe,
+                      tests.SIDM_Kummer_deceleration.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.interpolation.exe,
@@ -1387,7 +1392,8 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
-                test-library-interfaces.py ]
+                test-library-interfaces.py,
+                test-SIDM-parametric.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
