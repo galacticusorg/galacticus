@@ -287,7 +287,22 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          # Build with parallel make, backing off the level of parallelism on failure. The library build can
+          # exhaust the runner's memory when too many large source files compile concurrently. Since make is
+          # incremental, each retry resumes from the objects already built rather than starting over, so this
+          # keeps the fast path for the common case while reducing memory pressure if a parallel build fails.
+          for j in 4 3 2 1; do
+            echo "Attempting build with -j$j"
+            if make -j$j GALACTICUS_BUILD_OPTION=lib libgalacticus.so; then
+              echo "Build succeeded with -j$j"
+              break
+            fi
+            if [ "$j" -eq 1 ]; then
+              echo "Build failed even with -j1"
+              exit 1
+            fi
+            echo "Build with -j$j failed; retrying with reduced parallelism"
+          done
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
