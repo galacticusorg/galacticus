@@ -1066,6 +1066,9 @@ def step_progenitor_mass_functions(entries, suites_cfg, active_steps, manager, o
         for epoch in sorted(entry['resolution']['epochs'], key=lambda x: x['redshift']):
             for i, j, k in product(range(n_sub), range(n_sub), range(n_sub)):
                 file_snapshot = entry['path'] + f"nonFlyby_{epoch['redshiftLabel']}_subVolume{i}_{j}_{k}.hdf5"
+                # Snapshot files are produced only for subvolumes that have a corresponding tree file, so skip any that are absent.
+                if not os.path.exists(file_snapshot):
+                    continue
                 with h5py.File(file_snapshot,'r') as snapshot:
                     snapshotID = snapshot['Snapshot00001/HaloCatalog/snapshotID'][:]
                     if len(snapshotID) > 0:

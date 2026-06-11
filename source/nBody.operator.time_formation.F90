@@ -95,7 +95,7 @@ contains
   
   subroutine timeOfFormationDestructor(self)
     !!{
-    Destructor for the ``timeSinceFormation'' N-body operator class.
+    Destructor for the ``timeOfFormation'' N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeOfFormation), intent(inout) :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine timeOfFormationOperate(self,simulations)
     !!{
-    Compute mass functions of particles.
+    Compute formation times of halos.
     !!}
     use    :: Arrays_Search     , only : searchArray       , searchIndexed
     use    :: Display           , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &

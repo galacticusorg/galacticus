@@ -72,7 +72,7 @@ contains
 
   function timeSinceFormationConstructorInternal(cosmologyFunctions_) result (self)
     !!{
-    Internal constructor for the ``timeSinceFormation'' N-body operator class.
+    Internal constructor for the ``timeSinceFormationFractional'' N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorTimeSinceFormationFractional)                        :: self
@@ -86,7 +86,7 @@ contains
   
   subroutine timeSinceFormationDestructor(self)
     !!{
-    Destructor for the ``timeSinceFormation'' N-body operator class.
+    Destructor for the ``timeSinceFormationFractional'' N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeSinceFormationFractional), intent(inout) :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine timeSinceFormationFractionalOperate(self,simulations)
     !!{
-    Compute the distance of each particle from a point.
+    Compute the time since formation in units of the crossing time for each halo.
     !!}
     use    :: Display      , only : displayIndent      , displayUnindent, verbosityLevelStandard, displayCounter, &
          &                          displayCounterClear

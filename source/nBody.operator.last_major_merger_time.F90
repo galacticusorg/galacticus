@@ -31,7 +31,7 @@ Contains a module which implements an N-body data operator which computes progen
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeLastMajorMerger
      !!{
-     An N-body data operator which computes progenitor halo order statistics.
+     An N-body data operator which computes the time of the last major merger.
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_     => null()
