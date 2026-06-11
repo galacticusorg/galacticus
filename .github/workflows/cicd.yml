@@ -550,6 +550,17 @@ jobs:
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
+      - name: "Set environmental variables"
+        run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
+          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
+          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
+      - name: Install Python
+        run: |
+          sudo port install python312 py312-numpy
+          sudo port select --set python python312
+          sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
           make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
@@ -570,6 +581,11 @@ jobs:
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
+      - name: Test interface
+        run: |
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
+      - run: echo "This job's status is ${{ job.status }}."
   ### Tools
   Build-Tools-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -1737,43 +1753,6 @@ jobs:
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
-  ### Test Python Interface
-  Python-Interface-MacOS:
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
-          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
-          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
-          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
-      - name: Install Python
-        run: |
-          sudo port install python312 py312-numpy
-          sudo port select --set python python312
-          sudo port select --set python3 python312
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
-          mkdir galacticus
-          mkdir galacticus/lib
-          mkdir galacticus/python
-          mv galacticus.py galacticus/python/
-          mv libgalacticus.so galacticus/lib/
-      - name: Test interface
-        run: |
-          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
-          ! grep -q -e FAIL pythonTest.log
-      - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
@@ -2217,7 +2196,6 @@ jobs:
              MPI-MCMC,
              Python-Interface,
              Codes-MacOS,
-             Python-Interface-MacOS,
              Validate ]
     steps:
       - name: Check out repository code
