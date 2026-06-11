@@ -181,12 +181,12 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(6))
-    descriptions(1)=var_str('Dimensionless time variable.'                                                                                     )
-    descriptions(2)=var_str('Maximum velocity of the dark matter profile assuming the SIDM Parametric model [km/s].'                           )
-    descriptions(3)=var_str('Radius at which the maximum velocity of the dark matter profile occurs, assuming the SIDM Parametric model [Mpc].')
-    descriptions(4)=var_str('Scale density (SIDM) [M☉/Mpc³].'                                                                                  )
-    descriptions(5)=var_str('Scale radius (SIDM) [Mpc].'                                                                                       )
-    descriptions(6)=var_str('Core size [Mpc].'                                                                                                 )
+    descriptions(1)=var_str('Dimensionless time variable.'                                                                                                      )
+    descriptions(2)=var_str('SIDM-CDM difference in the maximum circular velocity (a diagnostic shift relative to CDM, not the absolute V_max) [km/s].'         )
+    descriptions(3)=var_str('SIDM-CDM difference in the radius of maximum circular velocity (a diagnostic shift relative to CDM, not the absolute R_max) [Mpc].')
+    descriptions(4)=var_str('Scale density (SIDM) [M☉/Mpc³].'                                                                                                   )
+    descriptions(5)=var_str('Scale radius (SIDM) [Mpc].'                                                                                                        )
+    descriptions(6)=var_str('Core size [Mpc].'                                                                                                                  )
     return
   end subroutine SIDMParametricDescriptions
 
