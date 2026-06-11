@@ -23,7 +23,7 @@ Implements an N-body data operator which computes the crossing time of halos.
 
   !![
   <nbodyOperator name="nbodyOperatorHaloCrossingTime">
-   <description>An N-body data operator which computes and stores the crossing time of halos defined as $t_\mathrm{cross} 2 r_\mathrm{vir}/V_\mathrm{vir}$.</description>
+   <description>An N-body data operator which computes and stores the crossing time of halos defined as $t_\mathrm{cross} = 2 r_\mathrm{vir}/V_\mathrm{vir}$.</description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHaloCrossingTime
