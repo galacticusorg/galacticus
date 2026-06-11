@@ -31,7 +31,9 @@
      A property extractor which extracts dark matter profile properties for the SIDM parametric model.
      !!}
      private
-     integer:: tauID, velocityMaximumSIDMID, radiusMaximumSIDMID, densityScaleSIDMID, radiusScaleSIDMID, radiusCoreSIDMID
+     integer:: tauID              , velocityMaximumSIDMID, &
+          &    radiusMaximumSIDMID, densityScaleSIDMID   , &
+          &    radiusScaleSIDMID  , radiusCoreSIDMID
    contains
      procedure :: elementCount => SIDMParametricElementCount
      procedure :: extract      => SIDMParametricExtract
@@ -128,22 +130,22 @@ contains
        radiusScaleSIDMParametric    =0.0d0
        radiusCoreSIDMParametric     =0.0d0
     class default
-       tauSIDMParametric            =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID     )
+       tauSIDMParametric            =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID                )
        velocityMaximumSIDMParametric=darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)
-       radiusMaximumSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID)
-       densityScaleSIDMParametric   =darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID)
-       radiusScaleSIDMParametric    =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID  )
-       radiusCoreSIDMParametric     =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID  )
+       radiusMaximumSIDMParametric  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID  )
+       densityScaleSIDMParametric   =darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID   )
+       radiusScaleSIDMParametric    =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID    )
+       radiusCoreSIDMParametric     =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID     )
     end select
     ! Set return results.
     allocate(SIDMParametricExtract(6))
-    SIDMParametricExtract=[                    &
+    SIDMParametricExtract=[                               &
          &                 tauSIDMParametric            , &
          &                 velocityMaximumSIDMParametric, &
          &                 radiusMaximumSIDMParametric  , &
          &                 densityScaleSIDMParametric   , &
          &                 radiusScaleSIDMParametric    , &
-         &                 radiusCoreSIDMParametric      &
+         &                 radiusCoreSIDMParametric       &
          &                ]
     return
   end function SIDMParametricExtract

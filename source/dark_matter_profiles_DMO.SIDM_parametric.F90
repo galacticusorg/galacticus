@@ -42,7 +42,7 @@
      private
      class(darkMatterParticleClass ), pointer :: darkMatterParticle_   => null()
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_  => null()
-     integer                                  :: densityScaleSIDMID, radiusScaleSIDMID, &
+     integer                                  :: densityScaleSIDMID             , radiusScaleSIDMID, &
           &                                      radiusCoreSIDMID
      double precision                         :: beta
    contains
@@ -85,7 +85,7 @@ contains
     self=darkMatterProfileDMOSIDMParametric(beta,darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterParticle_"  />
+    <objectDestructor name="darkMatterParticle_" />
     <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
@@ -172,11 +172,11 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
             <constructor>
-              massDistributionNFW(                                                                                    &amp;
+              massDistributionNFW(                                                                                            &amp;
 	      &amp;               densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID), &amp;
-              &amp;               scaleLength         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID), &amp;
-              &amp;               componentType       =                   componentTypeDarkHalo                     , &amp;
-              &amp;               massType            =                   massTypeDark                                &amp;
+              &amp;               scaleLength         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID ), &amp;
+              &amp;               componentType       =                   componentTypeDarkHalo                             , &amp;
+              &amp;               massType            =                   massTypeDark                                        &amp;
               &amp;              )
 	    </constructor>
 	  </referenceConstruct>
@@ -201,14 +201,14 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
             <constructor>
-              massDistributionSIDMParametricProfile(                                                                                      &amp;
-	      &amp;                                   beta                = self             %beta                                      , &amp;
-              &amp;                                   densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID), &amp;
-              &amp;                                   radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID), &amp;
-	      &amp;                                   radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID), &amp;
-              &amp;                                   componentType       =                   componentTypeDarkHalo                     , &amp;
-              &amp;                                   massType            =                   massTypeDark                                &amp;
-              &amp;                                  )
+              massDistributionSIDMParametricProfile(                                                                                            &amp;
+	      &amp;                                 beta                = self             %beta                                              , &amp;
+              &amp;                                 densityNormalization= darkMatterProfile%floatRank0MetaPropertyGet(self%densityScaleSIDMID), &amp;
+              &amp;                                 radiusScale         = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusScaleSIDMID ), &amp;
+	      &amp;                                 radiusCore          = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusCoreSIDMID  ), &amp;
+              &amp;                                 componentType       =                   componentTypeDarkHalo                             , &amp;
+              &amp;                                 massType            =                   massTypeDark                                        &amp;
+              &amp;                                )
 	    </constructor>
 	  </referenceConstruct>
           !!]

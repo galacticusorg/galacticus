@@ -32,8 +32,9 @@
   use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass
   use :: Virial_Density_Contrast                  , only : virialDensityContrastClass
   use :: Dark_Matter_Profiles_Concentration       , only : darkMatterProfileConcentrationClass
-  use :: SIDM_Parametric_Model                    , only : timescaleCollapse                                   , velocityMaximumRateTau   , radiusMaximumRateTau   , radiusMaximumNFW, velocityMaximumNFW, &
-       &                                                    radiusScaleNFW                                     , densityScaleNFW   , densityScale, radiusScale , radiusCore
+  use :: SIDM_Parametric_Model                    , only : timescaleCollapse                        , velocityMaximumRateTau                  , radiusMaximumRateTau, radiusMaximumNFW, &
+       &                                                   velocityMaximumNFW                       , radiusScaleNFW                          , densityScaleNFW     , densityScale    , &
+       &                                                   radiusScale                              , radiusCore
 
   !![
   <nodeOperator name="nodeOperatorSIDMParametric">
@@ -45,7 +46,7 @@
   type, extends(nodeOperatorClass) :: nodeOperatorSIDMParametric
      !!{
      A node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
-       !!}
+     !!}
      private
      class(darkMatterParticleClass                ), pointer :: darkMatterParticle_                 => null()
      class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
@@ -55,9 +56,9 @@
      class(darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_                => null()
      class(virialDensityContrastClass             ), pointer :: virialDensityContrast_              => null()
      class(darkMatterProfileConcentrationClass    ), pointer :: darkMatterProfileConcentration_     => null()
-     integer                                                 :: tauID              , velocityMaximumSIDMID  , &
-          &                                                     radiusMaximumSIDMID, nodeFormationTimeSIDMID, &
-          &                                                     densityScaleSIDMID , radiusScaleSIDMID      , &
+     integer                                                 :: tauID                                        , velocityMaximumSIDMID  , &
+          &                                                     radiusMaximumSIDMID                          , nodeFormationTimeSIDMID, &
+          &                                                     densityScaleSIDMID                           , radiusScaleSIDMID      , &
           &                                                     radiusCoreSIDMID
      double precision                                        :: alpha                                        , C
    contains
@@ -218,16 +219,16 @@ contains
     ! Fractional halo mass decline per step used when extrapolating the tree below resolution.
     double precision                                           , parameter              :: massHaloDeclineFactor            =0.99d0
     double precision                                                                    :: timeFormation
-    double precision                                                                    :: velocityMaximumSIDMPrevious, timescaleCollapse_, &
-         &                                                                                 velocityMaximumSIDM        , radiusMaximumSIDM , &
-         &                                                                                 radiusMaximumCDM           , radiusMaximumNFW_ , &
-         &                                                                                 velocityMaximumNFW_        , radiusScaleNFW_   , &
-         &                                                                                 densityScaleNFW_           , densityScale_     , &
-         &                                                                                 radiusScale_               , radiusCore_       , &
-         &                                                                                 velocityMaximumCDM         , rateMassSpecific  , &
-         &                                                                                 timeStep                   , tauPrevious       , &
-         &                                                                                 massHalo                   , rateMass          , &
-         &                                                                                 timeEarliest               , massResolution    , &
+    double precision                                                                    :: velocityMaximumSIDMPrevious             , timescaleCollapse_    , &
+         &                                                                                 velocityMaximumSIDM                     , radiusMaximumSIDM     , &
+         &                                                                                 radiusMaximumCDM                        , radiusMaximumNFW_     , &
+         &                                                                                 velocityMaximumNFW_                     , radiusScaleNFW_       , &
+         &                                                                                 densityScaleNFW_                        , densityScale_         , &
+         &                                                                                 radiusScale_                            , radiusCore_           , &
+         &                                                                                 velocityMaximumCDM                      , rateMassSpecific      , &
+         &                                                                                 timeStep                                , tauPrevious           , &
+         &                                                                                 massHalo                                , rateMass              , &
+         &                                                                                 timeEarliest                            , massResolution        , &
          &                                                                                 tau
 
     call self%nodeInitialize(node)
@@ -251,16 +252,16 @@ contains
     darkMatterProfile => node             %darkMatterProfile            (autoCreate=     .true.)
     massDistribution_ => self             %darkMatterProfileDMO_    %get(                node  )
     tau               =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-    radiusMaximumCDM  =massDistribution_%radiusRotationCurveMaximum()
+    radiusMaximumCDM  =massDistribution_%radiusRotationCurveMaximum  ()
     velocityMaximumCDM=massDistribution_%velocityRotationCurveMaximum()
-    radiusScaleNFW_   =radiusScaleNFW(massDistribution_%radiusRotationCurveMaximum())
+    radiusScaleNFW_   =radiusScaleNFW (                massDistribution_%radiusRotationCurveMaximum  ())
     densityScaleNFW_  =densityScaleNFW(radiusScaleNFW_,massDistribution_%velocityRotationCurveMaximum())
     densityScale_     =densityScale(densityScaleNFW_,tau)
     radiusScale_      =radiusScale(radiusScaleNFW_,tau)
     radiusCore_       =radiusCore(radiusScaleNFW_,tau)
     call darkMatterProfile%floatRank0MetaPropertySet(self%densityScaleSIDMID,densityScale_)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID,radiusScale_)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID,radiusCore_)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID ,radiusScale_ )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID  ,radiusCore_  )
     ! For leaf nodes, grow a sub-resolution merger tree to allow us to determine the formation time if necessary.
     if (.not.associated(node%firstChild)) then
        if (basic%time() > basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)) then
@@ -331,49 +332,48 @@ contains
           ! Perform SIDM evolution along the subresolution tree.
           basicBase => treeNew%nodeBase%basic()
           do while (associated(nodeNew))
-             basicNew               =>  nodeNew                      %basic            (       )
-             darkMatterProfile      =>  nodeNew                      %darkMatterProfile(       )
-             basicNewChild          =>  nodeNew%firstChild           %basic            (       )
-             darkMatterProfileChild =>  nodeNew%firstChild           %darkMatterProfile(       )   
-             massDistribution_      =>  self   %darkMatterProfileDMO_%get              (nodeNew)
-             velocityMaximumSIDMPrevious       =  +darkMatterProfileChild%floatRank0MetaPropertyGet   (self%velocityMaximumSIDMID) &
-                  &                    +massDistribution_     %velocityRotationCurveMaximum(               )
+             basicNew                    =>  nodeNew                      %basic            (       )
+             darkMatterProfile           =>  nodeNew                      %darkMatterProfile(       )
+             basicNewChild               =>  nodeNew%firstChild           %basic            (       )
+             darkMatterProfileChild      =>  nodeNew%firstChild           %darkMatterProfile(       )   
+             massDistribution_           =>  self   %darkMatterProfileDMO_%get              (nodeNew)
+             velocityMaximumSIDMPrevious =  +darkMatterProfileChild%floatRank0MetaPropertyGet   (self%velocityMaximumSIDMID) &
+                  &                         +massDistribution_     %velocityRotationCurveMaximum(                          )
              ! Compute the evolution for this step.
-             timeStep     =basicNew%time()-basicNewChild%time()
+             timeStep          =basicNew%time()-basicNewChild%time()
              timescaleCollapse_=timescaleCollapse(self%darkMatterParticle_,self%C,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),velocityMaximumSIDMPrevious)
              massHalo          =basicNewChild%mass()
              rateMass          =basicNewChild%accretionRate()
              rateMassSpecific  =rateMass/massHalo
-             tauPrevious=darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)
-             tau    =tauPrevious+timeStep*(1.d0/timescaleCollapse_-self%alpha*rateMassSpecific*tauPrevious) 
+             tauPrevious       =darkMatterProfileChild%floatRank0MetaPropertyGet(self%tauID)
+             tau               =tauPrevious+timeStep*(1.d0/timescaleCollapse_-self%alpha*rateMassSpecific*tauPrevious) 
              ! Store the updated τ and profile structure parameters.
              call darkMatterProfile%floatRank0MetaPropertySet(self%tauID,tau)
              velocityMaximumSIDM=darkMatterProfileChild%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+velocityMaximumRateTau(tau,massDistribution_%velocityRotationCurveMaximum())*timeStep*(1.d0/timescaleCollapse_-self%alpha*rateMassSpecific*tauPrevious)
-             radiusMaximumSIDM  =darkMatterProfileChild%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID)+radiusMaximumRateTau(tau,massDistribution_%radiusRotationCurveMaximum())*timeStep*(1.d0/timescaleCollapse_-self%alpha*rateMassSpecific*tauPrevious)
+             radiusMaximumSIDM  =darkMatterProfileChild%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID  )+radiusMaximumRateTau  (tau,massDistribution_%radiusRotationCurveMaximum  ())*timeStep*(1.d0/timescaleCollapse_-self%alpha*rateMassSpecific*tauPrevious)
              call darkMatterProfile%floatRank0MetaPropertySet(self%velocityMaximumSIDMID,velocityMaximumSIDM)
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusMaximumSIDMID,radiusMaximumSIDM)
-
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusMaximumSIDMID  ,radiusMaximumSIDM  )
              radiusMaximumCDM   =massDistribution_%radiusRotationCurveMaximum()
              radiusMaximumSIDM  =radiusMaximumSIDM+radiusMaximumCDM
-             radiusMaximumNFW_  =radiusMaximumNFW(radiusMaximumSIDM,tau)
+             radiusMaximumNFW_  =radiusMaximumNFW  (radiusMaximumSIDM  ,tau)
              velocityMaximumNFW_=velocityMaximumNFW(velocityMaximumSIDM,tau)
-             radiusScaleNFW_    =radiusScaleNFW(radiusMaximumNFW_)
-             densityScaleNFW_   =densityScaleNFW(radiusScaleNFW_,velocityMaximumNFW_)
-             densityScale_      =densityScale(densityScaleNFW_,tau)
-             radiusScale_       =radiusScale(radiusScaleNFW_,tau)
-             radiusCore_        =radiusCore(radiusScaleNFW_,tau)
+             radiusScaleNFW_    =radiusScaleNFW (radiusMaximumNFW_)
+             densityScaleNFW_   =densityScaleNFW(radiusScaleNFW_ ,velocityMaximumNFW_)
+             densityScale_      =densityScale   (densityScaleNFW_,tau                )
+             radiusScale_       =radiusScale    (radiusScaleNFW_ ,tau                )
+             radiusCore_        =radiusCore     (radiusScaleNFW_ ,tau                )
              call darkMatterProfile%floatRank0MetaPropertySet(self%densityScaleSIDMID,densityScale_)
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID,radiusScale_)
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID,radiusCore_)
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID ,radiusScale_ )
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID  ,radiusCore_  )
              ! Copy the values from the new tree to the tip of the original branch.
              darkMatterProfile     => node            %darkMatterProfile()
              darkMatterProfileCopy => treeNew%nodeBase%darkMatterProfile()
-             call darkMatterProfile%floatRank0MetaPropertySet(self%tauID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%tauID))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%tauID                ,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%tauID                ))
              call darkMatterProfile%floatRank0MetaPropertySet(self%velocityMaximumSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID))
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusMaximumSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID))
-             call darkMatterProfile%floatRank0MetaPropertySet(self%densityScaleSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%densityScaleSIDMID))
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusScaleSIDMID))
-             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusCoreSIDMID))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusMaximumSIDMID  ,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID  ))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%densityScaleSIDMID   ,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%densityScaleSIDMID   ))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID    ,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusScaleSIDMID    ))
+             call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID     ,darkMatterProfileCopy%floatRank0MetaPropertyGet(self%radiusCoreSIDMID     ))
              ! Move to the next node unless we have reached the original leaf node.
              if (.not.nodeNew%index() == treeNew%nodeBase%index()) then
                 nodeNew => nodeNew%parent
@@ -422,7 +422,7 @@ contains
     class           (nodeOperatorSIDMParametric  ), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
     double precision                              , intent(in   ) :: time
-    class           (nodeComponentBasic          ), pointer       :: basic            , basicParent
+    class           (nodeComponentBasic          ), pointer       :: basic              , basicParent
     class         (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (massDistributionClass       ), pointer       :: massDistribution_
     double precision                                              :: tau                , radiusScaleNFW_    , &
@@ -431,21 +431,21 @@ contains
          &                                                           velocityMaximumSIDM, radiusMaximumSIDM  , &
          &                                                           radiusMaximumNFW_  , velocityMaximumNFW_
 
-    darkMatterProfile => node             %darkMatterProfile            (               )
-    massDistribution_ => self             %darkMatterProfileDMO_    %get(node           )
-    tau                =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-    velocityMaximumSIDM=darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-    radiusMaximumSIDM  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID)+massDistribution_%radiusRotationCurveMaximum()
-    radiusMaximumNFW_  =radiusMaximumNFW(radiusMaximumSIDM,tau)
-    velocityMaximumNFW_=velocityMaximumNFW(velocityMaximumSIDM,tau)
-    radiusScaleNFW_    =radiusScaleNFW(radiusMaximumNFW_)
-    densityScaleNFW_   =densityScaleNFW(radiusScaleNFW_,velocityMaximumNFW_)
-    densityScale_      =densityScale(densityScaleNFW_,tau)
-    radiusScale_       =radiusScale(radiusScaleNFW_,tau)
-    radiusCore_        =radiusCore(radiusScaleNFW_,tau)
+    darkMatterProfile => node             %darkMatterProfile            (    )
+    massDistribution_ => self             %darkMatterProfileDMO_    %get(node)
+    tau                = darkMatterProfile%floatRank0MetaPropertyGet(self%tauID                )
+    velocityMaximumSIDM= darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+massDistribution_%velocityRotationCurveMaximum()
+    radiusMaximumSIDM  = darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID  )+massDistribution_%radiusRotationCurveMaximum  ()
+    radiusMaximumNFW_  = radiusMaximumNFW  (radiusMaximumSIDM,tau)
+    velocityMaximumNFW_= velocityMaximumNFW(velocityMaximumSIDM,tau                )
+    radiusScaleNFW_    = radiusScaleNFW    (radiusMaximumNFW_                      )
+    densityScaleNFW_   = densityScaleNFW   (radiusScaleNFW_    ,velocityMaximumNFW_)
+    densityScale_      = densityScale      (densityScaleNFW_   ,tau                )
+    radiusScale_       = radiusScale       (radiusScaleNFW_    ,tau                )
+    radiusCore_        = radiusCore        (radiusScaleNFW_    ,tau                )
     call darkMatterProfile%floatRank0MetaPropertySet(self%densityScaleSIDMID,densityScale_)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID,radiusScale_)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID,radiusCore_)
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusScaleSIDMID ,radiusScale_ )
+    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreSIDMID  ,radiusCore_  )
     return
   end subroutine SIDMParametriDifferentialVmaxSolveAnalytics
 
@@ -514,7 +514,7 @@ contains
     integer                                         , intent(in   )          :: propertyType
     class           (nodeOperatorSIDMParametric    ), intent(inout), target  :: self
     class           (massDistributionClass         )               , pointer :: massDistribution_
-    class           (nodeComponentBasic            )               , pointer :: basic            , basicParent
+    class           (nodeComponentBasic            )               , pointer :: basic              , basicParent
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: timeFormation      , timescaleCollapse_, &
          &                                                                      tau                , time              , &
@@ -529,26 +529,26 @@ contains
     time              =  basic%time                     (                            )
     timeFormation     =  basic%floatRank0MetaPropertyGet(self%nodeFormationTimeSIDMID)
     if (time > timeFormation) then
-       massDistribution_ => self%darkMatterProfileDMO_%get(node)
-       velocityMaximumSIDM=darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-       timescaleCollapse_ =timescaleCollapse(self%darkMatterParticle_,self%C,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),velocityMaximumSIDM)
-       tau                =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
-       massHalo           =basic%mass()
-       rateMass           =basic%accretionRate()
-       rateMassSpecific   =rateMass/massHalo
-       rateTau            =1.0d0/timescaleCollapse_-self%alpha*rateMassSpecific*tau
+       massDistribution_   => self%darkMatterProfileDMO_%get(node)
+       velocityMaximumSIDM =  darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+massDistribution_%velocityRotationCurveMaximum()
+       timescaleCollapse_  =  timescaleCollapse(self%darkMatterParticle_,self%C,massDistribution_%velocityRotationCurveMaximum(),massDistribution_%radiusRotationCurveMaximum(),velocityMaximumSIDM)
+       tau                 =  darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
+       massHalo            =  basic%mass         ()
+       rateMass            =  basic%accretionRate()
+       rateMassSpecific    =  rateMass/massHalo
+       rateTau             =  1.0d0/timescaleCollapse_-self%alpha*rateMassSpecific*tau
        call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID,rateTau)
        tau         =darkMatterProfile%floatRank0MetaPropertyGet(self%tauID)
        rateVelocity=velocityMaximumRateTau(tau,massDistribution_%velocityRotationCurveMaximum())*rateTau
-       rateRadius  =radiusMaximumRateTau(tau,massDistribution_%radiusRotationCurveMaximum())*rateTau
+       rateRadius  =radiusMaximumRateTau  (tau,massDistribution_%radiusRotationCurveMaximum  ())*rateTau
        call darkMatterProfile%floatRank0MetaPropertyRate(self%velocityMaximumSIDMID,rateVelocity) 
-       call darkMatterProfile%floatRank0MetaPropertyRate(self%radiusMaximumSIDMID,rateRadius)
+       call darkMatterProfile%floatRank0MetaPropertyRate(self%radiusMaximumSIDMID  ,rateRadius  )
        velocityMaximumSIDM=darkMatterProfile%floatRank0MetaPropertyGet(self%velocityMaximumSIDMID)+massDistribution_%velocityRotationCurveMaximum()
-       radiusMaximumSIDM  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID)+massDistribution_%radiusRotationCurveMaximum()
+       radiusMaximumSIDM  =darkMatterProfile%floatRank0MetaPropertyGet(self%radiusMaximumSIDMID  )+massDistribution_%radiusRotationCurveMaximum  ()
     else
-       call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID     ,0.0d0)
+       call darkMatterProfile%floatRank0MetaPropertyRate(self%tauID                ,0.0d0)
        call darkMatterProfile%floatRank0MetaPropertyRate(self%velocityMaximumSIDMID,0.0d0)
-       call darkMatterProfile%floatRank0MetaPropertyRate(self%radiusMaximumSIDMID,0.0d0)       
+       call darkMatterProfile%floatRank0MetaPropertyRate(self%radiusMaximumSIDMID  ,0.0d0)       
     end if    
     return
   end subroutine SIDMParametriCalculateTauDifferentialEvolution

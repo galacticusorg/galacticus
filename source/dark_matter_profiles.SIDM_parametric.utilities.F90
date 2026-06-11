@@ -31,9 +31,9 @@ module SIDM_Parametric_Model
   !!}
   implicit none
   private
-  public :: timescaleCollapse  , velocityMaximumRateTau, radiusMaximumRateTau, radiusMaximumNFW, velocityMaximumNFW, &
-       &    radiusScaleNFW     , densityScaleNFW       , densityScale        , radiusScale     , radiusCore        , &
-       &    radiusMaximumToScaleNFW                    , densityScaleFactorNFW
+  public :: timescaleCollapse      , velocityMaximumRateTau, radiusMaximumRateTau, radiusMaximumNFW, velocityMaximumNFW, &
+       &    radiusScaleNFW         , densityScaleNFW       , densityScale        , radiusScale     , radiusCore        , &
+       &    radiusMaximumToScaleNFW                        , densityScaleFactorNFW
 
   ! Constants related to NFW profiles.
   !! The ratio of the radius of the peak of the rotation curve to the scale radius.
@@ -54,25 +54,25 @@ contains
     \mono{velocityMaximumSIDM}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal             , megaParsec, massSolar, MpcPerKmPerSToGyr
-    use :: Numerical_Constants_Prefixes    , only : centi                                      , milli
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, massSolar, MpcPerKmPerSToGyr
+    use :: Numerical_Constants_Prefixes    , only : centi                         , milli
     use :: Error                           , only : Error_Report
-    use :: Dark_Matter_Particles           , only : darkMatterParticleClass                    , darkMatterParticleSelfInteractingDarkMatter
+    use :: Dark_Matter_Particles           , only : darkMatterParticleClass       , darkMatterParticleSelfInteractingDarkMatter
     implicit none
     class           (darkMatterParticleClass), intent(inout) :: darkMatterParticle_
-    double precision                         , intent(in   ) :: C                     , velocityMaximum    , &
-         &                                                      radiusVelocityMaximum , velocityMaximumSIDM
+    double precision                         , intent(in   ) :: C                             , velocityMaximum    , &
+         &                                                      radiusVelocityMaximum         , velocityMaximumSIDM
     ! Numerical coefficient in the gravothermal timescale (Yang et al. 2024; JCAP; 2; 32; eqn. 2.2).
     double precision                         , parameter     :: timescaleNormalization=150.0d0
-    double precision                                         :: crossSectionEffective_, radiusEffective    , &
+    double precision                                         :: crossSectionEffective_        , radiusEffective    , &
          &                                                      densityEffective
 
     select type (darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
        ! Get the effective cross section and convert to units of Mpc²/M☉.
        crossSectionEffective_=+darkMatterParticle_%crossSectionEffective(velocityMaximumSIDM) &
-            &                  *(centi     **2/milli    )                                      &
-            &                  /(megaParsec**2/massSolar)
+            &                 *(centi     **2/milli    )                                      &
+            &                 /(megaParsec**2/massSolar)
     class default
        crossSectionEffective_=+0.0d0
        call Error_Report('unexpected class'//{introspection:location})
@@ -81,16 +81,16 @@ contains
          &            /radiusMaximumToScaleNFW
     densityEffective = densityScaleNFW(radiusEffective,velocityMaximum)
     timescaleCollapse=+timescaleNormalization                &
-         &            /C                                      &
-         &            /crossSectionEffective_                 &
-         &            /densityEffective                       &
-         &            /radiusEffective                        &
-         &            /sqrt(                                  &
-         &                   +4.0d0                           &
-         &                   *Pi                              &
-         &                   *gravitationalConstant_internal  &
-         &                   *densityEffective                &
-         &                  )                                 &
+         &            /C                                     &
+         &            /crossSectionEffective_                &
+         &            /densityEffective                      &
+         &            /radiusEffective                       &
+         &            /sqrt(                                 &
+         &                   +4.0d0                          &
+         &                   *Pi                             &
+         &                   *gravitationalConstant_internal &
+         &                   *densityEffective               &
+         &                  )                                &
          &            *MpcPerKmPerSToGyr
     return
   end function timescaleCollapse
@@ -160,13 +160,13 @@ contains
 
     ! This is equation 2.4 of Yang et al. 2024; JCAP; 2; 32.
     tau_            =min(max(tau,0.0d0),1.0d0)
-    radiusMaximumNFW=+radiusMaximumSIDM     &
-         &           /(                     &
-         &             +1.000000d0          &
-         &             +0.007623d0*tau_     &
-         &             -0.720000d0*tau_**2  &
-         &             +0.337600d0*tau_**3  &
-         &             -0.137500d0*tau_**4  &
+    radiusMaximumNFW=+radiusMaximumSIDM    &
+         &           /(                    &
+         &             +1.000000d0         &
+         &             +0.007623d0*tau_    &
+         &             -0.720000d0*tau_**2 &
+         &             +0.337600d0*tau_**3 &
+         &             -0.137500d0*tau_**4 &
          &            )
     return
   end function radiusMaximumNFW
@@ -239,16 +239,16 @@ contains
 
     ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
     tau_        =min(max(tau,0.0d0),1.0d0)
-    densityScale=+densityScaleInitial   &
-         &       *(                      &
-         &         +2.033d0              &
-         &         +0.7381d0*tau_        &
-         &         +7.2640d0*tau_**5     &
-         &         -12.730d0*tau_**7     &
-         &         +9.9150d0*tau_**9     &
-         &         +(1.0d0-2.033d0)      &
-         &         *log(tau_+0.001d0)    &
-         &         /log(    +0.001d0)    &
+    densityScale=+densityScaleInitial &
+         &       *(                   &
+         &         +2.033d0           &
+         &         +0.7381d0*tau_     &
+         &         +7.2640d0*tau_**5  &
+         &         -12.730d0*tau_**7  &
+         &         +9.9150d0*tau_**9  &
+         &         +(1.0d0-2.033d0)   &
+         &         *log(tau_+0.001d0) &
+         &         /log(    +0.001d0) &
          &        )
     return
   end function densityScale
@@ -265,15 +265,15 @@ contains
 
     ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
     tau_       =min(max(tau,0.0d0),1.0d0)
-    radiusScale=+radiusScaleInitial   &
-         &      *(                     &
-         &        +0.7178d0            &
-         &        -0.1026d0*tau_       &
-         &        +0.2474d0*tau_**2    &
-         &        -0.4079d0*tau_**3    &
-         &        +(1.0d0-0.7178d0)    &
-         &        *log(tau_+0.001d0)   &
-         &        /log(    +0.001d0)   &
+    radiusScale=+radiusScaleInitial  &
+         &      *(                   &
+         &        +0.7178d0          &
+         &        -0.1026d0*tau_     &
+         &        +0.2474d0*tau_**2  &
+         &        -0.4079d0*tau_**3  &
+         &        +(1.0d0-0.7178d0)  &
+         &        *log(tau_+0.001d0) &
+         &        /log(    +0.001d0) &
          &       )
     return
   end function radiusScale
@@ -290,7 +290,7 @@ contains
 
     ! This is equation 2.3 of Yang et al. 2024; JCAP; 2; 32.
     tau_      =min(max(tau,0.0d0),1.0d0)
-    radiusCore=+radiusScaleInitial      &
+    radiusCore=+radiusScaleInitial       &
          &     *(                        &
          &       +2.5550d0*sqrt(tau_)    &
          &       -3.6320d0*    tau_      &
