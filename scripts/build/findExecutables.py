@@ -30,9 +30,21 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
         exclude_from_all    = False
         found_program       = False
 
+        in_doc_block = False
+
         try:
             with open(file_full, 'r', errors='replace') as fh:
                 for line in fh:
+                    # Skip lines inside `!!{ ... !!}` LaTeX documentation blocks,
+                    # whose unprefixed prose can otherwise look like a `program`
+                    # statement.
+                    if in_doc_block:
+                        if '!!}' in line:
+                            in_doc_block = False
+                        continue
+                    if re.match(r'^\s*!!\{', line) and '!!}' not in line.split('!!{', 1)[1]:
+                        in_doc_block = True
+                        continue
                     if re.match(r'^\s*!/\s+exclude', line):
                         exclude_from_all = True
                     if re.match(r'^\s*program\s', line, re.IGNORECASE):
@@ -64,7 +76,7 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
 \tfi; \\
 \t./scripts/build/sourceDigests.py `pwd` {file_name_root}.exe $$useLocks
 \t$(CCOMPILER) -c {work_dir}{file_name_root}.md5s.c -o {work_dir}{file_name_root}.md5s.o $(CFLAGS)
-\t$(FCCOMPILER) `cat {work_dir}{file_name_root}.d` {work_dir}{file_name_root}.parameters.o {work_dir}{file_name_root}.md5s.o -o {file_name_root}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.py {file_name_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+\t$(FCCOMPILER) `cat {work_dir}{file_name_root}.d` {work_dir}{file_name_root}.parameters.o {work_dir}{file_name_root}.md5s.o -o {file_name_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {file_name_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 """
         out.write(rule)

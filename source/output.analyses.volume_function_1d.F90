@@ -95,7 +95,7 @@ mass function) output analysis class.
           &                                                                                         propertyUnits                                  , distributionUnits                                , &
           &                                                                                         propertyQuantity                               , distributionQuantity                             , &
           &                                                                                         xAxisLabel                                     , yAxisLabel                                       , &
-     &                                                                                         targetLabel                                         , reportLabel
+          &                                                                                         targetLabel                                    , reportLabel
      ! Axis labels, log-scale flags, and the (optional) target dataset are also bundled into a
      ! single `outputAnalysisTargetDataStandard` instance so the wrapper-pipeline doesn't have
      ! to enumerate 2^N presence combinations for the otherwise individually-optional fields.

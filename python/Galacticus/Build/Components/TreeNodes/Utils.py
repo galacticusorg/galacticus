@@ -45,7 +45,7 @@ def Tree_Node_Copy(build):
             {
                 'intrinsic':  'class',
                 'type':       'treeNode',
-                'attributes': ['intent(inout)'],
+                'attributes': ['intent(inout)', 'target'],
                 'variables':  ['targetNode'],
             },
             {
@@ -80,22 +80,30 @@ def Tree_Node_Copy(build):
         "if (skipFormationNodeActual) targetNode%formationNode => null()\n"
         "if (skipEventActual        ) targetNode%event         => null()\n"
     )
+    # With lazy component allocation `self%component<X>` may be unallocated.
+    # Guard the intrinsic array assignment (an unallocated RHS is illegal and
+    # segfaults in the compiler-generated copy) and mirror the source state on
+    # the target by deallocating any existing target array when the source is
+    # unallocated.
     for class_name in build.get('componentClassListActive') or []:
         cap = _ucfirst(class_name)
-        content += f"targetNode%component{cap} = self%component{cap}\n"
+        content += (
+            f"if (allocated(self%component{cap})) then\n"
+            f"  targetNode%component{cap} = self%component{cap}\n"
+            f"else if (allocated(targetNode%component{cap})) then\n"
+            f"  deallocate(targetNode%component{cap})\n"
+            f"end if\n"
+        )
 
-    content += (
-        "select type (targetNode)\n"
-        "type is (treeNode)\n"
-    )
     for class_dict in _active_classes(build):
         cap = _ucfirst(class_dict['name'])
         content += (
-            f"   do i=1,size(self%component{cap})\n"
-            f"     targetNode%component{cap}(i)%hostNode => targetNode\n"
-            f"   end do\n"
+            f"if (allocated(self%component{cap})) then\n"
+            f"  do i=1,size(self%component{cap})\n"
+            f"    targetNode%component{cap}(i)%hostNode => targetNode\n"
+            f"  end do\n"
+            f"end if\n"
         )
-    content += "end select\n"
 
     function['content'] = content
 

@@ -126,7 +126,10 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make -j4 all 2>&1 | tee build.log
+          # Disable link-time optimization: `make all` builds a very large number of executables, and running
+          # LTO on each one makes this job prohibitively slow. LTO is retained in jobs that build only a single
+          # executable (e.g. Galacticus.exe). See the LTO option in the Makefile.
+          make -j4 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -284,7 +287,22 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          # Build with parallel make, backing off the level of parallelism on failure. The library build can
+          # exhaust the runner's memory when too many large source files compile concurrently. Since make is
+          # incremental, each retry resumes from the objects already built rather than starting over, so this
+          # keeps the fast path for the common case while reducing memory pressure if a parallel build fails.
+          for j in 4 3 2 1; do
+            echo "Attempting build with -j$j"
+            if make -j$j GALACTICUS_BUILD_OPTION=lib libgalacticus.so; then
+              echo "Build succeeded with -j$j"
+              break
+            fi
+            if [ "$j" -eq 1 ]; then
+              echo "Build failed even with -j1"
+              exit 1
+            fi
+            echo "Build with -j$j failed; retrying with reduced parallelism"
+          done
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -360,7 +378,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          ./scripts/doc/buildDocumentation.sh -f yes -p 4 -o yes 2>&1 | tee docBuild.log
+          # Disable link-time optimization (`-l disabled`): the documentation build runs `make all`, which
+          # builds a very large number of executables, and running LTO on each one makes this job prohibitively
+          # slow. See the LTO option in the Makefile.
+          ./scripts/doc/buildDocumentation.sh -f yes -p 4 -o yes -l disabled 2>&1 | tee docBuild.log
           grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: missing method description warnings found in docBuild.log" && false)
       - name: Upload docs
         uses: actions/upload-artifact@v7
@@ -509,7 +530,9 @@ jobs:
       - name: Build Galacticus
         run: |
           set -o pipefail
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
+          # Disable link-time optimization: on Apple Silicon the DWARF emitted by LTO causes the dsymutil
+          # step below to be OOM-killed (see the LTO option in the Makefile).
+          make -j`sysctl -n hw.activecpu` USEGIT2=no LTO=disabled Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
           dsymutil -o Galacticus.exe.dSYM Galacticus.exe
           zip -r debugSymbolsMacOS-M1.zip Galacticus.exe.dSYM
@@ -550,6 +573,17 @@ jobs:
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
+      - name: "Set environmental variables"
+        run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
+          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
+          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
+      - name: Install Python
+        run: |
+          sudo port install python312 py312-numpy
+          sudo port select --set python python312
+          sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
           make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
@@ -570,6 +604,11 @@ jobs:
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
+      - name: Test interface
+        run: |
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          ! grep -q -e FAIL pythonTest.log
+      - run: echo "This job's status is ${{ job.status }}."
   ### Tools
   Build-Tools-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -1737,43 +1776,6 @@ jobs:
       executable: ${{ matrix.executable }}
       artifact: test-execs-MacOS
     secrets: inherit
-  ### Test Python Interface
-  Python-Interface-MacOS:
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
-          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-          # Prepend /opt/local/bin so the MacPorts-installed `python3` (with numpy) is
-          # picked up ahead of the runner's pre-installed Python, which lacks numpy.
-          echo "PATH=/opt/local/bin:$PATH" >> $GITHUB_ENV
-      - name: Install Python
-        run: |
-          sudo port install python312 py312-numpy
-          sudo port select --set python python312
-          sudo port select --set python3 python312
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
-          mkdir galacticus
-          mkdir galacticus/lib
-          mkdir galacticus/python
-          mv galacticus.py galacticus/python/
-          mv libgalacticus.so galacticus/lib/
-      - name: Test interface
-        run: |
-          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
-          ! grep -q -e FAIL pythonTest.log
-      - run: echo "This job's status is ${{ job.status }}."
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
@@ -2217,7 +2219,6 @@ jobs:
              MPI-MCMC,
              Python-Interface,
              Codes-MacOS,
-             Python-Interface-MacOS,
              Validate ]
     steps:
       - name: Check out repository code

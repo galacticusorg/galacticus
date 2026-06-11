@@ -151,9 +151,9 @@ jobs:
         if: ${{ env.appid != '' }}
         id: depup
         run: |
-          versionMajor=`curl --silent https://data.nublado.org/cloudy_releases/ | grep -o -E 'href="c[[:digit:]]*/">'| sed 's/href="c//;s/\/">//' | sort -g -k 1 | tail -1`
+          versionMajor=`curl --silent --retry 5 --retry-all-errors --retry-max-time 120 https://data.nublado.org/cloudy_releases/ | grep -o -E 'href="c[[:digit:]]*/">'| sed 's/href="c//;s/\/">//' | sort -g -k 1 | tail -1`
           if [[ ! -z ${versionMajor} ]]; then
-            versionFull=`curl --silent https://data.nublado.org/cloudy_releases/c${versionMajor}/ | grep -o -E 'href="c[[:digit:]]*\.[[:digit:]]*\.tar\.gz">' | sed 's/href="c//;s/\.tar\.gz">//'`
+            versionFull=`curl --silent --retry 5 --retry-all-errors --retry-max-time 120 https://data.nublado.org/cloudy_releases/c${versionMajor}/ | grep -o -E 'href="c[[:digit:]]*\.[[:digit:]]*\.tar\.gz">' | sed 's/href="c//;s/\.tar\.gz">//'`
             if [[ ! -z ${versionFull} ]]; then
               sed -i~ -r s/"^cloudy:\s+[0-9\.]+"/"cloudy: ${versionFull}"/ aux/dependencies.yml
             fi

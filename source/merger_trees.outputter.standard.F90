@@ -1248,10 +1248,13 @@ contains
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           !![
-	  <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
-	    <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
+	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
+	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=124012"/>
 	    <description>
-	      Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+             Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+
+             After removing the workaround for PRs 46897/57696, an ICE in `gimplify\_var\_or\_parm\_decl` is triggered (see the
+             `seeAlso` above). So the workaround is left in place for now.
 	    </description>
 	  !!]
           do i=1,size(outputGroupsTemporary)

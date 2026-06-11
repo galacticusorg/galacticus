@@ -21,7 +21,15 @@ runs:
   steps:
     - name: Sign Galacticus executable
       shell: bash
+      env:
+        MACOS_CERTIFICATE: ${{ inputs.macos_certificate }}
       run: |
+        # The signing secrets are unavailable for workflows triggered by Dependabot or fork pull
+        # requests. In that case skip code-signing gracefully rather than failing the job.
+        if [ -z "${MACOS_CERTIFICATE}" ]; then
+          echo "macOS signing certificate is unavailable (e.g. a Dependabot or fork pull request) -- skipping code-signing."
+          exit 0
+        fi
         ORIGINAL_DEFAULT_KEYCHAIN=$(security default-keychain | sed 's/^ *"//; s/"$//')
         trap 'security default-keychain -s "$ORIGINAL_DEFAULT_KEYCHAIN"; security delete-keychain build.keychain' EXIT
         security create-keychain -p "${{ inputs.macos_keychain_password }}" build.keychain
