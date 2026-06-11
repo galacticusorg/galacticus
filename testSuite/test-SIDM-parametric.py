@@ -84,24 +84,45 @@ else:
           f"min scale radius={radiusScale.min():.3e}, min core radius={radiusCore.min():.3e})")
     failures += 1
 
-# The test should actually exercise the gravothermal evolution (otherwise it is vacuous).
+# The test should actually exercise the gravothermal evolution (otherwise it is vacuous). The velocityMaximumSIDM dataset is
+# the SIDM-CDM difference, so a non-zero shift confirms the maximum-velocity evolution is exercised, not just tau.
 if tau.max() > 0.0:
     print(f"SUCCESS: gravothermal evolution occurred (maximum tau = {tau.max():.3g})")
 else:
     print("FAIL: no gravothermal evolution occurred (maximum tau = 0); the test is vacuous")
     failures += 1
+velocityMaximumShift = data["darkMatterProfileSIDMParametricVelocityMaximum"]
+if velocityMaximumShift.max() > 0.0:
+    print(f"SUCCESS: the SIDM evolution shifts the maximum circular velocity (max SIDM-CDM shift = {velocityMaximumShift.max():.3g} km/s)")
+else:
+    print("FAIL: the SIDM-CDM maximum-velocity shift is zero everywhere; the velocity evolution is not exercised")
+    failures += 1
 
-# --- No-interaction run (sigma0 -> 0): the model must reduce to CDM (tau ~ 0) ------------------------------------------------
+# --- No-interaction run (sigma0 -> 0): the model must reduce to CDM ----------------------------------------------------------
 if runModel("testSuite/parameters/SIDM_parametric_noInteraction.xml") != 0:
     print("FAIL: no-interaction parametric SIDM model failed to run")
     failures += 1
 else:
-    tauZero = gather("outputs/SIDM_parametric_noInteraction.hdf5", [tauName])[tauName]
+    noInteraction        = gather("outputs/SIDM_parametric_noInteraction.hdf5",
+                                  [tauName,
+                                   "darkMatterProfileSIDMParametricVelocityMaximum",
+                                   "darkMatterProfileSIDMParametricRadiusMaximum"  ])
+    tauZero              = noInteraction[tauName]
+    velocityMaximumShift = noInteraction["darkMatterProfileSIDMParametricVelocityMaximum"]
+    radiusMaximumShift   = noInteraction["darkMatterProfileSIDMParametricRadiusMaximum"  ]
+    # The gravothermal evolution should be suppressed.
     if tauZero.size > 0 and tauZero.max() < 1.0e-2:
-        print(f"SUCCESS: with sigma0 -> 0 the gravothermal evolution is suppressed (maximum tau = {tauZero.max():.3g}); the model reduces to CDM")
+        print(f"SUCCESS: with sigma0 -> 0 the gravothermal evolution is suppressed (maximum tau = {tauZero.max():.3g})")
     else:
         maximum = f"{tauZero.max():.3e}" if tauZero.size > 0 else "n/a"
         print(f"FAIL: with sigma0 -> 0 the gravothermal evolution was not suppressed (maximum tau = {maximum})")
+        failures += 1
+    # The SIDM-CDM Vmax/Rmax differences should vanish, i.e. the SIDM maximum velocity and its radius equal the CDM values.
+    if velocityMaximumShift.size > 0 and np.all(np.abs(velocityMaximumShift) < 1.0e-3) and np.all(np.abs(radiusMaximumShift) < 1.0e-8):
+        print("SUCCESS: with sigma0 -> 0 the SIDM-CDM Vmax/Rmax differences vanish; the model reduces to CDM")
+    else:
+        print(f"FAIL: with sigma0 -> 0 the SIDM-CDM differences did not vanish (max|Vmax shift|="
+              f"{np.abs(velocityMaximumShift).max():.3e} km/s, max|Rmax shift|={np.abs(radiusMaximumShift).max():.3e} Mpc)")
         failures += 1
 
 sys.exit(1 if failures > 0 else 0)
