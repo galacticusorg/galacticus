@@ -1085,6 +1085,7 @@ jobs:
                       tests.SIDM_parametric_model.exe,
                       tests.SIDM_cross_sections.exe,
                       tests.SIDM_parametric_maps.exe,
+                      tests.SIDM_Kummer_deceleration.exe,
                       tests.differentiation.exe,
                       tests.tables.exe,
                       tests.interpolation.exe,
