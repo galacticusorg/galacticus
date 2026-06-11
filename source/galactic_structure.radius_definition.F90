@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides parsing of radii definitions used in output specifiers.
 !!}
 
 module Galactic_Structure_Radii_Definitions
-  !!{
+  !!{RST
   Provides parsing of radii definitions used in output specifiers.
   !!}
   use :: ISO_Varying_String        , only : varying_string
@@ -31,9 +31,11 @@ module Galactic_Structure_Radii_Definitions
   public :: radiusSpecifier, Galactic_Structure_Radii_Definition_Decode
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>radiusType</name>
-   <description>Used to specify radii types used in output specifiers.</description>
+   <description>
+   Used to specify radii types used in output specifiers.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -55,9 +57,11 @@ module Galactic_Structure_Radii_Definitions
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>direction</name>
-   <description>Used to specify the type of velocity dispersion in output specifiers.</description>
+   <description>
+   Used to specify the type of velocity dispersion in output specifiers.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -69,7 +73,7 @@ module Galactic_Structure_Radii_Definitions
   !!]
 
   type radiusSpecifier
-     !!{
+     !!{RST
      Type used for specifying radii definitions used in output specifiers.
      !!}
      type            (varying_string              ) :: name
@@ -86,7 +90,7 @@ contains
 
 
   subroutine Galactic_Structure_Radii_Definition_Decode(descriptors,specifiers,hotHaloRequired,diskRequired,spheroidRequired,nuclearStarClusterRequired,satelliteRequired,radiusVirialRequired,radiusScaleRequired)
-    !!{
+    !!{RST
     Decode a set of radii descriptors and return the corresponding specifiers.
     !!}
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode   , enumerationMassTypeEncode  , weightByLuminosity      , weightByMass       , &
@@ -360,7 +364,7 @@ contains
   end subroutine Galactic_Structure_Radii_Definition_Decode
 
   subroutine extractFraction(specifier,radiusDefinition,openAt,fractionDefinition)
-    !!{
+    !!{RST
     Parse a fractional radius definition.
     !!}
     use :: ISO_Varying_String, only : extract           , char, len, index, assignment(=)
@@ -382,7 +386,7 @@ contains
   end subroutine extractFraction
   
   subroutine reportSpecifierError(specifier,message,highlight,bracketed)
-    !!{
+    !!{RST
     Report an error in parsing a radius specifier.
     !!}
     use :: Display           , only : displayGreen      , displayRed        , displayReset

@@ -20,12 +20,14 @@
   use :: MPI_Utilities, only : mpiCounter
 
   !![
-  <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
-   <description>A forest evolution work sharing class implementing dynamic first-come-first-served (FCFS) scheduling, in which each worker atomically increments a shared MPI counter to claim the next available forest. This provides good load balancing across variable-cost forests at the expense of MPI synchronization overhead. Optionally, a subset of active MPI process ranks can be specified.</description>
+  <evolveForestsWorkShare name="evolveForestsWorkShareFCFS" docformat="rst">
+   <description>
+   A forest evolution work sharing class implementing dynamic first-come-first-served (FCFS) scheduling, in which each worker atomically increments a shared MPI counter to claim the next available forest. This provides good load balancing across variable-cost forests at the expense of MPI synchronization overhead. Optionally, a subset of active MPI process ranks can be specified.
+   </description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS
-     !!{
+     !!{RST
      Implementation of a forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.
      !!}
      private
@@ -37,8 +39,8 @@
   end type evolveForestsWorkShareFCFS
 
   interface evolveForestsWorkShareFCFS
-     !!{
-     Constructors for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class.
+     !!{RST
+     Constructors for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class.
      !!}
      module procedure fcfsConstructorParameters
      module procedure fcfsConstructorInternal
@@ -51,9 +53,8 @@
 contains
 
   function fcfsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,20 +64,19 @@ contains
     logical                                                          :: doPing            , reportWaitTime
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>doPing</name>
       <defaultValue>.false.</defaultValue>
       <description>
-        If true, the master MPI process will attach to the \mono{calculationReset} event and ping the MPI
-        counter. This can help to ensure that the counter updates regularly.
+      If true, the master MPI process will attach to the ``calculationReset`` event and ping the MPI counter. This can help to ensure that the counter updates regularly.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportWaitTime</name>
       <defaultValue>.false.</defaultValue>
       <description>
-        If true, the time spent waiting to increment the counter will be reported.
+      If true, the time spent waiting to increment the counter will be reported.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -85,9 +85,11 @@ contains
     if (parameters%isPresent('activeProcessRanks')) then
        allocate(activeProcessRanks(parameters%count('activeProcessRanks')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>activeProcessRanks</name>
-         <description>A list of MPI process ranks which will be allowed to process trees---all other ranks are given no work.</description>
+         <description>
+         A list of MPI process ranks which will be allowed to process trees---all other ranks are given no work.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -102,8 +104,8 @@ contains
   end function fcfsConstructorParameters
 
   function fcfsConstructorInternal(doPing,reportWaitTime,activeProcessRanks) result(self)
-    !!{
-    Internal constructor for the \refClass{evolveForestsWorkShareFCFS} forest evolution work sharing class.
+    !!{RST
+    Internal constructor for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
@@ -141,8 +143,8 @@ contains
   end function fcfsConstructorInternal
 
   subroutine fcfsDestructor(self)
-    !!{
-    Destroy a \mono{evolveForestsWorkShareFCFS} object.
+    !!{RST
+    Destroy a ``evolveForestsWorkShareFCFS`` object.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf
@@ -158,7 +160,7 @@ contains
   end subroutine fcfsDestructor
   
   function fcfsForestNumber(self,utilizeOpenMPThreads)
-    !!{
+    !!{RST
     Return the number of the next forest to process.
     !!}
 #ifdef USEMPI
@@ -194,7 +196,7 @@ contains
   end function fcfsForestNumber
 
   subroutine fcfsPing(self,node,uniqueID)
-    !!{
+    !!{RST
     Return the number of the next forest to process.
     !!}
 #ifdef USEMPI

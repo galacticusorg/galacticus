@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements various file-related utilities.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements various file-related utilities.
 !: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rmdir.o $(BUILDPATH)/rename.o $(BUILDPATH)/access.o
 
 module File_Utilities
-  !!{
+  !!{RST
   Implements various file-related utilities.
   !!}
   use   , intrinsic :: ISO_C_Binding     , only : c_char        , c_int, c_ptr
@@ -40,15 +40,15 @@ module File_Utilities
        &    Directory_Remove   , File_Modification_Time
 
   interface Count_Lines_in_File
-     !!{
-     Generic interface for \mono{Count\_Lines\_in\_File} function.
+     !!{RST
+     Generic interface for ``Count_Lines_in_File`` function.
      !!}
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
   end interface Count_Lines_in_File
 
   interface File_Exists
-     !!{
+     !!{RST
      Generic interface for functions that check for a files existence.
      !!}
      module procedure File_Exists_Char
@@ -56,7 +56,7 @@ module File_Utilities
   end interface File_Exists
 
   interface File_Lock
-     !!{
+     !!{RST
      Generic interface for functions that lock a file
      !!}
      module procedure File_Lock_Char
@@ -64,7 +64,7 @@ module File_Utilities
   end interface File_Lock
 
   interface File_Modification_Time
-     !!{
+     !!{RST
      Generic interface for file modification functions.
      !!}
      module procedure File_Modification_Time_Char
@@ -72,7 +72,7 @@ module File_Utilities
   end interface File_Modification_Time
 
   interface File_Path
-     !!{
+     !!{RST
      Generic interface for functions that return the path to a file.
      !!}
      module procedure File_Path_Char
@@ -80,7 +80,7 @@ module File_Utilities
   end interface File_Path
 
   interface File_Name
-     !!{
+     !!{RST
      Generic interface for functions that return the name of a file.
      !!}
      module procedure File_Name_Char
@@ -88,7 +88,7 @@ module File_Utilities
   end interface File_Name
 
   interface File_Name_Expand
-     !!{
+     !!{RST
      Generic interface for functions that return the name of a file.
      !!}
      module procedure File_Name_Expand_Char
@@ -96,7 +96,7 @@ module File_Utilities
   end interface File_Name_Expand
 
   interface File_Remove
-     !!{
+     !!{RST
      Generic interface for functions that remove a file.
      !!}
      module procedure File_Remove_Char
@@ -104,7 +104,7 @@ module File_Utilities
   end interface File_Remove
 
   interface Directory_Remove
-     !!{
+     !!{RST
      Generic interface for functions that remove a directory.
      !!}
      module procedure Directory_Remove_Char
@@ -112,7 +112,7 @@ module File_Utilities
   end interface Directory_Remove
 
   interface Directory_Make
-     !!{
+     !!{RST
      Generic interface for functions that create a directory.
      !!}
      module procedure Directory_Make_Char
@@ -121,8 +121,8 @@ module File_Utilities
 
   interface
      function mkdir_C(name) bind(c,name='mkdir_C')
-       !!{
-       Template for a C function that calls \mono{mkdir()} to make a directory.
+       !!{RST
+       Template for a C function that calls ``mkdir()`` to make a directory.
        !!}
        import
        integer  (c_int ) :: mkdir_C
@@ -132,8 +132,8 @@ module File_Utilities
 
   interface
      function rmdir_C(name) bind(c,name='rmdir_C')
-       !!{
-       Template for a C function that calls \mono{rmdir()} to remove a directory.
+       !!{RST
+       Template for a C function that calls ``rmdir()`` to remove a directory.
        !!}
        import
        integer  (c_int ) :: rmdir_C
@@ -143,8 +143,8 @@ module File_Utilities
 
   interface
      function unlink_C(name) bind(c,name='unlink_C')
-       !!{
-       Template for a C function that calls \mono{unlink()} to remove a file.
+       !!{RST
+       Template for a C function that calls ``unlink()`` to remove a file.
        !!}
        import
        integer  (c_int ) :: unlink_C
@@ -154,8 +154,8 @@ module File_Utilities
 
   interface
      function rename_C(nameOld,nameNew) bind(c,name='rename_C')
-       !!{
-       Template for a C function that calls \mono{rename()} to rename a file.
+       !!{RST
+       Template for a C function that calls ``rename()`` to rename a file.
        !!}
        import
        integer  (c_int ) :: rename_C
@@ -165,8 +165,8 @@ module File_Utilities
 
   interface
      function flock_C(name,ld,lockIsShared,timeSleep,countAttempts) bind(c,name='flock_C')
-       !!{
-       Template for a C function that calls \mono{flock()} to lock a file.
+       !!{RST
+       Template for a C function that calls ``flock()`` to lock a file.
        !!}
        import
        integer  (c_int )        :: flock_C
@@ -179,8 +179,8 @@ module File_Utilities
 
   interface
      subroutine funlock_C(ld) bind(c,name='funlock_C')
-       !!{
-       Template for a C function that calls \mono{flock()} to unlock a file.
+       !!{RST
+       Template for a C function that calls ``flock()`` to unlock a file.
        !!}
        import
        type(c_ptr) :: ld
@@ -199,8 +199,8 @@ module File_Utilities
   ! Declare interface for the POSIX access() function.
   interface
      function access_C(name) bind(c,name='access_C')
-       !!{
-       Template for a C function that calls \mono{access()} to check for file existence.
+       !!{RST
+       Template for a C function that calls ``access()`` to check for file existence.
        !!}
        import
        integer  (c_int ) :: access_C
@@ -211,7 +211,7 @@ module File_Utilities
   ! Declare interface for a directory sync function.
   interface
      subroutine syncdir_C(name) bind(c,name='syncdir_C')
-       !!{
+       !!{RST
        Template for a C function that syncs a directory.
        !!}
        import
@@ -220,7 +220,7 @@ module File_Utilities
   end interface
 
   type, public :: lockDescriptor
-     !!{
+     !!{RST
      Type used to store file lock descriptors.
      !!}
      private
@@ -234,7 +234,7 @@ module File_Utilities
   !$omp threadprivate(posixOpenMPFileLockCount)
 
   type, public :: file
-     !!{
+     !!{RST
      Type used for files.
      !!}
      !$ type(resourceManager)          :: unitManager
@@ -258,7 +258,7 @@ module File_Utilities
 contains
 
   function fileConstructorVarStr(fileName,form,status,position) result(self)
-    !!{
+    !!{RST
     Constructor for file objects.
     !!}
     use :: ISO_Varying_String, only : char
@@ -272,7 +272,7 @@ contains
   end function fileConstructorVarStr
   
   function fileConstructorChar(fileName,form,status,position) result(self)
-    !!{
+    !!{RST
     Constructor for file objects.
     !!}
     type     (file )                          :: self
@@ -283,8 +283,10 @@ contains
 
     allocate(self%unit)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_    => self%unit
     !$ self%unitManager =  resourceManager(dummyPointer_)
@@ -300,7 +302,7 @@ contains
   end function fileConstructorChar
   
   subroutine fileDestructor(self)
-    !!{
+    !!{RST
     Destructor for file objects.
     !!}
     implicit none
@@ -312,8 +314,8 @@ contains
   end subroutine fileDestructor
 
   subroutine fileAssign(to,from)
-    !!{
-    Assignment operator for the \mono{file} class.
+    !!{RST
+    Assignment operator for the ``file`` class.
     !!}
     implicit none
     class(file), intent(  out) :: to
@@ -325,8 +327,8 @@ contains
   end subroutine fileAssign
   
   logical function File_Exists_VarStr(fileName)
-    !!{
-    Checks for existence of file \mono{fileName} (version for varying string argument).
+    !!{RST
+    Checks for existence of file ``fileName`` (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -337,8 +339,8 @@ contains
   end function File_Exists_VarStr
 
   logical function File_Exists_Char(fileName)
-    !!{
-    Checks for existence of file \mono{fileName} (version for character argument).
+    !!{RST
+    Checks for existence of file ``fileName`` (version for character argument).
     !!}
     use :: ISO_Varying_String, only : char, extract, operator(==), len
     implicit none
@@ -364,8 +366,10 @@ contains
     call syncdir_C(char(parentName)//char(0))
     ! Test for file existence.
     !![
-    <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
-     <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.</description>
+    <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html" docformat="rst">
+     <description>
+     Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.
+     </description>
     </workaround>
     !!]
     !! inquire(char=fileName_,exist=File_Exists_Char)
@@ -374,8 +378,8 @@ contains
   end function File_Exists_Char
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
-    !!{
-    Returns the number of lines in the file \mono{in\_file} (version for varying string argument).
+    !!{RST
+    Returns the number of lines in the file ``in_file`` (version for varying string argument).
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -391,8 +395,8 @@ contains
   end function Count_Lines_in_File_VarStr
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
-    !!{
-    Returns the number of lines in the file \mono{in\_file} (version for character argument).
+    !!{RST
+    Returns the number of lines in the file ``in_file`` (version for character argument).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -421,7 +425,7 @@ contains
   end function Count_Lines_in_File_Char
 
   subroutine File_Lock_VarStr(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
-    !!{
+    !!{RST
     Place a lock on a file.
     !!}
     use :: ISO_Varying_String, only : char
@@ -437,7 +441,7 @@ contains
   end subroutine File_Lock_VarStr
   
   subroutine File_Lock_Char(fileName,lock,lockIsShared,timeSleep,countAttempts,fileNameLock)
-    !!{
+    !!{RST
     Place a lock on a file.
     !!}
     use :: Display                     , only : displayMessage, displayReset, displayMagenta 
@@ -511,7 +515,7 @@ contains
   end subroutine File_Lock_Char
 
   subroutine File_Unlock(lock,sync)
-    !!{
+    !!{RST
     Remove a lock from a file.
     !!}
     use :: Error             , only : Error_Report
@@ -544,7 +548,7 @@ contains
   end subroutine File_Unlock
 
   function Executable_Find(executableName)
-    !!{
+    !!{RST
     Return the full path to the executable of the given name.
     !!}
     use :: ISO_Varying_String, only : assignment(=)     , char              , operator(//)
@@ -571,8 +575,8 @@ contains
   contains
 
     subroutine Get_Paths(pathsLength)
-      !!{
-      Retrieve the \mono{PATH} environment variable.
+      !!{RST
+      Retrieve the ``PATH`` environment variable.
       !!}
       use :: ISO_Varying_String, only : assignment(=)
       implicit none
@@ -589,7 +593,7 @@ contains
   end function Executable_Find
 
   subroutine Directory_Make_VarStr(pathName)
-    !!{
+    !!{RST
     Make the given directory path. Will create intermediate directories in the path if necessary.
     !!}
     use :: ISO_Varying_String, only : char
@@ -601,7 +605,7 @@ contains
   end subroutine Directory_Make_VarStr
 
   subroutine Directory_Make_Char(pathName)
-    !!{
+    !!{RST
     Make the given directory path. Will create intermediate directories in the path if necessary.
     !!}
     use :: Error             , only : Error_Report       , Kernel_EACCES, Kernel_ELOOP , Kernel_EMLINK , &
@@ -655,7 +659,7 @@ contains
   end subroutine Directory_Make_Char
 
   function File_Path_VarStr(fileName)
-    !!{
+    !!{RST
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : char
@@ -668,7 +672,7 @@ contains
   end function File_Path_VarStr
 
   function File_Path_Char(fileName)
-    !!{
+    !!{RST
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : assignment(=), char, extract, index
@@ -685,7 +689,7 @@ contains
   end function File_Path_Char
 
   function File_Name_VarStr(fileName)
-    !!{
+    !!{RST
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
@@ -698,7 +702,7 @@ contains
   end function File_Name_VarStr
 
   function File_Name_Char(fileName)
-    !!{
+    !!{RST
     Returns the path to the file.
     !!}
     use :: ISO_Varying_String, only : assignment(=), extract, index, varying_string
@@ -715,7 +719,7 @@ contains
   end function File_Name_Char
 
   function File_Name_Temporary(fileRootName,path) result(fileName)
-    !!{
+    !!{RST
     Returns the path to the file.
     !!}
 #ifdef USEMPI
@@ -749,7 +753,7 @@ contains
   end function File_Name_Temporary
 
   subroutine File_Remove_VarStr(fileName)
-    !!{
+    !!{RST
     Remove a file.
     !!}
     use :: ISO_Varying_String, only : char
@@ -761,7 +765,7 @@ contains
   end subroutine File_Remove_VarStr
 
   subroutine File_Remove_Char(fileName)
-    !!{
+    !!{RST
     Remove a file.
     !!}
     use :: Error             , only : Error_Report
@@ -778,7 +782,7 @@ contains
   end subroutine File_Remove_Char
 
   subroutine Directory_Remove_VarStr(directoryName)
-    !!{
+    !!{RST
     Remove a directory.
     !!}
     use :: ISO_Varying_String, only : char
@@ -790,7 +794,7 @@ contains
   end subroutine Directory_Remove_VarStr
 
   subroutine Directory_Remove_Char(directoryName)
-    !!{
+    !!{RST
     Remove a file.
     !!}
     use :: Error             , only : Error_Report
@@ -811,8 +815,8 @@ contains
   end subroutine Directory_Remove_Char
 
   function File_Name_Expand_VarStr(fileNameIn) result(fileNameOut)
-    !!{
-    Expands placeholders for \glc\ paths in file names.
+    !!{RST
+    Expands placeholders for Galacticus paths in file names.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
@@ -824,7 +828,7 @@ contains
   end function File_Name_Expand_VarStr
   
   subroutine File_Rename(nameOld,nameNew,overwrite)
-    !!{
+    !!{RST
     Remove a file.
     !!}
     use :: Error             , only : Error_Report
@@ -844,8 +848,8 @@ contains
   end subroutine File_Rename
 
   function File_Name_Expand_Char(fileNameIn) result(fileNameOut)
-    !!{
-    Expands placeholders for \glc\ paths in file names.
+    !!{RST
+    Expands placeholders for Galacticus paths in file names.
     !!}
     use :: Input_Paths       , only : inputPath    , pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
     use :: ISO_Varying_String, only : assignment(=), replace            , index             , extract     , &
@@ -887,7 +891,7 @@ contains
   contains
 
     subroutine variableRetrieve(variableContent,variableName,variableLength)
-      !!{
+      !!{RST
       Retrieve an environment variable
       !!}
       use :: ISO_Varying_String, only : assignment(=)
@@ -905,7 +909,7 @@ contains
   end function File_Name_Expand_Char
 
   function File_Modification_Time_VarStr(fileName,status) result(timeModification)
-    !!{
+    !!{RST
     Return the modification time of the named file.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -919,7 +923,7 @@ contains
   end function File_Modification_Time_VarStr
   
   function File_Modification_Time_Char(fileName,status) result(timeModification)
-    !!{
+    !!{RST
     Return the modification time of the named file.
     !!}
     use :: Error, only : Error_Report, errorStatusSuccess, errorStatusNotExist

@@ -17,24 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ALFALFA HI mass function output analysis class.
 !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010">
+  <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010" docformat="rst">
    <description>
-    An ALFALFA HI $z\approx 0.0$ mass function output analysis class measured by \cite{martin_arecibo_2010}. HI mass estimates
-    can be affected by HI self-absorption for highly inclined galaxies. \cite[][see also
-    \protect\citealt{zwaan_hipass_2005}]{zwaan_h_1997} estimate that this effect would lead to a mean underestimation of HI
-    masses by a factor $1.1$ for a randomly oriented galaxy sample. Therefore, a value of $-0.0414$ for the systematic parameter
-    \mono{[systematicErrorPolynomialCoefficient]} is recommended.
+   An ALFALFA HI :math:`z\approx 0.0` mass function output analysis class measured by :cite:t:`martin_arecibo_2010`. HI mass estimates can be affected by HI self-absorption for highly inclined galaxies. :cite:t:`zwaan_h_1997` estimate that this effect would lead to a mean underestimation of HI masses by a factor :math:`1.1` for a randomly oriented galaxy sample. Therefore, a value of :math:`-0.0414` for the systematic parameter ``[systematicErrorPolynomialCoefficient]`` is recommended.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMassFunctionHI) :: outputAnalysisMassFunctionHIALFALFAMartin2010
-     !!{
+     !!{RST
      An ALFALFA HI mass function output analysis class.
      !!}
      private
@@ -48,8 +44,8 @@ Implements an ALFALFA HI mass function output analysis class.
   end type outputAnalysisMassFunctionHIALFALFAMartin2010
 
   interface outputAnalysisMassFunctionHIALFALFAMartin2010
-     !!{
-     Constructors for the \refClass{outputAnalysisMassFunctionHIALFALFAMartin2010} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisMassFunctionHIALFALFAMartin2010`` output analysis class.
      !!}
      module procedure massFunctionHIALFALFAMartin2010ConstructorParameters
      module procedure massFunctionHIALFALFAMartin2010ConstructorInternal
@@ -58,8 +54,8 @@ Implements an ALFALFA HI mass function output analysis class.
 contains
 
   function massFunctionHIALFALFAMartin2010ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionHIALFALFAMartin2010} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisMassFunctionHIALFALFAMartin2010`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters         , cosmologyParametersClass
     use :: Input_Parameters                , only : inputParameter              , inputParameters
@@ -85,40 +81,50 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for ALFALFA HI masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for ALFALFA HI masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing ALFALFA HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                            source="parameters"/>
     <objectBuilder class="outputTimes"                        name="outputTimes_"                                   source="parameters"/>
@@ -142,8 +148,8 @@ contains
   end function massFunctionHIALFALFAMartin2010ConstructorParameters
 
   function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionHIALFALFAMartin2010} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisMassFunctionHIALFALFAMartin2010`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                       , cosmologyParametersSimple
@@ -279,8 +285,8 @@ contains
   end function massFunctionHIALFALFAMartin2010ConstructorInternal
 
   subroutine massFunctionHIALFALFAMartin2010Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassFunctionHIALFALFAMartin2010} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisMassFunctionHIALFALFAMartin2010`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionHIALFALFAMartin2010), intent(inout) :: self

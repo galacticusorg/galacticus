@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  A wrapper file which simply includes the auto-generated content for \mono{libgalacticus}.
+  !!{RST
+  A wrapper file which simply includes the auto-generated content for ``libgalacticus``.
   !!}
 
   include 'libgalacticus.inc'

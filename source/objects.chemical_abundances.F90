@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines the structure used for describing chemical abundances in \glc.
+!!{RST
+Contains a module which defines the structure used for describing chemical abundances in Galacticus.
 !!}
 
 module Chemical_Abundances_Structure
-  !!{
-  Defines the structure used for describing chemical abundances in \glc.
+  !!{RST
+  Defines the structure used for describing chemical abundances in Galacticus.
   !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
@@ -42,8 +42,8 @@ module Chemical_Abundances_Structure
   end interface operator(>)
 
   type :: chemicalAbundances
-     !!{
-     The structure used for describing chemical abundances in \glc.
+     !!{RST
+     The structure used for describing chemical abundances in Galacticus.
      !!}
      private
      double precision, allocatable, dimension(:) :: chemicalValue
@@ -137,8 +137,8 @@ contains
   <nodeComponentInitializationTask function="Chemical_Abundances_Initialize"/>
   !!]
    subroutine Chemical_Abundances_Initialize(parameters_)
-    !!{
-    Initialize the \mono{chemicalAbundanceStructure} object module. Determines which chemicals are to be tracked.
+    !!{RST
+    Initialize the ``chemicalAbundanceStructure`` object module. Determines which chemicals are to be tracked.
     !!}
     use :: Chemical_Structures, only : Chemical_Database_Get_Index, chemicalStructure
     use :: ISO_Varying_String , only : char                       , len
@@ -167,9 +167,11 @@ contains
        allocate(chemicalsCharges(chemicalsCount))
        allocate(chemicalsMasses (chemicalsCount))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>chemicalsToTrack</name>
-         <description>The names of the chemicals to be tracked.</description>
+         <description>
+         The names of the chemicals to be tracked.
+         </description>
          <source>parameters_</source>
        </inputParameter>
        !!]
@@ -194,8 +196,8 @@ contains
   end subroutine Chemical_Abundances_Initialize
 
   integer function Chemicals_Property_Count()
-    !!{
-    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, \mono{chemicalsCount}.
+    !!{RST
+    Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, ``chemicalsCount``.
     !!}
     implicit none
 
@@ -204,7 +206,7 @@ contains
   end function Chemicals_Property_Count
 
   function Chemicals_Names(index)
-    !!{
+    !!{RST
     Return a name for the specified entry in the chemicals structure.
     !!}
     use :: Error             , only : Error_Report
@@ -222,8 +224,8 @@ contains
   end function Chemicals_Names
 
   integer function Chemicals_Index(chemicalName,status)
-    !!{
-    Returns the index of a chemical in the chemical abundances structure given the \mono{chemicalName}.
+    !!{RST
+    Returns the index of a chemical in the chemical abundances structure given the ``chemicalName``.
     !!}
     use :: Error             , only : Error_Report, errorStatusFail, errorStatusSuccess
     use :: ISO_Varying_String, only : operator(==)
@@ -249,7 +251,7 @@ contains
   end function Chemicals_Index
 
   subroutine Chemical_Abundances_Scale(self,multiplier)
-    !!{
+    !!{RST
     In-place multiplication of a chemical abundances object.
     !!}
     implicit none
@@ -263,7 +265,7 @@ contains
   end subroutine Chemical_Abundances_Scale
 
   subroutine Chemical_Abundances_Increment(self,increment)
-    !!{
+    !!{RST
     Increment an abundances object.
     !!}
     implicit none
@@ -275,7 +277,7 @@ contains
   end subroutine Chemical_Abundances_Increment
 
   logical function Chemicals_Abundances_Is_Zero(self)
-    !!{
+    !!{RST
     Test whether an chemicals object is zero.
     !!}
     implicit none
@@ -287,7 +289,7 @@ contains
   end function Chemicals_Abundances_Is_Zero
 
   function Chemical_Abundances_Add(abundances1,abundances2)
-    !!{
+    !!{RST
     Add two abundances objects.
     !!}
     implicit none
@@ -308,7 +310,7 @@ contains
   end function Chemical_Abundances_Add
 
   function Chemical_Abundances_Subtract(abundances1,abundances2)
-    !!{
+    !!{RST
     Subtract two abundances objects.
     !!}
     implicit none
@@ -329,7 +331,7 @@ contains
   end function Chemical_Abundances_Subtract
 
   function Chemical_Abundances_Multiply(abundances1,multiplier)
-    !!{
+    !!{RST
     Multiply a chemical abundances object by a scalar.
     !!}
     implicit none
@@ -346,7 +348,7 @@ contains
   end function Chemical_Abundances_Multiply
 
   function Chemical_Abundances_Multiply_Switched(multiplier,abundances1)
-    !!{
+    !!{RST
     Multiply a chemical abundances object by a scalar.
     !!}
     implicit none
@@ -363,7 +365,7 @@ contains
   end function Chemical_Abundances_Multiply_Switched
 
   function Chemical_Abundances_Divide(abundances1,divisor)
-    !!{
+    !!{RST
     Divide a chemical abundances object by a scalar.
     !!}
     implicit none
@@ -380,7 +382,7 @@ contains
   end function Chemical_Abundances_Divide
 
   logical function Chemical_Abundances_Greater_Than(abundances1,abundances2)
-    !!{
+    !!{RST
     Multiply a chemical abundances object by a scalar.
     !!}
     implicit none
@@ -395,8 +397,8 @@ contains
   end function Chemical_Abundances_Greater_Than
 
   double precision function Chemicals_Abundances(chemicals,moleculeIndex)
-    !!{
-    Returns the abundance of a molecule in the chemical abundances structure given the \mono{moleculeIndex}.
+    !!{RST
+    Returns the abundance of a molecule in the chemical abundances structure given the ``moleculeIndex``.
     !!}
     implicit none
     class  (chemicalAbundances), intent(in   ) :: chemicals
@@ -407,7 +409,7 @@ contains
   end function Chemicals_Abundances
 
   subroutine Chemicals_Number_To_Mass(chemicals,chemicalsByMass)
-    !!{
+    !!{RST
     Multiply all chemical species by their mass in units of the atomic mass. This converts abundances by number into abundances by mass.
     !!}
     implicit none
@@ -429,7 +431,7 @@ contains
   end subroutine Chemicals_Number_To_Mass
 
   subroutine Chemicals_Mass_To_Number(chemicals,chemicalsByNumber)
-    !!{
+    !!{RST
     Divide all chemical species by their mass in units of the atomic mass. This converts abundances by mass into abundances by number.
     !!}
     implicit none
@@ -451,7 +453,7 @@ contains
   end subroutine Chemicals_Mass_To_Number
 
   subroutine Chemicals_Enforce_Positive(chemicals)
-    !!{
+    !!{RST
     Force all chemical values to be positive, by truncating negative values to zero.
     !!}
     implicit none
@@ -466,7 +468,7 @@ contains
   end subroutine Chemicals_Enforce_Positive
 
   double precision function Chemicals_Sum_Over(chemicals)
-    !!{
+    !!{RST
     Return the sum over all chemicals.
     !!}
     implicit none
@@ -481,8 +483,8 @@ contains
   end function Chemicals_Sum_Over
 
   subroutine Chemicals_Builder(self,chemicalsDefinition)
-    !!{
-    Build a \mono{chemicalAbundances} object from the given XML \mono{chemicalsDefinition}.
+    !!{RST
+    Build a ``chemicalAbundances`` object from the given XML ``chemicalsDefinition``.
     !!}
     use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
@@ -513,7 +515,7 @@ contains
   end subroutine Chemicals_Builder
 
   subroutine Chemicals_Dump(chemicals,verbosityLevel)
-    !!{
+    !!{RST
     Dump all chemical values.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -536,7 +538,7 @@ contains
   end subroutine Chemicals_Dump
 
   subroutine Chemicals_Dump_Raw(chemicals,fileHandle)
-    !!{
+    !!{RST
     Dump all chemical values in binary.
     !!}
     implicit none
@@ -549,7 +551,7 @@ contains
   end subroutine Chemicals_Dump_Raw
 
   subroutine Chemicals_Read_Raw(chemicals,fileHandle)
-    !!{
+    !!{RST
     Read all chemical values in binary.
     !!}
     implicit none
@@ -566,8 +568,8 @@ contains
   end subroutine Chemicals_Read_Raw
 
   subroutine Chemicals_Abundances_Set(chemicals,moleculeIndex,abundance)
-    !!{
-    Sets the abundance of a molecule in the chemical abundances structure given the \mono{moleculeIndex}.
+    !!{RST
+    Sets the abundance of a molecule in the chemical abundances structure given the ``moleculeIndex``.
     !!}
     implicit none
     class           (chemicalAbundances), intent(inout) :: chemicals
@@ -585,7 +587,7 @@ contains
   end subroutine Chemicals_Abundances_Set
 
   subroutine Chemicals_Abundances_Reset(chemicals)
-    !!{
+    !!{RST
     Resets all chemical abundances to zero.
     !!}
     implicit none
@@ -603,7 +605,7 @@ contains
   end subroutine Chemicals_Abundances_Reset
 
   subroutine Chemicals_Abundances_Set_To_Unity(chemicals)
-    !!{
+    !!{RST
     Resets all chemical abundances to unity.
     !!}
     implicit none
@@ -621,7 +623,7 @@ contains
   end subroutine Chemicals_Abundances_Set_To_Unity
 
   subroutine Chemicals_Abundances_Destroy(chemicals)
-    !!{
+    !!{RST
     Destroy a chemical abundances object.
     !!}
     implicit none
@@ -632,8 +634,8 @@ contains
   end subroutine Chemicals_Abundances_Destroy
 
   subroutine Chemical_Abundances_Allocate_Values(chemicals)
-    !!{
-    Ensure that the \mono{chemicalValue} array in an \mono{chemicalsStructure} is allocated.
+    !!{RST
+    Ensure that the ``chemicalValue`` array in an ``chemicalsStructure`` is allocated.
     !!}
     implicit none
     class(chemicalAbundances), intent(inout) :: chemicals
@@ -648,7 +650,7 @@ contains
   end subroutine Chemical_Abundances_Allocate_Values
 
   subroutine Chemical_Abundances_Deserialize(chemicals,chemicalAbundancesArray)
-    !!{
+    !!{RST
     Pack abundances from an array into an abundances structure.
     !!}
     implicit none
@@ -666,7 +668,7 @@ contains
   end subroutine Chemical_Abundances_Deserialize
 
   subroutine Chemical_Abundances_Serialize(chemicals,chemicalAbundancesArray)
-    !!{
+    !!{RST
     Pack abundances from an array into an abundances structure.
     !!}
     implicit none
@@ -683,7 +685,7 @@ contains
   end subroutine Chemical_Abundances_Serialize
 
   function Chemicals_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -700,7 +702,7 @@ contains
   end function Chemicals_Non_Static_Size_Of
 
   subroutine Chemicals_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
-    !!{
+    !!{RST
     Store an abundances object in the output buffers.
     !!}
     use :: Kind_Numbers                      , only : kind_int8
@@ -727,7 +729,7 @@ contains
   end subroutine Chemicals_Output
 
   subroutine Chemicals_Post_Output(self,time)
-    !!{
+    !!{RST
     Perform post-output processing of abundances objects.
     !!}
     implicit none
@@ -739,7 +741,7 @@ contains
   end subroutine Chemicals_Post_Output
 
   subroutine Chemicals_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !!{
+    !!{RST
     Increment the output count to account for an abundances object.
     !!}
     implicit none
@@ -753,7 +755,7 @@ contains
   end subroutine Chemicals_Output_Count
 
   subroutine Chemicals_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
-    !!{
+    !!{RST
     Assign names to output buffers for an abundances object.
     !!}
     use :: ISO_Varying_String                , only : char

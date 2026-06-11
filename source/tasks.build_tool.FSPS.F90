@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolFSPS">
-   <description>A task which downloads, compiles, and installs the FSPS (Flexible Stellar Population Synthesis) code, making it available for computing stellar population spectral energy distributions and broadband luminosities from star formation histories.</description>
+  <task name="taskBuildToolFSPS" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the FSPS (Flexible Stellar Population Synthesis) code, making it available for computing stellar population spectral energy distributions and broadband luminosities from star formation histories.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolFSPS
-     !!{
+     !!{RST
      Implementation of a task which builds the FSPS tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolFSPS
 
   interface taskBuildToolFSPS
-     !!{
-     Constructors for the \refClass{taskBuildToolFSPS} task.
+     !!{RST
+     Constructors for the ``taskBuildToolFSPS`` task.
      !!}
      module procedure buildToolFSPSParameters
   end interface taskBuildToolFSPS
@@ -42,8 +44,8 @@
 contains
 
   function buildToolFSPSParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolFSPS} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildToolFSPS`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolFSPSParameters
 
   subroutine buildToolFSPSPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolFSPSPerform
 
   logical function buildToolFSPSRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

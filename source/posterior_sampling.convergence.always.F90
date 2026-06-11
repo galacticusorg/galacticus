@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which is always converged.
   !!}
 
   !![
-  <posteriorSampleConvergence name="posteriorSampleConvergenceAlways">
-   <description>A posterior sampling convergence class which is always converged.</description>
+  <posteriorSampleConvergence name="posteriorSampleConvergenceAlways" docformat="rst">
+   <description>
+   A posterior sampling convergence class which is always converged.
+   </description>
   </posteriorSampleConvergence>
   !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceAlways
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which is always converged.
      !!}
      private
@@ -40,8 +42,8 @@
   end type posteriorSampleConvergenceAlways
 
   interface posteriorSampleConvergenceAlways
-     !!{
-     Constructors for the \refClass{posteriorSampleConvergenceAlways} posterior sampling convergence class.
+     !!{RST
+     Constructors for the ``posteriorSampleConvergenceAlways`` posterior sampling convergence class.
      !!}
      module procedure alwaysConstructorParameters
   end interface posteriorSampleConvergenceAlways
@@ -49,8 +51,8 @@
 contains
 
   function alwaysConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleConvergenceAlways} posterior sampling convergence class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleConvergenceAlways`` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysIsConverged(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Returns true if the posterior sampling is converged (which it always is).
     !!}
     implicit none
@@ -79,7 +81,7 @@ contains
   end function alwaysIsConverged
 
   integer function alwaysConvergedAtStep(self)
-    !!{
+    !!{RST
     Return the step at which the simulation converged.
     !!}
     implicit none
@@ -91,7 +93,7 @@ contains
   end function alwaysConvergedAtStep
 
   subroutine alwaysReset(self)
-    !!{
+    !!{RST
     Reset the convergence object.
     !!}
     implicit none
@@ -102,8 +104,8 @@ contains
   end subroutine alwaysReset
 
   subroutine alwaysLogReport(self,fileUnit)
-    !!{
-    Write a convergence report to the given \mono{fileUnit}.
+    !!{RST
+    Write a convergence report to the given ``fileUnit``.
     !!}
     implicit none
     class  (posteriorSampleConvergenceAlways), intent(inout) :: self
@@ -115,7 +117,7 @@ contains
   end subroutine alwaysLogReport
 
   logical function alwaysStateIsOutlier(self,stateIndex)
-    !!{
+    !!{RST
     Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
     !!}
     implicit none

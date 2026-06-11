@@ -19,21 +19,23 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{
-  Implements a node operator class that computes the growth of the \gls{nsc} from spheroid gas.
+  !!{RST
+  Implements a node operator class that computes the growth of the :term:`NSC` from spheroid gas.
   !!}
 
   use :: Nuclear_Star_Cluster_Growth_Rates, only : nuclearStarClusterGrowthRatesClass
   
   !![
-  <nodeOperator name="nodeOperatorNuclearStarClusterGrowth">
-    <description>Computes and applies the gas inflow rate onto the nuclear star cluster (\gls{nsc}) from spheroid gas, driving growth of the \gls{nsc} via differential evolution using a \refClass{nuclearStarClusterGrowthRatesClass} object.</description>
+  <nodeOperator name="nodeOperatorNuclearStarClusterGrowth" docformat="rst">
+    <description>
+    Computes and applies the gas inflow rate onto the nuclear star cluster (:term:`NSC`) from spheroid gas, driving growth of the :term:`NSC` via differential evolution using a ``nuclearStarClusterGrowthRatesClass`` object.
+    </description>
   </nodeOperator>
   !!]
 
   type, extends(nodeOperatorClass) :: nodeOperatorNuclearStarClusterGrowth
-     !!{
-     A node operator class that computes the growth of the \gls{nsc} from spheroid gas.
+     !!{RST
+     A node operator class that computes the growth of the :term:`NSC` from spheroid gas.
      !!}
      private
      class  (nuclearStarClusterGrowthRatesClass), pointer :: nuclearStarClusterGrowthRates_ => null()
@@ -43,8 +45,8 @@
   end type nodeOperatorNuclearStarClusterGrowth
   
   interface nodeOperatorNuclearStarClusterGrowth
-     !!{
-     Constructors for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
      !!}
      module procedure nuclearStarClusterGrowthConstructorParameters
      module procedure nuclearStarClusterGrowthConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function nuclearStarClusterGrowthConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function nuclearStarClusterGrowthConstructorParameters
   
   function nuclearStarClusterGrowthConstructorInternal(nuclearStarClusterGrowthRates_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
     !!}
     implicit none
     type (nodeOperatorNuclearStarClusterGrowth)                        :: self
@@ -88,8 +90,8 @@ contains
   end function nuclearStarClusterGrowthConstructorInternal
   
   subroutine nuclearStarClusterGrowthDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorNuclearStarClusterGrowth} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
     !!}
     implicit none
     type(nodeOperatorNuclearStarClusterGrowth), intent(inout) :: self
@@ -101,8 +103,8 @@ contains
   end subroutine nuclearStarClusterGrowthDestructor
 
   subroutine nuclearStarClusterGrowthDifferentialEvolution(self,node,interrupt,functioninterrupt,propertyType)
-    !!{
-    Compute the growth rate of \gls{nsc} due to accretion from the spheroid.
+    !!{RST
+    Compute the growth rate of :term:`NSC` due to accretion from the spheroid.
     !!}
     use :: Galacticus_Nodes    , only : interruptTask   , nodeComponentNSC, nodeComponentNSCStandard, nodeComponentSpheroid, &
        &                                propertyInactive, treeNode
@@ -147,7 +149,7 @@ contains
   end subroutine nuclearStarClusterGrowthDifferentialEvolution
 
   subroutine nuclearStarClusterCreate(node,timeEnd)
-    !!{
+    !!{RST
     Creates the nuclear star cluster via interrupt.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode

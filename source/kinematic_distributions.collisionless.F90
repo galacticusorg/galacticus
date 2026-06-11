@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for collisionless mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionCollisionless">
-   <description>A kinematic distribution class for collisionless (dark matter or stellar) mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation. Convergence tolerances for the velocity dispersion integral are controlled by \mono{[toleranceRelativeVelocityDispersion]} and \mono{[toleranceRelativeVelocityDispersionMaximum]}.</description>
+  <kinematicsDistribution name="kinematicsDistributionCollisionless" docformat="rst">
+   <description>
+   A kinematic distribution class for collisionless (dark matter or stellar) mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation. Convergence tolerances for the velocity dispersion integral are controlled by ``[toleranceRelativeVelocityDispersion]`` and ``[toleranceRelativeVelocityDispersionMaximum]``.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionCollisionless
-     !!{
+     !!{RST
      A kinematics distribution for collisionless distributions.
      !!}
    contains
@@ -36,8 +38,8 @@
   end type kinematicsDistributionCollisionless
 
   interface kinematicsDistributionCollisionless
-     !!{
-     Constructors for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionCollisionless`` kinematic distribution class.
      !!}
      module procedure collisionlessConstructorParameters
      module procedure collisionlessConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function collisionlessConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionCollisionless`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,17 +59,21 @@ contains
     double precision                                                     :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     !!]
     self=kinematicsDistributionCollisionless(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
@@ -79,8 +84,8 @@ contains
   end function collisionlessConstructorParameters
 
   function collisionlessConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionCollisionless`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCollisionless)                          :: self
@@ -93,8 +98,8 @@ contains
   end function collisionlessConstructorInternal
   
   function collisionlessConstructorDecorated(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCollisionless} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionCollisionless`` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCollisionless)                :: self
@@ -106,7 +111,7 @@ contains
   end function collisionlessConstructorDecorated
   
   logical function collisionlessIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the collisionless kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -117,8 +122,8 @@ contains
   end function collisionlessIsCollisional
 
   double precision function collisionlessVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an collisionless kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an collisionless kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionCollisionless), intent(inout)          :: self

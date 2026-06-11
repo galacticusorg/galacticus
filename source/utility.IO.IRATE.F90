@@ -17,16 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides IO in \gls{irate} format. The \gls{irate} (IRvine Astrophysical simulaTion structurE)
-format is an HDF5-based format for storing halo catalogs and simulation data, with standardized groups for snapshots,
-cosmological parameters, and simulation properties.
+!!{RST
+Contains a module which provides IO in :term:`IRATE` format. The :term:`IRATE` (IRvine Astrophysical simulaTion structurE) format is an HDF5-based format for storing halo catalogs and simulation data, with standardized groups for snapshots, cosmological parameters, and simulation properties.
 !!}
 
 module IO_IRATE
-  !!{
-  Provides IO in \gls{irate} format, an HDF5-based standard for halo catalogs that stores per-snapshot halo properties
-  (positions, velocities, masses, IDs) alongside cosmological and simulation metadata.
+  !!{RST
+  Provides IO in :term:`IRATE` format, an HDF5-based standard for halo catalogs that stores per-snapshot halo properties (positions, velocities, masses, IDs) alongside cosmological and simulation metadata.
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -35,9 +32,8 @@ module IO_IRATE
   public :: irate
 
   type :: irate
-     !!{
-     A class for interacting with \gls{irate} format HDF5 files, providing methods to read and write halo catalogs (positions,
-     velocities, masses, IDs) and simulation properties (box size, cosmology), with automatic unit conversion to physical units.
+     !!{RST
+     A class for interacting with :term:`IRATE` format HDF5 files, providing methods to read and write halo catalogs (positions, velocities, masses, IDs) and simulation properties (box size, cosmology), with automatic unit conversion to physical units.
      !!}
      type (varying_string          )          :: fileName
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -68,8 +64,8 @@ module IO_IRATE
 contains
 
   function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for \gls{irate} file interface class.
+    !!{RST
+    Constructor for :term:`IRATE` file interface class.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -85,8 +81,8 @@ contains
   end function irateConstructor
 
   subroutine irateReadHalos(self,snapshot,redshift,center,velocity,mass,IDs)
-    !!{
-    Read requested properties of halos from an \gls{irate} file.
+    !!{RST
+    Read requested properties of halos from an :term:`IRATE` file.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
@@ -145,8 +141,8 @@ contains
   end subroutine irateReadHalos
 
   subroutine irateReadSimulation(self,boxSize)
-    !!{
-    Read requested properties of the simulation from an \gls{irate} file.
+    !!{RST
+    Read requested properties of the simulation from an :term:`IRATE` file.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -162,8 +158,8 @@ contains
   end subroutine irateReadSimulation
 
   subroutine irateWriteSimulation(self,boxSize)
-    !!{
-    Write requested properties of the simulation from an \gls{irate} file.
+    !!{RST
+    Write requested properties of the simulation from an :term:`IRATE` file.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -179,8 +175,8 @@ contains
   end subroutine irateWriteSimulation
 
   subroutine irateCopySimulation(self,targetFile)
-    !!{
-    Copy ``\mono{SimulationProperties}'' group from one \gls{irate} file to another.
+    !!{RST
+    Copy "``SimulationProperties``" group from one :term:`IRATE` file to another.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -196,8 +192,8 @@ contains
   end subroutine irateCopySimulation
 
   subroutine irateCopyCosmology(self,targetFile)
-    !!{
-    Copy ``\mono{Cosmology}'' group from one \gls{irate} file to another.
+    !!{RST
+    Copy "``Cosmology``" group from one :term:`IRATE` file to another.
     !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
@@ -213,8 +209,8 @@ contains
   end subroutine irateCopyCosmology
 
   subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass,IDs,overwrite,objectsOverwritable)
-    !!{
-    Write requested properties of halos to an \gls{irate} file.
+    !!{RST
+    Write requested properties of halos to an :term:`IRATE` file.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: IO_HDF5                         , only : hdf5Object

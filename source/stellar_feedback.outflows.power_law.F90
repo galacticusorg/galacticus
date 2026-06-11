@@ -17,28 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a power-law stellar feedback model.
   !!}
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLaw">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLaw" docformat="rst">
    <description>
-    A stellar feedback outflow class in which the outflow rate is a power-law in circular velocity. Specifically the outflow
-    rate is given by:
-    \begin{equation}
-     \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over V}\right)^{\alpha_\mathrm{outflow}} {\dot{E} \over
-     E_\mathrm{canonical}},
-    \end{equation}
-    where $V_\mathrm{outflow}=$\mono{[velocityCharacteristic]} (in km/s) and
-    $\alpha_\mathrm{outflow}=$\mono{[exponent]} are input parameters, $V$ is the characteristic velocity of
-    the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total
-    energy input by a canonical stellar population normalized to $1 \mathrm{M}_\odot$ after infinite time.
+   A stellar feedback outflow class in which the outflow rate is a power-law in circular velocity. Specifically the outflow rate is given by:
+
+   .. math::
+
+      \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over V}\right)^{\alpha_\mathrm{outflow}} {\dot{E} \over
+      E_\mathrm{canonical}},
+
+   where :math:`V_\mathrm{outflow}=`\ ``[velocityCharacteristic]`` (in km/s) and :math:`\alpha_\mathrm{outflow}=`\ ``[exponent]`` are input parameters, :math:`V` is the characteristic velocity of the component, :math:`\dot{E}` is the rate of energy input from stellar populations and :math:`E_\mathrm{canonical}` is the total energy input by a canonical stellar population normalized to :math:`1 \mathrm{M}_\odot` after infinite time.
    </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsPowerLaw
-     !!{
+     !!{RST
      Implementation of a power-law stellar feedback model.
      !!}
      private
@@ -54,7 +52,7 @@
   end type stellarFeedbackOutflowsPowerLaw
 
   interface stellarFeedbackOutflowsPowerLaw
-     !!{
+     !!{RST
      Constructors for the power-law stellar feedback class.
      !!}
      module procedure powerLawConstructorParameters
@@ -64,7 +62,7 @@
 contains
 
   function powerLawConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the power-law stellar feedback class which takes a parameter set as input.
     !!}
     implicit none
@@ -73,17 +71,21 @@ contains
     double precision                                                 :: velocityCharacteristic, exponent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCharacteristic</name>
       <source>parameters</source>
       <defaultValue>250.0d0</defaultValue>
-      <description>The velocity scale at which the \gls{sne}-driven outflow rate equals the star formation rate in disks.</description>
+      <description>
+      The velocity scale at which the :term:`SNe`-driven outflow rate equals the star formation rate in disks.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <source>parameters</source>
       <defaultValue>3.5d0</defaultValue>
-      <description>The velocity scaling of the \gls{sne}-driven outflow rate in disks.</description>
+      <description>
+      The velocity scaling of the :term:`SNe`-driven outflow rate in disks.
+      </description>
     </inputParameter>
     !!]
     self=stellarFeedbackOutflowsPowerLaw(velocityCharacteristic,exponent)
@@ -94,7 +96,7 @@ contains
   end function powerLawConstructorParameters
 
   function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
-    !!{
+    !!{RST
     Internal constructor for the power-law stellar feedback class.
     !!}
     use :: Error, only : Error_Report
@@ -114,12 +116,15 @@ contains
   end function powerLawConstructorInternal
 
   subroutine powerLawOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
-    V}\right)^{\alpha_\mathrm{outflow}}, \end{equation} where $V_\mathrm{outflow}$(=\mono{velocityCharacteristic}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
-    outflow}$(=\mono{exponent}) controls the scaling with velocity. Note that the velocity
-    $V$ is whatever characteristic value returned by the disk/spheroid component. This scaling is functionally similar to
-    that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
+    !!{RST
+    Returns the outflow rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the given ``component``. The outflow rate is given by
+
+    .. math::
+
+        \dot{M}_\mathrm{outflow} = \left({V_\mathrm{outflow} \over
+       V}\right)^{\alpha_\mathrm{outflow}},
+
+    where :math:`V_\mathrm{outflow}`\ (=\ ``velocityCharacteristic``) is the velocity scale at which outflow rate equals star formation rate and :math:`\alpha_{\mathrm outflow}`\ (=\ ``exponent``) controls the scaling with velocity. Note that the velocity :math:`V` is whatever characteristic value returned by the disk/spheroid component. This scaling is functionally similar to that adopted by :cite:t:`cole_hierarchical_2000`, except that they specifically used the circular velocity at half-mass radius.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk                     , nodeComponentSpheroid
@@ -159,9 +164,8 @@ contains
   end subroutine powerLawOutflowRate
 
   double precision function powerLawVelocityCharacteristic(self,component)
-    !!{
-    Return the characteristic velocity for power-law feedback models. In this case the characteristic velocity is a
-    constant.
+    !!{RST
+    Return the characteristic velocity for power-law feedback models. In this case the characteristic velocity is a constant.
     !!}
     implicit none
     class(stellarFeedbackOutflowsPowerLaw), intent(inout) :: self

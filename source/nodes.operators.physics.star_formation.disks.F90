@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs star formation in disks.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Star_Formation_Histories      , only : starFormationHistoryClass
 
   !![
-  <nodeOperator name="nodeOperatorStarFormationDisks">
-   <description>A node operator class that performs star formation in galactic disks by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by \refClass{starFormationRateDisksClass} and applied to evolve the disk gas mass, stellar mass, chemical abundances, and star formation history. \mono{luminositiesStellarInactive} controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).</description>
+  <nodeOperator name="nodeOperatorStarFormationDisks" docformat="rst">
+   <description>
+   A node operator class that performs star formation in galactic disks by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by ``starFormationRateDisksClass`` and applied to evolve the disk gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationDisks
-     !!{
+     !!{RST
      A node operator class that performs star formation.
      !!}
      private
@@ -49,8 +51,8 @@
   end type nodeOperatorStarFormationDisks
   
   interface nodeOperatorStarFormationDisks
-     !!{
-     Constructors for the \refClass{nodeOperatorStarFormationDisks} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorStarFormationDisks`` node operator class.
      !!}
      module procedure starFormationDisksConstructorParameters
      module procedure starFormationDisksConstructorInternal
@@ -59,8 +61,8 @@
 contains
 
   function starFormationDisksConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorStarFormationDisks} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorStarFormationDisks`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,11 +74,13 @@ contains
     logical                                                  :: luminositiesStellarInactive
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminositiesStellarInactive</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+      <description>
+      If true, stellar luminosities will be treated as inactive properties.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
     <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
@@ -93,8 +97,8 @@ contains
   end function starFormationDisksConstructorParameters
 
   function starFormationDisksConstructorInternal(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorStarFormationDisks} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorStarFormationDisks`` node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationDisks  )                        :: self
@@ -113,8 +117,8 @@ contains
   end function starFormationDisksConstructorInternal
 
   subroutine starFormationDisksDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorStarFormationDisks} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorStarFormationDisks`` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationDisks), intent(inout) :: self
@@ -128,7 +132,7 @@ contains
   end subroutine starFormationDisksDestructor
   
   subroutine starFormationDisksDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Initialize the mass transfer fraction.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
@@ -152,7 +156,7 @@ contains
   end subroutine starFormationDisksDifferentialEvolutionAnalytics
 
   subroutine starFormationDisksDifferentialEvolutionPre(self,node)
-    !!{
+    !!{RST
     Initialize the mass transfer fraction.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
@@ -176,9 +180,8 @@ contains
   end subroutine starFormationDisksDifferentialEvolutionPre
 
   subroutine starFormationDisksDifferentialEvolutionStepFinalState(self,node)
-    !!{
-    Record the final state of the disk at the end of the timestep prior to begin evaluation of integrals for inactive
-    properties.
+    !!{RST
+    Record the final state of the disk at the end of the timestep prior to begin evaluation of integrals for inactive properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
     implicit none
@@ -195,7 +198,7 @@ contains
   end subroutine starFormationDisksDifferentialEvolutionStepFinalState
 
   subroutine starFormationDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform star formation in a disk.
     !!}
     use :: Abundances_Structure          , only : abundances

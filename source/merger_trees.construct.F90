@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which constructs/destructs merger trees.
 !!}
 
 module Merger_Tree_Construction
-  !!{
+  !!{RST
   Constructs/destructs merger trees.
   !!}
   use            :: Galacticus_Nodes, only : mergerTree
@@ -30,28 +30,26 @@ module Merger_Tree_Construction
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeConstructor</name>
    <descriptiveName>Merger Tree Constructors</descriptiveName>
    <description>
-    Class providing merger tree constructors---any process by which a representation of a dark matter
-    halo merger tree is created and made available within \glc\ for subsequent galaxy formation
-    calculations. Implementations include stochastic Monte Carlo tree building algorithms (which
-    generate trees on-the-fly from excursion set merger rates), reading pre-computed trees from N-body
-    simulations stored in HDF5 or other formats, and analytic approximations. The \mono{construct}
-    method returns a \refClass{mergerTree} pointer for the given tree index, and signals completion
-    once all trees in the set have been constructed.
+   Class providing merger tree constructors---any process by which a representation of a dark matter halo merger tree is created and made available within Galacticus for subsequent galaxy formation calculations. Implementations include stochastic Monte Carlo tree building algorithms (which generate trees on-the-fly from excursion set merger rates), reading pre-computed trees from N-body simulations stored in HDF5 or other formats, and analytic approximations. The ``construct`` method returns a ``mergerTree`` pointer for the given tree index, and signals completion once all trees in the set have been constructed.
    </description>
    <default>build</default>
    <method name="construct" >
-    <description>Construct the merger tree corresponding to the given \mono{treeNumber}.</description>
+    <description>
+    Construct the merger tree corresponding to the given ``treeNumber``.
+    </description>
     <type>type(mergerTree), pointer</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
     <argument>logical          , intent(  out) :: finished</argument>
    </method>
    <method name="randomSequenceNonDeterministicWarn" >
-    <description>Display a warning if the merger tree random number generator sequence is non-deterministic.</description>
+    <description>
+    Display a warning if the merger tree random number generator sequence is non-deterministic.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <modules>

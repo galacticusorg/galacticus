@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree branching probability rate modifier which always returns the identity modifier.
 !!}
 
   !![
-  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity">
+  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity" docformat="rst">
    <description>
-    A merger tree branching probability modifier class which always applies the identity modifier.
+   A merger tree branching probability modifier class which always applies the identity modifier.
    </description>
   </mergerTreeBranchingProbabilityModifier>
   !!]
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierIdentity
-     !!{
+     !!{RST
      A merger tree branching probability rate modifier which always returns the identity modifier.
      !!}
      private
@@ -38,8 +38,8 @@ Implements a merger tree branching probability rate modifier which always return
   end type mergerTreeBranchingProbabilityModifierIdentity
 
   interface mergerTreeBranchingProbabilityModifierIdentity
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierIdentity} merger tree branching probability rate class.
+     !!{RST
+     Constructors for the ``mergerTreeBranchingProbabilityModifierIdentity`` merger tree branching probability rate class.
      !!}
      module procedure identityConstructorParameters
   end interface mergerTreeBranchingProbabilityModifierIdentity
@@ -47,9 +47,8 @@ Implements a merger tree branching probability rate modifier which always return
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{identity} merger tree branching probability rate class which builds the
-    object from a parameter set.
+    !!{RST
+    A constructor for the ``identity`` merger tree branching probability rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,9 +63,8 @@ contains
   end function identityConstructorParameters
 
   double precision function identityRateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent)
-    !!{
-    Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
-    Return the core radius of the hot halo mass distribution.
+    !!{RST
+    Returns a modifier for merger tree branching rates using the :cite:t:`parkinson_generating_2008` algorithm. Return the core radius of the hot halo mass distribution.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityModifierIdentity), intent(inout) :: self

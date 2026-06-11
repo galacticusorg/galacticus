@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides fast exponentiation utilizing tables.
 !!}
 
 module Math_Exponentiation
-  !!{
-  Provides a fast exponentiation class which utilizes tables to do rapid exponentiation in a limited range of argument for fixed
-  exponent, along with other exponentiation functions.
+  !!{RST
+  Provides a fast exponentiation class which utilizes tables to do rapid exponentiation in a limited range of argument for fixed exponent, along with other exponentiation functions.
   !!}
   use :: Tables, only : table1DLinearLinear
   implicit none
@@ -32,10 +31,8 @@ module Math_Exponentiation
   public :: cubeRoot
 
   type, public :: fastExponentiator
-     !!{
-     A fast exponentiation class which utilizes tables to do rapid exponentiation in a limited range of argument for fixed
-     exponent. The tabulation used is linear in both the argument and the result to avoid expensive $\log()$ and $\exp()$
-     operations. Outside of the valid range the standard exponentiation can be used, or an abort can occur.
+     !!{RST
+     A fast exponentiation class which utilizes tables to do rapid exponentiation in a limited range of argument for fixed exponent. The tabulation used is linear in both the argument and the result to avoid expensive :math:`\log()` and :math:`\exp()` operations. Outside of the valid range the standard exponentiation can be used, or an abort can occur.
      !!}
      double precision                      :: rangeMinimum     , rangeMaximum, &
           &                                   density
@@ -58,7 +55,7 @@ module Math_Exponentiation
 contains
 
   function fastExponentiatorConstructor(rangeMinimum,rangeMaximum,exponent,density,abortOutsideRange) result (self)
-    !!{
+    !!{RST
     Constructor for the fast exponentiator class.
     !!}
     implicit none
@@ -79,7 +76,7 @@ contains
   end function fastExponentiatorConstructor
 
   double precision function fastExponentiatorExponentiate(self,x)
-    !!{
+    !!{RST
     Evaluate the result of an exponentiation operation.
     !!}
     use :: Error, only : Error_Report
@@ -107,15 +104,15 @@ contains
   end function fastExponentiatorExponentiate
 
   pure double precision function cubeRoot(x)
-    !!{
-    Utilize the fast \mono{cbrt()} function from the standard C library for computing cube roots.
+    !!{RST
+    Utilize the fast ``cbrt()`` function from the standard C library for computing cube roots.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double
     implicit none
     double precision, intent(in   ) :: x
 
     interface
-       !!{
+       !!{RST
        Interface to the standard C library cube root function.
        !!}
        pure real(kind=c_double) function cbrt(x) bind(c)

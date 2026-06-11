@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements extraction of properties from nodes.
 !!}
 
 module Node_Property_Extractors
-  !!{
+  !!{RST
   Provides a class that implements extraction of properties from nodes.
   !!}
   use :: Galacticus_Nodes       , only : treeNode
@@ -31,16 +31,17 @@ module Node_Property_Extractors
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>nodePropertyExtractor</name>
    <descriptiveName>Node Property Extractor</descriptiveName>
-   <description>Class providing extraction of scalar, 1D, or multi-D properties from merger tree nodes for output.
-    Property extractors are used by output analysis classes to retrieve galaxy and halo properties (e.g. stellar mass,
-    dark matter halo mass, star formation rate, positions, velocities) and convert them to formats suitable for
-    comparison with observational data or for writing to the \glc\ output file.</description>
+   <description>
+   Class providing extraction of scalar, 1D, or multi-D properties from merger tree nodes for output. Property extractors are used by output analysis classes to retrieve galaxy and halo properties (e.g. stellar mass, dark matter halo mass, star formation rate, positions, velocities) and convert them to formats suitable for comparison with observational data or for writing to the Galacticus output file.
+   </description>
    <default>nodeIndices</default>
    <method name="type" >
-    <description>Return the type of the extracted property.</description>
+    <description>
+    Return the type of the extracted property.
+    </description>
     <type>type(enumerationOutputAnalysisPropertyTypeType)</type>
     <pass>yes</pass>
     <code>
@@ -49,7 +50,9 @@ module Node_Property_Extractors
     </code>
    </method>
    <method name="quantity" >
-    <description>Return the class of the extracted property.</description>
+    <description>
+    Return the class of the extracted property.
+    </description>
     <type>type(enumerationOutputAnalysisPropertyQuantityType)</type>
     <pass>yes</pass>
     <code>
@@ -58,7 +61,9 @@ module Node_Property_Extractors
     </code>
    </method>
    <method name="addInstances" >
-    <description>Add multiple instances of this property to a \mono{multiCounter} object.</description>
+    <description>
+    Add multiple instances of this property to a ``multiCounter`` object.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode    ), intent(inout) :: node</argument>
@@ -73,9 +78,11 @@ module Node_Property_Extractors
 
   ! Enumerations for galactic components.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>galacticComponent</name>
-   <description>Specifies the galactic component for various node property extractors.</description>
+   <description>
+   Specifies the galactic component for various node property extractors.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="disk"              />

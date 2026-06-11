@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a random number generator class which utilizes the \gls{gsl} random number generators.
+  !!{RST
+  Implements a random number generator class which utilizes the :term:`GSL` random number generators.
   !!}
 
   ! Add dependency on GSL library.
@@ -28,7 +28,7 @@
   use            :: Resource_Manager, only : resourceManager
 
   type :: gslRandomNumberGeneratorWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL random number generators.
      !!}
      type(c_ptr) :: rng=c_null_ptr
@@ -37,13 +37,15 @@
   end type gslRandomNumberGeneratorWrapper
   
   !![
-  <randomNumberGenerator name="randomNumberGeneratorGSL">
-   <description>A random number generator class which utilizes the \gls{gsl} random number generators.</description>
+  <randomNumberGenerator name="randomNumberGeneratorGSL" docformat="rst">
+   <description>
+   A random number generator class which utilizes the :term:`GSL` random number generators.
+   </description>
   </randomNumberGenerator>
   !!]
   type, extends(randomNumberGeneratorClass) :: randomNumberGeneratorGSL
-     !!{
-     A random number generator class which utilizes the \gls{gsl} random number generators.
+     !!{RST
+     A random number generator class which utilizes the :term:`GSL` random number generators.
      !!}
      private
      type   (resourceManager                )          :: randomNumberGeneratorManager
@@ -67,8 +69,8 @@
   end type randomNumberGeneratorGSL
 
   interface randomNumberGeneratorGSL
-     !!{
-     Constructors for the \refClass{randomNumberGeneratorGSL} random number generator class.
+     !!{RST
+     Constructors for the ``randomNumberGeneratorGSL`` random number generator class.
      !!}
      module procedure gslConstructorParameters
      module procedure gslConstructorInternal
@@ -82,7 +84,7 @@
 
   interface
      function gsl_rng_alloc(T) bind(c,name='gsl_rng_alloc')
-       !!{
+       !!{RST
        Template for the GSL random number generator allocate function.
        !!}
        import c_ptr
@@ -91,7 +93,7 @@
      end function gsl_rng_alloc
      
      subroutine gsl_rng_set(r,s) bind(c,name='gsl_rng_set')
-       !!{
+       !!{RST
        Template for the GSL random number generator set function.
        !!}
        import c_ptr, c_long
@@ -100,7 +102,7 @@
      end subroutine gsl_rng_set
 
      subroutine gsl_rng_free(r) bind(c,name='gsl_rng_free')
-       !!{
+       !!{RST
        Template for the GSL random number generator free function.
        !!}
        import c_ptr
@@ -108,7 +110,7 @@
      end subroutine gsl_rng_free
 
      function gsl_rng_min(r) bind(c,name='gsl_rng_min')
-       !!{
+       !!{RST
        Template for the GSL random number generator minimum function.
        !!}
        import c_ptr, c_long
@@ -117,7 +119,7 @@
      end function gsl_rng_min
 
      function gsl_rng_max(r) bind(c,name='gsl_rng_max')
-       !!{
+       !!{RST
        Template for the GSL random number generator maximum function.
        !!}
        import c_ptr, c_long
@@ -126,7 +128,7 @@
      end function gsl_rng_max
 
      function gsl_rng_uniform_int(r,n) bind(c,name='gsl_rng_uniform_int')
-       !!{
+       !!{RST
        Template for the GSL random number generator sampling function with a given upper bound.
        !!}
        import c_ptr, c_long
@@ -136,7 +138,7 @@
      end function gsl_rng_uniform_int
 
      function gsl_rng_get(r) bind(c,name='gsl_rng_get')
-       !!{
+       !!{RST
        Template for the GSL random number generator sampling function.
        !!}
        import c_ptr, c_long
@@ -145,7 +147,7 @@
      end function gsl_rng_get
 
      function gsl_rng_uniform(r) bind(c,name='gsl_rng_uniform')
-       !!{
+       !!{RST
        Template for the GSL random number generator uniform sampling function.
        !!}
        import c_ptr, c_double
@@ -154,7 +156,7 @@
      end function gsl_rng_uniform
 
      function gsl_ran_poisson(r,mu) bind(c,name='gsl_ran_poisson')
-       !!{
+       !!{RST
        Template for the GSL random number generator Poisson sampling function.
        !!}
        import c_ptr, c_int, c_double
@@ -164,7 +166,7 @@
      end function gsl_ran_poisson
 
      function gsl_ran_gaussian(r,sigma) bind(c,name='gsl_ran_gaussian')
-       !!{
+       !!{RST
        Template for the GSL random number generator Gaussian sampling function.
        !!}
        import c_ptr, c_double
@@ -174,7 +176,7 @@
      end function gsl_ran_gaussian
 
      function gsl_rng_clone(r) bind(c,name='gsl_rng_clone')
-       !!{
+       !!{RST
        Template for the GSL random number generator state clone function.
        !!}
        import c_ptr
@@ -183,7 +185,7 @@
      end function gsl_rng_clone
 
      function gsl_rng_fwrite(stream,r) bind(c,name='gsl_rng_fwrite')
-       !!{
+       !!{RST
        Template for the GSL random number generator state write function.
        !!}
        import c_ptr, c_int
@@ -192,7 +194,7 @@
      end function gsl_rng_fwrite
 
      function gsl_rng_fread(stream,r) bind(c,name='gsl_rng_fread')
-       !!{
+       !!{RST
        Template for the GSL random number generator state read function.
        !!}
        import c_ptr, c_int
@@ -201,7 +203,7 @@
      end function gsl_rng_fread
 
      subroutine gsl_rng_env_setup() bind(c,name='gsl_rng_env_setup')
-       !!{
+       !!{RST
        Template for function used to set up default GSL random number generator.
        !!}
      end subroutine gsl_rng_env_setup
@@ -210,8 +212,8 @@
 contains
   
   function gslConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{randomNumberGeneratorGSL} random number generator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``randomNumberGeneratorGSL`` random number generator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -221,22 +223,28 @@ contains
     logical                                          :: ompThreadOffset, mpiRankOffset
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>seed</name>
       <defaultValue>219_c_long</defaultValue>
-      <description>A seed value for the random number generator.</description>
+      <description>
+      A seed value for the random number generator.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ompThreadOffset</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, offset the seed by the OpenMP thread number.</description>
+      <description>
+      If true, offset the seed by the OpenMP thread number.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mpiRankOffset</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, offset the seed by the MPI process rank.</description>
+      <description>
+      If true, offset the seed by the MPI process rank.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -248,8 +256,8 @@ contains
   end function gslConstructorParameters
 
   function gslConstructorInternal(seed_,ompThreadOffset,mpiRankOffset) result(self)
-    !!{
-    Internal constructor for the \refClass{randomNumberGeneratorGSL} random number generator class.
+    !!{RST
+    Internal constructor for the ``randomNumberGeneratorGSL`` random number generator class.
     !!}
 #ifdef USEMPI
     use    :: MPI_F08, only : MPI_Comm_Rank     , MPI_Comm_World
@@ -283,8 +291,10 @@ contains
     allocate(self%randomNumberGenerator)
     self%randomNumberGenerator%rng=GSL_RNG_Alloc(GSL_Rng_Default)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_                     => self%randomNumberGenerator
     self%randomNumberGeneratorManager =  resourceManager(dummyPointer_)
@@ -306,8 +316,8 @@ contains
   end function gslConstructorInternal
   
   subroutine gslRandomNumberGeneratorWrapperDestructor(self)
-    !!{
-    Destructor for the \refClass{gslRandomNumberGeneratorWrapper} random number generator class.
+    !!{RST
+    Destructor for the ``gslRandomNumberGeneratorWrapper`` random number generator class.
     !!}
     implicit none
     type(gslRandomNumberGeneratorWrapper), intent(inout) :: self
@@ -317,7 +327,7 @@ contains
   end subroutine gslRandomNumberGeneratorWrapperDestructor
 
   logical function gslMPIIndependent(self)
-    !!{
+    !!{RST
     Return true if this random number generator produces independent sequences per MPI process.
     !!}
     implicit none    
@@ -332,7 +342,7 @@ contains
   end function gslMPIIndependent
 
   logical function gslOpenMPIndependent(self)
-    !!{
+    !!{RST
     Return true if this random number generator produces independent sequences per OpenMP thread.
     !!}
     implicit none    
@@ -343,7 +353,7 @@ contains
   end function gslOpenMPIndependent
 
   function gslRangeMinimum(self)
-    !!{
+    !!{RST
     Return the minimum of the range.
     !!}
     implicit none
@@ -355,7 +365,7 @@ contains
   end function gslRangeMinimum
 
   function gslRangeMaximum(self)
-    !!{
+    !!{RST
     Return the maximum of the range.
     !!}
     implicit none
@@ -367,7 +377,7 @@ contains
   end function gslRangeMaximum
 
   function gslSample(self,n)
-    !!{
+    !!{RST
     Sample a random integer.
     !!}
     implicit none
@@ -387,7 +397,7 @@ contains
   end function gslSample
 
   double precision function gslUniformSample(self)
-    !!{
+    !!{RST
     Sample from a uniform distribution on the interval [0,1).
     !!}
     implicit none
@@ -398,7 +408,7 @@ contains
   end function gslUniformSample
 
   integer function gslPoissonSample(self,mean)
-    !!{
+    !!{RST
     Sample from a Poisson distribution with the given mean.
     !!}
     implicit none
@@ -410,7 +420,7 @@ contains
   end function gslPoissonSample
 
   double precision function gslStandardNormalSample(self)
-    !!{
+    !!{RST
     Sample from a standard normal distribution.
     !!}
     implicit none
@@ -421,7 +431,7 @@ contains
   end function gslStandardNormalSample
 
   function gslSeed(self) result(seed)
-    !!{
+    !!{RST
     Return the seed for this random number generator.
     !!}
     implicit none
@@ -433,7 +443,7 @@ contains
   end function gslSeed
 
   subroutine gslSeedSet(self,seed,offset)
-    !!{
+    !!{RST
     Reset the seed for this random number generator.
     !!}
     implicit none
@@ -450,8 +460,8 @@ contains
   end subroutine gslSeedSet
 
   subroutine gslDeepCopy(self,destination)
-    !!{
-    Perform a deep copy for the \mono{GSL} random number generator class.
+    !!{RST
+    Perform a deep copy for the ``GSL`` random number generator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -469,8 +479,10 @@ contains
        allocate(destination%randomNumberGenerator)
        destination%randomNumberGenerator%rng=GSL_Rng_Clone(self%randomNumberGenerator%rng)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_                            => destination%randomNumberGenerator
        destination%randomNumberGeneratorManager =  resourceManager(dummyPointer_)
@@ -484,7 +496,7 @@ contains
   end subroutine gslDeepCopy
   
   subroutine gslStateStore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store the state of this object to file.
     !!}
     use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &
@@ -533,7 +545,7 @@ contains
   end subroutine gslStateStore
 
   subroutine gslStateRestore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Restore the state of this object from file.
     !!}
     use            :: Display           , only : displayIndent          , displayMessage, displayUnindent, displayVerbosity, &

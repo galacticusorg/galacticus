@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the deceleration of orbiting satellites due to dark matter self-interactions.
 !!}
 
 module Satellite_Deceleration_SIDM
-  !!{
+  !!{RST
   Implements calculation of the deceleration of orbiting satellites due to dark matter self-interactions.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteDecelerationSIDM</name>
    <descriptiveName>Dark Matter Self-interaction Satellite Deceleration</descriptiveName>
-   <description>Class providing models of the deceleration of orbiting satellites due to dark matter self-interactions
-    (SIDM)---the momentum transfer between satellite dark matter particles and those of the host halo when the
-    dark matter cross-section is non-negligible. Elastic scattering between host and satellite particles exerts a
-    drag force on the satellite, decelerating it and causing orbital decay in addition to the standard
-    gravitational dynamical friction. Implementations return the acceleration vector (in km~s$^{-1}$~Gyr$^{-1}$)
-    imparted to the satellite, which is added to the equations of motion.</description>
+   <description>
+   Class providing models of the deceleration of orbiting satellites due to dark matter self-interactions (SIDM)---the momentum transfer between satellite dark matter particles and those of the host halo when the dark matter cross-section is non-negligible. Elastic scattering between host and satellite particles exerts a drag force on the satellite, decelerating it and causing orbital decay in addition to the standard gravitational dynamical friction. Implementations return the acceleration vector (in km s\ :math:`^{-1}` Gyr\ :math:`^{-1}`) imparted to the satellite, which is added to the equations of motion.
+   </description>
    <default>kummer2018</default>
    <method name="acceleration" >
-    <description>Returns the satellite acceleration due to dark matter self-interactions (in units of km/s/Gyr).</description>
+    <description>
+    Returns the satellite acceleration due to dark matter self-interactions (in units of km/s/Gyr).
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

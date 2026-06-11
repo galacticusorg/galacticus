@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree outputter class which performs analyzes on the trees.
   !!}
 
   use :: Output_Analyses, only : outputAnalysis, outputAnalysisClass
 
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterAnalyzer">
-   <description>A merger tree outputter class which performs analyzes on the trees.</description>
+  <mergerTreeOutputter name="mergerTreeOutputterAnalyzer" docformat="rst">
+   <description>
+   A merger tree outputter class which performs analyzes on the trees.
+   </description>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterAnalyzer
-     !!{
+     !!{RST
      Implementation of a merger tree outputter class which performs analyzes on the trees.
      !!}
      private
@@ -43,8 +45,8 @@
   end type mergerTreeOutputterAnalyzer
 
   interface mergerTreeOutputterAnalyzer
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter.
+     !!{RST
+     Constructors for the ``mergerTreeOutputterAnalyzer`` merger tree outputter.
      !!}
      module procedure analyzerConstructorParameters
      module procedure analyzerConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function analyzerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeOutputterAnalyzer`` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function analyzerConstructorParameters
 
   function analyzerConstructorInternal(outputAnalysis_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOutputterAnalyzer} merger tree outputter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOutputterAnalyzer`` merger tree outputter class.
     !!}
     implicit none
     type (mergerTreeOutputterAnalyzer)                        :: self
@@ -88,8 +90,8 @@ contains
   end function analyzerConstructorInternal
 
   subroutine analyzerDestructor(self)
-    !!{
-    Destructor  for the \mono{analyzer} merger tree outputter class.
+    !!{RST
+    Destructor  for the ``analyzer`` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterAnalyzer), intent(inout) :: self
@@ -101,8 +103,8 @@ contains
   end subroutine analyzerDestructor
 
   subroutine analyzerOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
-    Write properties of nodes in \mono{tree} to the \glc\ output file.
+    !!{RST
+    Write properties of nodes in ``tree`` to the Galacticus output file.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
@@ -141,7 +143,7 @@ contains
   end subroutine analyzerOutputTree
 
   subroutine analyzerOutputNode(self,node,indexOutput,outputType)
-    !!{
+    !!{RST
     Perform no output.
     !!}
     use :: Error, only : Error_Report
@@ -157,7 +159,7 @@ contains
   end subroutine analyzerOutputNode
 
   subroutine analyzerReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the outputter.
     !!}
     use :: Error, only : Error_Report
@@ -175,7 +177,7 @@ contains
   end subroutine analyzerReduce
 
   subroutine analyzerFinalize(self)
-    !!{
+    !!{RST
     Finalize merger tree output by finalizing analyses.
     !!}
     use :: Output_HDF5, only : outputFileIsOpen

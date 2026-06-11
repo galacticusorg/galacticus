@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for spheroid stellar mass.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterSpheroidStellarMass">
+  <galacticFilter name="galacticFilterSpheroidStellarMass" docformat="rst">
    <description>
-   A galactic high-pass filter for stellar mass. Galaxies with a spheroid stellar mass greater than or equal
-   to a fixed threshold, $M_{\star,0}=$\mono{[massThreshold]}.
+   A galactic high-pass filter for stellar mass. Galaxies with a spheroid stellar mass greater than or equal to a fixed threshold, :math:`M_{\star,0}=`\ ``[massThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterSpheroidStellarMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for spheroid stellar mass.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for spheroid stellar mass.
   end type galacticFilterSpheroidStellarMass
 
   interface galacticFilterSpheroidStellarMass
-     !!{
-     Constructors for the \refClass{galacticFilterSpheroidStellarMass} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterSpheroidStellarMass`` galactic filter class.
      !!}
      module procedure spheroidStellarMassConstructorParameters
      module procedure spheroidStellarMassConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for spheroid stellar mass.
 contains
 
   function spheroidStellarMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterSpheroidStellarMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterSpheroidStellarMass`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,10 +60,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the stellar mass threshold for the spheroid stellar mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the stellar mass threshold for the spheroid stellar mass galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterSpheroidStellarMass(massThreshold)
@@ -75,8 +76,8 @@ contains
   end function spheroidStellarMassConstructorParameters
 
   function spheroidStellarMassConstructorInternal(massThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterSpheroidStellarMass} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterSpheroidStellarMass`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterSpheroidStellarMass)                :: self
@@ -89,7 +90,7 @@ contains
   end function spheroidStellarMassConstructorInternal
 
   logical function spheroidStellarMassPasses(self,node)
-    !!{
+    !!{RST
     Implement a  stellar mass high-pass galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode

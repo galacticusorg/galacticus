@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of Gamma functions.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements calculations of Gamma functions.
 !; gsl
 
 module Gamma_Functions
-  !!{
+  !!{RST
   Implements calculations of Gamma functions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
@@ -36,7 +36,7 @@ module Gamma_Functions
 
   interface
      function gsl_sf_gamma_inc(a,x) bind(c,name='gsl_sf_gamma_inc')
-       !!{
+       !!{RST
        Template for the GSL unnormalized incomplete Gamma function.
        !!}
        import
@@ -45,7 +45,7 @@ module Gamma_Functions
      end function gsl_sf_gamma_inc
 
      function gsl_sf_gamma_inc_Q(a,x) bind(c,name='gsl_sf_gamma_inc_Q')
-       !!{
+       !!{RST
        Template for the GSL incomplete Gamma function.
        !!}
        import
@@ -54,7 +54,7 @@ module Gamma_Functions
      end function gsl_sf_gamma_inc_Q
 
      function gsl_sf_gamma_inc_P(a,x) bind(c,name='gsl_sf_gamma_inc_P')
-       !!{
+       !!{RST
        Template for the GSL complementary incomplete Gamma function.
        !!}
        import
@@ -63,7 +63,7 @@ module Gamma_Functions
      end function gsl_sf_gamma_inc_P
 
      function gsl_sf_gamma(x) bind(c,name='gsl_sf_gamma')
-       !!{
+       !!{RST
        Template for the GSL Gamma function.
        !!}
        import
@@ -72,7 +72,7 @@ module Gamma_Functions
      end function gsl_sf_gamma
 
      function gsl_sf_lngamma(x) bind(c,name='gsl_sf_lngamma')
-       !!{
+       !!{RST
        Template for the GSL log-of-the-Gamma function.
        !!}
        import
@@ -81,8 +81,8 @@ module Gamma_Functions
      end function gsl_sf_lngamma
 
      function gsl_sf_psi(x) bind(c,name='gsl_sf_psi')
-       !!{
-       Template for the GSL digamma (aka ``polygamma'' or ``$\psi$'') function of order 0.
+       !!{RST
+       Template for the GSL digamma (aka "polygamma" or ":math:`\psi`") function of order 0.
        !!}
        import
        real(c_double)        :: gsl_sf_psi
@@ -93,7 +93,7 @@ module Gamma_Functions
 contains
 
   double precision function Gamma_Function_Incomplete_Unnormalized(exponent,argument)
-    !!{
+    !!{RST
     Computes the unnormalized incomplete Gamma function.
     !!}
     implicit none
@@ -104,7 +104,7 @@ contains
   end function Gamma_Function_Incomplete_Unnormalized
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
-    !!{
+    !!{RST
     Computes the incomplete Gamma function.
     !!}
     implicit none
@@ -115,7 +115,7 @@ contains
   end function Gamma_Function_Incomplete
 
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
-    !!{
+    !!{RST
     Computes the complementary incomplete Gamma function.
     !!}
     implicit none
@@ -126,7 +126,7 @@ contains
   end function Gamma_Function_Incomplete_Complementary
 
   double precision function Gamma_Function(exponent)
-    !!{
+    !!{RST
     Computes the Gamma function.
     !!}
     implicit none
@@ -137,7 +137,7 @@ contains
   end function Gamma_Function
 
   impure elemental double precision function Gamma_Function_Logarithmic(exponent)
-    !!{
+    !!{RST
     Computes the logarithm of the Gamma function.
     !!}
     implicit none
@@ -148,7 +148,7 @@ contains
   end function Gamma_Function_Logarithmic
 
   double precision function Digamma_Function(argument)
-    !!{
+    !!{RST
     Computes the digamma function.
     !!}
     implicit none
@@ -159,8 +159,8 @@ contains
   end function Digamma_Function
 
   double precision function Inverse_Gamma_Function_Incomplete_Complementary(a,P)
-    !!{
-    Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
+    !!{RST
+    Returns the inverse of the incomplete function. That is, it returns :math:`x` given :math:`P(a,x)`.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
@@ -194,8 +194,8 @@ contains
   end function Inverse_Gamma_Function_Incomplete_Complementary
 
   double precision function Inverse_Gamma_Function_Incomplete(a,Q)
-    !!{
-    Returns the inverse of the incomplete function. That is, it returns $x$ given $Q(a,x)$.
+    !!{RST
+    Returns the inverse of the incomplete function. That is, it returns :math:`x` given :math:`Q(a,x)`.
     !!}
     implicit none
     double precision, intent(in   ) :: Q, a

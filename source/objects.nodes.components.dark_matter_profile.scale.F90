@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a dark matter profile method that provides a scale radius.
 !!}
 
 module Node_Component_Dark_Matter_Profile_Scale
-  !!{
+  !!{RST
   Implements a dark matter profile method that provides a scale radius.
   !!}
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
@@ -84,7 +84,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Initialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the scale dark matter profile component.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -106,7 +106,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -128,7 +128,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -148,7 +148,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Dark_Matter_Profile_Scale_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the dark matter profile is physically plausible for radius solving tasks.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
@@ -179,8 +179,8 @@ contains
   <scaleSetTask function="Node_Component_Dark_Matter_Profile_Scale_Scale_Set"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
@@ -203,7 +203,7 @@ contains
   <stateStoreTask function="Node_Component_Dark_Matter_Profile_Scale_State_Store"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -224,7 +224,7 @@ contains
   <stateRetrieveTask function="Node_Component_Dark_Matter_Profile_Scale_State_Restore"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -242,7 +242,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_State_Restore
 
   function Node_Component_Dark_Matter_Profile_Scale_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     Return the mass distribution associated with the dark matter profile.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale

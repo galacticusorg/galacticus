@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a likelihood class for posterior sampling simulations.
 !!}
 
 module Models_Likelihoods
-  !!{
+  !!{RST
   Implements a likelihood class for posterior sampling simulations.
   !!}
   use :: Model_Parameters              , only : modelParameterList
@@ -31,17 +31,16 @@ module Models_Likelihoods
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleLikelihood</name>
    <descriptiveName>Posterior Sampling Likelihoods</descriptiveName>
-   <description>Class providing likelihood functions for Bayesian posterior sampling simulations---the log-probability
-    $\ln\mathcal{L}(\boldsymbol{\theta})$ that the observational data would be observed given model
-    parameters $\boldsymbol{\theta}$. Implementations compare \glc\ model predictions with observational
-    constraints (e.g.\ stellar mass functions, sizes, colors) and return the log-likelihood and its
-    variance. The likelihood is combined with the prior from \refClass{modelParameterClass} objects to
-    drive the posterior sampler toward the best-fit parameter region.</description>
+   <description>
+   Class providing likelihood functions for Bayesian posterior sampling simulations---the log-probability :math:`\ln\mathcal{L}(\boldsymbol{\theta})` that the observational data would be observed given model parameters :math:`\boldsymbol{\theta}`. Implementations compare Galacticus model predictions with observational constraints (e.g.\ stellar mass functions, sizes, colors) and return the log-likelihood and its variance. The likelihood is combined with the prior from ``modelParameterClass`` objects to drive the posterior sampler toward the best-fit parameter region.
+   </description>
    <method name="evaluate" >
-    <description>Evaluate the log-likelihood $\ln\mathcal{L}$ at the current \mono{simulationState} given the active and inactive model parameter lists, returning the log-likelihood value and optionally its variance for stochastic estimators.</description>
+    <description>
+    Evaluate the log-likelihood :math:`\ln\mathcal{L}` at the current ``simulationState`` given the active and inactive model parameter lists, returning the log-likelihood value and optionally its variance for stochastic estimators.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -54,7 +53,9 @@ module Models_Likelihoods
     <argument>logical                                          , intent(inout), optional     :: forceAcceptance</argument>
    </method>
    <method name="willEvaluate" >
-    <description>Returns true if the likelihood will be evaluated for this state.</description>
+    <description>
+    Returns true if the likelihood will be evaluated for this state.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState</argument>
@@ -67,12 +68,16 @@ module Models_Likelihoods
     </code>
    </method>
    <method name="functionChanged" >
-    <description>Respond to possible changes in the likelihood function.</description>
+    <description>
+    Respond to possible changes in the likelihood function.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="restore" >
-    <description>Log a report on convergence state to the given file unit.</description>
+    <description>
+    Log a report on convergence state to the given file unit.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(:) :: simulationState</argument>

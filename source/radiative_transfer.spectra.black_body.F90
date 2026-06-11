@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferSpectrum name="radiativeTransferSpectrumBlackBody">
-   <description>A photon spectrum class that computes the spectral luminosity of a thermal blackbody source for use in radiative transfer calculations, scaling the Planck function to a specified bolometric luminosity. The blackbody temperature and total bolometric luminosity are set by the \mono{[temperature]} (in Kelvin) and \mono{[luminosityBolometric]} (in $L_\odot$) parameters.</description>
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumBlackBody" docformat="rst">
+   <description>
+   A photon spectrum class that computes the spectral luminosity of a thermal blackbody source for use in radiative transfer calculations, scaling the Planck function to a specified bolometric luminosity. The blackbody temperature and total bolometric luminosity are set by the ``[temperature]`` (in Kelvin) and ``[luminosityBolometric]`` (in :math:`L_\odot`) parameters.
+   </description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumBlackBody
-     !!{
+     !!{RST
      Implementation of a black body spectrum for radiative transfer calculations.
      !!}
      private
@@ -35,8 +37,8 @@
   end type radiativeTransferSpectrumBlackBody
   
   interface radiativeTransferSpectrumBlackBody
-     !!{
-     Constructors for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class.
+     !!{RST
+     Constructors for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -45,9 +47,8 @@
 contains
 
   function blackBodyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -56,16 +57,20 @@ contains
     double precision                                                    :: temperature, luminosityBolometric
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperature</name>
       <defaultValue>5.0d3</defaultValue>
-      <description>The temperature of the black body spectrum (in Kelvin).</description>
+      <description>
+      The temperature of the black body spectrum (in Kelvin).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminosityBolometric</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The bolometric luminosity of the black body spectrum (in $L_\odot$).</description>
+      <description>
+      The bolometric luminosity of the black body spectrum (in :math:`L_\odot`).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +82,8 @@ contains
   end function blackBodyConstructorParameters
 
   function blackBodyConstructorInternal(temperature,luminosityBolometric) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumBlackBody} radiative transfer spectrum class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class.
     !!}
     use :: Thermodynamics_Radiation, only : Blackbody_Radiance
     implicit none
@@ -96,7 +101,7 @@ contains
   end function blackBodyConstructorInternal
 
   double precision function blackBodyLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !!{
+    !!{RST
     Compute the luminosity in the given wavelength range for a black body spectrum.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -113,7 +118,7 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !!{
+      !!{RST
       Integrand over black body spectrum.
       !!}
       use :: Thermodynamics_Radiation, only : Blackbody_Emission, radianceTypeWavelength
@@ -127,7 +132,7 @@ contains
   end function blackBodyLuminosity
 
   double precision function blackBodySpectrum(self,wavelength)
-    !!{
+    !!{RST
     Return the spectrum of the black body.
     !!}
     use :: Thermodynamics_Radiation, only : Blackbody_Emission, radianceTypeWavelength

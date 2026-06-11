@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a dump to \gls{graphviz} operator on merger trees.
+!!{RST
+Implements a dump to :term:`GraphViz` operator on merger trees.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   
   !![
-  <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz">
+  <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz" docformat="rst">
    <description>
-      A merger tree operator class which dumps the full structure of each merger tree to a file using the \gls{graphviz}
-      format. All trees with root node basic mass between \mono{[massMinimum]} and \mono{[massMaximum]} will be dumped to a file named ``\mono{mergerTreeDump:\textless
-      treeIndex\textgreater:1.gv}'' in the directory specified by \mono{[path]}. If \mono{[scaleNodesByLogMass]}$=$\mono{true} then the size of each \gls{graphviz} node is scaled in proportion to
-      the logarithm of the halo mass. If \mono{[edgeLengthsToTimes]}$=$\mono{true} then the
-      lengths of edges in the \gls{graphviz} graph are scaled in proportion to the time difference between the connected nodes.
+   A merger tree operator class which dumps the full structure of each merger tree to a file using the :term:`GraphViz` format. All trees with root node basic mass between ``[massMinimum]`` and ``[massMaximum]`` will be dumped to a file named "``mergerTreeDump:\textless treeIndex\textgreater:1.gv``" in the directory specified by ``[path]``. If ``[scaleNodesByLogMass]``\ :math:`=`\ ``true`` then the size of each :term:`GraphViz` node is scaled in proportion to the logarithm of the halo mass. If ``[edgeLengthsToTimes]``\ :math:`=`\ ``true`` then the lengths of edges in the :term:`GraphViz` graph are scaled in proportion to the time difference between the connected nodes.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDumpToGraphViz
-     !!{
-     A dump to \gls{graphviz} merger tree operator class.
+     !!{RST
+     A dump to :term:`GraphViz` merger tree operator class.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -52,8 +48,8 @@ Implements a dump to \gls{graphviz} operator on merger trees.
   end type mergerTreeOperatorDumpToGraphViz
 
   interface mergerTreeOperatorDumpToGraphViz
-     !!{
-     Constructors for the dump to \gls{graphviz} merger tree operator class.
+     !!{RST
+     Constructors for the dump to :term:`GraphViz` merger tree operator class.
      !!}
      module procedure dumpToGraphVizConstructorParameters
      module procedure dumpToGraphVizConstructorInternal
@@ -62,8 +58,8 @@ Implements a dump to \gls{graphviz} operator on merger trees.
 contains
 
   function dumpToGraphVizConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the dump-to-\gls{graphviz} merger tree operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the dump-to-:term:`GraphViz` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,53 +73,69 @@ contains
          &                                                               useNodeLabels
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>path</name>
       <defaultValue>var_str('.')</defaultValue>
       <source>parameters</source>
-      <description>Specifies the directory to which merger tree structure should be dumped.</description>
+      <description>
+      Specifies the directory to which merger tree structure should be dumped.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+      <description>
+      Specifies the minimum root mass for which merger tree structure should be dumped.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
       <source>parameters</source>
-      <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+      <description>
+      Specifies the minimum root mass for which merger tree structure should be dumped.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>Specifies the minimum redshift for which merger tree structure should be dumped.</description>
+      <description>
+      Specifies the minimum redshift for which merger tree structure should be dumped.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>100.0d0</defaultValue>
       <source>parameters</source>
-      <description>Specifies the maximum redshift for which merger tree structure should be dumped.</description>
+      <description>
+      Specifies the maximum redshift for which merger tree structure should be dumped.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleNodesByLogMass</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether or not node sizes should be scaled by the logarithm of their mass.</description>
+      <description>
+      Specifies whether or not node sizes should be scaled by the logarithm of their mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>edgeLengthsToTimes</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
+      <description>
+      Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useNodeLabels</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, label nodes in the graph with any node labels. Otherwise, label using node IDs.</description>
+      <description>
+      If true, label nodes in the graph with any node labels. Otherwise, label using node IDs.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -146,8 +158,8 @@ contains
   end function dumpToGraphVizConstructorParameters
 
   function dumpToGraphVizConstructorInternal(path,massMinimum,massMaximum,timeMinimum,timeMaximum,scaleNodesByLogMass,edgeLengthsToTimes,useNodeLabels,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the dump-to-\gls{graphviz} merger tree operator class.
+    !!{RST
+    Internal constructor for the dump-to-:term:`GraphViz` merger tree operator class.
     !!}
     implicit none
     type            (mergerTreeOperatorDumpToGraphViz)                        :: self
@@ -167,8 +179,8 @@ contains
   end function dumpToGraphVizConstructorInternal
 
   subroutine dumpToGraphVizDestructor(self)
-    !!{
-    Destructor for the dump-to-\gls{graphviz} merger tree operator class.
+    !!{RST
+    Destructor for the dump-to-:term:`GraphViz` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorDumpToGraphViz), intent(inout) :: self
@@ -180,8 +192,8 @@ contains
   end subroutine dumpToGraphVizDestructor
 
   subroutine dumpToGraphVizOperatePreEvolution(self,tree)
-    !!{
-    Output the structure of \mono{tree}.
+    !!{RST
+    Output the structure of ``tree``.
     !!}
     use :: Galacticus_Nodes , only : mergerTree      , nodeComponentBasic
     use :: Merger_Trees_Dump, only : Merger_Tree_Dump

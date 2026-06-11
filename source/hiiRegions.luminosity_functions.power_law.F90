@@ -19,24 +19,25 @@
 
 !+    Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implementation of a power law luminosity function for HII regions.
   !!}
 
   !![
-  <hiiRegionLuminosityFunction name="hiiRegionLuminosityFunctionPowerLaw">
+  <hiiRegionLuminosityFunction name="hiiRegionLuminosityFunctionPowerLaw" docformat="rst">
    <description>
-    An HII region luminosity function class in which the luminosity function is given by:
-    \begin{equation}
-     \phi(Q_H) \propto \left\{ \begin{array}{ll}  Q_\mathrm{H}^{-\alpha} &amp; \hbox{ if } Q_\mathrm{H,min} &lt; Q_\mathrm{H} &lt; Q_\mathrm{H,max} \\ 0 &amp; \hbox{ otherwise} \end{array} \right. ,
-    \end{equation}
-    Where $Q_H$ is the rate of photon production rate, $Q_\mathrm{H,min}=$\mono{[rateHydrogenIonizingPhotonsMinimum]} and $Q_\mathrm{H,max}=$\mono{[rateHydrogenIonizingPhotonsMaximum]} and
-    the minimum and maximum HII region luminosities respectively, and $\alpha=$\mono{[exponent]}.
+   An HII region luminosity function class in which the luminosity function is given by:
+
+   .. math::
+
+      \phi(Q_H) \propto \left\{ \begin{array}{ll}  Q_\mathrm{H}^{-\alpha} &amp; \hbox{ if } Q_\mathrm{H,min} &lt; Q_\mathrm{H} &lt; Q_\mathrm{H,max} \\ 0 &amp; \hbox{ otherwise} \end{array} \right. ,
+
+   Where :math:`Q_H` is the rate of photon production rate, :math:`Q_\mathrm{H,min}=`\ ``[rateHydrogenIonizingPhotonsMinimum]`` and :math:`Q_\mathrm{H,max}=`\ ``[rateHydrogenIonizingPhotonsMaximum]`` and the minimum and maximum HII region luminosities respectively, and :math:`\alpha=`\ ``[exponent]``.
    </description>
   </hiiRegionLuminosityFunction>
   !!]
   type, extends(hiiRegionLuminosityFunctionClass) :: hiiRegionLuminosityFunctionPowerLaw
-     !!{
+     !!{RST
      Implementation of a power law HII region luminosity function.
      !!}
      private
@@ -49,7 +50,7 @@
   end type hiiRegionLuminosityFunctionPowerLaw
 
   interface hiiRegionLuminosityFunctionPowerLaw
-     !!{
+     !!{RST
      Constructors for the hiiRegionLuminosityFunctionPowerLaw for star HII region luminosity function class.
      !!}
      module procedure powerLawCumulativeLuminosityConstructorParameters
@@ -59,9 +60,8 @@
 contains
 
   function powerLawCumulativeLuminosityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``hiiRegionLuminosityFunctionPowerLaw`` HII region luminosity function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,24 +70,34 @@ contains
     double precision                                                     :: rateHydrogenIonizingPhotonsMinimum, rateHydrogenIonizingPhotonsMaximum, &
          &                                                                  exponent
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <defaultValue>1.73d0</defaultValue>
-      <defaultSource>\citep{santoro_phangs-muse_2022}</defaultSource>
-      <description>Exponent of the differential luminosity function.</description>
+      <defaultSource>
+      :cite:p:`santoro_phangs-muse_2022`
+      </defaultSource>
+      <description>
+      Exponent of the differential luminosity function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateHydrogenIonizingPhotonsMinimum</name>
       <defaultValue>1.0d48</defaultValue>
-      <defaultSource>(\citealt{santoro_phangs-muse_2022}; approximate)</defaultSource>
-      <description>The minimum ionizing photon production rate ($Q_\mathrm{H,min}$, in photons/s) below which the power-law HII region luminosity function is truncated to zero.</description>
+      <defaultSource>
+      (:cite:author:`santoro_phangs-muse_2022` :cite:year:`santoro_phangs-muse_2022`; approximate)
+      </defaultSource>
+      <description>
+      The minimum ionizing photon production rate (:math:`Q_\mathrm{H,min}`, in photons/s) below which the power-law HII region luminosity function is truncated to zero.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateHydrogenIonizingPhotonsMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum ionizing photon production rate ($Q_\mathrm{H,max}$, in photons/s) above which the power-law HII region luminosity function is truncated to zero.</description>
+      <description>
+      The maximum ionizing photon production rate (:math:`Q_\mathrm{H,max}`, in photons/s) above which the power-law HII region luminosity function is truncated to zero.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -99,8 +109,8 @@ contains
   end function powerLawCumulativeLuminosityConstructorParameters
 
   function powerLawCumulativeLuminosityConstructorInternal(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent) result(self)
-    !!{
-    Internal constructor for the \refClass{hiiRegionLuminosityFunctionPowerLaw} HII region luminosity function class.
+    !!{RST
+    Internal constructor for the ``hiiRegionLuminosityFunctionPowerLaw`` HII region luminosity function class.
     !!}
     
     implicit none
@@ -121,7 +131,7 @@ contains
   end function powerLawCumulativeLuminosityConstructorInternal
 
   double precision function powerLawCumulativeDistributionFunction(self,rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) result(distributionFunction)
-    !!{
+    !!{RST
     Returns the fraction of HII regions in the given range of luminosity.
     !!}
     implicit none
@@ -145,8 +155,8 @@ contains
   end function powerLawCumulativeDistributionFunction
 
   double precision function powerLawCumulativeLuminosity(self,rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum) result(luminosity)
-    !!{
-    Returns the total luminosity, $Q_\mathrm{H}$ of HII regions in the given range of luminosity.
+    !!{RST
+    Returns the total luminosity, :math:`Q_\mathrm{H}` of HII regions in the given range of luminosity.
     !!}
     implicit none
     class           (hiiRegionLuminosityFunctionPowerLaw), intent(inout) :: self

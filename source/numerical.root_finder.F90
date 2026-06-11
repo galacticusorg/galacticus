@@ -23,11 +23,11 @@
 ! Add dependency on GSL library.
 !; gsl
 
-!!{
+!!{RST
 Contains a module which does root finding.
 !!}
 module Root_Finder
-  !!{
+  !!{RST
   Implements root finding.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_double       , c_int, c_null_ptr, c_ptr
@@ -38,9 +38,11 @@ module Root_Finder
 
   ! Enumeration of range expansion types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>rangeExpand</name>
-   <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a \mono{rootFinder} object.</description>
+   <description>
+   Used to specify the way in which the bracketing range should be expanded when searching for roots using a ``rootFinder`` object.
+   </description>
    <visibility>public</visibility>
    <entry label="null"           />
    <entry label="additive"       />
@@ -50,9 +52,11 @@ module Root_Finder
 
   ! Enumeration of sign expectations.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>rangeExpandSignExpect</name>
-   <description>Used to specify the expected sign of the root function when searching for roots using a \mono{rootFinder} object.</description>
+   <description>
+   Used to specify the expected sign of the root function when searching for roots using a ``rootFinder`` object.
+   </description>
    <entry label="negative" />
    <entry label="none"     />
    <entry label="positive" />
@@ -61,9 +65,11 @@ module Root_Finder
   
   ! Enumeration of stopping criteria.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>stoppingCriterion</name>
-   <description>Used to specify the stopping criterion to use when searching for roots using a \mono{rootFinder} object.</description>
+   <description>
+   Used to specify the stopping criterion to use when searching for roots using a ``rootFinder`` object.
+   </description>
    <visibility>public</visibility>
    <entry label="delta"    />
    <entry label="interval" />
@@ -87,7 +93,7 @@ module Root_Finder
   integer, public, parameter :: gsl_root_fdfsolver_steffenson=6
 
   type :: gslFunctionWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL functions.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -96,7 +102,7 @@ module Root_Finder
   end type gslFunctionWrapper
   
   type :: gslSolverWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL solvers.
      !!}
      logical        :: useDerivative
@@ -106,7 +112,7 @@ module Root_Finder
   end type gslSolverWrapper
   
   type :: rootFinder
-     !!{
+     !!{RST
      Type containing all objects required when calling the GSL root solver function.
      !!}
      private
@@ -169,7 +175,7 @@ module Root_Finder
   end type rootFinder
 
   interface rootFinder
-     !!{
+     !!{RST
      Interface to constructors for root finders.
      !!}
      module procedure rootFinderConstructorInternal
@@ -195,7 +201,7 @@ module Root_Finder
   end interface
 
   type :: rootFinderList
-     !!{
+     !!{RST
      Type used to maintain a list of root finder objects when root finding is performed recursively.
      !!}
      class           (rootFinder), pointer :: finder         => null()
@@ -223,7 +229,7 @@ module Root_Finder
 
   interface
      function gsl_root_fsolver_alloc(T) bind(c,name='gsl_root_fsolver_alloc')
-       !!{
+       !!{RST
        Template for the GSL root solver allocate function.
        !!}
        import
@@ -232,7 +238,7 @@ module Root_Finder
      end function gsl_root_fsolver_alloc
 
      function gsl_root_fdfsolver_alloc(T) bind(c,name='gsl_root_fdfsolver_alloc')
-       !!{
+       !!{RST
        Template for the GSL root solver allocate function.
        !!}
        import
@@ -241,7 +247,7 @@ module Root_Finder
      end function gsl_root_fdfsolver_alloc
 
      subroutine gsl_root_fsolver_free(s) bind(c,name='gsl_root_fsolver_free')
-       !!{
+       !!{RST
        Template for the GSL root solver free function.
        !!}
        import
@@ -249,7 +255,7 @@ module Root_Finder
      end subroutine gsl_root_fsolver_free
 
      subroutine gsl_root_fdfsolver_free(s) bind(c,name='gsl_root_fdfsolver_free')
-       !!{
+       !!{RST
        Template for the GSL root solver free function.
        !!}
        import
@@ -257,7 +263,7 @@ module Root_Finder
      end subroutine gsl_root_fdfsolver_free
      
      integer(c_int) function gsl_root_fsolver_set(s,f,x_lower,x_upper) bind(c,name='gsl_root_fsolver_set')
-       !!{
+       !!{RST
        Template for the GSL root solver set function.
        !!}
        import
@@ -266,7 +272,7 @@ module Root_Finder
      end function gsl_root_fsolver_set
 
      integer(c_int) function gsl_root_fdfsolver_set(s,fdf,root) bind(c,name='gsl_root_fdfsolver_set')
-       !!{
+       !!{RST
        Template for the GSL root solver set function.
        !!}
        import
@@ -275,7 +281,7 @@ module Root_Finder
      end function gsl_root_fdfsolver_set
 
      integer(c_int) function gsl_root_fsolver_iterate(s) bind(c,name='gsl_root_fsolver_iterate')
-       !!{
+       !!{RST
        Template for the GSL root solver iterate function.
        !!}
        import
@@ -283,7 +289,7 @@ module Root_Finder
      end function gsl_root_fsolver_iterate
 
      integer(c_int) function gsl_root_fdfsolver_iterate(s) bind(c,name='gsl_root_fdfsolver_iterate')
-       !!{
+       !!{RST
        Template for the GSL root solver iterate function.
        !!}
        import
@@ -291,7 +297,7 @@ module Root_Finder
      end function gsl_root_fdfsolver_iterate
 
      real(c_double) function gsl_root_fsolver_root(s) bind(c,name='gsl_root_fsolver_root')
-       !!{
+       !!{RST
        Template for the GSL root solver root function.
        !!}
        import
@@ -299,7 +305,7 @@ module Root_Finder
      end function gsl_root_fsolver_root
 
      real(c_double) function gsl_root_fdfsolver_root(s) bind(c,name='gsl_root_fdfsolver_root')
-       !!{
+       !!{RST
        Template for the GSL root solver root function.
        !!}
        import
@@ -307,7 +313,7 @@ module Root_Finder
      end function gsl_root_fdfsolver_root
 
      integer(c_int) function gsl_root_test_delta(x1,x0,epsabs,epsrel) bind(c,name='gsl_root_test_delta')
-       !!{
+       !!{RST
        Template for the GSL root solver test delta function.
        !!}
        import
@@ -316,7 +322,7 @@ module Root_Finder
      end function gsl_root_test_delta
 
      integer(c_int) function gsl_root_test_interval(x_lower,x_upper,epsabs,epsrel) bind(c,name='gsl_root_test_interval')
-       !!{
+       !!{RST
        Template for the GSL root solver test delta function.
        !!}
        import
@@ -325,7 +331,7 @@ module Root_Finder
      end function gsl_root_test_interval
 
      real(c_double) function gsl_root_fsolver_x_lower(s) bind(c,name='gsl_root_fsolver_x_lower')
-       !!{
+       !!{RST
        Template for the GSL root solver x-lower function.
        !!}
        import
@@ -333,7 +339,7 @@ module Root_Finder
      end function gsl_root_fsolver_x_lower
 
      real(c_double) function gsl_root_fsolver_x_upper(s) bind(c,name='gsl_root_fsolver_x_upper')
-       !!{
+       !!{RST
        Template for the GSL root solver x-upper function.
        !!}
        import
@@ -341,8 +347,8 @@ module Root_Finder
      end function gsl_root_fsolver_x_upper
 
      function gsl_fsolver_type_get(i) bind(c,name='gsl_fsolver_type_get')
-       !!{
-       Template for GSL interface \mono{fsolver} type function.
+       !!{RST
+       Template for GSL interface ``fsolver`` type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fsolver_type_get
@@ -350,8 +356,8 @@ module Root_Finder
      end function gsl_fsolver_type_get
 
      function gsl_fdfsolver_type_get(i) bind(c,name='gsl_fdfsolver_type_get')
-       !!{
-       Template for GSL interface \mono{fdfsolver} type function.
+       !!{RST
+       Template for GSL interface ``fdfsolver`` type function.
        !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_fdfsolver_type_get
@@ -362,7 +368,7 @@ module Root_Finder
 contains
   
   function rootFinderConstructorInternal(rootFunction,rootFunctionDerivative,rootFunctionBoth,solverType,toleranceAbsolute,toleranceRelative,rangeExpandType,rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit,rangeDownwardLimit,rangeExpandUpwardSignExpect,rangeExpandDownwardSignExpect,testLimits,stoppingCriterion) result(self)
-    !!{
+    !!{RST
     Internal constructor for root finders.
     !!}
     use :: Error, only : Error_Report
@@ -435,8 +441,8 @@ contains
   end function rootFinderConstructorInternal
 
   subroutine gslFunctionWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslFunctionWrapper} object.
+    !!{RST
+    Destroy a ``gslFunctionWrapper`` object.
     !!}
     use :: Interface_GSL, only : gslFunctionDestroy
     implicit none
@@ -447,8 +453,8 @@ contains
   end subroutine gslFunctionWrapperDestructor
 
   subroutine gslSolverWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslSolverWrapper} object.
+    !!{RST
+    Destroy a ``gslSolverWrapper`` object.
     !!}
     implicit none
     type(gslSolverWrapper), intent(inout) :: self
@@ -462,8 +468,8 @@ contains
   end subroutine gslSolverWrapperDestructor
 
   logical function rootFinderIsInitialized(self)
-    !!{
-    Return whether a \mono{rootFinder} object is initialized.
+    !!{RST
+    Return whether a ``rootFinder`` object is initialized.
     !!}
     implicit none
     class(rootFinder), intent(in   ) :: self
@@ -473,10 +479,8 @@ contains
   end function rootFinderIsInitialized
 
   recursive double precision function rootFinderFindGuess(self,rootGuess,report,status)
-    !!{
-    Wrapper function for root finder finding that accepts an initial guess for the root. Multiple, generic entry points are used
-    here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
-    is performance critical.
+    !!{RST
+    Wrapper function for root finder finding that accepts an initial guess for the root. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function is performance critical.
     !!}
     implicit none
     class           (rootFinder   ), intent(inout), target   :: self
@@ -491,10 +495,8 @@ contains
   end function rootFinderFindGuess
   
   recursive double precision function rootFinderFindRange(self,rootRange,report,status)
-    !!{
-    Wrapper function for root finder finding that accepts an initial range for the root. Multiple, generic entry points are used
-    here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function
-    is performance critical.
+    !!{RST
+    Wrapper function for root finder finding that accepts an initial range for the root. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function is performance critical.
     !!}
     implicit none
     class           (rootFinder   )              , intent(inout), target   :: self
@@ -521,10 +523,8 @@ contains
   end function rootFinderFindRange
   
   recursive double precision function rootFinderFindRangeValueLow(self,rootRange,rootRangeValueLow,report,status)
-    !!{
-    Wrapper function for root finder finding that accepts an initial range for the root and function value at the lower end of that
-    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
-    result in faster performance, and this function is performance critical.    
+    !!{RST
+    Wrapper function for root finder finding that accepts an initial range for the root and function value at the lower end of that range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function is performance critical.
     !!}
     implicit none
     class  (rootFinder   )              , intent(inout), target   :: self
@@ -546,10 +546,8 @@ contains
   end function rootFinderFindRangeValueLow
 
   recursive double precision function rootFinderFindRangeValueHigh(self,rootRange,rootRangeValueHigh,report,status)
-    !!{
-    Wrapper function for root finder finding that accepts an initial range for the root and function value at the upper end of that
-    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
-    result in faster performance, and this function is performance critical.    
+    !!{RST
+    Wrapper function for root finder finding that accepts an initial range for the root and function value at the upper end of that range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function is performance critical.
     !!}
     implicit none
     class  (rootFinder   )              , intent(inout), target   :: self
@@ -571,10 +569,8 @@ contains
   end function rootFinderFindRangeValueHigh
 
   recursive double precision function rootFinderFindRangeValues(self,rootRange,rootRangeValues,report,status)
-    !!{
-    Wrapper function for root finder finding that accepts an initial range for the root and function values at the ends of that
-    range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to
-    result in faster performance, and this function is performance critical.    
+    !!{RST
+    Wrapper function for root finder finding that accepts an initial range for the root and function values at the ends of that range. Multiple, generic entry points are used here (instead of a single entry point with optional arguments) as it seems to result in faster performance, and this function is performance critical.
     !!}
     implicit none
     class  (rootFinder   )              , intent(inout), target   :: self
@@ -587,8 +583,8 @@ contains
   end function rootFinderFindRangeValues
 
   recursive double precision function rootFinderFind(self,rootRange,rootRangeValues,report,status)
-    !!{
-    Finds the root of the supplied \mono{root} function.
+    !!{RST
+    Finds the root of the supplied ``root`` function.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_funptr
     use            :: Display           , only : displayMessage            , verbosityLevelWarn   , displayIndent     , displayUnindent
@@ -660,8 +656,10 @@ contains
           self%functionInitialized              =.true.
           ! Initialize resource managers.
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	    <description>
+	    ICE when passing a derived type component to a class(*) function argument.
+	    </description>
           !!]
           dummyPointer_        => self%solver
           self%solverManager   =  resourceManager(dummyPointer_)
@@ -669,8 +667,10 @@ contains
 	  </workaround>
           !!]
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	    <description>
+	    ICE when passing a derived type component to a class(*) function argument.
+	    </description>
           !!]
           dummyPointer_        => self%gslFunction
           self%functionManager =  resourceManager(dummyPointer_)
@@ -694,8 +694,10 @@ contains
           self%functionInitialized              =.true.
           ! Initialize resource managers.
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	    <description>
+	    ICE when passing a derived type component to a class(*) function argument.
+	    </description>
           !!]
           dummyPointer_        => self%solver
           self%solverManager   =  resourceManager(dummyPointer_)
@@ -703,8 +705,10 @@ contains
 	  </workaround>
           !!]
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	    <description>
+	    ICE when passing a derived type component to a class(*) function argument.
+	    </description>
           !!]
           dummyPointer_        => self%gslFunction
           self%functionManager =  resourceManager(dummyPointer_)
@@ -1070,17 +1074,10 @@ contains
   contains
 
     subroutine popCurrentFinder()
-      !!{
-      Decrement the active-finder stack pointer and restore the
-      module-level \mono{currentFinder} pointer to the parent's slot
-      (or nullify it when the stack is empty).
+      !!{RST
+      Decrement the active-finder stack pointer and restore the module-level ``currentFinder`` pointer to the parent's slot (or nullify it when the stack is empty).
 
-      The pointer is re-derived from \mono{currentFinders(currentFinderIndex)},
-      not restored from a saved value, so if the array was grown by the
-      child frame this routine is exiting from, the parent's
-      \mono{currentFinder} is rebound against the new array before
-      control returns to the parent. This is what keeps the pointer
-      from dangling across recursive root-finding calls.
+      The pointer is re-derived from ``currentFinders(currentFinderIndex)``, not restored from a saved value, so if the array was grown by the child frame this routine is exiting from, the parent's ``currentFinder`` is rebound against the new array before control returns to the parent. This is what keeps the pointer from dangling across recursive root-finding calls.
       !!}
       implicit none
 
@@ -1094,9 +1091,8 @@ contains
     end subroutine popCurrentFinder
 
     subroutine reportState(includeExpectations)
-      !!{
-      Report on the state of the root finder. Callers must guard with
-      \mono{if (report\_)} — the routine itself no longer tests \mono{report\_}.
+      !!{RST
+      Report on the state of the root finder. Callers must guard with ``if (report_)`` — the routine itself no longer tests ``report_``.
       !!}
       implicit none
       logical, intent(in   ) :: includeExpectations
@@ -1141,8 +1137,8 @@ contains
   end function rootFinderFind
 
   subroutine rootFinderRootFunction(self,rootFunction)
-    !!{
-    Sets the function to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the function to use in a ``rootFinder`` object.
     !!}
     implicit none
     class    (rootFinder          ), intent(inout) :: self
@@ -1158,8 +1154,8 @@ contains
   end subroutine rootFinderRootFunction
 
   subroutine rootFinderRootFunctionDerivative(self,rootFunction,rootFunctionDerivative,rootFunctionBoth)
-    !!{
-    Sets the function to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the function to use in a ``rootFinder`` object.
     !!}
     implicit none
     class    (rootFinder                    ), intent(inout) :: self
@@ -1179,8 +1175,8 @@ contains
   end subroutine rootFinderRootFunctionDerivative
 
   subroutine rootFinderType(self,solverType)
-    !!{
-    Sets the type to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the type to use in a ``rootFinder`` object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1203,8 +1199,8 @@ contains
   end subroutine rootFinderType
 
   subroutine rootFinderTolerance(self,toleranceAbsolute,toleranceRelative)
-    !!{
-    Sets the tolerances to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the tolerances to use in a ``rootFinder`` object.
     !!}
     implicit none
     class           (rootFinder), intent(inout)           :: self
@@ -1216,8 +1212,8 @@ contains
   end subroutine rootFinderTolerance
 
   subroutine rootFinderRangeExpand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect,testLimits)
-    !!{
-    Sets the rules for range expansion to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the rules for range expansion to use in a ``rootFinder`` object.
     !!}
     implicit none
     class           (rootFinder                          ), intent(inout)           :: self
@@ -1275,8 +1271,8 @@ contains
   end subroutine rootFinderRangeExpand
   
   logical function rootFinderSolverTypeIsValid(self)
-    !!{
-    Sets the tolerances to use in a \mono{rootFinder} object.
+    !!{RST
+    Sets the tolerances to use in a ``rootFinder`` object.
     !!}
     implicit none
     class(rootFinder), intent(inout) :: self
@@ -1300,8 +1296,8 @@ contains
   end function rootFinderSolverTypeIsValid
 
   recursive function rootFunctionWrapper(x) bind(c)
-    !!{
-    Wrapper function callable by \mono{GSL} used in root finding.
+    !!{RST
+    Wrapper function callable by ``GSL`` used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x
@@ -1322,8 +1318,8 @@ contains
   end function rootFunctionWrapper
 
   recursive function rootFunctionDerivativeWrapper(x) bind(c)
-    !!{
-    Wrapper function callable by \mono{GSL} used in root finding.
+    !!{RST
+    Wrapper function callable by ``GSL`` used in root finding.
     !!}
     implicit none
     real(c_double)                       :: rootFunctionDerivativeWrapper
@@ -1334,8 +1330,8 @@ contains
   end function rootFunctionDerivativeWrapper
 
   recursive subroutine rootFunctionBothWrapper(x,parameters,f,df) bind(c)
-    !!{
-    Wrapper function callable by \mono{GSL} used in root finding.
+    !!{RST
+    Wrapper function callable by ``GSL`` used in root finding.
     !!}
     implicit none
     real(c_double), intent(in   ), value :: x

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for blackbody radiation fields.
   !!}
 
   !![
-  <radiationField name="radiationFieldBlackBody">
-   <description>A radiation field class that models thermal blackbody radiation, computing the photon flux at a given wavelength and redshift using the Planck function. The radiation field intensity is controlled by the \mono{[temperature]} parameter specifying the blackbody temperature in Kelvin.</description>
+  <radiationField name="radiationFieldBlackBody" docformat="rst">
+   <description>
+   A radiation field class that models thermal blackbody radiation, computing the photon flux at a given wavelength and redshift using the Planck function. The radiation field intensity is controlled by the ``[temperature]`` parameter specifying the blackbody temperature in Kelvin.
+   </description>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldBlackBody
-     !!{
+     !!{RST
      A radiation field class for blackbody fields.
      !!}
      private
@@ -46,8 +48,8 @@
   end type radiationFieldBlackBody
 
   interface radiationFieldBlackBody
-     !!{
-     Constructors for the \refClass{radiationFieldBlackBody} radiation field class.
+     !!{RST
+     Constructors for the ``radiationFieldBlackBody`` radiation field class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -56,8 +58,8 @@
 contains
 
   function blackBodyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldBlackBody} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``radiationFieldBlackBody`` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,10 +68,12 @@ contains
     double precision                                         :: temperature_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperature</name>
       <variable>temperature_</variable>
-      <description>The temperature (in Kelvin) of the blackbody radiation field, which sets the peak wavelength and total emitted flux via the Planck function.</description>
+      <description>
+      The temperature (in Kelvin) of the blackbody radiation field, which sets the peak wavelength and total emitted flux via the Planck function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -81,8 +85,8 @@ contains
   end function blackBodyConstructorParameters
 
   function blackBodyConstructorInternal(temperature_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldBlackBody} radiation field class.
+    !!{RST
+    Internal constructor for the ``radiationFieldBlackBody`` radiation field class.
     !!}
     implicit none
     type            (radiationFieldBlackBody)                :: self
@@ -95,7 +99,7 @@ contains
   end function blackBodyConstructorInternal
 
   double precision function blackBodyFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Return the flux of a blackBody radiation field.
     !!}
     use :: Numerical_Constants_Prefixes, only : centi
@@ -114,7 +118,7 @@ contains
   end function blackBodyFlux
 
   double precision function blackBodyTemperature(self)
-    !!{
+    !!{RST
     Return the temperature of a black body radiation field.
     !!}
     implicit none
@@ -125,7 +129,7 @@ contains
   end function blackBodyTemperature
 
   double precision function blackBodyTime(self)
-    !!{
+    !!{RST
     Return the time for which this radiation field is set.
     !!}
     use Error, only : Error_Report
@@ -139,7 +143,7 @@ contains
   end function blackBodyTime
 
   subroutine blackBodyTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time (and temperature) of the cosmic microwave background radiation field.
     !!}
     use Error, only : Error_Report
@@ -153,7 +157,7 @@ contains
   end subroutine blackBodyTimeSet
 
   logical function blackBodyTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return false as this radiation field depends on non-time variables.
     !!}
     implicit none

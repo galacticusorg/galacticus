@@ -17,32 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
   !!}
 
   use :: File_Utilities, only : file
 
   !![
-  <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
+  <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive" docformat="rst">
    <description>
-    This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
-    controlled by the following sub-parameters:
-    \begin{description}
-    \item[\mono{[gammaInitial]}] The initial value for $\gamma$.
-    \item[\mono{[gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
-      acceptance rate is out of range.
-    \item[\mono{[gammaMinimum]}] The smallest value allowed for $\gamma$.
-    \item[\mono{[gammaMaximum]}] The largest value allowed for $\gamma$.
-    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
-    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
-    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate.
-    \end{description}
+   This class adaptively changes :math:`\gamma` in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is controlled by the following sub-parameters:
+
+   ``[gammaInitial]``
+      The initial value for :math:`\gamma`.
+
+   ``[gammaFactor]``
+      The multiplicative factor by which :math:`\gamma` should be increased or decreased if the acceptance rate is out of range.
+
+   ``[gammaMinimum]``
+      The smallest value allowed for :math:`\gamma`.
+
+   ``[gammaMaximum]``
+      The largest value allowed for :math:`\gamma`.
+
+   ``[acceptanceRateMinimum]``
+      The minimum acceptance rate to accept before reducing :math:`\gamma`.
+
+   ``[acceptanceRateMaximum]``
+      The maximum acceptance rate to accept before reducing :math:`\gamma`.
+
+   ``[updateCount]``
+      The number of steps between successive checks of the acceptance rate.
    </description>
   </posteriorSampleDffrntlEvltnProposalSize>
   !!]
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeAdaptive
-     !!{
+     !!{RST
      Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
      !!}
      private
@@ -60,8 +70,8 @@
   end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
 
   interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
-     !!{
-     Constructors for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class.
+     !!{RST
+     Constructors for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -70,9 +80,8 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class which
-    builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,68 +96,92 @@ contains
     type            (varying_string                                 )                 :: logFileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileName</name>
-      <description>The name of a file to which to log reports of adjustments to $\gamma$. If empty, no reports are logged.</description>
+      <description>
+      The name of a file to which to log reports of adjustments to :math:`\gamma`. If empty, no reports are logged.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gammaInitial</name>
-      <description>The initial value of the proposal scaling parameter $\gamma$ used before the acceptance rate has been assessed and any adaptive adjustment has been made.</description>
+      <description>
+      The initial value of the proposal scaling parameter :math:`\gamma` used before the acceptance rate has been assessed and any adaptive adjustment has been made.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gammaMinimum</name>
-      <description>The minimum value to which the proposal scaling parameter $\gamma$ is permitted to be reduced during adaptive adjustment, preventing the step size from becoming vanishingly small.</description>
+      <description>
+      The minimum value to which the proposal scaling parameter :math:`\gamma` is permitted to be reduced during adaptive adjustment, preventing the step size from becoming vanishingly small.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gammaMaximum</name>
-      <description>The maximum value to which the proposal scaling parameter $\gamma$ is permitted to be increased during adaptive adjustment, preventing excessively large steps that would degrade acceptance rates.</description>
+      <description>
+      The maximum value to which the proposal scaling parameter :math:`\gamma` is permitted to be increased during adaptive adjustment, preventing excessively large steps that would degrade acceptance rates.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gammaAdjustFactor</name>
-      <description>The multiplicative factor by which $\gamma$ is increased or decreased at each adaptation step when the current acceptance rate falls outside the target range.</description>
+      <description>
+      The multiplicative factor by which :math:`\gamma` is increased or decreased at each adaptation step when the current acceptance rate falls outside the target range.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptanceRateMinimum</name>
-      <description>The minimum acceptable chain acceptance rate; if the measured acceptance rate falls below this threshold $\gamma$ is reduced to produce smaller, more easily accepted proposals.</description>
+      <description>
+      The minimum acceptable chain acceptance rate; if the measured acceptance rate falls below this threshold :math:`\gamma` is reduced to produce smaller, more easily accepted proposals.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptanceRateMaximum</name>
-      <description>The maximum acceptable chain acceptance rate; if the measured acceptance rate exceeds this threshold $\gamma$ is increased to produce larger proposals that explore the posterior more efficiently.</description>
+      <description>
+      The maximum acceptable chain acceptance rate; if the measured acceptance rate exceeds this threshold :math:`\gamma` is increased to produce larger proposals that explore the posterior more efficiently.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>updateCount</name>
-      <description>The number of steps between potential updates of the proposal size.</description>
+      <description>
+      The number of steps between potential updates of the proposal size.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outliersInAcceptanceRate</name>
       <defaultValue>.true.</defaultValue>
-      <description>The number of steps between potential updates of the proposal size.</description>
+      <description>
+      The number of steps between potential updates of the proposal size.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendLog</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, append to the existing log file, otherwise overwrite.</description>
+      <description>
+      If true, append to the existing log file, otherwise overwrite.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>restoreFromLog</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, restore the value of $\gamma$ from the log file.</description>
+      <description>
+      If true, restore the value of :math:`\gamma` from the log file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>flushLog</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, logs are flushed to file after every update.</description>
+      <description>
+      If true, logs are flushed to file after every update.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -160,8 +193,8 @@ contains
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnProposalSizeAdaptive} posterior sampling differential evolution random jump class.
+    !!{RST
+    Constructor for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class.
     !!}
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none
@@ -202,7 +235,7 @@ contains
   end function adaptiveConstructorInternal
 
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
-    !!{
+    !!{RST
     Return the proposal size.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelStandard

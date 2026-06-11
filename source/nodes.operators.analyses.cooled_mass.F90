@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that computes the mass of gas which has cooled out of the \gls{cgm}.
+  !!{RST
+  Implements a node operator class that computes the mass of gas which has cooled out of the :term:`CGM`.
   !!}
   
   use :: Cooling_Rates, only : coolingRateClass
 
   !![
-  <nodeOperator name="nodeOperatorMassCooled">
-    <description>Tracks the cumulative mass of gas that has cooled out of the circumgalactic medium (\gls{cgm}) over time, integrating the cooling rate to maintain a running total of cooled gas mass for each node.</description>
+  <nodeOperator name="nodeOperatorMassCooled" docformat="rst">
+    <description>
+    Tracks the cumulative mass of gas that has cooled out of the circumgalactic medium (:term:`CGM`) over time, integrating the cooling rate to maintain a running total of cooled gas mass for each node.
+    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassCooled
-     !!{
-     A node operator class that computes the mass of gas which has cooled out of the \gls{cgm}.
+     !!{RST
+     A node operator class that computes the mass of gas which has cooled out of the :term:`CGM`.
      !!}
      private
      class  (coolingRateClass), pointer :: coolingRate_ => null()
@@ -43,8 +45,8 @@
   end type nodeOperatorMassCooled
   
   interface nodeOperatorMassCooled
-     !!{
-     Constructors for the \refClass{nodeOperatorMassCooled} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorMassCooled`` node operator class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function massCooledConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMassCooled} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorMassCooled`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function massCooledConstructorParameters
 
   function massCooledConstructorInternal(coolingRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMassCooled} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorMassCooled`` node operator class.
     !!}
     implicit none
     type (nodeOperatorMassCooled)                        :: self
@@ -91,8 +93,8 @@ contains
   end function massCooledConstructorInternal
 
   subroutine massCooledDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorMassCooled} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorMassCooled`` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassCooled), intent(inout) :: self
@@ -104,8 +106,8 @@ contains
   end subroutine massCooledDestructor
 
   subroutine massCooledDifferentialEvolutionInactives(self,node)
-    !!{
-    Mark \gls{cgm} mass cooled integrals as inactive for ODE solving.    
+    !!{RST
+    Mark :term:`CGM` mass cooled integrals as inactive for ODE solving.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -124,8 +126,8 @@ contains
   end subroutine massCooledDifferentialEvolutionInactives
   
   subroutine massCooledDifferentialEvolutionScales(self,node)
-    !!{
-    Set absolute ODE solver scale for the mass cooled out of the \gls{cgm}.    
+    !!{RST
+    Set absolute ODE solver scale for the mass cooled out of the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentBasic
     implicit none
@@ -147,8 +149,8 @@ contains
   end subroutine massCooledDifferentialEvolutionScales
   
   subroutine massCooledDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Integrates the mass cooling out of the \gls{cgm}.
+    !!{RST
+    Integrates the mass cooling out of the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, propertyActive
     implicit none

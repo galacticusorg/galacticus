@@ -21,12 +21,14 @@
   use :: Hashes      , only : doubleHash, rank1DoubleHash
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
-   <description>Abstract base class for extractors that return a fixed-length tuple of integer values per node, defining the interface (element count, names, descriptions, and units) for multi-valued integer outputs such as combined index arrays used in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a fixed-length tuple of integer values per node, defining the interface (element count, names, descriptions, and units) for multi-valued integer outputs such as combined index arrays used in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerTuple
-     !!{
+     !!{RST
      A integerTuple property extractor.
      !!}
      private
@@ -53,8 +55,8 @@
 
   abstract interface
      function integerTupleExtract(self,node,time,instance)
-       !!{
-       Interface for \mono{integerTuple} property extraction.
+       !!{RST
+       Interface for ``integerTuple`` property extraction.
        !!}
        import nodePropertyExtractorIntegerTuple, treeNode, multiCounter, kind_int8
        integer         (kind_int8                        ), dimension(:) , allocatable :: integerTupleExtract
@@ -67,8 +69,8 @@
 
   abstract interface
      subroutine integerTupleNames(self,time,names)
-       !!{
-       Interface for \mono{integerTuple} property names.
+       !!{RST
+       Interface for ``integerTuple`` property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -79,8 +81,8 @@
 
   abstract interface
      subroutine integerTupleDescriptions(self,time,descriptions)
-       !!{
-       Interface for \mono{integerTuple} property descriptions.
+       !!{RST
+       Interface for ``integerTuple`` property descriptions.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
@@ -91,8 +93,8 @@
 
   abstract interface
      function integerTupleUnitsInSI(self,time)
-       !!{
-       Interface for \mono{integerTuple} property units.
+       !!{RST
+       Interface for ``integerTuple`` property units.
        !!}
        import nodePropertyExtractorIntegerTuple
        double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
@@ -103,8 +105,8 @@
 
   abstract interface
      integer function integerTupleElementCount(self,time)
-       !!{
-       Interface for \mono{integerTuple} element count.
+       !!{RST
+       Interface for ``integerTuple`` element count.
        !!}
        import nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout) :: self
@@ -115,9 +117,8 @@
 contains
 
   function integerTupleUnits(self,time) result(units)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerTuple} \mono{unitsInSI} array into an array of
-    \mono{unitType}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorIntegerTuple`` ``unitsInSI`` array into an array of ``unitType``.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -136,7 +137,7 @@ contains
   end function integerTupleUnits
 
   subroutine integerTupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for integerTuple property meta-data.
     !!}
     implicit none

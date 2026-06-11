@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorSpherical">
-   <description>Computes volume integrals over spherical shell cells, with the radial boundaries of the domain specified by \mono{[boundaries]}. Cell volumes are computed from the difference of the enclosed spherical volumes at the inner and outer radial boundaries of each shell.</description>
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorSpherical" docformat="rst">
+   <description>
+   Computes volume integrals over spherical shell cells, with the radial boundaries of the domain specified by ``[boundaries]``. Cell volumes are computed from the difference of the enclosed spherical volumes at the inner and outer radial boundaries of each shell.
+   </description>
   </computationalDomainVolumeIntegrator>
   !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorSpherical
-     !!{
+     !!{RST
      Implementation of a computational domain for spherical cells.
      !!}
      private
@@ -35,8 +37,8 @@
   end type computationalDomainVolumeIntegratorSpherical
 
   interface computationalDomainVolumeIntegratorSpherical
-     !!{
-     Constructors for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain.
+     !!{RST
+     Constructors for the ``computationalDomainVolumeIntegratorSpherical`` computational domain.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -45,9 +47,8 @@
 contains
 
   function sphericalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain volume integrator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainVolumeIntegratorSpherical`` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,10 +57,12 @@ contains
     double precision                                              , dimension(  2) :: boundaries
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>boundaries</name>
       <defaultValue>[0.0d0,1.0d0]</defaultValue>
-      <description>A two-element array $[r_\mathrm{min}, r_\mathrm{max}]$ specifying the radial extent of the spherically symmetric integration domain.</description>
+      <description>
+      A two-element array :math:`[r_\mathrm{min}, r_\mathrm{max}]` specifying the radial extent of the spherically symmetric integration domain.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -71,8 +74,8 @@ contains
   end function sphericalConstructorParameters
   
   function sphericalConstructorInternal(boundaries) result(self)
-    !!{
-    Internal constructor for the \refClass{computationalDomainVolumeIntegratorSpherical} computational domain volume integrator class.
+    !!{RST
+    Internal constructor for the ``computationalDomainVolumeIntegratorSpherical`` computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -93,7 +96,7 @@ contains
   end function sphericalConstructorInternal
 
   double precision function sphericalVolume(self)
-    !!{
+    !!{RST
     Return the volume of the computational domain cell.
     !!}
     implicit none
@@ -104,7 +107,7 @@ contains
   end function sphericalVolume
 
   double precision function sphericalIntegrate(self,integrand)
-    !!{
+    !!{RST
     Integrate over the computational domain cell.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -128,8 +131,8 @@ contains
   contains
     
     double precision function sphericalIntegrandR(r)
-      !!{
-      $r$-integrand over spherical computational domain cells.
+      !!{RST
+      :math:`r`-integrand over spherical computational domain cells.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -150,8 +153,8 @@ contains
     end function sphericalIntegrandR
 
     double precision function sphericalIntegrandTheta(theta)
-      !!{
-      $\theta$-integrand over spherical computational domain cells.
+      !!{RST
+      :math:`\theta`-integrand over spherical computational domain cells.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -172,8 +175,8 @@ contains
     end function sphericalIntegrandTheta
 
     double precision function sphericalIntegrandPhi(phi)
-      !!{
-      $\phi$-integrand over spherical computational domain cells.
+      !!{RST
+      :math:`\phi`-integrand over spherical computational domain cells.
       !!}
       implicit none
       double precision, intent(in   ) :: phi

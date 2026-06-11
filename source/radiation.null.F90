@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for null radiation fields.
   !!}
 
   !![
-  <radiationField name="radiationFieldNull">
-   <description>A radiation field class that returns zero flux at all wavelengths and positions, used as a placeholder when no radiation background is present or as a default in pipelines that do not require a radiation field.</description>
+  <radiationField name="radiationFieldNull" docformat="rst">
+   <description>
+   A radiation field class that returns zero flux at all wavelengths and positions, used as a placeholder when no radiation background is present or as a default in pipelines that do not require a radiation field.
+   </description>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldNull
-     !!{
+     !!{RST
      A radiation field class for null fields.
      !!}
      private
@@ -40,8 +42,8 @@
   end type radiationFieldNull
 
   interface radiationFieldNull
-     !!{
-     Constructors for the \refClass{radiationFieldNull} radiation field class.
+     !!{RST
+     Constructors for the ``radiationFieldNull`` radiation field class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldNull} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``radiationFieldNull`` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +68,8 @@ contains
   end function nullConstructorParameters
 
   function nullConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldNull} radiation field class.
+    !!{RST
+    Internal constructor for the ``radiationFieldNull`` radiation field class.
     !!}
     implicit none
     type(radiationFieldNull) :: self
@@ -77,7 +79,7 @@ contains
   end function nullConstructorInternal
 
   double precision function nullFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Return the flux of a null radiation field.
     !!}
     implicit none
@@ -91,7 +93,7 @@ contains
   end function nullFlux
 
   double precision function nullTime(self)
-    !!{
+    !!{RST
     Return the time for which this radiation field is set.
     !!}
     implicit none
@@ -102,7 +104,7 @@ contains
   end function nullTime
 
   subroutine nullTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time for this radiation field.
     !!}
     implicit none
@@ -114,7 +116,7 @@ contains
   end subroutine nullTimeSet
 
   logical function nullTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return true as this radiation field depends on time only.
     !!}
     implicit none

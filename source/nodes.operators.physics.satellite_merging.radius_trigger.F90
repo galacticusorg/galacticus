@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers merging of satellites based on their orbital radius.
   !!}
 
@@ -25,18 +25,14 @@
   use :: Kepler_Orbits          , only : keplerOrbitCount
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
+  <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger" docformat="rst">
     <description>
-      A node operator class that merges satellite halos with their central when the orbital radius falls below the larger of
-      \mono{radiusVirialFraction} times the host virial radius (default 0.01), and \mono{radiusHalfMassFraction} times the sum
-      of the central and satellite galactic half-mass radii (default 1.0). Optionally records Keplerian orbital elements of merged
-      subhalos when \mono{recordMergedSubhaloProperties} is true; \mono{recordFirstLevelOnly} restricts recording to first-level
-      subhalos relative to the final host.
+    A node operator class that merges satellite halos with their central when the orbital radius falls below the larger of ``radiusVirialFraction`` times the host virial radius (default 0.01), and ``radiusHalfMassFraction`` times the sum of the central and satellite galactic half-mass radii (default 1.0). Optionally records Keplerian orbital elements of merged subhalos when ``recordMergedSubhaloProperties`` is true; ``recordFirstLevelOnly`` restricts recording to first-level subhalos relative to the final host.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingRadiusTrigger
-     !!{
+     !!{RST
      A node operator class that triggers merging of satellites based on their orbital radius.
      !!}
      private
@@ -56,8 +52,8 @@
   end type nodeOperatorSatelliteMergingRadiusTrigger
   
   interface nodeOperatorSatelliteMergingRadiusTrigger
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteMergingRadiusTrigger`` node operator class.
      !!}
      module procedure satelliteMergingRadiusTriggerConstructorParameters
      module procedure satelliteMergingRadiusTriggerConstructorInternal
@@ -70,8 +66,8 @@
 contains
 
   function satelliteMergingRadiusTriggerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteMergingRadiusTrigger`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,28 +78,36 @@ contains
     logical                                                                    :: recordMergedSubhaloProperties, recordFirstLevelOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusHalfMassFraction</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of the sum of the central and satellite half-mass radii below which satellites are merged.</description>
+      <description>
+      The fraction of the sum of the central and satellite half-mass radii below which satellites are merged.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirialFraction</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The fraction of the virial radius below which satellites are merged.</description>
+      <description>
+      The fraction of the virial radius below which satellites are merged.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recordMergedSubhaloProperties</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, record the orbital properties of subhalo that merge.</description>
+      <description>
+      If true, record the orbital properties of subhalo that merge.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recordFirstLevelOnly</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, record only mergers with first-level subhalos relative to the host.</description>
+      <description>
+      If true, record only mergers with first-level subhalos relative to the host.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -117,8 +121,8 @@ contains
   end function satelliteMergingRadiusTriggerConstructorParameters
 
   function satelliteMergingRadiusTriggerConstructorInternal(radiusHalfMassFraction,radiusVirialFraction,recordMergedSubhaloProperties,recordFirstLevelOnly,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSatelliteMergingRadiusTrigger`` node operator class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -146,8 +150,8 @@ contains
   end function satelliteMergingRadiusTriggerConstructorInternal
   
   subroutine satelliteMergingRadiusTriggerDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteMergingRadiusTrigger} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteMergingRadiusTrigger`` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self
@@ -159,7 +163,7 @@ contains
   end subroutine satelliteMergingRadiusTriggerDestructor
   
   subroutine satelliteMergingRadiusTriggerDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Trigger merging of a satellite halo based on its orbital radius.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -194,7 +198,7 @@ contains
   end subroutine satelliteMergingRadiusTriggerDifferentialEvolution
 
   subroutine mergerTrigger(node,timeEnd)
-    !!{
+    !!{RST
     Trigger a merger of the satellite by setting the time until merging to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
@@ -267,7 +271,7 @@ contains
   end subroutine mergerTrigger
 
   double precision function satelliteMergingRadiusTriggerRadiusMerge(self,node)
-    !!{
+    !!{RST
     Compute the merging radius for a node.
     !!}
     use :: Galacticus_Nodes          , only : treeNode

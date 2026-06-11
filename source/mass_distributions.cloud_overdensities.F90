@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a mass distribution class which overlays clouds on another mass distribution.
   !!}
 
@@ -26,12 +26,14 @@
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <massDistribution name="massDistributionCloudOverdensities">
-   <description>A mass distribution class that overlays a population of randomly placed, constant-density spherical clouds on top of an underlying smooth mass distribution. Cloud properties are set by \mono{[radius]}, \mono{[densityContrast]}, and \mono{[volumeFillingFactor]}, with inter-cloud gas characterized by \mono{[densityContrastIntercloud]}.</description>
+  <massDistribution name="massDistributionCloudOverdensities" docformat="rst">
+   <description>
+   A mass distribution class that overlays a population of randomly placed, constant-density spherical clouds on top of an underlying smooth mass distribution. Cloud properties are set by ``[radius]``, ``[densityContrast]``, and ``[volumeFillingFactor]``, with inter-cloud gas characterized by ``[densityContrastIntercloud]``.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionClass) :: massDistributionCloudOverdensities
-     !!{
+     !!{RST
      A mass distribution class which overlays clouds on another mass distribution.
      !!}
      class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_    => null()
@@ -48,8 +50,8 @@
   end type massDistributionCloudOverdensities
 
   interface massDistributionCloudOverdensities
-     !!{
-     Constructors for the \refClass{massDistributionCloudOverdensities} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionCloudOverdensities`` mass distribution class.
      !!}
      module procedure cloudOverdensitiesConstructorParameters
      module procedure cloudOverdensitiesConstructorInternal
@@ -58,9 +60,8 @@
 contains
 
   function cloudOverdensitiesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionCloudOverdensities} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionCloudOverdensities`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -76,43 +77,57 @@ contains
     type            (varying_string                    )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius</name>
-      <description>The radius (in Mpc) of each individual constant-density spherical cloud overlaid on the smooth background mass distribution.</description>
+      <description>
+      The radius (in Mpc) of each individual constant-density spherical cloud overlaid on the smooth background mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityContrast</name>
-      <description>The overdensity contrast of the clouds relative to the smooth background; values greater than 1 indicate denser clouds, which are used to compute the density inside cloud regions.</description>
+      <description>
+      The overdensity contrast of the clouds relative to the smooth background; values greater than 1 indicate denser clouds, which are used to compute the density inside cloud regions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>volumeFillingFactor</name>
-      <description>The fraction of the total volume filled by clouds; used together with the cloud radius to determine the number of clouds randomly placed within the boundary radius.</description>
+      <description>
+      The fraction of the total volume filled by clouds; used together with the cloud radius to determine the number of clouds randomly placed within the boundary radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusBoundary</name>
-      <description>The boundary radius within which to populate clouds.</description>
+      <description>
+      The boundary radius within which to populate clouds.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the cloud overdensities profile is considered to be dimensionless.</description>
+      <description>
+      If true the cloud overdensities profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -127,8 +142,8 @@ contains
   end function cloudOverdensitiesConstructorParameters
   
   function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionCloudOverdensities} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionCloudOverdensities`` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Sorting                 , only : sortIndex, sortByIndex
@@ -197,8 +212,8 @@ contains
   end function cloudOverdensitiesConstructorInternal
   
   subroutine cloudOverdensitiesDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionCloudOverdensities} mass distribution class.
+    !!{RST
+    Destructor for the ``massDistributionCloudOverdensities`` mass distribution class.
     !!}
     implicit none
     type(massDistributionCloudOverdensities), intent(inout) :: self
@@ -211,8 +226,8 @@ contains
   end subroutine cloudOverdensitiesDestructor
 
   double precision function cloudOverdensitiesDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a cloud overdensities mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a cloud overdensities mass distribution.
     !!}
     use :: Coordinates  , only : assignment(=), coordinateCartesian
     implicit none

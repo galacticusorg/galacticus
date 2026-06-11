@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferOutputter name="radiativeTransferOutputterNull">
-   <description>A null (no-op) radiative transfer outputter that performs no output operations, used as a placeholder or default when radiative transfer results do not need to be written out.</description>
+  <radiativeTransferOutputter name="radiativeTransferOutputterNull" docformat="rst">
+   <description>
+   A null (no-op) radiative transfer outputter that performs no output operations, used as a placeholder or default when radiative transfer results do not need to be written out.
+   </description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterNull
-     !!{
+     !!{RST
      Implementation of a null radiative transfer outputter class.
      !!}
      private
@@ -31,8 +33,8 @@
   end type radiativeTransferOutputterNull
 
   interface radiativeTransferOutputterNull
-     !!{
-     Constructors for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter class.
+     !!{RST
+     Constructors for the ``radiativeTransferOutputterNull`` radiative transfer outputter class.
      !!}
      module procedure nullConstructorParameters
   end interface radiativeTransferOutputterNull
@@ -40,9 +42,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferOutputterNull} radiative transfer outputter class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``radiativeTransferOutputterNull`` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

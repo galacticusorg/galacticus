@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which wraps the system \mono{which} command to allow finding of other tools.
+!!{RST
+Contains a module which wraps the system ``which`` command to allow finding of other tools.
 !!}
 
 module System_Which
-  !!{
-  Wraps the system \mono{which} command to allow finding of other tools.
+  !!{RST
+  Wraps the system ``which`` command to allow finding of other tools.
   !!}
   implicit none
   private
@@ -37,8 +37,8 @@ module System_Which
 contains
 
   function whichVarStr(command,status) result(commandFull)
-    !!{
-    Find the path to the given \mono{command}, optionally returning status.
+    !!{RST
+    Find the path to the given ``command``, optionally returning status.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -51,8 +51,8 @@ contains
   end function whichVarStr
 
   function whichChar(command,status) result(commandFull)
-    !!{
-    Find the path to the given \mono{command}, optionally returning status.
+    !!{RST
+    Find the path to the given ``command``, optionally returning status.
     !!}
     use :: Error             , only : Error_Report       , errorStatusFail, errorStatusSuccess
     use :: System_Command    , only : System_Command_Do

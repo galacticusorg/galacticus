@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass output analysis property extractor class.
 !!}
 
@@ -26,15 +26,17 @@ Implements a stellar mass output analysis property extractor class.
   use :: Numerical_Interpolation, only : interpolator
   
   type :: filterResponse
-     !!{
+     !!{RST
      Type used to hold pointers to filter response functions.
      !!}
      type(interpolator), pointer :: interpolator_ => null()
   end type filterResponse
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED">
-   <description>A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a \refClass{nodePropertyExtractorSED} property extractor object) through a set of broadband filter response functions specified by \mono{filterNames}. For each filter, the filter transmission curve is convolved with the galaxy SED to compute $L_\nu$ in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED" docformat="rst">
+   <description>
+   A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a ``nodePropertyExtractorSED`` property extractor object) through a set of broadband filter response functions specified by ``filterNames``. For each filter, the filter transmission curve is convolved with the galaxy SED to compute :math:`L_\nu` in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.
+   </description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>
@@ -44,7 +46,7 @@ Implements a stellar mass output analysis property extractor class.
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityStellarFromSED
-     !!{
+     !!{RST
      A stellar luminosity output analysis property extractor class.
      !!}
      private
@@ -65,8 +67,8 @@ Implements a stellar mass output analysis property extractor class.
   end type nodePropertyExtractorLuminosityStellarFromSED
 
   interface nodePropertyExtractorLuminosityStellarFromSED
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class.
      !!}
      module procedure luminosityStellarFromSEDConstructorParameters
      module procedure luminosityStellarFromSEDConstructorInternal
@@ -75,8 +77,8 @@ Implements a stellar mass output analysis property extractor class.
 contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,10 +90,12 @@ contains
 
     allocate(filterNames(parameters%count('filterNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterNames</name>
       <source>parameters</source>
-      <description>The filters to select.</description>
+      <description>
+      The filters to select.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
@@ -132,8 +136,8 @@ contains
   end function luminosityStellarFromSEDConstructorInternal
   
   subroutine luminosityStellarFromSEDDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityStellarFromSED} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -145,8 +149,8 @@ contains
   end subroutine luminosityStellarFromSEDDestructor
 
   integer function luminosityStellarFromSEDElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{luminosityStellarFromSED} property extractors.
+    !!{RST
+    Return the number of elements in the ``luminosityStellarFromSED`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -158,7 +162,7 @@ contains
   end function luminosityStellarFromSEDElementCount
 
   function luminosityStellarFromSEDExtract(self,node,time,instance) result(luminosities)
-    !!{
+    !!{RST
     Implement a stellar luminosity output analysis property extractor.
     !!}
     use :: Table_Labels         , only : extrapolationTypeZero
@@ -196,7 +200,7 @@ contains
   contains
 
     double precision function integrandFilteredLuminosity(wavelength)
-      !!{
+      !!{RST
       Integrand for the luminosity through a given filter.
       !!}
       implicit none
@@ -213,7 +217,7 @@ contains
     end function integrandFilteredLuminosity
 
     double precision function integrandFilteredLuminosityAB(wavelength)
-      !!{
+      !!{RST
       Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
       !!}
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
@@ -231,7 +235,7 @@ contains
   end function luminosityStellarFromSEDExtract
 
   function luminosityStellarFromSEDQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
@@ -245,7 +249,7 @@ contains
   end function luminosityStellarFromSEDQuantity
 
   subroutine luminosityStellarFromSEDNames(self,time,names)
-    !!{
+    !!{RST
     Return the name of the luminosityStellarFromSED property.
     !!}
     implicit none
@@ -264,7 +268,7 @@ contains
   end subroutine luminosityStellarFromSEDNames
 
   subroutine luminosityStellarFromSEDDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of the luminosityStellarFromSED property.
     !!}
     implicit none
@@ -283,7 +287,7 @@ contains
   end subroutine luminosityStellarFromSEDDescriptions
 
   function luminosityStellarFromSEDUnitsInSI(self,time) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of the luminosityStellarFromSED property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
@@ -299,7 +303,7 @@ contains
   end function luminosityStellarFromSEDUnitsInSI
 
   function luminosityStellarFromSEDUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the luminosityStellarFromSED properties.
     !!}
     use :: Units_MetaData, only : unitType

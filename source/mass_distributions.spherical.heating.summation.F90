@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a mass distribution heating class that sums heating over other classes.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingSummation">
-     <description>A mass distribution heating class that sums heating over other classes.</description>
+  <massDistributionHeating name="massDistributionHeatingSummation" docformat="rst">
+     <description>
+     A mass distribution heating class that sums heating over other classes.
+     </description>
      <linkedList type="massDistributionHeatingList" variable="massDistributionHeatings" next="next" object="massDistributionHeating_" objectType="massDistributionHeatingClass"/>
   </massDistributionHeating>
   !!]
@@ -34,7 +36,7 @@
   end type massDistributionHeatingList
   
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingSummation
-     !!{
+     !!{RST
      Implementation of a mass distribution heating class that sums heating over other classes.
      !!}
      private
@@ -46,8 +48,8 @@
   end type massDistributionHeatingSummation
 
   interface massDistributionHeatingSummation
-     !!{
-     Constructors for the \refClass{massDistributionHeatingSummation} mass distribution heating class.
+     !!{RST
+     Constructors for the ``massDistributionHeatingSummation`` mass distribution heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -56,9 +58,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHeatingSummation`` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +88,8 @@ contains
   end function summationConstructorParameters
   
   function summationConstructorInternal(massDistributionHeatings) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingSummation} mass distribution heating class.
+    !!{RST
+    Constructor for the ``massDistributionHeatingSummation`` mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingSummation)                         :: self
@@ -107,7 +108,7 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
+    !!{RST
     Destructor for composite mass distributions.
     !!}
     implicit none
@@ -129,8 +130,8 @@ contains
   end subroutine summationDestructor
 
   double precision function summationSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
-    Returns the specific energy of heating in the given \mono{node}.
+    !!{RST
+    Returns the specific energy of heating in the given ``node``.
     !!}
     implicit none
     class           (massDistributionHeatingSummation), intent(inout) :: self
@@ -149,7 +150,7 @@ contains
   end function summationSpecificEnergy
 
   double precision function summationSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     implicit none
@@ -169,7 +170,7 @@ contains
   end function summationSpecificEnergyGradient
 
   logical function summationSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

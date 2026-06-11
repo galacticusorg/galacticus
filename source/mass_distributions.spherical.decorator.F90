@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an abstract spherical mass distribution decorator class.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalDecorator" abstract="yes">
+  <massDistribution name="massDistributionSphericalDecorator" abstract="yes" docformat="rst">
    <description>
-     An abstract mass distribution class for decorators of other mass distributions. ``Fallthrough'' functions are provided that
-     all the decorated class or numerical solutions to be used.
+   An abstract mass distribution class for decorators of other mass distributions. "Fallthrough" functions are provided that all the decorated class or numerical solutions to be used.
    </description>
   </massDistribution>
   !!]
   type, abstract, extends(massDistributionSpherical) :: massDistributionSphericalDecorator
-     !!{
+     !!{RST
      Implementation of a decorator spherical mass distribution.
      !!}
      private
@@ -88,7 +87,7 @@
 contains
 
   logical function sphericalDecoratorUseUndecorated(self) result(useUndecorated)
-    !!{
+    !!{RST
     Determines whether to use the undecorated solution.
     !!}
     implicit none
@@ -99,8 +98,8 @@ contains
   end function sphericalDecoratorUseUndecorated
 
   double precision function sphericalDecoratorMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for decorator mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for decorator mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -111,8 +110,8 @@ contains
   end function sphericalDecoratorMassEnclosedBySphere
   
   double precision function sphericalDecoratorMassEnclosedBySphereNonAnalytic(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for decorator mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for decorator mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -127,8 +126,8 @@ contains
   end function sphericalDecoratorMassEnclosedBySphereNonAnalytic
   
   double precision function sphericalDecoratorDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a decorator spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -140,8 +139,8 @@ contains
   end function sphericalDecoratorDensityGradientRadial
   
   double precision function sphericalDecoratorDensityGradientRadialNonAnalytic(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a decorator spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -157,7 +156,7 @@ contains
   end function sphericalDecoratorDensityGradientRadialNonAnalytic
   
   double precision function sphericalDecoratorRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for decorator spherical mass distributions.
     !!}
     implicit none
@@ -170,7 +169,7 @@ contains
   end function sphericalDecoratorRadiusEnclosingDensity
   
   double precision function sphericalDecoratorRadiusEnclosingDensityNonAnalytic(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for decorator spherical mass distributions.
     !!}
     implicit none
@@ -187,7 +186,7 @@ contains
   end function sphericalDecoratorRadiusEnclosingDensityNonAnalytic
   
   double precision function sphericalDecoratorRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     implicit none
@@ -199,7 +198,7 @@ contains
   end function sphericalDecoratorRadiusEnclosingMass
 
   double precision function sphericalDecoratorRadiusEnclosingMassNonAnalytic(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     implicit none
@@ -215,7 +214,7 @@ contains
   end function sphericalDecoratorRadiusEnclosingMassNonAnalytic
 
   double precision function sphericalDecoratorRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for decorator spherical mass distributions.
     !!}
     implicit none
@@ -227,7 +226,7 @@ contains
   end function sphericalDecoratorRadiusFromSpecificAngularMomentum
   
   double precision function sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for decorator spherical mass distributions.
     !!}
     implicit none
@@ -243,7 +242,7 @@ contains
   end function sphericalDecoratorRadiusFromSpecificAngularMomentumNonAnalytic
   
   double precision function sphericalDecoratorDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
+    !!{RST
     Returns a radial density moment for the decorator spherical mass distribution.
     !!}
     implicit none
@@ -257,7 +256,7 @@ contains
   end function sphericalDecoratorDensityRadialMoment
 
   double precision function sphericalDecoratorDensityRadialMomentNonAnalytic(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
+    !!{RST
     Returns a radial density moment for the decorator spherical mass distribution.
     !!}
     implicit none
@@ -275,7 +274,7 @@ contains
   end function sphericalDecoratorDensityRadialMomentNonAnalytic
 
   logical function sphericalDecoratorPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return if the potential has an analytic form.
     !!}
     implicit none
@@ -286,8 +285,8 @@ contains
   end function sphericalDecoratorPotentialIsAnalytic
 
   double precision function sphericalDecoratorPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a decorator spherical mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -299,8 +298,8 @@ contains
   end function sphericalDecoratorPotential
 
   double precision function sphericalDecoratorPotentialNonAnalytic(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a decorator spherical mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecorator), intent(inout), target   :: self
@@ -316,8 +315,8 @@ contains
   end function sphericalDecoratorPotentialNonAnalytic
 
   double precision function sphericalDecoratorFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a decorator spherical mass distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -328,8 +327,8 @@ contains
   end function sphericalDecoratorFourierTransform
   
   double precision function sphericalDecoratorFourierTransformNonAnalytic(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a decorator spherical mass distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -344,8 +343,8 @@ contains
   end function sphericalDecoratorFourierTransformNonAnalytic
   
   double precision function sphericalDecoratorRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in a decorator spherical mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -356,8 +355,8 @@ contains
   end function sphericalDecoratorRadiusFreefall
   
   double precision function sphericalDecoratorRadiusFreefallNonAnalytic(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in a decorator spherical mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -372,9 +371,8 @@ contains
   end function sphericalDecoratorRadiusFreefallNonAnalytic
   
   double precision function sphericalDecoratorRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in a decorator spherical mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -385,9 +383,8 @@ contains
   end function sphericalDecoratorRadiusFreefallIncreaseRate
 
   double precision function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in a decorator spherical mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in a decorator spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -402,8 +399,8 @@ contains
   end function sphericalDecoratorRadiusFreefallIncreaseRateNonAnalytic
 
   double precision function sphericalDecoratorEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the total energy within a given \mono{radius}.
+    !!{RST
+    Compute the total energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout), target :: self
@@ -415,8 +412,8 @@ contains
   end function sphericalDecoratorEnergy
 
   double precision function sphericalDecoratorEnergyNonAnalytic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the total energy within a given \mono{radius}.
+    !!{RST
+    Compute the total energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -432,8 +429,8 @@ contains
   end function sphericalDecoratorEnergyNonAnalytic
   
   double precision function sphericalDecoratorEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius}.
+    !!{RST
+    Compute the potential energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -444,8 +441,8 @@ contains
   end function sphericalDecoratorEnergyPotential
 
   double precision function sphericalDecoratorEnergyPotentialNonAnalytic(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius}.
+    !!{RST
+    Compute the potential energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -460,8 +457,8 @@ contains
   end function sphericalDecoratorEnergyPotentialNonAnalytic
 
   double precision function sphericalDecoratorEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius}.
+    !!{RST
+    Compute the kinetic energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self
@@ -473,8 +470,8 @@ contains
   end function sphericalDecoratorEnergyKinetic
 
   double precision function sphericalDecoratorEnergyKineticNonAnalytic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius}.
+    !!{RST
+    Compute the kinetic energy within a given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalDecorator), intent(inout) :: self

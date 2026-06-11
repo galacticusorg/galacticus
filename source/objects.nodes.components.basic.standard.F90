@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module with the standard implementation of basic tree node methods.
 !!}
 
 module Node_Component_Basic_Standard
-  !!{
+  !!{RST
   The standard implementation of basic tree node methods.
   !!}
   implicit none
@@ -73,7 +73,7 @@ contains
   <scaleSetTask function="Node_Component_Basic_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Basic_Standard_Scale_Set(node)
-    !!{
+    !!{RST
     Set scales for properties in the standard implementation of the basic component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode
@@ -100,7 +100,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Basic_Standard_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the basic is physically plausible. Require the mass and time to be positive.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandard, treeNode

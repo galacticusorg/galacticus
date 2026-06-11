@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which filters out particles based on a property range.
 !!}
 
   use :: NBody_Simulation_Data, only : enumerationPropertyTypeType
 
   type :: propertyRange
-     !!{
+     !!{RST
      Type used to store filter ranges.
      !!}
      type            (varying_string             ) :: name
@@ -34,12 +34,14 @@ Implements an N-body data operator which filters out particles based on a proper
   end type propertyRange
   
   !![
-  <nbodyOperator name="nbodyOperatorFilterProperties">
-   <description>An N-body data operator which retains only particles whose named property values fall within specified minimum and maximum bounds, enabling selection by mass, concentration, spin, or any other stored property. Property names and their lower and upper limits are specified as arrays via \mono{[names]}, \mono{[minimum]}, and \mono{[maximum]}.</description>
+  <nbodyOperator name="nbodyOperatorFilterProperties" docformat="rst">
+   <description>
+   An N-body data operator which retains only particles whose named property values fall within specified minimum and maximum bounds, enabling selection by mass, concentration, spin, or any other stored property. Property names and their lower and upper limits are specified as arrays via ``[names]``, ``[minimum]``, and ``[maximum]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterProperties
-     !!{
+     !!{RST
      An N-body data operator which filters out particles based on a property range.
      !!}
      private
@@ -51,8 +53,8 @@ Implements an N-body data operator which filters out particles based on a proper
   end type nbodyOperatorFilterProperties
 
   interface nbodyOperatorFilterProperties
-     !!{
-     Constructors for the \refClass{nbodyOperatorFilterProperties} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFilterProperties`` N-body operator class.
      !!}
      module procedure filterPropertiesConstructorParameters
      module procedure filterPropertiesConstructorInternal
@@ -61,8 +63,8 @@ Implements an N-body data operator which filters out particles based on a proper
 contains
 
   function filterPropertiesConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFilterProperties} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFilterProperties`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Error                , only : Error_Report
     use :: Input_Parameters     , only : inputParameters
@@ -82,20 +84,26 @@ contains
     if (size(rangeLow ) /= size(propertyNames)) call Error_Report('[rangeLow] must have same cardinality as [propertyNames]' //{introspection:location})
     if (size(rangeHigh) /= size(propertyNames)) call Error_Report('[rangeHigh] must have same cardinality as [propertyNames]'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyNames</name>
       <source>parameters</source>
-      <description>A list of named properties on which to filter.</description>
+      <description>
+      A list of named properties on which to filter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeLow</name>
       <source>parameters</source>
-      <description>The lowest value of each property to pass (``\mono{-infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>
+      The lowest value of each property to pass ("``-infinity``" is interpreted as the lowest possible value for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeHigh</name>
       <source>parameters</source>
-      <description>The highest value of each property to pass (``\mono{+infinity}'' is interpreted as the lowest possible value for the property.</description>
+      <description>
+      The highest value of each property to pass ("``+infinity``" is interpreted as the lowest possible value for the property.
+      </description>
     </inputParameter>
     !!]
     allocate(propertyRanges(size(propertyNames)))
@@ -141,8 +149,8 @@ contains
   end function filterPropertiesConstructorParameters
 
   function filterPropertiesConstructorInternal(propertyRanges) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFilterProperties} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFilterProperties`` N-body operator class.
     !!}
     use :: Error                , only : Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal
@@ -169,7 +177,7 @@ contains
   end function filterPropertiesConstructorInternal
 
   subroutine filterPropertiesOperate(self,simulations)
-    !!{
+    !!{RST
     Identify and flag particles which have been always isolated.
     !!}
     use :: Display              , only : displayIndent      , displayMessage  , displayUnindent, verbosityLevelStandard

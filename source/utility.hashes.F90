@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements ``hashes'' (i.e. associative arrays).
+!!{RST
+Contains a module which implements "hashes" (i.e. associative arrays).
 !!}
 
 module Hashes
-  !!{
-  Implements ``hashes'' (i.e. associative arrays).
+  !!{RST
+  Implements "hashes" (i.e. associative arrays).
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : var_str , varying_string
@@ -56,8 +56,8 @@ module Hashes
   end type {Type¦label}Container
 
   type :: {Type¦label}Hash
-     !!{
-     Derived type for {Type¦label} hashes.
+     !!{RST
+     Derived type for Type¦label hashes.
      !!}
      private
      integer                                                   :: allocatedSize=0, elementCount=0
@@ -115,7 +115,7 @@ module Hashes
 contains
 
   function {Type¦label}HashConstructor() result(self)
-     !!{
+     !!{RST
      Constructor for scalar hashes.
      !!}
      implicit none
@@ -126,7 +126,7 @@ contains
    end function {Type¦label}HashConstructor
 
   subroutine {Type¦label}Initialize(self)
-    !!{
+    !!{RST
     Routine to initialize (or re-initialize) a hash.
     !!}
   use :: ISO_Varying_String, only : assignment(=)
@@ -143,7 +143,7 @@ contains
   end subroutine {Type¦label}Initialize
 
   subroutine {Type¦label}Assign(to,from)
-    !!{
+    !!{RST
     Assignment operator for hashes.
     !!}
     implicit none
@@ -173,8 +173,8 @@ contains
   end subroutine {Type¦label}Assign
 
   integer function {Type¦label}Size(self)
-    !!{
-    Returns the number of elements in the specified \mono{Hash}.
+    !!{RST
+    Returns the number of elements in the specified ``Hash``.
     !!}
     implicit none
     class({Type¦label}Hash), intent(in   ) :: self
@@ -184,8 +184,8 @@ contains
   end function {Type¦label}Size
 
   logical function {Type¦label}ExistsChar(self,keyCH)
-    !!{
-    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
+    !!{RST
+    Returns true if the specified ``key`` exists in the specified ``self``, false otherwise.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -199,8 +199,8 @@ contains
   end function {Type¦label}ExistsChar
 
   logical function {Type¦label}ExistsVarStr(self,key)
-    !!{
-    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
+    !!{RST
+    Returns true if the specified ``key`` exists in the specified ``self``, false otherwise.
     !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -216,8 +216,8 @@ contains
   end function {Type¦label}ExistsVarStr
 
   subroutine {Type¦label}DeleteChar(self,keyCH)
-    !!{
-    Deletes entry \mono{key} from \mono{self}.
+    !!{RST
+    Deletes entry ``key`` from ``self``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -231,8 +231,8 @@ contains
   end subroutine {Type¦label}DeleteChar
 
   subroutine {Type¦label}DeleteVarStr(self,key)
-    !!{
-    Deletes entry \mono{key} from \mono{Hash}.
+    !!{RST
+    Deletes entry ``key`` from ``Hash``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -262,8 +262,8 @@ contains
   end subroutine {Type¦label}DeleteVarStr
 
   function {Type¦label}KeyInt(self,indexValue) result (key)
-    !!{
-    Returns the key of entry number \mono{index} in \mono{self}.
+    !!{RST
+    Returns the key of entry number ``index`` in ``self``.
     !!}
     implicit none
     type   (varying_string  )                :: key
@@ -275,8 +275,8 @@ contains
   end function {Type¦label}KeyInt
 
   subroutine {Type¦label}Keys(self,keys)
-    !!{
-    Returns an array of all keys in \mono{self}.
+    !!{RST
+    Returns an array of all keys in ``self``.
     !!}
     implicit none
     type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
@@ -289,8 +289,8 @@ contains
   end subroutine {Type¦label}Keys
 
   subroutine {Type¦label}Values(self,values)
-    !!{
-    Returns an array of all values in \mono{self}.
+    !!{RST
+    Returns an array of all values in ``self``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -312,8 +312,8 @@ contains
   end subroutine {Type¦label}Values
 
   function {Type¦label}ValueInt(self,indexValue)
-    !!{
-    Returns the value of entry number \mono{index} in \mono{Hash}.
+    !!{RST
+    Returns the value of entry number ``index`` in ``Hash``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -327,8 +327,8 @@ contains
   end function {Type¦label}ValueInt
 
   function {Type¦label}ValueChar(self,keyCH)
-    !!{
-    Returns the value of \mono{Key} in \mono{Hash}.
+    !!{RST
+    Returns the value of ``Key`` in ``Hash``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -343,8 +343,8 @@ contains
   end function {Type¦label}ValueChar
 
   function {Type¦label}ValueVarStr(self,key)
-    !!{
-    Returns the value of \mono{key} in \mono{self}.
+    !!{RST
+    Returns the value of ``key`` in ``self``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -369,8 +369,8 @@ contains
   end function {Type¦label}ValueVarStr
 
   subroutine {Type¦label}SetChar(self,keyCH,value)
-    !!{
-    Sets the value of \mono{key} in \mono{self} to \mono{value}.
+    !!{RST
+    Sets the value of ``key`` in ``self`` to ``value``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -386,8 +386,8 @@ contains
   end subroutine {Type¦label}SetChar
 
   subroutine {Type¦label}SetVarStr(self,key,value)
-    !!{
-    Sets the value of \mono{key} in \mono{self} to \mono{value}.
+    !!{RST
+    Sets the value of ``key`` in ``self`` to ``value``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -486,8 +486,8 @@ contains
   end subroutine {Type¦label}SetVarStr
 
   subroutine {Type¦label}Destroy(self)
-    !!{
-    Destroys \mono{self}.
+    !!{RST
+    Destroys ``self``.
     !!}
     implicit none
     class  ({Type¦label}Hash), intent(inout) :: self
@@ -504,8 +504,8 @@ contains
   end subroutine {Type¦label}Destroy
 
   subroutine {Type¦label}Destructor(self)
-    !!{
-    Destroys \mono{self}.
+    !!{RST
+    Destroys ``self``.
     !!}
     implicit none
     type({Type¦label}Hash), intent(inout) :: self

@@ -17,38 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is
-intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
-$\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
+!!{RST
+Implements a critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is intended to allow different window functions to be used for :math:`\sigma(M)` while retaining the same ratio :math:`\delta_\mathrm{c}/\sigma(M)` (and, therefore, the same halo mass function) on a mass scale :math:`M_\mathrm{match}`.
 !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensityRenormalize">
+  <criticalOverdensity name="criticalOverdensityRenormalize" docformat="rst">
     <description>
-      A critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is
-      intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
-      $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
+    A critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is intended to allow different window functions to be used for :math:`\sigma(M)` while retaining the same ratio :math:`\delta_\mathrm{c}/\sigma(M)` (and, therefore, the same halo mass function) on a mass scale :math:`M_\mathrm{match}`.
 
-      Specifically, the renormalized critical overdensity, $\delta^\prime_\mathrm{c}$, is given by $\delta^\prime_\mathrm{c} = n
-      \delta_\mathrm{c}$, where $\delta_\mathrm{c}$ is the original critical overdensity, and      
-      \begin{equation}
-      n=\sigma(M_\mathrm{match})/\sigma_\mathrm{r}(M_\mathrm{match}),
-      \end{equation}      
-      with $\sigma(M)$ being the cosmological mass variance (computed with whatever window function is required),
-      $\sigma_\mathrm{r}(M)$ is the reference cosmological mass variance (typically computed using a top-hat window function), and
-      $M_\mathrm{match}$ is the mass at which to match the mass variance. The mass variances are evaluated at the present epoch.
+    Specifically, the renormalized critical overdensity, :math:`\delta^\prime_\mathrm{c}`, is given by :math:`\delta^\prime_\mathrm{c} = n \delta_\mathrm{c}`, where :math:`\delta_\mathrm{c}` is the original critical overdensity, and
 
-      The matching scale is given by $M_\mathrm{match}=$\mono{[massMatch]} if this parameter is
-      present. Otherwise $M_\mathrm{match}=M_*$ is used, where $\sigma(M_*)=\delta_\mathrm{crit}$, computed at the present epoch.
-   </description>
+    .. math::
+
+       n=\sigma(M_\mathrm{match})/\sigma_\mathrm{r}(M_\mathrm{match}),
+
+    with :math:`\sigma(M)` being the cosmological mass variance (computed with whatever window function is required), :math:`\sigma_\mathrm{r}(M)` is the reference cosmological mass variance (typically computed using a top-hat window function), and :math:`M_\mathrm{match}` is the mass at which to match the mass variance. The mass variances are evaluated at the present epoch.
+
+    The matching scale is given by :math:`M_\mathrm{match}=`\ ``[massMatch]`` if this parameter is present. Otherwise :math:`M_\mathrm{match}=M_*` is used, where :math:`\sigma(M_*)=\delta_\mathrm{crit}`, computed at the present epoch.
+    </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityRenormalize
-     !!{
-     A critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is
-     intended to allow different window functions to be used for $\sigma(M)$ while retaining the same ratio
-     $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a mass scale $M_\mathrm{match}$.
+     !!{RST
+     A critical overdensity class which renormalizes another class based on the ratio of two mass variance classes. This is intended to allow different window functions to be used for :math:`\sigma(M)` while retaining the same ratio :math:`\delta_\mathrm{c}/\sigma(M)` (and, therefore, the same halo mass function) on a mass scale :math:`M_\mathrm{match}`.
      !!}
      private
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_               => null()
@@ -65,8 +57,8 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
   end type criticalOverdensityRenormalize
 
   interface criticalOverdensityRenormalize
-     !!{
-     Constructors for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
+     !!{RST
+     Constructors for the ``criticalOverdensityRenormalize`` critical overdensity class.
      !!}
      module procedure renormalizeConstructorParameters
      module procedure renormalizeConstructorInternal
@@ -75,8 +67,8 @@ $\delta_\mathrm{c}/\sigma(M)$ (and, therefore, the same halo mass function) on a
 contains
 
   function renormalizeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``criticalOverdensityRenormalize`` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,10 +83,12 @@ contains
     ! Check and read parameters.
     if (parameters%isPresent('massMatch')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>massMatch</name>
 	 <source>parameters</source>
-	 <description>The halo mass ($\mathrm{M}_\odot$) at which the renormalized critical overdensity is matched to the reference value; if absent, normalization is matched at the cosmic mean density scale.</description>
+	 <description>
+	 The halo mass (:math:`\mathrm{M}_\odot`) at which the renormalized critical overdensity is matched to the reference value; if absent, normalization is matched at the cosmic mean density scale.
+	 </description>
        </inputParameter>
        !!]
     end if
@@ -119,8 +113,8 @@ contains
   end function renormalizeConstructorParameters
 
   function renormalizeConstructorInternal(criticalOverdensity_,cosmologyFunctions_,cosmologicalMassVariance_,cosmologicalMassVarianceReference_,linearGrowth_,massMatch) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
+    !!{RST
+    Internal constructor for the ``criticalOverdensityRenormalize`` critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityRenormalize)                          :: self
@@ -147,8 +141,8 @@ contains
   end function renormalizeConstructorInternal
 
   subroutine renormalizeDestructor(self)
-    !!{
-    Destructor for the \refClass{criticalOverdensityRenormalize} critical overdensity class.
+    !!{RST
+    Destructor for the ``criticalOverdensityRenormalize`` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityRenormalize), intent(inout) :: self
@@ -164,7 +158,7 @@ contains
   end subroutine renormalizeDestructor
 
   double precision function renormalizeValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity for collapse at the given time and mass.
     !!}
     implicit none
@@ -180,7 +174,7 @@ contains
   end function renormalizeValue
 
   double precision function renormalizeGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -196,7 +190,7 @@ contains
   end function renormalizeGradientTime
 
   double precision function renormalizeGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -212,7 +206,7 @@ contains
   end function renormalizeGradientMass
 
   logical function renormalizeIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -223,7 +217,7 @@ contains
   end function renormalizeIsMassDependent
 
   logical function renormalizeIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -234,7 +228,7 @@ contains
   end function renormalizeIsNodeDependent
 
   logical function renormalizeIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

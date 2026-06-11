@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an output analysis class that computes subhalo mean maximum velocity as a function of mass.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
-   <description>Computes the mean subhalo maximum circular velocity $V_\mathrm{max}$ as a function of bound mass at a given redshift, reading target data and mass bin configuration from file, for comparison with N-body simulation subhalo population statistics.</description>
+  <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass" docformat="rst">
+   <description>
+   Computes the mean subhalo maximum circular velocity :math:`V_\mathrm{max}` as a function of bound mass at a given redshift, reading target data and mass bin configuration from file, for comparison with N-body simulation subhalo population statistics.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSubhaloVMaxVsMass
-     !!{
+     !!{RST
      An output analysis class that computes subhalo mean maximum velocity as a function of mass.
      !!}
      private
@@ -48,8 +50,8 @@
   end type outputAnalysisSubhaloVMaxVsMass
 
   interface outputAnalysisSubhaloVMaxVsMass
-     !!{
-     Constructors for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisSubhaloVMaxVsMass`` output analysis class.
      !!}
      module procedure subhaloVMaxVsMassConstructorParameters
      module procedure subhaloVMaxVsMassConstructorFile
@@ -59,8 +61,8 @@
 contains
 
   function subhaloVMaxVsMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisSubhaloVMaxVsMass`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     use :: Output_Times            , only : outputTimesClass
@@ -82,40 +84,50 @@ contains
 
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read the target dataset.</description>
+         <description>
+         The name of the file from which to read the target dataset.
+         </description>
        </inputParameter>
        !!]
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <source>parameters</source>
          <defaultValue>1.0d6</defaultValue>
-         <description>The minimum mass to consider.</description>
+         <description>
+         The minimum mass to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <source>parameters</source>
          <defaultValue>1.0d12</defaultValue>
-         <description>The maximum mass to consider.</description>
+         <description>
+         The maximum mass to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMasses</name>
          <source>parameters</source>
          <defaultValue>12_c_size_t</defaultValue>
-         <description>The number of bins in mass to use.</description>
+         <description>
+         The number of bins in mass to use.
+         </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
+      <description>
+      The redshift at which to compute the subhalo :math:`V_\mathrm{max}`--:math:`M` relation.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -147,8 +159,8 @@ contains
   end function subhaloVMaxVsMassConstructorParameters
   
   function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,redshift) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisSubhaloVMaxVsMass`` output analysis class for internal use.
     !!}
     use :: HDF5_Access             , only : hdf5Access
     use :: IO_HDF5                 , only : hdf5Object
@@ -204,8 +216,8 @@ contains
   end function subhaloVMaxVsMassConstructorFile
 
   function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisSubhaloVMaxVsMass`` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                      , only : galacticFilterHaloIsolated                , galacticFilterHaloNotIsolated      , galacticFilterLowPass                 , galacticFilterAll                , &
          &                                                filterList
@@ -390,8 +402,8 @@ contains
   end function subhaloVMaxVsMassConstructorInternal
 
   subroutine subhaloVMaxVsMassDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSubhaloVMaxVsMass} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisSubhaloVMaxVsMass`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSubhaloVMaxVsMass), intent(inout) :: self
@@ -408,8 +420,8 @@ contains
   end subroutine subhaloVMaxVsMassDestructor
 
   double precision function subhaloVMaxVsMassLogLikelihood(self) result(logLikelihood)
-    !!{
-    Return the log-likelihood of a \mono{outputAnalysisSubhaloVMaxVsMass} output analysis.
+    !!{RST
+    Return the log-likelihood of a ``outputAnalysisSubhaloVMaxVsMass`` output analysis.
     !!}
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
     use :: Interface_GSL               , only : GSL_Success

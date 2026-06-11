@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that evolves the \gls{cgm} outer radius in response to ram pressure stripping.
+  !!{RST
+  Implements a node operator class that evolves the :term:`CGM` outer radius in response to ram pressure stripping.
   !!}
 
   use :: Cosmology_Parameters                      , only : cosmologyParametersClass
@@ -29,15 +29,15 @@
   use :: Hot_Halo_Outflows_Stripping               , only : hotHaloOutflowStrippingClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMOuterRadiusRamPressureStripping">
+  <nodeOperator name="nodeOperatorCGMOuterRadiusRamPressureStripping" docformat="rst">
    <description>
-    A node operator class that evolves the \gls{cgm} outer radius in response to ram pressure stripping.
+   A node operator class that evolves the :term:`CGM` outer radius in response to ram pressure stripping.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMOuterRadiusRamPressureStripping
-     !!{
-     A node operator class that evolves the \gls{cgm} outer radius in response to ram pressure stripping.
+     !!{RST
+     A node operator class that evolves the :term:`CGM` outer radius in response to ram pressure stripping.
      !!}
      private
      class(cosmologyParametersClass           ), pointer :: cosmologyParameters_           => null()
@@ -52,8 +52,8 @@
   end type nodeOperatorCGMOuterRadiusRamPressureStripping
   
   interface nodeOperatorCGMOuterRadiusRamPressureStripping
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMOuterRadiusRamPressureStripping} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
      !!}
      module procedure cgmOuterRadiusRamPressureStrippingConstructorParameters
      module procedure cgmOuterRadiusRamPressureStrippingConstructorInternal
@@ -62,8 +62,8 @@
 contains
   
   function cgmOuterRadiusRamPressureStrippingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMOuterRadiusRamPressureStripping} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,8 +98,8 @@ contains
   end function cgmOuterRadiusRamPressureStrippingConstructorParameters
 
   function cgmOuterRadiusRamPressureStrippingConstructorInternal(cosmologyParameters_,darkMatterHaloScale_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,hotHaloOutflowReincorporation_,hotHaloOutflowStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMOuterRadiusRamPressureStripping} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
     !!}
     implicit none
     type (nodeOperatorCGMOuterRadiusRamPressureStripping)                        :: self
@@ -117,8 +117,8 @@ contains
   end function cgmOuterRadiusRamPressureStrippingConstructorInternal
 
   subroutine cgmOuterRadiusRamPressureStrippingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMOuterRadiusRamPressureStripping} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMOuterRadiusRamPressureStripping), intent(inout) :: self
@@ -135,9 +135,8 @@ contains
   end subroutine cgmOuterRadiusRamPressureStrippingDestructor
   
   subroutine cgmOuterRadiusRamPressureStrippingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Compute the rate of change of the outer radius of the \gls{cgm} in response to ram pressure
-    stripping (and return of gas).
+    !!{RST
+    Compute the rate of change of the outer radius of the :term:`CGM` in response to ram pressure stripping (and return of gas).
     !!}
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo

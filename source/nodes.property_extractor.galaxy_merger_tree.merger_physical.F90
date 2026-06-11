@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreeMergerPhysical">
-   <description>Extracts physical (floating-point) properties associated with merger events in galaxy merger trees, such as masses, mass ratios, and times of mergers between progenitor galaxies.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreeMergerPhysical" docformat="rst">
+   <description>
+   Extracts physical (floating-point) properties associated with merger events in galaxy merger trees, such as masses, mass ratios, and times of mergers between progenitor galaxies.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMergerTreeMergerPhysical
-     !!{
+     !!{RST
      A property extractor which extracts the physical properties of galaxy merger trees.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorGalaxyMergerTreeMergerPhysical
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerPhysical
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorGalaxyMergerTreeMergerPhysical`` property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerPhysicalConstructorParameters
      module procedure galaxyMergerTreeMergerPhysicalConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function galaxyMergerTreeMergerPhysicalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorGalaxyMergerTreeMergerPhysical`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function galaxyMergerTreeMergerPhysicalConstructorParameters
 
   function galaxyMergerTreeMergerPhysicalConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeMergerPhysical} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorGalaxyMergerTreeMergerPhysical`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerPhysical) :: self
@@ -77,7 +79,7 @@ contains
   end function galaxyMergerTreeMergerPhysicalConstructorInternal
 
   integer function galaxyMergerTreeMergerPhysicalElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -88,7 +90,7 @@ contains
   end function galaxyMergerTreeMergerPhysicalElementCount
 
   function galaxyMergerTreeMergerPhysicalExtract(self,node,instance) result(galaxyMergerTree)
-    !!{
+    !!{RST
     Implement a galaxyMergerTreeMergerPhysical output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -110,8 +112,8 @@ contains
   end function galaxyMergerTreeMergerPhysicalExtract
   
   subroutine galaxyMergerTreeMergerPhysicalNames(self,names)
-    !!{
-    Return the names of the \mono{galaxyMergerTreeMergerPhysical} properties.
+    !!{RST
+    Return the names of the ``galaxyMergerTreeMergerPhysical`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)                             :: self
@@ -124,8 +126,8 @@ contains
   end subroutine galaxyMergerTreeMergerPhysicalNames
 
   subroutine galaxyMergerTreeMergerPhysicalDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{galaxyMergerTreeMergerPhysical} properties.
+    !!{RST
+    Return the descriptions of the ``galaxyMergerTreeMergerPhysical`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeMergerPhysical), intent(inout)                             :: self
@@ -138,8 +140,8 @@ contains
   end subroutine galaxyMergerTreeMergerPhysicalDescriptions
 
   function galaxyMergerTreeMergerPhysicalUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{galaxyMergerTreeMergerPhysical} properties in the SI system.
+    !!{RST
+    Return the units of the ``galaxyMergerTreeMergerPhysical`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -153,7 +155,7 @@ contains
   end function galaxyMergerTreeMergerPhysicalUnitsInSI
 
   function galaxyMergerTreeMergerPhysicalUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the galaxyMergerTreeMergerPhysical properties.
     !!}
     use :: Units_MetaData                  , only : unitType

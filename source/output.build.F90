@@ -17,16 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements writing of \glc\ build information to the \glc\ output file.
+!!{RST
+Contains a module which implements writing of Galacticus build information to the Galacticus output file.
 !!}
 
 ! Specify an explicit dependence on the gsl_Version.o object file.
 !: $(BUILDPATH)/gsl_Version.o
 
 module Output_Build
-  !!{
-  Implements writing of \glc\ build information to the \glc\ output file.
+  !!{RST
+  Implements writing of Galacticus build information to the Galacticus output file.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_ptr
   implicit none
@@ -35,7 +35,7 @@ module Output_Build
 
   interface
      function GSL_Get_Version() bind(c,name='GSL_Get_Version')
-       !!{
+       !!{RST
        Template for a C function that returns the GSL version string.
        !!}
        import
@@ -46,8 +46,8 @@ module Output_Build
 contains
 
   function Output_Build_String()
-    !!{
-    Returns a string describing the build environment of \glc.
+    !!{RST
+    Returns a string describing the build environment of Galacticus.
     !!}
     use            :: FoX_Common        , only : Fox_Version
     use            :: Error             , only : Error_Report
@@ -115,7 +115,7 @@ contains
   <outputFileOpen function="Output_Build_Output"/>
   !!]
   subroutine Output_Build_Output()
-    !!{
+    !!{RST
     Output build information to the main output file.
     !!}
     use            :: File_Utilities    , only : File_Exists

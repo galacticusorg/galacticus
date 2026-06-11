@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Provides a power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}.
+  !!{RST
+  Provides a power spectrum window function class that implements the Lagrangian filter of :cite:t:`chan_effective_2017`.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionLagrangianChan2017">
-   <description>A power spectrum window function class that implements the Lagrangian filter of \cite{chan_effective_2017}, which provides a smoothed transition in Fourier space designed to match the effective filtering of matter fields in Lagrangian perturbation theory. The scale of the embedded Gaussian window is controlled by the parameter $f$ given by \mono{[f]}.</description>
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionLagrangianChan2017" docformat="rst">
+   <description>
+   A power spectrum window function class that implements the Lagrangian filter of :cite:t:`chan_effective_2017`, which provides a smoothed transition in Fourier space designed to match the effective filtering of matter fields in Lagrangian perturbation theory. The scale of the embedded Gaussian window is controlled by the parameter :math:`f` given by ``[f]``.
+   </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionLagrangianChan2017
-     !!{
-     The Lagrangian smooth power spectrum window function of \cite{chan_effective_2017} class.
+     !!{RST
+     The Lagrangian smooth power spectrum window function of :cite:t:`chan_effective_2017` class.
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
@@ -42,8 +44,8 @@
   end type powerSpectrumWindowFunctionLagrangianChan2017
 
   interface powerSpectrumWindowFunctionLagrangianChan2017
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
      !!}
      module procedure lagrangianChan2017ConstructorParameters
      module procedure lagrangianChan2017ConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function lagrangianChan2017ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,11 +65,13 @@ contains
     double precision                                                               :: f
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>f</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The parameter ``$f$'' which defines the scale of the Gaussian window.</description>
+      <description>
+      The parameter ":math:`f`" which defines the scale of the Gaussian window.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -80,8 +84,8 @@ contains
   end function lagrangianChan2017ConstructorParameters
 
   function lagrangianChan2017ConstructorInternal(cosmologyParameters_,f) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionLagrangianChan2017)                        :: self
@@ -96,8 +100,8 @@ contains
   end function lagrangianChan2017ConstructorInternal
 
   subroutine lagrangianChan2017Destructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionLagrangianChan2017} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self
@@ -109,9 +113,8 @@ contains
   end subroutine lagrangianChan2017Destructor
 
   double precision function lagrangianChan2017Value(self,wavenumber,smoothingMass,time)
-    !!{
-    Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
-    spectrum.
+    !!{RST
+    Smooth-:math:`k` space power spectrum window function proposed in :cite:t:`leo_new_2018`. spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -170,9 +173,8 @@ contains
   end function lagrangianChan2017Value
 
   double precision function lagrangianChan2017WavenumberMaximum(self,smoothingMass)
-    !!{
-    Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    variance of the power spectrum.
+    !!{RST
+    Maximum wavenumber for a top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self

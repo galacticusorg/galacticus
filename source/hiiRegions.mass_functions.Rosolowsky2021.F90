@@ -19,28 +19,26 @@
 
 !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
 
-  !!{
-  Implementation of a stellar mass function for HII regions following the model of \cite{rosolowsky_giant_2021}.
+  !!{RST
+  Implementation of a stellar mass function for HII regions following the model of :cite:t:`rosolowsky_giant_2021`.
   !!}
 
   !![
-  <hiiRegionMassFunction name="hiiRegionMassFunctionRosolowsky2021">
+  <hiiRegionMassFunction name="hiiRegionMassFunctionRosolowsky2021" docformat="rst">
    <description>
-     An HII region stellar mass function class in which giant molecular clouds are assumed to turn a fixed fraction
-     $\epsilon=$\mono{[epsilon]} of their mass into stars, and the giant molecular cloud mass function is given
-     by \cite{rosolowsky_giant_2021}:
-     \begin{equation}
-     \phi(M) \propto \left(\frac{m}{M}\right)^{\alpha} \exp\!\left(-\frac{m}{M}\right),
-     \end{equation}
-     where $M$ is the mass of giant molecular cloud, $M_\mathrm{min}=$\mono{[massMinimum]} and
-     $M_\mathrm{max}=$\mono{[massMaximum]} and the minimum and maximum giant molecular cloud masses respectively,
-     and $\alpha=$\mono{[exponent]}.
+   An HII region stellar mass function class in which giant molecular clouds are assumed to turn a fixed fraction :math:`\epsilon=`\ ``[epsilon]`` of their mass into stars, and the giant molecular cloud mass function is given by :cite:t:`rosolowsky_giant_2021`:
+
+   .. math::
+
+      \phi(M) \propto \left(\frac{m}{M}\right)^{\alpha} \exp\!\left(-\frac{m}{M}\right),
+
+   where :math:`M` is the mass of giant molecular cloud, :math:`M_\mathrm{min}=`\ ``[massMinimum]`` and :math:`M_\mathrm{max}=`\ ``[massMaximum]`` and the minimum and maximum giant molecular cloud masses respectively, and :math:`\alpha=`\ ``[exponent]``.
    </description>
   </hiiRegionMassFunction>
   !!]
   type, extends(hiiRegionMassFunctionClass) :: hiiRegionMassFunctionRosolowsky2021
-     !!{
-     Implementation of a mass function for HII regions following the model of \cite{rosolowsky_giant_2021}.
+     !!{RST
+     Implementation of a mass function for HII regions following the model of :cite:t:`rosolowsky_giant_2021`.
      !!}
      private
      double precision :: massMinimum       , massMaximum       , &
@@ -55,8 +53,8 @@
   end type hiiRegionMassFunctionRosolowsky2021
 
   interface hiiRegionMassFunctionRosolowsky2021
-     !!{
-     Constructors for the \refClass{hiiRegionMassFunctionRosolowsky2021} HII region stellar mass function class.
+     !!{RST
+     Constructors for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class.
      !!}
      module procedure rosolowsky2021CumulativeMassConstructorParameters
      module procedure rosolowsky2021CumulativeMassConstructorInternal
@@ -65,9 +63,8 @@
 contains
 
   function rosolowsky2021CumulativeMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hiiRegionMassFunctionRosolowsky2021} HII region stellar mass function class which takes a parameter
-    set as input.    
+    !!{RST
+    Constructor for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,38 +74,56 @@ contains
          &                                                                  massCutoff , exponent   , &
          &                                                                  epsilon
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon</name>
       <defaultValue>3.0d-2</defaultValue>
-      <defaultSource>\citep[][figure 2]{grudic_nature_2019}</defaultSource>
-      <description>Fraction of giant molecular cloud mass turned into stars.</description>
+      <defaultSource>
+      :cite:p:`grudic_nature_2019`
+      </defaultSource>
+      <description>
+      Fraction of giant molecular cloud mass turned into stars.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <defaultValue>-1.2d0</defaultValue>
-      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_giant_2021}</defaultSource>
-      <description>Exponent of the differential mass function.</description>
+      <defaultSource>
+      :cite:p:`rosolowsky_giant_2021`
+      </defaultSource>
+      <description>
+      Exponent of the differential mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>1.0d4</defaultValue>
-      <defaultSource>\citep{fukui_molecular_2010}</defaultSource>
-      <description>Minimum mass of giant molecular clouds.</description>
+      <defaultSource>
+      :cite:p:`fukui_molecular_2010`
+      </defaultSource>
+      <description>
+      Minimum mass of giant molecular clouds.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d8</defaultValue>
-      <description>Maximum mass ofgiant molecular clouds.</description>
+      <description>
+      Maximum mass ofgiant molecular clouds.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCutOff</name>
       <defaultValue>4.7d6</defaultValue>
-      <defaultSource>\citep[][table 5; ``disk'' sample]{rosolowsky_giant_2021}</defaultSource>
-      <description>Cut off mass of giant molecular clouds.</description>
+      <defaultSource>
+      :cite:p:`rosolowsky_giant_2021`
+      </defaultSource>
+      <description>
+      Cut off mass of giant molecular clouds.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -120,8 +135,8 @@ contains
   end function rosolowsky2021CumulativeMassConstructorParameters
 
   function rosolowsky2021CumulativeMassConstructorInternal(massMinimum,massMaximum,massCutOff,exponent,epsilon) result(self)
-    !!{
-    Internal constructor for the \refClass{hiiRegionMassFunctionRosolowsky2021} HII region stellar mass function class.
+    !!{RST
+    Internal constructor for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
@@ -147,7 +162,7 @@ contains
   end function rosolowsky2021CumulativeMassConstructorInternal
 
   double precision function rosolowsky2021CumulativeDistributionFunction(self,massMinimum,massMaximum) result(massFunction)
-    !!{
+    !!{RST
     Returns the fraction of HII regions in the given range of stellar mass.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
@@ -173,8 +188,8 @@ contains
   end function rosolowsky2021CumulativeDistributionFunction
   
   double precision function rosolowsky2021CumulativeMass(self,massMinimum,massMaximum) result(massHIIRegion)
-    !!{
-    Returns the total mass, $M_\star$, of HII region in the given range of mass.
+    !!{RST
+    Returns the total mass, :math:`M_\star`, of HII region in the given range of mass.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none

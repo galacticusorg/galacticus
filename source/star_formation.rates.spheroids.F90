@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements rates of star formation in spheroids.
 !!}
 
 module Star_Formation_Rates_Spheroids
-  !!{
+  !!{RST
   Provides a class that implements calculations of rates of formation in spheroids.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationRateSpheroids</name>
    <descriptiveName>Star Formation Rates in Spheroids</descriptiveName>
-   <description>Class providing models of the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the spheroid (bulge)
-    component of a galaxy. Star formation in spheroids is typically triggered by galaxy mergers or disk instabilities
-    that funnel gas into the galactic center. Implementations commonly adopt a timescale approach in which the star
-    formation rate is proportional to the available cold gas mass divided by a dynamical or depletion timescale.</description>
+   <description>
+   Class providing models of the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the spheroid (bulge) component of a galaxy. Star formation in spheroids is typically triggered by galaxy mergers or disk instabilities that funnel gas into the galactic center. Implementations commonly adopt a timescale approach in which the star formation rate is proportional to the available cold gas mass divided by a dynamical or depletion timescale.
+   </description>
    <default>timescale</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of \mono{node}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the spheroid component of ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

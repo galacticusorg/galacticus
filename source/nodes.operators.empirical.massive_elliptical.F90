@@ -17,24 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorEmpiricalMassiveElliptical">
-   <description>A node operator class that inserts an empirical evolutionary history for a massive elliptical galaxy growing at a constant specific star formation rate $\phi_\star$ (\mono{rateStarFormationSpecific}) to a final stellar mass \mono{massStellarFinal}. Optional angular momentum growth is set by \mono{angularMomentumPseudoSpecificFinal} and \mono{rateAngularMomentumPseudoSpecificSpecific}; half-mass radius evolution is set by \mono{radiusFinal} and \mono{rateRadiusSpecific}.</description>
+  <nodeOperator name="nodeOperatorEmpiricalMassiveElliptical" docformat="rst">
+   <description>
+   A node operator class that inserts an empirical evolutionary history for a massive elliptical galaxy growing at a constant specific star formation rate :math:`\phi_\star` (``rateStarFormationSpecific``) to a final stellar mass ``massStellarFinal``. Optional angular momentum growth is set by ``angularMomentumPseudoSpecificFinal`` and ``rateAngularMomentumPseudoSpecificSpecific``; half-mass radius evolution is set by ``radiusFinal`` and ``rateRadiusSpecific``.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalMassiveElliptical
-     !!{     
-     A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy. The galaxy is
-     assumed to grow in the main branch of the tree with a constant specific star formation rate, such that it mass is given by:
-     \begin{equation}
-       M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
-     \end{equation}
-     where $M_{\star,0}=$\mono{[massStellarFinal]} is the stellar mass in the root node of the tree,
-     $\phi_\star=$\mono{[rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
+     !!{RST
+     A node operator class that inserts an empirical model of the formation history of a massive elliptical galaxy. The galaxy is assumed to grow in the main branch of the tree with a constant specific star formation rate, such that it mass is given by:
+
+     .. math::
+
+        M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
+
+     where :math:`M_{\star,0}=`\ ``[massStellarFinal]`` is the stellar mass in the root node of the tree, :math:`\phi_\star=`\ ``[rateStarFormationSpecific]``, and :math:`t_0` is the cosmic time at the root node of the tree.
      !!}
      private
      double precision :: massStellarFinal                  , rateStarFormationSpecific                , &
@@ -48,8 +50,8 @@
   end type nodeOperatorEmpiricalMassiveElliptical
   
   interface nodeOperatorEmpiricalMassiveElliptical
-     !!{
-     Constructors for the \refClass{nodeOperatorEmpiricalMassiveElliptical} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorEmpiricalMassiveElliptical`` node operator class.
      !!}
      module procedure empiricalMassiveEllipticalConstructorParameters
      module procedure empiricalMassiveEllipticalConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function empiricalMassiveEllipticalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorEmpiricalMassiveElliptical} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorEmpiricalMassiveElliptical`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,42 +72,54 @@ contains
          &                                                                     radiusFinal                       , rateRadiusSpecific
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellarFinal</name>
       <source>parameters</source>
-      <description>The final stellar mass of the elliptical galaxy.</description>
+      <description>
+      The final stellar mass of the elliptical galaxy.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateStarFormationSpecific</name>
       <source>parameters</source>
-      <description>The specific star formation rate of the elliptical galaxy.</description>
+      <description>
+      The specific star formation rate of the elliptical galaxy.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('angularMomentumPseudoSpecificFinal')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>angularMomentumPseudoSpecificFinal</name>
 	 <source>parameters</source>
-	 <description>The final specific pseudo-angular momentum of the elliptical galaxy.</description>
+	 <description>
+	 The final specific pseudo-angular momentum of the elliptical galaxy.
+	 </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>rateAngularMomentumPseudoSpecificSpecific</name>
 	 <source>parameters</source>
-	 <description>The specific growth rate of the specific pseudo-angular momentum of the elliptical galaxy.</description>
+	 <description>
+	 The specific growth rate of the specific pseudo-angular momentum of the elliptical galaxy.
+	 </description>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent(                       'radiusFinal')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>radiusFinal</name>
 	 <source>parameters</source>
-	 <description>The final radius of the elliptical galaxy.</description>
+	 <description>
+	 The final radius of the elliptical galaxy.
+	 </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>rateRadiusSpecific</name>
 	 <source>parameters</source>
-	 <description>The specific growth rate of the radius of the elliptical galaxy.</description>
+	 <description>
+	 The specific growth rate of the radius of the elliptical galaxy.
+	 </description>
        </inputParameter>
        !!]
     end if
@@ -123,8 +137,8 @@ contains
   end function empiricalMassiveEllipticalConstructorParameters
 
   function empiricalMassiveEllipticalConstructorInternal(massStellarFinal,rateStarFormationSpecific,angularMomentumPseudoSpecificFinal,rateAngularMomentumPseudoSpecificSpecific,radiusFinal,rateRadiusSpecific) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorEmpiricalMassiveElliptical} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorEmpiricalMassiveElliptical`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorEmpiricalMassiveElliptical)                          :: self
@@ -164,7 +178,7 @@ contains
   end function empiricalMassiveEllipticalConstructorInternal
 
   subroutine empiricalMassiveEllipticalNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize nodes for the massive elliptical.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid
@@ -212,7 +226,7 @@ contains
   end subroutine empiricalMassiveEllipticalNodeInitialize
 
   subroutine empiricalMassiveEllipticalDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Impose the star formation rate for the massive elliptical.
     !!}
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSpheroid
@@ -244,7 +258,7 @@ contains
   end subroutine empiricalMassiveEllipticalDifferentialEvolution
 
   subroutine empiricalMassiveEllipticalSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set radii of empirical elliptical galaxies.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid

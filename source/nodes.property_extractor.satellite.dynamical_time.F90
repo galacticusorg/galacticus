@@ -19,27 +19,27 @@
 
 !+    Contributions to this file made by: Charles Gannon
   
-!!{
+!!{RST
 Provides a class that implements a satellite dynamical time extractor.
 !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSatelliteDynamicalTime">
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteDynamicalTime" docformat="rst">
    <description>
-     A satellite dynamical time extractor class. Extracts the satellite dynamical time in units of Gyr, following the definition
-     from \cite{binney_galactic_2008}:     
-     \begin{equation}
-     \tau_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 \mathrm{G} \rho_\mathrm{tidal}}} = \sqrt{\frac{\pi^2 r_\mathrm{tidal}^3}{4 \mathrm{G} M_\mathrm{tidal}}},
-     \end{equation}     
-     with $\rho_\mathrm{tidal}$ being the density within the tidal radius, $r_\mathrm{tidal}$, of the satellite which encloses a
-     mass $M_\mathrm{tidal}$.
+   A satellite dynamical time extractor class. Extracts the satellite dynamical time in units of Gyr, following the definition from :cite:t:`binney_galactic_2008`:
+
+   .. math::
+
+      \tau_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 \mathrm{G} \rho_\mathrm{tidal}}} = \sqrt{\frac{\pi^2 r_\mathrm{tidal}^3}{4 \mathrm{G} M_\mathrm{tidal}}},
+
+   with :math:`\rho_\mathrm{tidal}` being the density within the tidal radius, :math:`r_\mathrm{tidal}`, of the satellite which encloses a mass :math:`M_\mathrm{tidal}`.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSatelliteDynamicalTime
-     !!{
+     !!{RST
      A dynamical time extractor class.
      !!}
      private
@@ -54,8 +54,8 @@ Provides a class that implements a satellite dynamical time extractor.
   end type nodePropertyExtractorSatelliteDynamicalTime
 
   interface nodePropertyExtractorSatelliteDynamicalTime
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -64,8 +64,8 @@ Provides a class that implements a satellite dynamical time extractor.
 contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +85,8 @@ contains
   end function dynamicalTimeConstructorParameters
 
   function dynamicalTimeConstructorInternal(satelliteTidalStrippingRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSatelliteDynamicalTime)                        :: self
@@ -99,8 +99,8 @@ contains
   end function dynamicalTimeConstructorInternal
 
   subroutine dynamicalTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorSatelliteDynamicalTime} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteDynamicalTime), intent(inout) :: self
@@ -112,7 +112,7 @@ contains
   end subroutine dynamicalTimeDestructor
 
   double precision function dynamicalTimeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a dynamical time property extractor.
     !!}
     use :: Mass_Distributions              , only : massDistributionClass
@@ -147,7 +147,7 @@ contains
   end function dynamicalTimeExtract
 
   function dynamicalTimeName(self)
-    !!{
+    !!{RST
     Return the name of the satellite dynamical time property.
     !!}
     implicit none
@@ -160,7 +160,7 @@ contains
   end function dynamicalTimeName
 
   function dynamicalTimeDescription(self)
-    !!{
+    !!{RST
     Return a description of the satellite dynamical time property.
     !!}
     implicit none
@@ -173,7 +173,7 @@ contains
   end function dynamicalTimeDescription
 
   double precision function dynamicalTimeUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the satellite dynamical time property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -186,7 +186,7 @@ contains
   end function dynamicalTimeUnitsInSI
 
   function satelliteDynamicalTimeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the satelliteDynamicalTime property.
     !!}
     use :: Units_MetaData, only : unitType

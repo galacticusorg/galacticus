@@ -17,29 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a finite resolution spherical mass distribution.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalFiniteResolution">
+  <massDistribution name="massDistributionSphericalFiniteResolution" docformat="rst">
    <description>
-     A mass distribution class which applies a finite resolution to some other mass distribution class, typically to mimic the
-     effects of finite resolution in an N-body simulation. Specifically, the density profile is given by
-     \begin{equation}
-     \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
-     \end{equation}
-     where $\Delta x$ is the larger of the resolution length, \mono{[lengthResolution]}, and the radius in the
-     original profile enclosing the mass resolution, \mono{[massResolution]}.
-     
-     Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile,
-     $\rho^\prime(r)$, which rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile
-     under this model.
+   A mass distribution class which applies a finite resolution to some other mass distribution class, typically to mimic the effects of finite resolution in an N-body simulation. Specifically, the density profile is given by
+
+   .. math::
+
+      \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
+
+   where :math:`\Delta x` is the larger of the resolution length, ``[lengthResolution]``, and the radius in the original profile enclosing the mass resolution, ``[massResolution]``.
+
+   Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile, :math:`\rho^\prime(r)`, which rises more steeply than :math:`r^{-1}` as :math:`r \rightarrow 0` we will still have a cuspy density profile under this model.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalFiniteResolution
-     !!{
+     !!{RST
      Implementation of a finite resolution spherical mass distribution.
      !!}
      private
@@ -51,8 +49,8 @@
   end type massDistributionSphericalFiniteResolution
 
   interface massDistributionSphericalFiniteResolution
-     !!{
-     Constructors for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalFiniteResolution`` mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionConstructorParameters
      module procedure sphericalFiniteResolutionConstructorInternal
@@ -61,9 +59,8 @@
 contains
 
   function sphericalFiniteResolutionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalFiniteResolution`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -76,27 +73,35 @@ contains
     type            (varying_string                           )                :: componentType    , massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The spatial resolution length scale (in Mpc) below which the underlying density profile is softened to a flat core, mimicking the finite force resolution of an N-body simulation.</description>
+      <description>
+      The spatial resolution length scale (in Mpc) below which the underlying density profile is softened to a flat core, mimicking the finite force resolution of an N-body simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -115,8 +120,8 @@ contains
   end function sphericalFiniteResolutionConstructorParameters
   
   function sphericalFiniteResolutionConstructorInternal(lengthResolution,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalFiniteResolution`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalFiniteResolution)                          :: self
@@ -134,8 +139,8 @@ contains
   end function sphericalFiniteResolutionConstructorInternal
 
   subroutine sphericalFiniteResolutionDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalFiniteResolution} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalFiniteResolution`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalFiniteResolution), intent(inout) :: self
@@ -147,8 +152,8 @@ contains
   end subroutine sphericalFiniteResolutionDestructor
 
   double precision function sphericalFiniteResolutionDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalFiniteResolution), intent(inout)           :: self
@@ -166,8 +171,8 @@ contains
   end function sphericalFiniteResolutionDensity
 
   double precision function sphericalFiniteResolutionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a finiteResolution spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a finiteResolution spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalFiniteResolution), intent(inout), target   :: self

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a high-pass filter analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorFilterHighPass">
-   <description>An output analysis property operator that applies a high-pass filter to a galaxy property value, passing values above \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) and either setting or multiplying the property by the filter value.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorFilterHighPass" docformat="rst">
+   <description>
+   An output analysis property operator that applies a high-pass filter to a galaxy property value, passing values above ``filterThreshold`` (with transition sharpness controlled by ``filterWidth``) and either setting or multiplying the property by the filter value.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorFilterHighPass
-     !!{
+     !!{RST
      A high-pass filter property operator class.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a high-pass filter analysis property operator class.
   end type outputAnalysisPropertyOperatorFilterHighPass
 
   interface outputAnalysisPropertyOperatorFilterHighPass
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -48,8 +50,8 @@ Implements a high-pass filter analysis property operator class.
 contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,22 +62,28 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterThreshold</name>
       <source>parameters</source>
-      <description>Threshold for the high-pass filter distribution operator.</description>
+      <description>
+      Threshold for the high-pass filter distribution operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterWidth</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The width of the filter (0 for a sharp transition; $&gt;0$ for a smoothed transition.</description>
+      <description>
+      The width of the filter (0 for a sharp transition; :math:`&gt;0` for a smoothed transition.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalized</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, the property value is set to the filter value, otherwise it is multiplied by it.</description>
+      <description>
+      If true, the property value is set to the filter value, otherwise it is multiplied by it.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorFilterHighPass(filterThreshold,filterWidth,normalized)
@@ -86,8 +94,8 @@ contains
   end function filterHighPassConstructorParameters
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorFilterHighPass} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self
@@ -104,7 +112,7 @@ contains
   end function filterHighPassConstructorInternal
 
   double precision function filterHighPassOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an filterHighPass output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

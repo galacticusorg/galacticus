@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a spherical variogram model.
   !!}
 
   !![
-  <variogram name="variogramSpherical">
+  <variogram name="variogramSpherical" docformat="rst">
    <description>
    A spherical variogram model in which the variogram is given by:
-   \begin{equation}
-   C(r) = C_0 + C_1 \left[ \frac{3}{2} \frac{r}{C_\mathrm{r}} - \frac{1}{2} \left(\frac{r}{C_\mathrm{r}}\right)^3  \right],
-   \end{equation}
-   where $r$ is the separation, and $(C_0,C_1,C_\mathrm{r})$ are parameters of the model.
+
+   .. math::
+
+      C(r) = C_0 + C_1 \left[ \frac{3}{2} \frac{r}{C_\mathrm{r}} - \frac{1}{2} \left(\frac{r}{C_\mathrm{r}}\right)^3  \right],
+
+   where :math:`r` is the separation, and :math:`(C_0,C_1,C_\mathrm{r})` are parameters of the model.
    </description>
   </variogram>
   !!]
   type, extends(variogramClass) :: variogramSpherical
-     !!{
+     !!{RST
      Implementation of a spherical variogram model.
      !!}
      private
@@ -54,8 +56,8 @@
   end type variogramSpherical
 
   interface variogramSpherical
-     !!{
-     Constructors for the \refClass{variogramSpherical} variogram class.
+     !!{RST
+     Constructors for the ``variogramSpherical`` variogram class.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function sphericalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{variogramSpherical} variogram class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``variogramSpherical`` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,17 +77,18 @@ contains
     type   (varying_string    )                :: variogramFitOption
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>variogramFitOption</name>
-      <description>Option controlling how the binned semi-variance data are aggregated before fitting the spherical variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
+      <description>
+      Option controlling how the binned semi-variance data are aggregated before fitting the spherical variogram model; allowed values are ``mean``, ``median`` (default), or ``maximum`` of the residuals within each separation bin.
+      </description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>assumeZeroVarianceAtZeroLag</name>
-      <description>      
-       If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model
-       being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
+      <description>
+      If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
       </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
@@ -99,8 +102,8 @@ contains
   end function sphericalConstructorParameters
 
   function sphericalConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
-    !!{
-    Constructor for the \refClass{variogramSpherical} variogram class.
+    !!{RST
+    Constructor for the ``variogramSpherical`` variogram class.
     !!}
     implicit none
     type   (variogramSpherical               )                :: self
@@ -119,7 +122,7 @@ contains
   end function sphericalConstructorInternal
 
   function sphericalCountParameters(self)
-    !!{
+    !!{RST
     Return the number of parameters in the spherical variogram model.
     !!}
     implicit none
@@ -131,12 +134,14 @@ contains
   end function sphericalCountParameters
 
   double precision function sphericalVariogram(self,separation)
-    !!{
-    Compute the variogram at the given \mono{separation}. Here we use the ``spherical model'':
-    \begin{equation}
-      \gamma(h) = \left\{ \begin{array}{ll} 0 &amp; \hbox{ if } h  = 0, \\ C_0 + C_1 [3h/2R_\mathrm{C} - h^3/2R_\mathrm{C}^3] &amp; \hbox{ if } h > a \\ C_0 + C_1 &amp; \hbox{ if } h > a, \end{array} \right.
-    \end{equation}
-    where $h$ is the separation, and $C_0$, $C_1$, and $R_\mathrm{C}$ are parameters of the model.
+    !!{RST
+    Compute the variogram at the given ``separation``. Here we use the "spherical model":
+
+    .. math::
+
+       \gamma(h) = \left\{ \begin{array}{ll} 0 &amp; \hbox{ if } h  = 0, \\ C_0 + C_1 [3h/2R_\mathrm{C} - h^3/2R_\mathrm{C}^3] &amp; \hbox{ if } h > a \\ C_0 + C_1 &amp; \hbox{ if } h > a, \end{array} \right.
+
+    where :math:`h` is the separation, and :math:`C_0`, :math:`C_1`, and :math:`R_\mathrm{C}` are parameters of the model.
     !!}
     implicit none
     class           (variogramSpherical), intent(inout)           :: self
@@ -162,7 +167,7 @@ contains
   end function sphericalVariogram
 
   double precision function sphericalCorrelation(self,separation)
-    !!{
+    !!{RST
     Compute correlation of the variogram model. This is just the variance at maximum separation minus the variogram.
     !!}
     implicit none
@@ -176,7 +181,7 @@ contains
   end function sphericalCorrelation
 
   function sphericalModelInitialGuess(self,separations,semiVariances) result(C)
-    !!{
+    !!{RST
     Provide an initial guess for parameters of the spherical variogram model.
     !!}
     implicit none
@@ -196,7 +201,7 @@ contains
   end function sphericalModelInitialGuess
 
   subroutine sphericalFit(self,separations,semiVariances)
-    !!{
+    !!{RST
     Compute best fit coefficients for the spherical variogram model.
     !!}
     implicit none
@@ -221,7 +226,7 @@ contains
   end subroutine sphericalFit
   
   double precision function sphericalModelF(self,C,separations,semiVariances)
-    !!{
+    !!{RST
     Function to be minimized when fitting the variogram.
     !!}
     use mpi_utilities
@@ -268,7 +273,7 @@ contains
   end function sphericalModelF
 
   function sphericalModeldF(self,C,separations,semiVariances) result(dfdC)
-    !!{
+    !!{RST
     Derivatives of the function to be minimized when fitting the variogram.
     !!}
     implicit none
@@ -334,7 +339,7 @@ contains
   end function sphericalModeldF
 
   subroutine sphericalModelFdF(self,C,separations,semiVariances,f,dfdC)
-    !!{
+    !!{RST
     Computes both function and derivatives to be minimized when fitting the variogram.
     !!}
     implicit none

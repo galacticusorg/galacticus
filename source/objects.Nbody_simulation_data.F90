@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a module which provides a class to store N-body simulation data.
   !!}
 
 module NBody_Simulation_Data
-  !!{
+  !!{RST
   Provides a class to store N-body simulation data.
   !!}
   use :: IO_HDF5           , only : hdf5Object
@@ -34,7 +34,7 @@ module NBody_Simulation_Data
   public :: nBodyData, nBodyDataPropertyType
 
   type :: nBodyData
-     !!{
+     !!{RST
      A class to store N-body simulation data.
      !!}
      type(varying_string          ) :: label
@@ -52,9 +52,11 @@ module NBody_Simulation_Data
   end type nBodyData
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>propertyType</name>
-   <description>Enumeration of property types for N-body data properties.</description>
+   <description>
+   Enumeration of property types for N-body data properties.
+   </description>
    <visibility>public</visibility>
    <entry label="unknown"/>
    <entry label="integer"/>
@@ -65,8 +67,8 @@ module NBody_Simulation_Data
 contains
 
   subroutine nBodyDataDestructorScalar(self)
-    !!{
-    Destruct for scalar \mono{nBodyData} objects.
+    !!{RST
+    Destruct for scalar ``nBodyData`` objects.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use iso_varying_string
@@ -103,8 +105,8 @@ contains
   end subroutine nBodyDataDestructorScalar
   
   subroutine nBodyDataDestructorRank1(self)
-    !!{
-    Destruct for rank-1 \mono{nBodyData} objects.
+    !!{RST
+    Destruct for rank-1 ``nBodyData`` objects.
     !!}
     implicit none
     type   (nBodyData), intent(inout), dimension(:) :: self
@@ -117,7 +119,7 @@ contains
   end subroutine nBodyDataDestructorRank1
   
   function nBodyDataPropertyType(propertyName)
-    !!{
+    !!{RST
     Returns the type of the named property.
     !!}
     implicit none

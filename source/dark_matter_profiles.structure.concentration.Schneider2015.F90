@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of halo profile concentrations using the algorithm of \cite{schneider_structure_2015}.
+  !!{RST
+  An implementation of halo profile concentrations using the algorithm of :cite:t:`schneider_structure_2015`.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -27,26 +27,22 @@
   use :: Root_Finder               , only : rootFinder
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationSchneider2015" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration using the algorithm of
-    \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological
-    model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of
-    collapse, $z_\mathrm{c}$ for the halo by solving:
-    \begin{equation}
+   A dark matter profile concentration class in which the concentration using the algorithm of :cite:t:`schneider_structure_2015`. Specifically, a reference model for concentrations in defined in a specific cosmological model. The concentration for a halo of given mass, :math:`M`, and redshift, :math:`z_0`, is then found by finding the redshift of collapse, :math:`z_\mathrm{c}` for the halo by solving:
+
+   .. math::
+
       \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
       \right)^{1/2}+\delta_\mathrm{c})(z_0),
-    \end{equation}
-    where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-    mass assembled at formation time (given by the \mono{[massFractionFormation]} parameter. From this, the
-    mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to
-    compute the concentration of a halo of that mass.
+
+   where :math:`\delta_\mathrm{c}(z)` is the critical overdensity for collapse at redshift :math:`z`, and :math:`f` is the fraction of a halo's mass assembled at formation time (given by the ``[massFractionFormation]`` parameter. From this, the mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the concentration of a halo of that mass.
    </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationSchneider2015
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{schneider_structure_2015}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`schneider_structure_2015`.
      !!}
      private
      class           (darkMatterProfileConcentrationClass), pointer :: referenceConcentration            => null()
@@ -70,8 +66,8 @@
  end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationSchneider2015} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
      !!}
      module procedure schneider2015ConstructorParameters
      module procedure schneider2015ConstructorInternal
@@ -91,8 +87,8 @@
 contains
 
  function schneider2015ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{schneider2015} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``schneider2015`` dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -110,11 +106,13 @@ contains
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFractionFormation</name>
       <source>parameters</source>
       <defaultValue>0.05d0</defaultValue>
-      <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
+      <description>
+      The fraction of a halo's mass assembled at "formation" in the halo concentration algorithm of :cite:t:`schneider_structure_2015`.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileConcentration" name="referenceConcentration"             source="referenceParameters"/>
     <objectBuilder class="criticalOverdensity"            name="referenceCriticalOverdensity"       source="referenceParameters"/>
@@ -140,8 +138,8 @@ contains
   end function schneider2015ConstructorParameters
 
   function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationSchneider2015} dark matter halo profile concentration class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative
     implicit none
@@ -170,8 +168,8 @@ contains
   end function schneider2015ConstructorInternal
 
   subroutine schneider2015Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationSchneider2015} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
@@ -189,9 +187,8 @@ contains
   end subroutine schneider2015Destructor
 
   double precision function schneider2015Concentration(self,node) result(concentration)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the algorithm of
-    \cite{schneider_structure_2015}.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the algorithm of :cite:t:`schneider_structure_2015`.
     !!}
     implicit none
     class(darkMatterProfileConcentrationSchneider2015), intent(inout), target :: self
@@ -202,9 +199,8 @@ contains
   end function schneider2015Concentration
   
   double precision function schneider2015ConcentrationMean(self,node) result(concentration)
-    !!{
-    Return the mean concentration of the dark matter halo profile of \mono{node} using the algorithm of
-    \cite{schneider_structure_2015}.
+    !!{RST
+    Return the mean concentration of the dark matter halo profile of ``node`` using the algorithm of :cite:t:`schneider_structure_2015`.
     !!}
     implicit none
     class(darkMatterProfileConcentrationSchneider2015), intent(inout)         :: self
@@ -215,9 +211,8 @@ contains
   end function schneider2015ConcentrationMean
   
   double precision function schneider2015ConcentrationCompute(self,node,mean) result(concentration)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the algorithm of
-    \cite{schneider_structure_2015}.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the algorithm of :cite:t:`schneider_structure_2015`.
     !!}
     use :: Error                   , only : Error_Report      , errorStatusSuccess
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
@@ -294,9 +289,8 @@ contains
   end function schneider2015ConcentrationCompute
 
   double precision function schneider2015ReferenceCollapseMassRoot(massReference)
-    !!{
-    Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
-    \cite{schneider_structure_2015}.
+    !!{RST
+    Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of :cite:t:`schneider_structure_2015`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -333,9 +327,8 @@ contains
   end function schneider2015ReferenceCollapseMassRoot
 
   function schneider2015DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{schneider_structure_2015} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`schneider_structure_2015` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: schneider2015DensityContrastDefinition
@@ -346,9 +339,8 @@ contains
   end function schneider2015DensityContrastDefinition
 
   function schneider2015DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{schneider_structure_2015} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`schneider_structure_2015` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                  ), pointer       :: schneider2015DarkMatterProfileDefinition

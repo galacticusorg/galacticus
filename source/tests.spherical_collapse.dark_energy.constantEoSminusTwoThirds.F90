@@ -17,16 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
-$\omega=-2/3$ cosmology.
+!!{RST
+Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat, :math:`\omega=-2/3` cosmology.
 !!}
 
 program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
-  !!{
-  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-2/3$
-  cosmology. Compares results to the fitting function of
-  \citeauthor{weinberg_constraining_2003}~(\citeyear{weinberg_constraining_2003}; eqn.~18).
+  !!{RST
+  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, :math:`\omega=-2/3` cosmology. Compares results to the fitting function of :cite:author:`weinberg_constraining_2003` (:cite:year:`weinberg_constraining_2003`; eqn. 18).
   !!}
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides controller objects for building merger trees.
 !!}
 
 module Merger_Tree_Build_Controllers
-  !!{
+  !!{RST
   Provides controller objects for building merger trees.
   !!}
   use :: Galacticus_Nodes     , only : treeNode
@@ -31,24 +31,26 @@ module Merger_Tree_Build_Controllers
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeBuildController</name>
    <descriptiveName>Merger Tree Build Controllers</descriptiveName>
-   <description>Class providing merger tree build controllers---logic objects that govern when and how the tree builder places new
-    nodes during tree construction. A controller decides whether a given node should be continued (branched further), constrains
-    the range of allowed ``times'' ($w(t) = \delta_\mathrm{c}(t)/D(t)$) at each node, forces node insertion at specified times,
-    and supplies the branching probability object to use. Controllers enable constrained trees, main-branch-only trees, and other
-    specialized constructions.</description>
+   <description>
+   Class providing merger tree build controllers---logic objects that govern when and how the tree builder places new nodes during tree construction. A controller decides whether a given node should be continued (branched further), constrains the range of allowed "times" (:math:`w(t) = \delta_\mathrm{c}(t)/D(t)`) at each node, forces node insertion at specified times, and supplies the branching probability object to use. Controllers enable constrained trees, main-branch-only trees, and other specialized constructions.
+   </description>
    <default>uncontrolled</default>
    <method name="control" >
-    <description>Control the behavior of a tree build.</description>
+    <description>
+    Control the behavior of a tree build.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type (treeNode             ), intent(inout), pointer  :: node       </argument>
     <argument>class(mergerTreeWalkerClass), intent(inout), optional :: treeWalker_</argument>
    </method>
    <method name="timeMinimum" >
-    <description>Return the minimum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
+    <description>
+    Return the minimum "time" (using the usual :math:`w` variable for merger tree building) allowed for this node.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node                                 </argument>
@@ -60,7 +62,9 @@ module Merger_Tree_Build_Controllers
     </code>
    </method>   
    <method name="timeMaximum" >
-    <description>Return the maximum ``time'' (using the usual $w$ variable for merger tree building) allowed for this node.</description>
+    <description>
+    Return the maximum "time" (using the usual :math:`w` variable for merger tree building) allowed for this node.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node                                                </argument>
@@ -75,7 +79,9 @@ module Merger_Tree_Build_Controllers
     </code>
    </method>   
    <method name="controlTimeMaximum" >
-    <description>Control the behavior of a tree build when the maximum time for a node is reached.</description>
+    <description>
+    Control the behavior of a tree build when the maximum time for a node is reached.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type            (treeNode ), intent(inout), target :: node                                 </argument>
@@ -87,13 +93,17 @@ module Merger_Tree_Build_Controllers
     </code>
    </method>
    <method name="branchingProbabilityObject" >
-    <description>Return a branching probability object to use in tree building.</description>
+    <description>
+    Return a branching probability object to use in tree building.
+    </description>
     <type>class(mergerTreeBranchingProbabilityClass)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="nodesInserted" >
-    <description>Alert the controller when new nodes are inserted into the tree.</description>
+    <description>
+    Alert the controller when new nodes are inserted into the tree.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: nodeCurrent    , nodeProgenitor1</argument>

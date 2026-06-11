@@ -25,12 +25,14 @@
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
 
   !![
-  <task name="taskHaloModelGenerate">
-   <description>A task which populates a dark matter halo catalog with galaxies using a halo occupation distribution (HOD) model, placing central and satellite galaxies within each halo according to the conditional stellar mass function and dark matter profile, producing a mock galaxy catalog with positions for use in clustering analyses.</description>
+  <task name="taskHaloModelGenerate" docformat="rst">
+   <description>
+   A task which populates a dark matter halo catalog with galaxies using a halo occupation distribution (HOD) model, placing central and satellite galaxies within each halo according to the conditional stellar mass function and dark matter profile, producing a mock galaxy catalog with positions for use in clustering analyses.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloModelGenerate
-     !!{
+     !!{RST
      Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
      !!}
      private
@@ -52,8 +54,8 @@
   end type taskHaloModelGenerate
 
   interface taskHaloModelGenerate
-     !!{
-     Constructors for the \refClass{taskHaloModelGenerate} task.
+     !!{RST
+     Constructors for the ``taskHaloModelGenerate`` task.
      !!}
      module procedure haloModelGenerateConstructorParameters
      module procedure haloModelGenerateConstructorInternal
@@ -62,8 +64,8 @@
 contains
 
   function haloModelGenerateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloModelGenerate} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskHaloModelGenerate`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -96,25 +98,33 @@ contains
     end if
     self%nodeComponentsInitialized=.false.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloCatalogFileName</name>
-      <description>The file name of the halo catalog to populate.</description>
+      <description>
+      The file name of the halo catalog to populate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>galaxyCatalogFileName</name>
-      <description>The file name to which the galaxy catalog should be output.</description>
+      <description>
+      The file name to which the galaxy catalog should be output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
-      <description>The minimum mass galaxy to include in a mock halo model realization.</description>
+      <description>
+      The minimum mass galaxy to include in a mock halo model realization.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum mass galaxy to include in a mock halo model realization.</description>
+      <description>
+      The maximum mass galaxy to include in a mock halo model realization.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
@@ -138,8 +148,8 @@ contains
   end function haloModelGenerateConstructorParameters
 
   function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloModelGenerate} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskHaloModelGenerate`` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloModelGenerate            )                        :: self
@@ -161,8 +171,8 @@ contains
   end function haloModelGenerateConstructorInternal
 
   subroutine haloModelGenerateDestructor(self)
-    !!{
-    Destructor for the \refClass{taskHaloModelGenerate} task class.
+    !!{RST
+    Destructor for the ``taskHaloModelGenerate`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -181,7 +191,7 @@ contains
   end subroutine haloModelGenerateDestructor
 
   subroutine haloModelGeneratePerform(self,status)
-    !!{
+    !!{RST
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
     use :: Conditional_Mass_Functions, only : haloModelGalaxyTypeCentral       , haloModelGalaxyTypeSatellite
@@ -358,7 +368,7 @@ contains
   contains
 
     double precision function centralMassRoot(mass)
-      !!{
+      !!{RST
       Root function used to find the mass of central galaxies
       !!}
       implicit none
@@ -374,7 +384,7 @@ contains
     end function centralMassRoot
 
     double precision function satelliteMassRoot(mass)
-      !!{
+      !!{RST
       Root function used to find the mass of satellite galaxies
       !!}
       implicit none
@@ -390,7 +400,7 @@ contains
     end function satelliteMassRoot
 
     subroutine galaxyAdd(mass,position,velocity)
-      !!{
+      !!{RST
       Add a galaxy to the output buffers.
       !!}
       implicit none
@@ -434,7 +444,7 @@ contains
   end subroutine haloModelGeneratePerform
 
   logical function haloModelGenerateRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

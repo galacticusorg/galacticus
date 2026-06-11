@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module which defines the stellar luminosities object.
 !!}
 
 module Stellar_Luminosities_Structure
-  !!{
+  !!{RST
   Defines the stellar luminosities object.
   !!}
   use :: ISO_Varying_String                    , only : varying_string
@@ -58,9 +58,11 @@ module Stellar_Luminosities_Structure
   end interface operator(*)
  
   !![
-  <enumeration>
+  <enumeration docformat="rst">
     <name>frame</name>
-    <description>Frame for luminosity calculations.</description>
+    <description>
+    Frame for luminosity calculations.
+    </description>
     <encodeFunction>yes</encodeFunction>
     <decodeFunction>yes</decodeFunction>
     <entry label="rest"    />
@@ -69,7 +71,7 @@ module Stellar_Luminosities_Structure
   !!]
 
   type stellarLuminosities
-     !!{
+     !!{RST
      The stellar luminosities structure.
      !!}
      private
@@ -177,8 +179,8 @@ contains
   <nodeComponentInitializationTask function="Stellar_Luminosities_Initializor" after="Stellar_Luminosities_Initialize"/>
   !!]
   subroutine Stellar_Luminosities_Initializor(parameters)
-    !!{
-    Initialize the \mono{stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
+    !!{RST
+    Initialize the ``stellarLuminositiesStructure`` object module. Determines which stellar luminosities are to be tracked.
     !!}
     use            :: Array_Utilities    , only : Array_Reverse
     use            :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
@@ -202,16 +204,20 @@ contains
 
     ! Get luminosity output option.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminosityOutputOption</name>
       <defaultValue>var_str('present')</defaultValue>
       <description>
-         Selects which luminosities will be output at each output time:
-         \begin{description}
-         \item [all] Output all luminosities;
-         \item [future] Output only those luminosities computed for the present output or future times;
-         \item [present] Output only those luminosities computed for the present output time.
-         \end{description}
+      Selects which luminosities will be output at each output time:
+
+      all
+         Output all luminosities;
+
+      future
+         Output only those luminosities computed for the present output or future times;
+
+      present
+         Output only those luminosities computed for the present output time.
       </description>
       <source>parameters</source>
       <variable>luminosityOutputOptionText</variable>
@@ -264,9 +270,11 @@ contains
        allocate(luminosityRedshiftText    (luminosityCount))
        allocate(luminosityBandRedshiftText(luminosityCount))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>luminosityRedshift</name>
-         <description>The redshift for which to compute each specified stellar luminosity.</description>
+         <description>
+         The redshift for which to compute each specified stellar luminosity.
+         </description>
          <source>parameters</source>
          <variable>luminosityRedshiftText</variable>
        </inputParameter>
@@ -283,9 +291,11 @@ contains
        end do
        if (parameters%isPresent('luminosityBandRedshift')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>luminosityBandRedshift</name>
-	    <description>If present, force filters to be shifted to this redshift rather than that specified by \mono{[luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
+	    <description>
+	    If present, force filters to be shifted to this redshift rather than that specified by ``[luminosityRedshift]``. Allows sampling of the SED at wavelengths corresponding to other redshifts.
+	    </description>
 	    <source>parameters</source>
             <variable>luminosityBandRedshiftText</variable>
           </inputParameter>
@@ -304,22 +314,23 @@ contains
           luminosityBandRedshift=luminosityRedshift
        end if
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>luminosityFilter</name>
-         <description>The filter name for each stellar luminosity to be computed.</description>
+         <description>
+         The filter name for each stellar luminosity to be computed.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>luminosityType</name>
          <description>
-            The luminosity type for each stellar luminosity to be computed:
-            \begin{description}
-             \item[rest] Compute luminosity in the galaxy rest frame;
-             \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
-                             frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
-                             must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
-                             frequencies.}.
-            \end{description}
+         The luminosity type for each stellar luminosity to be computed:
+
+         rest
+            Compute luminosity in the galaxy rest frame;
+
+         observed
+            Compute luminosity in the observer frame\footnoteThe luminosity computed in this way is that in the galaxy rest frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you must add not only the distance modulus, but a factor of :math:`-2.5\log_{10}(1+z)` to account for compression of photon frequencies..
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -329,9 +340,11 @@ contains
           if (parameters%count('luminosityPostprocessSet') /= luminosityCount) &
                & call Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>luminosityPostprocessSet</name>
-	    <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
+	    <description>
+	    The name of the set of postprocessing algorithms to apply to this filter.
+	    </description>
 	    <source>parameters</source>
           </inputParameter>
           !!]
@@ -458,7 +471,7 @@ contains
   end subroutine Stellar_Luminosities_Thread_Uninitializor
   
   subroutine Stellar_Luminosities_Destroy(self)
-    !!{
+    !!{RST
     Destroy an stellarLuminosities object.
     !!}
     implicit none
@@ -469,8 +482,8 @@ contains
   end subroutine Stellar_Luminosities_Destroy
 
   subroutine Stellar_Luminosities_Builder(self,stellarLuminositiesDefinition)
-    !!{
-    Build a \mono{stellarLuminosities} object from the given XML \mono{stellarLuminositiesDefinition}.
+    !!{RST
+    Build a ``stellarLuminosities`` object from the given XML ``stellarLuminositiesDefinition``.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -498,7 +511,7 @@ contains
   end subroutine Stellar_Luminosities_Builder
 
   subroutine Stellar_Luminosities_Dump(self,verbosityLevel)
-    !!{
+    !!{RST
     Dump a stellar luminosities object.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -526,7 +539,7 @@ contains
   end subroutine Stellar_Luminosities_Dump
 
   subroutine Stellar_Luminosities_Dump_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Dump an stellarLuminosities object to binary.
     !!}
     implicit none
@@ -542,7 +555,7 @@ contains
   end subroutine Stellar_Luminosities_Dump_Raw
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Read an stellarLuminosities object from binary.
     !!}
     implicit none
@@ -562,7 +575,7 @@ contains
   end subroutine Stellar_Luminosities_Read_Raw
 
   subroutine Stellar_Luminosities_Reset(self)
-    !!{
+    !!{RST
     Reset an stellarLuminosities object.
     !!}
     implicit none
@@ -576,7 +589,7 @@ contains
   end subroutine Stellar_Luminosities_Reset
 
   subroutine Stellar_Luminosities_Set_To_Unity(self)
-    !!{
+    !!{RST
     Set an stellarLuminosities object to unity.
     !!}
     implicit none
@@ -590,7 +603,7 @@ contains
   end subroutine Stellar_Luminosities_Set_To_Unity
 
   logical function Stellar_Luminosities_Is_Zero(self)
-    !!{
+    !!{RST
     Test whether an stellarLuminosities object is zero.
     !!}
     implicit none
@@ -605,8 +618,8 @@ contains
   end function Stellar_Luminosities_Is_Zero
 
   double precision function Stellar_Luminosities_Luminosity(self,index)
-    !!{
-    Return the requested luminosity from a \mono{stellarLuminosities} object.
+    !!{RST
+    Return the requested luminosity from a ``stellarLuminosities`` object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -642,8 +655,8 @@ contains
   end function stellarLuminositiesCountMaximum
 
   function stellarLuminositiesMax(luminosities1,luminosities2)
-    !!{
-    Return an element-by-element \mono{max()} on two stellar luminosity objects.
+    !!{RST
+    Return an element-by-element ``max()`` on two stellar luminosity objects.
     !!}
     implicit none
     type   (stellarLuminosities)                :: stellarLuminositiesMax
@@ -670,8 +683,8 @@ contains
   end function stellarLuminositiesMax
 
   function stellarLuminositiesAbs(luminosities)
-    !!{
-    Return an element-by-element \mono{abs()} on a stellar luminosity object.
+    !!{RST
+    Return an element-by-element ``abs()`` on a stellar luminosity object.
     !!}
     implicit none
     type(stellarLuminosities)                :: stellarLuminositiesAbs
@@ -682,7 +695,7 @@ contains
   end function stellarLuminositiesAbs
 
   function Stellar_Luminosities_Add(luminosities1,luminosities2)
-    !!{
+    !!{RST
     Add two stellar luminosities objects.
     !!}
     implicit none
@@ -711,7 +724,7 @@ contains
   end function Stellar_Luminosities_Add
 
   subroutine Stellar_Luminosities_Increment(self,increment)
-    !!{
+    !!{RST
     Increment a stellar luminosities object.
     !!}
     implicit none
@@ -731,7 +744,7 @@ contains
   end subroutine Stellar_Luminosities_Increment
 
   function Stellar_Luminosities_Subtract(luminosities1,luminosities2)
-    !!{
+    !!{RST
     Subtract two stellar luminosities objects.
     !!}
     implicit none
@@ -760,7 +773,7 @@ contains
   end function Stellar_Luminosities_Subtract
 
   function Stellar_Luminosities_Multiply(stellarLuminosities1,multiplier)
-    !!{
+    !!{RST
     Multiply a stellar luminosities object by a scalar.
     !!}
     implicit none
@@ -773,7 +786,7 @@ contains
   end function Stellar_Luminosities_Multiply
 
   function Stellar_Luminosities_Multiply_Switched(multiplier,stellarLuminosities1)
-    !!{
+    !!{RST
     Multiply a stellar luminosities object by a scalar.
     !!}
     implicit none
@@ -786,7 +799,7 @@ contains
   end function Stellar_Luminosities_Multiply_Switched
 
   function Stellar_Luminosities_Divide(stellarLuminosities1,divisor)
-    !!{
+    !!{RST
     Divide a stellar luminosities object by a scalar.
     !!}
     implicit none
@@ -799,7 +812,7 @@ contains
   end function Stellar_Luminosities_Divide
 
   integer function Stellar_Luminosities_Property_Count(unmapped)
-    !!{
+    !!{RST
     Return the number of properties required to track stellar luminosities.
     !!}
     implicit none
@@ -815,7 +828,7 @@ contains
   end function Stellar_Luminosities_Property_Count
 
   integer function Stellar_Luminosities_Serialize_Count(self)
-    !!{
+    !!{RST
     Return the number of properties required to track stellar luminosities.
     !!}
     implicit none
@@ -830,7 +843,7 @@ contains
   end function Stellar_Luminosities_Serialize_Count
 
   function Stellar_Luminosities_Name(index)
-    !!{
+    !!{RST
     Return a name for the specified entry in the stellar luminosities structure.
     !!}
     use :: Error             , only : Error_Report
@@ -849,8 +862,8 @@ contains
   end function Stellar_Luminosities_Name
 
   subroutine Stellar_Luminosities_Create(self)
-    !!{
-    Ensure that the \mono{luminosity} array in a \mono{stellarLuminosities} is allocated.
+    !!{RST
+    Ensure that the ``luminosity`` array in a ``stellarLuminosities`` is allocated.
     !!}
     implicit none
     type(stellarLuminosities), intent(inout) :: self
@@ -860,8 +873,8 @@ contains
   end subroutine Stellar_Luminosities_Create
 
   subroutine Stellar_Luminosities_Deserialize(self,stellarLuminositiesArray)
-    !!{
-    Pack stellar luminosities from an array into a \mono{stellarLuminosities} structure.
+    !!{RST
+    Pack stellar luminosities from an array into a ``stellarLuminosities`` structure.
     !!}
     implicit none
     class           (stellarLuminosities)              , intent(inout) :: self
@@ -878,8 +891,8 @@ contains
   end subroutine Stellar_Luminosities_Deserialize
 
   subroutine Stellar_Luminosities_Serialize(self,stellarLuminositiesArray)
-    !!{
-    Unpack stellar luminosities from a \mono{stellarLuminosities} structure into an array.
+    !!{RST
+    Unpack stellar luminosities from a ``stellarLuminosities`` structure into an array.
     !!}
     implicit none
     double precision                     , dimension(:), intent(  out) :: stellarLuminositiesArray(:)
@@ -895,8 +908,8 @@ contains
   end subroutine Stellar_Luminosities_Serialize
 
   subroutine Stellar_Luminosities_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
-    !!{
-    Store a \mono{stellarLuminosities} object in the output buffers.
+    !!{RST
+    Store a ``stellarLuminosities`` object in the output buffers.
     !!}
     use :: Kind_Numbers                      , only : kind_int8
     use :: Multi_Counters                    , only : multiCounter
@@ -924,8 +937,8 @@ contains
   end subroutine Stellar_Luminosities_Output
 
   subroutine Stellar_Luminosities_Post_Output(self,time)
-    !!{
-    Clean up a \mono{stellarLuminosities} object after output.
+    !!{RST
+    Clean up a ``stellarLuminosities`` object after output.
     !!}
     implicit none
     class           (stellarLuminosities)                , intent(inout) :: self
@@ -952,8 +965,8 @@ contains
   end subroutine Stellar_Luminosities_Post_Output
 
   subroutine Stellar_Luminosities_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !!{
-    Increment the output count to account for a \mono{stellarLuminosities} object.
+    !!{RST
+    Increment the output count to account for a ``stellarLuminosities`` object.
     !!}
     implicit none
     class           (stellarLuminosities), intent(in   ) :: self
@@ -966,7 +979,7 @@ contains
   end subroutine Stellar_Luminosities_Output_Count
 
   integer function Stellar_Luminosities_Output_Count_Get(time)
-    !!{
+    !!{RST
     Compute the number of luminosities to be output at a given time.
     !!}
     implicit none
@@ -981,8 +994,8 @@ contains
   end function Stellar_Luminosities_Output_Count_Get
 
   subroutine Stellar_Luminosities_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
-    !!{
-    Assign names to output buffers for a \mono{stellarLuminosities} object.
+    !!{RST
+    Assign names to output buffers for a ``stellarLuminosities`` object.
     !!}
     use :: ISO_Varying_String                , only : assignment(=)        , operator(//)        , trim
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
@@ -1015,8 +1028,8 @@ contains
   end subroutine Stellar_Luminosities_Output_Names
 
   logical function Stellar_Luminosities_Is_Output(luminosityIndex,time,outputOption)
-    !!{
-    Return true or false depending on whether \mono{luminosityIndex} should be output at \mono{time}.
+    !!{RST
+    Return true or false depending on whether ``luminosityIndex`` should be output at ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1047,8 +1060,8 @@ contains
   end function Stellar_Luminosities_Is_Output
 
   subroutine Stellar_Luminosities_Set(self,mass,stellarPopulation_,stellarPopulationBroadBandLuminosities_,time,abundancesStellar)
-    !!{
-    Set the luminosity in each band for a single \mono{stellarPopulation\_} of given \mono{mass} with the specified \mono{abundancesStellar} and which formed at cosmological \mono{time}.
+    !!{RST
+    Set the luminosity in each band for a single ``stellarPopulation_`` of given ``mass`` with the specified ``abundancesStellar`` and which formed at cosmological ``time``.
     !!}
     use :: Abundances_Structure                      , only : abundances
     use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
@@ -1087,7 +1100,7 @@ contains
   end subroutine Stellar_Luminosities_Set
 
   integer function Stellar_Luminosities_Index_From_Name(name)
-    !!{
+    !!{RST
     Return the index of and specified entry in the luminosity list given its name.
     !!}
     use :: Error             , only : Error_Report
@@ -1108,7 +1121,7 @@ contains
   end function Stellar_Luminosities_Index_From_Name
 
   integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
-    !!{
+    !!{RST
     Return the index of and specified entry in the luminosity list given its properties.
     !!}
     use :: Display             , only : displayReset , displayGreen
@@ -1220,7 +1233,7 @@ contains
   end function Stellar_Luminosities_Index_From_Properties
 
   subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_)
-    !!{
+    !!{RST
     Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
     !!}
     use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
@@ -1270,7 +1283,7 @@ contains
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
 
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters)
-    !!{
+    !!{RST
     Modify the input list of luminosities for special cases.
     !!}
     use            :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
@@ -1731,8 +1744,8 @@ contains
        & luminosityRedshiftTmp      ,                &
        & luminosityBandRedshiftTmp                   &
        &                                           )
-    !!{
-    Expand the filter set by removing the filter at index \mono{expandFrom} by adding \mono{expandCount} replicas of the filter at that point.
+    !!{RST
+    Expand the filter set by removing the filter at index ``expandFrom`` by adding ``expandCount`` replicas of the filter at that point.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
@@ -1777,8 +1790,8 @@ contains
   end subroutine Stellar_Luminosities_Expand_Filter_Set
 
   subroutine Stellar_Luminosities_Truncate(self,templateLuminosities)
-    !!{
-    Truncate (or pad) the stellar luminosities to match the number in the given \mono{templateLuminosities}.
+    !!{RST
+    Truncate (or pad) the stellar luminosities to match the number in the given ``templateLuminosities``.
     !!}
     implicit none
     class           (stellarLuminosities), intent(inout)               :: self
@@ -1814,7 +1827,7 @@ contains
   end subroutine Stellar_Luminosities_Truncate
 
   subroutine Stellar_Luminosities_Parameter_Map_Double(parameters)
-    !!{
+    !!{RST
     Map an array of luminosity-related input parameters into a new array accounting for special case processing.
     !!}
     implicit none
@@ -1838,7 +1851,7 @@ contains
   <stateStoreTask function="Stellar_Luminosities_State_Store"/>
   !!]
   subroutine Stellar_Luminosities_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the luminosities state to file.
     !!}
     use            :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
@@ -1872,7 +1885,7 @@ contains
   <stateRetrieveTask function="Stellar_Luminosities_State_Restore"/>
   !!]
   subroutine Stellar_Luminosities_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the luminosities state from the file.
     !!}
     use            :: Display            , only : displayIndent   , displayMessage, displayUnindent, verbosityLevelWorking
@@ -1932,8 +1945,8 @@ contains
   end subroutine Stellar_Luminosities_State_Restore
 
   subroutine sortByIndexPostprocessor(array,index)
-    !!{
-    Given an \mono{array}, sort it in place using the supplied index.
+    !!{RST
+    Given an ``array``, sort it in place using the supplied index.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -1950,7 +1963,7 @@ contains
   end subroutine sortByIndexPostprocessor
 
   function Stellar_Luminosities_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

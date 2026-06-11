@@ -19,20 +19,19 @@
 
   !+    Contributions to this file made by: Xiaolong Du.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonic">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonic" docformat="rst">
     <description>
-      A dark matter profile heating model builds \refClass{massDistributionHeatingMonotonic} objects to enforce monotonic heating
-      energy perturbations.
+    A dark matter profile heating model builds ``massDistributionHeatingMonotonic`` objects to enforce monotonic heating energy perturbations.
     </description>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingMonotonic
-     !!{
+     !!{RST
      A dark matter profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
@@ -43,8 +42,8 @@
   end type darkMatterProfileHeatingMonotonic
 
   interface darkMatterProfileHeatingMonotonic
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class.
+     !!{RST
+     Constructors for the ``darkMatterProfileHeatingMonotonic`` dark matter profile heating class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function monotonicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileHeatingMonotonic`` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +73,8 @@ contains
   end function monotonicConstructorParameters
 
   function monotonicConstructorInternal(darkMatterProfileHeating_) result(self)
-    !!{
-    Internal constructor for the ``monotonic'' dark matter profile heating class.
+    !!{RST
+    Internal constructor for the "monotonic" dark matter profile heating class.
     !!}
     implicit none
     type (darkMatterProfileHeatingMonotonic)                        :: self
@@ -88,8 +87,8 @@ contains
   end function monotonicConstructorInternal
 
   subroutine monotonicDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileHeatingMonotonic} dark matter profile heating class.
+    !!{RST
+    Destructor for the ``darkMatterProfileHeatingMonotonic`` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingMonotonic), intent(inout) :: self
@@ -101,8 +100,8 @@ contains
   end subroutine monotonicDestructor
 
   function monotonicGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingMonotonic
     implicit none

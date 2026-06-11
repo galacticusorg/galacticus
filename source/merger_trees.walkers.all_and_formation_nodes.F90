@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a depth-first merger tree walker over all nodes including formation nodes.
 !!}
 
   !![
-  <mergerTreeWalker name="mergerTreeWalkerAllAndFormationNodes">
-   <description>Provides a merger tree walker which iterates depth-first over all nodes including formation nodes.</description>
+  <mergerTreeWalker name="mergerTreeWalkerAllAndFormationNodes" docformat="rst">
+   <description>
+   Provides a merger tree walker which iterates depth-first over all nodes including formation nodes.
+   </description>
   </mergerTreeWalker>
   !!]
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerAllAndFormationNodes
-     !!{
+     !!{RST
      A merger tree walker which iterates depth-first over all nodes including formation nodes.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a depth-first merger tree walker over all nodes including formation n
   end type mergerTreeWalkerAllAndFormationNodes
 
   interface mergerTreeWalkerAllAndFormationNodes
-     !!{
-     Constructors for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class.
+     !!{RST
+     Constructors for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class.
      !!}
      module procedure allAndFormationNodesParameters
      module procedure allAndFormationNodesInternal
@@ -48,8 +50,8 @@ Implements a depth-first merger tree walker over all nodes including formation n
 contains
 
   function allAndFormationNodesParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -63,8 +65,8 @@ contains
   end function allAndFormationNodesParameters
 
   function allAndFormationNodesInternal(tree,spanForest) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeWalkerAllAndFormationNodes} merger tree walker class.
+    !!{RST
+    Internal constructor for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerAllAndFormationNodes)                          :: self
@@ -76,7 +78,7 @@ contains
   end function allAndFormationNodesInternal
 
   logical function allAndFormationNodesNext(self,node)
-    !!{
+    !!{RST
     Walk nodes of a tree including formation nodes.
     !!}
     implicit none
@@ -106,7 +108,7 @@ contains
   end function allAndFormationNodesNext
 
   subroutine allAndFormationNodesPrevious(self,node)
-    !!{
+    !!{RST
     Step back to the previously visited node.
     !!}
     use :: Error, only : Error_Report

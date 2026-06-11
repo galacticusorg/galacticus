@@ -19,28 +19,31 @@
 
 !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
-  !!{
-  Implements an exponentially truncated spherical mass distribution \cite{kazantzidis_2006}.
+  !!{RST
+  Implements an exponentially truncated spherical mass distribution :cite:t:`kazantzidis_2006`.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalTruncatedExponential">
+  <massDistribution name="massDistributionSphericalTruncatedExponential" docformat="rst">
    <description>
-     Implements an exponentially truncated mass distribution \cite{kazantzidis_2006} in which the density is given by
-     \begin{equation}
-       \rho(r) = \rho^\prime(r_\mathrm{min}) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ \rho^\prime(r_\mathrm{min} x^\kappa \exp\left(-\frac{x-1}{x_\mathrm{max}}\right) &amp; \hbox{otherwise,} \end{array} \right.
-     \end{equation}
-     where $x = r/r_\mathrm{min}$, $x_\mathrm{decay} = r_\mathrm{decay}/r_\mathrm{min}$, $\rho^\prime(r)$ is some other density
-     profile, $r_\mathrm{min}=$\mono{[radiusTruncateMinimum]}, $r_\mathrm{decay}=$\mono{[radiusTruncateDecay]}, and
-     \begin{equation}
-     \kappa = \frac{r_\mathrm{min}}{r_\mathrm{decay}} + \frac{\mathrm{d}\log \rho^\prime}{\mathrm{d}\log r}(r_\mathrm{min})
-     \end{equation}
-     is chosen to ensure that the logarithmic gradient of the density profile is continuous across $r=r_\mathrm{min}$.
-     </description>
+   Implements an exponentially truncated mass distribution :cite:t:`kazantzidis_2006` in which the density is given by
+
+   .. math::
+
+      \rho(r) = \rho^\prime(r_\mathrm{min}) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ \rho^\prime(r_\mathrm{min} x^\kappa \exp\left(-\frac{x-1}{x_\mathrm{max}}\right) &amp; \hbox{otherwise,} \end{array} \right.
+
+   where :math:`x = r/r_\mathrm{min}`, :math:`x_\mathrm{decay} = r_\mathrm{decay}/r_\mathrm{min}`, :math:`\rho^\prime(r)` is some other density profile, :math:`r_\mathrm{min}=`\ ``[radiusTruncateMinimum]``, :math:`r_\mathrm{decay}=`\ ``[radiusTruncateDecay]``, and
+
+   .. math::
+
+      \kappa = \frac{r_\mathrm{min}}{r_\mathrm{decay}} + \frac{\mathrm{d}\log \rho^\prime}{\mathrm{d}\log r}(r_\mathrm{min})
+
+   is chosen to ensure that the logarithmic gradient of the density profile is continuous across :math:`r=r_\mathrm{min}`.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalTruncatedExponential
-     !!{
+     !!{RST
      Implementation of an exponentially-truncated spherical mass distribution.
      !!}
      private
@@ -58,8 +61,8 @@
   end type massDistributionSphericalTruncatedExponential
 
   interface massDistributionSphericalTruncatedExponential
-     !!{
-     Constructors for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalTruncatedExponential`` mass distribution class.
      !!}
      module procedure sphericalTruncatedExponentialConstructorParameters
      module procedure sphericalTruncatedExponentialConstructorInternal
@@ -68,9 +71,8 @@
 contains
 
   function sphericalTruncatedExponentialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalTruncatedExponential`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -83,32 +85,42 @@ contains
     type            (varying_string                               )                :: componentType        , massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTruncateMinimum</name>
       <source>parameters</source>
-      <description>The minimum radius to begin truncating the density profile.</description>
+      <description>
+      The minimum radius to begin truncating the density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTruncateDecay</name>
       <source>parameters</source>
-      <description>The exponential decay scale for truncating the density profile.</description>
+      <description>
+      The exponential decay scale for truncating the density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -127,8 +139,8 @@ contains
   end function sphericalTruncatedExponentialConstructorParameters
   
   function sphericalTruncatedExponentialConstructorInternal(radiusTruncateMinimum,radiusTruncateDecay,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalTruncatedExponential`` mass distribution class.
     !!}
     use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
@@ -174,8 +186,8 @@ contains
   end function sphericalTruncatedExponentialConstructorInternal
 
   subroutine sphericalTruncatedExponentialDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalTruncatedExponential} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalTruncatedExponential`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncatedExponential), intent(inout) :: self
@@ -187,8 +199,8 @@ contains
   end subroutine sphericalTruncatedExponentialDestructor
 
   double precision function sphericalTruncatedExponentialDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in an exponentially-truncated spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an exponentially-truncated spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalTruncatedExponential), intent(inout) :: self
@@ -214,8 +226,8 @@ contains
   end function sphericalTruncatedExponentialDensity
 
   double precision function sphericalTruncatedExponentialDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density gradient at the specified \mono{coordinates} in an exponentially-truncated spherical mass distribution.
+    !!{RST
+    Return the density gradient at the specified ``coordinates`` in an exponentially-truncated spherical mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -263,7 +275,7 @@ contains
   end function sphericalTruncatedExponentialDensityGradientRadial
 
   double precision function sphericalTruncatedExponentialMassTotal(self) result(mass)
-    !!{
+    !!{RST
     Return the total mass in a truncated mass distribution.
     !!}
     implicit none
@@ -274,8 +286,8 @@ contains
   end function sphericalTruncatedExponentialMassTotal
   
   double precision function sphericalTruncatedExponentialMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for truncatedExponential mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for truncatedExponential mass distributions.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none
@@ -300,7 +312,7 @@ contains
   end function sphericalTruncatedExponentialMassEnclosedBySphere
 
   double precision function sphericalTruncatedExponentialRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for truncatedExponential spherical mass distributions.
     !!}
     implicit none

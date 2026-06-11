@@ -21,12 +21,14 @@
   use :: Hashes      , only : doubleHash, rank1DoubleHash
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes">
-   <description>Abstract base class for extractors that return a single integer value per node (e.g., node IDs, counts, or boolean flags encoded as integers), defining the interface for all scalar integer property extraction used in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIntegerScalar" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a single integer value per node (e.g., node IDs, counts, or boolean flags encoded as integers), defining the interface for all scalar integer property extraction used in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerScalar
-     !!{
+     !!{RST
      A scalar integer node property extractor class.
      !!}
      private
@@ -51,7 +53,7 @@
 
   abstract interface
      function integerScalarExtract(self,node,time,instance)
-       !!{
+       !!{RST
        Interface for integerScalar property extraction.
        !!}
        import nodePropertyExtractorIntegerScalar, treeNode, multiCounter, kind_int8
@@ -65,7 +67,7 @@
 
   abstract interface
      function integerScalarName(self)
-       !!{
+       !!{RST
        Interface for integerScalar property name.
        !!}
        import varying_string, nodePropertyExtractorIntegerScalar
@@ -77,8 +79,8 @@
 contains
 
   function integerScalarUnits(self) result(units)
-    !!{
-    Default implementation: wraps \mono{nodePropertyExtractorIntegerScalar}{unitsInSI} into a \mono{unitType}.
+    !!{RST
+    Default implementation: wraps ``nodePropertyExtractorIntegerScalar``\ unitsInSI into a ``unitType``.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -90,7 +92,7 @@ contains
   end function integerScalarUnits
 
   double precision function integerScalarUnitsInSI(self)
-    !!{
+    !!{RST
     Interface for integerScalar property units.
     !!}
     implicit none
@@ -102,7 +104,7 @@ contains
   end function integerScalarUnitsInSI
 
   subroutine integerScalarMetaData(self,node,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for integerScalar property meta-data.
     !!}
     implicit none

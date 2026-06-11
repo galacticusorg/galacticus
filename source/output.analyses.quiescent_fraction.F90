@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a quiescent fraction output analysis class.
   !!}
 
@@ -28,13 +28,15 @@
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <outputAnalysis name="outputAnalysisQuiescentFraction">
-   <description>Computes the quiescent galaxy fraction as a function of stellar mass, classifying galaxies as quiescent when their specific star formation rate falls below \mono{starFormationRateSpecificQuiescentLogarithmic} (in $\log_{10}$ Gyr$^{-1}$) with a Gaussian scatter \mono{starFormationRateSpecificLogarithmicError} in the classification boundary.</description>
+  <outputAnalysis name="outputAnalysisQuiescentFraction" docformat="rst">
+   <description>
+   Computes the quiescent galaxy fraction as a function of stellar mass, classifying galaxies as quiescent when their specific star formation rate falls below ``starFormationRateSpecificQuiescentLogarithmic`` (in :math:`\log_{10}` Gyr\ :math:`^{-1}`) with a Gaussian scatter ``starFormationRateSpecificLogarithmicError`` in the classification boundary.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisQuiescentFraction
-     !!{
+     !!{RST
      A quiescent fraction output analysis class.
      !!}
      private
@@ -50,8 +52,8 @@
   end type outputAnalysisQuiescentFraction
 
   interface outputAnalysisQuiescentFraction
-     !!{
-     Constructors for the \refClass{outputAnalysisQuiescentFraction} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisQuiescentFraction`` output analysis class.
      !!}
      module procedure quiescentFractionConstructorParameters
      module procedure quiescentFractionConstructorFile
@@ -61,8 +63,8 @@
 contains
 
   function quiescentFractionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisQuiescentFraction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -103,88 +105,114 @@ contains
     <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"                                                                 />
     <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"                                                                 />
     <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_" source="parameters"             parameterName="outputAnalysisWeightPropertyOperator"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>starFormationRateSpecificQuiescentLogarithmic</name>
       <source>parameters</source>
-      <description>The base-10 logarithm specific star formation rate (in units of Gyr$^{-1}$) separating quiescent and star-forming galaxies.</description>
+      <description>
+      The base-10 logarithm specific star formation rate (in units of Gyr\ :math:`^{-1}`) separating quiescent and star-forming galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>starFormationRateSpecificLogarithmicError</name>
       <source>parameters</source>
-      <description>The observational fractional error in specific star formation rate (in units of dex) of galaxies.</description>
+      <description>
+      The observational fractional error in specific star formation rate (in units of dex) of galaxies.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read quiescent fraction function parameters.</description>
+         <description>
+         The name of the file from which to read quiescent fraction function parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisQuiescentFraction(char(fileName),label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the star forming main sequence function.</description>
+         <description>
+         A label for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the star forming main sequence function.</description>
+         <description>
+         A descriptive comment for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <source>parameters</source>
-         <description>Minimum stellar mass for the star forming main sequence function.</description>
+         <description>
+         Minimum stellar mass for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <source>parameters</source>
-         <description>Maximum stellar mass for the star forming main sequence function.</description>
+         <description>
+         Maximum stellar mass for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMassesPerDecade</name>
          <source>parameters</source>
-         <description>Number of masses per decade at which to compute the star forming main sequence function.</description>
+         <description>
+         Number of masses per decade at which to compute the star forming main sequence function.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
 	  !!]
        end if
        if (parameters%isPresent('meanValueTarget')) then
           if (parameters%isPresent('meanCovarianceTarget')) then
              !![
-	     <inputParameter>
+	     <inputParameter docformat="rst">
                <name>meanValueTarget</name>
 	       <source>parameters</source>
-	       <description>The target function for likelihood calculations.</description>
+	       <description>
+	       The target function for likelihood calculations.
+	       </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>meanCovarianceTarget</name>
 	       <source>parameters</source>
 	       <variable>meanCovarianceTarget1D</variable>
-	       <description>The target function covariance for likelihood calculations.</description>
+	       <description>
+	       The target function covariance for likelihood calculations.
+	       </description>
              </inputParameter>
              !!]
              if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
@@ -250,8 +278,8 @@ contains
   end function quiescentFractionConstructorParameters
 
   function quiescentFractionConstructorFile(fileName,label,comment,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the ``outputAnalysisQuiescentFraction`` output analysis class which reads all required properties from file.
     !!}
     use :: IO_HDF5    , only : hdf5Object
     use :: HDF5_Access, only : hdf5Access
@@ -291,8 +319,8 @@ contains
   end function quiescentFractionConstructorFile
 
   function quiescentFractionConstructorInternal(label,comment,massesStellar,starFormationRateSpecificQuiescentLogarithmic,starFormationRateSpecificLogarithmicError,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisQuiescentFraction} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisQuiescentFraction`` output analysis class.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Galactic_Filters                      , only : galacticFilterClass

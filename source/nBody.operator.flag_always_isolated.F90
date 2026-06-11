@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which flags particles that have been always isolated.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated">
-   <description>An N-body data operator which identifies and flags particles that have remained isolated throughout the simulation, never having been part of a larger halo, by tracking their merger history. A particle is considered always-isolated unless its virial mass increased by more than the factor specified by \mono{[massGrowthFactor]}, which ignores transient accretion events.</description>
+  <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated" docformat="rst">
+   <description>
+   An N-body data operator which identifies and flags particles that have remained isolated throughout the simulation, never having been part of a larger halo, by tracking their merger history. A particle is considered always-isolated unless its virial mass increased by more than the factor specified by ``[massGrowthFactor]``, which ignores transient accretion events.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFlagAlwaysIsolated
-     !!{
+     !!{RST
      An N-body data operator which flags particles that have been always isolated.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which flags particles that have been always i
   end type nbodyOperatorFlagAlwaysIsolated
 
   interface nbodyOperatorFlagAlwaysIsolated
-     !!{
-     Constructors for the \refClass{nbodyOperatorFlagAlwaysIsolated} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFlagAlwaysIsolated`` N-body operator class.
      !!}
      module procedure flagAlwaysIsolatedConstructorParameters
      module procedure flagAlwaysIsolatedConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which flags particles that have been always i
 contains
 
   function flagAlwaysIsolatedConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFlagAlwaysIsolated} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFlagAlwaysIsolated`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     double precision                                                 :: massFactor
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFactor</name>
       <source>parameters</source>
-      <description>The factor by which virial mass must increase for previous non-isolation to be ignored.</description>
+      <description>
+      The factor by which virial mass must increase for previous non-isolation to be ignored.
+      </description>
       <defaultValue>2.0d0</defaultValue>
     </inputParameter>
     !!]
@@ -72,8 +76,8 @@ contains
   end function flagAlwaysIsolatedConstructorParameters
 
   function flagAlwaysIsolatedConstructorInternal(massFactor) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFlagAlwaysIsolated} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFlagAlwaysIsolated`` N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +91,7 @@ contains
   end function flagAlwaysIsolatedConstructorInternal
 
   subroutine flagAlwaysIsolatedOperate(self,simulations)
-    !!{
+    !!{RST
     Identify and flag particles which have been always isolated.
     !!}
     use    :: Arrays_Search     , only : searchIndexed

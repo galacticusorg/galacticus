@@ -20,19 +20,20 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
+  <nodePropertyExtractor name="nodePropertyExtractorVirialProperties" docformat="rst">
    <description>
-    A node property extractor which extracts the following quantities related to the virialized region of each node:
-    \begin{description}
-     \item [\mono{nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
-     specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
-     \item [\mono{nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
-    \end{description}
+   A node property extractor which extracts the following quantities related to the virialized region of each node:
+
+   ``nodeVirialRadius``
+      The virial radius (following whatever definition of virial overdensity is specified by the virial density contrast (see ``virialDensityContrast``) in units of Mpc;
+
+   ``nodeVirialVelocity``
+      The circular velocity at the virial radius (in km/s).
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVirialProperties
-     !!{
+     !!{RST
      A property extractor which extracts virialProperties properties.
      !!}
      private
@@ -48,8 +49,8 @@
   end type nodePropertyExtractorVirialProperties
 
   interface nodePropertyExtractorVirialProperties
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorVirialProperties`` property extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -58,8 +59,8 @@
 contains
 
   function virialPropertiesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorVirialProperties`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +80,8 @@ contains
   end function virialPropertiesConstructorParameters
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorVirialProperties`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self
@@ -93,8 +94,8 @@ contains
   end function virialPropertiesConstructorInternal
 
   subroutine virialPropertiesDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorVirialProperties} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorVirialProperties`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorVirialProperties), intent(inout) :: self
@@ -106,8 +107,8 @@ contains
   end subroutine virialPropertiesDestructor
 
   integer function virialPropertiesElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{virialProperties} property extractors.
+    !!{RST
+    Return the number of elements in the ``virialProperties`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
@@ -119,7 +120,7 @@ contains
   end function virialPropertiesElementCount
 
   function virialPropertiesExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a virialProperties output extractor.
     !!}
     implicit none
@@ -140,8 +141,8 @@ contains
   end function virialPropertiesExtract
 
   subroutine virialPropertiesNames(self,time,names)
-    !!{
-    Return the names of the \mono{virialProperties} properties.
+    !!{RST
+    Return the names of the ``virialProperties`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
@@ -157,8 +158,8 @@ contains
   end subroutine virialPropertiesNames
 
   subroutine virialPropertiesDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{virialProperties} properties.
+    !!{RST
+    Return the descriptions of the ``virialProperties`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
@@ -174,8 +175,8 @@ contains
   end subroutine virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{virialProperties} properties in the SI system.
+    !!{RST
+    Return the units of the ``virialProperties`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -195,7 +196,7 @@ contains
   end function virialPropertiesUnitsInSI
 
   function virialPropertiesUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the virialProperties properties.
     !!}
     use :: Units_MetaData, only : unitType

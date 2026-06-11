@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an object that implements core radii for cored hot halo mass distributions.
 !!}
 
 module Hot_Halo_Mass_Distributions_Core_Radii
-  !!{
+  !!{RST
   Provides an object that implements core radii for hot halo mass distributions.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hotHaloMassDistributionCoreRadius</name>
    <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
-   <description>Class providing the core radius (in Mpc) for cored hot halo density profiles. A finite core
-    radius softens the central density cusp and is motivated by the effects of AGN feedback and supernova
-    heating, which can evacuate gas from the central regions of a halo. The core radius sets the transition
-    between the flat central density and the declining outer profile in models such as the cored $\beta$-model,
-    and thus controls the central gas density and cooling rate.</description>
+   <description>
+   Class providing the core radius (in Mpc) for cored hot halo density profiles. A finite core radius softens the central density cusp and is motivated by the effects of AGN feedback and supernova heating, which can evacuate gas from the central regions of a halo. The core radius sets the transition between the flat central density and the declining outer profile in models such as the cored :math:`\beta`-model, and thus controls the central gas density and cooling rate.
+   </description>
    <default>virialFraction</default>
    <method name="radius" >
-    <description>Return the core radius of the hot halo mass distribution.</description>
+    <description>
+    Return the core radius of the hot halo mass distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

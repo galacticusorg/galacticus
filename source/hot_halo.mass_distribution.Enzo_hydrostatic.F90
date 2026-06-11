@@ -17,33 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+!!{RST
+An implementation of the hot halo mass distribution class which uses the "hydrostatic" profile used by the Enzo simulation code.
 !!}
 
   use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
   use :: Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfile             , hotHaloTemperatureProfileClass
 
   !![
-  <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
+  <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic" docformat="rst">
    <description>
-    A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
-    ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
-    \begin{equation}
-     \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
-     r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
-    \end{equation}
-    where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-    \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
-    hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
-    hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
-    radii.
+   A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the "hydrostatic" profile available in the :term:`ENZO` code. Specifically,
+
+   .. math::
+
+      \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+      r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+
+   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see ``hotHaloMassDistributionCoreRadius``). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
    </description>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionEnzoHydrostatic
-     !!{
-     An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+     !!{RST
+     An implementation of the hot halo mass distribution class which uses the "hydrostatic" profile used by the Enzo simulation code.
      !!}
      private
      class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_         => null()
@@ -54,8 +51,8 @@ An implementation of the hot halo mass distribution class which uses the ``hydro
   end type hotHaloMassDistributionEnzoHydrostatic
 
   interface hotHaloMassDistributionEnzoHydrostatic
-     !!{
-     Constructors for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
+     !!{RST
+     Constructors for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -64,8 +61,8 @@ An implementation of the hot halo mass distribution class which uses the ``hydro
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{enzoHydrostatic} hot halo mass distribution class.
+    !!{RST
+    Default constructor for the ``enzoHydrostatic`` hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,8 +85,8 @@ contains
   end function enzoHydrostaticConstructorParameters
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
+    !!{RST
+    Internal constructor for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
     !!}
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
@@ -103,8 +100,8 @@ contains
   end function enzoHydrostaticConstructorInternal
 
   subroutine enzoHydrostaticDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloMassDistributionEnzoHydrostatic} hot halo mass distribution class.
+    !!{RST
+    Destructor for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
@@ -117,8 +114,8 @@ contains
   end subroutine enzoHydrostaticDestructor
 
   function enzoHydrostaticGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the Enzo hydrostatic hot halo mass distribution for the given \mono{node}.
+    !!{RST
+    Return the Enzo hydrostatic hot halo mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo           , treeNode
     use :: Galactic_Structure_Options, only : componentTypeHotHalo           , massTypeGaseous, weightByMass

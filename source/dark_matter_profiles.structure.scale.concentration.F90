@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo profile scale radii in which radii are computed from the concentration.
   !!}
 
@@ -30,8 +30,10 @@
   use :: Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
-    <description>Dark matter halo scale radii are computed from the concentration.</description>
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration" docformat="rst">
+    <description>
+    Dark matter halo scale radii are computed from the concentration.
+    </description>
     <deepCopy>
       <functionClass variables="darkMatterHaloScaleDefinition"/>
     </deepCopy>
@@ -41,7 +43,7 @@
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentration
-     !!{
+     !!{RST
      A dark matter halo profile scale radius class which computes radii from the concentration.
      !!}
      private
@@ -60,8 +62,8 @@
   end type darkMatterProfileScaleRadiusConcentration
 
   interface darkMatterProfileScaleRadiusConcentration
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -84,9 +86,8 @@
 contains
 
   function concentrationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,18 +102,20 @@ contains
     logical                                                           :: correctForConcentrationDefinition, useMeanConcentration
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correctForConcentrationDefinition</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
-        (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
-        If false, the concentration is applied blindly.</description>
+      <description>
+      If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account. If false, the concentration is applied blindly.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useMeanConcentration</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then when computing dark matter profile scale radii using concentrations do not account for any possible scatter in the concentration-mass relation.</description>
+      <description>
+      If true, then when computing dark matter profile scale radii using concentrations do not account for any possible scatter in the concentration-mass relation.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
@@ -136,8 +139,8 @@ contains
   end function concentrationConstructorParameters
 
   function concentrationConstructorInternal(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
     !!}
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                        :: self
@@ -164,8 +167,8 @@ contains
   end function concentrationConstructorInternal
 
   subroutine concentrationDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusConcentration} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self
@@ -185,8 +188,8 @@ contains
   end subroutine concentrationDestructor
 
   double precision function concentrationRadius(self,node)
-    !!{
-    Compute the scale radius of the dark matter profile of \mono{node}.
+    !!{RST
+    Compute the scale radius of the dark matter profile of ``node``.
     !!}
     use :: Calculations_Resets , only : Calculations_Reset
     use :: Numerical_Comparison, only : Values_Differ
@@ -311,7 +314,7 @@ contains
   end function concentrationRadius
 
   double precision function concentrationMassRoot(massDefinitionTrial)
-    !!{
+    !!{RST
     Root function used to find the mass of a halo corresponding to the definition used for a particular concentration class.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset

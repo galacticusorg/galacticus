@@ -17,61 +17,70 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides a class that implements output times for \glc.
+!!{RST
+Contains a module which provides a class that implements output times for Galacticus.
 !!}
 
 module Output_Times
-  !!{
-  Provides a class that implements output times for \glc.
+  !!{RST
+  Provides a class that implements output times for Galacticus.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>outputTimes</name>
    <descriptiveName>Output Times</descriptiveName>
-   <description>Class providing the set of cosmic times (and corresponding redshifts) at which \glc\ writes
-    output snapshots. Methods return the count of output epochs, the time or redshift at each index, and
-    utilities to find the next or previous output time relative to a given cosmic time. The output time
-    schedule is used throughout the model to determine when to record galaxy properties, to guide the
-    ODE integrator timestep selection, and to compare model predictions with observational data at the
-    correct redshifts.</description>
+   <description>
+   Class providing the set of cosmic times (and corresponding redshifts) at which Galacticus writes output snapshots. Methods return the count of output epochs, the time or redshift at each index, and utilities to find the next or previous output time relative to a given cosmic time. The output time schedule is used throughout the model to determine when to record galaxy properties, to guide the ODE integrator timestep selection, and to compare model predictions with observational data at the correct redshifts.
+   </description>
    <default>list</default>
    <method name="count" >
-    <description>Return the number of output times.</description>
+    <description>
+    Return the number of output times.
+    </description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
    </method>
    <method name="time" >
-    <description>Return the output time index by \mono{indexOutput}.</description>
+    <description>
+    Return the output time index by ``indexOutput``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="redshift" >
-    <description>Return the output redshift index by \mono{indexOutput}.</description>
+    <description>
+    Return the output redshift index by ``indexOutput``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
    </method>
    <method name="index" >
-    <description>Return the index of the output at the given \mono{time}. If \mono{findClosest} is given and is true then the closest matching output is returned.</description>
+    <description>
+    Return the index of the output at the given ``time``. If ``findClosest`` is given and is true then the closest matching output is returned.
+    </description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time       </argument>
     <argument>logical         , intent(in   ), optional :: findClosest</argument>
    </method>
    <method name="timeNext" >
-    <description>Given a \mono{time}, return the time of the next output, and (optionally) the index of that output.</description>
+    <description>
+    Given a ``time``, return the time of the next output, and (optionally) the index of that output.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>
     <argument>integer         (c_size_t), intent(  out), optional :: indexOutput</argument>
    </method>
    <method name="timePrevious" >
-    <description>Given a \mono{time}, return the time of the previous output, and (optionally) the index of that output.</description>
+    <description>
+    Given a ``time``, return the time of the previous output, and (optionally) the index of that output.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   )           :: timeCurrent</argument>

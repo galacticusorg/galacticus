@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for black hole accretion rates.
 !!}
 
 module Black_Hole_Accretion_Rates
-  !!{
+  !!{RST
   Implements a class for black hole accretion rates.
   !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -30,18 +30,17 @@ module Black_Hole_Accretion_Rates
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleAccretionRate</name>
    <descriptiveName>Black Hole Accretion Rates</descriptiveName>
    <description>
-    Class providing models of the mass accretion rates onto supermassive black holes from the spheroid, hot halo,
-    and nuclear star cluster components. Accretion drives black hole growth and AGN feedback. Implementations
-    typically adopt Bondi-type formulae, Eddington-limited accretion, or empirical models that parameterize the
-    accretion rate as a function of the available gas supply and the potential well depth.
+   Class providing models of the mass accretion rates onto supermassive black holes from the spheroid, hot halo, and nuclear star cluster components. Accretion drives black hole growth and AGN feedback. Implementations typically adopt Bondi-type formulae, Eddington-limited accretion, or empirical models that parameterize the accretion rate as a function of the available gas supply and the potential well depth.
    </description>
    <default>standard</default>
    <method name="rateAccretion" >
-    <description>Computes the mass accretion rate onto a black hole from the spheroid, hot halo, and nuclear star cluster components, returning each contribution separately (in $\mathrm{M}_\odot$ Gyr$^{-1}$).</description>
+    <description>
+    Computes the mass accretion rate onto a black hole from the spheroid, hot halo, and nuclear star cluster components, returning each contribution separately (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`).
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole                                                                               </argument>

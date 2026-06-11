@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a half-stellar mass radius output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassStellar">
-   <description>Extracts the projected half-stellar-mass radius (effective radius), the radius enclosing half the total stellar luminosity or stellar mass of a galaxy, a fundamental size observable used in galaxy structural studies.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMassStellar" docformat="rst">
+   <description>
+   Extracts the projected half-stellar-mass radius (effective radius), the radius enclosing half the total stellar luminosity or stellar mass of a galaxy, a fundamental size observable used in galaxy structural studies.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusHalfMassStellar
-     !!{
+     !!{RST
      A half-(stellar) mass property extractor output analysis class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a half-stellar mass radius output analysis property extractor class.
   end type nodePropertyExtractorRadiusHalfMassStellar
 
   interface nodePropertyExtractorRadiusHalfMassStellar
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiusHalfMassStellar`` property extractor class.
      !!}
      module procedure radiusHalfMassStellarConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassStellar
@@ -49,8 +51,8 @@ Implements a half-stellar mass radius output analysis property extractor class.
 contains
 
   function radiusHalfMassStellarConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusHalfMassStellar} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiusHalfMassStellar`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function radiusHalfMassStellarConstructorParameters
 
   double precision function radiusHalfMassStellarExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a half-mass output analysis.
     !!}
     use :: Galactic_Structure_Options, only : massTypeStellar
@@ -87,7 +89,7 @@ contains
 
 
   function radiusHalfMassStellarName(self)
-    !!{
+    !!{RST
     Return the name of the radiusHalfMassStellar property.
     !!}
     implicit none
@@ -100,7 +102,7 @@ contains
   end function radiusHalfMassStellarName
 
   function radiusHalfMassStellarDescription(self)
-    !!{
+    !!{RST
     Return a description of the radiusHalfMassStellar property.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end function radiusHalfMassStellarDescription
 
   double precision function radiusHalfMassStellarUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the radiusHalfMassStellar property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -126,7 +128,7 @@ contains
   end function radiusHalfMassStellarUnitsInSI
 
   function radiusHalfMassStellarUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusHalfMassStellar property.
     !!}
     use :: Units_MetaData, only : unitType

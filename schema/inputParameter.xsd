@@ -37,6 +37,9 @@
 	<xs:element name="defaultValue"  type="xs:string"     minOccurs="0" maxOccurs="1"/>
 	<xs:element name="defaultSource" type="xs:string"     minOccurs="0" maxOccurs="1"/>
       </xs:all>
+      <!-- docformat="rst" marks the description as reStructuredText, rendered
+           on ReadTheDocs (see scripts/doc/extractDocsRST.py). -->
+      <xs:attribute name="docformat" use="optional"/>
     </xs:complexType>
   </xs:element>
   

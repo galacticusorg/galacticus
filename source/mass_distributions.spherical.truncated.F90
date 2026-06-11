@@ -17,27 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a truncated spherical mass distribution.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalTruncated">
+  <massDistribution name="massDistributionSphericalTruncated" docformat="rst">
    <description>
-     Implements a mass distribution in which the density is given by
-     \begin{equation}
-       \rho(r) = \rho^\prime(r) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ 0 &amp; \hbox{ if } r &gt; r_\mathrm{max}, \\ 1-3 x^2 + 2x^3 &amp; \hbox{otherwise,} \end{array} \right.
-     \end{equation}
-     where
-     \begin{equation}
-       x=\frac{r-r_\mathrm{min}}{r_\mathrm{max}-r_\mathrm{min}},
-     \end{equation}
-     $\rho^\prime(r)$ is some other density profile, $r_\mathrm{min}=$\mono{[radiusTruncateMinimum]}, and  $r_\mathrm{max}=$\mono{[radiusTruncateMaximum]}.
+   Implements a mass distribution in which the density is given by
+
+   .. math::
+
+      \rho(r) = \rho^\prime(r) \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } r &lt; r_\mathrm{min}, \\ 0 &amp; \hbox{ if } r &gt; r_\mathrm{max}, \\ 1-3 x^2 + 2x^3 &amp; \hbox{otherwise,} \end{array} \right.
+
+   where
+
+   .. math::
+
+      x=\frac{r-r_\mathrm{min}}{r_\mathrm{max}-r_\mathrm{min}},
+
+   :math:`\rho^\prime(r)` is some other density profile, :math:`r_\mathrm{min}=`\ ``[radiusTruncateMinimum]``, and  :math:`r_\mathrm{max}=`\ ``[radiusTruncateMaximum]``.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalTruncated
-     !!{
+     !!{RST
      Implementation of a truncated spherical mass distribution.
      !!}
      private
@@ -59,8 +63,8 @@
   end type massDistributionSphericalTruncated
 
   interface massDistributionSphericalTruncated
-     !!{
-     Constructors for the \refClass{massDistributionSphericalTruncated} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalTruncated`` mass distribution class.
      !!}
      module procedure sphericalTruncatedConstructorParameters
      module procedure sphericalTruncatedConstructorInternal
@@ -69,9 +73,8 @@
 contains
 
   function sphericalTruncatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalTruncated} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalTruncated`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -84,32 +87,42 @@ contains
     type            (varying_string                    )                :: componentType        , massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTruncateMinimum</name>
       <source>parameters</source>
-      <description>The minimum radius to begin truncating the density profile.</description>
+      <description>
+      The minimum radius to begin truncating the density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTruncateMaximum</name>
       <source>parameters</source>
-      <description>The maximum radius to finish truncating the density profile.</description>
+      <description>
+      The maximum radius to finish truncating the density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -128,8 +141,8 @@ contains
   end function sphericalTruncatedConstructorParameters
   
   function sphericalTruncatedConstructorInternal(radiusTruncateMinimum,radiusTruncateMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalTruncated} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalTruncated`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalTruncated)                          :: self
@@ -149,8 +162,8 @@ contains
   end function sphericalTruncatedConstructorInternal
 
   subroutine sphericalTruncatedDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalTruncated} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalTruncated`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncated), intent(inout) :: self
@@ -162,7 +175,7 @@ contains
   end subroutine sphericalTruncatedDestructor
 
   subroutine sphericalTruncatedTruncationFunction(self,radius,x,multiplier,multiplierGradient)
-    !!{
+    !!{RST
     Return the scaled truncation radial coordinate, and the truncation multiplier.
     !!}
     implicit none
@@ -197,8 +210,8 @@ contains
   end subroutine sphericalTruncatedTruncationFunction
 
   double precision function sphericalTruncatedDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout) :: self
@@ -212,8 +225,8 @@ contains
   end function sphericalTruncatedDensity
 
   double precision function sphericalTruncatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout), target   :: self
@@ -240,7 +253,7 @@ contains
   end function sphericalTruncatedDensityGradientRadial
 
   double precision function sphericalTruncatedMassTotal(self) result(mass)
-    !!{
+    !!{RST
     Return the total mass in a truncated mass distribution.
     !!}
     implicit none
@@ -251,8 +264,8 @@ contains
   end function sphericalTruncatedMassTotal
   
   double precision function sphericalTruncatedMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for truncated mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for truncated mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalTruncated), intent(inout), target :: self
@@ -267,7 +280,7 @@ contains
   end function sphericalTruncatedMassEnclosedBySphere
   
   double precision function sphericalTruncatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for truncated spherical mass distributions.
     !!}
     implicit none

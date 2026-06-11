@@ -17,30 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class in which the cooling rate scales with the mass of the halo.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <coolingRate name="coolingRateSimpleScaling">
+  <coolingRate name="coolingRateSimpleScaling" docformat="rst">
    <description>
-    A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
-    \begin{equation}
-    \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
-    \end{equation}
-    where 
-    \begin{equation}
-    \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
-    M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
-    \end{equation}
-    $\tau_\mathrm{cool,0}=$\mono{[timescale]}, $\beta_\mathrm{cool}=$\mono{[exponentRedshift]}, $M_\mathrm{transition}=$\mono{[massCutOff]}, and $\gamma_\mathrm{cool}=$\mono{[exponentCutOff]}.
+   A cooling rate class in which the cooling rate scales with the mass of the halo. Specifically, the cooling rate is given by
+
+   .. math::
+
+      \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(M_\mathrm{halo},z) ,
+
+   where
+
+   .. math::
+
+      \tau_\mathrm{cool}=\tau_\mathrm{cool,0} (1+z)^{\beta_\mathrm{cool}} \exp \left(\left[{M_\mathrm{halo} \over
+      M_\mathrm{transition}}\right]^{\gamma_\mathrm{cool}}\right),
+
+   :math:`\tau_\mathrm{cool,0}=`\ ``[timescale]``, :math:`\beta_\mathrm{cool}=`\ ``[exponentRedshift]``, :math:`M_\mathrm{transition}=`\ ``[massCutOff]``, and :math:`\gamma_\mathrm{cool}=`\ ``[exponentCutOff]``.
    </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
-     !!{
+     !!{RST
      Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
      !!}
      private
@@ -58,7 +62,7 @@
   end type coolingRateSimpleScaling
 
   interface coolingRateSimpleScaling
-     !!{
+     !!{RST
      Constructors for the simple scaling cooling rate class.
      !!}
      module procedure simpleScalingConstructorParameters
@@ -68,7 +72,7 @@
 contains
 
   function simpleScalingConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the simple scaling cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,35 +85,45 @@ contains
          &                                                       massCutOff
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple scaling cooling rate model.</description>
+      <description>
+      The timescale (in Gyr) for cooling in low mass halos at :math:`z=0` in the simple scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>-1.5d0</defaultValue>
-      <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple scaling cooling rate model.</description>
+      <description>
+      The exponent of :math:`(1+z)` in the cooling timescale for low mass halos in the simple scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCutOff</name>
       <source>parameters</source>
       <defaultValue>200.0d0</defaultValue>
-      <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple cooling rate model.</description>
+      <description>
+      The halo mass scale appearing in the exponential term for cooling timescale in the simple cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>widthCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.</description>
+      <description>
+      The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.</description>
+      <description>
+      The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -122,7 +136,7 @@ contains
   end function simpleScalingConstructorParameters
 
   function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the simple scaling cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
@@ -172,7 +186,7 @@ contains
   end function simpleScalingConstructorInternal
 
   subroutine simpleScalingDestructor(self)
-    !!{
+    !!{RST
     Destructor for the simple scaling cooling rate class.
     !!}
     implicit none
@@ -185,8 +199,8 @@ contains
   end subroutine simpleScalingDestructor
 
   double precision function simpleScalingRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none

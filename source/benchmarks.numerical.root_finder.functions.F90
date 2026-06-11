@@ -17,22 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Module providing root-callback functions and shared state for the \mono{rootFinder}
-benchmark program. Kept separate from the program unit so the callbacks can be
-passed as \mono{procedure(...)} actual arguments to \refClass{rootFinder} without
-running into Fortran restrictions on procedure pointers to internal procedures.
+!!{RST
+Module providing root-callback functions and shared state for the ``rootFinder`` benchmark program. Kept separate from the program unit so the callbacks can be passed as ``procedure(...)`` actual arguments to ``rootFinder`` without running into Fortran restrictions on procedure pointers to internal procedures.
 !!}
 
 module Benchmark_Root_Finder_Functions
-  !!{
-  Callbacks and shared state for the \refClass{rootFinder} benchmark.
+  !!{RST
+  Callbacks and shared state for the ``rootFinder`` benchmark.
 
-  The functions read a single module-level shift, \mono{bmShift}, which is
-  rewritten by the benchmark driver before every call. This perturbs the
-  problem (so the optimizer cannot constant-fold the solver chain) and keeps
-  the cache state of \mono{rootFinder}'s wrapper realistic from one call to
-  the next.
+  The functions read a single module-level shift, ``bmShift``, which is rewritten by the benchmark driver before every call. This perturbs the problem (so the optimizer cannot constant-fold the solver chain) and keeps the cache state of ``rootFinder``'s wrapper realistic from one call to the next.
   !!}
   implicit none
   private
@@ -46,12 +39,10 @@ module Benchmark_Root_Finder_Functions
 contains
 
   double precision function fQuad(x)
-    !!{
-    Quadratic with a single root in the interval $[0,3]$.
+    !!{RST
+    Quadratic with a single root in the interval :math:`[0,3]`.
 
-    $f(x) = (x - (\mathrm{bmShift}+1))(x + 5)$ has roots at $x=\mathrm{bmShift}+1$
-    and $x=-5$. With $\mathrm{bmShift} \in [-0.4,0.4]$ the in-bracket root sits
-    in $[0.6,1.4]$.
+    :math:`f(x) = (x - (\mathrm{bmShift}+1))(x + 5)` has roots at :math:`x=\mathrm{bmShift}+1` and :math:`x=-5`. With :math:`\mathrm{bmShift} \in [-0.4,0.4]` the in-bracket root sits in :math:`[0.6,1.4]`.
     !!}
     double precision, intent(in   ) :: x
 
@@ -60,8 +51,8 @@ contains
   end function fQuad
 
   double precision function fQuadDerivative(x)
-    !!{
-    Derivative of \mono{fQuad}.
+    !!{RST
+    Derivative of ``fQuad``.
     !!}
     double precision, intent(in   ) :: x
 
@@ -70,8 +61,8 @@ contains
   end function fQuadDerivative
 
   subroutine fQuadBoth(x,f,df)
-    !!{
-    Combined value and derivative of \mono{fQuad}.
+    !!{RST
+    Combined value and derivative of ``fQuad``.
     !!}
     double precision, intent(in   ) :: x
     double precision, intent(  out) :: f, df
@@ -82,13 +73,10 @@ contains
   end subroutine fQuadBoth
 
   double precision function fFar(x)
-    !!{
+    !!{RST
     Linear function with its root far above a typical initial guess.
 
-    $f(x) = x - (\mathrm{bmShift}+10)$. With $\mathrm{bmShift} \in [-0.4,0.4]$
-    the root lies in $[9.6,10.4]$. Used in expansion benchmarks where the
-    initial bracket/guess is intentionally below the root so the bracket
-    expansion loop is exercised.
+    :math:`f(x) = x - (\mathrm{bmShift}+10)`. With :math:`\mathrm{bmShift} \in [-0.4,0.4]` the root lies in :math:`[9.6,10.4]`. Used in expansion benchmarks where the initial bracket/guess is intentionally below the root so the bracket expansion loop is exercised.
     !!}
     double precision, intent(in   ) :: x
 

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null filter.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterNull">
-   <description>A filter which simply returns the result of another filter. This is intended for use in filter pipelines where it may be useful to optionally switch in this filter or a \refClass{galacticFilterNull} filter (for example).</description>
+  <galacticFilter name="galacticFilterNull" docformat="rst">
+   <description>
+   A filter which simply returns the result of another filter. This is intended for use in filter pipelines where it may be useful to optionally switch in this filter or a ``galacticFilterNull`` filter (for example).
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterNull
-     !!{
+     !!{RST
      A galactic filter which simply returns the result of another filter.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a null filter.
   end type galacticFilterNull
 
   interface galacticFilterNull
-     !!{
-     Constructors for the \refClass{galacticFilterNull} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterNull`` galactic filter class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -48,8 +50,8 @@ Implements a null filter.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterNull} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterNull`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +71,8 @@ contains
   end function nullConstructorParameters
 
   function nullConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterNull} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterNull`` galactic filter class.
     !!}
     implicit none
     type (galacticFilterNull )                        :: self
@@ -83,8 +85,8 @@ contains
   end function nullConstructorInternal
 
   subroutine nullDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterNull} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterNull`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterNull), intent(inout) :: self
@@ -96,7 +98,7 @@ contains
   end subroutine nullDestructor
 
   logical function nullPasses(self,node)
-    !!{
+    !!{RST
     Implement a null galactic filter.
     !!}
     implicit none

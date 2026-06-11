@@ -17,28 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of cosmological density field mass variance which adds variance to mimic that associated with the formation of
-  artificial halos.
+  !!{RST
+  An implementation of cosmological density field mass variance which adds variance to mimic that associated with the formation of artificial halos.
   !!}
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Linear_Growth      , only : linearGrowthClass
 
   !![
-  <cosmologicalMassVariance name="cosmologicalMassVarianceArtificialHalos">
+  <cosmologicalMassVariance name="cosmologicalMassVarianceArtificialHalos" docformat="rst">
    <description>
-    The mass variance of cosmological density fields is computed by adding to the variance of another class to mimic that
-    associated with the formation of artificial halos. Specifically,
-    \begin{equation}
-     \sigma^2(M,t) \rightarrow \sigma^2(M,t) + \left(\frac{M}{M_0}\right)^\alpha D^{2\beta}(t),
-    \end{equation}
-    where $M_0=$\mono{[massZeroPoint]} (the mass at which the variance due is 1 at $z=0$), $\alpha=$\mono{[exponentMass]},
-    $\beta=$\mono{[exponentGrowthFactor]}.
+   The mass variance of cosmological density fields is computed by adding to the variance of another class to mimic that associated with the formation of artificial halos. Specifically,
+
+   .. math::
+
+      \sigma^2(M,t) \rightarrow \sigma^2(M,t) + \left(\frac{M}{M_0}\right)^\alpha D^{2\beta}(t),
+
+   where :math:`M_0=`\ ``[massZeroPoint]`` (the mass at which the variance due is 1 at :math:`z=0`), :math:`\alpha=`\ ``[exponentMass]``, :math:`\beta=`\ ``[exponentGrowthFactor]``.
    </description>
   </cosmologicalMassVariance>
   !!]
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceArtificialHalos
-     !!{
+     !!{RST
      A cosmological mass variance class that scales the variance from another class.
      !!}
      private
@@ -61,8 +60,8 @@
   end type cosmologicalMassVarianceArtificialHalos
 
   interface cosmologicalMassVarianceArtificialHalos
-     !!{
-     Constructors for the \mono{artificialHalos} cosmological mass variance class.
+     !!{RST
+     Constructors for the ``artificialHalos`` cosmological mass variance class.
      !!}
      module procedure artificialHalosConstructorParameters
      module procedure artificialHalosConstructorInternal
@@ -71,8 +70,8 @@
 contains
 
   function artificialHalosConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{artificialHalos} cosmological mass variance class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``artificialHalos`` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,20 +84,26 @@ contains
          &                                                                      exponentMass
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massZeroPoint</name>
       <source>parameters</source>
-      <description>The mass, $M_0$, in the artificial halo variance model.</description>
+      <description>
+      The mass, :math:`M_0`, in the artificial halo variance model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMass</name>
       <source>parameters</source>
-      <description>The exponent of mass, $\alpha$, in the artificial halo variance model.</description>
+      <description>
+      The exponent of mass, :math:`\alpha`, in the artificial halo variance model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentGrowthFactor</name>
       <source>parameters</source>
-      <description>The exponent of growth factor, $\beta$, in the artificial halo variance model.</description>
+      <description>
+      The exponent of growth factor, :math:`\beta`, in the artificial halo variance model.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -114,8 +119,8 @@ contains
   end function artificialHalosConstructorParameters
 
   function artificialHalosConstructorInternal(massZeroPoint,exponentMass,exponentGrowthFactor,cosmologicalMassVariance_,cosmologyFunctions_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \mono{artificialHalos} cosmological mass variance class.
+    !!{RST
+    Internal constructor for the ``artificialHalos`` cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceArtificialHalos)                        :: self
@@ -132,8 +137,8 @@ contains
   end function artificialHalosConstructorInternal
 
   subroutine artificialHalosDestructor(self)
-    !!{
-    Destructor for the \mono{artificialHalos} cosmological mass variance class.
+    !!{RST
+    Destructor for the ``artificialHalos`` cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -147,7 +152,7 @@ contains
   end subroutine artificialHalosDestructor
 
   double precision function artificialHalosPowerNormalization(self)
-    !!{
+    !!{RST
     Return the normalization of the power spectrum. This is left unchanged by the presence of artificial halo.
     !!}
     implicit none
@@ -158,8 +163,8 @@ contains
   end function artificialHalosPowerNormalization
 
   double precision function artificialHalosSigma8(self)
-    !!{
-    Return the value of $\sigma_8$. This is left unchanged by the presence of artificial halo.
+    !!{RST
+    Return the value of :math:`\sigma_8`. This is left unchanged by the presence of artificial halo.
     !!}
     implicit none
     class(cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -169,9 +174,8 @@ contains
   end function artificialHalosSigma8
 
   double precision function artificialHalosRootVariance(self,mass,time)
-    !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
-    \ttfamily mass} on average.
+    !!{RST
+    Return the root-variance of the cosmological density field in a spherical region containing the given  mass on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -189,9 +193,8 @@ contains
   end function artificialHalosRootVariance
 
   double precision function artificialHalosRootVarianceLogarithmicGradient(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -216,9 +219,8 @@ contains
   end function artificialHalosRootVarianceLogarithmicGradient
 
   double precision function artificialHalosRootVarianceLogarithmicGradientTime(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -246,9 +248,8 @@ contains
   end function artificialHalosRootVarianceLogarithmicGradientTime
 
   subroutine artificialHalosRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    !!{
-    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
@@ -279,7 +280,7 @@ contains
   end subroutine artificialHalosRootVarianceAndLogarithmicGradient
 
   double precision function artificialHalosMass(self,rootVariance,time)
-    !!{
+    !!{RST
     Return the mass corresponding to the given root-variance of the cosmological density field.
     !!}
     implicit none
@@ -292,7 +293,7 @@ contains
   end function artificialHalosMass
 
   logical function artificialHalosGrowthIsMassDependent(self)
-    !!{
+    !!{RST
     Return true if the growth rate of the variance is mass-dependent.
     !!}
     implicit none
@@ -303,9 +304,8 @@ contains
   end function artificialHalosGrowthIsMassDependent
 
   subroutine artificialHalosDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
-    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage
-    only (i.e. we exclude the window function).
+    !!{RST
+    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage only (i.e. we exclude the window function).
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

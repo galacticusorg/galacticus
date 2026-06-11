@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for ram pressure stripping which simply returns the virial radius.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius">
+  <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius" docformat="rst">
    <description>
-    A hot halo ram pressure stripping class which sets the ram pressure stripping radius equal to the virial radius of the
-    halo. The effectively results in no ram pressure stripping.
+   A hot halo ram pressure stripping class which sets the ram pressure stripping radius equal to the virial radius of the halo. The effectively results in no ram pressure stripping.
    </description>
   </hotHaloRamPressureStripping>
   !!]
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingVirialRadius
-     !!{
+     !!{RST
      Implementation of a hot halo ram pressure stripping class which simply returns the virial radius.
      !!}
      private
@@ -43,8 +42,8 @@
   end type hotHaloRamPressureStrippingVirialRadius
 
   interface hotHaloRamPressureStrippingVirialRadius
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
      !!}
      module procedure virialRadiusConstructorParameters
      module procedure virialRadiusConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function virialRadiusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +73,8 @@ contains
   end function virialRadiusConstructorParameters
 
   function virialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
+    !!{RST
+    Internal constructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
     !!}
     implicit none
     type (hotHaloRamPressureStrippingVirialRadius)                        :: self
@@ -88,8 +87,8 @@ contains
   end function virialRadiusConstructorInternal
 
   subroutine virialRadiusDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloRamPressureStrippingVirialRadius} hot halo ram pressure stripping class.
+    !!{RST
+    Destructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
     !!}
     implicit none
     type(hotHaloRamPressureStrippingVirialRadius), intent(inout) :: self
@@ -101,7 +100,7 @@ contains
   end subroutine virialRadiusDestructor
 
   double precision function virialRadiusRadiusStripped(self,node)
-    !!{
+    !!{RST
     Return the ram pressure stripping radius which is assumed to be equal to the virial radius.
     !!}
     implicit none

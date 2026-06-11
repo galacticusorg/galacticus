@@ -19,18 +19,20 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-  !!{
-  An implementation of atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.
+  !!{RST
+  An implementation of atomic collisional excitation using the fitting functions of :cite:t:`scholz_collisional_1991`.
   !!}
 
   !![
-  <atomicExcitationRateCollisional name="atomicExcitationRateCollisionalScholzWalters1991">
-   <description>Atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.</description>
+  <atomicExcitationRateCollisional name="atomicExcitationRateCollisionalScholzWalters1991" docformat="rst">
+   <description>
+   Atomic collisional excitation using the fitting functions of :cite:t:`scholz_collisional_1991`.
+   </description>
   </atomicExcitationRateCollisional>
   !!]
   type, extends(atomicExcitationRateCollisionalClass) :: atomicExcitationRateCollisionalScholzWalters1991
-     !!{
-     An atomic collisional excitation class using the fitting functions of \cite{scholz_collisional_1991}.
+     !!{RST
+     An atomic collisional excitation class using the fitting functions of :cite:t:`scholz_collisional_1991`.
      !!}
      private
    contains
@@ -38,8 +40,8 @@
   end type atomicExcitationRateCollisionalScholzWalters1991
 
   interface atomicExcitationRateCollisionalScholzWalters1991
-     !!{
-     Constructors for the \refClass{atomicExcitationRateCollisionalScholzWalters1991} atomic collisional excitation class.
+     !!{RST
+     Constructors for the ``atomicExcitationRateCollisionalScholzWalters1991`` atomic collisional excitation class.
      !!}
      module procedure scholzWalters1991ConstructorParameters
   end interface atomicExcitationRateCollisionalScholzWalters1991
@@ -47,9 +49,8 @@
 contains
 
   function scholzWalters1991ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicExcitationRateCollisionalScholzWalters1991} atomic collisional excitation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``atomicExcitationRateCollisionalScholzWalters1991`` atomic collisional excitation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,9 +65,8 @@ contains
   end function scholzWalters1991ConstructorParameters
 
   double precision function scholzWalters1991CoolingRate(self,atomicNumber,electronNumber,temperature)
-    !!{
-    Return collisional excitation cooling rates, in units of J m$^3$ s$^{-1}$, for ion \mono{Ion} at
-    temperature \mono{T} (in Kelvin) using the fitting functions of \cite{scholz_collisional_1991}.
+    !!{RST
+    Return collisional excitation cooling rates, in units of J m\ :math:`^3` s\ :math:`^{-1}`, for ion ``Ion`` at temperature ``T`` (in Kelvin) using the fitting functions of :cite:t:`scholz_collisional_1991`.
     !!}
     use :: Error, only : Error_Report
     implicit none

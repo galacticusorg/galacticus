@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which sums over other heat sources.
   !!}
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingSummation">
-   <description>A dark matter profile heating model which sums over other heat sources.</description>
+  <darkMatterProfileHeating name="darkMatterProfileHeatingSummation" docformat="rst">
+   <description>
+   A dark matter profile heating model which sums over other heat sources.
+   </description>
    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource" objectType="darkMatterProfileHeatingClass"/>
   </darkMatterProfileHeating>
   !!]
@@ -34,7 +36,7 @@
   end type heatSourceList
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingSummation
-     !!{
+     !!{RST
      A dark matter profile heating class which sums over other heat sources.
      !!}
      private
@@ -45,8 +47,8 @@
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
+     !!{RST
+     Constructors for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(heatSources) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation)                        :: self
@@ -105,8 +107,8 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileHeatingSummation} dark matter profile heating class.
+    !!{RST
+    Destructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation), intent(inout) :: self
@@ -125,8 +127,8 @@ contains
   end subroutine summationDestructor
 
   function summationGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingSummation, massDistributionHeatingList
     implicit none

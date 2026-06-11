@@ -17,44 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a random error output analysis distribution operator class providing errors in HI mass for
-  the ALFALFA survey.
+  !!{RST
+  Implements a random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey.
   !!}
 
   use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorALFLF">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorALFLF" docformat="rst">
    <description>
-    A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. To account for
-    both observational errors and scatter in $R_\mathrm{mol}$, the HI mass of each galaxy is modeled as a Gaussian in
-    $\log_{10}M_\mathrm{HI}$ when constructing the mass function. Observational random errors on HI mass, including those arising
-    from flux density uncertainties and errors in the assumed distance to each source, are taken from Fig.~19 of
-    \cite{haynes_arecibo_2011}. The magnitude of the error as a function of HI mass is fit using a functional form:
-    \begin{equation}
-     \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)-b\over c}\right),
-    \end{equation}
-     where $\sigma_\mathrm{obs}$ is the error on $\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$. We find a reasonable fit using
-     values\footnote{This should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a
-     functional form that roughly describes them, along with conservative errors on the parameters of this function which are
-     included in the priors.} of $a=$\mono{a}$=0.100 \pm 0.010$, $b=$\mono{b}$=5.885 \pm
-     0.100$, and $c=$\mono{c}$=0.505 \pm 0.020$ as shown in Fig.~\ref{fig:ALFALFAErrorModel}. The total random
-     error on the logarithm of each galaxy mass is given by $\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2$, and is
-     used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
-  
-    \begin{figure}
-     \begin{center}
-     \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHIMassErrorModel.pdf}
-     \caption{The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by \protect\cite{haynes_arecibo_2011}, while the line shows a simple functional form fit to these errors.}
-     \end{center}
-     \label{fig:ALFALFAErrorModel}
-    \end{figure}
+   A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. To account for both observational errors and scatter in :math:`R_\mathrm{mol}`, the HI mass of each galaxy is modeled as a Gaussian in :math:`\log_{10}M_\mathrm{HI}` when constructing the mass function. Observational random errors on HI mass, including those arising from flux density uncertainties and errors in the assumed distance to each source, are taken from Fig. 19 of :cite:t:`haynes_arecibo_2011`. The magnitude of the error as a function of HI mass is fit using a functional form:
+
+   .. math::
+
+      \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)-b\over c}\right),
+
+   where :math:`\sigma_\mathrm{obs}` is the error on :math:`\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)`. We find a reasonable fit using values\footnoteThis should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a functional form that roughly describes them, along with conservative errors on the parameters of this function which are included in the priors. of :math:`a=`\ ``a``\ :math:`=0.100 \pm 0.010`, :math:`b=`\ ``b``\ :math:`=5.885 \pm 0.100`, and :math:`c=`\ ``c``\ :math:`=0.505 \pm 0.020` as shown in Fig. . The total random error on the logarithm of each galaxy mass is given by :math:`\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2`, and is used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
+
+   The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by :cite:t:`haynes_arecibo_2011`, while the line shows a simple functional form fit to these errors.
    </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorALFLF
-     !!{
+     !!{RST
      A random error output distribution operator class providing errors in HI mass for the ALFALFA survey.
      !!}
      private
@@ -67,8 +52,8 @@
   end type outputAnalysisDistributionOperatorRandomErrorALFLF
 
   interface outputAnalysisDistributionOperatorRandomErrorALFLF
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
      !!}
      module procedure randomErrorHIALFALFAConstructorParameters
      module procedure randomErrorHIALFALFAConstructorInternal
@@ -77,8 +62,8 @@
 contains
 
   function randomErrorHIALFALFAConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,26 +75,32 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
       <variable>a</variable>
-      <description>Parameter $a$ in the ALFALFA HI mass error model.</description>
+      <description>
+      Parameter :math:`a` in the ALFALFA HI mass error model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
       <source>parameters</source>
       <defaultValue>5.885d0</defaultValue>
       <variable>b</variable>
-      <description>Parameter $b$ in the ALFALFA HI mass error model.</description>
+      <description>
+      Parameter :math:`b` in the ALFALFA HI mass error model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <source>parameters</source>
       <defaultValue>0.505d0</defaultValue>
       <variable>c</variable>
-      <description>Parameter $c$ in the ALFALFA HI mass error model.</description>
+      <description>
+      Parameter :math:`c` in the ALFALFA HI mass error model.
+      </description>
     </inputParameter>
     <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     !!]
@@ -123,8 +114,8 @@ contains
   end function randomErrorHIALFALFAConstructorParameters
 
   function randomErrorHIALFALFAConstructorInternal(a,b,c,outputAnalysisMolecularRatio_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorALFLF)                        :: self
@@ -139,8 +130,8 @@ contains
   end function randomErrorHIALFALFAConstructorInternal
 
   subroutine randomErrorHIALFALFADestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorALFLF} output analysis distribution operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self
@@ -152,9 +143,8 @@ contains
   end subroutine randomErrorHIALFALFADestructor
 
   double precision function randomErrorHIALFALFARootVariance(self,propertyValue,node)
-    !!{
-    Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See
-    \mono{constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.py} for details.
+    !!{RST
+    Computes errors on :math:`\log_{10}(`\ HI masses\ :math:`)` for the ALFALFA survey analysis. Uses a simple fitting function. See ``constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/alfalfaHIMassErrorModel.py`` for details.
     !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self

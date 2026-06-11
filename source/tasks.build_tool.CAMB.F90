@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolCAMB">
-   <description>A task which downloads, compiles, and installs the CAMB (Code for Anisotropies in the Microwave Background) Boltzmann code, making it available for computing CMB power spectra, matter transfer functions, and linear matter power spectra.</description>
+  <task name="taskBuildToolCAMB" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the CAMB (Code for Anisotropies in the Microwave Background) Boltzmann code, making it available for computing CMB power spectra, matter transfer functions, and linear matter power spectra.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCAMB
-     !!{
+     !!{RST
      Implementation of a task which builds the CAMB tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolCAMB
 
   interface taskBuildToolCAMB
-     !!{
-     Constructors for the \refClass{taskBuildToolCAMB} task.
+     !!{RST
+     Constructors for the ``taskBuildToolCAMB`` task.
      !!}
      module procedure buildToolCAMBParameters
   end interface taskBuildToolCAMB
@@ -42,8 +44,8 @@
 contains
 
   function buildToolCAMBParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolCAMB} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildToolCAMB`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolCAMBParameters
 
   subroutine buildToolCAMBPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolCAMBPerform
 
   logical function buildToolCAMBRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

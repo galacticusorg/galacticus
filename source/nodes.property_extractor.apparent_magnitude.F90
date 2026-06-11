@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node property extractor class for apparent magnitudes.
 !!}
 
@@ -25,19 +25,14 @@ Implements a node property extractor class for apparent magnitudes.
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMagnitudesApparent">
+  <nodePropertyExtractor name="nodePropertyExtractorMagnitudesApparent" docformat="rst">
    <description>
-    A property extractor that returns stellar apparent magnitudes (AB system) in all broadband
-    filters currently activated in the stellar luminosities structure, for a specified galaxy
-    \mono{component} (disk or spheroid). The distance modulus is computed from the luminosity
-    distance (from \refClass{cosmologyFunctionsClass}) with a $+2.5\log_{10}(1+z)$ K-correction
-    for photon frequency compression. Output dataset names follow the pattern
-    \mono{componentMagnitudeApparentStellar:filterName:filterType}.
+   A property extractor that returns stellar apparent magnitudes (AB system) in all broadband filters currently activated in the stellar luminosities structure, for a specified galaxy ``component`` (disk or spheroid). The distance modulus is computed from the luminosity distance (from ``cosmologyFunctionsClass``) with a :math:`+2.5\log_{10}(1+z)` K-correction for photon frequency compression. Output dataset names follow the pattern ``componentMagnitudeApparentStellar:filterName:filterType``.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMagnitudesApparent
-     !!{
+     !!{RST
      A node property extractor which extracts stellar apparent magnitudes in all available bands.
      !!}
      private
@@ -54,8 +49,8 @@ Implements a node property extractor class for apparent magnitudes.
   end type nodePropertyExtractorMagnitudesApparent
 
   interface nodePropertyExtractorMagnitudesApparent
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal
@@ -64,8 +59,8 @@ Implements a node property extractor class for apparent magnitudes.
 contains
 
   function magnitudesApparentConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -76,10 +71,12 @@ contains
     type (varying_string                         )                :: component
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation rate.</description>
+      <description>
+      The component from which to extract star formation rate.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -92,8 +89,8 @@ contains
   end function magnitudesApparentConstructorParameters
 
   function magnitudesApparentConstructorInternal(component,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -108,8 +105,8 @@ contains
   end function magnitudesApparentConstructorInternal
   
   subroutine magnitudesApparentDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorMagnitudesApparent} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMagnitudesApparent), intent(inout) :: self
@@ -121,8 +118,8 @@ contains
   end subroutine magnitudesApparentDestructor
 
   integer function magnitudesApparentElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{magnitudesApparent} property extractor class.
+    !!{RST
+    Return the number of elements in the ``magnitudesApparent`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -135,8 +132,8 @@ contains
   end function magnitudesApparentElementCount
 
   function magnitudesApparentExtract(self,node,time,instance) result(magnitudes)
-    !!{
-    Implement a \mono{magnitudesApparent} property extractor.
+    !!{RST
+    Implement a ``magnitudesApparent`` property extractor.
     !!}
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Galactic_Structure_Options    , only : componentTypeDisk  , componentTypeSpheroid
@@ -198,8 +195,8 @@ contains
   end function magnitudesApparentExtract
 
   subroutine magnitudesApparentNames(self,time,names)
-    !!{
-    Return the names of the \mono{magnitudesApparent} properties.
+    !!{RST
+    Return the names of the ``magnitudesApparent`` properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeDecode
@@ -222,8 +219,8 @@ contains
   end subroutine magnitudesApparentNames
 
   subroutine magnitudesApparentDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{magnitudesApparent} property extractor class.
+    !!{RST
+    Return descriptions of the ``magnitudesApparent`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -238,7 +235,7 @@ contains
   end subroutine magnitudesApparentDescriptions
 
   function magnitudesApparentUnitsInSI(self,time) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of apparent magnitude in the SI system.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -254,7 +251,7 @@ contains
   end function magnitudesApparentUnitsInSI
 
   function magnitudesApparentUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the magnitudesApparent properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that implements bar instabilities in disks.
   !!}
 
@@ -25,16 +25,14 @@
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   
   !![
-  <nodeOperator name="nodeOperatorBarInstability">
+  <nodeOperator name="nodeOperatorBarInstability" docformat="rst">
    <description>
-    A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material
-    transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments
-    \citep{klypin_cdm-based_2002}.
+   A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments :cite:p:`klypin_cdm-based_2002`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBarInstability
-     !!{
+     !!{RST
      A node operator class that implements bar instabilities in disks.
      !!}
      private
@@ -48,8 +46,8 @@
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
-     !!{
-     Constructors for the \refClass{nodeOperatorBarInstability} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorBarInstability`` node operator class.
      !!}
      module procedure barInstabilityConstructorParameters
      module procedure barInstabilityConstructorInternal
@@ -58,8 +56,8 @@
 contains
 
   function barInstabilityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBarInstability} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorBarInstability`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,11 +68,13 @@ contains
     logical                                                     :: luminositiesStellarInactive
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminositiesStellarInactive</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+      <description>
+      If true, stellar luminosities will be treated as inactive properties.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
     <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
@@ -89,8 +89,8 @@ contains
   end function barInstabilityConstructorParameters
 
   function barInstabilityConstructorInternal(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBarInstability} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorBarInstability`` node operator class.
     !!}
     implicit none
     type   (nodeOperatorBarInstability         )                        :: self
@@ -105,8 +105,8 @@ contains
   end function barInstabilityConstructorInternal
 
   subroutine barInstabilityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBarInstability} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorBarInstability`` node operator class.
     !!}
     implicit none
     type(nodeOperatorBarInstability), intent(inout) :: self
@@ -119,7 +119,7 @@ contains
   end subroutine barInstabilityDestructor
   
   subroutine barInstabilityDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Initialize the mass transfer fraction.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
@@ -143,7 +143,7 @@ contains
   end subroutine barInstabilityDifferentialEvolutionAnalytics
 
   subroutine barInstabilityDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Implement the effects of global bar instability on the galactic disk.
     !!}
     use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentSpheroid

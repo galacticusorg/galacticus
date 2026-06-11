@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an adiabatically-contracted spherical mass distribution.
   !!}
 
@@ -35,59 +35,54 @@
   integer, parameter :: sphericalAdiabaticGnedin2004StoreCount=10
   
   !![
-  <massDistribution name="massDistributionSphericalAdiabaticGnedin2004">
+  <massDistribution name="massDistributionSphericalAdiabaticGnedin2004" docformat="rst">
    <description>
-    A dark matter profile class which applies adiabatic contraction to the halo as it responds to the presence of
-    baryons. Adiabatic contraction follows the algorithm of \cite{gnedin_response_2004}. The parameters $A$ and $\omega$ of
-    that model are specified via input parameters \mono{A} and \mono{omega} respectively.
-  
-    Given the final radius, $r_\mathrm{f}$, the corresponding initial radius, $r_\mathrm{i}$, is found by solving:
-    \begin{equation}
-    f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{i} = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i})
-    r_\mathrm{f} + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
-     \label{eq:adiabaticContractionGnedinSolution}
-    \end{equation}
-    where $M_\mathrm{total,0}(r)$ is the initial total matter profile, $V_\mathrm{b}(r)$ is the baryonic contribution to the
-    rotation curve, $f_\mathrm{i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In
-    \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of
-    baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_\mathrm{i}&lt;1$.},
-    $f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}$,
-    $M_\mathrm{satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_\mathrm{total}$ is the node mass, and
-    \begin{equation}
-    {\bar{r} \over r_0} = A \left({r \over r_0}\right)^\omega,
-    \label{eq:adiabaticContractionGnedinPowerLaw}
-    \end{equation}    
-    where the pivot radius $r_0$ is set to $f_0 r_\mathrm{vir}$ where $f_0=$\mono{[radiusFractionalPivot]}, and
-    $r_\mathrm{vir}$ is the virial radius. The original \cite{gnedin_response_2004} assumed $f_0=1$, but the revised model of
-    \cite{gnedin_halo_2011} found that $f_0=0.03$ lead to an improved model (less scatter in the best fit values of $(A,\omega)$
-    when comparing to N-body simulations).
+   A dark matter profile class which applies adiabatic contraction to the halo as it responds to the presence of baryons. Adiabatic contraction follows the algorithm of :cite:t:`gnedin_response_2004`. The parameters :math:`A` and :math:`\omega` of that model are specified via input parameters ``A`` and ``omega`` respectively.
 
-    Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark
-    matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark
-    matter profile of their host halo.  The derivative, $\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}$
-    is found by taking the derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:    
-    \begin{eqnarray}
-     &amp; &amp; f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi
-     \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}}
-     r_\mathrm{i} r^\prime_\mathrm{i} \nonumber \\
-     &amp; = &amp; f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) + f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2
-     \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{f}
-     r^\prime_\mathrm{i} \nonumber \\
-     &amp; + &amp; V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} / \mathrm{G} + V^2_\mathrm{b}(\bar{r}_\mathrm{f})
-     {\mathrm{d}\bar{r}_\mathrm{f}\over \mathrm{d} r_\mathrm{f}} r_\mathrm{f}/ \mathrm{G} +
-     {\mathrm{d}V^2_\mathrm{b}\over\mathrm{d} \bar{r}_\mathrm{f}}(\bar{r}_\mathrm{f}) {\mathrm{d}\bar{r}_\mathrm{f}\over
-     \mathrm{d} r_\mathrm{f}} \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
-    \end{eqnarray}
-    where
-    \begin{equation}
-     {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_0}\right)^{\omega-1},
-    \end{equation}
-    and which can then be solved numerically for $r^\prime_\mathrm{i}$.
+   Given the final radius, :math:`r_\mathrm{f}`, the corresponding initial radius, :math:`r_\mathrm{i}`, is found by solving:
+
+   .. math::
+
+      f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{i} = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i})
+      r_\mathrm{f} + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
+       \label{eq:adiabaticContractionGnedinSolution}
+
+   where :math:`M_\mathrm{total,0}(r)` is the initial total matter profile, :math:`V_\mathrm{b}(r)` is the baryonic contribution to the rotation curve, :math:`f_\mathrm{i}`, is the fraction of mass within the virial radius compared to the node mass\footnoteIn Galacticus the "node mass" refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that :math:`f_\mathrm{i}&lt;1`., :math:`f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}`, :math:`M_\mathrm{satellite, baryonic}` is the baryonic mass in any satellite halos, :math:`M_\mathrm{total}` is the node mass, and
+
+   .. math::
+
+      {\bar{r} \over r_0} = A \left({r \over r_0}\right)^\omega,
+      \label{eq:adiabaticContractionGnedinPowerLaw}
+
+   where the pivot radius :math:`r_0` is set to :math:`f_0 r_\mathrm{vir}` where :math:`f_0=`\ ``[radiusFractionalPivot]``, and :math:`r_\mathrm{vir}` is the virial radius. The original :cite:t:`gnedin_response_2004` assumed :math:`f_0=1`, but the revised model of :cite:t:`gnedin_halo_2011` found that :math:`f_0=0.03` lead to an improved model (less scatter in the best fit values of :math:`(A,\omega)` when comparing to N-body simulations).
+
+   Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.  The derivative, :math:`\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}` is found by taking the derivative of eqn. () to give:
+
+   .. math::
+
+      &amp;  f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi
+      \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}}
+      r_\mathrm{i} r^\prime_\mathrm{i} \nonumber \\
+      &amp; = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) + f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2
+      \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{f}
+      r^\prime_\mathrm{i} \nonumber \\
+      &amp; + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} / \mathrm{G} + V^2_\mathrm{b}(\bar{r}_\mathrm{f})
+      {\mathrm{d}\bar{r}_\mathrm{f}\over \mathrm{d} r_\mathrm{f}} r_\mathrm{f}/ \mathrm{G} +
+      {\mathrm{d}V^2_\mathrm{b}\over\mathrm{d} \bar{r}_\mathrm{f}}(\bar{r}_\mathrm{f}) {\mathrm{d}\bar{r}_\mathrm{f}\over
+      \mathrm{d} r_\mathrm{f}} \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
+
+   where
+
+   .. math::
+
+      {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_0}\right)^{\omega-1},
+
+   and which can then be solved numerically for :math:`r^\prime_\mathrm{i}`.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalAdiabaticGnedin2004
-     !!{
+     !!{RST
      An adiabatically-contracted spherical mass distribution.
      !!}
      private
@@ -132,8 +127,8 @@
   end type massDistributionSphericalAdiabaticGnedin2004
 
   interface massDistributionSphericalAdiabaticGnedin2004
-     !!{
-     Constructors for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalAdiabaticGnedin2004`` mass distribution class.
      !!}
      module procedure sphericalAdiabaticGnedin2004ConstructorParameters
      module procedure sphericalAdiabaticGnedin2004ConstructorInternal
@@ -151,7 +146,7 @@
 
   abstract interface 
      subroutine sphericalAdiabaticGnedin2004Initializor(initializationSelf,initializationArgument,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
-       !!{
+       !!{RST
        Interface for call-back functions for as-needed initialization of the baryonic component.
        !!}
        import massDistributionClass
@@ -164,9 +159,8 @@
 contains
 
   function sphericalAdiabaticGnedin2004ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAdiabaticGnedin2004`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -184,69 +178,97 @@ contains
          &                                                                           nonAnalyticSolver
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>A</name>
-      <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+      <defaultSource>
+      (:cite:author:`gustafsson_baryonic_2006` :cite:year:`gustafsson_baryonic_2006`; from their Fig. 9, strong feedback case)
+      </defaultSource>
       <defaultValue>0.80d0</defaultValue>
-      <description>The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+      <description>
+      The parameter :math:`A` appearing in the :cite:t:`gnedin_response_2004` adiabatic contraction algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>omega</name>
-      <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+      <defaultSource>
+      (:cite:author:`gustafsson_baryonic_2006` :cite:year:`gustafsson_baryonic_2006`; from their Fig. 9, strong feedback case)
+      </defaultSource>
       <defaultValue>0.77d0</defaultValue>
-      <description>The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+      <description>
+      The parameter :math:`\omega` appearing in the :cite:t:`gnedin_response_2004` adiabatic contraction algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusFractionalPivot</name>
-      <defaultSource>\citep{gnedin_response_2004}</defaultSource>
+      <defaultSource>
+      :cite:p:`gnedin_response_2004`
+      </defaultSource>
       <defaultValue>1.0d0</defaultValue>
-      <description>The pivot radius (in units of the virial radius), $r_0$, appearing in equation~(\ref{eq:adiabaticContractionGnedinPowerLaw}).</description>
+      <description>
+      The pivot radius (in units of the virial radius), :math:`r_0`, appearing in equation ().
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirial</name>
-      <description>The virial radius, $r_\mathrm{v}$, appearing in equation~(\ref{eq:adiabaticContractionGnedinPowerLaw}).</description>
+      <description>
+      The virial radius, :math:`r_\mathrm{v}`, appearing in equation ().
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkMatterFraction</name>
-      <description>The universal cosmic dark matter fraction $\Omega_\mathrm{DM}/\Omega_\mathrm{M}$, used to define the initial dark matter fraction in the halo before adiabatic contraction.</description>
+      <description>
+      The universal cosmic dark matter fraction :math:`\Omega_\mathrm{DM}/\Omega_\mathrm{M}`, used to define the initial dark matter fraction in the halo before adiabatic contraction.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkMatterDistributedFraction</name>
-      <description>The fraction of matter assumed to be distributed as the dark matter.</description>
+      <description>
+      The fraction of matter assumed to be distributed as the dark matter.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFractionInitial</name>
-      <description>The fraction of matter assumed to be initially distributed as the dark matter.</description>
+      <description>
+      The fraction of matter assumed to be initially distributed as the dark matter.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in solving for the initial radius in the adiabatically-contracted dark matter profile.</description>
+      <description>
+      The relative tolerance to use in solving for the initial radius in the adiabatically-contracted dark matter profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_"                                                 source="parameters"/>
@@ -270,8 +292,8 @@ contains
   end function sphericalAdiabaticGnedin2004ConstructorParameters
   
   function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAdiabaticGnedin2004`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                          :: self
@@ -310,8 +332,8 @@ contains
   end function sphericalAdiabaticGnedin2004ConstructorInternal
 
   subroutine sphericalAdiabaticGnedin2004Destructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAdiabaticGnedin2004} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalAdiabaticGnedin2004`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
@@ -324,7 +346,7 @@ contains
   end subroutine sphericalAdiabaticGnedin2004Destructor
 
   subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent(self)
-    !!{
+    !!{RST
     Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
     !!}
     implicit none
@@ -343,8 +365,8 @@ contains
   end subroutine sphericalAdiabaticGnedin2004SetBaryonicComponent
   
   double precision function sphericalAdiabaticGnedin2004Density(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in an adiabatically-contracted spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an adiabatically-contracted spherical mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -374,8 +396,8 @@ contains
   end function sphericalAdiabaticGnedin2004Density
 
   double precision function sphericalAdiabaticGnedin2004MassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for adiabatically-contracted mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for adiabatically-contracted mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout), target :: self
@@ -387,9 +409,8 @@ contains
   end function sphericalAdiabaticGnedin2004MassEnclosedBySphere
 
   double precision function sphericalAdiabaticGnedin2004RadiusInitial(self,radius)
-    !!{
-    Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
-    \cite{gnedin_response_2004}.
+    !!{RST
+    Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of :cite:t:`gnedin_response_2004`.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
@@ -497,9 +518,8 @@ contains
   end function sphericalAdiabaticGnedin2004RadiusInitial
 
   double precision function sphericalAdiabaticGnedin2004RadiusInitialDerivative(self,radius) result(radiusInitialDerivative)
-    !!{
-    Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
-    \cite{gnedin_response_2004}.
+    !!{RST
+    Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of :cite:t:`gnedin_response_2004`.
     !!}
     use :: Display                 , only : displayMessage     , displayIndent, displayUnindent
     use :: Error                   , only : Error_Report
@@ -599,9 +619,8 @@ contains
   end function sphericalAdiabaticGnedin2004RadiusInitialDerivative
 
   subroutine sphericalAdiabaticGnedin2004ComputeFactors(self,radius,computeGradientFactors)
-    !!{
-    Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
-    algorithm of \cite{gnedin_response_2004}.
+    !!{RST
+    Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction algorithm of :cite:t:`gnedin_response_2004`.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -631,9 +650,8 @@ contains
   end subroutine sphericalAdiabaticGnedin2004ComputeFactors
 
   double precision function sphericalAdiabaticGnedin2004RadiusOrbitalMean(self,radius)
-    !!{
-    Returns the orbit averaged radius for dark matter corresponding the given \mono{radius} using the model of
-    \cite{gnedin_response_2004}.
+    !!{RST
+    Returns the orbit averaged radius for dark matter corresponding the given ``radius`` using the model of :cite:t:`gnedin_response_2004`.
     !!}
     implicit none
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
@@ -657,9 +675,8 @@ contains
   end function sphericalAdiabaticGnedin2004RadiusOrbitalMean
 
   double precision function sphericalAdiabaticGnedin2004RadiusOrbitalMeanDerivative(self,radius)
-    !!{
-    Returns the derivative of the orbit averaged radius for dark matter corresponding the given \mono{radius} using the model of
-    \cite{gnedin_response_2004}.
+    !!{RST
+    Returns the derivative of the orbit averaged radius for dark matter corresponding the given ``radius`` using the model of :cite:t:`gnedin_response_2004`.
     !!}
     implicit none
     class           (massDistributionSphericalAdiabaticGnedin2004), intent(inout) :: self
@@ -676,7 +693,7 @@ contains
   end function sphericalAdiabaticGnedin2004RadiusOrbitalMeanDerivative
 
   double precision function sphericalAdiabaticGnedin2004Solver(radiusInitial)
-    !!{
+    !!{RST
     Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     !!}
     implicit none

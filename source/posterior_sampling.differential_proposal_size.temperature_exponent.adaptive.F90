@@ -17,31 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
-  is adaptive.
+  !!{RST
+  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent is adaptive.
   !!}
 
   !![
-  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive">
+  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive" docformat="rst">
    <description>
-    This class adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of
-    temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following sub-parameters:
-    \begin{description}
-    \item[\mono{[exponentInitial]}] The initial value for $\alpha$;
-    \item[\mono{[exponentFactor]}] The additive factor by which $\alpha$ should be increased or decreased if the
-      acceptance rate gradient is out of range;
-    \item[\mono{[exponentMinimum]}] The smallest value allowed for $\alpha$;
-    \item[\mono{[exponentMaximum]}] The largest value allowed for $\alpha$;
-    \item[\mono{[acceptanceRateMinimum]}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[\mono{[acceptanceRateMaximum]}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
-    \item[\mono{[updateCount]}] The number of steps between successive checks of the acceptance rate gradient.
-    \end{description}
+   This class adaptively changes :math:`\alpha` in an attempt to maintain the gradient of the acceptance rate with the logarithm of temperature, :math:`\mathrm{d} R/\mathrm{d}\ln T`, at an acceptable level. The algorithm is controlled by the following sub-parameters:
+
+   ``[exponentInitial]``
+      The initial value for :math:`\alpha`;
+
+   ``[exponentFactor]``
+      The additive factor by which :math:`\alpha` should be increased or decreased if the acceptance rate gradient is out of range;
+
+   ``[exponentMinimum]``
+      The smallest value allowed for :math:`\alpha`;
+
+   ``[exponentMaximum]``
+      The largest value allowed for :math:`\alpha`;
+
+   ``[acceptanceRateMinimum]``
+      The minimum acceptance rate gradient to accept before reducing :math:`\alpha`;
+
+   ``[acceptanceRateMaximum]``
+      The maximum acceptance rate gradient to accept before reducing :math:`\alpha`;
+
+   ``[updateCount]``
+      The number of steps between successive checks of the acceptance rate gradient.
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   !!]
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
-     !!{
+     !!{RST
      Implementation of a posterior sampling differential evolution proposal size class in which the exponent is adaptive.
      !!}
      private
@@ -55,8 +64,8 @@
   end type posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
-     !!{
-     Constructors for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class.
+     !!{RST
+     Constructors for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -65,9 +74,8 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class which
-    builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,39 +87,53 @@ contains
     integer                                                                            :: updateCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentInitial</name>
-      <description>The initial value of the temperature-scaling exponent $\alpha$ used before any adaptive adjustment based on the acceptance-rate gradient has been applied.</description>
+      <description>
+      The initial value of the temperature-scaling exponent :math:`\alpha` used before any adaptive adjustment based on the acceptance-rate gradient has been applied.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMinimum</name>
-      <description>The minimum value to which the temperature-scaling exponent $\alpha$ may be reduced during adaptive adjustment, preventing the temperature dependence from becoming negligibly weak.</description>
+      <description>
+      The minimum value to which the temperature-scaling exponent :math:`\alpha` may be reduced during adaptive adjustment, preventing the temperature dependence from becoming negligibly weak.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMaximum</name>
-      <description>The maximum value to which the temperature-scaling exponent $\alpha$ may be increased during adaptive adjustment, preventing the proposal size from growing too steeply with temperature.</description>
+      <description>
+      The maximum value to which the temperature-scaling exponent :math:`\alpha` may be increased during adaptive adjustment, preventing the proposal size from growing too steeply with temperature.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentAdjustFactor</name>
-      <description>The additive increment by which the temperature-scaling exponent $\alpha$ is increased or decreased at each adaptation step when the acceptance-rate gradient falls outside the target range.</description>
+      <description>
+      The additive increment by which the temperature-scaling exponent :math:`\alpha` is increased or decreased at each adaptation step when the acceptance-rate gradient falls outside the target range.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gradientMinimum</name>
-      <description>The minimum acceptable gradient of acceptance rate with log-temperature.</description>
+      <description>
+      The minimum acceptable gradient of acceptance rate with log-temperature.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gradientMaximum</name>
-      <description>The maximum acceptable gradient of acceptance rate with log-temperature.</description>
+      <description>
+      The maximum acceptable gradient of acceptance rate with log-temperature.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>updateCount</name>
-      <description>The number of steps between potential updates of the temperature exponent.</description>
+      <description>
+      The number of steps between potential updates of the temperature exponent.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -123,8 +145,8 @@ contains
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive} posterior sampling differential evolution random jump class.
+    !!{RST
+    Constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self
@@ -142,7 +164,7 @@ contains
   end function adaptiveConstructorInternal
 
 double precision function adaptiveExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
-  !!{
+  !!{RST
   Return the adaptive differential evolution proposal size temperature exponent.
   !!}
   use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &

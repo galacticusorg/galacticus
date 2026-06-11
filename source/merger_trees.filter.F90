@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which filters merger trees.
 !!}
 
 module Merger_Tree_Filters
-  !!{
+  !!{RST
   Constructs/destructs merger trees.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeFilter</name>
    <descriptiveName>Merger Tree Filters</descriptiveName>
-   <description>Class providing merger tree filters---boolean predicates applied to a whole merger tree
-    that determine whether it should be evolved and included in the simulation output. Filters allow
-    trees to be selectively skipped based on e.g.\ their root halo mass, the presence of specific
-    substructure, or random subsampling. This is useful for restricting expensive calculations to a
-    subset of trees or for implementing importance sampling.</description>
+   <description>
+   Class providing merger tree filters---boolean predicates applied to a whole merger tree that determine whether it should be evolved and included in the simulation output. Filters allow trees to be selectively skipped based on e.g.\ their root halo mass, the presence of specific substructure, or random subsampling. This is useful for restricting expensive calculations to a subset of trees or for implementing importance sampling.
+   </description>
    <default>always</default>
    <method name="passes" >
-    <description>Return true if the given \mono{tree} passes the filter.</description>
+    <description>
+    Return true if the given ``tree`` passes the filter.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(mergerTree), intent(in   ) :: tree</argument>

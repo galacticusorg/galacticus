@@ -23,12 +23,14 @@
   use :: Output_Times            , only : outputTimes             , outputTimesClass
 
   !![
-  <task name="taskHaloSpinDistribution">
-   <description>A task which computes and outputs the differential distribution of dark matter halo spin parameters $\mathrm{d}P/\mathrm{d}\lambda$ over a specified range of spin values at each output time, for halos above a specified minimum mass.</description>
+  <task name="taskHaloSpinDistribution" docformat="rst">
+   <description>
+   A task which computes and outputs the differential distribution of dark matter halo spin parameters :math:`\mathrm{d}P/\mathrm{d}\lambda` over a specified range of spin values at each output time, for halos above a specified minimum mass.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloSpinDistribution
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the halo spin distribution.
      !!}
      private
@@ -48,8 +50,8 @@
   end type taskHaloSpinDistribution
 
   interface taskHaloSpinDistribution
-     !!{
-     Constructors for the \refClass{taskHaloSpinDistribution} task.
+     !!{RST
+     Constructors for the ``taskHaloSpinDistribution`` task.
      !!}
      module procedure haloSpinDistributionConstructorParameters
      module procedure haloSpinDistributionConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function haloSpinDistributionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloSpinDistribution} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskHaloSpinDistribution`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -91,38 +93,48 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinMinimum</name>
       <variable>spinMinimum</variable>
       <defaultValue>3.0d-4</defaultValue>
-      <description>Minimum spin for which the distribution function should be calculated.</description>
+      <description>
+      Minimum spin for which the distribution function should be calculated.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinMaximum</name>
       <variable>spinMaximum</variable>
       <defaultValue>0.5d0</defaultValue>
-      <description>Maximum spin for which the distribution function should be calculated.</description>
+      <description>
+      Maximum spin for which the distribution function should be calculated.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinPointsPerDecade</name>
       <variable>spinPointsPerDecade</variable>
       <defaultValue>10.0d0</defaultValue>
-      <description>Number of points per decade of spin at which to calculate the distribution.</description>
+      <description>
+      Number of points per decade of spin at which to calculate the distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMinimum</name>
       <variable>haloMassMinimum</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>Minimum halo mass above which spin distribution should be averaged.</description>
+      <description>
+      Minimum halo mass above which spin distribution should be averaged.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('.')</defaultValue>
-      <description>The HDF5 output group within which to write spin distribution data.</description>
+      <description>
+      The HDF5 output group within which to write spin distribution data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
@@ -142,8 +154,8 @@ contains
   end function haloSpinDistributionConstructorParameters
 
   function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloSpinDistribution} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskHaloSpinDistribution`` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloSpinDistribution )                        :: self
@@ -164,8 +176,8 @@ contains
   end function haloSpinDistributionConstructorInternal
 
   subroutine haloSpinDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskHaloSpinDistribution} task class.
+    !!{RST
+    Destructor for the ``taskHaloSpinDistribution`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -182,7 +194,7 @@ contains
   end subroutine haloSpinDistributionDestructor
 
   subroutine haloSpinDistributionPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo spin distribution.
     !!}
     use            :: Dark_Matter_Halo_Spins , only : Dark_Matter_Halo_Angular_Momentum_Scale

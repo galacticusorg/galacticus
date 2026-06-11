@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which tests whether the given node has a specified label.
 !!}
   
   !![
-  <galacticFilter name="galacticFilterLabelled">
-   <description>Tests whether the given node has been assigned the label specified by \mono{[label]}. This filter passes only nodes that carry the designated label, enabling targeted selection of nodes based on categorical metadata attached during tree construction or post-processing.</description>
+  <galacticFilter name="galacticFilterLabelled" docformat="rst">
+   <description>
+   Tests whether the given node has been assigned the label specified by ``[label]``. This filter passes only nodes that carry the designated label, enabling targeted selection of nodes based on categorical metadata attached during tree construction or post-processing.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLabelled
-     !!{
+     !!{RST
      Tests whether the given node has a specified label.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a galactic filter which tests whether the given node has a specified 
   end type galacticFilterLabelled
 
   interface galacticFilterLabelled
-     !!{
-     Constructors for the \refClass{galacticFilterLabelled} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterLabelled`` galactic filter class.
      !!}
      module procedure labelledConstructorParameters
      module procedure labelledConstructorInternal
@@ -48,8 +50,8 @@ Implements a galactic filter which tests whether the given node has a specified 
 contains
 
   function labelledConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterLabelled} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterLabelled`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,10 +60,12 @@ contains
     type(varying_string        )                :: label
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>The label string that a node must carry in order to pass this filter; only nodes assigned this exact label during tree construction or post-processing will be selected.</description>
+      <description>
+      The label string that a node must carry in order to pass this filter; only nodes assigned this exact label during tree construction or post-processing will be selected.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterLabelled(label)
@@ -72,8 +76,8 @@ contains
   end function labelledConstructorParameters
   
   function labelledConstructorInternal(label) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterLabelled} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterLabelled`` galactic filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -88,7 +92,7 @@ contains
   end function labelledConstructorInternal
 
   logical function labelledPasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on node labels.
     !!}
     use :: Nodes_Labels, only : nodeLabelIsPresent

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a zero mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionZero">
-   <description>A mass distribution class that returns zero density, zero enclosed mass, and zero potential everywhere; useful as a null placeholder when no mass component is present in a given region.</description>
+  <massDistribution name="massDistributionZero" docformat="rst">
+   <description>
+   A mass distribution class that returns zero density, zero enclosed mass, and zero potential everywhere; useful as a null placeholder when no mass component is present in a given region.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionZero
-     !!{
+     !!{RST
      A zero mass distribution.
      !!}
    contains
@@ -44,8 +46,8 @@
   end type massDistributionZero
 
   interface massDistributionZero
-     !!{
-     Constructors for the \refClass{massDistributionZero} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionZero`` mass distribution class.
      !!}
      module procedure zeroConstructorParameters
      module procedure zeroConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionZero} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionZero`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,10 +66,12 @@ contains
     logical                                      :: dimensionless
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>dimensionless</name>
      <defaultValue>.true.</defaultValue>
-     <description>If true the null profile is considered to be dimensionless.</description>
+     <description>
+     If true the null profile is considered to be dimensionless.
+     </description>
      <source>parameters</source>
     </inputParameter>
     !!]
@@ -80,8 +83,8 @@ contains
   end function zeroConstructorParameters
   
   function zeroConstructorInternal(dimensionless) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionZero} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionZero`` mass distribution class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeUnknown, massTypeUnknown
     implicit none
@@ -97,7 +100,7 @@ contains
   end function zeroConstructorInternal
 
   double precision function zeroMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in the zero distribution.
     !!}
     implicit none
@@ -109,8 +112,8 @@ contains
   end function zeroMassTotal
 
   double precision function zeroDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a zero distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a zero distribution.
     !!}
     implicit none
     class(massDistributionZero), intent(inout) :: self
@@ -122,7 +125,7 @@ contains
   end function zeroDensity
 
   double precision function zeroDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction for a point mass.
     !!}
     implicit none
@@ -136,8 +139,8 @@ contains
   end function zeroDensityGradientRadial
 
   double precision function zeroMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a zero distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a zero distribution.
     !!}
     implicit none
     class           (massDistributionZero), intent(inout), target :: self
@@ -149,8 +152,8 @@ contains
   end function zeroMassEnclosedBySphere
 
   double precision function zeroSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in a zero distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in a zero distribution.
     !!}
     implicit none
     class(massDistributionZero), intent(inout) :: self
@@ -162,7 +165,7 @@ contains
   end function zeroSurfaceDensity
 
   double precision function zeroRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve for a zero mass distribution.
     !!}
     implicit none
@@ -175,7 +178,7 @@ contains
   end function zeroRotationCurve
 
   double precision function zeroRotationCurveGradient(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
     implicit none
@@ -188,7 +191,7 @@ contains
   end function zeroRotationCurveGradient
 
   logical function zeroPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -199,8 +202,8 @@ contains
   end function zeroPotentialIsAnalytic
 
   double precision function zeroPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} for a point mass.
+    !!{RST
+    Return the potential at the specified ``coordinates`` for a point mass.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -215,7 +218,7 @@ contains
   end function zeroPotential
 
   double precision function zeroDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Computes radial moments of the density for a point mass.
     !!}
     implicit none

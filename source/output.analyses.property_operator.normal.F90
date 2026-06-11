@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property operator class in which the property value is replaced with an integral over a
-  normal distribution between given limits, using the property value as the mean of the distribution.
+  !!{RST
+  Implements a property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value as the mean of the distribution.
   !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorNormal" docformat="rst">
     <description>
-      A property operator class in which the property value is replaced with an integral over a normal distribution between given
-      limits, using the property value as the mean of the distribution.
+    A property operator class in which the property value is replaced with an integral over a normal distribution between given limits, using the property value as the mean of the distribution.
     </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorNormal
-     !!{
+     !!{RST
      A normal property operator class.
      !!}
      private
@@ -43,8 +41,8 @@
   end type outputAnalysisPropertyOperatorNormal
 
   interface outputAnalysisPropertyOperatorNormal
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -53,8 +51,8 @@
 contains
 
   function normalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,32 +64,42 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeLower</name>
       <source>parameters</source>
-      <description>Lower integration limit for the normal distribution weight operator.</description>
+      <description>
+      Lower integration limit for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeUpper</name>
       <source>parameters</source>
-      <description>Upper integration limit for the normal distribution weight operator.</description>
+      <description>
+      Upper integration limit for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVariance</name>
       <source>parameters</source>
-      <description>Root variance for the normal distribution weight operator.</description>
+      <description>
+      Root variance for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>extentLower</name>
       <defaultValue>-huge(0.0d0)</defaultValue>
       <source>parameters</source>
-      <description>Lower extent for the normal distribution weight operator.</description>
+      <description>
+      Lower extent for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>extentUpper</name>
       <defaultValue>+huge(0.0d0)</defaultValue>
       <source>parameters</source>
-      <description>Upper extent for the normal distribution weight operator.</description>
+      <description>
+      Upper extent for the normal distribution weight operator.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorNormal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance)
@@ -102,8 +110,8 @@ contains
   end function normalConstructorParameters
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorNormal} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self
@@ -118,7 +126,7 @@ contains
   end function normalConstructorInternal
 
   double precision function normalOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an normal output analysis property operator.
     !!}
     use            :: Error_Functions, only : Error_Function

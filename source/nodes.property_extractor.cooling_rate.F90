@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cooling rate property extractor class.
 !!}
 
   use :: Cooling_Rates, only : coolingRate, coolingRateClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRateCooling">
+  <nodePropertyExtractor name="nodePropertyExtractorRateCooling" docformat="rst">
    <description>
-   A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of
-   heating) in $\mathrm{M}_\odot$ Gyr$^{-1}$.
-  </description>
+   A cooling rate property extractor class. Extracts the rate at which gas is cooling from the halo (assuming no sources of heating) in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateCooling
-     !!{
+     !!{RST
      A rateCooling property extractor class.
      !!}
      private
@@ -47,8 +46,8 @@ Implements a cooling rate property extractor class.
   end type nodePropertyExtractorRateCooling
 
   interface nodePropertyExtractorRateCooling
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRateCooling`` property extractor class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
@@ -57,8 +56,8 @@ Implements a cooling rate property extractor class.
 contains
 
   function rateCoolingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRateCooling`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +77,8 @@ contains
   end function rateCoolingConstructorParameters
 
   function rateCoolingConstructorInternal(coolingRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRateCooling`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateCooling)                        :: self
@@ -92,8 +91,8 @@ contains
   end function rateCoolingConstructorInternal
 
   subroutine rateCoolingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRateCooling} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorRateCooling`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateCooling), intent(inout) :: self
@@ -105,7 +104,7 @@ contains
   end subroutine rateCoolingDestructor
 
   double precision function rateCoolingExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -120,7 +119,7 @@ contains
   end function rateCoolingExtract
 
   function rateCoolingName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -133,7 +132,7 @@ contains
   end function rateCoolingName
 
   function rateCoolingDescription(self)
-    !!{
+    !!{RST
     Return a description of the rateCooling property.
     !!}
     implicit none
@@ -146,7 +145,7 @@ contains
   end function rateCoolingDescription
 
   double precision function rateCoolingUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
@@ -159,7 +158,7 @@ contains
   end function rateCoolingUnitsInSI
 
   function rateCoolingUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the rateCooling property.
     !!}
     use :: Units_MetaData, only : unitType

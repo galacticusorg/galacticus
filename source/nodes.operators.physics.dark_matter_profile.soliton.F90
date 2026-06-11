@@ -19,10 +19,8 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
-  Implements a node operator class that evaluates the \gls{fdm} solitonic core–halo relation, following Equation (15) of
-  \cite{chan_diversity_2022}. The core mass is initialized to this relation, and subsequently evolved differentially following the
-  time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).  
+  !!{RST
+  Implements a node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -32,17 +30,15 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileSoliton">
+  <nodeOperator name="nodeOperatorDarkMatterProfileSoliton" docformat="rst">
    <description>
-     A node operator class that evaluates the \gls{fdm} solitonic core–halo relation, following Equation (15) of
-     \cite{chan_diversity_2022}. The core mass is initialized to this relation, and subsequently evolved differentially following
-     the time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
+   A node operator class that evaluates the :term:`FDM` solitonic core–halo relation, following Equation (15) of :cite:t:`chan_diversity_2022`. The core mass is initialized to this relation, and subsequently evolved differentially following the time deriative of this equation (thereby allowing other contributions to the evolution of the core mass to be applied).
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileSoliton
-     !!{
-     A node operator class implementing the time-evolved solitonic core–halo relation following \cite{chan_diversity_2022}.
+     !!{RST
+     A node operator class implementing the time-evolved solitonic core–halo relation following :cite:t:`chan_diversity_2022`.
      !!}
      private
      class           (darkMatterHaloScaleClass  ), pointer   :: darkMatterHaloScale_   => null()
@@ -60,8 +56,8 @@
   end type nodeOperatorDarkMatterProfileSoliton
   
   interface nodeOperatorDarkMatterProfileSoliton
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileSoliton} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
      !!}
      module procedure darkMatterProfileSolitonConstructorParameters
      module procedure darkMatterProfileSolitonConstructorInternal
@@ -74,8 +70,8 @@
 contains
 
   function darkMatterProfileSolitonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileSoliton} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -107,8 +103,8 @@ contains
   end function darkMatterProfileSolitonConstructorParameters
 
   function darkMatterProfileSolitonConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorDarkMatterProfileSoliton} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -142,8 +138,8 @@ contains
   end function darkMatterProfileSolitonConstructorInternal
 
   subroutine darkMatterProfileSolitonDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileSoliton} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self
@@ -159,9 +155,8 @@ contains
   end subroutine darkMatterProfileSolitonDestructor
 
   subroutine darkMatterProfileSolitonDifferentialEvolutionScales(self,node)
-    !!{
-    Set the absolute ODE solver scale for the solitonic core mass evolution,
-    using a fraction of the minimum core mass as reference, following \cite{chan_diversity_2022}.
+    !!{RST
+    Set the absolute ODE solver scale for the solitonic core mass evolution, using a fraction of the minimum core mass as reference, following :cite:t:`chan_diversity_2022`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -177,8 +172,8 @@ contains
   end subroutine darkMatterProfileSolitonDifferentialEvolutionScales
 
   subroutine darkMatterProfileSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Time derivative of the solitonic core mass following \cite{chan_diversity_2022}.
+    !!{RST
+    Time derivative of the solitonic core mass following :cite:t:`chan_diversity_2022`.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
@@ -244,9 +239,8 @@ contains
   end subroutine darkMatterProfileSolitonDifferentialEvolution
 
   subroutine darkMatterProfileSolitonNodeTreeInitialize(self,node)
-    !!{
-    Initialize solitonic core properties for a tree node. Computes the initial core mass using the analytic core–halo relation,
-    records it as the minimum core mass for tolerance scaling, and stores the value in the meta-property database of the node.    
+    !!{RST
+    Initialize solitonic core properties for a tree node. Computes the initial core mass using the analytic core–halo relation, records it as the minimum core mass for tolerance scaling, and stores the value in the meta-property database of the node.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none

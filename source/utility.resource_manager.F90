@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class that manages shared resources.
 !!}
 
 module Resource_Manager
-  !!{
-  Implements a class that manages shared resources (typically pointers to objects shared by multiple other objects) via a
-  reference counting approach and destructs them when no more references exist. Similar in approach to a
-  \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}\mono{shared\_ptr} in C++.
+  !!{RST
+  Implements a class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference counting approach and destructs them when no more references exist. Similar in approach to a `shared_ptr <https://en.cppreference.com/w/cpp/memory/shared_ptr>`_ in C++.
   !!}
   !$ use :: OMP_Lib, only : omp_lock_kind
   private
   public :: resourceManager, resourceManagerForceReportOn, resourceManagerForceReportOff
 
   type :: resourceManager
-     !!{
-     A class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference
-     counting approach and destructs them when no more references exist. Similar in approach to a
-     \href{https://en.cppreference.com/w/cpp/memory/shared_ptr}\mono{shared\_ptr} in C++.  
+     !!{RST
+     A class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference counting approach and destructs them when no more references exist. Similar in approach to a `shared_ptr <https://en.cppreference.com/w/cpp/memory/shared_ptr>`_ in C++.
      !!}
      class     (*            ), pointer :: resource  => null()
      integer                  , pointer :: counter   => null()
@@ -59,8 +55,8 @@ module Resource_Manager
   end type resourceManager
 
   interface resourceManager
-     !!{
-     Constructors for the \mono{resourceManager} class.
+     !!{RST
+     Constructors for the ``resourceManager`` class.
      !!}
      module procedure resourceManagerConstructor
   end interface resourceManager
@@ -72,8 +68,8 @@ module Resource_Manager
 contains
 
   subroutine resourceManagerForceReportOn()
-    !!{
-    Force all \mono{resourceManager} objects to be created with reporting enabled.
+    !!{RST
+    Force all ``resourceManager`` objects to be created with reporting enabled.
     !!}
     implicit none
 
@@ -82,8 +78,8 @@ contains
   end subroutine resourceManagerForceReportOn
 
   subroutine resourceManagerForceReportOff()
-    !!{
-    Cease forcing all \mono{resourceManager} objects to be created with reporting enabled.
+    !!{RST
+    Cease forcing all ``resourceManager`` objects to be created with reporting enabled.
     !!}
     implicit none
 
@@ -92,9 +88,8 @@ contains
   end subroutine resourceManagerForceReportOff
 
   function resourceManagerConstructor(resource,reportOn,threadSafe) result(self)
-    !!{
-    Constructor for the \mono{resourceManager} class. This should be called with a pointer to the resource to
-    manage after it is first created.
+    !!{RST
+    Constructor for the ``resourceManager`` class. This should be called with a pointer to the resource to manage after it is first created.
     !!}
     use :: Display           , only : displayMessage
     use :: String_Handling   , only : operator(//)
@@ -128,8 +123,8 @@ contains
   end function resourceManagerConstructor
 
   subroutine resourceManagerDestructor(self)
-    !!{
-    Destructor for the \mono{resourceManager} class.
+    !!{RST
+    Destructor for the ``resourceManager`` class.
     !!}
     implicit none
     type(resourceManager), intent(inout) :: self
@@ -139,8 +134,8 @@ contains
   end subroutine resourceManagerDestructor
 
   subroutine resourceManagerAssign(to,from)
-    !!{
-    Assign a \mono{resourceManager} object.
+    !!{RST
+    Assign a ``resourceManager`` object.
     !!}
     !$ use :: OMP_Lib           , only : OMP_Set_Lock  , OMP_Unset_Lock
     use    :: Display           , only : displayMessage
@@ -174,7 +169,7 @@ contains
   end subroutine resourceManagerAssign
     
   subroutine resourceManagerRelease(self)
-    !!{
+    !!{RST
     Release the managed resource.
     !!}
     !$ use :: OMP_Lib           , only : OMP_Set_Lock  , OMP_Unset_Lock
@@ -214,7 +209,7 @@ contains
   end subroutine resourceManagerRelease
 
   integer function resourceManagerCount(self)
-    !!{
+    !!{RST
     Return the current reference count to the managed object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock, OMP_Unset_Lock
@@ -232,7 +227,7 @@ contains
   end function resourceManagerCount
 
   subroutine resourceManagerReportOn(self)
-    !!{
+    !!{RST
     Report on the managed resource.
     !!}
     use :: Display           , only : displayMessage

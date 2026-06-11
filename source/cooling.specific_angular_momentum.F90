@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the specific angular momentum of cooling gas.
 !!}
 
 module Cooling_Specific_Angular_Momenta
-  !!{
+  !!{RST
   Provides a class that implements calculations of the specific angular momentum of cooling gas.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,17 +30,17 @@ module Cooling_Specific_Angular_Momenta
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>coolingSpecificAngularMomentum</name>
    <descriptiveName>Specific Angular Momenta of Cooling Gas</descriptiveName>
-   <description>Class providing models of the specific angular momentum (in km s$^{-1}$ Mpc) of gas cooling out
-    of the hot halo and infalling onto the galaxy. The angular momentum of infalling gas determines the size and
-    rotational structure of the galaxy disk that forms from it. Different implementations may assume solid-body
-    rotation of the hot gas, track the angular momentum profile of the halo, or apply corrections for angular
-    momentum transport during infall.</description>
+   <description>
+   Class providing models of the specific angular momentum (in km s\ :math:`^{-1}` Mpc) of gas cooling out of the hot halo and infalling onto the galaxy. The angular momentum of infalling gas determines the size and rotational structure of the galaxy disk that forms from it. Different implementations may assume solid-body rotation of the hot gas, track the angular momentum profile of the halo, or apply corrections for angular momentum transport during infall.
+   </description>
    <default>constantRotation</default>
    <method name="angularMomentumSpecific" >
-    <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in \mono{node}.</description>
+    <description>
+    Return the specific angular momentum (in units of km/s Mpc) of cooling gas in ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

@@ -17,24 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a node property extractor which reports if a node is on the most massive branch of its merger tree.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorBranchMostMassive">
+  <nodePropertyExtractor name="nodePropertyExtractorBranchMostMassive" docformat="rst">
    <description>
-    A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-    extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
-    massive branch and a value of 0 indicating that it is not.
+   A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be extracted as ``nodeIsOnMostMassiveBranch``, with a value of 1 indicating that the node is on the most massive branch and a value of 0 indicating that it is not.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBranchMostMassive
-     !!{
-     A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be
-     extracted as \mono{nodeIsOnMostMassiveBranch}, with a value of 1 indicating that the node is on the most
-     massive branch and a value of 0 indicating that it is not.
+     !!{RST
+     A node property extractor class which indicates if a node is on the most massive branch of its tree. The status will be extracted as ``nodeIsOnMostMassiveBranch``, with a value of 1 indicating that the node is on the most massive branch and a value of 0 indicating that it is not.
      !!}
      private
      integer :: isMostMassiveBranchID
@@ -45,8 +41,8 @@
   end type nodePropertyExtractorBranchMostMassive
 
   interface nodePropertyExtractorBranchMostMassive
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorBranchMostMassive`` property extractor class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -55,8 +51,8 @@
 contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorBranchMostMassive`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +67,8 @@ contains
   end function branchMostMassiveConstructorParameters
 
   function branchMostMassiveConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBranchMostMassive} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorBranchMostMassive`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBranchMostMassive) :: self
@@ -84,8 +80,8 @@ contains
   end function branchMostMassiveConstructorInternal
 
   function branchMostMassiveExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{branchMostMassive} node property extractor.
+    !!{RST
+    Implement a ``branchMostMassive`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -109,7 +105,7 @@ contains
   end function branchMostMassiveExtract
 
   function branchMostMassiveName(self)
-    !!{
+    !!{RST
     Return the name of the branchMostMassive property.
     !!}
     implicit none
@@ -122,7 +118,7 @@ contains
   end function branchMostMassiveName
   
   function branchMostMassiveDescription(self)
-    !!{
+    !!{RST
     Return a description of the branchMostMassive property.
     !!}
     implicit none

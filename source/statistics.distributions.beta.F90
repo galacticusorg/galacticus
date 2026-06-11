@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a beta density 1D distribution function.
   !!}
 
   use :: Root_Finder, only : rootFinder
 
   !![
-  <distributionFunction1D name="distributionFunction1DBeta">
-   <description>A 1D beta distribution function class, implementing the beta distribution $p(x) \propto x^{\alpha-1}(1-x)^{\beta-1}$ with support on $[0,1]$, parameterized by shape parameters $\alpha > 0$ and $\beta > 0$.</description>
+  <distributionFunction1D name="distributionFunction1DBeta" docformat="rst">
+   <description>
+   A 1D beta distribution function class, implementing the beta distribution :math:`p(x) \propto x^{\alpha-1}(1-x)^{\beta-1}` with support on :math:`[0,1]`, parameterized by shape parameters :math:`\alpha &gt; 0` and :math:`\beta &gt; 0`.
+   </description>
   </distributionFunction1D>
   !!]
     type, extends(distributionFunction1DClass) :: distributionFunction1DBeta
-     !!{
+     !!{RST
      Implementation of a beta 1D distribution function.
      !!}
      private
@@ -44,8 +46,8 @@
   end type distributionFunction1DBeta
 
   interface distributionFunction1DBeta
-     !!{
-     Constructors for the \refClass{distributionFunction1DBeta} 1D distribution function class.
+     !!{RST
+     Constructors for the ``distributionFunction1DBeta`` 1D distribution function class.
      !!}
      module procedure betaConstructorParameters
      module procedure betaConstructorInternal
@@ -59,9 +61,8 @@
 contains
 
   function betaConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DBeta} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the ``distributionFunction1DBeta`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,14 +72,18 @@ contains
     double precision                                            :: alpha                 , beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
-      <description>The first shape parameter $\alpha > 0$ of the beta distribution; when $\alpha > 1$ the density rises towards 1, when $\alpha &lt; 1$ it diverges towards 0, and when $\alpha = 1$ it is uniform along that axis.</description>
+      <description>
+      The first shape parameter :math:`\alpha &gt; 0` of the beta distribution; when :math:`\alpha &gt; 1` the density rises towards 1, when :math:`\alpha &lt; 1` it diverges towards 0, and when :math:`\alpha = 1` it is uniform along that axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
-      <description>The second shape parameter $\beta > 0$ of the beta distribution; when $\beta > 1$ the density rises towards 0, when $\beta &lt; 1$ it diverges towards 1, and when $\beta = 1$ it is uniform along that axis.</description>
+      <description>
+      The second shape parameter :math:`\beta &gt; 0` of the beta distribution; when :math:`\beta &gt; 1` the density rises towards 0, when :math:`\beta &lt; 1` it diverges towards 1, and when :math:`\beta = 1` it is uniform along that axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -92,8 +97,8 @@ contains
   end function betaConstructorParameters
 
   function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DBeta} 1D distribution function class.
+    !!{RST
+    Constructor for the ``distributionFunction1DBeta`` 1D distribution function class.
     !!}
     type            (distributionFunction1DBeta)                                  :: self
     double precision                            , intent(in   )                   :: alpha                        , beta
@@ -112,7 +117,7 @@ contains
   end function betaConstructorInternal
 
   double precision function betaDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a beta distribution.
     !!}
     use :: Beta_Functions, only : Beta_Function
@@ -131,7 +136,7 @@ contains
   end function betaDensity
 
   double precision function betaCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a beta distribution.
     !!}
     use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
@@ -150,7 +155,7 @@ contains
   end function betaCumulative
 
   double precision function betaInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a beta distribution.
     !!}
     use :: Error, only : Error_Report
@@ -177,7 +182,7 @@ contains
   end function betaInverse
 
   double precision function betaRoot(x)
-    !!{
+    !!{RST
     Root function used in finding the inverse of the beta distribution.
     !!}
     implicit none
@@ -188,7 +193,7 @@ contains
   end function betaRoot
 
   double precision function betaMinimum(self)
-    !!{
+    !!{RST
     Return the minimum value of a beta distribution.
     !!}
     implicit none
@@ -200,7 +205,7 @@ contains
   end function betaMinimum
 
   double precision function betaMaximum(self)
-    !!{
+    !!{RST
     Return the minimum value of a beta distribution.
     !!}
     implicit none

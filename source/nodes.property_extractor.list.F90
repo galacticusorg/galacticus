@@ -21,12 +21,14 @@
   use :: Units_MetaData, only : unitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes">
-   <description>Abstract base class for extractors that return a variable-length list of floating-point values per node, defining the interface (element count, names, descriptions, and units) for extractors that output time series, multi-epoch property histories, or other variable-length sequences in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorList" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a variable-length list of floating-point values per node, defining the interface (element count, names, descriptions, and units) for extractors that output time series, multi-epoch property histories, or other variable-length sequences in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList
-     !!{
+     !!{RST
      A list property extractor.
      !!}
      private
@@ -53,7 +55,7 @@
 
   abstract interface
      function listElementCount(self)
-       !!{
+       !!{RST
        Interface for list property count.
        !!}
        import nodePropertyExtractorList
@@ -64,7 +66,7 @@
 
   abstract interface
      function listExtract(self,node,instance)
-       !!{
+       !!{RST
        Interface for list property extraction.
        !!}
        import nodePropertyExtractorList, treeNode, multiCounter
@@ -77,7 +79,7 @@
 
   abstract interface
      subroutine listNames(self,names)
-       !!{
+       !!{RST
        Interface for list names.
        !!}
        import varying_string, nodePropertyExtractorList
@@ -88,7 +90,7 @@
 
   abstract interface
      subroutine listDescriptions(self,descriptions)
-       !!{
+       !!{RST
        Interface for list descriptions.
        !!}
        import varying_string, nodePropertyExtractorList
@@ -99,7 +101,7 @@
 
   abstract interface
      function listUnitsInSI(self)
-       !!{
+       !!{RST
        Interface for list property units.
        !!}
        import nodePropertyExtractorList
@@ -111,9 +113,8 @@
 contains
 
   function listUnits(self) result(units)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorList} \mono{unitsInSI} array into an array of
-    \mono{unitType}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorList`` ``unitsInSI`` array into an array of ``unitType``.
     !!}
     implicit none
     type (unitType                 ), dimension(:) , allocatable :: units
@@ -130,7 +131,7 @@ contains
   end function listUnits
 
   subroutine listMetaData(self,node,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for list property meta-data.
     !!}
     implicit none

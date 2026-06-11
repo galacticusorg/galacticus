@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which imports the FFTW3 library Fortran interface.
 !!}
 
 module FFTW3
-  !!{
+  !!{RST
   Imports the FFTW3 library Fortran interface.
   !!}
 #ifdef FFTW3AVAIL
@@ -40,9 +40,8 @@ module FFTW3
 contains
 
   double precision function FFTW_Wavenumber(k,n)
-    !!{
-    Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element \mono{k} out of \mono{n} of a
-    1-D FFT using the FFTW convention.
+    !!{RST
+    Return the wavenumber (in units of :math:`1/L` where :math:`L` is the box length) corresponding to element ``k`` out of ``n`` of a 1-D FFT using the FFTW convention.
     !!}
     implicit none
     integer, intent(in   ) :: k , n

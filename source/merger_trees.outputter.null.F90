@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger trees outputter class which does no output.
   !!}
 
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterNull">
-   <description>A merger tree outputter which does no output.</description>
+  <mergerTreeOutputter name="mergerTreeOutputterNull" docformat="rst">
+   <description>
+   A merger tree outputter which does no output.
+   </description>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterNull
-     !!{
+     !!{RST
      Implementation of a merger tree outputter which does no output.
      !!}
      private
@@ -37,8 +39,8 @@
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterNull} merger tree outputter.
+     !!{RST
+     Constructors for the ``mergerTreeOutputterNull`` merger tree outputter.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOutputterNull
@@ -46,8 +48,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterNull} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeOutputterNull`` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
+    !!{RST
     Perform no output.
     !!}
     implicit none
@@ -77,7 +79,7 @@ contains
   end subroutine nullOutputTree
 
   subroutine nullOutputNode(self,node,indexOutput,outputType)
-    !!{
+    !!{RST
     Perform no output.
     !!}
     implicit none

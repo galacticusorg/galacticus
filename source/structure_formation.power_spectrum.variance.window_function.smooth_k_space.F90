@@ -19,19 +19,21 @@
 
   !+    Contributions to this file made by: Omid Sameie.
 
-  !!{
-  Provides a power spectrum window function class that implements the smooth-$k$ space filter of \cite{leo_new_2018}.
+  !!{RST
+  Provides a power spectrum window function class that implements the smooth-:math:`k` space filter of :cite:t:`leo_new_2018`.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace">
-   <description>A smooth window function for filtering of power spectra in wavenumber space, defined as $W(kR) = 1/[1+(kR)^\beta]$, providing a tunable, sharp-but-smooth transition between large and small scales. The shape exponent $\beta$ and normalization relative to a top-hat filter are set by \mono{[beta]} and \mono{[normalization]}.</description>
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace" docformat="rst">
+   <description>
+   A smooth window function for filtering of power spectra in wavenumber space, defined as :math:`W(kR) = 1/[1+(kR)^\beta]`, providing a tunable, sharp-but-smooth transition between large and small scales. The shape exponent :math:`\beta` and normalization relative to a top-hat filter are set by ``[beta]`` and ``[normalization]``.
+   </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSmoothKSpace
-     !!{
+     !!{RST
      A smooth power spectrum window function class.
      !!}
      private
@@ -44,8 +46,8 @@
   end type powerSpectrumWindowFunctionSmoothKSpace
 
   interface powerSpectrumWindowFunctionSmoothKSpace
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
      !!}
      module procedure smoothKSpaceConstructorParameters
      module procedure smoothKSpaceConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function smoothKSpaceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,20 +67,20 @@ contains
     double precision                                                         :: beta                , normalization
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>3.5d0</defaultValue>
       <description>
-      The parameter ``normalization'' is equivalent to the normalization for a sharp-$k$ filter. It serves as the ratio of mass scales of the object to the one in the spherical model: $R/R_\mathrm{topHat}$.
+      The parameter "normalization" is equivalent to the normalization for a sharp-:math:`k` filter. It serves as the ratio of mass scales of the object to the one in the spherical model: :math:`R/R_\mathrm{topHat}`.
       </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>3.7d0</defaultValue>
       <description>
-      The parameter ``beta'' is defined as the exponent of ``$kR$'' in the denominator of the window function: $W(kR)= 1/[1+(kR)^\beta]$.
+      The parameter "beta" is defined as the exponent of ":math:`kR`" in the denominator of the window function: :math:`W(kR)= 1/[1+(kR)^\beta]`.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -92,8 +94,8 @@ contains
   end function smoothKSpaceConstructorParameters
 
   function smoothKSpaceConstructorInternal(cosmologyParameters_,beta,normalization) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                        :: self
@@ -107,8 +109,8 @@ contains
   end function smoothKSpaceConstructorInternal
 
   subroutine smoothKSpaceDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionSmoothKSpace} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
@@ -120,9 +122,8 @@ contains
   end subroutine smoothKSpaceDestructor
 
   double precision function smoothKSpaceValue(self,wavenumber,smoothingMass,time)
-    !!{
-    Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
-    spectrum.
+    !!{RST
+    Smooth-:math:`k` space power spectrum window function proposed in :cite:t:`leo_new_2018`. spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -153,9 +154,8 @@ contains
   end function smoothKSpaceValue
 
   double precision function smoothKSpaceWavenumberMaximum(self,smoothingMass)
-    !!{
-    Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    variance of the power spectrum.
+    !!{RST
+    Maximum wavenumber for a top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self

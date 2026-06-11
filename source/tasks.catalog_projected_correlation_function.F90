@@ -23,9 +23,11 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>randomSampleCountType</name>
-   <description>Used to specify the type of random sample count.</description>
+   <description>
+   Used to specify the type of random sample count.
+   </description>
    <visibility>public</visibility>
    <entry label="fixed"        />
    <entry label="multiplicative"/>
@@ -33,12 +35,14 @@
   !!]
   
   !![
-  <task name="taskCatalogProjectedCorrelationFunction">
-   <description>A task which reads a galaxy catalog from an IRATE-format N-body halo file, applies a survey geometry mask, shifts galaxies into redshift space, and computes the projected two-point correlation function $w_\mathrm{p}(r_\mathrm{p})$ by integrating the 3D correlation function along the line of sight to a maximum separation $\pi_\mathrm{max}$.</description>
+  <task name="taskCatalogProjectedCorrelationFunction" docformat="rst">
+   <description>
+   A task which reads a galaxy catalog from an IRATE-format N-body halo file, applies a survey geometry mask, shifts galaxies into redshift space, and computes the projected two-point correlation function :math:`w_\mathrm{p}(r_\mathrm{p})` by integrating the 3D correlation function along the line of sight to a maximum separation :math:`\pi_\mathrm{max}`.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
-     !!{
+     !!{RST
      Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      !!}
      private
@@ -65,8 +69,8 @@
   end type taskCatalogProjectedCorrelationFunction
 
   interface taskCatalogProjectedCorrelationFunction
-     !!{
-     Constructors for the \refClass{taskCatalogProjectedCorrelationFunction} task.
+     !!{RST
+     Constructors for the ``taskCatalogProjectedCorrelationFunction`` task.
      !!}
      module procedure catalogProjectedCorrelationFunctionConstructorParameters
      module procedure catalogProjectedCorrelationFunctionConstructorInternal
@@ -75,8 +79,8 @@
 contains
 
   function catalogProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskCatalogProjectedCorrelationFunction`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes        , only : nodeClassHierarchyInitialize
     use :: Input_Parameters        , only : inputParameter              , inputParameters
@@ -117,45 +121,59 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>galaxyCatalogFileName</name>
-      <description>The file name from which the galaxy catalog should be read.</description>
+      <description>
+      The file name from which the galaxy catalog should be read.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum mass galaxy to include in a mock catalog correlation function calculation.</description>
+      <description>
+      The minimum mass galaxy to include in a mock catalog correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum mass galaxy to include in a mock catalog correlation function calculation.</description>
+      <description>
+      The maximum mass galaxy to include in a mock catalog correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMinimum</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum separation to compute in a mock catalog correlation function calculation.</description>
+      <description>
+      The minimum separation to compute in a mock catalog correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMaximum</name>
       <defaultValue>30.0d0</defaultValue>
-      <description>The maximum separation to compute in a mock catalog correlation function calculation.</description>
+      <description>
+      The maximum separation to compute in a mock catalog correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationCount</name>
       <defaultValue>15</defaultValue>
-      <description>The number of bins in separation to compute in a mock catalog correlation function calculation.</description>
+      <description>
+      The number of bins in separation to compute in a mock catalog correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomSampleCount</name>
       <defaultValue>var_str('*10')</defaultValue>
-      <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``\mono{*}'', a multiplicative factor.</description>
+      <description>
+      The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with "``*``", a multiplicative factor.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -169,47 +187,65 @@ contains
        read (label,*) randomSampleCountNumber
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationRadialMaximum</name>
       <defaultValue>40.0d0</defaultValue>
-      <description>The maximum radial separation of galaxies to consider when computing projected correlation functions.</description>
+      <description>
+      The maximum radial separation of galaxies to consider when computing projected correlation functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>halfIntegral</name>
       <defaultValue>.false.</defaultValue>
-      <description>Set to \mono{true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
+      <description>
+      Set to ``true`` if the projected correlation function is computed as :math:`w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi`, instead of the usual :math:`w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>widthBuffer</name>
       <defaultValue>30.0d0</defaultValue>
-      <description>The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.</description>
+      <description>
+      The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="surveyGeometry"        name="surveyGeometry_"        source="parameters"/>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>origin</name>
       <defaultValue>[randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample()]</defaultValue>
-      <defaultSource>Uniformly random distribution within the box.</defaultSource>
-      <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
+      <defaultSource>
+      Uniformly random distribution within the box.
+      </defaultSource>
+      <description>
+      The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>vectorRotation</name>
       <defaultValue>[acos(2.0d0*randomNumberGenerator_%uniformSample()-1.0d0),2.0d0*Pi*randomNumberGenerator_%uniformSample()]</defaultValue>
-      <defaultSource>Isotropically random on the unit sphere.</defaultSource>
-      <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
+      <defaultSource>
+      Isotropically random on the unit sphere.
+      </defaultSource>
+      <description>
+      The vector, in spherical coordinates :math:`(\theta,\phi)`, about which the mock catalog should be rotated.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>angleRotation</name>
       <defaultValue>2.0d0*Pi*randomNumberGenerator_%uniformSample()</defaultValue>
-      <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
-      <description>The angle through which the mock catalog should be rotated.</description>
+      <defaultSource>
+      Uniformly random distribution between :math:`0` and :math:`2\pi`.
+      </defaultSource>
+      <description>
+      The angle through which the mock catalog should be rotated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -225,8 +261,8 @@ contains
   end function catalogProjectedCorrelationFunctionConstructorParameters
 
   function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskCatalogProjectedCorrelationFunction`` task class which takes a parameter set as input.
     !!}
     use :: String_Handling, only : operator(//)
     implicit none
@@ -262,8 +298,8 @@ contains
   end function catalogProjectedCorrelationFunctionConstructorInternal
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskCatalogProjectedCorrelationFunction} task class.
+    !!{RST
+    Destructor for the ``taskCatalogProjectedCorrelationFunction`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -280,7 +316,7 @@ contains
   end subroutine catalogProjectedCorrelationFunctionDestructor
 
   subroutine catalogProjectedCorrelationFunctionPerform(self,status)
-    !!{
+    !!{RST
     Compute the projected correlation function from a galaxy catalog.
     !!}
     use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
@@ -461,7 +497,7 @@ contains
   contains
 
     subroutine pointsToRedshiftSpace()
-      !!{
+      !!{RST
       Shift the set of points into redshift space.
       !!}
       use :: Vectors, only : Vector_Magnitude

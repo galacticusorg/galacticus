@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a local kinematic distribution class.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionLocal">
+  <kinematicsDistribution name="kinematicsDistributionLocal" docformat="rst">
     <description>
-      A local kinematic distribution class in which the 1D velocity dispersion is given by
-      \begin{equation}
-      \sigma_\mathrm{1D}(\mathbf{r}) = \alpha V_\mathrm{c}(r),
-      \end{equation}      
-      where $r = |\mathbf{r}|$ and $V_\mathrm{c}(r)$ is the rotation curve. Here, $\alpha=$\mono{[]} is a
-      parameter.
+    A local kinematic distribution class in which the 1D velocity dispersion is given by
+
+    .. math::
+
+       \sigma_\mathrm{1D}(\mathbf{r}) = \alpha V_\mathrm{c}(r),
+
+    where :math:`r = |\mathbf{r}|` and :math:`V_\mathrm{c}(r)` is the rotation curve. Here, :math:`\alpha=`\ ``[]`` is a parameter.
     </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionLocal
-     !!{
+     !!{RST
      A local kinematic distribution.
      !!}
      double precision :: alpha
@@ -44,8 +45,8 @@
   end type kinematicsDistributionLocal
 
   interface kinematicsDistributionLocal
-     !!{
-     Constructors for the \refClass{kinematicsDistributionLocal} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionLocal`` kinematic distribution class.
      !!}
      module procedure localConstructorParameters
      module procedure localConstructorInternal
@@ -54,9 +55,8 @@
 contains
 
   function localConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionLocal} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionLocal`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,9 +65,11 @@ contains
     double precision                                             :: alpha
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
-      <description>The parameter $\alpha$ in the relation $\sigma_\mathrm{1D}(\mathbf{r}) = \alpha V_\mathrm{c}(r)$.</description>
+      <description>
+      The parameter :math:`\alpha` in the relation :math:`\sigma_\mathrm{1D}(\mathbf{r}) = \alpha V_\mathrm{c}(r)`.
+      </description>
       <defaultValue>1.0d0/sqrt(2.0d0)</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -80,8 +82,8 @@ contains
   end function localConstructorParameters
   
   function localConstructorInternal(alpha) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionLocal} kinematic distribution class.
+    !!{RST
+    Constructor for the ``kinematicsDistributionLocal`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLocal)                :: self
@@ -94,7 +96,7 @@ contains
   end function localConstructorInternal
 
   logical function localIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the local kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -105,8 +107,8 @@ contains
   end function localIsCollisional
 
   double precision function localVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an local kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an local kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionLocal), intent(inout)         :: self

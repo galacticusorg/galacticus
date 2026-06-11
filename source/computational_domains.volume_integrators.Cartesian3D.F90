@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCartesian3D">
-   <description>Computes volume integrals over three-dimensional Cartesian grid cells, with the spatial extent of the domain defined by \mono{[xBoundaries]}, \mono{[yBoundaries]}, and \mono{[zBoundaries]}. Each cell volume is the product of its axis-aligned extents, enabling accurate integration of physical quantities over the full Cartesian domain.</description>
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCartesian3D" docformat="rst">
+   <description>
+   Computes volume integrals over three-dimensional Cartesian grid cells, with the spatial extent of the domain defined by ``[xBoundaries]``, ``[yBoundaries]``, and ``[zBoundaries]``. Each cell volume is the product of its axis-aligned extents, enabling accurate integration of physical quantities over the full Cartesian domain.
+   </description>
   </computationalDomainVolumeIntegrator>
   !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorCartesian3D
-     !!{
+     !!{RST
      Implementation of a computational domain for 3D Cartesian cells.
      !!}
      private
@@ -37,8 +39,8 @@
   end type computationalDomainVolumeIntegratorCartesian3D
 
   interface computationalDomainVolumeIntegratorCartesian3D
-     !!{
-     Constructors for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain.
+     !!{RST
+     Constructors for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain volume integrator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -60,22 +61,28 @@ contains
     double precision                                                , dimension(3,2) :: boundaries
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[x_\mathrm{min}, x_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $x$-axis.</description>
+      <description>
+      A two-element array :math:`[x_\mathrm{min}, x_\mathrm{max}]` specifying the extent of the 3D Cartesian integration domain along the :math:`x`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[y_\mathrm{min}, y_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $y$-axis.</description>
+      <description>
+      A two-element array :math:`[y_\mathrm{min}, y_\mathrm{max}]` specifying the extent of the 3D Cartesian integration domain along the :math:`y`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the extent of the 3D Cartesian integration domain along the $z$-axis.</description>
+      <description>
+      A two-element array :math:`[z_\mathrm{min}, z_\mathrm{max}]` specifying the extent of the 3D Cartesian integration domain along the :math:`z`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -90,8 +97,8 @@ contains
   end function cartesian3DConstructorParameters
 
   function cartesian3DConstructorInternal(boundaries) result(self)
-    !!{
-    Internal constructor for the \refClass{computationalDomainVolumeIntegratorCartesian3D} computational domain volume integrator class.
+    !!{RST
+    Internal constructor for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain volume integrator class.
     !!}
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                                :: self
@@ -110,7 +117,7 @@ contains
   end function cartesian3DConstructorInternal
 
   double precision function cartesian3DVolume(self)
-    !!{
+    !!{RST
     Return the volume of the computational domain cell.
     !!}
     implicit none
@@ -121,7 +128,7 @@ contains
   end function cartesian3DVolume
 
   double precision function cartesian3DIntegrate(self,integrand)
-    !!{
+    !!{RST
     Integrate over the computational domain cell.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -145,8 +152,8 @@ contains
   contains
 
     double precision function cartesian3DIntegrandX(x)
-      !!{
-      $x$-integrand over Cartesian 3D computational domain cells.
+      !!{RST
+      :math:`x`-integrand over Cartesian 3D computational domain cells.
       !!}
       implicit none
       double precision            , intent(in   ) :: x
@@ -165,8 +172,8 @@ contains
     end function cartesian3DIntegrandX
 
     double precision function cartesian3DIntegrandY(y)
-      !!{
-      $y$-integrand over Cartesian 3D computational domain cells.
+      !!{RST
+      :math:`y`-integrand over Cartesian 3D computational domain cells.
       !!}
       implicit none
       double precision            , intent(in   ) :: y
@@ -185,8 +192,8 @@ contains
     end function cartesian3DIntegrandY
 
     double precision function cartesian3DIntegrandZ(z)
-      !!{
-      $z$-integrand over Cartesian 3D computational domain cells.
+      !!{RST
+      :math:`z`-integrand over Cartesian 3D computational domain cells.
       !!}
       implicit none
       double precision, intent(in   ) :: z

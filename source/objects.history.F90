@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module defining the history object type.
 !!}
 
 module Histories
-  !!{
+  !!{RST
   Defines the history object type.
   !!}
   use :: Kind_Numbers, only : kind_int8
@@ -36,7 +36,7 @@ module Histories
   end interface operator(*)
 
   type history
-     !!{
+     !!{RST
      The history object type.
      !!}
      double precision, allocatable, dimension(:  ) :: time
@@ -109,7 +109,7 @@ module Histories
   end type history
 
   type longIntegerHistory
-     !!{
+     !!{RST
      The history object type.
      !!}
      double precision                , allocatable, dimension(:  ) :: time
@@ -162,7 +162,7 @@ module Histories
 contains
 
   subroutine History_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
-    !!{
+    !!{RST
     Create a history object.
     !!}
     use :: Error            , only : Error_Report
@@ -200,7 +200,7 @@ contains
   end subroutine History_Create
 
   subroutine History_Destroy(history_)
-    !!{
+    !!{RST
     Destroy a history.
     !!}
     implicit none
@@ -214,7 +214,7 @@ contains
   end subroutine History_Destroy
 
   subroutine History_Long_Integer_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
-    !!{
+    !!{RST
     Create a history object.
     !!}
     use :: Error            , only : Error_Report
@@ -252,7 +252,7 @@ contains
   end subroutine History_Long_Integer_Create
 
   subroutine History_Long_Integer_Destroy(history_)
-    !!{
+    !!{RST
     Destroy a history.
     !!}
     implicit none
@@ -266,8 +266,8 @@ contains
   end subroutine History_Long_Integer_Destroy
 
   subroutine History_Builder(self,historyDefinition)
-    !!{
-    Build a \mono{history} object from the given XML \mono{historyDefinition}.
+    !!{RST
+    Build a ``history`` object from the given XML ``historyDefinition``.
     !!}
     use :: FoX_DOM, only : node
     use :: Error  , only : Error_Report
@@ -281,8 +281,8 @@ contains
   end subroutine History_Builder
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
-    !!{
-    Build a \mono{longIntegerHistory} object from the given XML \mono{historyDefinition}.
+    !!{RST
+    Build a ``longIntegerHistory`` object from the given XML ``historyDefinition``.
     !!}
     use :: FoX_DOM, only : node
     use :: Error  , only : Error_Report
@@ -296,7 +296,7 @@ contains
   end subroutine History_Long_Integer_Builder
 
   subroutine History_Dump(self,verbosityLevel)
-    !!{
+    !!{RST
     Dumps a history object.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -325,7 +325,7 @@ contains
   end subroutine History_Dump
 
   subroutine History_Dump_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Dumps a history object in binary.
     !!}
     implicit none
@@ -343,7 +343,7 @@ contains
   end subroutine History_Dump_Raw
 
   subroutine History_Read_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Read a history object in binary.
     !!}
     implicit none
@@ -365,7 +365,7 @@ contains
   end subroutine History_Read_Raw
 
   subroutine History_Reset(history_)
-    !!{
+    !!{RST
     Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     !!}
     implicit none
@@ -376,7 +376,7 @@ contains
   end subroutine History_Reset
 
   subroutine History_Long_Integer_Dump(self,verbosityLevel)
-    !!{
+    !!{RST
     Dumps a history object.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -405,7 +405,7 @@ contains
   end subroutine History_Long_Integer_Dump
 
   subroutine History_Long_Integer_Dump_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Dumps a history object in binary.
     !!}
     implicit none
@@ -423,7 +423,7 @@ contains
   end subroutine History_Long_Integer_Dump_Raw
 
   subroutine History_Long_Integer_Read_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Read a history object in binary.
     !!}
     implicit none
@@ -445,7 +445,7 @@ contains
   end subroutine History_Long_Integer_Read_Raw
 
   subroutine History_Long_Integer_Reset(history_)
-    !!{
+    !!{RST
     Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     !!}
     implicit none
@@ -456,7 +456,7 @@ contains
   end subroutine History_Long_Integer_Reset
 
   subroutine History_Set_To_Unity(history_)
-    !!{
+    !!{RST
     Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     !!}
     implicit none
@@ -467,7 +467,7 @@ contains
   end subroutine History_Set_To_Unity
 
   logical function History_Exists(history_)
-    !!{
+    !!{RST
     Returns true if the history has been created.
     !!}
     implicit none
@@ -478,7 +478,7 @@ contains
   end function History_Exists
 
   subroutine History_Clone(self,historyToClone)
-    !!{
+    !!{RST
     Clone a history object.
     !!}
     implicit none
@@ -500,7 +500,7 @@ contains
   end subroutine History_Clone
 
   logical function History_Long_Integer_Exists(history_)
-    !!{
+    !!{RST
     Returns true if the history has been created.
     !!}
     implicit none
@@ -511,7 +511,7 @@ contains
   end function History_Long_Integer_Exists
 
   subroutine History_Long_Integer_Clone(self,historyToClone)
-    !!{
+    !!{RST
     Clone a longIntegerHistory object.
     !!}
     implicit none
@@ -533,7 +533,7 @@ contains
   end subroutine History_Long_Integer_Clone
 
   logical function History_Is_Zero(self)
-    !!{
+    !!{RST
     Test whether a history object is all zero.
     !!}
     implicit none
@@ -547,7 +547,7 @@ contains
   end function History_Is_Zero
 
   function History_Add(history1,history2)
-    !!{
+    !!{RST
     Add two history objects.
     !!}
     use :: Error, only : Error_Report
@@ -573,7 +573,7 @@ contains
   end function History_Add
 
   function History_Subtract(history1,history2)
-    !!{
+    !!{RST
     Subtract two history objects.
     !!}
     use :: Error, only : Error_Report
@@ -601,7 +601,7 @@ contains
   end function History_Subtract
 
   integer function History_Serialize_Count(self)
-    !!{
+    !!{RST
     Return the number of properties required to track a history.
     !!}
     implicit none
@@ -616,7 +616,7 @@ contains
   end function History_Serialize_Count
 
   subroutine History_Deserialize(self,historyArray)
-    !!{
+    !!{RST
     Pack history from an array into a history structure.
     !!}
     use :: Error, only : Error_Report
@@ -634,7 +634,7 @@ contains
   end subroutine History_Deserialize
 
   subroutine History_Serialize(self,historyArray)
-    !!{
+    !!{RST
     Pack history from an array into an history structure.
     !!}
     implicit none
@@ -647,11 +647,8 @@ contains
   end subroutine History_Serialize
 
   subroutine History_Trim(history_,currentTime,minimumPointsToRemove)
-    !!{
-    Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    but one entry prior to the given \mono{currentTime} (this allows for interpolation of the history to the current
-    time). Optionally, the remove is done only if it will remove more than \mono{minimumPointsToRemove} entries (since the
-    removal can be slow this allows for some optimization).
+    !!{RST
+    Removes outdated information from "future histories" (i.e. histories that store data for future reference). Removes all but one entry prior to the given ``currentTime`` (this allows for interpolation of the history to the current time). Optionally, the remove is done only if it will remove more than ``minimumPointsToRemove`` entries (since the removal can be slow this allows for some optimization).
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -711,9 +708,8 @@ contains
   end subroutine History_Trim
 
   subroutine History_Trim_Forward(self,time,removedHistory)
-    !!{
-    Removes all points in a history after the given \mono{time}. Optionally, the removed history can be
-    returned as \mono{removedHistory}.
+    !!{RST
+    Removes all points in a history after the given ``time``. Optionally, the removed history can be returned as ``removedHistory``.
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -758,11 +754,8 @@ contains
   end subroutine History_Trim_Forward
 
   subroutine History_Long_Integer_Trim(history_,currentTime,minimumPointsToRemove)
-    !!{
-    Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    but one entry prior to the given \mono{currentTime} (this allows for interpolation of the history to the current
-    time). Optionally, the remove is done only if it will remove more than \mono{minimumPointsToRemove} entries (since the
-    removal can be slow this allows for some optimization).
+    !!{RST
+    Removes outdated information from "future histories" (i.e. histories that store data for future reference). Removes all but one entry prior to the given ``currentTime`` (this allows for interpolation of the history to the current time). Optionally, the remove is done only if it will remove more than ``minimumPointsToRemove`` entries (since the removal can be slow this allows for some optimization).
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -822,9 +815,8 @@ contains
   end subroutine History_Long_Integer_Trim
 
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
-    !!{
-    Removes all points in a history after the given \mono{time}. Optionally, the removed history can be
-    returned as \mono{removedHistory}.
+    !!{RST
+    Removes all points in a history after the given ``time``. Optionally, the removed history can be returned as ``removedHistory``.
     !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -869,7 +861,7 @@ contains
   end subroutine History_Long_Integer_Trim_Forward
 
   subroutine History_Long_Integer_Append_History(self,append)
-    !!{
+    !!{RST
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
@@ -903,7 +895,7 @@ contains
   end subroutine History_Long_Integer_Append_History
 
   subroutine History_Long_Integer_Append_Epoch(self,time,append)
-    !!{
+    !!{RST
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
@@ -940,7 +932,7 @@ contains
   end subroutine History_Long_Integer_Append_Epoch
 
   subroutine History_Append_History(self,append)
-    !!{
+    !!{RST
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
@@ -974,7 +966,7 @@ contains
   end subroutine History_Append_History
 
   subroutine History_Append_Epoch(self,time,append)
-    !!{
+    !!{RST
     Append a history to a long integer history.
     !!}
     use :: Error            , only : Error_Report
@@ -1011,10 +1003,8 @@ contains
   end subroutine History_Append_Epoch
 
    subroutine History_Interpolated_Increment(history_,addHistory)
-     !!{
-     Adds the data in \mono{addHistory} to that in \mono{history\_}. This function is
-     designed for histories that track instantaneous rates. The rates in \mono{addHistory} are interpolated to
-     the times in \mono{history\_} and added to the rates in \mono{history\_}.
+     !!{RST
+     Adds the data in ``addHistory`` to that in ``history_``. This function is designed for histories that track instantaneous rates. The rates in ``addHistory`` are interpolated to the times in ``history_`` and added to the rates in ``history_``.
      !!}
      use            :: Error                  , only : Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -1077,12 +1067,8 @@ contains
    end subroutine History_Interpolated_Increment
 
    subroutine History_Increment(history_,addHistory,autoExtend)
-     !!{
-     Combines the data in \mono{addHistory} with that in \mono{history\_}. This function is designed for histories that
-     track integrated quantities (such as total mass of stars formed in a time interval for example). \mono{history\_} will be
-     extended if necessary to span the range of \mono{addHistory}. Then, the data from \mono{addHistory} will be added to
-     that in \mono{history\_} by finding the fraction of each timestep in \mono{addHistory} that overlaps with each timestep
-     in \mono{history\_} and assuming that the corresponding fraction of the data value should be added to \mono{history\_}.
+     !!{RST
+     Combines the data in ``addHistory`` with that in ``history_``. This function is designed for histories that track integrated quantities (such as total mass of stars formed in a time interval for example). ``history_`` will be extended if necessary to span the range of ``addHistory``. Then, the data from ``addHistory`` will be added to that in ``history_`` by finding the fraction of each timestep in ``addHistory`` that overlaps with each timestep in ``history_`` and assuming that the corresponding fraction of the data value should be added to ``history_``.
      !!}
      use            :: Arrays_Search   , only : searchArray
      use            :: Error           , only : Error_Report
@@ -1176,8 +1162,8 @@ contains
    end subroutine History_Increment
 
    function History_Divide(self,divisor)
-     !!{
-     Divides history data by a double precision \mono{divisor}.
+     !!{RST
+     Divides history data by a double precision ``divisor``.
      !!}
      implicit none
      type            (history)                :: History_Divide
@@ -1193,8 +1179,8 @@ contains
    end function History_Divide
 
    function History_Multiply(self,multiplier)
-     !!{
-     Multiplies history data by a double precision \mono{multiplier}.
+     !!{RST
+     Multiplies history data by a double precision ``multiplier``.
      !!}
      implicit none
      type            (history)                :: History_Multiply
@@ -1210,7 +1196,7 @@ contains
    end function History_Multiply
 
   function History_Multiply_Switched(multiplier,history1)
-    !!{
+    !!{RST
     Multiply a scalar by an history object.
     !!}
     implicit none
@@ -1223,7 +1209,7 @@ contains
   end function History_Multiply_Switched
 
    subroutine History_Extend(history_,timeRange,times)
-     !!{
+     !!{RST
      Extends a history to encompass the given time range.
      !!}
      use :: Error             , only : Error_Report
@@ -1353,8 +1339,8 @@ contains
    end subroutine History_Extend
 
   subroutine History_Timesteps(history_,timeSteps)
-    !!{
-    Return an array of time intervals in \mono{history\_}.
+    !!{RST
+    Return an array of time intervals in ``history_``.
     !!}
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
@@ -1382,7 +1368,7 @@ contains
   end subroutine History_Timesteps
 
   function History_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -1399,7 +1385,7 @@ contains
   end function History_Non_Static_Size_Of
 
   function History_Long_Integer_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

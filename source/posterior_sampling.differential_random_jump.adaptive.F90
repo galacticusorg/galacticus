@@ -17,27 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive
-  distribution which scales with the range spanned by the sample states.
+  !!{RST
+  Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive distribution which scales with the range spanned by the sample states.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   
   !![
-  <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
+  <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive" docformat="rst">
    <description>
-    The random jumps are drawn from the distributions specified in the \mono{random} element of each
-    \refClass{modelParameterClass} object and then multiplied by the currently occupied range of each parameter (i.e. the maximum
-    value of the parameter over all current chain states minus the minimum value of each parameter over all current chain
-    states).
+   The random jumps are drawn from the distributions specified in the ``random`` element of each ``modelParameterClass`` object and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the parameter over all current chain states minus the minimum value of each parameter over all current chain states).
    </description>
   </posteriorSampleDffrntlEvltnRandomJump>
   !!]
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpAdaptive
-     !!{
-     Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an
-     adaptive distribution which scales with the range spanned by the sample states.
+     !!{RST
+     Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive distribution which scales with the range spanned by the sample states.
      !!}
      private
      integer(c_size_t) :: countLargeJumps , countJumps
@@ -47,8 +42,8 @@
   end type posteriorSampleDffrntlEvltnRandomJumpAdaptive
 
   interface posteriorSampleDffrntlEvltnRandomJumpAdaptive
-     !!{
-     Constructors for the \refClass{posteriorSampleDffrntlEvltnRandomJumpAdaptive} posterior sampling differential evolution random jump class.
+     !!{RST
+     Constructors for the ``posteriorSampleDffrntlEvltnRandomJumpAdaptive`` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -57,9 +52,8 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnRandomJumpAdaptive} posterior sampling differential evolution random jump class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleDffrntlEvltnRandomJumpAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +68,8 @@ contains
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \mono{adaptive} posterior sampling differential evolution random jump class.
+    !!{RST
+    Internal constructor for the ``adaptive`` posterior sampling differential evolution random jump class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +82,7 @@ contains
   end function adaptiveConstructorInternal
 
   function adaptiveSample(self,modelParameters_,simulationState)
-    !!{
+    !!{RST
     Sample from the random jump distribution.
     !!}
     use :: MPI_Utilities, only : mpiSelf

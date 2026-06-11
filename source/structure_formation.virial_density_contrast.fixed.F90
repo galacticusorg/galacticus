@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of fixed dark matter halo virial density contrasts.
   !!}
 
@@ -26,9 +26,11 @@
 
   ! Enumeration for different reference densities.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>fixedDensityType</name>
-   <description>Specifies reference density type for fixed virial density contrast.</description>
+   <description>
+   Specifies reference density type for fixed virial density contrast.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -38,15 +40,14 @@
   !!]
 
   !![
-  <virialDensityContrast name="virialDensityContrastFixed">
+  <virialDensityContrast name="virialDensityContrastFixed" docformat="rst">
    <description>
-    A dark matter halo virial density contrast class which uses a fixed virial density contrast of \mono{[densityContrastValue]}, defined relative to \mono{critical} or \mono{mean} density as
-    specified by \mono{[densityType]}.
+   A dark matter halo virial density contrast class which uses a fixed virial density contrast of ``[densityContrastValue]``, defined relative to ``critical`` or ``mean`` density as specified by ``[densityType]``.
    </description>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
-     !!{
+     !!{RST
      A dark matter halo virial density contrast class assuming fixed contrast.
      !!}
      private
@@ -62,8 +63,8 @@
   end type virialDensityContrastFixed
 
   interface virialDensityContrastFixed
-     !!{
-     Constructors for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the ``virialDensityContrastFixed`` dark matter halo virial density contrast class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -72,8 +73,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialDensityContrastFixed`` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : var_str       , varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -86,23 +87,29 @@ contains
     type            (varying_string            )                :: densityType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>densityContrastValue</name>
      <source>parameters</source>
      <defaultValue>200.0d0</defaultValue>
-     <description>The virial density contrast to use in the fixed value model.</description>
+     <description>
+     The virial density contrast to use in the fixed value model.
+     </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>densityType</name>
      <source>parameters</source>
      <defaultValue>var_str('critical')</defaultValue>
-     <description>The reference density to use in the fixed value virial density contrast model. Either of \mono{critical} and \mono{mean} are allowed.</description>
+     <description>
+     The reference density to use in the fixed value virial density contrast model. Either of ``critical`` and ``mean`` are allowed.
+     </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>turnAroundOverVirialRadius</name>
      <source>parameters</source>
      <defaultValue>2.0d0</defaultValue>
-     <description>The ratio of the turnaround to virial radii in the fixed value model.</description>
+     <description>
+     The ratio of the turnaround to virial radii in the fixed value model.
+     </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -117,8 +124,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(densityContrastValue,densityType,turnAroundOverVirialRadius,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
+    !!{RST
+    Constructor for the ``virialDensityContrastFixed`` dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -136,8 +143,8 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{virialDensityContrastFixed} dark matter halo virial density contrast class.
+    !!{RST
+    Destructor for the ``virialDensityContrastFixed`` dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastFixed), intent(inout) :: self
@@ -150,7 +157,7 @@ contains
   end subroutine fixedDestructor
 
   double precision function fixedDensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, assuming a fixed contrast.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsStaticUniverse
@@ -186,7 +193,7 @@ contains
   end function fixedDensityContrast
 
   double precision function fixedDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, assuming a fixed contrast.
     !!}
     implicit none
@@ -215,7 +222,7 @@ contains
   end function fixedDensityContrastRateOfChange
 
   double precision function fixedTurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, assuming a fixed contrast.
     !!}
     implicit none

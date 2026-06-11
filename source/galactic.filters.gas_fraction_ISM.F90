@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
 !!}
 
   !![
-  <galacticFilter name="galacticFilterGasFractionISM">
-   <description>Passes nodes whose ISM gas fraction (the ratio of ISM gas mass to stellar mass) exceeds a specified threshold, enabling selection of gas-rich galaxies.</description>
+  <galacticFilter name="galacticFilterGasFractionISM" docformat="rst">
+   <description>
+   Passes nodes whose ISM gas fraction (the ratio of ISM gas mass to stellar mass) exceeds a specified threshold, enabling selection of gas-rich galaxies.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterGasFractionISM
-     !!{
+     !!{RST
      A galactic high-pass filter class for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
      !!}
      private
@@ -37,8 +39,8 @@ Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass t
   end type galacticFilterGasFractionISM
 
   interface galacticFilterGasFractionISM
-     !!{
-     Constructors for the \refClass{galacticFilterGasFractionISM} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterGasFractionISM`` galactic filter class.
      !!}
      module procedure gasFractionISMConstructorParameters
      module procedure gasFractionISMConstructorInternal
@@ -47,8 +49,8 @@ Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass t
 contains
 
   function gasFractionISMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterGasFractionISM} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterGasFractionISM`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,10 +60,12 @@ contains
     
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionGasThreshold</name>
       <source>parameters</source>
-      <description>The ISM gas fraction above which to pass.</description>
+      <description>
+      The ISM gas fraction above which to pass.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterGasFractionISM(fractionGasThreshold)
@@ -72,8 +76,8 @@ contains
   end function gasFractionISMConstructorParameters
 
   function gasFractionISMConstructorInternal(fractionGasThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterGasFractionISM} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterGasFractionISM`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterGasFractionISM)                :: self
@@ -85,7 +89,7 @@ contains
   end function gasFractionISMConstructorInternal
 
   logical function gasFractionISMPasses(self,node)
-    !!{
+    !!{RST
     Implement a ISM gas fraction high-pass filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode

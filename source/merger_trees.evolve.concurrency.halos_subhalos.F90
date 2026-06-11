@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree evolution concurrency class that separates halo and subhalo evolution.
   !!}
 
   !![
-  <mergerTreeEvolveConcurrency name="mergerTreeEvolveConcurrencyHalosSubhalos">
+  <mergerTreeEvolveConcurrency name="mergerTreeEvolveConcurrencyHalosSubhalos" docformat="rst">
     <description>
     A merger tree evolution concurrency class which separates evolution of halos and their subhalos.
     </description>
   </mergerTreeEvolveConcurrency>
   !!]
   type, extends(mergerTreeEvolveConcurrencyClass) :: mergerTreeEvolveConcurrencyHalosSubhalos
-     !!{
+     !!{RST
      Implementation of a merger tree evolution concurrency class which separates evolution of halos and their subhalos.
      !!}
      private
@@ -41,8 +41,8 @@
   end type mergerTreeEvolveConcurrencyHalosSubhalos
 
   interface mergerTreeEvolveConcurrencyHalosSubhalos
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -51,8 +51,8 @@
 contains
 
   function threadedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,8 +67,8 @@ contains
   end function threadedConstructorParameters
 
   function threadedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolveConcurrencyHalosSubhalos} merger tree evolution concurrency model class.
+    !!{RST
+    Internal constructor for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model class.
     !!}
     implicit none
     type(mergerTreeEvolveConcurrencyHalosSubhalos) :: self
@@ -78,7 +78,7 @@ contains
   end function threadedConstructorInternal
 
   subroutine halosSubhalosInitializeTree(self)
-    !!{
+    !!{RST
     Initialize state for evolution of a new tree.
     !!}
     implicit none
@@ -89,7 +89,7 @@ contains
   end subroutine halosSubhalosInitializeTree
 
   integer function halosSubhalosCountPhases(self) result(countPhases)
-    !!{
+    !!{RST
     Return the number of evolution phases needed for this tree.
     !!}
     implicit none
@@ -100,8 +100,8 @@ contains
   end function halosSubhalosCountPhases
 
   logical function halosSubhalosIncludeInEvolution(self,evolutionPhase,node) result(includeInEvolution)
-    !!{
-    Return true if the \mono{node} should be included in this phase of evolution.
+    !!{RST
+    Return true if the ``node`` should be included in this phase of evolution.
     !!}
     implicit none
     class  (mergerTreeEvolveConcurrencyHalosSubhalos), intent(inout)          :: self

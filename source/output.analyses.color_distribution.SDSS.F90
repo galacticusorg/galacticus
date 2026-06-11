@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a color distribution output analysis class for SDSS data.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <outputAnalysis name="outputAnalysisColorDistributionSDSS">
-   <description>Computes the distribution of galaxy optical colors from the Sloan Digital Sky Survey (SDSS), selecting one of 16 predefined stellar mass and redshift bin distributions via the \mono{distributionNumber} parameter for comparison with observational data.</description>
+  <outputAnalysis name="outputAnalysisColorDistributionSDSS" docformat="rst">
+   <description>
+   Computes the distribution of galaxy optical colors from the Sloan Digital Sky Survey (SDSS), selecting one of 16 predefined stellar mass and redshift bin distributions via the ``distributionNumber`` parameter for comparison with observational data.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisColorDistributionSDSS
-     !!{
+     !!{RST
      An SDSS color distribution output analysis class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a color distribution output analysis class for SDSS data.
   end type outputAnalysisColorDistributionSDSS
 
   interface outputAnalysisColorDistributionSDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
      !!}
      module procedure colorDistributionSDSSConstructorParameters
      module procedure colorDistributionSDSSConstructorInternal
@@ -50,8 +52,8 @@ Implements a color distribution output analysis class for SDSS data.
 contains
 
   function colorDistributionSDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,10 +64,12 @@ contains
     integer                                                              :: distributionNumber
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionNumber</name>
       <source>parameters</source>
-      <description>The number (1-16) of the distribution to compute.</description>
+      <description>
+      The number (1-16) of the distribution to compute.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
@@ -80,8 +84,8 @@ contains
   end function colorDistributionSDSSConstructorParameters
 
   function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -340,8 +344,8 @@ contains
   end function colorDistributionSDSSConstructorInternal
 
   subroutine colorDistributionSDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisColorDistributionSDSS} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisColorDistributionSDSS), intent(inout) :: self

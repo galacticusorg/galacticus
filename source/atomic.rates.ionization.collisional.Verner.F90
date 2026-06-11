@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of atomic collisional ionization rates based on the \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}
-  originally written by Dima Verner.
+  !!{RST
+  An implementation of atomic collisional ionization rates based on the `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_ originally written by Dima Verner.
   !!}
 
   !![
-  <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalVerner1996">
-   <description>Atomic collisional ionization rates are computed based on the \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner.</description>
+  <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalVerner1996" docformat="rst">
+   <description>
+   Atomic collisional ionization rates are computed based on the `code &lt;https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f&gt;`_ originally written by Dima Verner.
+   </description>
   </atomicIonizationRateCollisional>
   !!]
   type, extends(atomicIonizationRateCollisionalClass) :: atomicIonizationRateCollisionalVerner1996
-     !!{
-     A collisional ionization rate class based on the \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner.
+     !!{RST
+     A collisional ionization rate class based on the `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_ originally written by Dima Verner.
      !!}
      private
    contains
@@ -37,8 +38,8 @@
   end type atomicIonizationRateCollisionalVerner1996
 
   interface atomicIonizationRateCollisionalVerner1996
-     !!{
-     Constructors for the \refClass{atomicIonizationRateCollisionalVerner1996} atomic collisional ionization class.
+     !!{RST
+     Constructors for the ``atomicIonizationRateCollisionalVerner1996`` atomic collisional ionization class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicIonizationRateCollisionalVerner1996
@@ -458,9 +459,8 @@
 contains
 
   function verner1996ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicIonizationRateCollisionalVerner1996} atomic collisional ionization class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``atomicIonizationRateCollisionalVerner1996`` atomic collisional ionization class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -475,11 +475,8 @@ contains
   end function verner1996ConstructorParameters
 
   double precision function verner1996Rate(self,atomicNumber,ionizationState,temperature)
-    !!{
-    Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified \mono{temperature} for all ions of atoms with $Z<28$ by use of the fits from
-    \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
-    \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code} originally written by Dima Verner. The ionization state passed to
-    this function should be that of the atom/ion prior to ionization.
+    !!{RST
+    Computes the rate coefficient of direct collisional ionization (in units of cm\ :math:`^3` s\ :math:`^{-1}`) at the specified ``temperature`` for all ions of atoms with :math:`Z<28` by use of the fits from :cite:author:`voronov_practical_1997` (:cite:year:`voronov_practical_1997`; Version 2, March 24, 1997). Based on the `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_ originally written by Dima Verner. The ionization state passed to this function should be that of the atom/ion prior to ionization.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt

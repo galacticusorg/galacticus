@@ -127,9 +127,15 @@ def _populate_class_descriptions(type_node, class_record):
             # name-keyed hash — our `xml_to_dict` keeps them as a list of
             # `{'name': ..., ...}` dicts, so we explicitly promote `name`
             # to `method` here to give both forms the same shape.
+            # A docformat="rst" `<methods>` block documents its methods on
+            # ReadTheDocs; drop the RST description text so the LaTeX/PDF
+            # methods appendix lists the signatures without raw RST.
+            rst = directive.get('docformat') == 'rst'
             for m in methods:
                 if isinstance(m, dict) and 'method' not in m and 'name' in m:
                     m['method'] = m['name']
+                if rst and isinstance(m, dict):
+                    m['description'] = ''
             class_record.setdefault('descriptions', []).extend(methods)
         elif ntype == 'declaration':
             class_record.setdefault('functions', []).append(
@@ -250,9 +256,14 @@ def _populate_class_from_function_class_directive(node, classes):
     # `AttributeError: 'dict' object has no attribute 'startswith'`.
     methods = [copy.deepcopy(m) if isinstance(m, dict) else m
                for m in as_array(directive.get('method'))]
+    # A docformat="rst" functionClass documents its methods on ReadTheDocs;
+    # drop the RST description text from the LaTeX/PDF methods appendix.
+    rst = directive.get('docformat') == 'rst'
     for m in methods:
         if isinstance(m, dict) and 'method' not in m and 'name' in m:
             m['method'] = m['name']
+        if rst and isinstance(m, dict):
+            m['description'] = ''
         _normalise_directive_method(m)
     class_record.setdefault('descriptions', []).extend(methods)
 

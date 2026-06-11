@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements useful operations on arrays.
 !!}
 
 module Array_Utilities
-  !!{
+  !!{RST
   Contains routines which implement useful operations on arrays.
   !!}
   implicit none
@@ -36,7 +36,7 @@ module Array_Utilities
   end interface operator(.intersection.)
 
   interface Array_Reverse
-     !!{
+     !!{RST
      Interface to generic routines which reverse the direction of an array.
      !!}
      module procedure Array_Reverse_Real
@@ -45,14 +45,14 @@ module Array_Utilities
   end interface Array_Reverse
 
   interface Array_Cumulate
-     !!{
+     !!{RST
      Interface to generic routines which cumulate values in an array.
      !!}
      module procedure Array_Cumulate_Double
   end interface Array_Cumulate
 
   interface Array_Is_Monotonic
-     !!{
+     !!{RST
      Interface to generic routines which check if an array is monotonic.
      !!}
      module procedure Array_Is_Monotonic_Integer8
@@ -60,7 +60,7 @@ module Array_Utilities
   end interface Array_Is_Monotonic
 
   interface Array_Index
-     !!{
+     !!{RST
      Interface to generic routines which return a subset of an array given indices into the array.
      !!}
      module procedure Array_Index_Integer8
@@ -76,7 +76,7 @@ module Array_Utilities
 contains
 
   function Array_Reverse_SizeT(array) result (reversedArray)
-    !!{
+    !!{RST
     Reverses the direction of a real array.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -92,7 +92,7 @@ contains
   end function Array_Reverse_SizeT
 
   function Array_Reverse_Real(array) result (reversedArray)
-    !!{
+    !!{RST
     Reverses the direction of a real array.
     !!}
     implicit none
@@ -107,7 +107,7 @@ contains
   end function Array_Reverse_Real
 
   function Array_Reverse_Double(array) result (reversedArray)
-    !!{
+    !!{RST
     Reverses the direction of a double precision array.
     !!}
     implicit none
@@ -122,7 +122,7 @@ contains
   end function Array_Reverse_Double
 
   function Array_Cumulate_Double(array) result (cumulatedArray)
-    !!{
+    !!{RST
     Cumulates values in a double precision array.
     !!}
     implicit none
@@ -140,7 +140,7 @@ contains
   end function Array_Cumulate_Double
 
   logical function Array_Is_Monotonic_Double(array,direction,allowEqual)
-    !!{
+    !!{RST
     Checks if a double precision array is monotonic.
     !!}
     implicit none
@@ -227,8 +227,8 @@ contains
   end function Array_Is_Monotonic_Double
 
   subroutine Array_Which(mask,indices)
-    !!{
-    Return an array of indices for which \mono{mask} is true.
+    !!{RST
+    Return an array of indices for which ``mask`` is true.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -249,7 +249,7 @@ contains
   end subroutine Array_Which
 
   function Array_Index_Double(array,indices) result (arraySubset)
-    !!{
+    !!{RST
     Return a subset of a double precision array given a set of indices into the array.
     !!}
     implicit none
@@ -265,7 +265,7 @@ contains
   end function Array_Index_Double
 
   function Array_Index_Integer(array,indices) result (arraySubset)
-    !!{
+    !!{RST
     Return a subset of an integer array given a set of indices into the array.
     !!}
     implicit none
@@ -281,7 +281,7 @@ contains
   end function Array_Index_Integer
 
   function Array_Index_Integer8(array,indices) result (arraySubset)
-    !!{
+    !!{RST
     Return a subset of an integer array given a set of indices into the array.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -298,7 +298,7 @@ contains
   end function Array_Index_Integer8
 
   function Array_Index_Double_2D(array,indices,indexOn) result (arraySubset)
-    !!{
+    !!{RST
     Return a subset of a 2D double precision array given a set of indices into the array.
     !!}
     use :: Error, only : Error_Report
@@ -330,7 +330,7 @@ contains
   end function Array_Index_Double_2D
 
   logical function Array_Is_Monotonic_Integer8(array,direction,allowEqual)
-    !!{
+    !!{RST
     Checks if an integer array is monotonic.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -442,9 +442,8 @@ contains
   end function Array_Intersection_Varying_String
 
   logical function Array_Is_Uniform(array,tolerance,logarithmic)
-    !!{
-    Return true if an array is uniformly distributed (optionally in the logarithm of its
-    values) to the given tolerance.
+    !!{RST
+    Return true if an array is uniformly distributed (optionally in the logarithm of its values) to the given tolerance.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -477,7 +476,7 @@ contains
   end function Array_Is_Uniform
 
   function slice5Dto3D(array,dimension_,index_) result(slice)
-    !!{
+    !!{RST
     Return a 3D slice of a 5D array.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -526,7 +525,7 @@ contains
   end function slice5Dto3D
 
   function slice5Dto2D(array,dimension_,index_) result(slice)
-    !!{
+    !!{RST
     Return a 2D slice of a 5D array.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

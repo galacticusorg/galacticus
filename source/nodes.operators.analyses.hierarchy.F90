@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that computes quantities related to a node's position within the halo/subhalo hierarchy.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorHierarchy">
-   <description>A node operator class that tracks and records the hierarchy level of each node within the halo/subhalo tree (0 for centrals, 1 for first-level subhalos, 2 for sub-subhalos, etc.), along with the maximum hierarchy level ever attained and the depth of the current branch. \mono{factorMassReset} specifies the mass growth factor required before the maximum hierarchy level is forgotten (allowing resets after major accretion events).</description>
+  <nodeOperator name="nodeOperatorHierarchy" docformat="rst">
+   <description>
+   A node operator class that tracks and records the hierarchy level of each node within the halo/subhalo tree (0 for centrals, 1 for first-level subhalos, 2 for sub-subhalos, etc.), along with the maximum hierarchy level ever attained and the depth of the current branch. ``factorMassReset`` specifies the mass growth factor required before the maximum hierarchy level is forgotten (allowing resets after major accretion events).
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHierarchy
-     !!{
+     !!{RST
      A node operator class that computes quantities related to a node's position within the halo/subhalo hierarchy.
      !!}
      private
@@ -52,8 +54,8 @@
   end type nodeOperatorHierarchy
   
   interface nodeOperatorHierarchy
-     !!{
-     Constructors for the \refClass{nodeOperatorHierarchy} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorHierarchy`` node operator class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -62,8 +64,8 @@
 contains
 
   function hierarchyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHierarchy} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorHierarchy`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,10 +74,12 @@ contains
     double precision                                       :: factorMassReset
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassReset</name>
       <defaultValue>1.0d100</defaultValue>
-      <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
+      <description>
+      The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -87,8 +91,8 @@ contains
   end function hierarchyConstructorParameters
 
   function hierarchyConstructorInternal(factorMassReset) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHierarchy} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorHierarchy`` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -108,7 +112,7 @@ contains
   end function hierarchyConstructorInternal
 
   subroutine hierarchyAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
@@ -124,8 +128,8 @@ contains
   end subroutine hierarchyAutoHook
 
   subroutine hierarchyDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorHierarchy} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorHierarchy`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none
@@ -137,7 +141,7 @@ contains
   end subroutine hierarchyDestructor
 
   subroutine hierarchyNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize hierarchy level data.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -191,7 +195,7 @@ contains
   end subroutine hierarchyNodeTreeInitialize
 
   subroutine hierarchyNodesMerge(self,node)
-    !!{
+    !!{RST
     Update hierarchy levels in response to a node merger.
     !!}
     implicit none
@@ -204,7 +208,7 @@ contains
   end subroutine hierarchyNodesMerge
  
   recursive subroutine hierarchyIncrement(self,node)
-    !!{
+    !!{RST
     Increment the hierarchy level of the given node, and then call our self on any satellite nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -232,7 +236,7 @@ contains
   end subroutine hierarchyIncrement
 
   recursive subroutine satelliteHostChange(self,node)
-    !!{
+    !!{RST
     Handle cases where a satellite switches host node.
     !!}
     use :: Error           , only : Error_Report
@@ -268,7 +272,7 @@ contains
   end subroutine satelliteHostChange
 
   subroutine nodeSubhaloPromotion(self,node,nodePromotion)
-    !!{
+    !!{RST
     Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
     !!}
     use :: Error           , only : Error_Report
@@ -290,8 +294,8 @@ contains
   end subroutine nodeSubhaloPromotion
 
   subroutine hierarchyNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -307,7 +311,7 @@ contains
   end subroutine hierarchyNodePromote
 
   subroutine hierarchyDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Handle post differential evolution.
     !!}
     implicit none
@@ -319,7 +323,7 @@ contains
   end subroutine hierarchyDifferentialEvolutionPost
 
   subroutine hierarchyReset(self,node)
-    !!{
+    !!{RST
     Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

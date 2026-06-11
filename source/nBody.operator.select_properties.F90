@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body data operator which selects particles matching a list of integer properties.
   !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorSelectProperties">
-   <description>An N-body data operator which filters N-body particles by retaining only those whose named integer property matches one of a user-supplied list of allowed values, enabling selection of subsets such as particles belonging to specific halos or simulation runs.</description>
+  <nbodyOperator name="nbodyOperatorSelectProperties" docformat="rst">
+   <description>
+   An N-body data operator which filters N-body particles by retaining only those whose named integer property matches one of a user-supplied list of allowed values, enabling selection of subsets such as particles belonging to specific halos or simulation runs.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelectProperties
-     !!{
+     !!{RST
      An N-body data operator which selects particles matching a list of integer properties.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nbodyOperatorSelectProperties
 
   interface nbodyOperatorSelectProperties
-     !!{
-     Constructors for the \refClass{nbodyOperatorSelectProperties} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSelectProperties`` N-body operator class.
      !!}
      module procedure selectPropertiesConstructorParameters
      module procedure selectPropertiesConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function selectPropertiesConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSelectProperties} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSelectProperties`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,18 +61,22 @@ contains
     type   (varying_string               )                              :: propertyName
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyName</name>
       <source>parameters</source>
-      <description>The name of the integer particle property whose values will be compared against the allowed list to determine which particles to retain.</description>
+      <description>
+      The name of the integer particle property whose values will be compared against the allowed list to determine which particles to retain.
+      </description>
     </inputParameter>
     !!]
     allocate(selectedValues(parameters%count('selectedValues')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selectedValues</name>
       <source>parameters</source>
-      <description>A list of integer values of the named property that a particle must match to be retained; particles whose property value is not in this list are removed.</description>
+      <description>
+      A list of integer values of the named property that a particle must match to be retained; particles whose property value is not in this list are removed.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorSelectProperties(propertyName,selectedValues)
@@ -81,8 +87,8 @@ contains
   end function selectPropertiesConstructorParameters
 
   function selectPropertiesConstructorInternal(propertyName,selectedValues) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSelectProperties} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSelectProperties`` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSelectProperties)                              :: self
@@ -96,8 +102,8 @@ contains
   end function selectPropertiesConstructorInternal
 
   subroutine selectPropertiesOperate(self,simulations)
-    !!{
-    Select particles matching a list of integer properties. 
+    !!{RST
+    Select particles matching a list of integer properties.
     !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard
     use :: Error  , only : Error_Report

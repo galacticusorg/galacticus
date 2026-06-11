@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an HI mass function output analysis class.
 !!}
 
@@ -25,12 +25,14 @@ Implements an HI mass function output analysis class.
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !![
-  <outputAnalysis name="outputAnalysisMassFunctionHI">
-   <description>Computes the HI gas mass function as a number density per unit log-mass, with user-specified mass bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisMassFunctionHI" docformat="rst">
+   <description>
+   Computes the HI gas mass function as a number density per unit log-mass, with user-specified mass bin centers, ``label``, ``comment``, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisMassFunctionHI
-     !!{
+     !!{RST
      An HI mass function output analysis class.
      !!}
      private
@@ -43,8 +45,8 @@ Implements an HI mass function output analysis class.
   end type outputAnalysisMassFunctionHI
 
   interface outputAnalysisMassFunctionHI
-     !!{
-     Constructors for the \refClass{outputAnalysisMassFunctionHI} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisMassFunctionHI`` output analysis class.
      !!}
      module procedure massFunctionHIConstructorParameters
      module procedure massFunctionHIConstructorInternal
@@ -54,8 +56,8 @@ Implements an HI mass function output analysis class.
 contains
 
   function massFunctionHIConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionHI} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Parameters                , only : inputParameter              , inputParameters
@@ -83,65 +85,83 @@ contains
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(masses(parameters%count('masses')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the mass function.</description>
+      <description>
+      A label for the mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the mass function.</description>
+      <description>
+      A descriptive comment for the mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>masses</name>
       <source>parameters</source>
       <variable>masses</variable>
-      <description>The masses corresponding to bin centers.</description>
+      <description>
+      The masses corresponding to bin centers.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing HI mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('targetLabel')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCovarianceTarget</name>
             <source>parameters</source>
             <variable>functionCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -185,8 +205,8 @@ contains
   end function massFunctionHIConstructorParameters
 
   function massFunctionHIConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionHI} output analysis class which reads bin information from a standard format file.
+    !!{RST
+    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
@@ -233,8 +253,8 @@ contains
   end function massFunctionHIConstructorFile
 
   function massFunctionHIConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionHI} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -428,8 +448,8 @@ contains
   end function massFunctionHIConstructorInternal
 
   subroutine massFunctionHIDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassFunctionHI} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisMassFunctionHI`` output analysis class.
     !!}
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
 

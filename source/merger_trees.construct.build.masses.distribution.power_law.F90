@@ -17,29 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
   !!}
 
   !![
-  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw">
+  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw" docformat="rst">
    <description>
-    A merger tree build mass distribution class in which the sampling rate is given by a power-law in halo mass. Specifically:
-    \begin{equation}
-    \gamma(M) = \log_{10}(M/M_\mathrm{minimum})^{-\alpha/(1+\alpha)},
-    \end{equation}
-    The resulting distribution of halo masses is such that the mass of the $i^\mathrm{th}$ halo is
-    \begin{equation}
-     M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right)
-     x_i^{1+\alpha} \right].
-    \end{equation}
-    Here, $x_i$ is a number between 0 and 1 and $\alpha=$\mono{[exponent]} is an
-    input parameter that controls the relative number of low and high mass tree produced.
+   A merger tree build mass distribution class in which the sampling rate is given by a power-law in halo mass. Specifically:
+
+   .. math::
+
+      \gamma(M) = \log_{10}(M/M_\mathrm{minimum})^{-\alpha/(1+\alpha)},
+
+   The resulting distribution of halo masses is such that the mass of the :math:`i^\mathrm{th}` halo is
+
+   .. math::
+
+      M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right)
+      x_i^{1+\alpha} \right].
+
+   Here, :math:`x_i` is a number between 0 and 1 and :math:`\alpha=`\ ``[exponent]`` is an input parameter that controls the relative number of low and high mass tree produced.
    </description>
   </mergerTreeBuildMassDistribution>
   !!]
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionPowerLaw
-     !!{
+     !!{RST
      Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
      !!}
      private
@@ -49,8 +52,8 @@
   end type mergerTreeBuildMassDistributionPowerLaw
 
   interface mergerTreeBuildMassDistributionPowerLaw
-     !!{
-     Constructors for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -59,8 +62,8 @@
 contains
 
   function powerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,10 +72,12 @@ contains
     double precision                                                         :: exponent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=$\mono{exponent}.</description>
+      <description>
+      Halo masses will be (pseudo-)uniformly distributed in :math:`[\log(M)]^{1/(1+\alpha)}` where :math:`\alpha=`\ ``exponent``.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -84,8 +89,8 @@ contains
   end function powerLawConstructorParameters
 
   function powerLawConstructorInternal(exponent) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassDistributionPowerLaw} merger tree halo mass function sampling class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
@@ -98,7 +103,7 @@ contains
   end function powerLawConstructorInternal
 
   double precision function powerLawSample(self,mass,time,massMinimum,massMaximum)
-    !!{
+    !!{RST
     Computes the halo mass function sampling rate using a volume-limited sampling.
     !!}
     implicit none

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
 
@@ -25,19 +25,15 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowDiemerKravtsov2014">
+  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowDiemerKravtsov2014" docformat="rst">
     <description>
-       An accretion flow class which models the accretion flow using the fitting function of
-       \cite{diemer_dependence_2014}. Specifically, \refClass{massDistributionDiemerKravtsov2014} objects are built with
-       parameters chosen using fits to the redshift and $\nu$ dependencies of the fitting parameters $b_\mathrm{e}$ and
-       $s_\mathrm{e}$ chosen to match the results of their figure~18.
+    An accretion flow class which models the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`. Specifically, ``massDistributionDiemerKravtsov2014`` objects are built with parameters chosen using fits to the redshift and :math:`\nu` dependencies of the fitting parameters :math:`b_\mathrm{e}` and :math:`s_\mathrm{e}` chosen to match the results of their figure 18.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOAccretionFlowDiemerKravtsov2014
-     !!{
-     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the
-     fitting function of \cite{diemer_dependence_2014}.
+     !!{RST
+     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -53,8 +49,8 @@
   end type darkMatterProfileDMOAccretionFlowDiemerKravtsov2014
 
   interface darkMatterProfileDMOAccretionFlowDiemerKravtsov2014
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
      !!}
      module procedure accretionFlowDiemerKravtsov2014ConstructorParameters
      module procedure accretionFlowDiemerKravtsov2014ConstructorInternal
@@ -63,8 +59,8 @@
 contains
 
   function accretionFlowDiemerKravtsov2014ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,47 +75,71 @@ contains
          &                                                                                  bnu                      , snu
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b0</name>
       <source>parameters</source>
       <defaultValue>+1.1250d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $b_0$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`b_0` in the fitting function :math:`b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}` for the parameter :math:`b(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bz</name>
       <source>parameters</source>
       <defaultValue>+0.625d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $b_z$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`b_z` in the fitting function :math:`b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}` for the parameter :math:`b(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bnu</name>
       <source>parameters</source>
       <defaultValue>-0.2250d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $b_\nu$ in the fitting function $b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}$ for the parameter $b(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`b_\nu` in the fitting function :math:`b(\nu,z)=b_0 (1+z)^{b_z} \nu^{b_\nu}` for the parameter :math:`b(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>s0</name>
       <source>parameters</source>
       <defaultValue>+1.3925d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $s_0$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`s_0` in the fitting function :math:`s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}` for the parameter :math:`s(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sz</name>
       <source>parameters</source>
       <defaultValue>-0.199d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $s_z$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`s_z` in the fitting function :math:`s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}` for the parameter :math:`s(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snu</name>
       <source>parameters</source>
       <defaultValue>+0.0875d0</defaultValue>
-      <defaultSource>Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of \cite{diemer_dependence_2014}.</defaultSource>
-      <description>The parameter $s_\nu$ in the fitting function $s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}$ for the parameter $s(\nu,z)$ appearing in equation (4) of \cite{diemer_dependence_2014}.</description>
+      <defaultSource>
+      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      </defaultSource>
+      <description>
+      The parameter :math:`s_\nu` in the fitting function :math:`s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}` for the parameter :math:`s(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -138,8 +158,8 @@ contains
   end function accretionFlowDiemerKravtsov2014ConstructorParameters
 
   function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                        :: self
@@ -158,8 +178,8 @@ contains
   end function accretionFlowDiemerKravtsov2014ConstructorInternal
 
   subroutine accretionFlowDiemerKravtsov2014Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowDiemerKravtsov2014} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowDiemerKravtsov2014), intent(inout) :: self
@@ -174,8 +194,8 @@ contains
   end subroutine accretionFlowDiemerKravtsov2014Destructor
 
   function accretionFlowDiemerKravtsov2014Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass

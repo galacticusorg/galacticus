@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property extractor class for the mass and metal mass of gas outflowed to the \gls{cgm}.
+  !!{RST
+  Implements a property extractor class for the mass and metal mass of gas outflowed to the :term:`CGM`.
   !!}
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTrackOutflowedMass">
-   <description>Extracts the cumulative mass and metal mass of gas that has been outflowed to the circumgalactic medium (\gls{cgm}) via stellar and AGN feedback, as tracked by the \refClass{nodeOperatorTrackOutflowedMass} operator.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTrackOutflowedMass" docformat="rst">
+   <description>
+   Extracts the cumulative mass and metal mass of gas that has been outflowed to the circumgalactic medium (:term:`CGM`) via stellar and AGN feedback, as tracked by the ``nodeOperatorTrackOutflowedMass`` operator.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorTrackOutflowedMass
-     !!{
+     !!{RST
      A property extractor class for the velocity dispersion at a set of radii.
      !!}
      private
@@ -42,8 +44,8 @@
   end type nodePropertyExtractorTrackOutflowedMass
 
   interface nodePropertyExtractorTrackOutflowedMass
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTrackOutflowedMass} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function trackOutflowedMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTrackOutflowedMass} property extractor class.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,8 +70,8 @@ contains
   end function trackOutflowedMassConstructorParameters
 
   function trackOutflowedMassConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTrackOutflowedMass} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTrackOutflowedMass) :: self
@@ -82,8 +84,8 @@ contains
   end function trackOutflowedMassConstructorInternal
 
   integer function trackOutflowedMassElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{trackOutflowedMass} property extractors.
+    !!{RST
+    Return the number of elements in the ``trackOutflowedMass`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorTrackOutflowedMass), intent(inout) :: self
@@ -95,8 +97,8 @@ contains
   end function trackOutflowedMassElementCount
 
   function trackOutflowedMassExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{trackOutflowedMass} property extractor.
+    !!{RST
+    Implement a ``trackOutflowedMass`` property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -127,8 +129,8 @@ contains
   end function trackOutflowedMassExtract
 
   subroutine trackOutflowedMassNames(self,time,names)
-    !!{
-    Return the names of the \mono{trackOutflowedMass} properties.
+    !!{RST
+    Return the names of the ``trackOutflowedMass`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorTrackOutflowedMass), intent(inout)                             :: self
@@ -143,8 +145,8 @@ contains
   end subroutine trackOutflowedMassNames
 
   subroutine trackOutflowedMassDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{trackOutflowedMass} property.
+    !!{RST
+    Return descriptions of the ``trackOutflowedMass`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorTrackOutflowedMass), intent(inout)                             :: self
@@ -159,8 +161,8 @@ contains
   end subroutine trackOutflowedMassDescriptions
 
   function trackOutflowedMassUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{trackOutflowedMass} properties in the SI system.
+    !!{RST
+    Return the units of the ``trackOutflowedMass`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -175,7 +177,7 @@ contains
   end function trackOutflowedMassUnitsInSI
 
   function trackOutflowedMassUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the trackOutflowedMass properties.
     !!}
     use :: Units_MetaData, only : unitType

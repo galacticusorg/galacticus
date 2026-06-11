@@ -17,41 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements transfer functions.
 !!}
 
 module Transfer_Functions
-  !!{
+  !!{RST
   Provides an object that implements transfer functions.
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>transferFunction</name>
    <descriptiveName>Transfer Function</descriptiveName>
-   <description>Class providing transfer functions $T(k)$ for the matter power spectrum. The transfer function encodes the
-    modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality,
-    including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such
-    that the linear power spectrum at late times is $P(k) \propto k^{n_s} T^2(k)$. Implementations may also return the
-    wavenumber at which $T(k)$ is suppressed by a given factor, characterizing the small-scale cutoff scale.</description>
+   <description>
+   Class providing transfer functions :math:`T(k)` for the matter power spectrum. The transfer function encodes the modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality, including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such that the linear power spectrum at late times is :math:`P(k) \propto k^{n_s} T^2(k)`. Implementations may also return the wavenumber at which :math:`T(k)` is suppressed by a given factor, characterizing the small-scale cutoff scale.
+   </description>
    <default>eisensteinHu1999</default>
    <method name="value" >
-    <description>Return the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
+    <description>
+    Return the transfer function for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
    </method>
    <method name="logarithmicDerivative" >
-    <description>Return the logarithmic derivative of the transfer function for $k=$\mono{wavenumber} [Mpc$^{-1}$].</description>
+    <description>
+    Return the logarithmic derivative of the transfer function for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber</argument>
    </method>
    <method name="wavenumbersLocalMinima" >
-    <description>Return an array of wavenumbers at which the transfer function reaches a local minimum. (Or a zero-length array if no such local minima exist.)</description>
+    <description>
+    Return an array of wavenumbers at which the transfer function reaches a local minimum. (Or a zero-length array if no such local minima exist.)
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(  out), allocatable, dimension(:) :: wavenumbers</argument>
@@ -60,26 +64,34 @@ module Transfer_Functions
     </code>
    </method>
    <method name="epochTime" >
-    <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>
+    <description>
+    Return the cosmic time corresponding to the epoch for which this transfer function is defined.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="halfModeMass" >
-    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
+    <description>
+    Return the mass (in :math:`\mathrm{M}_\odot`) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="quarterModeMass" >
-    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
+    <description>
+    Return the mass (in :math:`\mathrm{M}_\odot`) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="fractionModeMass" >
-    <description>Return the mass (in $\mathrm{M}_\odot$) corresponding to the wavenumber at which the transfer function is suppressed is reduced by \mono{fraction} due to small-scale dark matter particle physics.</description>
+    <description>
+    Return the mass (in :math:`\mathrm{M}_\odot`) corresponding to the wavenumber at which the transfer function is suppressed is reduced by ``fraction`` due to small-scale dark matter particle physics.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -87,7 +99,9 @@ module Transfer_Functions
     <argument>integer         , intent(  out), optional :: status</argument>
    </method>
    <method name="wavenumberFromMass" >
-    <description>Return the wavenumber (in Mpc$^{-1}$) corresponding to a given mass. (For a spherical region at mean density.)</description>
+    <description>
+    Return the wavenumber (in Mpc\ :math:`^{-1}`) corresponding to a given mass. (For a spherical region at mean density.)
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

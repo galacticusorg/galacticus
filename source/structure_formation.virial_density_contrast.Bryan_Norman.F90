@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
+  !!{RST
+  An implementation of :cite:t:`bryan_statistical_1998` dark matter halo virial density contrasts.
   !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
@@ -26,21 +26,20 @@
 
   ! Enumeration for different fitting function types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>bryanNorman1998Fit</name>
-   <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
+   <description>
+   Specifies fit type for :cite:t:`bryan_statistical_1998` virial density contrast.
+   </description>
    <entry label="flatUniverse" />
    <entry label="zeroLambda"   />
   </enumeration>
   !!]
 
   !![
-  <virialDensityContrast name="virialDensityContrastBryanNorman1998">
+  <virialDensityContrast name="virialDensityContrastBryanNorman1998" docformat="rst">
    <description>
-    A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As such,
-    it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will either abort on other
-    cosmologies (if \mono{[allowUnsupportedCosmology]=false}), or revert to a numerical solution from top-hat
-    collapse (if \mono{[allowUnsupportedCosmology]=true}).
+   A dark matter halo virial density contrast class using the fitting functions given by :cite:t:`bryan_statistical_1998`. As such, it is valid only for :math:`\Omega_\Lambda=0` or :math:`\Omega_\mathrm{M}+\Omega_\Lambda=1` cosmologies and will either abort on other cosmologies (if ``[allowUnsupportedCosmology]=false``), or revert to a numerical solution from top-hat collapse (if ``[allowUnsupportedCosmology]=true``).
    </description>
    <deepCopy>
      <functionClass variables="virialDensityContrastTopHat_"/>
@@ -51,8 +50,8 @@
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
-     !!{
-     A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
+     !!{RST
+     A dark matter halo virial density contrast class using the fitting functions of :cite:t:`bryan_statistical_1998`.
      !!}
      private
      class  (cosmologyParametersClass                                      ), pointer :: cosmologyParameters_         => null()
@@ -68,8 +67,8 @@
   end type virialDensityContrastBryanNorman1998
 
   interface virialDensityContrastBryanNorman1998
-     !!{
-     Constructors for the \refClass{virialDensityContrastBryanNorman1998} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
      !!}
      module procedure bryanNorman1998ConstructorParameters
      module procedure bryanNorman1998ConstructorInternal
@@ -78,8 +77,8 @@
 contains
 
   function bryanNorman1998ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastBryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,11 +89,13 @@ contains
     logical                                                      :: allowUnsupportedCosmology
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowUnsupportedCosmology</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, unsupported cosmologies revert to using a numerical solution from the top-hat collapse model. Otherwise, unsupported cosmologies result in an error.</description>
+      <description>
+      If true, unsupported cosmologies revert to using a numerical solution from the top-hat collapse model. Otherwise, unsupported cosmologies result in an error.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -109,8 +110,8 @@ contains
   end function bryanNorman1998ConstructorParameters
 
   function bryanNorman1998ConstructorInternal(allowUnsupportedCosmology,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastBryanNorman1998} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -149,8 +150,8 @@ contains
   end function bryanNorman1998ConstructorInternal
 
   subroutine bryanNorman1998Destructor(self)
-    !!{
-    Destructor for the \refClass{virialDensityContrastBryanNorman1998} dark matter halo virial density contrast class.
+    !!{RST
+    Destructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastBryanNorman1998), intent(inout) :: self
@@ -168,8 +169,8 @@ contains
   end subroutine bryanNorman1998Destructor
 
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!{RST
+    Return the virial density contrast at the given epoch, assuming the fitting function of :cite:t:`bryan_statistical_1998`.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -198,8 +199,8 @@ contains
   end function bryanNorman1998DensityContrast
 
   double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!{RST
+    Return the virial density contrast at the given epoch, assuming the fitting function of :cite:t:`bryan_statistical_1998`.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -242,9 +243,8 @@ contains
   end function bryanNorman1998DensityContrastRateOfChange
 
   double precision function bryanNorman1998TurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
-    constant universe.
+    !!{RST
+    Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self

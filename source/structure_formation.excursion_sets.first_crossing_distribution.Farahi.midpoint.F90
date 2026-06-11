@@ -19,45 +19,46 @@
 
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-!!{
-Implements an excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint
-method to perform the integrations \citep{du_substructure_2017}.
+!!{RST
+Implements an excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`.
 !!}
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint" docformat="rst">
     <description>
-      An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
-      to perform the integrations \citep{du_substructure_2017}.
+    An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`.
 
-      Specifically, in the method used by \cite{benson_dark_2012} the integral equation for $f(S)$ (see
-      equation~\ref{eq:OldExcursionMethod}) is solved using the trapezoidal rule (see \refClass{excursionSetFirstCrossingFarahi}
-      for complete details):
-      \begin{equation}
+    Specifically, in the method used by :cite:t:`benson_dark_2012` the integral equation for :math:`f(S)` (see equation ) is solved using the trapezoidal rule (see ``excursionSetFirstCrossingFarahi`` for complete details):
+
+    .. math::
+
        \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j)K(S_i,S_j)+f(S_{j+1})K(S_i,S_{j+1})}{2} \Delta S_j,
-     \end{equation}
-     where
-     \begin{equation}
-       K(S_i,\tilde{S}) = \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(\tilde{S}), S_i, \tilde{S}]}{\sqrt{2 \Delta S[S_i,\tilde{S}]}}\right\},
-     \end{equation}
-     is the kernel of the integral equation for $f(S)$ which is being solved.
 
-     The method used in this class increases the precision of the solver by replacing the trapezoidal integration rule in the
-     above with a mid-point integration rule:
-     \begin{equation}
+    where
+
+    .. math::
+
+       K(S_i,\tilde{S}) = \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(\tilde{S}), S_i, \tilde{S}]}{\sqrt{2 \Delta S[S_i,\tilde{S}]}}\right\},
+
+    is the kernel of the integral equation for :math:`f(S)` which is being solved.
+
+    The method used in this class increases the precision of the solver by replacing the trapezoidal integration rule in the above with a mid-point integration rule:
+
+    .. math::
+
        \int_0^{S_j} f(\tilde{S})K(S_j,\tilde{S}) \mathrm{d}\tilde{S} = \sum_{j=0}^{i-1} f(S_{j+1/2})K(S_i,S_{j+1/2}) \Delta S_j,
-      \end{equation}
-      such that the first crossing distribution at $S_{i-1/2}$ is given by
-      \begin{equation}
+
+    such that the first crossing distribution at :math:`S_{i-1/2}` is given by
+
+    .. math::
+
        f(S_{i-1/2}) = \frac{1}{K(S_i,S_{i-1/2})\Delta S_{i-1/2}} \left( \hbox{erfc}\left\{ \frac{\Delta \delta [B(S_i),B(S_1),S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}} \right\} - \sum_{j=0}^{i-2} f(S_{j+1/2} K(S_i,S_{j+1/2}) \Delta S_j) \right).
-      \end{equation}
     </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
-     !!{
-     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
-     to perform the integrations \citep{du_substructure_2017}.
+     !!{RST
+     An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`.
      !!}
      private
    contains
@@ -66,7 +67,7 @@ method to perform the integrations \citep{du_substructure_2017}.
   end type excursionSetFirstCrossingFarahiMidpoint
 
   interface excursionSetFirstCrossingFarahiMidpoint
-     !!{
+     !!{RST
      Constructors for the Farahi-midpoint excursion set barrier class.
      !!}
      module procedure farahiMidpointConstructorParameters
@@ -76,7 +77,7 @@ method to perform the integrations \citep{du_substructure_2017}.
 contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -92,7 +93,7 @@ contains
   end function farahiMidpointConstructorParameters
 
   function farahiMidpointConstructorInternal(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     !!}
     implicit none
@@ -112,7 +113,7 @@ contains
   end function farahiMidpointConstructorInternal
 
   double precision function farahiMidpointProbability(self,variance,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
@@ -425,7 +426,7 @@ contains
   end function farahiMidpointProbability
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Tabulate the excursion set crossing rate.
     !!}
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMagenta  , &
@@ -1014,7 +1015,7 @@ contains
   end subroutine farahiMidpointRateTabulate
 
   function integralKernelRate(varianceResidual,offsetEffective)
-    !!{
+    !!{RST
     Compute the integral kernel rate.
     !!}
     use :: Error_Functions, only : Error_Function_Complementary

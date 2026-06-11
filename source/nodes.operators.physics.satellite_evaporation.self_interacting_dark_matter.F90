@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs evaporation of satellites due to dark matter self-interactions.
   !!}
 
   use :: Satellite_Evaporation_SIDM, only : satelliteEvaporationSIDMClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteEvaporationSIDM">
-   <description>Computes mass loss from satellite halos due to dark matter particle evaporation caused by self-interactions with host halo dark matter particles, an additional stripping channel unique to self-interacting dark matter beyond gravitational tidal stripping.</description>
+  <nodeOperator name="nodeOperatorSatelliteEvaporationSIDM" docformat="rst">
+   <description>
+   Computes mass loss from satellite halos due to dark matter particle evaporation caused by self-interactions with host halo dark matter particles, an additional stripping channel unique to self-interacting dark matter beyond gravitational tidal stripping.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteEvaporationSIDM
-     !!{
+     !!{RST
      A node operator class that performs evaporation of satellites due to dark matter self-interactions.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorSatelliteEvaporationSIDM
   
   interface nodeOperatorSatelliteEvaporationSIDM
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteEvaporationSIDM`` node operator class.
      !!}
      module procedure satelliteEvaporationSIDMConstructorParameters
      module procedure satelliteEvaporationSIDMConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function satelliteEvaporationSIDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteEvaporationSIDM`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function satelliteEvaporationSIDMConstructorParameters
 
   function satelliteEvaporationSIDMConstructorInternal(satelliteEvaporationSIDM_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSatelliteEvaporationSIDM`` node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteEvaporationSIDM)                        :: self
@@ -85,8 +87,8 @@ contains
   end function satelliteEvaporationSIDMConstructorInternal
 
   subroutine satelliteEvaporationSIDMDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteEvaporationSIDM} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteEvaporationSIDM`` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteEvaporationSIDM), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine satelliteEvaporationSIDMDestructor
   
   subroutine satelliteEvaporationSIDMDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform evaporation of a satellite due to dark matter self-interactions.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

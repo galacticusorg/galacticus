@@ -17,27 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a timescale for star formation which scales with the component dynamical time.
   !!}
 
   !![
-  <starFormationTimescale name="starFormationTimescaleDynamicalTime">
+  <starFormationTimescale name="starFormationTimescaleDynamicalTime" docformat="rst">
    <description>
-    A star formation timescale class in which the star formation timescale scales with the component dynamical
-    time. Specifically:
-    \begin{equation}
-     \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
-    \end{equation}
-    where $\epsilon_\star=$\mono{[efficiency]} and $\alpha_\star=$\mono{[exponentVelocity]}
-    are input parameters, $\tau_\mathrm{dynamical}\equiv r/V$ is the dynamical timescale of the \gls{component} and $r$ and $V$
-    are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a
-    minimum value specified by \mono{[timescaleMinimum]} (in Gyr).
+   A star formation timescale class in which the star formation timescale scales with the component dynamical time. Specifically:
+
+   .. math::
+
+      \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
+
+   where :math:`\epsilon_\star=`\ ``[efficiency]`` and :math:`\alpha_\star=`\ ``[exponentVelocity]`` are input parameters, :math:`\tau_\mathrm{dynamical}\equiv r/V` is the dynamical timescale of the :term:`component` and :math:`r` and :math:`V` are the characteristic radius and velocity respectively of the component. The timescale is not allowed to fall below a minimum value specified by ``[timescaleMinimum]`` (in Gyr).
    </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleDynamicalTime
-     !!{
+     !!{RST
      Implementation of a timescale for star formation which scales with the dynamical time.
      !!}
      private
@@ -50,8 +48,8 @@
   end type starFormationTimescaleDynamicalTime
 
   interface starFormationTimescaleDynamicalTime
-     !!{
-     Constructors for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class.
+     !!{RST
+     Constructors for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -60,9 +58,8 @@
 contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,22 +69,28 @@ contains
          &                                                                  timescaleMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiency</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The efficiency of star formation for the dynamical time method.</description>
+      <description>
+      The efficiency of star formation for the dynamical time method.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <defaultValue>-1.50d0</defaultValue>
-      <description>The velocity exponent for star formation for the dynamical time method.</description>
+      <description>
+      The velocity exponent for star formation for the dynamical time method.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum allowed timescale for star formation (in Gyr) in the dynamical time prescription, preventing unphysically short formation timescales in high-density or high-velocity systems.</description>
+      <description>
+      The minimum allowed timescale for star formation (in Gyr) in the dynamical time prescription, preventing unphysically short formation timescales in high-density or high-velocity systems.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -99,8 +102,8 @@ contains
   end function dynamicalTimeConstructorParameters
 
   function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleDynamicalTime} timescale for star formation class.
+    !!{RST
+    Internal constructor for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent, defaultNSCComponent
     implicit none
@@ -124,15 +127,14 @@ contains
   end function dynamicalTimeConstructorInternal
 
   double precision function dynamicalTimeTimescale(self,component)
-    !!{
-    Returns the timescale (in Gyr) for star formation in the given \mono{component}. The timescale is given by
-    \begin{equation}
-    \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
-    \end{equation}
-    where $\epsilon_\star$(=\mono{efficiency}) is a star formation efficiency and $\alpha_\star$(=\mono{exponentVelocity}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical}=R/V$ where the radius and
-    velocity are whatever characteristic values returned by the component. This scaling is functionally similar to that adopted
-    by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that
-    radius.
+    !!{RST
+    Returns the timescale (in Gyr) for star formation in the given ``component``. The timescale is given by
+
+    .. math::
+
+       \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical} \left( {V \over 200\hbox{km/s}} \right)^{\alpha_\star},
+
+    where :math:`\epsilon_\star`\ (=\ ``efficiency``) is a star formation efficiency and :math:`\alpha_\star`\ (=\ ``exponentVelocity``) controls the scaling with velocity. Note that :math:`\tau_\mathrm{dynamical}=R/V` where the radius and velocity are whatever characteristic values returned by the component. This scaling is functionally similar to that adopted by :cite:t:`cole_hierarchical_2000`, but they specifically used the half-mass radius and circular velocity at that radius.
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report

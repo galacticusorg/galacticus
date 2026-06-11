@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{zhao_analytical_1996} dark matter halo profiles.
+  !!{RST
+  An implementation of :cite:t:`zhao_analytical_1996` dark matter halo profiles.
   !!}
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996">
+  <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionZhao1996} objects.
+   A dark matter profile DMO class which builds ``massDistributionZhao1996`` objects.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOZhao1996
-     !!{
-     A dark matter halo profile class implementing \cite{zhao_analytical_1996} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :cite:t:`zhao_analytical_1996` dark matter halos.
      !!}
      private
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_ => null()
@@ -52,8 +52,8 @@
   end type darkMatterProfileDMOZhao1996
 
   interface darkMatterProfileDMOZhao1996
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
      !!}
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
@@ -62,8 +62,8 @@
 contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{zhao1996} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``zhao1996`` dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,20 +74,26 @@ contains
          &                                                           gamma
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
-      <description>The parameter $\alpha$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\alpha` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
-      <description>The parameter $\beta$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\beta` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
-      <description>The parameter $\gamma$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\gamma` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -100,8 +106,8 @@ contains
   end function zhao1996ConstructorParameters
 
   function zhao1996ConstructorInternal(alpha,beta,gamma,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOZhao1996)                        :: self
@@ -116,8 +122,8 @@ contains
   end function zhao1996ConstructorInternal
 
   function zhao1996Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo   , massTypeDark                  , weightByMass
     use :: Mass_Distributions        , only : massDistributionZhao1996, kinematicsDistributionZhao1996
@@ -180,8 +186,8 @@ contains
   end function zhao1996Get
 
   subroutine zhao1996Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOZhao1996} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self
@@ -193,8 +199,8 @@ contains
   end subroutine zhao1996Destructor
 
   subroutine zhao1996Exponents(self,node,alpha,beta,gamma)
-    !!{
-    Compute the exponents of the \mono{zhao1996} dark matter halo profile.
+    !!{RST
+    Compute the exponents of the ``zhao1996`` dark matter halo profile.
     !!}
     implicit none
     class           (darkMatterProfileDMOZhao1996  ), intent(inout) :: self
@@ -209,8 +215,8 @@ contains
   end subroutine zhao1996Exponents
   
   double precision function zhao1996ScaleRadius(self,node)
-    !!{
-    Compute the scale radius of the \mono{zhao1996} dark matter halo profile.
+    !!{RST
+    Compute the scale radius of the ``zhao1996`` dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -224,8 +230,8 @@ contains
   end function zhao1996ScaleRadius
 
   double precision function zhao1996Normalization(self,node)
-    !!{
-    Compute the mass normalization of the \mono{zhao1996} dark matter halo profile.
+    !!{RST
+    Compute the mass normalization of the ``zhao1996`` dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

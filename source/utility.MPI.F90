@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements useful MPI utilities.
 !!}
 
 module MPI_Utilities
-  !!{
+  !!{RST
   Implements useful MPI utilities.
   !!}
 #ifdef USEMPI
@@ -146,7 +146,7 @@ module MPI_Utilities
 
   ! Wrapper types for MPI shared resources.
   type :: mpiMemory
-     !!{
+     !!{RST
      A wrapper type for MPI shared memory.
      !!}
      type(c_ptr) :: memory
@@ -155,7 +155,7 @@ module MPI_Utilities
   end type mpiMemory
 
   type :: mpiWindow
-     !!{
+     !!{RST
      A wrapper type for MPI windows.
      !!}
 #ifdef USEMPI
@@ -167,7 +167,7 @@ module MPI_Utilities
   
   ! Define an MPI counter type.
   type :: mpiCounter
-     !!{
+     !!{RST
      An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
      !!}
 #ifdef USEMPI
@@ -210,7 +210,7 @@ module MPI_Utilities
 contains
 
   subroutine mpiInitialize(mpiThreadingRequired)
-    !!{
+    !!{RST
     Initialize MPI.
     !!}
 #ifdef USEMPI
@@ -248,7 +248,7 @@ contains
   end subroutine mpiInitialize
 
   subroutine mpiFinalize()
-    !!{
+    !!{RST
     Finalize MPI.
     !!}
 #ifdef USEMPI
@@ -265,7 +265,7 @@ contains
   end subroutine mpiFinalize
 
   subroutine mpiBarrier()
-    !!{
+    !!{RST
     Block until all MPI processes are synchronized.
     !!}
 #ifdef USEMPI
@@ -281,7 +281,7 @@ contains
   end subroutine mpiBarrier
 
   logical function mpiIsActive(self)
-    !!{
+    !!{RST
     Return true if MPI is active.
     !!}
     implicit none
@@ -293,7 +293,7 @@ contains
   end function mpiIsActive
 
   logical function mpiIsMaster(self)
-    !!{
+    !!{RST
     Return true if this is the master process.
     !!}
     implicit none
@@ -309,7 +309,7 @@ contains
   end function mpiIsMaster
 
   integer function mpiGetRank(self)
-    !!{
+    !!{RST
     Return MPI rank.
     !!}
 #ifndef USEMPI
@@ -329,7 +329,7 @@ contains
   end function mpiGetRank
 
   integer function mpiGetRankOnNode(self)
-    !!{
+    !!{RST
     Return MPI rank on the node.
     !!}
 #ifndef USEMPI
@@ -349,7 +349,7 @@ contains
   end function mpiGetRankOnNode
 
   function mpiGetRankLabel(self)
-    !!{
+    !!{RST
     Return MPI rank label.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -379,7 +379,7 @@ contains
   end function mpiGetRankLabel
 
   integer function mpiGetCount(self)
-    !!{
+    !!{RST
     Return MPI count.
     !!}
 #ifndef USEMPI
@@ -399,7 +399,7 @@ contains
   end function mpiGetCount
 
   integer function mpiGetNodeCount(self)
-    !!{
+    !!{RST
     Return count of nodes used by MPI.
     !!}
 #ifndef USEMPI
@@ -419,7 +419,7 @@ contains
   end function mpiGetNodeCount
 
   integer function mpiGetCountOnNode(self)
-    !!{
+    !!{RST
     Return count of nodes used by MPI.
     !!}
 #ifndef USEMPI
@@ -439,7 +439,7 @@ contains
   end function mpiGetCountOnNode
 
   integer function mpiGetNodeAffinity(self,rank)
-    !!{
+    !!{RST
     Return node affinity of given MPI process.
     !!}
 #ifndef USEMPI
@@ -465,7 +465,7 @@ contains
   end function mpiGetNodeAffinity
 
   function mpiGetHostAffinity(self)
-    !!{
+    !!{RST
     Return host affinity of this MPI process.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -487,8 +487,8 @@ contains
   end function mpiGetHostAffinity
 
   logical function mpiMessageWaiting(self,from,tag)
-    !!{
-    Return true if an MPI message (matching the optional \mono{from} and \mono{tag} if given) is waiting for receipt.
+    !!{RST
+    Return true if an MPI message (matching the optional ``from`` and ``tag`` if given) is waiting for receipt.
     !!}
 #ifdef USEMPI
     use :: MPI_F08, only : MPI_Status  , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe
@@ -518,7 +518,7 @@ contains
   end function mpiMessageWaiting
 
   function mpiRequestData1D(self,requestFrom,array)
-    !!{
+    !!{RST
     Request and receive data from other MPI processes.
     !!}
 #ifndef USEMPI
@@ -606,7 +606,7 @@ contains
   end function mpiRequestData1D
 
   function mpiRequestData2D(self,requestFrom,array)
-    !!{
+    !!{RST
     Request and receive data from other MPI processes.
     !!}
 #ifndef USEMPI
@@ -694,7 +694,7 @@ contains
   end function mpiRequestData2D
 
   function mpiRequestDataInt1D(self,requestFrom,array)
-    !!{
+    !!{RST
     Request and receive data from other MPI processes.
     !!}
 #ifndef USEMPI
@@ -782,7 +782,7 @@ contains
   end function mpiRequestDataInt1D
 
   function mpiRequestDataLogical1D(self,requestFrom,array)
-    !!{
+    !!{RST
     Request and receive data from other MPI processes.
     !!}
 #ifndef USEMPI
@@ -870,7 +870,7 @@ contains
   end function mpiRequestDataLogical1D
 
   subroutine mpiBroadcastDataScalar(self,sendFrom,scalar)
-    !!{
+    !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
@@ -895,7 +895,7 @@ contains
   end subroutine mpiBroadcastDataScalar
 
   subroutine mpiBroadcastDataSizeTScalar(self,sendFrom,scalar)
-    !!{
+    !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
@@ -920,7 +920,7 @@ contains
   end subroutine mpiBroadcastDataSizeTScalar
   
   subroutine mpiBroadcastData1D(self,sendFrom,array)
-    !!{
+    !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
@@ -945,7 +945,7 @@ contains
   end subroutine mpiBroadcastData1D
   
   subroutine mpiBroadcastData2D(self,sendFrom,array)
-    !!{
+    !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
@@ -970,7 +970,7 @@ contains
   end subroutine mpiBroadcastData2D
   
   subroutine mpiBroadcastData3D(self,sendFrom,array)
-    !!{
+    !!{RST
     Broadcast data to all other MPI processes.
     !!}
     use :: Error  , only : Error_Report
@@ -995,7 +995,7 @@ contains
   end subroutine mpiBroadcastData3D
   
   function mpiSumArrayInt(self,array,mask)
-    !!{
+    !!{RST
     Sum an integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1031,7 +1031,7 @@ contains
   end function mpiSumArrayInt
 
   function mpiSumArraySizeT(self,array,mask)
-    !!{
+    !!{RST
     Sum an integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1067,7 +1067,7 @@ contains
   end function mpiSumArraySizeT
 
   function mpiSumArrayTwoSizeT(self,array,mask)
-    !!{
+    !!{RST
     Sum a rank-2 integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1103,7 +1103,7 @@ contains
   end function mpiSumArrayTwoSizeT
 
   function mpiSumArrayThreeSizeT(self,array,mask)
-    !!{
+    !!{RST
     Sum a rank-3 integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1139,7 +1139,7 @@ contains
   end function mpiSumArrayThreeSizeT
   
   function mpiSumArrayFourSizeT(self,array,mask)
-    !!{
+    !!{RST
     Sum a rank-4 integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1175,7 +1175,7 @@ contains
   end function mpiSumArrayFourSizeT
 
   integer function mpiSumScalarInt(self,scalar,mask)
-    !!{
+    !!{RST
     Sum an integer scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1201,8 +1201,8 @@ contains
   end function mpiSumScalarInt
 
   function mpiSumScalarSizeT(self,scalar,mask)
-    !!{
-    Sum a \mono{size\_t} scalar over all processes, returning it to all processes.
+    !!{RST
+    Sum a ``size_t`` scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report
@@ -1228,7 +1228,7 @@ contains
   end function mpiSumScalarSizeT
 
   function mpiSumArrayReal(self,array,mask)
-    !!{
+    !!{RST
     Sum a real array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1264,7 +1264,7 @@ contains
   end function mpiSumArrayReal
 
   function mpiSumArrayDouble(self,array,mask)
-    !!{
+    !!{RST
     Sum an integer array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1300,7 +1300,7 @@ contains
   end function mpiSumArrayDouble
 
   function mpiSumArrayTwoDouble(self,array,mask)
-    !!{
+    !!{RST
     Sum an rank-2 double array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1336,7 +1336,7 @@ contains
   end function mpiSumArrayTwoDouble
 
   function mpiSumArrayThreeDouble(self,array,mask)
-    !!{
+    !!{RST
     Sum an rank-3 double array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1372,7 +1372,7 @@ contains
   end function mpiSumArrayThreeDouble
 
   double precision function mpiSumScalarDouble(self,scalar,mask)
-    !!{
+    !!{RST
     Sum an integer scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1398,7 +1398,7 @@ contains
   end function mpiSumScalarDouble
 
   function mpiAverageArray(self,array,mask)
-    !!{
+    !!{RST
     Average an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1436,7 +1436,7 @@ contains
   end function mpiAverageArray
 
   function mpiMedianArray(self,array,mask)
-    !!{
+    !!{RST
     Find the median of an array over all processes, returning it to all processes.
     !!}
 #ifdef USEMPI
@@ -1492,7 +1492,7 @@ contains
   end function mpiMedianArray
 
   double precision function mpiAverageScalar(self,scalar,mask)
-    !!{
+    !!{RST
     Find the maximum values of a scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1518,7 +1518,7 @@ contains
   end function mpiAverageScalar
 
   function mpiMaxvalArray(self,array,mask)
-    !!{
+    !!{RST
     Find the maximum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1552,7 +1552,7 @@ contains
   end function mpiMaxvalArray
 
   double precision function mpiMaxvalScalar(self,scalar,mask)
-    !!{
+    !!{RST
     Find the maximum values of a scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1578,7 +1578,7 @@ contains
   end function mpiMaxvalScalar
 
   function mpiMaxvalArraySizeT(self,array,mask)
-    !!{
+    !!{RST
     Find the maximum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1612,8 +1612,8 @@ contains
   end function mpiMaxvalArraySizeT
 
   function mpiMaxvalScalarSizeT(self,scalar,mask)
-    !!{
-    Find the maximum values of a \mono{size\_t} scalar over all processes, returning it to all processes.
+    !!{RST
+    Find the maximum values of a ``size_t`` scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
     use :: Error, only : Error_Report
@@ -1639,7 +1639,7 @@ contains
   end function mpiMaxvalScalarSizeT
 
   function mpiMaxloc(self,array,mask)
-    !!{
+    !!{RST
     Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1675,7 +1675,7 @@ contains
   end function mpiMaxloc
 
   function mpiMinvalArray(self,array,mask)
-    !!{
+    !!{RST
     Find the minimum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1709,7 +1709,7 @@ contains
   end function mpiMinvalArray
 
   function mpiMinvalIntArray(self,array,mask)
-    !!{
+    !!{RST
     Find the minimum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1743,7 +1743,7 @@ contains
   end function mpiMinvalIntArray
 
   double precision function mpiMinvalScalar(self,scalar,mask)
-    !!{
+    !!{RST
     Find the minimum values of a scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1769,7 +1769,7 @@ contains
   end function mpiMinvalScalar
 
   integer function mpiMinvalIntScalar(self,scalar,mask)
-    !!{
+    !!{RST
     Find the minimum values of a scalar over all processes, returning it to all processes.
     !!}
 #ifndef USEMPI
@@ -1795,7 +1795,7 @@ contains
   end function mpiMinvalIntScalar
 
   function mpiMinloc(self,array,mask)
-    !!{
+    !!{RST
     Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
     !!}
     use :: Error  , only : Error_Report
@@ -1831,7 +1831,7 @@ contains
   end function mpiMinloc
 
   logical function mpiAnyLogicalScalar(self,boolean,mask)
-    !!{
+    !!{RST
     Return true if any of the given booleans is true over all processes.
     !!}
 #ifndef USEMPI
@@ -1863,7 +1863,7 @@ contains
   end function mpiAnyLogicalScalar
 
   logical function mpiAllLogicalScalar(self,boolean,mask)
-    !!{
+    !!{RST
     Return true if all of the given booleans are true over all processes.
     !!}
 #ifndef USEMPI
@@ -1895,7 +1895,7 @@ contains
   end function mpiAllLogicalScalar
 
   function mpiGatherScalar(self,scalar)
-    !!{
+    !!{RST
     Gather a scalar from all processes, returning it as a 1-D array.
     !!}
 #ifndef USEMPI
@@ -1921,7 +1921,7 @@ contains
   end function mpiGatherScalar
 
   function mpiGather1D(self,array)
-    !!{
+    !!{RST
     Gather a 1-D array from all processes, returning it as a 2-D array.
     !!}
 #ifndef USEMPI
@@ -1943,7 +1943,7 @@ contains
   end function mpiGather1D
 
   function mpiGather2D(self,array)
-    !!{
+    !!{RST
     Gather a 1-D array from all processes, returning it as a 2-D array.
     !!}
 #ifndef USEMPI
@@ -1965,7 +1965,7 @@ contains
   end function mpiGather2D
 
   function mpiGatherLogicalScalar(self,scalar)
-    !!{
+    !!{RST
     Gather a logical scalar from all processes, returning it as a 1-D array.
     !!}
 #ifndef USEMPI
@@ -1991,7 +1991,7 @@ contains
   end function mpiGatherLogicalScalar
 
   function mpiGatherIntScalar(self,scalar)
-    !!{
+    !!{RST
     Gather an integer scalar from all processes, returning it as a 1-D array.
     !!}
 #ifndef USEMPI
@@ -2017,7 +2017,7 @@ contains
   end function mpiGatherIntScalar
 
   function mpiGatherInt1D(self,array)
-    !!{
+    !!{RST
     Gather an integer 1-D array from all processes, returning it as a 2-D array.
     !!}
 #ifndef USEMPI
@@ -2039,7 +2039,7 @@ contains
   end function mpiGatherInt1D
 
   subroutine mpiCommunicatorPush(self,color)
-    !!{
+    !!{RST
     Create a new communicator and push it onto the stack.
     !!}
     use :: Error  , only : Error_Report
@@ -2072,7 +2072,7 @@ contains
   end subroutine mpiCommunicatorPush
   
   subroutine mpiCommunicatorPop(self)
-    !!{
+    !!{RST
     Pop a communicator off of the stack and destroy it.
     !!}
     use :: Error  , only : Error_Report
@@ -2098,7 +2098,7 @@ contains
   end subroutine mpiCommunicatorPop
 
   subroutine mpiStateInitialize(self)
-    !!{
+    !!{RST
     Initialize the state (rank, group, node affinities, etc.) of the current MPI group.
     !!}
 #ifdef USEMPI
@@ -2178,7 +2178,7 @@ contains
   end subroutine mpiStateInitialize
   
   function counterConstructor() result(self)
-    !!{
+    !!{RST
     Constructor for MPI counter class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr           , C_F_Pointer
@@ -2207,8 +2207,10 @@ contains
        countInitialPointer => null()
        call C_F_Pointer(self%counter%memory,countInitialPointer)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        !$ dummyPointer_       => self%counter
        !$ self%counterManager =  resourceManager(dummyPointer_)
@@ -2225,8 +2227,10 @@ contains
        call mpiBarrier()
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_      => self%window
     !$ self%windowManager =  resourceManager(dummyPointer_)
@@ -2240,7 +2244,7 @@ contains
   end function counterConstructor
 
   subroutine counterReset(self)
-    !!{
+    !!{RST
     Reset an MPI counter.
     !!}
 #ifdef USEMPI
@@ -2277,8 +2281,8 @@ contains
   end subroutine counterReset
 
   subroutine mpiWindowDestructor(self)
-    !!{
-    Destructor for the \mono{mpiWindow} class.
+    !!{RST
+    Destructor for the ``mpiWindow`` class.
     !!}
 #ifdef USEMPI
     use :: Error  , only : Error_Report
@@ -2298,8 +2302,8 @@ contains
   end subroutine mpiWindowDestructor
   
   subroutine mpiMemoryDestructor(self)
-    !!{
-    Destructor for the \mono{mpiMemory} class.
+    !!{RST
+    Destructor for the ``mpiMemory`` class.
     !!}
 #ifdef USEMPI
     use :: MPI_F08, only : MPI_Free_Mem
@@ -2317,7 +2321,7 @@ contains
   end subroutine mpiMemoryDestructor
 
   function counterIncrement(self)
-    !!{
+    !!{RST
     Increment an MPI counter.
     !!}
 #ifdef USEMPI
@@ -2376,7 +2380,7 @@ contains
   end function counterIncrement
 
   function counterDecrement(self)
-    !!{
+    !!{RST
     Decrement an MPI counter.
     !!}
 #ifdef USEMPI
@@ -2411,7 +2415,7 @@ contains
   end function counterDecrement
 
   function counterGet(self)
-    !!{
+    !!{RST
     Return the current value of an MPI counter.
     !!}
 #ifdef USEMPI

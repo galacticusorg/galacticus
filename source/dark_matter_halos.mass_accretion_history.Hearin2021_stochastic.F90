@@ -17,14 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
+  !!{RST
+  An implementation of dark matter halo mass accretion histories using the rolling power-law model of :cite:t:`hearin_differentiable_2021` with stochastic sampling of parameters.
   !!}
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>mass</name>
-   <description>Enumeration of halo mass bins (low and high mass) used to parameterize the population distributions of mass accretion history parameters in the stochastic \cite{hearin_differentiable_2021} model.</description>
+   <description>
+   Enumeration of halo mass bins (low and high mass) used to parameterize the population distributions of mass accretion history parameters in the stochastic :cite:t:`hearin_differentiable_2021` model.
+   </description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="low" />
@@ -33,9 +35,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>formation</name>
-   <description>Enumeration of halo formation epoch types (early-forming and late-forming) used to classify halos and select the appropriate parameter distribution in the stochastic \cite{hearin_differentiable_2021} MAH model.</description>
+   <description>
+   Enumeration of halo formation epoch types (early-forming and late-forming) used to classify halos and select the appropriate parameter distribution in the stochastic :cite:t:`hearin_differentiable_2021` MAH model.
+   </description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="early"/>
@@ -44,9 +48,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>parameter</name>
-   <description>Enumeration of the stochastic MAH model parameters drawn from the multivariate normal distribution: the early-time power law index $u_\mathrm{early}$, late-time index $u_\mathrm{late}$, and the logarithmic reference time $\log_{10}(t_0)$.</description>
+   <description>
+   Enumeration of the stochastic MAH model parameters drawn from the multivariate normal distribution: the early-time power law index :math:`u_\mathrm{early}`, late-time index :math:`u_\mathrm{late}`, and the logarithmic reference time :math:`\log_{10}(t_0)`.
+   </description>
    <decodeFunction>yes</decodeFunction>
    <indexing>1</indexing>
    <entry label="uEarly"       />
@@ -56,13 +62,15 @@
   !!]
 
   !![
-  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic">
-   <description>Computes dark matter halo mass accretion histories using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of the early- and late-time power-law indices from population distributions. The fraction of late-forming halos at low and high halo mass is set by \mono{[fractionLateLow]} and \mono{[fractionLateHigh]}, and the roll-over rate by \mono{[rateRollOver]}.</description>
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryHearin2021Stochastic" docformat="rst">
+   <description>
+   Computes dark matter halo mass accretion histories using the rolling power-law model of :cite:t:`hearin_differentiable_2021` with stochastic sampling of the early- and late-time power-law indices from population distributions. The fraction of late-forming halos at low and high halo mass is set by ``[fractionLateLow]`` and ``[fractionLateHigh]``, and the roll-over rate by ``[rateRollOver]``.
+   </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryHearin2021) :: darkMatterHaloMassAccretionHistoryHearin2021Stochastic
-     !!{
-     A dark matter halo mass accretion history class using the rolling power-law model of \cite{hearin_differentiable_2021} with stochastic sampling of parameters.
+     !!{RST
+     A dark matter halo mass accretion history class using the rolling power-law model of :cite:t:`hearin_differentiable_2021` with stochastic sampling of parameters.
      !!}
      private
      double precision                     :: fractionLateLow     , fractionLateHigh, &
@@ -86,8 +94,8 @@
   end type darkMatterHaloMassAccretionHistoryHearin2021Stochastic
 
   interface darkMatterHaloMassAccretionHistoryHearin2021Stochastic
-     !!{
-     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class.
+     !!{RST
+     Constructors for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class.
      !!}
      module procedure hearin2021StochasticConstructorParameters
      module procedure hearin2021StochasticConstructorInternal
@@ -218,9 +226,8 @@
 contains
 
   function hearin2021StochasticConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class which takes a parameter
-    set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -233,21 +240,27 @@ contains
 
     ! Population fractions.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionLateLow</name>
-      <description>The fraction of late-forming halos in the low halo mass limit.</description>
+      <description>
+      The fraction of late-forming halos in the low halo mass limit.
+      </description>
       <source>parameters</source>
       <defaultValue>0.35d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionLateHigh</name>
-      <description>The fraction of late-forming halos in the high halo mass limit.</description>
+      <description>
+      The fraction of late-forming halos in the high halo mass limit.
+      </description>
       <source>parameters</source>
       <defaultValue>0.45d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateRollOver</name>
-      <description>The roll-over rate parameter $k$ in the stochastic \cite{hearin_differentiable_2021} MAH model, controlling how rapidly the power law index transitions from its early-time to late-time value across the population.</description>
+      <description>
+      The roll-over rate parameter :math:`k` in the stochastic :cite:t:`hearin_differentiable_2021` MAH model, controlling how rapidly the power law index transitions from its early-time to late-time value across the population.
+      </description>
       <source>parameters</source>
       <defaultValue>3.5d0</defaultValue>
     <type>real</type>
@@ -256,108 +269,132 @@ contains
     !!]
     ! Means.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUEarlyLowEarlyForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>means(massLow%ID,formationEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUEarlyHighEarlyForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUEarlyLowLateForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>means(massLow%ID,formationLate%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationLate%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUEarlyHighLateForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationLate%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationLate%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter> 
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanULateLowEarlyForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ late-time power law index for early-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` late-time power law index for early-forming halos.
+      </description>
       <variable>means(massLow%ID,formationEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanULateHighEarlyForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ late-time power law index for early-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` late-time power law index for early-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanULateLowLateForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ late-time power law index for late-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` late-time power law index for late-forming halos.
+      </description>
       <variable>means(massLow%ID,formationLate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationLate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanULateHighLateForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ late-time power law index for late-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` late-time power law index for late-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationLate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationLate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanLog10TimeZeroLowEarlyForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ $t_0$ for early-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` :math:`t_0` for early-forming halos.
+      </description>
       <variable>means(massLow%ID,formationEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanLog10TimeZeroHighEarlyForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ $t_0$ for early-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` :math:`t_0` for early-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanLog10TimeZeroLowLateForming</name>
-      <description>The mean low-mass limit of $\log_{10}$ $t_0$ for late-forming halos.</description>
+      <description>
+      The mean low-mass limit of :math:`\log_{10}` :math:`t_0` for late-forming halos.
+      </description>
       <variable>means(massLow%ID,formationLate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massLow%ID,formationLate%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanLog10TimeZeroHighLateForming</name>
-      <description>The mean high-mass limit of $\log_{10}$ $t_0$ for late-forming halos.</description>
+      <description>
+      The mean high-mass limit of :math:`\log_{10}` :math:`t_0` for late-forming halos.
+      </description>
       <variable>means(massHigh%ID,formationLate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>meanDefault(massHigh%ID,formationLate%ID,parameterLog10TimeZero%ID)</defaultValue>
@@ -367,216 +404,264 @@ contains
     !!]
     ! Cholesky matrix elements.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyUEarlyLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyUEarlyHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyUEarlyLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyUEarlyHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterUEarly%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterUEarly%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>       
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyULateLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyULateHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyULateLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyULateHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>       
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyLog10TimeZeroLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyLog10TimeZeroHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyLog10TimeZeroLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyUEarlyLog10TimeZeroHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterUEarly%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateULateLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterULate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterULate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateULateHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterULate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterULate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateULateLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterULate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterULate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateULateHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterULate%ID,parameterULate%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterULate%ID,parameterULate%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateLog10TimeZeroLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterULate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterULate%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateLog10TimeZeroHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterULate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterULate%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateLog10TimeZeroLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterULate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterULate%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyULateLog10TimeZeroHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterULate%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterULate%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyLog10TimeZeroLog10TimeZeroLowEarlyForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyLog10TimeZeroLog10TimeZeroHighEarlyForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for early-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for early-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationEarly%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyLog10TimeZeroLog10TimeZeroLowLateForming</name>
-      <description>The Cholesky matrix element low-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element low-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massLow%ID,formationLate%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massLow%ID,formationLate%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</defaultValue>
     <type>real</type>
     <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>choleskyLog10TimeZeroLog10TimeZeroHighLateForming</name>
-      <description>The Cholesky matrix element high-mass limit of $\log_{10}$ early-time power law index for late-forming halos.</description>
+      <description>
+      The Cholesky matrix element high-mass limit of :math:`\log_{10}` early-time power law index for late-forming halos.
+      </description>
       <variable>cholesky(massHigh%ID,formationLate%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</variable>
       <source>parameters</source>
       <defaultValue>choleskyDefault(massHigh%ID,formationLate%ID,parameterLog10TimeZero%ID,parameterLog10TimeZero%ID)</defaultValue>
@@ -596,8 +681,8 @@ contains
   end function hearin2021StochasticConstructorParameters
 
   function hearin2021StochasticConstructorInternal(rateRollOver,fractionLateLow,fractionLateHigh,means,cholesky) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryHearin2021Stochastic} dark matter halo mass accretion history class.
+    !!{RST
+    Internal constructor for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021Stochastic)                                    :: self
@@ -613,8 +698,8 @@ contains
   end function hearin2021StochasticConstructorInternal
 
   subroutine hearin2021StochasticSample(self,node)
-    !!{
-    Sample parameters from the distribution function for the given \mono{node}.
+    !!{RST
+    Sample parameters from the distribution function for the given ``node``.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Galacticus_Nodes, only : nodeComponentBasic
@@ -687,11 +772,9 @@ contains
             &         )
        ! Compute the parameters.
        !![
-       <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+       <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
 	 <description>
-	   Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here
-	   (instead of just using this directly in the expression for "sample" to avoid a memory leak. The variable "offsets" will
-	   be finalized when leaving this function scope.
+	 Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here (instead of just using this directly in the expression for "sample" to avoid a memory leak. The variable "offsets" will be finalized when leaving this function scope.
 	 </description>
        </workaround>
        !!]   
@@ -714,7 +797,7 @@ contains
   end subroutine hearin2021StochasticSample
 
   double precision function hearin2021StochasticFractionLate(self,node)
-    !!{
+    !!{RST
     Return the fraction of late-forming halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -729,7 +812,7 @@ contains
   end function hearin2021StochasticFractionLate
   
   double precision function hearin2021StochasticPowerLawIndexEarly(self,node)
-    !!{
+    !!{RST
     Return the early power law index for the given node.
     !!}
     implicit none
@@ -742,7 +825,7 @@ contains
   end function hearin2021StochasticPowerLawIndexEarly
   
   double precision function hearin2021StochasticPowerLawIndexLate(self,node)
-    !!{
+    !!{RST
     Return the late power law index for the given node.
     !!}
     implicit none
@@ -755,7 +838,7 @@ contains
   end function hearin2021StochasticPowerLawIndexLate
   
   double precision function hearin2021StochasticLog10TimeZero(self,node)
-    !!{
+    !!{RST
     Return the logarithm of the time of zero power law index for the given node.
     !!}
     implicit none
@@ -768,7 +851,7 @@ contains
   end function hearin2021StochasticLog10TimeZero
   
   double precision function hearin2021StochasticTimeMaximum(self,node)
-    !!{
+    !!{RST
     Return the time of maximum mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -783,8 +866,8 @@ contains
   end function hearin2021StochasticTimeMaximum
 
   double precision function softPlus(x)
-    !!{
-    Implementation of the \href{https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus}\mono{softPlus} function.
+    !!{RST
+    Implementation of the `softPlus <https://en.wikipedia.org/wiki/Rectifier_(neural_networks)\#Softplus>`_ function.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -794,7 +877,7 @@ contains
   end function softPlus
 
   subroutine hearin2021StochasticDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an intracluster medium cooling power in band property extractor class.
 !!}
 
@@ -26,18 +26,14 @@ Implements an intracluster medium cooling power in band property extractor class
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand">
-   <description>A property extractor that returns the fraction of the hot halo (ICM) radiative
-    cooling power emitted within a specified X-ray photon energy band---the ratio of in-band to
-    bolometric cooling luminosity, integrated over the virial radius. The \mono{energyLow} and
-    \mono{energyHigh} parameters specify the energy band boundaries in keV (e.g.\ 0.5--2.0~keV for
-    soft X-ray). The \mono{label} suffix distinguishes multiple instances of this extractor.
-    Requires a \refClass{coolingFunctionClass} object to evaluate the cooling emissivity at each
-    radius as a function of density, temperature, and metallicity.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand" docformat="rst">
+   <description>
+   A property extractor that returns the fraction of the hot halo (ICM) radiative cooling power emitted within a specified X-ray photon energy band---the ratio of in-band to bolometric cooling luminosity, integrated over the virial radius. The ``energyLow`` and ``energyHigh`` parameters specify the energy band boundaries in keV (e.g.\ 0.5--2.0 keV for soft X-ray). The ``label`` suffix distinguishes multiple instances of this extractor. Requires a ``coolingFunctionClass`` object to evaluate the cooling emissivity at each radius as a function of density, temperature, and metallicity.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMCoolingPowerInBand
-     !!{
+     !!{RST
      A property extractor class which extracts the fraction of the ICM cooling power due to emission in a given energy band.
      !!}
      private
@@ -56,8 +52,8 @@ Implements an intracluster medium cooling power in band property extractor class
   end type nodePropertyExtractorICMCoolingPowerInBand
 
   interface nodePropertyExtractorICMCoolingPowerInBand
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
      !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal
@@ -66,8 +62,8 @@ Implements an intracluster medium cooling power in band property extractor class
 contains
 
   function icmCoolingPowerInBandConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,20 +77,26 @@ contains
 
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyLow</name>
       <source>parameters</source>
-      <description>The minimum energy (in units of keV) for the band.</description>
+      <description>
+      The minimum energy (in units of keV) for the band.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyHigh</name>
       <source>parameters</source>
-      <description>The maximum energy (in units of keV) for the band.</description>
+      <description>
+      The maximum energy (in units of keV) for the band.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label to use as a suffix for this property.</description>
+      <description>
+      A label to use as a suffix for this property.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -111,8 +113,8 @@ contains
   end function icmCoolingPowerInBandConstructorParameters
 
   function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                        :: self
@@ -129,8 +131,8 @@ contains
   end function icmCoolingPowerInBandConstructorInternal
 
   subroutine icmCoolingPowerInBandDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorICMCoolingPowerInBand} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
@@ -144,7 +146,7 @@ contains
   end subroutine icmCoolingPowerInBandDestructor
 
   double precision function icmCoolingPowerInBandExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement an ICM X-ray properties extractor.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
@@ -194,7 +196,7 @@ contains
   contains
     
     double precision function integrandLuminosityTotal(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM X-ray luminosities.
       !!}
       use :: Abundances_Structure         , only : abundances
@@ -213,7 +215,7 @@ contains
     end function integrandLuminosityTotal
     
     double precision function integrandLuminosityInBand(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM X-ray luminosities.
       !!}
       use :: Abundances_Structure         , only : abundances
@@ -288,7 +290,7 @@ contains
   end function icmCoolingPowerInBandExtract
 
   function icmCoolingPowerInBandName(self)
-    !!{
+    !!{RST
     Return the name of the cooling power in band property.
     !!}
     use :: ISO_Varying_String, only : operator(//)
@@ -301,7 +303,7 @@ contains
   end function icmCoolingPowerInBandName
 
   function icmCoolingPowerInBandDescription(self)
-    !!{
+    !!{RST
     Return a description of the cooling power in band property.
     !!}
     use :: ISO_Varying_String, only : operator(//)
@@ -317,8 +319,8 @@ contains
   end function icmCoolingPowerInBandDescription
 
   double precision function icmCoolingPowerInBandUnitsInSI(self)
-    !!{
-    Return the units of the \mono{icmCoolingPowerInBand} properties in the SI system.
+    !!{RST
+    Return the units of the ``icmCoolingPowerInBand`` properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self
@@ -329,7 +331,7 @@ contains
   end function icmCoolingPowerInBandUnitsInSI
 
   function icmCoolingPowerInBandUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the iCMCoolingPowerInBand property.
     !!}
     use :: Units_MetaData, only : unitType

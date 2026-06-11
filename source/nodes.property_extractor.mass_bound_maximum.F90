@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassBoundMaximum">
+  <nodePropertyExtractor name="nodePropertyExtractorMassBoundMaximum" docformat="rst">
    <description>
-     A node property extractor which extracts the maximum bound mass of the node. Requires the
-     \refClass{nodeOperatorMassBoundMaximum} node operator to be used to track the maximum bound mass.
+   A node property extractor which extracts the maximum bound mass of the node. Requires the ``nodeOperatorMassBoundMaximum`` node operator to be used to track the maximum bound mass.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBoundMaximum
-     !!{
+     !!{RST
      A property extractor which extracts the maximum bound mass of the node.
      !!}
      private
@@ -40,8 +39,8 @@
   end type nodePropertyExtractorMassBoundMaximum
 
   interface nodePropertyExtractorMassBoundMaximum
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -50,8 +49,8 @@
 contains
 
   function massBoundMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,8 +65,8 @@ contains
   end function massBoundMaximumConstructorParameters
 
   function massBoundMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self
@@ -79,7 +78,7 @@ contains
   end function massBoundMaximumConstructorInternal
 
   double precision function massBoundMaximumExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massBoundMaximum output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
@@ -104,8 +103,8 @@ contains
   end function massBoundMaximumExtract
    
   function massBoundMaximumName(self)
-    !!{
-    Return the names of the \mono{massBoundMaximum} properties.
+    !!{RST
+    Return the names of the ``massBoundMaximum`` properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumName
@@ -117,8 +116,8 @@ contains
   end function massBoundMaximumName
 
   function massBoundMaximumDescription(self)
-    !!{
-    Return the descriptions of the \mono{massBoundMaximum} properties.
+    !!{RST
+    Return the descriptions of the ``massBoundMaximum`` properties.
     !!}
     implicit none
     type (varying_string                       )                :: massBoundMaximumDescription
@@ -130,8 +129,8 @@ contains
   end function massBoundMaximumDescription
 
   double precision function massBoundMaximumUnitsInSI(self)
-    !!{
-    Return the units of the \mono{massBoundMaximum} properties in the SI system.
+    !!{RST
+    Return the units of the ``massBoundMaximum`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -143,7 +142,7 @@ contains
   end function massBoundMaximumUnitsInSI
 
   function massBoundMaximumUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massBoundMaximum property.
     !!}
     use :: Units_MetaData, only : unitType

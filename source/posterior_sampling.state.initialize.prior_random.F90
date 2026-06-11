@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which priorRandom converges.
   !!}
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializePriorRandom">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializePriorRandom" docformat="rst">
    <description>
-    A posterior sampling state initialization class which samples the initial state at random from the prior distribution(s).
+   A posterior sampling state initialization class which samples the initial state at random from the prior distribution(s).
    </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializePriorRandom
-     !!{
+     !!{RST
      Implementation of a posterior sampling state initialization class which samples the initial state at random from the priors.
      !!}
      private
@@ -38,8 +38,8 @@
   end type posteriorSampleStateInitializePriorRandom
 
   interface posteriorSampleStateInitializePriorRandom
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializePriorRandom} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the ``posteriorSampleStateInitializePriorRandom`` posterior sampling state initialization class.
      !!}
      module procedure priorRandomConstructorParameters
   end interface posteriorSampleStateInitializePriorRandom
@@ -47,8 +47,8 @@
 contains
 
   function priorRandomConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializePriorRandom} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorSampleStateInitializePriorRandom`` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +63,7 @@ contains
   end function priorRandomConstructorParameters
 
   subroutine priorRandomInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible

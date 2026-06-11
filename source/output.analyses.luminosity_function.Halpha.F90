@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a luminosity function output analysis class.
 !!}
 
@@ -26,12 +26,14 @@ Implements a luminosity function output analysis class.
   use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
-   <description>Computes the H$\alpha$ emission line galaxy luminosity function in bins of line luminosity, optionally including [NII] doublet contamination (\mono{includeNitrogenII}), applying ISM dust attenuation, and with configurable binomial covariance matrix parameters for halo mass range and optional target dataset.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha" docformat="rst">
+   <description>
+   Computes the H\ :math:`\alpha` emission line galaxy luminosity function in bins of line luminosity, optionally including [NII] doublet contamination (``includeNitrogenII``), applying ISM dust attenuation, and with configurable binomial covariance matrix parameters for halo mass range and optional target dataset.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha
-     !!{
+     !!{RST
      A luminosity function output analysis class.
      !!}
      private
@@ -48,8 +50,8 @@ Implements a luminosity function output analysis class.
   end type outputAnalysisLuminosityFunctionHalpha
 
   interface outputAnalysisLuminosityFunctionHalpha
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunctionHalpha} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class.
      !!}
      module procedure luminosityFunctionHalphaConstructorParameters
      module procedure luminosityFunctionHalphaConstructorInternal
@@ -59,8 +61,8 @@ Implements a luminosity function output analysis class.
 contains
 
   function luminosityFunctionHalphaConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionHalpha} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
@@ -93,74 +95,96 @@ contains
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(luminosities(parameters%count('luminosities')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label for the luminosity function.</description>
+      <description>
+      A label for the luminosity function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
-      <description>A descriptive comment for the luminosity function.</description>
+      <description>
+      A descriptive comment for the luminosity function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminosities</name>
       <source>parameters</source>
-      <description>The luminosities corresponding to bin centers.</description>
+      <description>
+      The luminosities corresponding to bin centers.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeNitrogenII</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include contamination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
+      <description>
+      If true, include contamination by the [NII] (6548\AA :math:`+` 6584\AA) doublet.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthOpticalISMCoefficient</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>
+      Multiplicative coefficient for optical depth in the ISM.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('targetLabel')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCovarianceTarget</name>
             <source>parameters</source>
             <variable>functionCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -208,8 +232,8 @@ contains
   end function luminosityFunctionHalphaConstructorParameters
 
   function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionHalpha} output analysis class which reads bin information from a standard format file.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                   , only : hdf5Access
     use :: IO_HDF5                       , only : hdf5Object
@@ -270,8 +294,8 @@ contains
   end function luminosityFunctionHalphaConstructorFile
 
   function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionHalpha} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -474,8 +498,8 @@ contains
   end function luminosityFunctionHalphaConstructorInternal
 
   subroutine luminosityFunctionHalphaDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunctionHalpha} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class.
     !!}
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
 

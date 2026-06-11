@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
-  given element to hydrogen, to $[\mathrm{N}/\mathrm{H}]$ form.
+  !!{RST
+  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`[\mathrm{N}/\mathrm{H}]` form.
   !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicitySolarRelative">
-   <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $[\mathrm{N}/\mathrm{H}]$ form.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicitySolarRelative" docformat="rst">
+   <description>
+   A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`[\mathrm{N}/\mathrm{H}]` form.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMetallicitySolarRelative
-     !!{
-     A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to
-     hydrogen, to $[\mathrm{N}/\mathrm{H}]$ form.
+     !!{RST
+     A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`[\mathrm{N}/\mathrm{H}]` form.
      !!}
      private
      integer :: atomicNumberElement, atomicNumberHydrogen, &
@@ -40,8 +40,8 @@
   end type outputAnalysisPropertyOperatorMetallicitySolarRelative
 
   interface outputAnalysisPropertyOperatorMetallicitySolarRelative
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class.
      !!}
      module procedure metallicitySolarRelativeConstructorParameters
      module procedure metallicitySolarRelativeConstructorInternal
@@ -50,8 +50,8 @@
 contains
 
   function metallicitySolarRelativeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,10 +61,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>atomicNumberElement</name>
       <source>parameters</source>
-      <description>The atomic number of the element used to define metallicity.</description>
+      <description>
+      The atomic number of the element used to define metallicity.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorMetallicitySolarRelative(atomicNumberElement)
@@ -75,8 +77,8 @@ contains
   end function metallicitySolarRelativeConstructorParameters
 
   function metallicitySolarRelativeConstructorInternal(atomicNumberElement) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicitySolarRelative} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
@@ -92,7 +94,7 @@ contains
   end function metallicitySolarRelativeConstructorInternal
 
   double precision function metallicitySolarRelativeOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an metallicity output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

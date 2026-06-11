@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
   !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <starFormationActiveMass name="starFormationActiveMassSurfaceDensityThreshold">
-   <description>An active mass for star formation class in which the mass of the ISM above a surface density threshold is active.</description>
+  <starFormationActiveMass name="starFormationActiveMassSurfaceDensityThreshold" docformat="rst">
+   <description>
+   An active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
+   </description>
   </starFormationActiveMass>
   !!]
   type, extends(starFormationActiveMassClass) :: starFormationActiveMassSurfaceDensityThreshold
-     !!{
+     !!{RST
      Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
      !!}
      private
@@ -43,8 +45,8 @@
   end type starFormationActiveMassSurfaceDensityThreshold
 
   interface starFormationActiveMassSurfaceDensityThreshold
-     !!{
-     Constructors for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
+     !!{RST
+     Constructors for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
      !!}
      module procedure surfaceDensityThresholdConstructorParameters
      module procedure surfaceDensityThresholdConstructorInternal
@@ -53,9 +55,8 @@
 contains
 
   function surfaceDensityThresholdConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,16 +66,20 @@ contains
     double precision                                                                :: surfaceDensityThreshold, exponentVelocity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>surfaceDensityThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The surface density threshold above which ISM gas participates in star formation.</description>
+      <description>
+      The surface density threshold above which ISM gas participates in star formation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of velocity in the surface density threshold for star formation.</description>
+      <description>
+      The exponent of velocity in the surface density threshold for star formation.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -88,8 +93,8 @@ contains
   end function surfaceDensityThresholdConstructorParameters
 
   function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
+    !!{RST
+    Internal constructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
     !!}
     implicit none
     type            (starFormationActiveMassSurfaceDensityThreshold)                        :: self
@@ -108,8 +113,8 @@ contains
   end function surfaceDensityThresholdConstructorInternal
 
   subroutine surfaceDensityThresholdDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationActiveMassSurfaceDensityThreshold} active mass for star formation class.
+    !!{RST
+    Destructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
     !!}
     implicit none
     type(starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self
@@ -121,8 +126,8 @@ contains
   end subroutine surfaceDensityThresholdDestructor
 
   double precision function surfaceDensityThresholdMassActive(self,component)
-    !!{
-    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given \mono{component} as the mass of gas in the ISM above a given surface density threshold
+    !!{RST
+    Returns the mass (in :math:`\mathrm{M}_\odot`) of gas actively undergoing star formation in the given ``component`` as the mass of gas in the ISM above a given surface density threshold
     !!}
     use :: Coordinates               , only : coordinateCylindrical, assignment(=)
     use :: Error                     , only : Error_Report

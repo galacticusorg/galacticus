@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar population spectra postprocessor class which applies a sequence of other postprocessors.
 !!}
 
@@ -27,13 +27,15 @@ Implements a stellar population spectra postprocessor class which applies a sequ
   end type postprocessorList
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence">
-   <description>A stellar population spectra postprocessor class that applies a sequence of other postprocessors in order, computing the total multiplicative correction as the product of all individual postprocessor multipliers, allowing multiple physical effects (e.g., IGM absorption and dust) to be combined.</description>
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorSequence" docformat="rst">
+   <description>
+   A stellar population spectra postprocessor class that applies a sequence of other postprocessors in order, computing the total multiplicative correction as the product of all individual postprocessor multipliers, allowing multiple physical effects (e.g., IGM absorption and dust) to be combined.
+   </description>
    <linkedList type="postprocessorList" variable="postprocessors" next="next" object="postprocessor_" objectType="stellarPopulationSpectraPostprocessorClass"/>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
-     !!{
+     !!{RST
      A sequence stellar population spectra postprocessor class.
      !!}
      private
@@ -45,8 +47,8 @@ Implements a stellar population spectra postprocessor class which applies a sequ
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorSequence} stellar population spectra postprocessor class.
+     !!{RST
+     Constructors for the ``stellarPopulationSpectraPostprocessorSequence`` stellar population spectra postprocessor class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -55,8 +57,8 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorSequence} stellar population spectra postprocessor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``stellarPopulationSpectraPostprocessorSequence`` stellar population spectra postprocessor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +88,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(postprocessors) result (self)
-    !!{
+    !!{RST
     Internal constructor for the sequence stellar population spectra postprocessor class.
     !!}
     implicit none
@@ -106,7 +108,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence stellar population spectra postprocessor class.
     !!}
     implicit none
@@ -128,7 +130,7 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Implement an sequence stellar population spectra postprocessor.
     !!}
     implicit none
@@ -148,7 +150,7 @@ contains
   end function sequenceMultiplier
 
   logical function sequenceIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return true if the postprocessor is redshift dependent.
     !!}
     implicit none

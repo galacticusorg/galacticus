@@ -22,12 +22,14 @@
   use :: Radiative_Transfer_Spectra, only : radiativeTransferSpectrumClass
   
   !![
-  <radiativeTransferSource name="radiativeTransferSourceDistributed">
-   <description>A photon source class for spatially extended radiative transfer sources whose emission is distributed according to a specified mass distribution. Photon packets are launched from positions sampled from the mass distribution, with spectra and a descriptive label provided via the \mono{[radiativeTransferSpectrum]} object and \mono{[label]} parameter.</description>
+  <radiativeTransferSource name="radiativeTransferSourceDistributed" docformat="rst">
+   <description>
+   A photon source class for spatially extended radiative transfer sources whose emission is distributed according to a specified mass distribution. Photon packets are launched from positions sampled from the mass distribution, with spectra and a descriptive label provided via the ``[radiativeTransferSpectrum]`` object and ``[label]`` parameter.
+   </description>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceDistributed
-     !!{
+     !!{RST
      Implementation of a distributed source class for radiative transfer calculations.
      !!}
      private
@@ -46,8 +48,8 @@
   end type radiativeTransferSourceDistributed
 
   interface radiativeTransferSourceDistributed
-     !!{
-     Constructors for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
+     !!{RST
+     Constructors for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
      !!}
      module procedure distributedConstructorParameters
      module procedure distributedConstructorInternal
@@ -56,9 +58,8 @@
 contains
 
   function distributedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,16 +72,20 @@ contains
     type            (varying_string                    )                :: label
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>position</name>
       <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
-      <description>The position of the distributed source.</description>
+      <description>
+      The position of the distributed source.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>A descriptive label for the source.</description>
+      <description>
+      A descriptive label for the source.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
@@ -98,8 +103,8 @@ contains
   end function distributedConstructorParameters
 
   function distributedConstructorInternal(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
     !!}
     implicit none
     type            (radiativeTransferSourceDistributed)                              :: self
@@ -116,8 +121,8 @@ contains
   end function distributedConstructorInternal
 
   subroutine distributedDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferSourceDistributed} radiative transfer source class.
+    !!{RST
+    Destructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceDistributed), intent(inout) :: self
@@ -131,7 +136,7 @@ contains
   end subroutine distributedDestructor
 
   subroutine distributedInitializePhotonPacket(self,photonPacket)
-    !!{
+    !!{RST
     Initialize the wavelength of the photon packet.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -162,7 +167,7 @@ contains
   end subroutine distributedInitializePhotonPacket
 
   double precision function distributedSpectrum(self,wavelength,sourceType)
-    !!{
+    !!{RST
     Return the spectrum of the distributed source.
     !!}
     use :: Error, only : Error_Report
@@ -179,7 +184,7 @@ contains
   end function distributedSpectrum
 
   double precision function distributedLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
-    !!{
+    !!{RST
     Return the luminosity of the distributed source.
     !!}
     use :: Error, only : Error_Report
@@ -196,7 +201,7 @@ contains
   end function distributedLuminosity
 
   integer function distributedSourceTypeCount(self)
-    !!{
+    !!{RST
     Return the number of source types provided.
     !!}
     implicit none
@@ -208,7 +213,7 @@ contains
   end function distributedSourceTypeCount
 
   function distributedSourceTypeName(self,sourceType)
-    !!{
+    !!{RST
     Return the name of the source type.
     !!}
     use :: Error, only : Error_Report

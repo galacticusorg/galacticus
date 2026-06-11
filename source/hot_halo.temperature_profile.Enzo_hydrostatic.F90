@@ -17,28 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo temperature class which uses the ``hydrostatic'' solution from the Enzo code.
+!!{RST
+An implementation of the hot halo temperature class which uses the "hydrostatic" solution from the Enzo code.
 !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
+  <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic" docformat="rst">
    <description>
-    A hot halo temperature profile class that implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
-    code. Specifically,
-    \begin{equation}
+   A hot halo temperature profile class that implements the "hydrostatic" temperature profile available in the :term:`ENZO` code. Specifically,
+
+   .. math::
+
       T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
-    \end{equation}
-    where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
-    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching arbitrarily low values.
+
+   where :math:`M(&lt;r)` is the total mass enclosed within radius :math:`r`, :math:`\mu` is the primordial mean atomic mass, and :math:`T_\mathrm{min}=100` K is a temperature floor introduced so as to avoid the temperature reaching arbitrarily low values.
    </description>
   </hotHaloTemperatureProfile>
   !!]
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
-     !!{
-     An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
+     !!{RST
+     An implementation of the hot halo temperature profile class which uses the "hydrostatic" solution from the Enzo code.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -48,7 +48,7 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
   end type hotHaloTemperatureProfileEnzoHydrostatic
 
   interface hotHaloTemperatureProfileEnzoHydrostatic
-     !!{
+     !!{RST
      Constructors for the enzoHydrostatic hot halo temperature profile class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
@@ -60,7 +60,7 @@ An implementation of the hot halo temperature class which uses the ``hydrostatic
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the enzoHydrostatic cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,7 +81,7 @@ contains
   end function enzoHydrostaticConstructorParameters
 
   function enzoHydrostaticConstructorInternal(darkMatterProfileDMO_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the enzoHydrostatic cooling rate class.
     !!}
     implicit none
@@ -95,8 +95,8 @@ contains
   end function enzoHydrostaticConstructorInternal
 
   subroutine enzoHydrostaticDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloTemperatureProfileEnzoHydrostatic} hot halo temperature profile class.
+    !!{RST
+    Destructor for the ``hotHaloTemperatureProfileEnzoHydrostatic`` hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
@@ -108,8 +108,8 @@ contains
   end subroutine enzoHydrostaticDestructor
 
   function enzoHydrostaticGet(self,node) result(kinematicsDistribution_)
-    !!{
-    Return the virial hot halo temperature distribution for the given \mono{node}.
+    !!{RST
+    Return the virial hot halo temperature distribution for the given ``node``.
     !!}
     use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionEnzoHydrostatic
     implicit none

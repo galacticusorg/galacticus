@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module functions supporting the black hole physics in the \refClass{nodeOperatorClass} class.
+!!{RST
+Contains a module functions supporting the black hole physics in the ``nodeOperatorClass`` class.
 !!}
 
 module Nodes_Operators_Black_Holes_Utilities
-  !!{
-  Provides functions supporting the black hole physics in the \refClass{nodeOperatorClass} class.
+  !!{RST
+  Provides functions supporting the black hole physics in the ``nodeOperatorClass`` class.
   !!}
   private
   public :: blackHolesRecoilEscapes
@@ -31,7 +31,7 @@ module Nodes_Operators_Black_Holes_Utilities
 contains
 
   logical function blackHolesRecoilEscapes(node,radius,radiusEscape,velocityRecoil,ignoreCentralBlackHole) result(escapes)
-    !!{
+    !!{RST
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
     use :: Galacticus_Nodes          , only : treeNode

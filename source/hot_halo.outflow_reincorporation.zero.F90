@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
 !!}
 
   !![
-  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationZero">
-   <description>An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.</description>
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationZero" docformat="rst">
+   <description>
+   An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
+   </description>
   </hotHaloOutflowReincorporation>
   !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationZero
-     !!{
+     !!{RST
      An implementation of the hot halo outflow reincorporation class which gives zero reincorporation rate.
      !!}
      private
@@ -36,8 +38,8 @@ An implementation of the hot halo outflow reincorporation class which gives zero
   end type hotHaloOutflowReincorporationZero
 
   interface hotHaloOutflowReincorporationZero
-     !!{
-     Constructors for the \refClass{hotHaloOutflowReincorporationZero} hot halo outflow reincorporation class.
+     !!{RST
+     Constructors for the ``hotHaloOutflowReincorporationZero`` hot halo outflow reincorporation class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowReincorporationZero
@@ -45,9 +47,8 @@ An implementation of the hot halo outflow reincorporation class which gives zero
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{zero} hot halo outflow reincorporation class which takes a parameter set
-    as input.
+    !!{RST
+    Default constructor for the ``zero`` hot halo outflow reincorporation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !!{
+    !!{RST
     Return the rate of mass reincorporation for outflowed gas in the hot halo.
     !!}
     implicit none

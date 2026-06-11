@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009}.
+!!{RST
+Implements the geometry of the SDSS survey used by :cite:t:`montero-dorta_sdss_2009`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">
-   <description>Implements the geometry of the SDSS survey as used by \cite{montero-dorta_sdss_2009} for their luminosity function measurements. The effective survey volume is defined by redshift limits \mono{[redshiftMinimum]} and \mono{[redshiftMaximum]} and apparent magnitude limits in a specified photometric \mono{[band]}.</description>
+  <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS" docformat="rst">
+   <description>
+   Implements the geometry of the SDSS survey as used by :cite:t:`montero-dorta_sdss_2009` for their luminosity function measurements. The effective survey volume is defined by redshift limits ``[redshiftMinimum]`` and ``[redshiftMaximum]`` and apparent magnitude limits in a specified photometric ``[band]``.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS
@@ -41,8 +43,8 @@ Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009
   end type surveyGeometryMonteroDorta2009SDSS
 
   interface surveyGeometryMonteroDorta2009SDSS
-     !!{
-     Constructors for the \cite{montero-dorta_sdss_2009} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`montero-dorta_sdss_2009` survey geometry class.
      !!}
      module procedure monteroDorta2009SDSSConstructorParameters
      module procedure monteroDorta2009SDSSConstructorInternal
@@ -51,8 +53,8 @@ Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009
 contains
 
   function monteroDorta2009SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \cite{montero-dorta_sdss_2009} conditional mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :cite:t:`montero-dorta_sdss_2009` conditional mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,10 +64,12 @@ contains
     character(len=1                             )                :: band
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>band</name>
       <source>parameters</source>
-      <description>The band for which the survey geometry should be computed.</description>
+      <description>
+      The band for which the survey geometry should be computed.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -78,8 +82,8 @@ contains
   end function monteroDorta2009SDSSConstructorParameters
 
   function monteroDorta2009SDSSConstructorInternal(band,cosmologyFunctions_,redshiftMinimum,redshiftMaximum) result (self)
-    !!{
-    Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
+    !!{RST
+    Default constructor for the :cite:t:`montero-dorta_sdss_2009` survey geometry class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -130,8 +134,8 @@ contains
   end function monteroDorta2009SDSSConstructorInternal
 
   subroutine monteroDorta2009SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryMonteroDorta2009SDSS} survey geometry class.
+    !!{RST
+    Destructor for the ``surveyGeometryMonteroDorta2009SDSS`` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMonteroDorta2009SDSS), intent(inout) :: self
@@ -143,7 +147,7 @@ contains
   end subroutine monteroDorta2009SDSSDestructor
 
   double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
@@ -168,7 +172,7 @@ contains
   end function monteroDorta2009SDSSDistanceMinimum
 
   double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving

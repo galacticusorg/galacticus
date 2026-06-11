@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class of modifiers of the power spectrum for the halo model.
 !!}
 
 module Halo_Model_Power_Spectrum_Modifiers
-  !!{
+  !!{RST
   Implements a class of modifiers of the power spectrum for the halo model.
   !!}
   private
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>haloModelTerm</name>
-   <description>Enumeration of terms in the halo model.</description>
+   <description>
+   Enumeration of terms in the halo model.
+   </description>
    <visibility>public</visibility>
    <entry label="oneHalo"/>
    <entry label="twoHalo"/>
@@ -38,20 +40,17 @@ module Halo_Model_Power_Spectrum_Modifiers
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>haloModelPowerSpectrumModifier</name>
    <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
    <description>
-    Class providing modifiers to the one-halo and two-halo power spectrum terms in halo model galaxy
-    clustering calculations. The \mono{modify} method accepts the raw halo-model power spectrum at
-    each wavenumber and modifies it in place for a specified term (one-halo or two-halo), allowing
-    corrections such as baryonic feedback suppression, assembly bias, or scale-dependent effects to
-    be applied without altering the underlying halo occupation distribution. Implementations may be
-    mass-dependent (for per-halo corrections) or act globally on the full power spectrum array.
+   Class providing modifiers to the one-halo and two-halo power spectrum terms in halo model galaxy clustering calculations. The ``modify`` method accepts the raw halo-model power spectrum at each wavenumber and modifies it in place for a specified term (one-halo or two-halo), allowing corrections such as baryonic feedback suppression, assembly bias, or scale-dependent effects to be applied without altering the underlying halo occupation distribution. Implementations may be mass-dependent (for per-halo corrections) or act globally on the full power spectrum array.
    </description>
    <default>identity</default>
    <method name="modify" >
-    <description>Modify the power spectra in the halo model of clustering.</description>
+    <description>
+    Modify the power spectra in the halo model of clustering.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                              , intent(in   ), dimension(:  )           :: wavenumber</argument>

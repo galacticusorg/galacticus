@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <outputTimes name="outputTimesUniformSpacingInRedshift">
-   <description>An output times class which generates a set of output times spaced uniformly in redshift.</description>
+  <outputTimes name="outputTimesUniformSpacingInRedshift" docformat="rst">
+   <description>
+   An output times class which generates a set of output times spaced uniformly in redshift.
+   </description>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesUniformSpacingInRedshift
-     !!{
+     !!{RST
      Implementation of an output times class which generates a set of output times spaced uniformly in redshift.
      !!}
      private
@@ -32,8 +34,8 @@
   end type outputTimesUniformSpacingInRedshift
 
   interface outputTimesUniformSpacingInRedshift
-     !!{
-     Constructors for the \refClass{outputTimesUniformSpacingInRedshift} output times class.
+     !!{RST
+     Constructors for the ``outputTimesUniformSpacingInRedshift`` output times class.
      !!}
      module procedure uniformSpacingInRedshiftConstructorParameters
      module procedure uniformSpacingInRedshiftConstructorInternal
@@ -42,8 +44,8 @@
 contains
 
   function uniformSpacingInRedshiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesUniformSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputTimesUniformSpacingInRedshift`` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -54,19 +56,25 @@ contains
     integer         (c_size_t                           )                :: countRedshifts
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
-      <description>The minimum redshift at which to output.</description>
+      <description>
+      The minimum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
-      <description>The maximum redshift at which to output.</description>
+      <description>
+      The maximum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countRedshifts</name>
-      <description>The number of redshifts at which to output.</description>
+      <description>
+      The number of redshifts at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -80,8 +88,8 @@ contains
   end function uniformSpacingInRedshiftConstructorParameters
 
   function uniformSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputTimesUniformSpacingInRedshift} output times class.
+    !!{RST
+    Internal constructor for the ``outputTimesUniformSpacingInRedshift`` output times class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none

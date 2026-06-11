@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
   !!}
 
@@ -25,26 +25,32 @@
   use :: ISO_Varying_String, only : varying_string
 
   !![
-  <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
+  <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin" docformat="rst">
    <description>
-    This class adopts the convergence criterion proposed by
-    \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which
-    compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
-    standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
-    \begin{description}
-    \item [\mono{Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
-    \item [\mono{burnCount}] Set number of steps to burn before applying the convergence test.
-    \item [\mono{testCount}] Set the number of steps between successive applications of the convergence test.
-    \item [\mono{outlierSignificance}] The significance level required in outlier detection.
-    \item [\mono{outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
-      required for a chain to be declared to be an outlier.
-    \item [\mono{outlierCountMaximum}] The maximum number of outlier chains allowed.
-    \end{description}
+   This class adopts the convergence criterion proposed by :cite:author:`gelman_a._inference_1992` (:cite:year:`gelman_a._inference_1992`; see also :cite:author:`brooks_general_1998` :cite:year:`brooks_general_1998`), which compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
+
+   ``Rhat``
+      The correlation coefficient, :math:`\hat{R}`, value at which to declare convergence.
+
+   ``burnCount``
+      Set number of steps to burn before applying the convergence test.
+
+   ``testCount``
+      Set the number of steps between successive applications of the convergence test.
+
+   ``outlierSignificance``
+      The significance level required in outlier detection.
+
+   ``outlierLogLikelihoodOffset``
+      The offset in log-likelihood from the current maximum likelihood chain required for a chain to be declared to be an outlier.
+
+   ``outlierCountMaximum``
+      The maximum number of outlier chains allowed.
    </description>
   </posteriorSampleConvergence>
   !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceGelmanRubin
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
      !!}
      private
@@ -76,8 +82,8 @@
   end type posteriorSampleConvergenceGelmanRubin
 
   interface posteriorSampleConvergenceGelmanRubin
-     !!{
-     Constructors for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class.
+     !!{RST
+     Constructors for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class.
      !!}
      module procedure gelmanRubinConstructorParameters
      module procedure gelmanRubinConstructorInternal
@@ -86,9 +92,8 @@
 contains
 
   function gelmanRubinConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: ISO_Varying_String, only : varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -102,51 +107,67 @@ contains
     type            (varying_string                       )                :: logFileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdHatR</name>
       <defaultValue>1.2d0</defaultValue>
-      <description>The Gelman-Rubin potential scale reduction factor $\hat{R}$ threshold below which all parameters must fall for the chains to be declared converged; values close to 1.0 indicate convergence, with 1.2 being a common default.</description>
+      <description>
+      The Gelman-Rubin potential scale reduction factor :math:`\hat{R}` threshold below which all parameters must fall for the chains to be declared converged; values close to 1.0 indicate convergence, with 1.2 being a common default.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>burnCount</name>
       <defaultValue>0</defaultValue>
-      <description>The number of initial MCMC steps to discard as burn-in before beginning to accumulate chain history for the Gelman-Rubin $\hat{R}$ convergence test.</description>
+      <description>
+      The number of initial MCMC steps to discard as burn-in before beginning to accumulate chain history for the Gelman-Rubin :math:`\hat{R}` convergence test.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>testCount</name>
       <defaultValue>10</defaultValue>
-      <description>The interval in number of steps at which to check convergence.</description>
+      <description>
+      The interval in number of steps at which to check convergence.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outlierCountMaximum</name>
       <defaultValue>0</defaultValue>
-      <description>The maximum number of chains whose current state may be identified as statistical outliers when computing the convergence statistic.</description>
+      <description>
+      The maximum number of chains whose current state may be identified as statistical outliers when computing the convergence statistic.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outlierSignificance</name>
       <defaultValue>0.05d0</defaultValue>
-      <description>The statistical significance level used when testing whether a chain's current log-likelihood deviates sufficiently from the ensemble mean to be classified as an outlier chain.</description>
+      <description>
+      The statistical significance level used when testing whether a chain's current log-likelihood deviates sufficiently from the ensemble mean to be classified as an outlier chain.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outlierLogLikelihoodOffset</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The log-likelihood offset at which to declare a state an outlier.</description>
+      <description>
+      The log-likelihood offset at which to declare a state an outlier.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportCount</name>
       <defaultValue>10</defaultValue>
-      <description>The interval in number of steps at which to report on convergence status.</description>
+      <description>
+      The interval in number of steps at which to report on convergence status.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileName</name>
-      <description>The name of the file to which convergence state should be logged.</description>
+      <description>
+      The name of the file to which convergence state should be logged.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -158,8 +179,8 @@ contains
   end function gelmanRubinConstructorParameters
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleConvergenceGelmanRubin} posterior sampling convergence class.
+    !!{RST
+    Constructor for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class.
     !!}
     use :: Error        , only : Error_Report
     use :: MPI_Utilities, only : mpiSelf
@@ -188,7 +209,7 @@ contains
   end function gelmanRubinConstructorInternal
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Return whether the simulation is converged.
     !!}
     use :: Display                 , only : displayMessage
@@ -472,7 +493,7 @@ contains
   end function gelmanRubinIsConverged
 
   integer function gelmanRubinConvergedAtStep(self)
-    !!{
+    !!{RST
     Return the step at which the simulation converged.
     !!}
     implicit none
@@ -483,7 +504,7 @@ contains
   end function gelmanRubinConvergedAtStep
 
   subroutine gelmanRubinReset(self)
-    !!{
+    !!{RST
     Reset the convergence object.
     !!}
     implicit none
@@ -495,8 +516,8 @@ contains
   end subroutine gelmanRubinReset
 
   subroutine gelmanRubinLogReport(self,fileUnit)
-    !!{
-    Write a convergence report to the given \mono{fileUnit}.
+    !!{RST
+    Write a convergence report to the given ``fileUnit``.
     !!}
     implicit none
     class    (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
@@ -515,7 +536,7 @@ contains
   end subroutine gelmanRubinLogReport
 
   logical function gelmanRubinStateIsOutlier(self,stateIndex)
-    !!{
+    !!{RST
     Return true if the specified chain is deemed to be an outlier.
     !!}
     implicit none
@@ -527,8 +548,8 @@ contains
   end function gelmanRubinStateIsOutlier
 
   double precision function gelmanRubinConvergenceMeasure(self)
-    !!{
-    Return the current maximum $\hat{R}$ convergence measure.
+    !!{RST
+    Return the current maximum :math:`\hat{R}` convergence measure.
     !!}
     implicit none
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
@@ -544,8 +565,8 @@ contains
   end function gelmanRubinConvergenceMeasure
 
   double precision function gelmanRubinConvergenceMeasureTarget(self)
-    !!{
-    Return the target $\hat{R}$ convergence measure.
+    !!{RST
+    Return the target :math:`\hat{R}` convergence measure.
     !!}
     implicit none
     class(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self

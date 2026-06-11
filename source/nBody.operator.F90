@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provieds a class that implements operators on data from N-body simulations.
 !!}
 
 module NBody_Operators
-  !!{
+  !!{RST
   Provides a class that implements operators on data from N-body simulations.
   !!}
   use :: NBody_Simulation_Data, only : nBodyData
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>nbodyOperator</name>
    <descriptiveName>N-Body Simulation Data Operators</descriptiveName>
-   <description>Class providing operators that act on data from N-body simulations---post-processing
-    transformations applied sequentially to the \mono{nBodyData} objects imported by
-    \refClass{nbodyImporterClass}. Typical operations include computing halo masses, spin parameters,
-    concentrations, merger histories, or galaxy occupation fractions from the raw particle data.
-    Multiple operators can be chained to build a complete analysis pipeline, with the null operator
-    leaving the data unchanged for pass-through use cases.</description>
+   <description>
+   Class providing operators that act on data from N-body simulations---post-processing transformations applied sequentially to the ``nBodyData`` objects imported by ``nbodyImporterClass``. Typical operations include computing halo masses, spin parameters, concentrations, merger histories, or galaxy occupation fractions from the raw particle data. Multiple operators can be chained to build a complete analysis pipeline, with the null operator leaving the data unchanged for pass-through use cases.
+   </description>
    <default>null</default>
    <method name="operate" >
-    <description>Apply this operator to the provided array of N-body simulation datasets, transforming or augmenting particle and halo properties in place.</description>
+    <description>
+    Apply this operator to the provided array of N-body simulation datasets, transforming or augmenting particle and halo properties in place.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(nBodyData), intent(inout), dimension(:) :: simulations</argument>

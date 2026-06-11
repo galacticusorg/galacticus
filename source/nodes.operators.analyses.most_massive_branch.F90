@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that determines if a node is on the most massive branch of its tree.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorBranchMostMassive">
+  <nodeOperator name="nodeOperatorBranchMostMassive" docformat="rst">
     <description>
-      A node operator class that determines if a node is on the most massive branch of its tree. Intended to be paired with the
-      \refClass{nodePropertyExtractorBranchMostMassive} property extractor class to extract this meta-data for output.
+    A node operator class that determines if a node is on the most massive branch of its tree. Intended to be paired with the ``nodePropertyExtractorBranchMostMassive`` property extractor class to extract this meta-data for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBranchMostMassive
-     !!{
+     !!{RST
      A node operator class that tracks the maximum host halo mass which a node has occupied.
      !!}
      private
@@ -40,8 +39,8 @@
   end type nodeOperatorBranchMostMassive
   
   interface nodeOperatorBranchMostMassive
-     !!{
-     Constructors for the \refClass{nodeOperatorBranchMostMassive} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorBranchMostMassive`` node operator class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -50,8 +49,8 @@
 contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBranchMostMassive} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorBranchMostMassive`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +65,8 @@ contains
   end function branchMostMassiveConstructorParameters
 
   function branchMostMassiveConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBranchMostMassive} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorBranchMostMassive`` node operator class.
     !!}
     implicit none
     type(nodeOperatorBranchMostMassive) :: self
@@ -79,7 +78,7 @@ contains
   end function branchMostMassiveConstructorInternal
 
   subroutine branchMostMassiveNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Determine if this node is on the most massive branch of its tree.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic

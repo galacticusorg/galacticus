@@ -17,39 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of heated dark matter halo profiles based on the energy ordering of shells.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <massDistribution name="massDistributionSphericalHeatedMonotonic">
+  <massDistribution name="massDistributionSphericalHeatedMonotonic" docformat="rst">
    <description>
-     A mass distribution class in which dark matter halos start out with a density profile defined by another \mono{massDistributionClass}. This profile is then modified by heating, under the assumption that the
-     energy of a shell of mass before and after heating are related by
-     \begin{equation}
-     -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
-     \end{equation}    
-     where $M(r)$ is the mass enclosed within a radius $r$, and $\epsilon(r)$ represents the specific heating in the shell
-     initially at radius $r$. Primes indicate values after heating, while unprimed variables indicate quantities prior to
-     heating.
+   A mass distribution class in which dark matter halos start out with a density profile defined by another ``massDistributionClass``. This profile is then modified by heating, under the assumption that the energy of a shell of mass before and after heating are related by
 
-     The above equation can be re-written as
-     \begin{equation}
-     -r^{\prime -1} = -r^{-1} + \xi(r),
-     \end{equation}     
-     where $\xi(r) = 2 \epsilon(r)/[\mathrm{G} M(r)/r]$ measures the perturbation to the shell. To avoid shell crossing a
-     monotonicity relation $r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)$ is enforced by starting at large radius and stepping inward,
-     enforcing the condition in the next innermost shell as necessary.
-     
-     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=$\mono{fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-     unheated profile, otherwise a numerical calculation is performed.
+   .. math::
+
+      -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
+
+   where :math:`M(r)` is the mass enclosed within a radius :math:`r`, and :math:`\epsilon(r)` represents the specific heating in the shell initially at radius :math:`r`. Primes indicate values after heating, while unprimed variables indicate quantities prior to heating.
+
+   The above equation can be re-written as
+
+   .. math::
+
+      -r^{\prime -1} = -r^{-1} + \xi(r),
+
+   where :math:`\xi(r) = 2 \epsilon(r)/[\mathrm{G} M(r)/r]` measures the perturbation to the shell. To avoid shell crossing a monotonicity relation :math:`r_1 &lt; r_2 \implies \xi(r_1) \le \xi(r_2)` is enforced by starting at large radius and stepping inward, enforcing the condition in the next innermost shell as necessary.
+
+   Not all methods have analytic solutions for this profile. If ``[nonAnalyticSolver]``\ :math:`=`\ ``fallThrough`` then attempts to call these methods in heated profiles will simply return the result from the unheated profile, otherwise a numerical calculation is performed.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalHeatedMonotonic
-     !!{
+     !!{RST
      Implementation of a heated spherical mass distribution.
      !!}
      private
@@ -74,8 +72,8 @@
   end type massDistributionSphericalHeatedMonotonic
 
   interface massDistributionSphericalHeatedMonotonic
-     !!{
-     Constructors for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalHeatedMonotonic`` mass distribution class.
      !!}
      module procedure sphericalHeatedMonotonicConstructorParameters
      module procedure sphericalHeatedMonotonicConstructorInternal
@@ -84,9 +82,8 @@
 contains
 
   function sphericalHeatedMonotonicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalHeatedMonotonic`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -100,27 +97,35 @@ contains
     double precision                                                          :: radiusVirial
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirial</name>
       <source>parameters</source>
-      <description>The virial radius (in Mpc) of the halo, defining the outer boundary up to which the monotonic heating calculation tracks the energy-ordered shell mapping from the initial to heated density profile.</description>
+      <description>
+      The virial radius (in Mpc) of the halo, defining the outer boundary up to which the monotonic heating calculation tracks the energy-ordered shell mapping from the initial to heated density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
@@ -141,8 +146,8 @@ contains
   end function sphericalHeatedMonotonicConstructorParameters
   
   function sphericalHeatedMonotonicConstructorInternal(radiusVirial,nonAnalyticSolver,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalHeatedMonotonic`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeatedMonotonic)                          :: self
@@ -167,8 +172,8 @@ contains
   end function sphericalHeatedMonotonicConstructorInternal
 
   subroutine sphericalHeatedMonotonicDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalHeatedMonotonic} mass distribution class.
+    !!{RST
+    Destructor for the ``massDistributionSphericalHeatedMonotonic`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeatedMonotonic), intent(inout) :: self
@@ -181,7 +186,7 @@ contains
   end subroutine sphericalHeatedMonotonicDestructor
 
   logical function sphericalHeatedMonotonicUseUndecorated(self) result(useUndecorated)
-    !!{
+    !!{RST
     Determines whether to use the undecorated solution.
     !!}
     implicit none
@@ -192,9 +197,8 @@ contains
   end function sphericalHeatedMonotonicUseUndecorated
   
   double precision function sphericalHeatedMonotonicMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Returns the enclosed mass (in $\mathrm{M}_\odot$) in the dark matter profile of \mono{node} at the given \mono{radius} (given in
-    units of Mpc).
+    !!{RST
+    Returns the enclosed mass (in :math:`\mathrm{M}_\odot`) in the dark matter profile of ``node`` at the given ``radius`` (given in units of Mpc).
     !!}
     implicit none
     class           (massDistributionSphericalHeatedMonotonic), intent(inout), target :: self
@@ -229,8 +233,8 @@ contains
   end function sphericalHeatedMonotonicMassEnclosedBySphere
 
   double precision function sphericalHeatedMonotonicDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -260,7 +264,7 @@ contains
   end function sphericalHeatedMonotonicDensity
 
   subroutine sphericalHeatedMonotonicComputeSolution(self,radius)
-    !!{
+    !!{RST
     Compute the solution for the heated density profile.
     !!}
     use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic

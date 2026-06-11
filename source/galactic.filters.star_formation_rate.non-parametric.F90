@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic (high- or low-pass) filter for total star formation rate with a non-parametric dependence on stellar mass.
 !!}
 
@@ -27,9 +27,11 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>filterType</name>
-   <description>Used to specify the type of filter for non-parametric star formation rate filtering.</description>
+   <description>
+   Used to specify the type of filter for non-parametric star formation rate filtering.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="lowPass"  description="Low-pass filter" />
@@ -38,16 +40,14 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
   !!]
 
   !![
-  <galacticFilter name="galacticFilterStarFormationRateNonParametric">
+  <galacticFilter name="galacticFilterStarFormationRateNonParametric" docformat="rst">
    <description>
-    A galactic (high- or low-pass) filter for star formation rate. Galaxies with a combined disk, spheroid, plus \gls{nsc} star
-    formation rate are passed if they are above or below (for \mono{[filterType]}$=$\mono{highPass} or \mono{lowPass} respectively) a mass-dependent threshold. The threshold is linearly interpolated
-    in log(\mono{[rateStarFormation]}) vs. log(\mono{[massStellar]}).
+   A galactic (high- or low-pass) filter for star formation rate. Galaxies with a combined disk, spheroid, plus :term:`NSC` star formation rate are passed if they are above or below (for ``[filterType]``\ :math:`=`\ ``highPass`` or ``lowPass`` respectively) a mass-dependent threshold. The threshold is linearly interpolated in log(``[rateStarFormation]``) vs. log(``[massStellar]``).
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStarFormationRateNonParametric
-     !!{
+     !!{RST
      A galactic high-pass filter class for star formation rate.
      !!}
      private
@@ -63,8 +63,8 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
   end type galacticFilterStarFormationRateNonParametric
 
   interface galacticFilterStarFormationRateNonParametric
-     !!{
-     Constructors for the \refClass{galacticFilterStarFormationRateNonParametric} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
      !!}
      module procedure starFormationRateNonParametricConstructorParameters
      module procedure starFormationRateNonParametricConstructorInternal
@@ -73,8 +73,8 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
 contains
 
   function starFormationRateNonParametricConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStarFormationRateNonParametric} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,20 +88,26 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterType</name>
       <source>parameters</source>
-      <description>Specifies whether the filter passes galaxies below (\mono{lowPass}) or above (\mono{highPass}) the mass-dependent star formation rate threshold, controlling whether quiescent or star-forming galaxies are selected.</description>
+      <description>
+      Specifies whether the filter passes galaxies below (``lowPass``) or above (``highPass``) the mass-dependent star formation rate threshold, controlling whether quiescent or star-forming galaxies are selected.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellar</name>
       <source>parameters</source>
-      <description>The list of stellar masses at which the star formation rate threshold is specified.</description>
+      <description>
+      The list of stellar masses at which the star formation rate threshold is specified.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateStarFormation</name>
       <source>parameters</source>
-      <description>The list of star formation rate thresholds for each stellar mass.</description>
+      <description>
+      The list of star formation rate thresholds for each stellar mass.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
@@ -118,8 +124,8 @@ contains
   end function starFormationRateNonParametricConstructorParameters
 
   function starFormationRateNonParametricConstructorInternal(filterType,massStellar,rateStarFormation,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStarFormationRateNonParametric} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
     !!}
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
     use :: Numerical_Interpolation, only : gsl_interp_linear
@@ -140,8 +146,8 @@ contains
   end function starFormationRateNonParametricConstructorInternal
 
   subroutine starFormationRateNonParametricDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterStarFormationRateNonParametric} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStarFormationRateNonParametric), intent(inout) :: self
@@ -155,7 +161,7 @@ contains
   end subroutine starFormationRateNonParametricDestructor
 
   logical function starFormationRateNonParametricPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement an star formation rate galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC, treeNode

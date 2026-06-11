@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo mass accretion histories using the \cite{zhao_accurate_2009} algorithm.
+  !!{RST
+  An implementation of dark matter halo mass accretion histories using the :cite:t:`zhao_accurate_2009` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -26,24 +26,23 @@
   use :: Linear_Growth             , only : linearGrowth                 , linearGrowthClass
 
   !![
-  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009">
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryZhao2009" docformat="rst">
    <description>
-    A dark matter halo mass accretion history class which uses the algorithm given by \cite{zhao_accurate_2009} to compute mass
-    accretion histories. In particular, \cite{zhao_accurate_2009} give a fitting function for the quantity $\mathrm{d} \ln
-    \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)$ for the dimensionless growth rate in a mass accretion history at time $t$
-    and halo mass $M$. This is converted to a dimensionful growth rate using
-    \begin{equation}
-     {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
-     \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
-     \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
-    \end{equation}
-    This differential equation is then solved numerically to find the mass accretion history.
+   A dark matter halo mass accretion history class which uses the algorithm given by :cite:t:`zhao_accurate_2009` to compute mass accretion histories. In particular, :cite:t:`zhao_accurate_2009` give a fitting function for the quantity :math:`\mathrm{d} \ln \sigma(M)/\mathrm{d} \ln \delta_\mathrm{c}(t)` for the dimensionless growth rate in a mass accretion history at time :math:`t` and halo mass :math:`M`. This is converted to a dimensionful growth rate using
+
+   .. math::
+
+      {\mathrm{d} M \over \mathrm{d} t} = \left({\mathrm{d} \ln \sigma(M) \over \mathrm{d} \ln M}\right)^{-1} \left({\mathrm{d}
+      \delta_c(t) \over \mathrm{d} t}\right) \left( {M \over \delta_\mathrm{c}(t)} \right) \left({\mathrm{d} \ln \sigma(M) \over
+      \mathrm{d} \ln \delta_\mathrm{c}(t)}\right).
+
+   This differential equation is then solved numerically to find the mass accretion history.
    </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
-     !!{
-     A dark matter halo mass accretion history class using the \cite{zhao_accurate_2009} algorithm.
+     !!{RST
+     A dark matter halo mass accretion history class using the :cite:t:`zhao_accurate_2009` algorithm.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -57,8 +56,8 @@
   end type darkMatterHaloMassAccretionHistoryZhao2009
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
-     !!{
-     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
+     !!{RST
+     Constructors for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
      !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
@@ -67,9 +66,8 @@
 contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class which takes a parameter
-    set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,8 +96,8 @@ contains
   end function zhao2009ConstructorParameters
 
   function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
+    !!{RST
+    Internal constructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                        :: self
@@ -115,8 +113,8 @@ contains
   end function zhao2009ConstructorInternal
 
   subroutine zhao2009Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryZhao2009} dark matter halo mass accretion history class.
+    !!{RST
+    Destructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
@@ -131,8 +129,8 @@ contains
   end subroutine zhao2009Destructor
 
   double precision function zhao2009Time(self,node,mass)
-    !!{
-    Compute the time corresponding to \mono{mass} in the mass accretion history of \mono{node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!{RST
+    Compute the time corresponding to ``mass`` in the mass accretion history of ``node`` using the algorithm of :cite:t:`zhao_accurate_2009`.
     !!}
     use :: Error                , only : Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
@@ -181,7 +179,7 @@ contains
   contains
 
     integer function growthRateODEs(mass,nowTime,dNowTimedMass)
-      !!{
+      !!{RST
       System of differential equations to solve for the growth rate.
       !!}
       implicit none
@@ -228,8 +226,8 @@ contains
   end function zhao2009Time
 
   double precision function zhao2009MassAccretionRate(self,node,time)
-    !!{
-    Compute the mass accretion rate at the given \mono{mass} in the mass accretion history of \mono{node} using the algorithm of \cite{zhao_accurate_2009}.
+    !!{RST
+    Compute the mass accretion rate at the given ``mass`` in the mass accretion history of ``node`` using the algorithm of :cite:t:`zhao_accurate_2009`.
     !!}
     use :: Error, only : Error_Report
     implicit none

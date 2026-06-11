@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides photon outputters for radiative transfer calculations.
 !!}
 
 module Radiative_Transfer_Outputters
-  !!{
+  !!{RST
   Provides a class that implements outputters for radiative transfer calculations.
   !!}
   use :: IO_HDF5                         , only : hdf5Object
@@ -31,18 +31,17 @@ module Radiative_Transfer_Outputters
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>radiativeTransferOutputter</name>
    <descriptiveName>Radiative Transfer Outputters</descriptiveName>
-   <description>Class providing outputters for Monte Carlo radiative transfer calculations---routines that
-    collect and record photon packet statistics as packets propagate through the computational domain.
-    Methods handle escaped photon packets (recording their wavelength, direction, and weight), output
-    properties of the source distribution, and optionally record intermediate quantities such as the
-    local radiation field or ionization state. Implementations write results to HDF5 output groups
-    for subsequent analysis of the emergent spectrum or radiation field.</description>
+   <description>
+   Class providing outputters for Monte Carlo radiative transfer calculations---routines that collect and record photon packet statistics as packets propagate through the computational domain. Methods handle escaped photon packets (recording their wavelength, direction, and weight), output properties of the source distribution, and optionally record intermediate quantities such as the local radiation field or ionization state. Implementations write results to HDF5 output groups for subsequent analysis of the emergent spectrum or radiation field.
+   </description>
    <default>null</default>
    <method name="reset" >
-    <description>Reset the outputter to its initial state, clearing any accumulated photon packet statistics in preparation for a new iteration or output epoch.</description>
+    <description>
+    Reset the outputter to its initial state, clearing any accumulated photon packet statistics in preparation for a new iteration or output epoch.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -50,7 +49,9 @@ module Radiative_Transfer_Outputters
     </code>
    </method>
    <method name="sourceProperties" >
-    <description>Output properties of the source distribution.</description>
+    <description>
+    Output properties of the source distribution.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class(radiativeTransferSourceClass), intent(inout) :: radiativeTransferSource_</argument>
@@ -60,7 +61,9 @@ module Radiative_Transfer_Outputters
     </code>
    </method>
    <method name="photonPacketEscapes" >
-    <description>Handle cases where a photon packet escapes the computational domain.</description>
+    <description>
+    Handle cases where a photon packet escapes the computational domain.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
@@ -69,7 +72,9 @@ module Radiative_Transfer_Outputters
     </code>
    </method>
    <method name="finalize" >
-    <description>Finalize any calculations output.</description>
+    <description>
+    Finalize any calculations output.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -77,7 +82,9 @@ module Radiative_Transfer_Outputters
     </code>
    </method>
    <method name="output" >
-    <description>Perform final output.</description>
+    <description>
+    Perform final output.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type (hdf5Object), intent(inout) :: outputGroup</argument>

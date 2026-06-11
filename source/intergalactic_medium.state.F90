@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class for calculations of the intergalactic medium thermal and ionization state.
 !!}
 
 module Intergalactic_Medium_State
-  !!{
+  !!{RST
   Provides a class for calculations of the intergalactic medium thermal and ionization state.
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
@@ -31,69 +31,84 @@ module Intergalactic_Medium_State
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>intergalacticMediumState</name>
    <descriptiveName>Intergalactic Medium State</descriptiveName>
-   <description>Class providing the thermal and ionization state of the \gls{igm}---the hydrogen and helium
-    neutral, singly-ionized, and doubly-ionized fractions, the electron fraction, the temperature, and the
-    electron-scattering optical depth as functions of cosmic time. These quantities evolve through the epoch
-    of reionization and affect the cooling rates, photo-ionization suppression, and the UV background
-    modelled elsewhere in Galacticus. The instantaneous Jeans mass computed from the IGM temperature governs
-    the filtering mass scale for baryon accretion onto low-mass halos.</description>
+   <description>
+   Class providing the thermal and ionization state of the :term:`IGM`---the hydrogen and helium neutral, singly-ionized, and doubly-ionized fractions, the electron fraction, the temperature, and the electron-scattering optical depth as functions of cosmic time. These quantities evolve through the epoch of reionization and affect the cooling rates, photo-ionization suppression, and the UV background modelled elsewhere in Galacticus. The instantaneous Jeans mass computed from the IGM temperature governs the filtering mass scale for baryon accretion onto low-mass halos.
+   </description>
    <default>recFast</default>
    <method name="electronFraction" >
-    <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
+    <description>
+    Return the electron fraction (relative to hydrogen) in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="neutralHydrogenFraction" >
-    <description>Return the neutral fraction of hydrogen in the \gls{igm} at the given time.</description>
+    <description>
+    Return the neutral fraction of hydrogen in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="singlyIonizedHydrogenFraction" >
-    <description>Return the singly-ionized fraction of hydrogen in the \gls{igm} at the given time.</description>
+    <description>
+    Return the singly-ionized fraction of hydrogen in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time</argument>
     <code>intergalacticMediumStateSinglyIonizedHydrogenFraction=1.0d0-self%neutralHydrogenFraction(time)</code>
    </method>
    <method name="neutralHeliumFraction" >
-    <description>Return the neutral fraction of helium in the \gls{igm} at the given time.</description>
+    <description>
+    Return the neutral fraction of helium in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="singlyIonizedHeliumFraction" >
-    <description>Return the singly-ionized fraction of helium in the \gls{igm} at the given time.</description>
+    <description>
+    Return the singly-ionized fraction of helium in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="doublyIonizedHeliumFraction" >
-    <description>Return the doubly-ionized fraction of helium in the \gls{igm} at the given time.</description>
+    <description>
+    Return the doubly-ionized fraction of helium in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time</argument>
     <code>intergalacticMediumStateDoublyIonizedHeliumFraction=1.0d0-self%singlyIonizedHeliumFraction(time)-self%neutralHeliumFraction(time)</code>
    </method>
    <method name="metallicity" >
-    <description>Return the metallicity (mass fraction) in the \gls{igm} at the given time.</description>
+    <description>
+    Return the metallicity (mass fraction) in the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time</argument>
     <code>intergalacticMediumStateMetallicity=0.0d0</code>
    </method>
    <method name="temperature" >
-    <description>Return the temperature (in Kelvin) of the \gls{igm} at the given time.</description>
+    <description>
+    Return the temperature (in Kelvin) of the :term:`IGM` at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="massJeans" >
-    <description>Return the instantaneus Jeans mass (in $\mathrm{M}_\odot$) at the given time.</description>
+    <description>
+    Return the instantaneus Jeans mass (in :math:`\mathrm{M}_\odot`) at the given time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Numerical_Constants_Physical Numerical_Constants_Astronomical Numerical_Constants_Atomic Numerical_Constants_Prefixes</modules>
@@ -126,7 +141,9 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringOpticalDepth" >
-    <description>Return the electron scattering optical depth from the present day back to the given \mono{time} in the \gls{igm}.</description>
+    <description>
+    Return the electron scattering optical depth from the present day back to the given ``time`` in the :term:`IGM`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -152,7 +169,9 @@ module Intergalactic_Medium_State
     </code>
    </method>
    <method name="electronScatteringTime" >
-    <description>Return the cosmological time at which the given electron scattering \mono{opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
+    <description>
+    Return the cosmological time at which the given electron scattering ``opticalDepth`` is reached (integrating from the present day) in the :term:`IGM`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -200,7 +219,7 @@ module Intergalactic_Medium_State
 contains
 
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
-    !!{
+    !!{RST
     Construct a table of electron scattering optical depth as a function of cosmological time.
     !!}
     use :: Error                , only : Error_Report
@@ -281,7 +300,7 @@ contains
   contains
 
     double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
-      !!{
+      !!{RST
       Integrand for electron scattering optical depth calculations.
       !!}
       use :: Numerical_Constants_Astronomical, only : gigaYear        , heliumByMassPrimordial, hydrogenByMassPrimordial, massSolar, &

@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of heated dark matter halo profiles.
   !!}
 
   use :: Mass_Distributions, only : enumerationNonAnalyticSolversType
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
+  <darkMatterProfileDMO name="darkMatterProfileDMOHeated" docformat="rst">
    <description>
-     A dark matter profile DMO class which builds \refClass{massDistributionSphericalHeated} objects to account for heating of
-     some other dark matter profile.
+   A dark matter profile DMO class which builds ``massDistributionSphericalHeated`` objects to account for heating of some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
-     !!{
+     !!{RST
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
@@ -50,8 +49,8 @@
   end type darkMatterProfileDMOHeated
 
   interface darkMatterProfileDMOHeated
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOHeated} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -60,8 +59,8 @@
 contains
 
   function heatedConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{heated} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``heated`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -78,70 +77,92 @@ contains
          &                                                             fractionRadiusFinalSmall              , toleranceRelativePotential
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionApproximate</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If \mono{false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+      <description>
+      If ``true``, radial velocity dispersion is computed using an approximate method in which we assume that :math:`\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)`, where :math:`\epsilon(r)` is the specific heating energy. If ``false`` then radial velocity dispersion is computed by numerically solving the Jeans equation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>
+      If ``true``, tolerate failures to find the mass enclosed as a function of radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityDispersionFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the velocity dispersion.</description>
+      <description>
+      If ``true``, tolerate failures to compute the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>
+      If ``true``, tolerate failures to find the radius of the maximum circular velocity.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of a heated dark matter profile, allowing the calculation to continue with a fallback result rather than aborting.</description>
+      <description>
+      If ``true``, tolerate numerical failures when computing the gravitational potential of a heated dark matter profile, allowing the calculation to continue with a fallback result rather than aborting.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionRadiusFinalSmall</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.</description>
+      <description>
+      The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.</description>
+      <description>
+      The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, tolerate failures to find the radius of the peak in the rotation curve.</description>
+      <description>
+      If true, tolerate failures to find the radius of the peak in the rotation curve.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
@@ -157,8 +178,8 @@ contains
   end function heatedConstructorParameters
 
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOHeated} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -183,8 +204,8 @@ contains
   end function heatedConstructorInternal
 
   subroutine heatedDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOHeated} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self
@@ -197,8 +218,8 @@ contains
   end subroutine heatedDestructor
 
   function heatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo          , massTypeDark                , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalHeated, kinematicsDistributionHeated, massDistributionSpherical, massDistributionHeatingClass

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a model parameter class in which the parameter value is derived from other parameters.
   !!}
 
   !![
-  <modelParameter name="modelParameterDerived">
-   <description>A model parameter class in which the parameter value is not sampled directly but instead derived algorithmically from other model parameters via a mathematical expression. The parameter name is set by \mono{[name]} and the derivation formula by \mono{[definition]}, enabling computed quantities to be tracked as named parameters during posterior sampling.</description>
+  <modelParameter name="modelParameterDerived" docformat="rst">
+   <description>
+   A model parameter class in which the parameter value is not sampled directly but instead derived algorithmically from other model parameters via a mathematical expression. The parameter name is set by ``[name]`` and the derivation formula by ``[definition]``, enabling computed quantities to be tracked as named parameters during posterior sampling.
+   </description>
   </modelParameter>
   !!]
   type, extends(modelParameterInactive) :: modelParameterDerived
-     !!{
+     !!{RST
      Implementation of a model parameter class in which the parameter value is derived from other parameters.
      !!}
      private
@@ -45,8 +47,8 @@
   end type modelParameterDerived
 
   interface modelParameterDerived
-     !!{
-     Constructors for the \refClass{modelParameterDerived} model parameter class.
+     !!{RST
+     Constructors for the ``modelParameterDerived`` model parameter class.
      !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function derivedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{modelParameterDerived} model parameter class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``modelParameterDerived`` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,20 +68,26 @@ contains
     logical                                       :: isInteger
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>name</name>
-      <description>The name of the derived model parameter as it appears in the \glc\ parameter file and posterior sampling output; used to identify this computed quantity in the parameter chain.</description>
+      <description>
+      The name of the derived model parameter as it appears in the Galacticus parameter file and posterior sampling output; used to identify this computed quantity in the parameter chain.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>definition</name>
-      <description>The mathematical expression or formula used to derive this parameter's value from other model parameters during posterior sampling.</description>
+      <description>
+      The mathematical expression or formula used to derive this parameter's value from other model parameters during posterior sampling.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>isInteger</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true the derived value is treated as an integer, otherwise it is considered to be a float.</description>
+      <description>
+      If true the derived value is treated as an integer, otherwise it is considered to be a float.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -91,8 +99,8 @@ contains
   end function derivedConstructorParameters
 
   function derivedConstructorInternal(name_,definition_,isInteger_) result(self)
-    !!{
-    Internal constructor for the \refClass{modelParameterDerived} model parameter class.
+    !!{RST
+    Internal constructor for the ``modelParameterDerived`` model parameter class.
     !!}
     implicit none
     type   (modelParameterDerived)                :: self
@@ -106,7 +114,7 @@ contains
   end function derivedConstructorInternal
 
   function derivedDefinition(self)
-    !!{
+    !!{RST
     Return the definition of this parameter.
     !!}
     implicit none
@@ -118,7 +126,7 @@ contains
   end function derivedDefinition
 
   logical function derivedIsInteger(self)
-    !!{
+    !!{RST
     Return true if the derived parameter is to be treated as an integer.
     !!}
     implicit none

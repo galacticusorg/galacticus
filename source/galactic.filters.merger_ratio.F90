@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an interval pass filter on halo merger ratio.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterMergerRatio">
-   <description>An interval pass filter that selects halos whose merger mass ratio falls within the range [\mono{[ratioLow]}, \mono{[ratioHigh]}]. The merger ratio quantifies the relative mass of merging progenitors, enabling selection of major or minor merger events within a specified mass-ratio interval.</description>
+  <galacticFilter name="galacticFilterMergerRatio" docformat="rst">
+   <description>
+   An interval pass filter that selects halos whose merger mass ratio falls within the range [``[ratioLow]``, ``[ratioHigh]``]. The merger ratio quantifies the relative mass of merging progenitors, enabling selection of major or minor merger events within a specified mass-ratio interval.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterMergerRatio
-     !!{
+     !!{RST
      an interval pass galactic filter class on merger ratio.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an interval pass filter on halo merger ratio.
   end type galacticFilterMergerRatio
 
   interface galacticFilterMergerRatio
-     !!{
-     Constructors for the \refClass{galacticFilterMergerRatio} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterMergerRatio`` galactic filter class.
      !!}
      module procedure mergerRatioConstructorParameters
      module procedure mergerRatioConstructorInternal
@@ -47,8 +49,8 @@ Implements an interval pass filter on halo merger ratio.
 contains
   
   function mergerRatioConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterMergerRatio} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterMergerRatio`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -57,15 +59,19 @@ contains
     double precision                                            :: ratioLow  , ratioHigh
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioLow</name>
       <source>parameters</source>
-      <description>The low ratio value above which to pass.</description>
+      <description>
+      The low ratio value above which to pass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioHigh</name>
       <source>parameters</source>
-      <description>The high ratio value below which to pass.</description>
+      <description>
+      The high ratio value below which to pass.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterMergerRatio(ratioLow,ratioHigh)
@@ -76,8 +82,8 @@ contains
   end function mergerRatioConstructorParameters
 
   function mergerRatioConstructorInternal(ratioLow,ratioHigh) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterMergerRatio} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterMergerRatio`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterMergerRatio)                :: self
@@ -90,7 +96,7 @@ contains
   end function mergerRatioConstructorInternal
 
   logical function mergerRatioPasses(self,node)
-    !!{
+    !!{RST
     Implement an interval pass galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

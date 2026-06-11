@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations related to satellite orbits.
 !!}
 
 module Satellite_Orbits
-  !!{
+  !!{RST
   Implements calculations related to satellite orbits.
   !!}
   use :: Galacticus_Nodes  , only : treeNode
@@ -67,8 +67,8 @@ module Satellite_Orbits
 contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
-    !!{
-    Solves for the equivalent circular orbit radius for \mono{orbit} in \mono{nodeHost}.
+    !!{RST
+    Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``.
     !!}
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -135,7 +135,7 @@ contains
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
   double precision function Equivalent_Circular_Orbit_Solver(radius) result(radiusCircular)
-    !!{
+    !!{RST
     Root function used in finding equivalent circular orbits.
     !!}
     use :: Galactic_Structure_Options, only : enumerationStructureErrorCodeType, structureErrorCodeInfinite, structureErrorCodeSuccess
@@ -163,8 +163,8 @@ contains
   end function Equivalent_Circular_Orbit_Solver
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity,darkMatterHaloScale_)
-    !!{
-    Solves for the pericentric radius and velocity of \mono{orbit} in \mono{nodeHost}.
+    !!{RST
+    Solves for the pericentric radius and velocity of ``orbit`` in ``nodeHost``.
     !!}
     use :: Galactic_Structure_Options  , only : structureErrorCodeInfinite, structureErrorCodeSuccess    ,enumerationStructureErrorCodeType, radiusLarge
     use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
@@ -314,7 +314,7 @@ contains
   end subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   double precision function Extremum_Solver(radius)
-    !!{
+    !!{RST
     Root function used in finding orbital extremum radius.
     !!}
     implicit none
@@ -327,15 +327,14 @@ contains
   end function Extremum_Solver
 
   function Satellite_Orbit_Convert_To_Current_Potential(orbit,currentHost,darkMatterHaloScale_) result(orbitCurrent)
-    !!{
-    Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
-    halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
-    defined to be $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$ then the specific energy transforms as:
-    \begin{equation}
-    e \rightarrow e + V^2_\mathrm{vir,0} + \Phi(r_\mathrm{vir,0}),
-    \end{equation}
-    where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
-    current halo.
+    !!{RST
+    Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always defined to be :math:`\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2` then the specific energy transforms as:
+
+    .. math::
+
+       e \rightarrow e + V^2_\mathrm{vir,0} + \Phi(r_\mathrm{vir,0}),
+
+    where subscript :math:`0` refers to the original halo in which the orbit was defined and :math:`\Phi(r)` is the potential of the current halo.
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Kepler_Orbits                   , only : keplerOrbit
@@ -360,9 +359,8 @@ contains
   end function Satellite_Orbit_Convert_To_Current_Potential
 
   double precision function Satellite_Orbit_Potential(radius,radiusVirial,massVirial,status) result(potential)
-    !!{
-    Evaluate the gravitational potential under the convention that the potential at the virial radius is always
-    $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$, as is assumed for \mono{keplerOrbit} objects.
+    !!{RST
+    Evaluate the gravitational potential under the convention that the potential at the virial radius is always :math:`\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2`, as is assumed for ``keplerOrbit`` objects.
     !!}
     use :: Galactic_Structure_Options      , only : enumerationStructureErrorCodeType
     use :: Coordinates                     , only : coordinateCartesian              , assignment(=)
@@ -383,7 +381,7 @@ contains
   end function Satellite_Orbit_Potential
   
   subroutine Satellite_Orbit_Reset(node)
-    !!{
+    !!{RST
     Reset the satellite orbit calculations.
     !!}
     implicit none

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the mean position and velocity of particles.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which determines the mean position and veloci
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <nbodyOperator name="nbodyOperatorMeanPosition">
-   <description>An N-body data operator which computes the mass-weighted mean position and mean velocity of particles within an N-body halo. The \mono{selfBoundOnly} parameter restricts the calculation to self-bound particles, and \mono{bootstrapSampleCount} controls the number of bootstrap resamples for error estimation.</description>
+  <nbodyOperator name="nbodyOperatorMeanPosition" docformat="rst">
+   <description>
+   An N-body data operator which computes the mass-weighted mean position and mean velocity of particles within an N-body halo. The ``selfBoundOnly`` parameter restricts the calculation to self-bound particles, and ``bootstrapSampleCount`` controls the number of bootstrap resamples for error estimation.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMeanPosition
-     !!{
+     !!{RST
      An N-body data operator which determines the mean position and velocity of particles.
      !!}
      private
@@ -43,8 +45,8 @@ Implements an N-body data operator which determines the mean position and veloci
   end type nbodyOperatorMeanPosition
 
   interface nbodyOperatorMeanPosition
-     !!{
-     Constructors for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorMeanPosition`` N-body operator class.
      !!}
      module procedure meanPositionConstructorParameters
      module procedure meanPositionConstructorInternal
@@ -53,8 +55,8 @@ Implements an N-body data operator which determines the mean position and veloci
 contains
 
   function meanPositionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorMeanPosition`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,16 +67,20 @@ contains
     integer(c_size_t                  )                :: bootstrapSampleCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the mean position and velocity are computed only for self-bound particles</description>
+      <description>
+      If true, the mean position and velocity are computed only for self-bound particles
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -87,8 +93,8 @@ contains
   end function meanPositionConstructorParameters
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorMeanPosition`` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorMeanPosition)                         :: self
@@ -103,8 +109,8 @@ contains
   end function meanPositionConstructorInternal
 
   subroutine meanPositionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorMeanPosition} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorMeanPosition`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMeanPosition), intent(inout) :: self
@@ -116,7 +122,7 @@ contains
   end subroutine meanPositionDestructor
   
   subroutine meanPositionOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error            , only : Error_Report

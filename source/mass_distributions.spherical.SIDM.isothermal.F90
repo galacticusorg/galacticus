@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Provides a mass distribution implementing the ``isothermal'' approximation to the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -26,51 +26,53 @@
   use            :: Numerical_ODE_Solvers  , only : odeSolver
 
   !![
-  <massDistribution name="massDistributionSphericalSIDMIsothermal">
+  <massDistribution name="massDistributionSphericalSIDMIsothermal" docformat="rst">
    <description>
-      A mass distribution class for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}. This
-      model assumes that the dark matter within the interaction radius, $r_1$, has thermalized and can therefore be described by a
-      constant velocity dispersion, $\sigma_0$. Under this assumption the spherical Jeans equation has a solution of the form:
-      \begin{equation}
-      \rho(r) = \rho_0 \exp\left[-\frac{\phi(r)}{\sigma_0^2}\right],
-      \end{equation}
-      where $\rho(r)$ is the density $\rho_0$ is the density at $r=0$, and the gravitational potential satisfies \citep{jiang_semi-analytic_2023}:
-      \begin{equation}
-      \nabla^2 \phi(r) = 4 \pi \mathrm{G} \rho_0 \exp \left( - \frac{\phi(r)}{\sigma_0^2} \right).
-      \end{equation}
-      This second-order differential equation is solved using the boundary conditions $\phi(r=0)=0$ and
-      $\mathrm{d}\phi/\mathrm{d}r(r=0)=0$. The values of $\rho_0$ and $\sigma_0$ are then found by minimizing a function      
-      \begin{equation}
-      \delta^2(\rho_0,\sigma_0) = \left[ \frac{\rho(r_1)}{\rho^\prime(r_1)} - 1 \right]^2 + \left[ \frac{M(r_1)}{M^\prime(r_1)} - 1 \right]^2,
-      \end{equation}
-      where $M(r)$ is the mass contained within radius $r$, and primes indicate the profile prior to SIDM thermalization.
+   A mass distribution class for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`. This model assumes that the dark matter within the interaction radius, :math:`r_1`, has thermalized and can therefore be described by a constant velocity dispersion, :math:`\sigma_0`. Under this assumption the spherical Jeans equation has a solution of the form:
 
-      This can be expressed in a convenient dimensionless form. We define $x=r/r_1$, $y=\rho/\rho_1$, $z=\sigma/\sigma_1$, where
-      \begin{equation}
-       \sigma_1^2 = \frac{4 \pi}{3} \mathrm{G} \rho_1 r_1^2 \xi,
-      \end{equation}
-      and we define $\xi$ through the relation:
-      \begin{equation}
-       M_1 = \xi \frac{4 \pi}{3} \rho_1 r_1^3.
-      \end{equation}
-      Using these definitions we can define a dimensionless potential, $\Phi(r) = \phi(r) / \sigma_1^2$. The above differential
-      equation can then be written as
-      \begin{equation}
+   .. math::
+
+      \rho(r) = \rho_0 \exp\left[-\frac{\phi(r)}{\sigma_0^2}\right],
+
+   where :math:`\rho(r)` is the density :math:`\rho_0` is the density at :math:`r=0`, and the gravitational potential satisfies :cite:p:`jiang_semi-analytic_2023`:
+
+   .. math::
+
+      \nabla^2 \phi(r) = 4 \pi \mathrm{G} \rho_0 \exp \left( - \frac{\phi(r)}{\sigma_0^2} \right).
+
+   This second-order differential equation is solved using the boundary conditions :math:`\phi(r=0)=0` and :math:`\mathrm{d}\phi/\mathrm{d}r(r=0)=0`. The values of :math:`\rho_0` and :math:`\sigma_0` are then found by minimizing a function
+
+   .. math::
+
+      \delta^2(\rho_0,\sigma_0) = \left[ \frac{\rho(r_1)}{\rho^\prime(r_1)} - 1 \right]^2 + \left[ \frac{M(r_1)}{M^\prime(r_1)} - 1 \right]^2,
+
+   where :math:`M(r)` is the mass contained within radius :math:`r`, and primes indicate the profile prior to SIDM thermalization.
+
+   This can be expressed in a convenient dimensionless form. We define :math:`x=r/r_1`, :math:`y=\rho/\rho_1`, :math:`z=\sigma/\sigma_1`, where
+
+   .. math::
+
+      \sigma_1^2 = \frac{4 \pi}{3} \mathrm{G} \rho_1 r_1^2 \xi,
+
+   and we define :math:`\xi` through the relation:
+
+   .. math::
+
+      M_1 = \xi \frac{4 \pi}{3} \rho_1 r_1^3.
+
+   Using these definitions we can define a dimensionless potential, :math:`\Phi(r) = \phi(r) / \sigma_1^2`. The above differential equation can then be written as
+
+   .. math::
+
       \nabla^{\prime 2} \Phi = \frac{3}{\xi} y_0 \exp\left[ - \frac{\Phi}{z_0^2} \right] ,
-      \end{equation}
-      where $\nabla^{\prime 2}$ indicates the Laplacian with respect to coordinate $x$. Written in this form it is straightforward
-      to see that this equation has three parameters, $\xi$, $y_0$, and $z_0$. The value of $\xi$ is determined from the initial
-      (pre-thermalization) density profile. We then have two constraints at $x=1$, namely $y=1$ and $m=M/M_1=1$. We can solve for
-      the values of $y_0$ and $z_0$ which satisfy these constraints for a given $\xi$. As a result, we can tabulate solutions
-      $y_0(\xi)$ and $z_0(\xi)$ which are applicable to any initial density profile and depend only on the effective slope of the
-      density profile inside $r_1$, since if $\rho \propto r^\alpha$ then $\xi = 1/(1+\alpha/3)$, such that $\alpha=0$ (the
-      largest physically-allowed value of $\alpha$) implies $\xi=1$.
+
+   where :math:`\nabla^{\prime 2}` indicates the Laplacian with respect to coordinate :math:`x`. Written in this form it is straightforward to see that this equation has three parameters, :math:`\xi`, :math:`y_0`, and :math:`z_0`. The value of :math:`\xi` is determined from the initial (pre-thermalization) density profile. We then have two constraints at :math:`x=1`, namely :math:`y=1` and :math:`m=M/M_1=1`. We can solve for the values of :math:`y_0` and :math:`z_0` which satisfy these constraints for a given :math:`\xi`. As a result, we can tabulate solutions :math:`y_0(\xi)` and :math:`z_0(\xi)` which are applicable to any initial density profile and depend only on the effective slope of the density profile inside :math:`r_1`, since if :math:`\rho \propto r^\alpha` then :math:`\xi = 1/(1+\alpha/3)`, such that :math:`\alpha=0` (the largest physically-allowed value of :math:`\alpha`) implies :math:`\xi=1`.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalSIDM) :: massDistributionSphericalSIDMIsothermal
-     !!{
-     A mass distribution implementing the ``isothermal'' approximation to the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     A mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
      double precision                                                :: velocityDispersionCentral     , radiusInteraction_                    , &
@@ -101,8 +103,8 @@
   end type massDistributionSphericalSIDMIsothermal
 
   interface massDistributionSphericalSIDMIsothermal
-     !!{
-     Constructors for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalConstructorParameters
      module procedure sphericalSIDMIsothermalConstructorInternal
@@ -120,8 +122,8 @@
 contains
 
   function sphericalSIDMIsothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -135,27 +137,35 @@ contains
     double precision                                                         :: timeAge
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr) since its formation, determining the total time available for SIDM self-interactions to thermalize the inner halo and produce an isothermal core.</description>
+      <description>
+      The age of the halo (in Gyr) since its formation, determining the total time available for SIDM self-interactions to thermalize the inner halo and produce an isothermal core.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"   name="massDistribution_"   source="parameters"/>
@@ -176,8 +186,8 @@ contains
   end function sphericalSIDMIsothermalConstructorParameters
 
   function sphericalSIDMIsothermalConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
-    !!{
-    Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
+    !!{RST
+    Internal constructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -207,8 +217,8 @@ contains
   end function sphericalSIDMIsothermalConstructorInternal
 
   subroutine sphericalSIDMIsothermalDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
+    !!{RST
+    Destructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self
@@ -221,8 +231,8 @@ contains
   end subroutine sphericalSIDMIsothermalDestructor
 
   subroutine sphericalSIDMIsothermalTabulateSolutions(self,xiRequired)
-    !!{
-    Tabulate solutions for $y_0(\xi)$, $z_0(\xi)$.
+    !!{RST
+    Tabulate solutions for :math:`y_0(\xi)`, :math:`z_0(\xi)`.
     !!}
     use :: Display                   , only : displayIndent  , displayUnindent    , displayMessage, verbosityLevelWorking, &
          &                                    displayCounter , displayCounterClear
@@ -406,7 +416,7 @@ contains
   end subroutine sphericalSIDMIsothermalTabulateSolutions
   
   double precision function sphericalSIDMIsothermalDimensionlessFitMetric(propertiesCentral)
-    !!{
+    !!{RST
     Evaluate the fit metric.
     !!}
     implicit none
@@ -437,7 +447,7 @@ contains
   end function sphericalSIDMIsothermalDimensionlessFitMetric
   
   integer function sphericalSIDMIsothermalDimensionlessODEs(x,properties,propertiesRateOfChange)
-    !!{
+    !!{RST
     Define the dimensionless ODE system to solve for isothermal self-interacting dark matter cores.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -472,7 +482,7 @@ contains
   end function sphericalSIDMIsothermalDimensionlessODEs
     
   subroutine sphericalSIDMIsothermalComputeSolution(self)
-    !!{
+    !!{RST
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -520,9 +530,8 @@ contains
   end subroutine sphericalSIDMIsothermalComputeSolution
 
   double precision function sphericalSIDMIsothermalDensity(self,coordinates) result(density)
-    !!{
-    Compute the density at the specified \mono{coordinates} for the \mono{sphericalSIDMIsothermal}
-    mass distribution.
+    !!{RST
+    Compute the density at the specified ``coordinates`` for the ``sphericalSIDMIsothermal`` mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout)  :: self
@@ -551,8 +560,8 @@ contains
   end function sphericalSIDMIsothermalDensity
 
   double precision function sphericalSIDMIsothermalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target   :: self
@@ -583,9 +592,8 @@ contains
   end function sphericalSIDMIsothermalDensityGradientRadial
   
   double precision function sphericalSIDMIsothermalMassEnclosedBySphere(self,radius) result(mass)
-    !!{   
-    Computes the mass enclosed within a sphere of given \mono{radius} for the \mono{sphericalSIDMIsothermal}
-    mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for the ``sphericalSIDMIsothermal`` mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMIsothermal), intent(inout) , target :: self
@@ -614,7 +622,7 @@ contains
   end function sphericalSIDMIsothermalMassEnclosedBySphere
 
   logical function sphericalSIDMIsothermalPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -625,8 +633,8 @@ contains
   end function sphericalSIDMIsothermalPotentialIsAnalytic
 
   double precision function sphericalSIDMIsothermalPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an burkert mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an burkert mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess

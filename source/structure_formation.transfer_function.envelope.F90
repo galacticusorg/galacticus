@@ -17,34 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a
-  function of wavenumber) envelope to another transfer function.
+  !!{RST
+  Implements a transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of wavenumber) envelope to another transfer function.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Tables              , only : table1DMonotoneCSpline
 
   !![
-  <transferFunction name="transferFunctionEnvelope">
+  <transferFunction name="transferFunctionEnvelope" docformat="rst">
     <description>
-      A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of
-      wavenumber) envelope to another transfer function. There is no unique monotonic envelope to an arbitrary function. The
-      approach taken here largely follows the algorithm described by \cite{mcclain_algorithm_1991}. Briefly, inflection points in
-      the transfer function are identified, and the midpoints of the corresponding concave upward intervals are used as initial
-      guesses for the tangent points of the envelope and original transfer function. These guesses for the tangent points are
-      iteratively updated to remove regions when the envelope function fails (i.e. is below the original function).
+    A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of wavenumber) envelope to another transfer function. There is no unique monotonic envelope to an arbitrary function. The approach taken here largely follows the algorithm described by :cite:t:`mcclain_algorithm_1991`. Briefly, inflection points in the transfer function are identified, and the midpoints of the corresponding concave upward intervals are used as initial guesses for the tangent points of the envelope and original transfer function. These guesses for the tangent points are iteratively updated to remove regions when the envelope function fails (i.e. is below the original function).
 
-      If \mono{[transferFunctionReference]} is supplied then half-, quarter-, and fraction-mode masses relative
-      to that reference transfer function can be computed using the envelope function. If \mono{[envelopeModeMassesOnly]} is set to true, then the envelope transfer function is used \emph{only} for calculation of these
-      mode masses---the original (non-envelope) transfer function is returned in all other cases. If \mono{[envelopeModeMassesOnly]} is set to false then the enveloped transfer function is used for \emph{all} calculations.
+    If ``[transferFunctionReference]`` is supplied then half-, quarter-, and fraction-mode masses relative to that reference transfer function can be computed using the envelope function. If ``[envelopeModeMassesOnly]`` is set to true, then the envelope transfer function is used *only* for calculation of these mode masses---the original (non-envelope) transfer function is returned in all other cases. If ``[envelopeModeMassesOnly]`` is set to false then the enveloped transfer function is used for *all* calculations.
     </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionEnvelope
-     !!{
-     A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of
-     wavenumber) envelope to another transfer function.
+     !!{RST
+     A transfer function envelope class which computes a transfer function that is a monotonically-decreasing (as a function of wavenumber) envelope to another transfer function.
      !!}
      private
      type            (table1DMonotoneCSpline  )          :: transferTable
@@ -66,7 +57,7 @@
   end type transferFunctionEnvelope
 
   interface transferFunctionEnvelope
-     !!{
+     !!{RST
      Constructors for the envelope transfer function class.
      !!}
      module procedure envelopeConstructorParameters
@@ -76,7 +67,7 @@
 contains
 
   function envelopeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the envelope transfer function class which takes a parameter set as input.
     !!}
     implicit none
@@ -89,35 +80,45 @@ contains
     logical                                                   :: envelopeModeMassesOnly, envelopeRatio
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>envelopeRatio</name>
       <source>parameters</source>
       <defaultValue>parameters%isPresent('transferFunctionReference')</defaultValue>
-      <description>If true, the envelope is computed on the ratio of the transfer function to the reference transfer function, otherwise it is computed directly on the transfer function.</description>
+      <description>
+      If true, the envelope is computed on the ratio of the transfer function to the reference transfer function, otherwise it is computed directly on the transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>envelopeModeMassesOnly</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the envelope is used \emph{only} when computing fractional mode masses, and does not affect the transfer function itself.</description>
+      <description>
+      If true, the envelope is used *only* when computing fractional mode masses, and does not affect the transfer function itself.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tablePointsPerDecade</name>
       <source>parameters</source>
       <defaultValue>100</defaultValue>
-      <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
+      <description>
+      The number of points per decade of wavenumber at which to tabulate the transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The minimum wavenumber to which the envelope should be computed initially (the envelope range will be extended to small wavenumbers as needed).</description>
+      <description>
+      The minimum wavenumber to which the envelope should be computed initially (the envelope range will be extended to small wavenumbers as needed).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d+6</defaultValue>
-      <description>The maximum wavenumber to which the envelope should be computed.</description>
+      <description>
+      The maximum wavenumber to which the envelope should be computed.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunction_"    source="parameters"/>
@@ -147,7 +148,7 @@ contains
   end function envelopeConstructorParameters
 
   function envelopeConstructorInternal(tablePointsPerDecade,wavenumberMinimum,wavenumberMaximum,envelopeRatio,envelopeModeMassesOnly,cosmologyParameters_,transferFunction_,transferFunctionReference) result(self)
-    !!{
+    !!{RST
     Internal constructor for the envelope transfer function class.
     !!}
     implicit none
@@ -179,7 +180,7 @@ contains
   end function envelopeConstructorInternal
 
   subroutine envelopeDestructor(self)
-    !!{
+    !!{RST
     Destructor for the envelope transfer function class.
     !!}
     implicit none
@@ -199,7 +200,7 @@ contains
   end subroutine envelopeDestructor
 
   double precision function envelopeValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -223,7 +224,7 @@ contains
   end function envelopeValue
 
   double precision function envelopeLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -245,7 +246,7 @@ contains
   end function envelopeLogarithmicDerivative
 
   double precision function envelopeEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none
@@ -256,9 +257,8 @@ contains
   end function envelopeEpochTime
 
   double precision function envelopeHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function
     !!}
     implicit none
     class  (transferFunctionEnvelope), intent(inout), target   :: self
@@ -269,9 +269,8 @@ contains
   end function envelopeHalfModeMass
 
   double precision function envelopeQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of four relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function
     !!}
     implicit none
     class  (transferFunctionEnvelope), intent(inout), target   :: self
@@ -282,9 +281,8 @@ contains
   end function envelopeQuarterModeMass
 
   double precision function envelopeFractionModeMass(self,fraction,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a given fraction relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a given fraction relative to a :term:`CDM` transfer function
     !!}
     use :: Error                   , only : Error_Report             , errorStatusSuccess           , errorStatusFail
     use :: Numerical_Constants_Math, only : Pi
@@ -337,7 +335,7 @@ contains
   contains
     
     double precision function modeSolver(wavenumber)
-      !!{
+      !!{RST
       Function used in solving for fraction-mode masses in the enveloped transfer function.
       !!}
       implicit none
@@ -353,7 +351,7 @@ contains
   end function envelopeFractionModeMass
   
   subroutine envelopeTabulate(self,wavenumberLogarithmic)
-    !!{
+    !!{RST
     Tabulate the envelope to the transfer function.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear

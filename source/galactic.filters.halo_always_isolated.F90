@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only halos that have always been isolated.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterHaloAlwaysIsolated">
-   <description>Passes only nodes that have never been a satellite throughout their entire merger tree history, selecting halos that have always resided as isolated field halos without ever experiencing a period of satellite status in a larger host halo.</description>
+  <galacticFilter name="galacticFilterHaloAlwaysIsolated" docformat="rst">
+   <description>
+   Passes only nodes that have never been a satellite throughout their entire merger tree history, selecting halos that have always resided as isolated field halos without ever experiencing a period of satellite status in a larger host halo.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloAlwaysIsolated
-     !!{
+     !!{RST
      A galactic filter class which passes only halos that have always been isolated.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a filter which passes only halos that have always been isolated.
   end type galacticFilterHaloAlwaysIsolated
 
   interface galacticFilterHaloAlwaysIsolated
-     !!{
-     Constructors for the \refClass{galacticFilterHaloAlwaysIsolated} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class.
      !!}
      module procedure haloAlwaysIsolatedConstructorParameters
      module procedure haloAlwaysIsolatedConstructorInternal
@@ -47,8 +49,8 @@ Implements a filter which passes only halos that have always been isolated.
 contains
 
   function haloAlwaysIsolatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHaloAlwaysIsolated} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function haloAlwaysIsolatedConstructorParameters
 
   function haloAlwaysIsolatedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHaloAlwaysIsolated} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloAlwaysIsolated) :: self
@@ -76,7 +78,7 @@ contains
   end function haloAlwaysIsolatedConstructorInternal
 
   logical function haloAlwaysIsolatedPasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only isolated halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

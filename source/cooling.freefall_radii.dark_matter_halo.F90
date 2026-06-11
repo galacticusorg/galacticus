@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple freefall radius class.
   !!}
 
@@ -25,15 +25,14 @@
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMO , darkMatterProfileDMOClass
 
   !![
-  <freefallRadius name="freefallRadiusDarkMatterHalo">
+  <freefallRadius name="freefallRadiusDarkMatterHalo" docformat="rst">
    <description>
-    A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the
-    dark matter halo equals the time available for freefall (see \refPhysics{freefallTimeAvailable}).
+   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see ``freefallTimeAvailable``).
    </description>
   </freefallRadius>
   !!]
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo
-     !!{
+     !!{RST
      Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
      !!}
      private
@@ -46,7 +45,7 @@
   end type freefallRadiusDarkMatterHalo
 
   interface freefallRadiusDarkMatterHalo
-     !!{
+     !!{RST
      Constructors for the darkMatterHalo freefall radius class.
      !!}
      module procedure darkMatterHaloConstructorParameters
@@ -56,7 +55,7 @@
 contains
 
   function darkMatterHaloConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the darkMatterHalo freefall radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -80,7 +79,7 @@ contains
   end function darkMatterHaloConstructorParameters
 
   function darkMatterHaloConstructorInternal(darkMatterProfileDMO_,freefallTimeAvailable_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the darkMatterHalo freefall radius class.
     !!}
     implicit none
@@ -95,7 +94,7 @@ contains
   end function darkMatterHaloConstructorInternal
 
   subroutine darkMatterHaloDestructor(self)
-    !!{
+    !!{RST
     Destructor for the darkMatterHalo freefall radius class.
     !!}
     implicit none
@@ -109,7 +108,7 @@ contains
   end subroutine darkMatterHaloDestructor
 
   double precision function darkMatterHaloRadiusGrowthRate(self,node) result(radiusGrowthRate)
-    !!{
+    !!{RST
     Returns the freefall radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
@@ -134,7 +133,7 @@ contains
   end function darkMatterHaloRadiusGrowthRate
 
   double precision function darkMatterHaloRadius(self,node) result(radius)
-    !!{
+    !!{RST
     Return the freefall radius in the darkMatterHalo model.
     !!}
     use :: Mass_Distributions, only : massDistributionClass

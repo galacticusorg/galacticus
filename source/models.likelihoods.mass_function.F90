@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
   !!}
 
@@ -26,33 +26,31 @@
   use :: Halo_Mass_Functions, only : haloMassFunctionClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction" docformat="rst">
    <description>
-    The likelihood is computed as
-    \begin{equation}
-    \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
-    \end{equation}
-    where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$
-    is the computed mass function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed mass function at
-    the $i^\mathrm{th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy
-    mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
-    \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the mass function calculation are specified by
-    the following subparameters:
-    \begin{description}
-    \item[\mono{haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-    \item[\mono{redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-    \item[\mono{massFunctionFileName}] The name of an HDF5 file containing the observed mass function and its
-      covariance matrix.
-    \end{description}
-    
-    The HDF5 file specified by the \mono{massFunctionFileName} element should contain a \mono{mass}
-    dataset, giving the masses at which the mass function is measured (in units of $\mathrm{M}_\odot$), a \mono{massFunctionObserved} dataset giving the observed values of the mass function at those masses (in units of Mpc$^{-3}$ per
-    $\log M$), and a \mono{covariance} dataset, giving the covariance of the mass function (in units of Mpc$^{-6}$).
+   The likelihood is computed as
+
+   .. math::
+
+      \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+
+   where :math:`\mathcal{C}` is the covariance matrix, and :math:`\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}`, :math:`w_i^\mathrm{model}` is the computed mass function at the :math:`i^\mathrm{th}` separation, and :math:`w_i^\mathrm{obs}` is the observed mass function at the :math:`i^\mathrm{th}` separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass function of :cite:t:`behroozi_comprehensive_2010`.  The details of the mass function calculation are specified by the following subparameters:
+
+   ``haloMass(Min|Max)imum``
+      The minimum/maximum halo mass over which to integrate in the halo model;
+
+   ``redshift(Min|Max)imum``
+      The minimum/maximum redshift over which to integrate in the halo model;
+
+   ``massFunctionFileName``
+      The name of an HDF5 file containing the observed mass function and its covariance matrix.
+
+   The HDF5 file specified by the ``massFunctionFileName`` element should contain a ``mass`` dataset, giving the masses at which the mass function is measured (in units of :math:`\mathrm{M}_\odot`), a ``massFunctionObserved`` dataset giving the observed values of the mass function at those masses (in units of Mpc\ :math:`^{-3}` per :math:`\log M`), and a ``covariance`` dataset, giving the covariance of the mass function (in units of Mpc\ :math:`^{-6}`).
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
      !!}
      private
@@ -78,8 +76,8 @@
   end type posteriorSampleLikelihoodMassFunction
 
   interface posteriorSampleLikelihoodMassFunction
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -88,9 +86,8 @@
 contains
 
   function massFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,44 +103,60 @@ contains
     class           (surveyGeometryClass                  ), pointer       :: surveyGeometry_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFunctionFileName</name>
-      <description>The name of the file containing the mass function.</description>
+      <description>
+      The name of the file containing the mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMinimum</name>
-      <description>The minimum halo mass over which to integrate.</description>
+      <description>
+      The minimum halo mass over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMaximum</name>
-      <description>The maximum halo mass over which to integrate.</description>
+      <description>
+      The maximum halo mass over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
-      <description>The minimum redshift over which to integrate.</description>
+      <description>
+      The minimum redshift over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
-      <description>The maximum redshift over which to integrate.</description>
+      <description>
+      The maximum redshift over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useSurveyLimits</name>
-      <description>If true, limit redshift integration range based on survey geometry limits.</description>
+      <description>
+      If true, limit redshift integration range based on survey geometry limits.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>modelSurfaceBrightness</name>
-      <description>If true, model the effects of surface brightness incompleteness on the mass function.</description>
+      <description>
+      If true, model the effects of surface brightness incompleteness on the mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>surfaceBrightnessLimit</name>
-      <description>The limiting surface brightness to which to integrate.</description>
+      <description>
+      The limiting surface brightness to which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -161,8 +174,8 @@ contains
   end function massFunctionConstructorParameters
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
@@ -251,8 +264,8 @@ contains
   end function massFunctionConstructorInternal
 
   subroutine massFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodMassFunction} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMassFunction), intent(inout) :: self
@@ -266,7 +279,7 @@ contains
   end subroutine massFunctionDestructor
 
   double precision function massFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the mass function likelihood function.
     !!}
     use :: Conditional_Mass_Functions    , only : conditionalMassFunctionBehroozi2010
@@ -389,7 +402,7 @@ contains
   contains
 
     double precision function likelihoodMassFunctionTimeIntegrand(timePrime)
-      !!{
+      !!{RST
       Integral over time.
       !!}
       use :: Error          , only : Error_Report, errorStatusSuccess
@@ -461,7 +474,7 @@ contains
     end function likelihoodMassFunctionTimeIntegrand
 
     double precision function likelihoodMassFunctionTimeNormalizationIntegrand(timePrime)
-      !!{
+      !!{RST
       Normalization integral over time.
       !!}
       implicit none
@@ -472,7 +485,7 @@ contains
     end function likelihoodMassFunctionTimeNormalizationIntegrand
 
     double precision function likelihoodMassFunctionHaloMassIntegrand(logMass)
-      !!{
+      !!{RST
       Integral over halo mass function.
       !!}
       implicit none
@@ -494,7 +507,7 @@ contains
   end function massFunctionEvaluate
 
   subroutine massFunctionFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

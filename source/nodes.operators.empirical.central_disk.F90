@@ -17,24 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that inserts an empirical model of the formation history of a central disk galaxy.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorEmpiricalCentralDisk">
-   <description>A node operator class that inserts an empirical evolutionary history for a central disk galaxy growing at a constant specific star formation rate $\phi_\star$ (\mono{rateStarFormationSpecific}) to a final stellar mass \mono{massStellarFinal} at the root node. Angular momentum growth is parameterized by \mono{angularMomentumSpecificFinal} and \mono{rateAngularMomentumSpecificSpecific}. Useful for controlled experiments embedding prescribed disk galaxies in merger trees.</description>
+  <nodeOperator name="nodeOperatorEmpiricalCentralDisk" docformat="rst">
+   <description>
+   A node operator class that inserts an empirical evolutionary history for a central disk galaxy growing at a constant specific star formation rate :math:`\phi_\star` (``rateStarFormationSpecific``) to a final stellar mass ``massStellarFinal`` at the root node. Angular momentum growth is parameterized by ``angularMomentumSpecificFinal`` and ``rateAngularMomentumSpecificSpecific``. Useful for controlled experiments embedding prescribed disk galaxies in merger trees.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalCentralDisk
-     !!{     
-     A node operator class that inserts an empirical model of the formation history of a central disk galaxy. The galaxy is
-     assumed to grow in the main branch of the tree with a constant specific star formation rate, such that it mass is given by:
-     \begin{equation}
-       M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
-     \end{equation}
-     where $M_{\star,0}=$\mono{[massStellarFinal]} is the stellar mass in the root node of the tree,
-     $\phi_\star=$\mono{[rateStarFormationSpecific]}, and $t_0$ is the cosmic time at the root node of the tree.
+     !!{RST
+     A node operator class that inserts an empirical model of the formation history of a central disk galaxy. The galaxy is assumed to grow in the main branch of the tree with a constant specific star formation rate, such that it mass is given by:
+
+     .. math::
+
+        M_\star(t) = M_{\star,0} \exp(-\phi_\star [t-t_0]),
+
+     where :math:`M_{\star,0}=`\ ``[massStellarFinal]`` is the stellar mass in the root node of the tree, :math:`\phi_\star=`\ ``[rateStarFormationSpecific]``, and :math:`t_0` is the cosmic time at the root node of the tree.
      !!}
      private
      double precision :: massStellarFinal            , rateStarFormationSpecific          , &
@@ -45,8 +47,8 @@
   end type nodeOperatorEmpiricalCentralDisk
   
   interface nodeOperatorEmpiricalCentralDisk
-     !!{
-     Constructors for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorEmpiricalCentralDisk`` node operator class.
      !!}
      module procedure empiricalCentralDiskConstructorParameters
      module procedure empiricalCentralDiskConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function empiricalCentralDiskConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorEmpiricalCentralDisk`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,25 +68,33 @@ contains
          &                                                               angularMomentumSpecificFinal, rateAngularMomentumSpecificSpecific
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellarFinal</name>
       <source>parameters</source>
-      <description>The final stellar mass of the disk galaxy.</description>
+      <description>
+      The final stellar mass of the disk galaxy.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateStarFormationSpecific</name>
       <source>parameters</source>
-      <description>The specific star formation rate of the disk galaxy.</description>
+      <description>
+      The specific star formation rate of the disk galaxy.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>angularMomentumSpecificFinal</name>
       <source>parameters</source>
-      <description>The final specific angular momentum of the disk galaxy.</description>
+      <description>
+      The final specific angular momentum of the disk galaxy.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateAngularMomentumSpecificSpecific</name>
       <source>parameters</source>
-      <description>The specific growth rate of the specific angular momentum of the disk galaxy.</description>
+      <description>
+      The specific growth rate of the specific angular momentum of the disk galaxy.
+      </description>
     </inputParameter>
     !!]
     self=nodeOperatorEmpiricalCentralDisk(massStellarFinal,rateStarFormationSpecific,angularMomentumSpecificFinal,rateAngularMomentumSpecificSpecific)
@@ -95,8 +105,8 @@ contains
   end function empiricalCentralDiskConstructorParameters
 
   function empiricalCentralDiskConstructorInternal(massStellarFinal,rateStarFormationSpecific,angularMomentumSpecificFinal,rateAngularMomentumSpecificSpecific) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorEmpiricalCentralDisk} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorEmpiricalCentralDisk`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorEmpiricalCentralDisk)                :: self
@@ -110,7 +120,7 @@ contains
   end function empiricalCentralDiskConstructorInternal
 
   subroutine empiricalCentralDiskNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize nodes for the massive elliptical.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk
@@ -161,7 +171,7 @@ contains
   end subroutine empiricalCentralDiskNodeInitialize
 
   subroutine empiricalCentralDiskDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Impose the star formation rate for the massive elliptical.
     !!}
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentDisk

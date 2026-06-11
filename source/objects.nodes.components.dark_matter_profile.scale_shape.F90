@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a dark matter profile method that provides a scale radius and a shape parameter.
 !!}
 
 module Node_Component_Dark_Matter_Profile_Scale_Shape
-  !!{
+  !!{RST
   Implements a dark matter profile method that provides a scale radius and a shape parameter.
   !!}
   implicit none
@@ -57,8 +57,8 @@ contains
   <scaleSetTask function="Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScaleShape, treeNode
     implicit none

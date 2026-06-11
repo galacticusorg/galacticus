@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a luminosity function output analysis class for the \cite{stefanon_evolution_2013} analysis.
+!!{RST
+Implements a luminosity function output analysis class for the :cite:t:`stefanon_evolution_2013` analysis.
 !!}
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunctionStefanonMarchesini2013">
-   <description>Computes the near-infrared galaxy luminosity function in J or H band at one of four redshift intervals for comparison with the \cite{stefanon_evolution_2013} survey measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunctionStefanonMarchesini2013" docformat="rst">
+   <description>
+   Computes the near-infrared galaxy luminosity function in J or H band at one of four redshift intervals for comparison with the :cite:t:`stefanon_evolution_2013` survey measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunction) :: outputAnalysisLuminosityFunctionStefanonMarchesini2013
-     !!{
-     A luminosity function output analysis class for the \cite{stefanon_evolution_2013} analysis.
+     !!{RST
+     A luminosity function output analysis class for the :cite:t:`stefanon_evolution_2013` analysis.
      !!}
      private
      class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
@@ -42,8 +44,8 @@ Implements a luminosity function output analysis class for the \cite{stefanon_ev
   end type outputAnalysisLuminosityFunctionStefanonMarchesini2013
 
   interface outputAnalysisLuminosityFunctionStefanonMarchesini2013
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunctionStefanonMarchesini2013} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLuminosityFunctionStefanonMarchesini2013`` output analysis class.
      !!}
      module procedure luminosityFunctionStefanonMarchesini2013ConstructorParameters
      module procedure luminosityFunctionStefanonMarchesini2013ConstructorInternal
@@ -52,8 +54,8 @@ Implements a luminosity function output analysis class for the \cite{stefanon_ev
 contains
 
   function luminosityFunctionStefanonMarchesini2013ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionStefanonMarchesini2013} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionStefanonMarchesini2013`` output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter      , inputParameters
@@ -83,75 +85,101 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>band</name>
       <source>parameters</source>
-      <description>The band (J or H) for which the luminosity function should be computed.</description>
+      <description>
+      The band (J or H) for which the luminosity function should be computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInterval</name>
       <source>parameters</source>
       <variable>redshiftInterval</variable>
-      <description>The redshift interval (0-3) to use.</description>
+      <description>
+      The redshift interval (0-3) to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <defaultSource>No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.</defaultSource>
-      <description>The minimum random error for absolute magnitudes.</description>
+      <defaultSource>
+      No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.
+      </defaultSource>
+      <description>
+      The minimum random error for absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <defaultSource>No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.</defaultSource>
-      <description>The minimum random error for absolute magnitudes.</description>
+      <defaultSource>
+      No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.
+      </defaultSource>
+      <description>
+      The minimum random error for absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.01d0]</defaultValue>
-      <defaultSource>No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.</defaultSource>
-      <description>The coefficients of the random error polynomial for absolute magnitudes.</description>
+      <defaultSource>
+      No estimate of photometric uncertainty is provided by the reference paper---a tiny value is adopted.
+      </defaultSource>
+      <description>
+      The coefficients of the random error polynomial for absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for absolute magnitudes.</description>
+      <description>
+      The coefficients of the systematic error polynomial for absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -169,8 +197,8 @@ contains
   end function luminosityFunctionStefanonMarchesini2013ConstructorParameters
 
   function luminosityFunctionStefanonMarchesini2013ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band,redshiftInterval) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionStefanonMarchesini2013} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionStefanonMarchesini2013`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -374,8 +402,8 @@ contains
   end function luminosityFunctionStefanonMarchesini2013ConstructorInternal
 
   subroutine luminosityFunctionStefanonMarchesini2013Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunctionStefanonMarchesini2013} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLuminosityFunctionStefanonMarchesini2013`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionStefanonMarchesini2013), intent(inout) :: self

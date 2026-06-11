@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 A null implementation of the hot halo mass distribution class.
 !!}
 
   !![
-  <hotHaloMassDistribution name="hotHaloMassDistributionNull">
+  <hotHaloMassDistribution name="hotHaloMassDistributionNull" docformat="rst">
    <description>
-    A hot halo mass distribution class that assumes no hot halo mass distribution. It is useful, for example, when performing
-    dark matter-only calculations.
+   A hot halo mass distribution class that assumes no hot halo mass distribution. It is useful, for example, when performing dark matter-only calculations.
    </description>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionNull
-     !!{
+     !!{RST
      A null implementation of the hot halo mass distribution class.
      !!}
      private
@@ -39,7 +38,7 @@ A null implementation of the hot halo mass distribution class.
   end type hotHaloMassDistributionNull
 
   interface hotHaloMassDistributionNull
-     !!{
+     !!{RST
      Constructors for the null hot halo mass distribution class.
      !!}
      module procedure nullConstructorParameters
@@ -48,7 +47,7 @@ A null implementation of the hot halo mass distribution class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the null hot halo mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -64,7 +63,7 @@ contains
   end function nullConstructorParameters
 
   function nullGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     Return a null hot halo mass distribution.
     !!}
     implicit none

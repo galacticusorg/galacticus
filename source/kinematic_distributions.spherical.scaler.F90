@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a spherical scaler kinematic distribution class.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionSphericalScaler">
-   <description>A kinematic distribution decorator class that rescales the velocity dispersion of an underlying spherical kinematic distribution by applying independent scaling factors to the length and mass dimensions. The scale factors \mono{[factorScalingLength]} and \mono{[factorScalingMass]} allow the kinematic profile to be mapped between systems of different physical size or mass.</description>
+  <kinematicsDistribution name="kinematicsDistributionSphericalScaler" docformat="rst">
+   <description>
+   A kinematic distribution decorator class that rescales the velocity dispersion of an underlying spherical kinematic distribution by applying independent scaling factors to the length and mass dimensions. The scale factors ``[factorScalingLength]`` and ``[factorScalingMass]`` allow the kinematic profile to be mapped between systems of different physical size or mass.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionSphericalScaler
-     !!{
+     !!{RST
      An spherical scaler kinematic distribution.
      !!}
      class           (kinematicsDistributionClass), pointer :: kinematicsDistribution_ => null()
@@ -39,8 +41,8 @@
   end type kinematicsDistributionSphericalScaler
 
   interface kinematicsDistributionSphericalScaler
-     !!{
-     Constructors for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
      !!}
      module procedure kinematicsSphericalScalerConstructorParameters
      module procedure kinematicsSphericalScalerConstructorInternal
@@ -49,9 +51,8 @@
 contains
 
   function kinematicsSphericalScalerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,14 +62,18 @@ contains
     double precision                                                       :: factorScalingLength    , factorScalingMass
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingLength</name>
-      <description>The multiplicative factor applied to all length scales in the underlying kinematic distribution; used to rescale the distribution from one physical size to another.</description>
+      <description>
+      The multiplicative factor applied to all length scales in the underlying kinematic distribution; used to rescale the distribution from one physical size to another.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingMass</name>
-      <description>The multiplicative factor applied to the mass normalization of the underlying kinematic distribution; used to rescale the distribution from one physical mass to another.</description>
+      <description>
+      The multiplicative factor applied to the mass normalization of the underlying kinematic distribution; used to rescale the distribution from one physical mass to another.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="kinematicsDistribution" name="kinematicsDistribution_" source="parameters"/>
@@ -82,8 +87,8 @@ contains
   end function kinematicsSphericalScalerConstructorParameters
     
   function kinematicsSphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,kinematicsDistribution_) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
+    !!{RST
+    Constructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSphericalScaler)                        :: self
@@ -97,8 +102,8 @@ contains
   end function kinematicsSphericalScalerConstructorInternal
 
   subroutine kinematicsSphericalScalerDestructor(self)
-    !!{
-    Destructor for the \refClass{kinematicsDistributionSphericalScaler} kinematic distribution class.
+    !!{RST
+    Destructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSphericalScaler), intent(inout) :: self
@@ -110,7 +115,7 @@ contains
   end subroutine kinematicsSphericalScalerDestructor
 
   logical function kinematicsSphericalScalerIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the spherical scaler kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -121,8 +126,8 @@ contains
   end function kinematicsSphericalScalerIsCollisional
 
   double precision function kinematicsSphericalScalerVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in a spherical scaler kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in a spherical scaler kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionSphericalScaler), intent(inout)          :: self

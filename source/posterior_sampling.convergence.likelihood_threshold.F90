@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
   !!}
 
   !![
-  <posteriorSampleConvergence name="posteriorSampleConvergenceLikelihoodThreshold">
-   <description>A posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.</description>
+  <posteriorSampleConvergence name="posteriorSampleConvergenceLikelihoodThreshold" docformat="rst">
+   <description>
+   A posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
+   </description>
   </posteriorSampleConvergence>
   !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceLikelihoodThreshold
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which declares convergence once all likelihoods are above a threshold.
      !!}
      private
@@ -44,8 +46,8 @@
   end type posteriorSampleConvergenceLikelihoodThreshold
 
   interface posteriorSampleConvergenceLikelihoodThreshold
-     !!{
-     Constructors for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class.
+     !!{RST
+     Constructors for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class.
      !!}
      module procedure likelihoodThresholdConstructorParameters
      module procedure likelihoodThresholdConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function likelihoodThresholdConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,10 +66,12 @@ contains
     double precision                                                               :: likelihoodThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The threshold log-likelihood above which convergence is declared.</description>
+      <description>
+      The threshold log-likelihood above which convergence is declared.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -79,8 +83,8 @@ contains
   end function likelihoodThresholdConstructorParameters
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{posteriorSampleConvergenceLikelihoodThreshold} posterior sampling convergence class.
+    !!{RST
+    Internal constructor for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class.
     !!}
     use :: MPI_Utilities    , only : mpiSelf
     implicit none
@@ -97,7 +101,7 @@ contains
   end function likelihoodThresholdConstructorInternal
 
   logical function likelihoodThresholdIsConverged(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Returns true if the posterior sampling is converged (which it likelihoodThreshold is).
     !!}
     use :: MPI_Utilities, only : mpiSelf
@@ -126,7 +130,7 @@ contains
   end function likelihoodThresholdIsConverged
 
   integer function likelihoodThresholdConvergedAtStep(self)
-    !!{
+    !!{RST
     Return the step at which the simulation converged.
     !!}
     implicit none
@@ -137,7 +141,7 @@ contains
   end function likelihoodThresholdConvergedAtStep
 
   subroutine likelihoodThresholdReset(self)
-    !!{
+    !!{RST
     Reset the convergence object.
     !!}
     implicit none
@@ -149,8 +153,8 @@ contains
   end subroutine likelihoodThresholdReset
 
   subroutine likelihoodThresholdLogReport(self,fileUnit)
-    !!{
-    Write a convergence report to the given \mono{fileUnit}.
+    !!{RST
+    Write a convergence report to the given ``fileUnit``.
     !!}
     implicit none
     class  (posteriorSampleConvergenceLikelihoodThreshold), intent(inout) :: self
@@ -165,7 +169,7 @@ contains
   end subroutine likelihoodThresholdLogReport
 
   logical function likelihoodThresholdStateIsOutlier(self,stateIndex)
-    !!{
+    !!{RST
     Return true if the specified chain is deemed to be an outlier.
     !!}
     implicit none

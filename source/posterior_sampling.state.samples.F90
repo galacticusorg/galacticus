@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class that returns lists of states at which to sample the posterior.
 !!}
 
 module Posterior_Sampling_State_Samples
-  !!{
+  !!{RST
   Implements a class that returns lists of states at which to sample the posterior.
   !!}
   use :: Model_Parameters        , only : modelParameterList
@@ -30,17 +30,17 @@ module Posterior_Sampling_State_Samples
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSamples</name>
    <descriptiveName>Posterior Samples</descriptiveName>
-   <description>Class providing lists of parameter-space states at which to evaluate the posterior distribution---a pre-defined
-    grid or set of points used for posterior exploration or visualization rather than adaptive MCMC sampling. Implementations
-    generate arrays of \refClass{posteriorSampleStateSimple} objects covering the parameter space according to a chosen scheme
-    (e.g.\ a regular grid over the prior, or a set of previously sampled points). These samples are used to compute the posterior
-    probability at each grid point for plotting or convergence diagnostics.</description>
+   <description>
+   Class providing lists of parameter-space states at which to evaluate the posterior distribution---a pre-defined grid or set of points used for posterior exploration or visualization rather than adaptive MCMC sampling. Implementations generate arrays of ``posteriorSampleStateSimple`` objects covering the parameter space according to a chosen scheme (e.g.\ a regular grid over the prior, or a set of previously sampled points). These samples are used to compute the posterior probability at each grid point for plotting or convergence diagnostics.
+   </description>
    <default>priorGrid</default>
    <method name="samples" >
-    <description>Return the array of pre-defined parameter-space states at which the posterior probability will be evaluated, allocating the \mono{simulationStates} array according to the sampling scheme.</description>
+    <description>
+    Return the array of pre-defined parameter-space states at which the posterior probability will be evaluated, allocating the ``simulationStates`` array according to the sampling scheme.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(posteriorSampleStateSimple), intent(inout), dimension(:), allocatable :: simulationStates</argument>

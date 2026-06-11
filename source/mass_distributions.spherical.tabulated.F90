@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an abstract mass distribution class for tabulated spherically symmetric distributions.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <massDistribution name="massDistributionSphericalTabulated" abstract="yes">
-   <description>An abstract mass distribution class for tabulated spherically symmetric distributions.</description>
+  <massDistribution name="massDistributionSphericalTabulated" abstract="yes" docformat="rst">
+   <description>
+   An abstract mass distribution class for tabulated spherically symmetric distributions.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSpherical), abstract :: massDistributionSphericalTabulated
-     !!{
+     !!{RST
      Implementation of an abstract mass distribution class for tabulated spherically symmetric distributions.
      !!}
      private
@@ -68,9 +70,11 @@
   end type massDistributionSphericalTabulated
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>quantity</name>
-   <description>Quantities for tabulation mass distributions.</description>
+   <description>
+   Quantities for tabulation mass distributions.
+   </description>
    <decodeFunction>yes</decodeFunction>
    <entry label="mass"                      />
    <entry label="radiusEnclosingDensity"    />
@@ -88,7 +92,7 @@
   !!]
   
   type :: massDistributionTabulation
-     !!{
+     !!{RST
      Object used to store individual mass distribution tabulations.
      !!}
      type            (enumerationQuantityType)                                   :: quantity
@@ -103,7 +107,7 @@
   end type massDistributionTabulation
 
   type :: massDistributionContainer
-     !!{
+     !!{RST
      Object to store collections of mass distribution tabulations.
      !!}
      type            (varying_string            ), allocatable, dimension(:) :: nameParameters        , descriptionParameters
@@ -135,7 +139,7 @@
   end type massDistributionContainer
   
   abstract interface
-     !!{
+     !!{RST
      Interfaces to deferred functions.
      !!}
      subroutine sphericalTabulatedParameters(self,densityNormalization,radiusNormalization,parameters,container)
@@ -168,9 +172,8 @@
 contains
 
   double precision function sphericalTabulatedMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for spherically-symmetric mass
-    distributions using a tabulation.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for spherically-symmetric mass distributions using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
@@ -201,9 +204,8 @@ contains
   end function sphericalTabulatedMassEnclosedBySphere
 
   double precision function sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
-    Computes the radius enclosing the given \mono{radius} for spherically-symmetric mass
-    distributions using a tabulation.
+    !!{RST
+    Computes the radius enclosing the given ``radius`` for spherically-symmetric mass distributions using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
@@ -230,8 +232,8 @@ contains
   end function sphericalTabulatedRadiusEnclosingDensity
 
   double precision function sphericalTabulatedPotential(self,coordinates,status) result(potential)
-    !!{
-    Compute the potential at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the potential at the given ``coordinates`` in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -263,8 +265,8 @@ contains
   end function sphericalTabulatedPotential
 
   double precision function sphericalTabulatedPotentialDifference(self,coordinates1,coordinates2,status) result(potentialDifference)
-    !!{
-    Compute the potential difference between the given \mono{coordinates1} and \mono{coordinates2} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the potential difference between the given ``coordinates1`` and ``coordinates2`` in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -295,8 +297,8 @@ contains
   end function sphericalTabulatedPotentialDifference
 
   double precision function sphericalTabulatedVelocityDispersion1D(self,coordinates) result(velocityDispersion)
-    !!{
-    Compute the 1D velocity dispersion at the given \mono{coordinates} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the 1D velocity dispersion at the given ``coordinates`` in a spherical mass distribution using a tabulation.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
     implicit none
@@ -325,8 +327,8 @@ contains
   end function sphericalTabulatedVelocityDispersion1D
 
   double precision function sphericalTabulatedEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the energy within a given \mono{radius} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the energy within a given ``radius`` in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout) , target      :: self
@@ -357,9 +359,8 @@ contains
   end function sphericalTabulatedEnergy
 
   double precision function sphericalTabulatedFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{    
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical mass
-    distribution using a tabulation.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -391,8 +392,8 @@ contains
   end function sphericalTabulatedFourierTransform
 
   double precision function sphericalTabulatedRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the freefall radius at a given ``time`` in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -420,8 +421,8 @@ contains
   end function sphericalTabulatedRadiusFreefall
 
   double precision function sphericalTabulatedRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of freefall radius at a given \mono{time} in a spherical mass distribution using a tabulation.
+    !!{RST
+    Compute the rate of increase of freefall radius at a given ``time`` in a spherical mass distribution using a tabulation.
     !!}
     implicit none
     class           (massDistributionSphericalTabulated), intent(inout)               :: self
@@ -450,7 +451,7 @@ contains
   end function sphericalTabulatedRadiusFreefallIncreaseRate
 
   double precision function sphericalTabulatedDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
+    !!{RST
     Computes radial density moments for spherically-symmetric mass distributions using a tabulation.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
@@ -533,7 +534,7 @@ contains
   end function sphericalTabulatedDensityRadialMoment
 
   subroutine sphericalTabulatedTabulate(self,radiusScaled,parameters,container,tabulation)
-    !!{
+    !!{RST
     Tabulate the mass distribution.
     !!}
     use :: Coordinates                 , only : coordinateSpherical, assignment(=)
@@ -756,7 +757,7 @@ contains
   contains
 
     logical function retabulate()
-      !!{
+      !!{RST
       Test if the mass profile must be retabulated.
       !!}
       implicit none
@@ -776,7 +777,7 @@ contains
   end subroutine sphericalTabulatedTabulate
 
   double precision function sphericalTabulatedInterpolate(self,radiusScaled,parameters,tabulation) result(interpolated)
-    !!{
+    !!{RST
     Interpolate in the tabulated mass distribution.
     !!}
     use :: Multi_Counters, only : multiCounter
@@ -895,7 +896,7 @@ contains
   end function sphericalTabulatedInterpolate
   
   logical function sphericalTabulatedIsTabulating(self) result(isTabulating)
-    !!{
+    !!{RST
     Return true if this thread is currently tabulating.
     !!}
     implicit none
@@ -907,7 +908,7 @@ contains
   end function sphericalTabulatedIsTabulating
   
   subroutine sphericalTabulatedFileRead(self,fileName,quantityName,container,tabulation)
-    !!{
+    !!{RST
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
@@ -948,7 +949,7 @@ contains
   end subroutine sphericalTabulatedFileRead
 
   subroutine sphericalTabulatedFileWrite(self,fileName,quantityName,container,tabulation)
-    !!{
+    !!{RST
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
@@ -980,7 +981,7 @@ contains
   end subroutine sphericalTabulatedFileWrite
 
   subroutine massDistributionContainerInitialize(self,countParameters)
-    !!{
+    !!{RST
     Initialize the container to the specified number of parameters.
     !!}
     implicit none
@@ -1096,7 +1097,7 @@ contains
   end subroutine massDistributionContainerInitialize
 
   function massDistributionContainerNameParameter(self,indexParameter,tabulation) result(nameParameter)
-    !!{
+    !!{RST
     Return the name of the indexed parameter.
     !!}
     implicit none
@@ -1126,7 +1127,7 @@ contains
   end function massDistributionContainerNameParameter
   
   function massDistributionContainerCountParameters(self,tabulation) result(countParameters)
-    !!{
+    !!{RST
     Return the name of the indexed parameter.
     !!}
     implicit none

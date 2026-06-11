@@ -17,25 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
+  !!{RST
+  Implements a stellar initial mass function class for the top-heavy stellar initial mass function from :cite:t:`baugh_can_2005`.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionBaugh2005TopHeavy">
+  <initialMassFunction name="initialMassFunctionBaugh2005TopHeavy" docformat="rst">
    <description>
-    A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}:
-    The \mono{Baugh2005TopHeavy} \gls{imf} is defined by \citep{baugh_can_2005}:
-    \begin{equation}
-     \phi(M) \propto 
-     M^{-1} \hbox{ for } 0.15\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot
-    \end{equation}
+   A stellar initial mass function class for the top-heavy stellar initial mass function from :cite:t:`baugh_can_2005`: The ``Baugh2005TopHeavy`` :term:`IMF` is defined by :cite:p:`baugh_can_2005`:
+
+   .. math::
+
+      \phi(M) \propto
+      M^{-1} \hbox{ for } 0.15\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionBaugh2005TopHeavy
-     !!{
-     A stellar initial mass function class for the top-heavy stellar initial mass function from \cite{baugh_can_2005}.
+     !!{RST
+     A stellar initial mass function class for the top-heavy stellar initial mass function from :cite:t:`baugh_can_2005`.
      !!}
      private
    contains
@@ -43,8 +43,8 @@
   end type initialMassFunctionBaugh2005TopHeavy
 
   interface initialMassFunctionBaugh2005TopHeavy
-     !!{
-     Constructors for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function class.
+     !!{RST
+     Constructors for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function class.
      !!}
      module procedure baugh2005TopHeavyConstructorParameters
      module procedure baugh2005TopHeavyConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function baugh2005TopHeavyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,8 +69,8 @@ contains
   end function baugh2005TopHeavyConstructorParameters
 
   function baugh2005TopHeavyConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionBaugh2005TopHeavy} initial mass function.
+    !!{RST
+    Internal constructor for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy):: self
@@ -83,8 +83,8 @@ contains
   end function baugh2005TopHeavyConstructorInternal
 
   function baugh2005TopHeavyLabel(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionBaugh2005TopHeavy), intent(inout) :: self

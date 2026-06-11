@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only main branch halos.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterMainBranch">
-   <description>Passes only nodes that lie on the main progenitor branch of their merger tree (the branch of most massive progenitors tracing the primary assembly history), filtering out secondary merger branches for analyses focused on main branch evolution.</description>
+  <galacticFilter name="galacticFilterMainBranch" docformat="rst">
+   <description>
+   Passes only nodes that lie on the main progenitor branch of their merger tree (the branch of most massive progenitors tracing the primary assembly history), filtering out secondary merger branches for analyses focused on main branch evolution.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterMainBranch
-     !!{
+     !!{RST
      A galactic filter class which passes only main branch halos.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a filter which passes only main branch halos.
   end type galacticFilterMainBranch
 
   interface galacticFilterMainBranch
-     !!{
-     Constructors for the \refClass{galacticFilterMainBranch} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterMainBranch`` galactic filter class.
      !!}
      module procedure mainBranchConstructorParameters
   end interface galacticFilterMainBranch
@@ -45,8 +47,8 @@ Implements a filter which passes only main branch halos.
 contains
 
   function mainBranchConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterMainBranch} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterMainBranch`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function mainBranchConstructorParameters
 
   logical function mainBranchPasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only main branch halos.
     !!}
     implicit none

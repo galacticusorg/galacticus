@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
-velocity.
+!!{RST
+An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
 !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -28,24 +27,27 @@ velocity.
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling">
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationVelocityMaximumScaling" docformat="rst">
    <description>
-    A hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular
-    velocity. Specifically,
-    \begin{equation}
-     \dot{M}_\mathrm{reincorporation} = M_\mathrm{outflowed} / t_\mathrm{reincorporation},
-    \end{equation}
-    where
-    \begin{equation}
-     t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
-     \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
-    \end{equation}
-    where $\tau_\mathrm{reincorporation}=$\mono{[timeScale]}, $\alpha_\mathrm{reincorporation}=$\mono{[velocityExponent]}, and $\beta_\mathrm{reincorporation}=$\mono{[redshiftExponent]}.
+   A hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity. Specifically,
+
+   .. math::
+
+      \dot{M}_\mathrm{reincorporation} = M_\mathrm{outflowed} / t_\mathrm{reincorporation},
+
+   where
+
+   .. math::
+
+      t_\mathrm{reincorporation} = \tau_\mathrm{reincorporation} \left( { V_\mathrm{max} \over 200 \hbox{km/s}}
+      \right)^{\alpha_\mathrm{reincorporation}} (1+z)^{\beta_\mathrm{reincorporation}},
+
+   where :math:`\tau_\mathrm{reincorporation}=`\ ``[timeScale]``, :math:`\alpha_\mathrm{reincorporation}=`\ ``[velocityExponent]``, and :math:`\beta_\mathrm{reincorporation}=`\ ``[redshiftExponent]``.
    </description>
   </hotHaloOutflowReincorporation>
   !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
-     !!{
+     !!{RST
      An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      !!}
      private
@@ -73,8 +75,8 @@ velocity.
   end type hotHaloOutflowReincorporationVelocityMaximumScaling
 
   interface hotHaloOutflowReincorporationVelocityMaximumScaling
-     !!{
-     Constructors for the \refClass{hotHaloOutflowReincorporationVelocityMaximumScaling} hot halo outflow reincorporation class.
+     !!{RST
+     Constructors for the ``hotHaloOutflowReincorporationVelocityMaximumScaling`` hot halo outflow reincorporation class.
      !!}
      module procedure velocityMaximumScalingConstructorParameters
      module procedure velocityMaximumScalingConstructorInternal
@@ -86,9 +88,8 @@ velocity.
 contains
 
   function velocityMaximumScalingConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{velocityMaximumScaling} hot halo outflow reincorporation class which
-    takes a parameter set as input.
+    !!{RST
+    Default constructor for the ``velocityMaximumScaling`` hot halo outflow reincorporation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,28 +101,36 @@ contains
          &                                                                                  redshiftExponent     , timeScaleMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeScale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale in the velocity maximum scaling model for outflow reincorporation.</description>
+      <description>
+      The timescale in the velocity maximum scaling model for outflow reincorporation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityExponent</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of maximum circular velocity in the velocity maximum scaling model for outflow reincorporation.</description>
+      <description>
+      The exponent of maximum circular velocity in the velocity maximum scaling model for outflow reincorporation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftExponent</name>
       <defaultValue>-1.5d0</defaultValue>
-      <description>The exponent of redshift in the velocity maximum scaling model for outflow reincorporation.</description>
+      <description>
+      The exponent of redshift in the velocity maximum scaling model for outflow reincorporation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum timescale for outflow reincorporation in the velocity maximum scaling model.</description>
+      <description>
+      The minimum timescale for outflow reincorporation in the velocity maximum scaling model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -137,7 +146,7 @@ contains
   end function velocityMaximumScalingConstructorParameters
 
   function velocityMaximumScalingConstructorInternal(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !!{
+    !!{RST
     Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     !!}
     use :: Error           , only : Component_List         , Error_Report
@@ -179,7 +188,7 @@ contains
   end function velocityMaximumScalingConstructorInternal
 
   subroutine velocityMaximumScalingAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -191,8 +200,8 @@ contains
   end subroutine velocityMaximumScalingAutoHook
 
   subroutine velocityMaximumScalingDestructor(self)
-    !!{
-    Destructor for the \glc\ format merger tree importer class.
+    !!{RST
+    Destructor for the Galacticus format merger tree importer class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -207,7 +216,7 @@ contains
   end subroutine velocityMaximumScalingDestructor
 
   subroutine velocityMaximumScalingCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the halo scales calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -225,7 +234,7 @@ contains
   end subroutine velocityMaximumScalingCalculationReset
 
   double precision function velocityMaximumScalingRate(self,node)
-    !!{
+    !!{RST
     Return the rate of mass reincorporation for outflowed gas in the hot halo.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode

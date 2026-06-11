@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the overdensity within the convex hull of the particles.
 !!}
 
@@ -26,12 +26,14 @@ Implements an N-body data operator which computes the overdensity within the con
   use :: Linear_Growth       , only : linearGrowthClass
 
   !![
-  <nbodyOperator name="nbodyOperatorConvexHullOverdensity">
-   <description>An N-body data operator which computes the overdensity within the convex hull of the particles.</description>
+  <nbodyOperator name="nbodyOperatorConvexHullOverdensity" docformat="rst">
+   <description>
+   An N-body data operator which computes the overdensity within the convex hull of the particles.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConvexHullOverdensity
-     !!{
+     !!{RST
      An N-body data operator which computes the overdensity within the convex hull of the particles.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which computes the overdensity within the con
   end type nbodyOperatorConvexHullOverdensity
 
   interface nbodyOperatorConvexHullOverdensity
-     !!{
-     Constructors for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
      !!}
      module procedure convexHullOverdensityConstructorParameters
      module procedure convexHullOverdensityConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which computes the overdensity within the con
 contains
 
   function convexHullOverdensityConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function convexHullOverdensityConstructorParameters
 
   function convexHullOverdensityConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorConvexHullOverdensity)                        :: self
@@ -97,8 +99,8 @@ contains
   end function convexHullOverdensityConstructorInternal
 
   subroutine convexHullOverdensityDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorConvexHullOverdensity} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConvexHullOverdensity), intent(inout) :: self
@@ -112,7 +114,7 @@ contains
   end subroutine convexHullOverdensityDestructor
 
   subroutine convexHullOverdensityOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the overdensity of the points.
     !!}
     use :: Display, only : displayIndent, displayUnindent, verbosityLevelStandard

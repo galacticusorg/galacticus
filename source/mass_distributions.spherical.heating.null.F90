@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a null mass distribution heating class.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingNull">
+  <massDistributionHeating name="massDistributionHeatingNull" docformat="rst">
     <description>
-      A null mass distribution heating class. The heating energy is always zero.
+    A null mass distribution heating class. The heating energy is always zero.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingNull
-     !!{
+     !!{RST
      Implementation of a null mass distribution heating class.
      !!}
      private
@@ -40,8 +40,8 @@
   end type massDistributionHeatingNull
 
   interface massDistributionHeatingNull
-     !!{
-     Constructors for the \refClass{massDistributionHeatingNull} mass distribution heating class.
+     !!{RST
+     Constructors for the ``massDistributionHeatingNull`` mass distribution heating class.
      !!}
      module procedure nullConstructorParameters
   end interface massDistributionHeatingNull
@@ -49,9 +49,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingNull} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHeatingNull`` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +65,7 @@ contains
   end function nullConstructorParameters
   
   double precision function nullSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
+    !!{RST
     Compute the specific energy in a zero-heating mass distribution.
     !!}
     implicit none
@@ -79,7 +78,7 @@ contains
   end function nullSpecificEnergy
 
   double precision function nullSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     implicit none
@@ -92,7 +91,7 @@ contains
   end function nullSpecificEnergyGradient
 
   logical function nullSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

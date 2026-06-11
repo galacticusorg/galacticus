@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines internal error codes for the \glc\ ODE solver.
+!!{RST
+Contains a module which defines internal error codes for the Galacticus ODE solver.
 !!}
 
 module ODE_Solver_Error_Codes
-  !!{
-  Defines internal error codes for the \glc\ ODE solver.
+  !!{RST
+  Defines internal error codes for the Galacticus ODE solver.
   !!}
   use :: Interface_GSL, only : GSL_EBadFunc
   implicit none

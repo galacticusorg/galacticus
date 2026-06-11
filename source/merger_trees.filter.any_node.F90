@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
   !![
-  <mergerTreeFilter name="mergerTreeFilterAnyNode">
-   <description>A merger tree filter which passes the entire tree if at least one node within it satisfies a given galactic node filter, allowing selection of trees containing particular galaxy types or halo properties. Optionally applies a label to passing nodes or their entire branch, configured via \mono{[label]} and \mono{[applyToDescendants]}.</description>
+  <mergerTreeFilter name="mergerTreeFilterAnyNode" docformat="rst">
+   <description>
+   A merger tree filter which passes the entire tree if at least one node within it satisfies a given galactic node filter, allowing selection of trees containing particular galaxy types or halo properties. Optionally applies a label to passing nodes or their entire branch, configured via ``[label]`` and ``[applyToDescendants]``.
+   </description>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAnyNode
-     !!{
+     !!{RST
      A merger tree filter class which passes if any node in the tree passes the given galactic filter.
      !!}
      private
@@ -43,8 +45,8 @@ Implements a merger tree filter which passes if any node in the tree passes the 
   end type mergerTreeFilterAnyNode
 
   interface mergerTreeFilterAnyNode
-     !!{
-     Constructors for the \refClass{mergerTreeFilterAnyNode} merger tree filter class.
+     !!{RST
+     Constructors for the ``mergerTreeFilterAnyNode`` merger tree filter class.
      !!}
      module procedure anyNodeConstructorParameters
      module procedure anyNodeConstructorInternal
@@ -53,8 +55,8 @@ Implements a merger tree filter which passes if any node in the tree passes the 
 contains
   
   function anyNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterAnyNode} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeFilterAnyNode`` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,26 +67,32 @@ contains
     logical                                         :: labelBranch
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <defaultValue>var_str(' ')</defaultValue>
-      <description>A label to apply to nodes that pass the filter.</description>
+      <description>
+      A label to apply to nodes that pass the filter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>labelBranch</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true apply the label to the entire branch of any node that passes the filter.</description>
+      <description>
+      If true apply the label to the entire branch of any node that passes the filter.
+      </description>
     </inputParameter>
     !!]
     if (label == '') label=' '
     if (trim(label) /= '') then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>labelDescription</name>
          <source>parameters</source>
-         <description>A human-readable description of the label applied to nodes that pass the galactic filter, used to document what physical property or criterion the label represents in this tree filter.</description>
+         <description>
+         A human-readable description of the label applied to nodes that pass the galactic filter, used to document what physical property or criterion the label represents in this tree filter.
+         </description>
        </inputParameter>
        !!]
     end if
@@ -100,8 +108,8 @@ contains
   end function anyNodeConstructorParameters
 
   function anyNodeConstructorInternal(label,labelBranch,labelDescription,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeFilterAnyNode} merger tree filter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeFilterAnyNode`` merger tree filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -122,8 +130,8 @@ contains
   end function anyNodeConstructorInternal
 
   subroutine anyNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeFilterAnyNode} merger tree filter class.
+    !!{RST
+    Destructor for the ``mergerTreeFilterAnyNode`` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAnyNode), intent(inout) :: self
@@ -135,7 +143,7 @@ contains
   end subroutine anyNodeDestructor
 
   logical function anyNodePasses(self,tree)
-    !!{
+    !!{RST
     Implement a merger tree filter which passes if any node in the tree passes the given merger tree filter.
     !!}
     use :: Galacticus_Nodes   , only : treeNode

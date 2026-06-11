@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which filters particles by ID.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorFilterID">
-   <description>An N-body data operator which retains only the subset of particles whose unique IDs match a specified list, enabling targeted analysis of individual halos or particle subsets. The IDs to retain can be specified directly via \mono{[IDs]} or loaded from a file using \mono{[fileName]}.</description>
+  <nbodyOperator name="nbodyOperatorFilterID" docformat="rst">
+   <description>
+   An N-body data operator which retains only the subset of particles whose unique IDs match a specified list, enabling targeted analysis of individual halos or particle subsets. The IDs to retain can be specified directly via ``[IDs]`` or loaded from a file using ``[fileName]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterID
-     !!{
+     !!{RST
      An N-body data operator which filters particles by ID.
      !!}
      private
@@ -38,8 +40,8 @@ Implements an N-body data operator which filters particles by ID.
   end type nbodyOperatorFilterID
 
   interface nbodyOperatorFilterID
-     !!{
-     Constructors for the \refClass{nbodyOperatorFilterID} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFilterID`` N-body operator class.
      !!}
      module procedure filterIDConstructorParameters
      module procedure filterIDConstructorInternal
@@ -48,8 +50,8 @@ Implements an N-body data operator which filters particles by ID.
 contains
 
   function filterIDConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFilterID} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFilterID`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: IO_HDF5         , only : hdf5Object
@@ -68,24 +70,30 @@ contains
     if      (parameters%isPresent('idSelection'        )) then
        allocate(idSelection(parameters%count('idSelection')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>idSelection</name>
 	 <source>parameters</source>
-	 <description>The IDs of particles to retain.</description>
+	 <description>
+	 The IDs of particles to retain.
+	 </description>
        </inputParameter>
        !!]
     else if (parameters%isPresent('idSelectionFileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>idSelectionFileName</name>
 	 <source>parameters</source>
-	 <description>The name of a file containing the IDs of particles to retain.</description>
+	 <description>
+	 The name of a file containing the IDs of particles to retain.
+	 </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>idSelectionDatasetName</name>
 	 <source>parameters</source>
 	 <defaultValue>var_str('id')</defaultValue>
-	 <description>The name of the dataset containing the IDs of particles to retain.</description>
+	 <description>
+	 The name of the dataset containing the IDs of particles to retain.
+	 </description>
        </inputParameter>
        !!]
        allocate(groupNames(String_Count_Words(char(idSelectionDatasetName),"/")  ))
@@ -118,8 +126,8 @@ contains
   end function filterIDConstructorParameters
 
   function filterIDConstructorInternal(idSelection) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFilterID} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFilterID`` N-body operator class.
     !!}
     use :: Sorting, only : sort
     implicit none
@@ -135,7 +143,7 @@ contains
   end function filterIDConstructorInternal
 
   subroutine filterIDOperate(self,simulations)
-    !!{
+    !!{RST
     Filter particles not matching the given IDs.
     !!}
     use :: Arrays_Search, only : searchArray

@@ -17,35 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree processing time estimator using a polynomial relation read from file.
 !!}
 
   !![
-  <metaTreeProcessingTime name="metaTreeProcessingTimeFile">
+  <metaTreeProcessingTime name="metaTreeProcessingTimeFile" docformat="rst">
    <description>
-    A merger tree processing time class which estimates processing times using a polynomial relation read from
-    file. Specifically, the time taken to process a tree is estimate to be
-    \begin{equation}
-     \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
-    \end{equation}
-    where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
-    the \mono{[fileName]} parameter. This file should be an XML document with the structure:
-    \begin{verbatim}
-    &lt;timing>
-     &lt;fit>
-       &lt;coefficient>-0.73&lt;/coefficient>
-       &lt;coefficient>-0.20&lt;/coefficient>
-       &lt;coefficient>0.03&lt;/coefficient>
-     &lt;/fit>
-    &lt;/timing>
-    \end{verbatim}
-    where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
+   A merger tree processing time class which estimates processing times using a polynomial relation read from file. Specifically, the time taken to process a tree is estimate to be
+
+   .. math::
+
+      \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
+
+   where :math:`M` is the root mass of the tree and the coefficients :math:`C_i` are read from a file, the name of which is specified via the ``[fileName]`` parameter. This file should be an XML document with the structure:
+
+   .. code-block:: none
+
+      &lt;timing&gt;
+       &lt;fit&gt;
+         &lt;coefficient&gt;-0.73&lt;/coefficient&gt;
+         &lt;coefficient&gt;-0.20&lt;/coefficient&gt;
+         &lt;coefficient&gt;0.03&lt;/coefficient&gt;
+       &lt;/fit&gt;
+      &lt;/timing&gt;
+
+   where the array of coefficients give the values :math:`C_0`, :math:`C_1` and :math:`C_2`.
    </description>
   </metaTreeProcessingTime>
   !!]
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeFile
-     !!{
+     !!{RST
      A merger tree processing time estimator using a polynomial relation read from file.
      !!}
      private
@@ -56,8 +58,8 @@ Implements a merger tree processing time estimator using a polynomial relation r
   end type metaTreeProcessingTimeFile
 
   interface metaTreeProcessingTimeFile
-     !!{
-     Constructors for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator.
+     !!{RST
+     Constructors for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -66,8 +68,8 @@ Implements a merger tree processing time estimator using a polynomial relation r
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,9 +78,11 @@ contains
     type(varying_string            )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
+      <description>
+      The name of the file which contains fit coefficients for the time per tree fitting function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -90,8 +94,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{metaTreeProcessingTimeFile} merger tree processing time estimator class.
+    !!{RST
+    Internal constructor for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator class.
     !!}
     use :: FoX_DOM           , only : node
     use :: Error             , only : Error_Report
@@ -117,7 +121,7 @@ contains
   end function fileConstructorInternal
 
   double precision function fileTime(self,massTree)
-    !!{
+    !!{RST
     Return the units of the file property in the SI system.
     !!}
     implicit none

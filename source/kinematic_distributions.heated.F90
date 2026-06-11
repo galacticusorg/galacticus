@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for heated mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionHeated">
-   <description>A kinematic distribution class for mass distributions subject to external heating. The 1D velocity dispersion is computed by solving the Jeans equation modified to account for the additional energy injected by the heating source. The \mono{[velocityDispersionApproximate]} flag enables an approximate solver for improved performance.</description>
+  <kinematicsDistribution name="kinematicsDistributionHeated" docformat="rst">
+   <description>
+   A kinematic distribution class for mass distributions subject to external heating. The 1D velocity dispersion is computed by solving the Jeans equation modified to account for the additional energy injected by the heating source. The ``[velocityDispersionApproximate]`` flag enables an approximate solver for improved performance.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionHeated
-     !!{
+     !!{RST
      A heated kinematic distribution.
      !!}
      logical                                    :: velocityDispersionApproximate
@@ -40,8 +42,8 @@
   end type kinematicsDistributionHeated
 
   interface kinematicsDistributionHeated
-     !!{
-     Constructors for the \refClass{kinematicsDistributionHeated} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionHeated`` kinematic distribution class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function heatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionHeated} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionHeated`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,36 +68,36 @@ contains
     double precision                                              :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionApproximate</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
       <description>
-	If \mono{true}, radial velocity dispersion is computed using an approximate method in which we assume
-	that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific
-	heating energy. If \mono{false} then radial velocity dispersion is computed by numerically solving the
-	Jeans equation.
+      If ``true``, radial velocity dispersion is computed using an approximate method in which we assume that :math:`\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)`, where :math:`\epsilon(r)` is the specific heating energy. If ``false`` then radial velocity dispersion is computed by numerically solving the Jeans equation.
       </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
       <description>
-	Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then
-	numerical solvers are used to find solutions.
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
       </description>
     </inputParameter>
     !!]
@@ -108,8 +109,8 @@ contains
   end function heatedConstructorParameters
   
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionHeated} kinematic distribution class.
+    !!{RST
+    Constructor for the ``kinematicsDistributionHeated`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self
@@ -124,7 +125,7 @@ contains
   end function heatedConstructorInternal
 
   logical function heatedIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the heated kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -135,8 +136,8 @@ contains
   end function heatedIsCollisional
 
   double precision function heatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an heated kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an heated kinematic distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -194,17 +195,19 @@ contains
   end function heatedVelocityDispersion1D
   
   double precision function heatedJeansEquationIntegrand(self,radius,massDistribution_,massDistributionEmbedding)
-    !!{
-    Integrand for the Jeans equation in a heated mass distribution. Here we do the integration with respect to the initial radius
-    $r_i$.
-    \begin{eqnarray}
-     \sigma_r(r) &=& \frac{1}{\rho(r)}\int_r^{r^{\mathrm{max}}} \rho(r) \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
-                 &=& \frac{1}{\rho(r)}\int_{r_i}^{r_{i}^{\mathrm{max}}} \rho_i(r_i) \frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^4 \mathrm{d} r_i.
-    \end{eqnarray}
-    Here $r$ can be written as a function of $r_i$
-    \begin{equation}
-     r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))}.
-    \end{equation}
+    !!{RST
+    Integrand for the Jeans equation in a heated mass distribution. Here we do the integration with respect to the initial radius :math:`r_i`.
+
+    .. math::
+
+       \sigma_r(r) &=& \frac{1}{\rho(r)}\int_r^{r^{\mathrm{max}}} \rho(r) \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
+       &=& \frac{1}{\rho(r)}\int_{r_i}^{r_{i}^{\mathrm{max}}} \rho_i(r_i) \frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^4 \mathrm{d} r_i.
+
+    Here :math:`r` can be written as a function of :math:`r_i`
+
+    .. math::
+
+       r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))}.
     !!}
     use :: Error                           , only : Error_Report
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -248,9 +251,8 @@ contains
   end function heatedJeansEquationIntegrand
 
   double precision function heatedJeansEquationRadius(self,radius,massDistributionEmbedding)
-    !!{
-    Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.
-    Here we do the integration with respect to the initial radius, so return the initial radius.
+    !!{RST
+    Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius. Here we do the integration with respect to the initial radius, so return the initial radius.
     !!}
     use :: Error, only : Error_Report
     implicit none

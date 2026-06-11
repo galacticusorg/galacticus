@@ -19,29 +19,26 @@
 
 !+    Contributions to this file made by: Charles Gannon, Andrew Benson.
 
-  !!{
-  Implements a node operator class that implements an an empirical power law relationship between spheroid stellar mass and
-  stellar radius.
+  !!{RST
+  Implements a node operator class that implements an an empirical power law relationship between spheroid stellar mass and stellar radius.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorSpheroidRadiusPowerLaw">
+  <nodeOperator name="nodeOperatorSpheroidRadiusPowerLaw" docformat="rst">
    <description>
-    A node operator that sets the spheroid scale radius using an empirical power law in stellar mass,
-    $r_\mathrm{s} = \beta \left(M_\star/\mathrm{M}_\odot\right)^\alpha$, calibrated to observations (default parameters
-    from \citealt{shen_erratum_2007} for early-type galaxies). \mono{alpha} is the mass exponent and \mono{beta} is the
-    normalization. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
+   A node operator that sets the spheroid scale radius using an empirical power law in stellar mass, :math:`r_\mathrm{s} = \beta \left(M_\star/\mathrm{M}_\odot\right)^\alpha`, calibrated to observations (default parameters from :cite:author:`shen_erratum_2007` :cite:year:`shen_erratum_2007` for early-type galaxies). ``alpha`` is the mass exponent and ``beta`` is the normalization. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSpheroidRadiusPowerLaw
-     !!{
+     !!{RST
      Implements a power law prescription for the stellar mass--stellar radius relation of spheroids. Specifically:
-     \begin{equation}
-       r_\mathrm{s} = \beta \left( \frac{M_\star}{\mathrm{M}_\odot} \right)^\alpha, 
-     \end{equation}
-     where $r_\mathrm{s}$ is the spheroid scale radius, $M_\star$ is the stellar mass of the spheroid, and $\alpha$ and $\beta$
-     are free parameters.
+
+     .. math::
+
+        r_\mathrm{s} = \beta \left( \frac{M_\star}{\mathrm{M}_\odot} \right)^\alpha,
+
+     where :math:`r_\mathrm{s}` is the spheroid scale radius, :math:`M_\star` is the stellar mass of the spheroid, and :math:`\alpha` and :math:`\beta` are free parameters.
      !!}
      private
      double precision :: alpha, beta
@@ -58,8 +55,8 @@
   end type nodeOperatorSpheroidRadiusPowerLaw
   
   interface nodeOperatorSpheroidRadiusPowerLaw
-     !!{
-     Constructors for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSpheroidRadiusPowerLaw`` node operator class.
      !!}
      module procedure spheroidRadiusPowerLawConstructorParameters
      module procedure spheroidRadiusPowerLawConstructorInternal
@@ -68,8 +65,8 @@
 contains
 
   function spheroidRadiusPowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSpheroidRadiusPowerLaw`` which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,19 +75,27 @@ contains
     double precision                                                    :: alpha     , beta    
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
-      <description>Exponent $\alpha$ in the power law fit.</description> 
+      <description>
+      Exponent :math:`\alpha` in the power law fit.
+      </description> 
       <defaultValue>0.56d0</defaultValue>
-      <defaultSource>\cite[][table J1: Parameter $a$, for early type galaxies]{shen_erratum_2007}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_erratum_2007`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
-      <description>Coefficient $\beta$ in the power law fit.</description>
+      <description>
+      Coefficient :math:`\beta` in the power law fit.
+      </description>
       <defaultValue>1.19d-9</defaultValue>
-      <defaultSource>\cite[][table J1: Parameter $b$, for early type galaxies and re-scaled from half light radius to Hernquist radius \protect\citep{hernquist_analytical_1990}---Note: there was a typo in the originally provided value, see \protect\cite{shen_erratum_2007} for the corrected value]{shen_size_2003}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_size_2003`
+      </defaultSource>
     </inputParameter>
     !!]
     self=spheroidRadiusPowerLawConstructorInternal(alpha, beta)
@@ -100,8 +105,8 @@ contains
   end function spheroidRadiusPowerLawConstructorParameters
 
   function spheroidRadiusPowerLawConstructorInternal(alpha, beta) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSpheroidRadiusPowerLaw} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSpheroidRadiusPowerLaw`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSpheroidRadiusPowerLaw)             :: self
@@ -113,7 +118,7 @@ contains
   end function spheroidRadiusPowerLawConstructorInternal
 
   subroutine spheroidRadiusPowerLawUpdate(self, node)
-    !!{
+    !!{RST
     Update radius of the spheroid.
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
@@ -132,7 +137,7 @@ contains
   end subroutine spheroidRadiusPowerLawUpdate
    
   subroutine spheroidRadiusPowerLawNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
@@ -149,7 +154,7 @@ contains
   end subroutine spheroidRadiusPowerLawNodeInitialize
 
   subroutine spheroidRadiusPowerLawSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set the radius of the spheroid.
     !!}
     implicit none
@@ -163,7 +168,7 @@ contains
   end subroutine spheroidRadiusPowerLawSolveAnalytics
 
   subroutine spheroidRadiusPowerLawNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the radius of the spheroid after a merger.
     !!}
     implicit none

@@ -20,12 +20,14 @@
   use :: Black_Hole_Binary_Separations, only : blackHoleBinarySeparationGrowthRateClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusBlackHoles">
-   <description>Extracts a list of radial positions and radial migration rates for all supermassive black holes in each node, enabling analysis of black hole orbital evolution within their host galaxies.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of radial positions and radial migration rates for all supermassive black holes in each node, enabling analysis of black hole orbital evolution within their host galaxies.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiusBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole radii and radial migration rates.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodePropertyExtractorRadiusBlackHoles
 
   interface nodePropertyExtractorRadiusBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -49,8 +51,8 @@
 contains
 
   function radiusBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,8 +72,8 @@ contains
   end function radiusBlackHolesConstructorParameters
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusBlackHoles} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self
@@ -84,7 +86,7 @@ contains
   end function radiusBlackHolesConstructorInternal
 
   subroutine radiusBlackHolesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity radiusBlackHoles set barrier class.
     !!}
     implicit none
@@ -97,7 +99,7 @@ contains
   end subroutine radiusBlackHolesDestructor
 
   integer function radiusBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -108,7 +110,7 @@ contains
   end function radiusBlackHolesElementCount
 
   function radiusBlackHolesExtract(self,node,instance) result(radius)
-    !!{
+    !!{RST
     Implement an output extractor for the masses of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -132,8 +134,8 @@ contains
   end function radiusBlackHolesExtract
 
   subroutine radiusBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{radiusBlackHoles} properties.
+    !!{RST
+    Return the names of the ``radiusBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -147,8 +149,8 @@ contains
   end subroutine radiusBlackHolesNames
 
   subroutine radiusBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{radiusBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``radiusBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiusBlackHoles), intent(inout)                             :: self
@@ -162,8 +164,8 @@ contains
   end subroutine radiusBlackHolesDescriptions
 
   function radiusBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{radiusBlackHoles} properties in the SI system.
+    !!{RST
+    Return the units of the ``radiusBlackHoles`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
     implicit none
@@ -178,7 +180,7 @@ contains
   end function radiusBlackHolesUnitsInSI
 
   function radiusBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusBlackHoles properties.
     !!}
     use :: Units_MetaData, only : unitType

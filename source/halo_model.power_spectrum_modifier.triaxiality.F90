@@ -17,24 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.
+  !!{RST
+  Implements a triaxiality modifier for power spectra in the halo model of clustering based on the results of :cite:t:`smith_triaxial_2005`.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Tables              , only : table1DLogarithmicLinear
 
   !![
-  <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierTriaxiality">
+  <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierTriaxiality" docformat="rst">
    <description>
-    A halo model power spectrum modifier class which attempts to modify power spectra to approximately account for the effects
-    of halo triaxiality using the results of \cite{smith_triaxial_2005}. Specifically, the one- and two-halo power spectra are
-    multiplied by a correction factor, $\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}$, derived from the lower panels of
-    Figures 3 and 2 of \cite{smith_triaxial_2005} respectively for their ``JS02'' profile model. Given the uncertainty in this
-    correction, the power spectrum covariance (if provided) is incremented by $\epsilon^2 (
-    [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1] \otimes [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1)$ where
-    $\epsilon=0.4$ is chosen to approximate the difference between ``continuity'' and ``JS02'' profiles in
-    \cite{smith_triaxial_2005}.
+   A halo model power spectrum modifier class which attempts to modify power spectra to approximately account for the effects of halo triaxiality using the results of :cite:t:`smith_triaxial_2005`. Specifically, the one- and two-halo power spectra are multiplied by a correction factor, :math:`\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}`, derived from the lower panels of Figures 3 and 2 of :cite:t:`smith_triaxial_2005` respectively for their "JS02" profile model. Given the uncertainty in this correction, the power spectrum covariance (if provided) is incremented by :math:`\epsilon^2 ( [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1] \otimes [\Delta^2_\mathrm{triax}/\Delta^2_\mathrm{sphere}-1)` where :math:`\epsilon=0.4` is chosen to approximate the difference between "continuity" and "JS02" profiles in :cite:t:`smith_triaxial_2005`.
    </description>
   </haloModelPowerSpectrumModifier>
   !!]
@@ -48,8 +41,8 @@
   end type haloModelPowerSpectrumModifierTriaxiality
 
   interface haloModelPowerSpectrumModifierTriaxiality
-     !!{
-     Constructors for the \refClass{haloModelPowerSpectrumModifierTriaxiality} halo model power spectrum modifier class.
+     !!{RST
+     Constructors for the ``haloModelPowerSpectrumModifierTriaxiality`` halo model power spectrum modifier class.
      !!}
      module procedure triaxialityConstructorParameters
      module procedure triaxialityConstructorInternal
@@ -93,9 +86,8 @@
 contains
 
   function triaxialityConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{triaxiality} hot halo outflow reincorporation class which
-    takes a parameter set as input.
+    !!{RST
+    Default constructor for the ``triaxiality`` hot halo outflow reincorporation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +107,7 @@ contains
   end function triaxialityConstructorParameters
 
   function triaxialityConstructorInternal(cosmologyParameters_) result(self)
-    !!{
+    !!{RST
     Default constructor for the triaxiality hot halo outflow reincorporation class.
     !!}
     use :: Table_Labels, only : extrapolationTypeExtrapolate
@@ -142,8 +134,8 @@ contains
   end function triaxialityConstructorInternal
 
   subroutine triaxialityDestructor(self)
-    !!{
-    Destructor for the \refClass{haloModelPowerSpectrumModifierTriaxiality} halo model power spectrum modifier class.
+    !!{RST
+    Destructor for the ``haloModelPowerSpectrumModifierTriaxiality`` halo model power spectrum modifier class.
     !!}
     implicit none
     type(haloModelPowerSpectrumModifierTriaxiality), intent(inout) :: self
@@ -155,8 +147,8 @@ contains
   end subroutine triaxialityDestructor
 
   subroutine triaxialityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
-    !!{
-    Applies a triaxiality modification to a halo model power spectrum based on the results of \cite{smith_triaxial_2005}.
+    !!{RST
+    Applies a triaxiality modification to a halo model power spectrum based on the results of :cite:t:`smith_triaxial_2005`.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Error               , only : Error_Report

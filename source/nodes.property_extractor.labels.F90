@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLabels">
-   <description>Extracts integer-encoded labels (categorical tags) attached to nodes via the \mono{Nodes\_Labels} module, such as merger tree branch identifiers or classification flags. Converts each registered label to an integer output for storage and analysis of labeled merger tree populations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorLabels" docformat="rst">
+   <description>
+   Extracts integer-encoded labels (categorical tags) attached to nodes via the ``Nodes_Labels`` module, such as merger tree branch identifiers or classification flags. Converts each registered label to an integer output for storage and analysis of labeled merger tree populations.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorLabels
-     !!{
+     !!{RST
      A property extractor which extracts labels associated with nodes.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorLabels
 
   interface nodePropertyExtractorLabels
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLabels} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorLabels`` property extractor class.
      !!}
      module procedure labelsConstructorParameters
   end interface nodePropertyExtractorLabels
@@ -46,8 +48,8 @@
 contains
 
   function labelsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLabels} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorLabels`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,8 +64,8 @@ contains
   end function labelsConstructorParameters
 
   integer function labelsElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{labels} property extractors.
+    !!{RST
+    Return the number of elements in the ``labels`` property extractors.
     !!}
     use :: Nodes_Labels, only : nodeLabelCount
     implicit none
@@ -76,7 +78,7 @@ contains
   end function labelsElementCount
 
   function labelsExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a labels output extractor.
     !!}
     use :: Nodes_Labels, only : nodeLabelList
@@ -93,8 +95,8 @@ contains
   end function labelsExtract
 
   subroutine labelsNames(self,time,names)
-    !!{
-    Return the names of the \mono{labels} properties.
+    !!{RST
+    Return the names of the ``labels`` properties.
     !!}
     use :: Nodes_Labels   , only : nodeLabelNames
     use :: String_Handling, only : String_Upper_Case_First
@@ -113,8 +115,8 @@ contains
   end subroutine labelsNames
 
   subroutine labelsDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{labels} properties.
+    !!{RST
+    Return the descriptions of the ``labels`` properties.
     !!}
     use :: Nodes_Labels, only : nodeLabelDescriptions
     implicit none
@@ -128,8 +130,8 @@ contains
   end subroutine labelsDescriptions
 
   function labelsUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{labels} properties in the SI system.
+    !!{RST
+    Return the units of the ``labels`` properties in the SI system.
     !!}
     implicit none
     double precision                             , dimension(:) , allocatable :: labelsUnitsInSI
@@ -142,7 +144,7 @@ contains
   end function labelsUnitsInSI
 
   function labelsUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the labels properties.
     !!}
     use :: Units_MetaData, only : unitType

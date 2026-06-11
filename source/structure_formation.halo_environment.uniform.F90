@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a uniform halo environment.
 !!}
 
   !![
-  <haloEnvironment name="haloEnvironmentUniform">
-   <description>Implements a uniform halo environment.</description>
+  <haloEnvironment name="haloEnvironmentUniform" docformat="rst">
+   <description>
+   Implements a uniform halo environment.
+   </description>
   </haloEnvironment>
   !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentUniform
-     !!{
+     !!{RST
      A uniform halo environment class.
      !!}
      private
@@ -46,8 +48,8 @@ Implements a uniform halo environment.
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
-     !!{
-     Constructors for the \refClass{haloEnvironmentUniform} halo environment class.
+     !!{RST
+     Constructors for the ``haloEnvironmentUniform`` halo environment class.
      !!}
      module procedure uniformConstructorParameters
   end interface haloEnvironmentUniform
@@ -55,8 +57,8 @@ Implements a uniform halo environment.
 contains
 
   function uniformConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloEnvironmentUniform} halo environment class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloEnvironmentUniform`` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function uniformConstructorParameters
 
   double precision function uniformOverdensityLinear(self,node,presentDay)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     implicit none
     class  (haloEnvironmentUniform), intent(inout)           :: self
@@ -85,8 +87,8 @@ contains
   end function uniformOverdensityLinear
 
   double precision function uniformOverdensityLinearGradientTime(self,node)
-    !!{
-    Return the time gradient of the environment of the given \mono{node}.
+    !!{RST
+    Return the time gradient of the environment of the given ``node``.
     !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
@@ -98,8 +100,8 @@ contains
   end function uniformOverdensityLinearGradientTime
 
   double precision function uniformOverdensityNonLinear(self,node)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
@@ -111,7 +113,7 @@ contains
   end function uniformOverdensityNonLinear
 
   double precision function uniformEnvironmentRadius(self)
-    !!{
+    !!{RST
     Return the radius of the environment.
     !!}
     implicit none
@@ -123,7 +125,7 @@ contains
   end function uniformEnvironmentRadius
 
   double precision function uniformEnvironmentMass(self)
-    !!{
+    !!{RST
     Return the mass of the environment.
     !!}
     implicit none
@@ -135,7 +137,7 @@ contains
   end function uniformEnvironmentMass
 
   double precision function uniformPDF(self,overdensity)
-    !!{
+    !!{RST
     Return the PDF of the environmental overdensity.
     !!}
     use :: Error, only : Error_Report
@@ -150,7 +152,7 @@ contains
   end function uniformPDF
 
   double precision function uniformCDF(self,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     implicit none
@@ -167,7 +169,7 @@ contains
   end function uniformCDF
 
   subroutine uniformOverdensityLinearSet(self,node,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     use :: Error, only : Error_Report
@@ -182,7 +184,7 @@ contains
   end subroutine uniformOverdensityLinearSet
 
   logical function uniformOverdensityIsSettable(self)
-    !!{
+    !!{RST
     Return false as the overdensity is not settable.
     !!}
     implicit none
@@ -194,7 +196,7 @@ contains
   end function uniformOverdensityIsSettable
 
   logical function uniformIsNodeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the node.
     !!}
     implicit none
@@ -206,7 +208,7 @@ contains
   end function uniformIsNodeDependent
 
   logical function uniformIsTreeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the tree.
     !!}
     implicit none

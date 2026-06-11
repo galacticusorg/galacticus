@@ -19,38 +19,31 @@
 
   !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
-  Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
-  friction class.
+  !!{RST
+  Implementation of a satellite dynamical friction class which applies the core-stalling model of :cite:t:`kaur_stalling_2018` to another dynamical friction class.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
 
   !![
-  <satelliteDynamicalFriction name="satelliteDynamicalFrictionKaur2018">
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionKaur2018" docformat="rst">
    <description>
-    A satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018} to another dynamical
-    friction class. Specifically, the acceleration due to dynamical friction is given by:
-    \begin{equation}
-     \mathbf{a}_\mathrm{df} = \mathbf{a}^\prime_\mathrm{df} [S_\mathrm{trail}(r/r_*)+S_\mathrm{lead}(r/r_*)],
-    \end{equation}
-    where $\mathbf{a}^\prime_\mathrm{df}$ is the acceleration provided by the child dynamical friction class, and
-    $S_\mathrm{trail}(x)$ and $S_\mathrm{lead}(x)$ are the torque suppression factors defined by
-    \cite[][eqn.~79]{kaur_stalling_2018}. The functional forms for $S(x)$ are taken from Figure~8 of
-    \cite{kaur_stalling_2018}---extrapolation in $\log(S)$ vs. $x$ is used to extend $S(x)$ to lower $x$ than shown in that figure,
-    while for values of $x$ higher than that shown in that figure $S(x)$ is held constant at the maximum value shown.
-  
-    The stalling radius, $r_*$, is computed using equation~(55) of \cite{kaur_stalling_2018}. For dark matter halo profiles with a
-    central cusp (for which that equation has no solution), the acceleration provided by the child dynamical friction class is
-    returned unmodified.
+   A satellite dynamical friction class which applies the core-stalling model of :cite:t:`kaur_stalling_2018` to another dynamical friction class. Specifically, the acceleration due to dynamical friction is given by:
+
+   .. math::
+
+      \mathbf{a}_\mathrm{df} = \mathbf{a}^\prime_\mathrm{df} [S_\mathrm{trail}(r/r_*)+S_\mathrm{lead}(r/r_*)],
+
+   where :math:`\mathbf{a}^\prime_\mathrm{df}` is the acceleration provided by the child dynamical friction class, and :math:`S_\mathrm{trail}(x)` and :math:`S_\mathrm{lead}(x)` are the torque suppression factors defined by :cite:t:`kaur_stalling_2018`. The functional forms for :math:`S(x)` are taken from Figure 8 of :cite:t:`kaur_stalling_2018`---extrapolation in :math:`\log(S)` vs. :math:`x` is used to extend :math:`S(x)` to lower :math:`x` than shown in that figure, while for values of :math:`x` higher than that shown in that figure :math:`S(x)` is held constant at the maximum value shown.
+
+   The stalling radius, :math:`r_*`, is computed using equation (55) of :cite:t:`kaur_stalling_2018`. For dark matter halo profiles with a central cusp (for which that equation has no solution), the acceleration provided by the child dynamical friction class is returned unmodified.
    </description>
   </satelliteDynamicalFriction>
   !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionKaur2018
-     !!{
-     Implementation of a satellite dynamical friction class which applies the core-stalling model of \cite{kaur_stalling_2018}
-     to another dynamical friction class.
+     !!{RST
+     Implementation of a satellite dynamical friction class which applies the core-stalling model of :cite:t:`kaur_stalling_2018` to another dynamical friction class.
      !!}
      private
      class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_         => null()
@@ -63,7 +56,7 @@
   end type satelliteDynamicalFrictionKaur2018
 
   interface satelliteDynamicalFrictionKaur2018
-     !!{
+     !!{RST
      Constructors for the kaur2018 satellite dynamical friction class.
      !!}
      module procedure kaur2018ConstructorParameters
@@ -77,8 +70,8 @@
 contains
 
   function kaur2018ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteDynamicalFrictionKaur2018} satellite dynamical friction class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``satelliteDynamicalFrictionKaur2018`` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,8 +94,8 @@ contains
   end function kaur2018ConstructorParameters
 
   function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteDynamicalFrictionKaur2018} satellite dynamical friction class.
+    !!{RST
+    Internal constructor for the ``satelliteDynamicalFrictionKaur2018`` satellite dynamical friction class.
     !!}
     use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none
@@ -165,7 +158,7 @@ contains
   end function kaur2018ConstructorInternal
 
   subroutine kaur2018Destructor(self)
-    !!{
+    !!{RST
     Destructor for the simple cooling radius class.
     !!}
     implicit none
@@ -179,8 +172,8 @@ contains
   end subroutine kaur2018Destructor
 
   function kaur2018Acceleration(self,node)
-    !!{
-    Return an acceleration for satellites due to dynamical friction using the core-stalling model of \cite{kaur_stalling_2018}.
+    !!{RST
+    Return an acceleration for satellites due to dynamical friction using the core-stalling model of :cite:t:`kaur_stalling_2018`.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galacticus_Nodes          , only : nodeComponentSatellite
@@ -262,7 +255,7 @@ contains
   contains
     
     double precision function radiusStallingRoot(radiusStalling)
-      !!{
+      !!{RST
       Root function used in finding the stalling radius.
       !!}
       use :: Numerical_Constants_Math, only : Pi

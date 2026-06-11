@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
   !!}
 
@@ -27,17 +27,14 @@
   use :: Supernovae_Type_Ia        , only : supernovaeTypeIaClass
 
   !![
-  <stellarFeedback name="stellarFeedbackStandard">
+  <stellarFeedback name="stellarFeedbackStandard" docformat="rst">
    <description>
-    A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
-    number of (Type II and Type Ia) supernovae multiplied by \mono{[supernovaEnergy]} (specified in ergs) plus
-    any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
-    star required to form a Type II supernova is specified (in $\mathrm{M}_\odot$) via the \mono{[initialMassForSupernovaeTypeII]} parameter.
+   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total number of (Type II and Type Ia) supernovae multiplied by ``[supernovaEnergy]`` (specified in ergs) plus any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a star required to form a Type II supernova is specified (in :math:`\mathrm{M}_\odot`) via the ``[initialMassForSupernovaeTypeII]`` parameter.
    </description>
   </stellarFeedback>
   !!]
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
-     !!{
+     !!{RST
      A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      !!}
      private
@@ -52,8 +49,8 @@
   end type stellarFeedbackStandard
 
   interface stellarFeedbackStandard
-     !!{
-     Constructors for the \refClass{stellarFeedbackStandard} stellar feedback class.
+     !!{RST
+     Constructors for the ``stellarFeedbackStandard`` stellar feedback class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -67,8 +64,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarFeedbackStandard} stellar feedback class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarFeedbackStandard`` stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters                , only : inputParameter, inputParameters
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -84,16 +81,20 @@ contains
     double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>initialMassForSupernovaeTypeII</name>
       <defaultValue>8.0d0</defaultValue>
-      <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
+      <description>
+      The minimum mass that a star must have in order that is result in a Type II supernova.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>supernovaEnergy</name>
       <defaultValue>1.0d51</defaultValue>
-      <description>The canonical energy released per supernova event (in ergs), used to compute the total mechanical energy input from the supernova population; the default value of $10^{51}$ erg corresponds to the standard core-collapse supernova energy.</description>
+      <description>
+      The canonical energy released per supernova event (in ergs), used to compute the total mechanical energy input from the supernova population; the default value of :math:`10^{51}` erg corresponds to the standard core-collapse supernova energy.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -117,8 +118,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
-    !!{
-    Constructor for the \refClass{stellarFeedbackStandard} stellar feedback class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarFeedbackStandard`` stellar feedback class which takes a parameter list as input.
     !!}
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
@@ -135,8 +136,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-   !!{
-   Destructor for the \refClass{stellarFeedbackStandard} stellar feedback class.
+   !!{RST
+   Destructor for the ``stellarFeedbackStandard`` stellar feedback class.
    !!}
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self
@@ -151,8 +152,8 @@ contains
   end subroutine standardDestructor
 
   double precision function standardEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
-    !!{
-    Compute the cumulative energy input from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity}.
+    !!{RST
+    Compute the cumulative energy input from a star of given ``initialMass``, ``age`` and ``metallicity``.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: Numerical_Integration           , only : integrator
@@ -197,7 +198,7 @@ contains
   end function standardEnergyInputCumulative
 
   double precision function standardWindEnergyIntegrand(age)
-    !!{
+    !!{RST
     Integrand used in evaluating cumulative energy input from winds.
     !!}
     implicit none

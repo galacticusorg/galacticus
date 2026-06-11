@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A null dark matter halo profile heating class.
   !!}
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingNull">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingNull" docformat="rst">
     <description>
-      A dark matter profile heating model which constructs \refClass{massDistributionHeatingNull} objects to provide zero heating.
+    A dark matter profile heating model which constructs ``massDistributionHeatingNull`` objects to provide zero heating.
     </description>
   </darkMatterProfileHeating>
   !!]
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingNull
-     !!{
+     !!{RST
      A dark matter profile heating class with zero heating.
      !!}
      private
@@ -39,8 +39,8 @@
   end type darkMatterProfileHeatingNull
 
   interface darkMatterProfileHeatingNull
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating class.
+     !!{RST
+     Constructors for the ``darkMatterProfileHeatingNull`` dark matter profile heating class.
      !!}
      module procedure nullConstructorParameters
   end interface darkMatterProfileHeatingNull
@@ -48,8 +48,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingNull} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileHeatingNull`` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +64,8 @@ contains
   end function nullConstructorParameters
 
   function nullGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingNull
     implicit none

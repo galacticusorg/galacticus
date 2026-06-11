@@ -19,31 +19,28 @@
 
   !+    Contributions to this file made by: Sachi Weerasooriya
 
-!!{
+!!{RST
 Contains a module which provides a class that implements calculations of escape fractions from HII regions.
 !!}
   
 module HII_Region_Escape_Fraction
-  !!{
+  !!{RST
   Provides a class that implements calculations of escape fractions from HII regions.
   !!}
   private
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hiiRegionEscapeFraction</name>
    <descriptiveName>HII Regions Escape Fractions</descriptiveName>
    <description>
-    Class providing models of the escape fraction $f_\mathrm{esc}$ of hydrogen-ionizing (Lyman-continuum)
-    photons from individual H\textsc{ii} regions---the fraction of photons produced by massive stars that
-    escape the H\textsc{ii} region into the surrounding \gls{ism} or \gls{igm} rather than being absorbed
-    by gas within the region. The escape fraction is returned as a function of H\textsc{ii} region age,
-    reflecting the time evolution as stellar winds and supernovae clear channels through the surrounding
-    gas.
+   Class providing models of the escape fraction :math:`f_\mathrm{esc}` of hydrogen-ionizing (Lyman-continuum) photons from individual H**ii** regions---the fraction of photons produced by massive stars that escape the H**ii** region into the surrounding :term:`ISM` or :term:`IGM` rather than being absorbed by gas within the region. The escape fraction is returned as a function of H**ii** region age, reflecting the time evolution as stellar winds and supernovae clear channels through the surrounding gas.
    </description>
    <default>fixed</default>
    <method name="escapeFraction" >
-    <description>Returns the escape fraction for hydrogen-ionizing photons.</description>
+    <description>
+    Returns the escape fraction for hydrogen-ionizing photons.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: ageHIIRegion </argument>

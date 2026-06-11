@@ -21,12 +21,14 @@
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiativeEfficiencyBlackHoles">
-   <description>Extracts a list of radiative efficiencies for all supermassive black holes in each node, providing the fraction of accreted mass-energy radiated as electromagnetic radiation for each black hole.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiativeEfficiencyBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of radiative efficiencies for all supermassive black holes in each node, providing the fraction of accreted mass-energy radiated as electromagnetic radiation for each black hole.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorRadiativeEfficiencyBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole radiative efficiencies.
      !!}
      private
@@ -43,8 +45,8 @@
   end type nodePropertyExtractorRadiativeEfficiencyBlackHoles
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function radiativeEfficiencyBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +79,8 @@ contains
   end function radiativeEfficiencyBlackHolesConstructorParameters
 
   function radiativeEfficiencyBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiativeEfficiencyBlackHoles} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self
@@ -92,7 +94,7 @@ contains
   end function radiativeEfficiencyBlackHolesConstructorInternal
 
   subroutine radiativeEfficiencyBlackHolesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity radiativeEfficiencyBlackHoles set barrier class.
     !!}
     implicit none
@@ -106,7 +108,7 @@ contains
   end subroutine radiativeEfficiencyBlackHolesDestructor
   
   integer function radiativeEfficiencyBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -117,7 +119,7 @@ contains
   end function radiativeEfficiencyBlackHolesElementCount
 
   function radiativeEfficiencyBlackHolesExtract(self,node,instance) result(radiativeEfficiency)
-    !!{
+    !!{RST
     Implement an output extractor for the radiative efficiencies of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -143,8 +145,8 @@ contains
   end function radiativeEfficiencyBlackHolesExtract
   
   subroutine radiativeEfficiencyBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{radiativeEfficiencyBlackHoles} properties.
+    !!{RST
+    Return the names of the ``radiativeEfficiencyBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -157,8 +159,8 @@ contains
   end subroutine radiativeEfficiencyBlackHolesNames
 
   subroutine radiativeEfficiencyBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{radiativeEfficiencyBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``radiativeEfficiencyBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorRadiativeEfficiencyBlackHoles), intent(inout)                             :: self
@@ -171,8 +173,8 @@ contains
   end subroutine radiativeEfficiencyBlackHolesDescriptions
 
   function radiativeEfficiencyBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{radiativeEfficiencyBlackHoles} properties in the SI system.
+    !!{RST
+    Return the units of the ``radiativeEfficiencyBlackHoles`` properties in the SI system.
     !!}
     implicit none
     double precision                                                    , dimension(:) , allocatable :: unitsInSI
@@ -185,7 +187,7 @@ contains
   end function radiativeEfficiencyBlackHolesUnitsInSI
 
   function radiativeEfficiencyBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the black hole radiative efficiency properties.
     !!}
     use :: Units_MetaData, only : unitType

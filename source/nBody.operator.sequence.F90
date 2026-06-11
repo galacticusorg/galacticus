@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which applies a sequence of other operators.
 !!}
 
@@ -27,13 +27,15 @@ Implements an N-body data operator which applies a sequence of other operators.
   end type nbodyOperatorList
 
   !![
-  <nbodyOperator name="nbodyOperatorSequence">
-   <description>An N-body data operator which applies a sequence of other operators.</description>
+  <nbodyOperator name="nbodyOperatorSequence" docformat="rst">
+   <description>
+   An N-body data operator which applies a sequence of other operators.
+   </description>
    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence
-     !!{
+     !!{RST
      An N-body data operator which applies a sequence of other operators.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which applies a sequence of other operators.
   end type nbodyOperatorSequence
 
   interface nbodyOperatorSequence
-     !!{
-     Constructors for the \refClass{nbodyOperatorSequence} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSequence`` N-body operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which applies a sequence of other operators.
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSequence} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSequence`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSequence} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSequence`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSequence)                        :: self
@@ -105,7 +107,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence N-body operator class.
     !!}
     implicit none
@@ -127,7 +129,7 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceOperate(self,simulations)
-    !!{
+    !!{RST
     Apply a sequence of N-body simulation operators.
     !!}
     implicit none

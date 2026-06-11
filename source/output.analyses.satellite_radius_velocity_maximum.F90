@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Xiaolong Du
   
-  !!{
+  !!{RST
   Implements an output analysis class that computes satellite radius fraction at which the maximum circular velocity is reached.
   !!}
 
@@ -28,12 +28,14 @@
   !$ use :: Locks                   , only : ompLock
 
   !![
-  <outputAnalysis name="outputAnalysisSatelliteRadiusVelocityMaximum">
-    <description>An output analysis class that computes satellite radius fraction at which the maximum circular velocity is reached as a function of time.</description>
+  <outputAnalysis name="outputAnalysisSatelliteRadiusVelocityMaximum" docformat="rst">
+    <description>
+    An output analysis class that computes satellite radius fraction at which the maximum circular velocity is reached as a function of time.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteRadiusVelocityMaximum
-     !!{
+     !!{RST
      An output analysis class that computes satellite radius fraction at which the maximum circular velocity is reached as a function of time.
      !!}
      private
@@ -55,8 +57,8 @@
   end type outputAnalysisSatelliteRadiusVelocityMaximum
 
   interface outputAnalysisSatelliteRadiusVelocityMaximum
-     !!{
-     Constructors for the \refClass{outputAnalysisSatelliteRadiusVelocityMaximum} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisSatelliteRadiusVelocityMaximum`` output analysis class.
      !!}
      module procedure satelliteRadiusVelocityMaximumConstructorParameters
      module procedure satelliteRadiusVelocityMaximumConstructorInternal
@@ -65,8 +67,8 @@
 contains
 
   function satelliteRadiusVelocityMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteRadiusVelocityMaximum} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisSatelliteRadiusVelocityMaximum`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -79,15 +81,19 @@ contains
     double precision                                                              :: relativeModelUncertainty
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read the target dataset.</description>
+      <description>
+      The name of the file from which to read the target dataset.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>relativeModelUncertainty</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Relative model uncertainty.</description>
+      <description>
+      Relative model uncertainty.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
@@ -105,8 +111,8 @@ contains
   end function satelliteRadiusVelocityMaximumConstructorParameters
   
   function satelliteRadiusVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteRadiusVelocityMaximum} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisSatelliteRadiusVelocityMaximum`` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -158,8 +164,8 @@ contains
   end function satelliteRadiusVelocityMaximumConstructorInternal
 
   subroutine satelliteRadiusVelocityMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSatelliteRadiusVelocityMaximum} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisSatelliteRadiusVelocityMaximum`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSatelliteRadiusVelocityMaximum), intent(inout) :: self
@@ -173,7 +179,7 @@ contains
   end subroutine satelliteRadiusVelocityMaximumDestructor
 
   subroutine satelliteRadiusVelocityMaximumAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Analyze the maximum velocity tidal track.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -217,7 +223,7 @@ contains
   end subroutine satelliteRadiusVelocityMaximumAnalyze
 
   subroutine satelliteRadiusVelocityMaximumReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the maximum velocity tidal track output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -238,7 +244,7 @@ contains
   end subroutine satelliteRadiusVelocityMaximumReduce
 
   subroutine satelliteRadiusVelocityMaximumFinalize(self,groupName)
-    !!{
+    !!{RST
     Output results of the maximum velocity tidal track output analysis.
     !!}
 #ifdef USEMPI
@@ -292,7 +298,7 @@ contains
   end subroutine satelliteRadiusVelocityMaximumFinalize
   
   double precision function satelliteRadiusVelocityMaximumLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a maximum velocity tidal track output analysis.
     !!}
     implicit none

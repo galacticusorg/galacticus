@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null N-body dark matter halo mass error class.
 !!}
 
   !![
-  <nbodyHaloMassError name="nbodyHaloMassErrorNull">
-   <description>A null N-body dark matter halo mass error class in which the fractional mass error is identically zero for all halos and at all epochs---i.e., it assumes that N-body halo masses are known perfectly with no measurement uncertainty. This is appropriate when mass errors are negligible or when error effects have already been accounted for by other means.</description>
+  <nbodyHaloMassError name="nbodyHaloMassErrorNull" docformat="rst">
+   <description>
+   A null N-body dark matter halo mass error class in which the fractional mass error is identically zero for all halos and at all epochs---i.e., it assumes that N-body halo masses are known perfectly with no measurement uncertainty. This is appropriate when mass errors are negligible or when error effects have already been accounted for by other means.
+   </description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorNull
-     !!{
+     !!{RST
      A null N-body halo mass error class.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a null N-body dark matter halo mass error class.
   end type nbodyHaloMassErrorNull
 
   interface nbodyHaloMassErrorNull
-     !!{
-     Constructors for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class.
+     !!{RST
+     Constructors for the ``nbodyHaloMassErrorNull`` N-body halo mass error class.
      !!}
      module procedure nullConstructorParameters
   end interface nbodyHaloMassErrorNull
@@ -47,8 +49,8 @@ Implements a null N-body dark matter halo mass error class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nbodyHaloMassErrorNull} N-body halo mass error class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyHaloMassErrorNull`` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +66,7 @@ contains
   end function nullConstructorParameters
 
   double precision function nullErrorFractional(self,node)
-    !!{
+    !!{RST
     Return the fractional error on the mass of an N-body halo.
     !!}
     implicit none
@@ -77,7 +79,7 @@ contains
   end function nullErrorFractional
 
   double precision function nullCorrelation(self,node1,node2)
-    !!{
+    !!{RST
     Return the correlation of the masses of a pair of N-body halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -102,7 +104,7 @@ contains
   end function nullCorrelation
 
   logical function nullErrorZeroAlways(self)
-    !!{
+    !!{RST
     Return true since errors are always zero in this model.
     !!}
     implicit none

@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an accelerator for spherical mass distributions.
   !!}
 
   use :: Binary_Search_Trees , only : binaryTree
 
   !![
-  <massDistribution name="massDistributionSphericalAccelerator">
+  <massDistribution name="massDistributionSphericalAccelerator" docformat="rst">
    <description>
-     Accelerates spherical mass distribution classes by storing previous results for the enclosed mass and interpolating where
-     possible.
+   Accelerates spherical mass distribution classes by storing previous results for the enclosed mass and interpolating where possible.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalAccelerator
-     !!{
+     !!{RST
      Implementation of a finite resolution spherical mass distribution.
      !!}
      private
@@ -46,8 +45,8 @@
   end type massDistributionSphericalAccelerator
 
   interface massDistributionSphericalAccelerator
-     !!{
-     Constructors for the \refClass{massDistributionSphericalAccelerator} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalAccelerator`` mass distribution class.
      !!}
      module procedure sphericalAcceleratorConstructorParameters
      module procedure sphericalAcceleratorConstructorInternal
@@ -56,9 +55,8 @@
 contains
 
   function sphericalAcceleratorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAccelerator} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAccelerator`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -71,34 +69,44 @@ contains
          &                                                                   nonAnalyticSolver
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
-      <description>The tolerance with which to accept accelerated estimates.</description>
+      <description>
+      The tolerance with which to accept accelerated estimates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorRadiusMaximum</name>
       <defaultValue>3.0d0</defaultValue>
       <source>parameters</source>
-      <description>The maximum factor by which to interpolate in radius.</description>
+      <description>
+      The maximum factor by which to interpolate in radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -117,8 +125,8 @@ contains
   end function sphericalAcceleratorConstructorParameters
   
   function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAccelerator} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAccelerator`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccelerator)                          :: self
@@ -137,8 +145,8 @@ contains
   end function sphericalAcceleratorConstructorInternal
 
   subroutine sphericalAcceleratorDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAccelerator} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalAccelerator`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccelerator), intent(inout) :: self
@@ -150,7 +158,7 @@ contains
   end subroutine sphericalAcceleratorDestructor
 
   logical function sphericalAcceleratorUseUndecorated(self) result(useUndecorated)
-    !!{
+    !!{RST
     Determines whether to use the undecorated solution.
     !!}
     implicit none
@@ -161,8 +169,8 @@ contains
   end function sphericalAcceleratorUseUndecorated
 
   double precision function sphericalAcceleratorDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in an accelerated mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an accelerated mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalAccelerator), intent(inout) :: self
@@ -173,8 +181,8 @@ contains
   end function sphericalAcceleratorDensity
 
   double precision function sphericalAcceleratorMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for accelerated mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for accelerated mass distributions.
     !!}
     use :: Binary_Search_Trees , only : binaryTreeNode
     use :: Numerical_Comparison, only : Values_Agree

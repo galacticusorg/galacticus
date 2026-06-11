@@ -17,22 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements the standard \refClass{outputAnalysisTargetDataClass} class --- a plain struct of axis-labelling
-  and target-dataset fields, with all fields optional at construction.
+  !!{RST
+  Implements the standard ``outputAnalysisTargetDataClass`` class --- a plain struct of axis-labelling and target-dataset fields, with all fields optional at construction.
   !!}
 
   !![
-  <outputAnalysisTargetData name="outputAnalysisTargetDataStandard">
-   <description>The standard \refClass{outputAnalysisTargetDataClass} class --- a simple struct holding axis labels,
-    log-scale flags, and target value/covariance arrays.  All fields are optional at construction; omitted
-    axis labels default to \mono{'x'}/\mono{'y'}, omitted target/log-scale flags default to empty/false, and
-    the target arrays remain unallocated.</description>
+  <outputAnalysisTargetData name="outputAnalysisTargetDataStandard" docformat="rst">
+   <description>
+   The standard ``outputAnalysisTargetDataClass`` class --- a simple struct holding axis labels, log-scale flags, and target value/covariance arrays.  All fields are optional at construction; omitted axis labels default to ``'x'``/``'y'``, omitted target/log-scale flags default to empty/false, and the target arrays remain unallocated.
+   </description>
   </outputAnalysisTargetData>
   !!]
   type, extends(outputAnalysisTargetDataClass) :: outputAnalysisTargetDataStandard
-     !!{
-     The standard \refClass{outputAnalysisTargetDataClass} class.
+     !!{RST
+     The standard ``outputAnalysisTargetDataClass`` class.
      !!}
      type            (varying_string)                              :: xAxisLabel
      type            (varying_string)                              :: yAxisLabel
@@ -46,8 +44,8 @@
   end type outputAnalysisTargetDataStandard
 
   interface outputAnalysisTargetDataStandard
-     !!{
-     Constructors for the \refClass{outputAnalysisTargetDataStandard} output analysis target data class.
+     !!{RST
+     Constructors for the ``outputAnalysisTargetDataStandard`` output analysis target data class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -56,10 +54,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisTargetDataStandard} output analysis target data class which takes a parameter
-    set as input.  Each field has its own \mono{<inputParameter>}; absent parameters fall back
-    to the same defaults the inline constructor uses.
+    !!{RST
+    Constructor for the ``outputAnalysisTargetDataStandard`` output analysis target data class which takes a parameter set as input.  Each field has its own ``<inputParameter>``; absent parameters fall back to the same defaults the inline constructor uses.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -73,50 +69,62 @@ contains
     double precision                                  , allocatable  , dimension(:,:) :: covarianceTarget
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisLabel</name>
       <source>parameters</source>
       <variable>xAxisLabel</variable>
-      <description>Axis label for the property (x-axis) of the output analysis.</description>
+      <description>
+      Axis label for the property (x-axis) of the output analysis.
+      </description>
       <defaultValue>var_str('x')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisLabel</name>
       <source>parameters</source>
       <variable>yAxisLabel</variable>
-      <description>Axis label for the function value (y-axis) of the output analysis.</description>
+      <description>
+      Axis label for the function value (y-axis) of the output analysis.
+      </description>
       <defaultValue>var_str('y')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>targetLabel</name>
       <source>parameters</source>
       <variable>targetLabel</variable>
-      <description>Label identifying the comparison/target dataset, if any.</description>
+      <description>
+      Label identifying the comparison/target dataset, if any.
+      </description>
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisIsLog</name>
       <source>parameters</source>
       <variable>xAxisIsLog</variable>
-      <description>Whether the x-axis should be displayed on a logarithmic scale.</description>
+      <description>
+      Whether the x-axis should be displayed on a logarithmic scale.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisIsLog</name>
       <source>parameters</source>
       <variable>yAxisIsLog</variable>
-      <description>Whether the y-axis should be displayed on a logarithmic scale.</description>
+      <description>
+      Whether the y-axis should be displayed on a logarithmic scale.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
     !!]
     if (parameters%isPresent('valueTarget')) then
        allocate(valueTarget(parameters%count('valueTarget')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>valueTarget</name>
          <source>parameters</source>
          <variable>valueTarget</variable>
-         <description>Target dataset values to compare against, one per bin of the output analysis.</description>
+         <description>
+         Target dataset values to compare against, one per bin of the output analysis.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('covarianceTarget')) then
@@ -124,11 +132,13 @@ contains
           allocate(covarianceTarget1D(parameters%count('valueTarget')*parameters%count('valueTarget')))
           allocate(covarianceTarget  (parameters%count('valueTarget'),parameters%count('valueTarget')))
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
           <name>covarianceTarget</name>
           <source>parameters</source>
           <variable>covarianceTarget1D</variable>
-          <description>Target-dataset covariance matrix corresponding to the \mono{valueTarget} array.</description>
+          <description>
+          Target-dataset covariance matrix corresponding to the ``valueTarget`` array.
+          </description>
           </inputParameter>
           !!]
           covarianceTarget=reshape(covarianceTarget1D,[parameters%count('valueTarget'),parameters%count('valueTarget')])
@@ -144,12 +154,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(xAxisLabel,yAxisLabel,targetLabel,xAxisIsLog,yAxisIsLog,valueTarget,covarianceTarget) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisTargetDataStandard} output analysis target data class.
-    All arguments are optional --- omitted axis labels default to \mono{'x'} / \mono{'y'}, omitted log-scale
-    flags default to \mono{.false.}, and omitted target arrays simply remain unallocated.  These defaults
-    match the per-argument defaults used by the outer 1D function output-analysis constructors when
-    \mono{targetData\_} itself is absent.
+    !!{RST
+    Internal constructor for the ``outputAnalysisTargetDataStandard`` output analysis target data class. All arguments are optional --- omitted axis labels default to ``'x'`` / ``'y'``, omitted log-scale flags default to ``.false.``, and omitted target arrays simply remain unallocated.  These defaults match the per-argument defaults used by the outer 1D function output-analysis constructors when ``targetData_`` itself is absent.
     !!}
     implicit none
     type            (outputAnalysisTargetDataStandard)                                          :: self
@@ -170,7 +176,7 @@ contains
   end function standardConstructorInternal
 
   logical function standardHasTarget(self)
-    !!{
+    !!{RST
     Return whether both target arrays are populated.
     !!}
     implicit none

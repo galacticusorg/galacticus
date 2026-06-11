@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which acts as a simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
-\href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+!!{RST
+Contains a module which acts as a simple interface to the `GNU Scientific Library <http://www.gnu.org/software/gsl/>`_ `interpolation routines <http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html>`_.
 !!}
 
 ! Specify an explicit dependence on the interface.GSL.C.interpolation.o object file.
@@ -29,9 +28,8 @@ Contains a module which acts as a simple interface to the \href{http://www.gnu.o
 !; gsl
 
 module Numerical_Interpolation
-  !!{
-  A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
-  \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
+  !!{RST
+  A simple interface to the `GNU Scientific Library <http://www.gnu.org/software/gsl/>`_ `interpolation routines <http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html>`_.
   !!}
   use, intrinsic :: ISO_C_Binding,    only : c_ptr                           , c_size_t, c_int, c_double, &
        &                                     c_null_ptr
@@ -51,7 +49,7 @@ module Numerical_Interpolation
 
   interface
      function gsl_interp_alloc(T,size) bind(c,name='gsl_interp_alloc')
-       !!{
+       !!{RST
        Template for GSL interface interpolation allocation function.
        !!}
        import c_ptr, c_size_t
@@ -61,7 +59,7 @@ module Numerical_Interpolation
      end function gsl_interp_alloc
 
      function gsl_interp_init(interp,xa,ya,size) bind(c,name='gsl_interp_init')
-       !!{
+       !!{RST
        Template for GSL interface interpolation initialization function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -72,7 +70,7 @@ module Numerical_Interpolation
      end function gsl_interp_init
 
      function gsl_interp_eval_e(interp,xa,ya,x,acc,y) bind(c,name='gsl_interp_eval_e')
-       !!{
+       !!{RST
        Template for GSL interface interpolation function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -85,7 +83,7 @@ module Numerical_Interpolation
      end function gsl_interp_eval_e
      
      function gsl_interp_eval_deriv_e(interp,xa,ya,x,acc,d) bind(c,name='gsl_interp_eval_deriv_e')
-       !!{
+       !!{RST
        Template for GSL interface interpolation function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -98,7 +96,7 @@ module Numerical_Interpolation
      end function gsl_interp_eval_deriv_e
      
      function gsl_interp_eval_deriv2_e(interp,xa,ya,x,acc,d2) bind(c,name='gsl_interp_eval_deriv2_e')
-       !!{
+       !!{RST
        Template for GSL interface interpolation function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -111,7 +109,7 @@ module Numerical_Interpolation
      end function gsl_interp_eval_deriv2_e
      
      subroutine gsl_interp_free(interp) bind(c,name='gsl_interp_free')
-       !!{
+       !!{RST
        Template for GSL interface interpolation free function.
        !!}
        import c_ptr
@@ -119,7 +117,7 @@ module Numerical_Interpolation
      end subroutine gsl_interp_free
 
      function gsl_interp_accel_alloc() bind(c,name='gsl_interp_accel_alloc')
-       !!{
+       !!{RST
        Template for GSL interface interpolation accelerator allocation function.
        !!}
        import c_ptr
@@ -127,7 +125,7 @@ module Numerical_Interpolation
      end function gsl_interp_accel_alloc
 
      function gsl_interp_accel_find(a,x_array,size,x) bind(c,name='gsl_interp_accel_find')
-       !!{
+       !!{RST
        Template for GSL interface interpolation accelerator allocation function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -139,7 +137,7 @@ module Numerical_Interpolation
      end function gsl_interp_accel_find
 
      subroutine gsl_interp_accel_free(acc) bind(c,name='gsl_interp_accel_free')
-       !!{
+       !!{RST
        Template for GSL interface interpolation accelerator free function.
        !!}
        import c_ptr
@@ -147,7 +145,7 @@ module Numerical_Interpolation
      end subroutine gsl_interp_accel_free
 
      function gsl_interp_type_get(i) bind(c,name='gsl_interp_type_get')
-       !!{
+       !!{RST
        Template for GSL interface interpolation type function.
        !!}
        import c_ptr, c_int
@@ -171,7 +169,7 @@ module Numerical_Interpolation
   !!]
 
   type :: gslInterpWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL interpolators.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -180,7 +178,7 @@ module Numerical_Interpolation
   end type gslInterpWrapper
   
   type :: gslInterpAccelWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL interpolation accelerators.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -189,7 +187,7 @@ module Numerical_Interpolation
   end type gslInterpAccelWrapper
   
   type :: interpolator
-     !!{
+     !!{RST
      Type providing interpolation in 1-D arrays.
      !!}
      private
@@ -247,8 +245,8 @@ module Numerical_Interpolation
   end type interpolator
 
   interface interpolator
-     !!{
-     Constructor for the \mono{interpolator} class.
+     !!{RST
+     Constructor for the ``interpolator`` class.
      !!}
      module procedure interpolatorConstructor
   end interface interpolator
@@ -267,7 +265,7 @@ module Numerical_Interpolation
   !!]
 
   type :: interpolator2D
-     !!{
+     !!{RST
      Type providing interpolation in 2-D arrays.
      !!}
      private
@@ -296,8 +294,8 @@ module Numerical_Interpolation
   end type interpolator2D
 
   interface interpolator2D
-     !!{
-     Constructor for the \mono{interpolator2D} class.
+     !!{RST
+     Constructor for the ``interpolator2D`` class.
      !!}
      module procedure interpolator2DConstructor
   end interface interpolator2D
@@ -305,8 +303,8 @@ module Numerical_Interpolation
 contains
 
   function interpolatorConstructor(x,y,interpolationType,extrapolationType) result(self)
-    !!{
-    Constructor for \mono{interpolator} objects.
+    !!{RST
+    Constructor for ``interpolator`` objects.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort
@@ -360,7 +358,7 @@ contains
   end function interpolatorConstructor
 
   subroutine interpolatorGSLAllocate(self)
-    !!{
+    !!{RST
     Allocate GSL objects.
     !!}
     use :: Error        , only : Error_Report
@@ -373,8 +371,10 @@ contains
        allocate(self%interp_     )
        self%interp_     %gsl=gsl_interp_alloc      (self%gsl_interp_type,self%countArray)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_           => self%interp_
        self%interpManager      =  resourceManager(dummyPointer_)
@@ -386,8 +386,10 @@ contains
        allocate(self%interpAccel_)
        self%interpAccel_%gsl=gsl_interp_accel_alloc(                                    )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_           => self%interpAccel_
        self%interpAccelManager =  resourceManager(dummyPointer_)
@@ -409,7 +411,7 @@ contains
   end subroutine interpolatorGSLAllocate
 
   subroutine interpolatorGSLReallocate(self)
-    !!{
+    !!{RST
     Reallocate GSL objects.
     !!}
     implicit none
@@ -435,8 +437,8 @@ contains
   end subroutine interpolatorGSLReallocate
 
   subroutine gslInterpWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslInterpWrapper} object.
+    !!{RST
+    Destroy a ``gslInterpWrapper`` object.
     !!}
     implicit none
     type(gslInterpWrapper), intent(inout) :: self
@@ -446,8 +448,8 @@ contains
   end subroutine gslInterpWrapperDestructor
 
   subroutine gslInterpAccelWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslInterpWrapper} object.
+    !!{RST
+    Destroy a ``gslInterpWrapper`` object.
     !!}
     implicit none
     type(gslInterpAccelWrapper), intent(inout) :: self
@@ -457,7 +459,7 @@ contains
   end subroutine gslInterpAccelWrapperDestructor
 
   subroutine interpolatorAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of interpolators.
     !!}
     implicit none
@@ -484,7 +486,7 @@ contains
   end subroutine interpolatorAssign
   
   subroutine interpolatorGSLInitialize(self,ya)
-    !!{
+    !!{RST
     Initialize GSL interpolator.
     !!}
     use :: Error        , only : Error_Report
@@ -501,7 +503,7 @@ contains
   end subroutine interpolatorGSLInitialize
 
   subroutine interpolatorAssertInterpolatable(self)
-    !!{
+    !!{RST
     Assert that the data is interpolatable.
     !!}
     use :: Error, only : Error_Report
@@ -513,8 +515,8 @@ contains
   end subroutine interpolatorAssertInterpolatable
   
   subroutine interpolatorLinearFactors(self,x,i,h)
-    !!{
-    Return interpolating factors for linear interpolation in the array \mono{xArray()} given \mono{x}.
+    !!{RST
+    Return interpolating factors for linear interpolation in the array ``xArray()`` given ``x``.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeAbort, extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero
@@ -586,8 +588,8 @@ contains
   end subroutine interpolatorLinearFactors
 
   subroutine interpolatorLinearWeights(self,x,i,h)
-    !!{
-    Return interpolation weights factors for linear interpolation in the array \mono{xArray()} given \mono{x} and \mono{i}.
+    !!{RST
+    Return interpolation weights factors for linear interpolation in the array ``xArray()`` given ``x`` and ``i``.
     !!}
     implicit none
     class           (interpolator)                , intent(inout) :: self
@@ -603,8 +605,8 @@ contains
   end subroutine interpolatorLinearWeights
 
   double precision function interpolatorInterpolateNoYa(self,x)
-    !!{
-    Interpolate a function to \mono{x}.
+    !!{RST
+    Interpolate a function to ``x``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -621,8 +623,8 @@ contains
   end function interpolatorInterpolateNoYa
   
   double precision function interpolatorInterpolate(self,x,ya)
-    !!{
-    Interpolate a function to \mono{x}.
+    !!{RST
+    Interpolate a function to ``x``.
     !!}
     use :: Error             , only : Error_Report
     use :: Interface_GSL     , only : GSL_Success           , GSL_EDom
@@ -711,8 +713,8 @@ contains
   end function interpolatorInterpolate
   
   double precision function interpolatorDerivativeNoYa(self,x)
-    !!{
-    Interpolate the derivative of the function to \mono{x}.
+    !!{RST
+    Interpolate the derivative of the function to ``x``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -729,8 +731,8 @@ contains
   end function interpolatorDerivativeNoYa
   
   double precision function interpolatorDerivative(self,x,ya)
-    !!{
-    Interpolate the derivative of the function to \mono{x}.
+    !!{RST
+    Interpolate the derivative of the function to ``x``.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -781,8 +783,8 @@ contains
   end function interpolatorDerivative
 
   double precision function interpolatorSecondDerivativeNoYa(self,x)
-    !!{
-    Interpolate the second derivative of the function to \mono{x}.
+    !!{RST
+    Interpolate the second derivative of the function to ``x``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -799,8 +801,8 @@ contains
   end function interpolatorSecondDerivativeNoYa
   
   double precision function interpolatorSecondDerivative(self,x,ya)
-    !!{
-    Interpolate the second derivative of the function to \mono{x}.
+    !!{RST
+    Interpolate the second derivative of the function to ``x``.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -850,16 +852,10 @@ contains
   end function interpolatorSecondDerivative
     
   function interpolatorLocate(self,x,closest) result(i)
-    !!{
-    Locate the lower bracket index $i$ such that $x_i \le x < x_{i+1}$ for the
-    queried \mono{x}, returning $i$ in $[1, N-1]$.
+    !!{RST
+    Locate the lower bracket index :math:`i` such that :math:`x_i \le x < x_{i+1}` for the queried ``x``, returning :math:`i` in :math:`[1, N-1]`.
 
-    Uses a cached last-returned index to accelerate sequential and near-
-    sequential access patterns: if the cached bracket still contains \mono{x},
-    return it immediately; otherwise binary-search the appropriate half-range
-    and update the cache. This is the pure-Fortran analogue of GSL's
-    \mono{gsl\_interp\_accel\_find} but avoids the foreign-function call cost
-    and lets the compiler inline the body.
+    Uses a cached last-returned index to accelerate sequential and near- sequential access patterns: if the cached bracket still contains ``x``, return it immediately; otherwise binary-search the appropriate half-range and update the cache. This is the pure-Fortran analogue of GSL's ``gsl_interp_accel_find`` but avoids the foreign-function call cost and lets the compiler inline the body.
     !!}
     implicit none
     integer         (c_size_t    )                          :: i
@@ -893,13 +889,8 @@ contains
   end function interpolatorLocate
 
   function interpolatorBinarySearch(xa,x,loIn,hiIn) result(lo)
-    !!{
-    Return the largest index \mono{lo} in $[\mathrm{loIn}, \mathrm{hiIn}-1]$
-    for which $\mathrm{xa(lo)} \le x$, assuming \mono{xa} is monotonically
-    increasing. Mirrors the semantics of GSL's \mono{gsl\_interp\_bsearch}
-    (with one-based Fortran indexing) so that it can be used as a drop-in
-    replacement for the accelerated locate path without changing observable
-    behavior for in-range or out-of-range queries.
+    !!{RST
+    Return the largest index ``lo`` in :math:`[\mathrm{loIn}, \mathrm{hiIn}-1]` for which :math:`\mathrm{xa(lo)} \le x`, assuming ``xa`` is monotonically increasing. Mirrors the semantics of GSL's ``gsl_interp_bsearch`` (with one-based Fortran indexing) so that it can be used as a drop-in replacement for the accelerated locate path without changing observable behavior for in-range or out-of-range queries.
     !!}
     implicit none
     integer         (c_size_t)                              :: lo
@@ -922,8 +913,8 @@ contains
   end function interpolatorBinarySearch
 
   function interpolator2DConstructor(x,y,z) result(self)
-    !!{
-    Constructor for \mono{interpolator2D} objects.
+    !!{RST
+    Constructor for ``interpolator2D`` objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -960,7 +951,7 @@ contains
   end function interpolator2DConstructor
 
   subroutine interpolator2DAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of 2D interpolators.
     !!}
     implicit none
@@ -989,7 +980,7 @@ contains
   end subroutine interpolator2DAssign
   
   subroutine interpolator2DGSLAllocate(self)
-    !!{
+    !!{RST
     Allocate GSL objects.
     !!}
     implicit none
@@ -1000,8 +991,10 @@ contains
        allocate(self%interpX     )
        self%interpX     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayX)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_            => self%interpX
        self%interpXManager      =  resourceManager(dummyPointer_)
@@ -1013,8 +1006,10 @@ contains
        allocate(self%interpY     )
        self%interpY     %gsl=gsl_interp_alloc           (self%gsl_interp_type,self%countArrayY)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_            => self%interpY
        self%interpYManager      =  resourceManager(dummyPointer_)
@@ -1026,8 +1021,10 @@ contains
        allocate(self%interpAccelX)
        self%interpAccelX%gsl=gsl_interp_accel_alloc(                                     )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_            => self%interpAccelX
        self%interpAccelXManager =  resourceManager(dummyPointer_)
@@ -1039,8 +1036,10 @@ contains
        allocate(self%interpAccelY)
        self%interpAccelY%gsl=gsl_interp_accel_alloc(                                     )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_            => self%interpAccelY
        self%interpAccelYManager =  resourceManager(dummyPointer_)
@@ -1052,7 +1051,7 @@ contains
   end subroutine interpolator2DGSLAllocate
 
   subroutine interpolator2DGSLReallocate(self)
-    !!{
+    !!{RST
     Reallocate GSL objects.
     !!}
     implicit none
@@ -1084,8 +1083,8 @@ contains
   end subroutine interpolator2DGSLReallocate
 
   double precision function interpolator2DInterpolate(self,x,y)
-    !!{
-    Interpolate a function to \mono{(x,y)}.
+    !!{RST
+    Interpolate a function to ``(x,y)``.
     !!}
     use :: Error, only : Error_Report
     implicit none

@@ -19,23 +19,25 @@
 
 !+    Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implements a class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
   !!}
   
   !![
-  <hiiRegionDensityDistribution name="hiiRegionDensityDistributionDeltaFunction">
+  <hiiRegionDensityDistribution name="hiiRegionDensityDistributionDeltaFunction" docformat="rst">
    <description>
-    A class for the distribution of hydrogen density in a HII region in which the distribution is a delta function. Specifically:
-    \begin{equation}
-    p(n_\mathrm{H}) = \delta(n_\mathrm{H} - n_\mathrm{H,0}),
-    \end{equation}
-    where $n_\mathrm{H,0}=$\mono{[densityHydrogen]}.
+   A class for the distribution of hydrogen density in a HII region in which the distribution is a delta function. Specifically:
+
+   .. math::
+
+      p(n_\mathrm{H}) = \delta(n_\mathrm{H} - n_\mathrm{H,0}),
+
+   where :math:`n_\mathrm{H,0}=`\ ``[densityHydrogen]``.
    </description>
   </hiiRegionDensityDistribution>
   !!]
   type, extends(hiiRegionDensityDistributionClass) :: hiiRegionDensityDistributionDeltaFunction
-     !!{
+     !!{RST
      A class for the distribution of hydrogen density in a HII region in which the distribution is a delta function.
      !!}
      private
@@ -45,8 +47,8 @@
   end type hiiRegionDensityDistributionDeltaFunction
 
   interface hiiRegionDensityDistributionDeltaFunction
-     !!{
-     Constructors for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
+     !!{RST
+     Constructors for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
+    !!{RST
+    Constructor for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,10 +67,12 @@ contains
     double precision                                                           :: densityHydrogen
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityHydrogen</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The density of hydrogen, $n_\mathrm{H}$, in HII regions (in units of cm$^{-3}$).</description>
+      <description>
+      The density of hydrogen, :math:`n_\mathrm{H}`, in HII regions (in units of cm\ :math:`^{-3}`).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -80,8 +84,8 @@ contains
   end function deltaFunctionConstructorParameters
 
   function deltaFunctionConstructorInternal(densityHydrogen) result(self)
-    !!{
-    Internal constructor for the \refClass{hiiRegionDensityDistributionDeltaFunction} HII region density distribution class.
+    !!{RST
+    Internal constructor for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
     !!}
     
     implicit none
@@ -95,7 +99,7 @@ contains
   end function deltaFunctionConstructorInternal
 
   double precision function deltaFunctionCumulativeDensityDistribution(self,densityHydrogenMinimum,densityHydrogenMaximum) result(distributionFunction)
-    !!{
+    !!{RST
     Compute the cumulative distribution function of the hydrogen density in HII regions. A delta-function distribution is assumed.
     !!}
     implicit none

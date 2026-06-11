@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a dark matter profile scale radius class using a Weiner process random walk around the mean expectation.
   !!}
   
@@ -26,30 +26,23 @@
   use :: Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
   
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusRandomWalk">
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusRandomWalk" docformat="rst">
     <description>
-      A dark matter profile scale radius class that assigns dark matter profile scale radii using a Weiner process random walk around the mean
-      expectation, and then interpolates linearly between child and parent nodes. For primary progenitor nodes $\dot{r}_\mathrm{s}
-      = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)$, where $r_{\mathrm{s},i}$ is the scale radius of the dark matter
-      profile of the node in the initialized tree, $r_{\mathrm{s},i+1}$ is the spin of its parent node, and $t_i$ and $t_{i+1}$
-      are the corresponding times. For non-primary progenitors the rate of change is set to zero, i.e. $\dot{r}_\mathrm{s}=0$.
+    A dark matter profile scale radius class that assigns dark matter profile scale radii using a Weiner process random walk around the mean expectation, and then interpolates linearly between child and parent nodes. For primary progenitor nodes :math:`\dot{r}_\mathrm{s} = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)`, where :math:`r_{\mathrm{s},i}` is the scale radius of the dark matter profile of the node in the initialized tree, :math:`r_{\mathrm{s},i+1}` is the spin of its parent node, and :math:`t_i` and :math:`t_{i+1}` are the corresponding times. For non-primary progenitors the rate of change is set to zero, i.e. :math:`\dot{r}_\mathrm{s}=0`.
 
-      The energy of each halo is set to the energy expected from the mean scale radius for halos of the mass and epoch, plus a
-      perturbation given by:
-      \begin{equation}
-      \Delta E_\mathrm{i}(t_2) = \Delta E_\mathrm{i}(t_1) + \left[ \sigma^2 \left\{ E_\mathrm{v}^2(t_2) - E_\mathrm{v}^2(t_1) \right\} \right]^{1/2} N(0,1).
-      \end{equation}
-      where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
-      $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
-      $\sigma^2$ represents the variance in angular momentum per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random
-      variable distributed as a standard normal.
+    The energy of each halo is set to the energy expected from the mean scale radius for halos of the mass and epoch, plus a perturbation given by:
+
+    .. math::
+
+       \Delta E_\mathrm{i}(t_2) = \Delta E_\mathrm{i}(t_1) + \left[ \sigma^2 \left\{ E_\mathrm{v}^2(t_2) - E_\mathrm{v}^2(t_1) \right\} \right]^{1/2} N(0,1).
+
+    where :math:`J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)` is the characteristic virial angular momentum, :math:`M_\mathrm{v}(t)`, :math:`V_\mathrm{v}(t)`, and :math:`R_\mathrm{v}(t)` are the virial mass, velocity, and radius respectively, :math:`\sigma^2` represents the variance in angular momentum per unit increase in :math:`J_\mathrm{v}^2`, and :math:`N(0,1)` is a random variable distributed as a standard normal.
     </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusRandomWalk
-     !!{
-     A dark matter profile scale radius class that assigns dark matter profile scale radii using a Weiner process random walk
-     around the mean expectation.
+     !!{RST
+     A dark matter profile scale radius class that assigns dark matter profile scale radii using a Weiner process random walk around the mean expectation.
      !!}
      private
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
@@ -62,8 +55,8 @@
   end type darkMatterProfileScaleRadiusRandomWalk
   
   interface darkMatterProfileScaleRadiusRandomWalk
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleRandomWalkConstructorParameters
      module procedure darkMatterProfileScaleRandomWalkConstructorInternal
@@ -79,9 +72,8 @@
 contains
   
   function darkMatterProfileScaleRandomWalkConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class which
-    takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,9 +85,11 @@ contains
     double precision                                                        :: energyVarianceSpecific
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyVarianceSpecific</name>
-      <description>The variance in the difference in the energy of a halo per unit energy growth.</description>
+      <description>
+      The variance in the difference in the energy of a halo per unit energy growth.
+      </description>
       <source>parameters</source>
       <defaultValue>0.006d0</defaultValue>
     </inputParameter>
@@ -114,8 +108,8 @@ contains
   end function darkMatterProfileScaleRandomWalkConstructorParameters
 
   function darkMatterProfileScaleRandomWalkConstructorInternal(energyVarianceSpecific,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusRandomWalk)                        :: self
@@ -131,8 +125,8 @@ contains
   end function darkMatterProfileScaleRandomWalkConstructorInternal
 
   subroutine darkMatterProfileScaleRandomWalkDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusRandomWalk} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusRandomWalk), intent(inout) :: self
@@ -146,7 +140,7 @@ contains
   end subroutine darkMatterProfileScaleRandomWalkDestructor
 
   double precision function darkMatterProfileScaleRandomWalkRadius(self,node) result(radiusScale)
-    !!{
+    !!{RST
     Initialize dark matter profile scale radii.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
@@ -238,7 +232,7 @@ contains
   end function darkMatterProfileScaleRandomWalkRadius
 
   double precision function energyRoot(radiusScale)
-    !!{
+    !!{RST
     Root function used in finding the scale radius corresponding to a given halo energy.
     !!}
     use :: Mass_Distributions, only : massDistributionClass

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{gnedin_response_2004} non-dark-matter-only dark matter halo profiles.
+  !!{RST
+  An implementation of :cite:t:`gnedin_response_2004` non-dark-matter-only dark matter halo profiles.
   !!}
 
   use :: Cosmology_Parameters      , only : cosmologyParameters              , cosmologyParametersClass
@@ -27,14 +27,14 @@
   use :: Mass_Distributions        , only : enumerationNonAnalyticSolversType
 
   !![
-  <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004">
+  <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004" docformat="rst">
    <description>
-    A non-dark-matter-only dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of \cite{gnedin_response_2004}, building \refClass{massDistributionSphericalAdiabaticGnedin2004} objects. The shape of the contraction is governed by parameters \mono{[A]}, \mono{[omega]}, and the pivot radius \mono{[radiusFractionalPivot]}, with numerical accuracy controlled by \mono{[toleranceRelative]}.
+   A non-dark-matter-only dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of :cite:t:`gnedin_response_2004`, building ``massDistributionSphericalAdiabaticGnedin2004`` objects. The shape of the contraction is governed by parameters ``[A]``, ``[omega]``, and the pivot radius ``[radiusFractionalPivot]``, with numerical accuracy controlled by ``[toleranceRelative]``.
    </description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileAdiabaticGnedin2004
-     !!{
+     !!{RST
      A dark matter halo profile class implementing adiabaticGnedin2004 dark matter halos.
      !!}
      private
@@ -51,8 +51,8 @@
   end type darkMatterProfileAdiabaticGnedin2004
 
   interface darkMatterProfileAdiabaticGnedin2004
-     !!{
-     Constructors for the \refClass{darkMatterProfileAdiabaticGnedin2004} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileAdiabaticGnedin2004`` dark matter halo profile class.
      !!}
      module procedure adiabaticGnedin2004ConstructorParameters
      module procedure adiabaticGnedin2004ConstructorInternal
@@ -61,8 +61,8 @@
 contains
 
   function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{adiabaticGnedin2004} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``adiabaticGnedin2004`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameters
@@ -77,38 +77,54 @@ contains
           &                                                                  radiusFractionalPivot, toleranceRelative
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>A</name>
-      <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+      <defaultSource>
+      (:cite:author:`gustafsson_baryonic_2006` :cite:year:`gustafsson_baryonic_2006`; from their Fig. 9, strong feedback case)
+      </defaultSource>
       <defaultValue>0.80d0</defaultValue>
-      <description>The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+      <description>
+      The parameter :math:`A` appearing in the :cite:t:`gnedin_response_2004` adiabatic contraction algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>omega</name>
-      <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+      <defaultSource>
+      (:cite:author:`gustafsson_baryonic_2006` :cite:year:`gustafsson_baryonic_2006`; from their Fig. 9, strong feedback case)
+      </defaultSource>
       <defaultValue>0.77d0</defaultValue>
-      <description>The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+      <description>
+      The parameter :math:`\omega` appearing in the :cite:t:`gnedin_response_2004` adiabatic contraction algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusFractionalPivot</name>
-      <defaultSource>\citep{gnedin_response_2004}</defaultSource>
+      <defaultSource>
+      :cite:p:`gnedin_response_2004`
+      </defaultSource>
       <defaultValue>1.0d0</defaultValue>
-      <description>The pivot radius (in units of the virial radius), $r_0$, appearing in equation~(\ref{eq:adiabaticContractionGnedinPowerLaw}).</description>
+      <description>
+      The pivot radius (in units of the virial radius), :math:`r_0`, appearing in equation ().
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in solving for the initial radius in the adiabatically-contracted dark matter profile.</description>
+      <description>
+      The relative tolerance to use in solving for the initial radius in the adiabatically-contracted dark matter profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring adiabatic contraction by baryons is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring adiabatic contraction by baryons is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -125,8 +141,8 @@ contains
   end function adiabaticGnedin2004ConstructorParameters
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} non-dark-matter-only dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileAdiabaticGnedin2004`` non-dark-matter-only dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -152,8 +168,8 @@ contains
   end function adiabaticGnedin2004ConstructorInternal
 
   subroutine adiabaticGnedin2004Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileAdiabaticGnedin2004} non-dark-matter-only dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileAdiabaticGnedin2004`` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
@@ -167,8 +183,8 @@ contains
   end subroutine adiabaticGnedin2004Destructor
 
   function adiabaticGnedin2004Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                       , massTypeBaryonic             , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004, kinematicsDistributionCollisionless, massDistributionSpherical    , kinematicsDistributionClass, &
@@ -272,8 +288,8 @@ contains
   end function adiabaticGnedin2004Get
 
   subroutine adiabaticGnedin2004Initialize(self,node,massDistributionBaryonic,darkMatterDistributedFraction,massFractionInitial)
-    !!{
-    Initialize the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Initialize the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : massTypeBaryonic

@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of calculations of chemical reaction rates which assumes zero rates.
   !!}
 
   !![
-  <chemicalReactionRate name="chemicalReactionRateZero">
+  <chemicalReactionRate name="chemicalReactionRateZero" docformat="rst">
    <description>
-    A null implementation of the chemical reaction rate class that returns zero rates for all reactions and all chemical species. Useful for disabling chemistry while testing other physical processes or in models that do not require chemical evolution.
+   A null implementation of the chemical reaction rate class that returns zero rates for all reactions and all chemical species. Useful for disabling chemistry while testing other physical processes or in models that do not require chemical evolution.
    </description>
   </chemicalReactionRate>
   !!]
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateZero
-     !!{
+     !!{RST
      A chemical reaction rate class in which all rates are zero.
      !!}
      private
@@ -38,8 +38,8 @@
   end type chemicalReactionRateZero
 
   interface chemicalReactionRateZero
-     !!{
-     Constructors for the \refClass{chemicalReactionRateZero} chemical reaction rates class.
+     !!{RST
+     Constructors for the ``chemicalReactionRateZero`` chemical reaction rates class.
      !!}
      module procedure zeroConstructorParameters
   end interface chemicalReactionRateZero
@@ -47,9 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{chemicalReactionRateZero} chemical reaction rates class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``chemicalReactionRateZero`` chemical reaction rates class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   subroutine zeroRates(self,lengthColumn,temperature,chemicalDensity,factorClumping,radiation,chemicalRates,node)
-    !!{
+    !!{RST
     Return zero rates of chemical reactions.
     !!}
     implicit none

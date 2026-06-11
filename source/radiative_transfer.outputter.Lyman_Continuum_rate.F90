@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferOutputter name="radiativeTransferOutputterLymanContinuumRate">
-   <description>A radiative transfer outputter class which outputs the Lyman continuum photon emission rate.</description>
+  <radiativeTransferOutputter name="radiativeTransferOutputterLymanContinuumRate" docformat="rst">
+   <description>
+   A radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
+   </description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterLymanContinuumRate
-     !!{
+     !!{RST
      Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
      !!}
      private
@@ -39,8 +41,8 @@
   end type radiativeTransferOutputterLymanContinuumRate
 
   interface radiativeTransferOutputterLymanContinuumRate
-     !!{
-     Constructors for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class.
+     !!{RST
+     Constructors for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class.
      !!}
      module procedure lymanContinuumRateConstructorParameters
      module procedure lymanContinuumRateConstructorInternal
@@ -49,9 +51,8 @@
 contains
 
   function lymanContinuumRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +67,8 @@ contains
   end function lymanContinuumRateConstructorParameters
   
   function lymanContinuumRateConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferOutputterLymanContinuumRate} radiative transfer outputter class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate) :: self
@@ -77,7 +78,7 @@ contains
   end function lymanContinuumRateConstructorInternal
   
   subroutine lymanContinuumRateReset(self)
-    !!{
+    !!{RST
     Reset the accumulated Lyman continuum photon escape rate.
     !!}
     implicit none
@@ -89,7 +90,7 @@ contains
   end subroutine lymanContinuumRateReset
 
   subroutine lymanContinuumRateSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !!{
+    !!{RST
     Compute and output the Lyman continuum photon emission rate.
     !!}
     use :: HDF5_Access               , only : hdf5Access
@@ -137,7 +138,7 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !!{
+      !!{RST
       Integrand over the source spectrum.
       !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
@@ -160,7 +161,7 @@ contains
   end subroutine lymanContinuumRateSourceProperties
 
   subroutine lymanContinuumRatePhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     use :: Numerical_Constants_Atomic      , only : lymanSeriesLimitWavelengthHydrogen_atomic
@@ -191,7 +192,7 @@ contains
   end subroutine lymanContinuumRatePhotonPacketEscapes
 
   subroutine lymanContinuumRateFinalize(self)
-    !!{
+    !!{RST
     Finalize the Lyman continuum photon escape rate.
     !!}
     use :: MPI_Utilities, only : mpiSelf
@@ -205,7 +206,7 @@ contains
   end subroutine lymanContinuumRateFinalize
 
   subroutine lymanContinuumRateOutput(self,outputGroup)
-    !!{
+    !!{RST
     Output the Lyman continuum photon escape rate.
     !!}
     use :: HDF5_Access    , only : hdf5Access

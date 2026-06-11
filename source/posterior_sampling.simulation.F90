@@ -17,29 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class of posterior sampling simulators.
 !!}
 
 module Posterior_Sampling_Simulation
-  !!{
+  !!{RST
   Implements a class of posterior sampling simulators.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleSimulation</name>
    <descriptiveName>Posterior Sampling Simulations</descriptiveName>
-   <description>Class providing simulators for Bayesian posterior sampling---algorithms that draw samples from
-    the joint posterior distribution of model parameters given observational constraints. Implementations
-    orchestrate the Markov Chain Monte Carlo or other stochastic exploration strategy, managing the
-    collection of walkers or chains, proposing new parameter vectors, evaluating the likelihood and prior,
-    and deciding whether to accept or reject proposed moves. The default implementation uses the
-    Differential Evolution MCMC algorithm for efficient high-dimensional sampling.</description>
+   <description>
+   Class providing simulators for Bayesian posterior sampling---algorithms that draw samples from the joint posterior distribution of model parameters given observational constraints. Implementations orchestrate the Markov Chain Monte Carlo or other stochastic exploration strategy, managing the collection of walkers or chains, proposing new parameter vectors, evaluating the likelihood and prior, and deciding whether to accept or reject proposed moves. The default implementation uses the Differential Evolution MCMC algorithm for efficient high-dimensional sampling.
+   </description>
    <default>differentialEvolution</default>
    <method name="simulate" >
-    <description>Execute the full posterior sampling run, iterating the proposal, acceptance, and logging cycle until either the stopping criterion is met or the maximum step count is reached.</description>
+    <description>
+    Execute the full posterior sampling run, iterating the proposal, acceptance, and logging cycle until either the stopping criterion is met or the maximum step count is reached.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>

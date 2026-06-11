@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  An implementation of a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   use :: Dark_Matter_Halo_Scales, only : darkmatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW">
+  <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW" docformat="rst">
     <description>
-      Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}
-      are built via \refClass{massDistributionSphericalSIDMCoreNFW} objects.
+    Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023` are built via ``massDistributionSphericalSIDMCoreNFW`` objects.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMCoreNFW
-     !!{
-     A dark matter halo profile class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based
-     on the model of \cite{jiang_semi-analytic_2023}. The profile is defined by the enclosed mass, with \citep{jiang_semi-analytic_2023}:
-     \begin{equation}
-       M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
-     \end{equation}
-     where $r_\mathrm{c} = \alpha r_1$ is a characteristic core size related to the interaction radius $r_1$ by a constant factor
-     $\alpha = $\mono{[factorRadiusCore]}.
+     !!{RST
+     A dark matter halo profile class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`. The profile is defined by the enclosed mass, with :cite:p:`jiang_semi-analytic_2023`:
+
+     .. math::
+
+        M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
+
+     where :math:`r_\mathrm{c} = \alpha r_1` is a characteristic core size related to the interaction radius :math:`r_1` by a constant factor :math:`\alpha =`\ ``[factorRadiusCore]``.
      !!}
      private
      class           (darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
@@ -53,8 +52,8 @@
   end type darkMatterProfileDMOSIDMCoreNFW
 
   interface darkMatterProfileDMOSIDMCoreNFW
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
      !!}
      module procedure sidmCoreNFWConstructorParameters
      module procedure sidmCoreNFWConstructorInternal
@@ -63,8 +62,8 @@
 contains
 
   function sidmCoreNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,12 +74,16 @@ contains
     double precision                                                 :: factorRadiusCore
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorRadiusCore</name>
       <defaultValue>0.45d0</defaultValue>
-      <defaultSource>\citep{jiang_semi-analytic_2023}</defaultSource>
+      <defaultSource>
+      :cite:p:`jiang_semi-analytic_2023`
+      </defaultSource>
       <source>parameters</source>
-      <description>The factor $\alpha$ appearing in the definition of the core radius, $r_\mathrm{c}=\alpha r_1$ where $r_1$ is the radius at which an SIDM particle has had, on average, 1 interaction.</description>
+      <description>
+      The factor :math:`\alpha` appearing in the definition of the core radius, :math:`r_\mathrm{c}=\alpha r_1` where :math:`r_1` is the radius at which an SIDM particle has had, on average, 1 interaction.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -95,8 +98,8 @@ contains
   end function sidmCoreNFWConstructorParameters
 
   function sidmCoreNFWConstructorInternal(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -134,8 +137,8 @@ contains
   end function sidmCoreNFWConstructorInternal
 
   subroutine sidmCoreNFWDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOSIDMCoreNFW} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self
@@ -149,8 +152,8 @@ contains
   end subroutine sidmCoreNFWDestructor
 
   function sidmCoreNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass

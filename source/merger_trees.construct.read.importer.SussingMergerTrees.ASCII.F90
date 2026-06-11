@@ -17,78 +17,76 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
+  !!{RST
+  An implementation of the merger tree importer class for "Sussing Merger Trees" format merger tree files.
   !!}
 
   !![
-  <mergerTreeImporter name="mergerTreeImporterSussingASCII">
+  <mergerTreeImporter name="mergerTreeImporterSussingASCII" docformat="rst">
    <description>
-    A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013},
-    along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the \mono{[mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
-    \begin{verbatim}
-    simulation.txt
-    MergerTree+AHF.txt
-    snapidzred.txt
-    AHF/62.5_dm_000.z50.000.AHF_halos
-    AHF/62.5_dm_001.z30.000.AHF_halos
-    AHF/62.5_dm_002.z19.916.AHF_halos
-    .
-    .
-    .
-    AHF/62.5_dm_061.z0.000.AHF_halos
-    \end{verbatim}
-    in which each line specifies a file to be read (by default path names are relative to the location of the descriptor
-    file---fully-qualified path names can also be given).
-  
-    The first line identifies a file which specifies properties of the simulation. This file should look like:
-    \begin{verbatim}
-    WMAP7 cosmology:
-    ----------------
-    Omega0          =       0.272
-    OmegaLambda0    =       0.728
-    h               =       0.704
-    
-    simulation:
-    -----------
-    B               =       62.5 Mpc/h
-    N               =       270^3 particles
-    \end{verbatim}
-    Currently only the cosmological parameter and box length are read from this file.
-    
-    The second line identifies the merger tree file which must be in the format specified by \cite{srisawat_sussing_2013}.
-    
-    The third line of the descriptor file specifies a snapshot file which should have the following format:
-    \begin{verbatim}
-    #    snapnum       a             z           t(t0)      t(year)
-               0    0.0196080      49.9996   0.00354284  4.87485e+07
-               1    0.0322580      30.0001   0.00747572  1.02864e+08
-               2    0.0478110      19.9157    0.0134888  1.85602e+08
-               3    0.0519650      18.2437    0.0152842  2.10306e+08
-               4    0.0564190      16.7245    0.0172905  2.37912e+08
-               5    0.0611880      15.3431    0.0195280  2.68700e+08
-               6    0.0662870      14.0859    0.0220186  3.02969e+08
-                 .
-                 .
-                 .
-    \end{verbatim}
-    This file must contain one line for each snapshot of the simulation, giving the snapshot number, expansion factor,
-    redshift, fractional time (relative to present day), and age of the universe (in years).
-    
-    Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can be listed in any order).
-    
-    Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to
-    read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is
-    specified by the \mono{[subvolumeCount]} parameter. The specific subvolume to process is specified by the
-    \mono{[subvolumeIndex]} parameter, which should give the index (running from $0$ to \mono{[subvolumeCount]}$-1$) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the
-    edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc$/h$ to
-    follow the format convention) is specified via the \mono{[subvolumeBuffer]} parameter.
+   A merger tree importer class for "Sussing Merger Trees" ASCII format merger tree files :cite:p:`srisawat_sussing_2013`, along with :term:`AHF` format halo catalogs. A descriptor file must be specified via the ``[mergerTreeReadFileName]`` parameter. This descriptor file should have the following format:
+
+   .. code-block:: none
+
+      simulation.txt
+      MergerTree+AHF.txt
+      snapidzred.txt
+      AHF/62.5_dm_000.z50.000.AHF_halos
+      AHF/62.5_dm_001.z30.000.AHF_halos
+      AHF/62.5_dm_002.z19.916.AHF_halos
+      .
+      .
+      .
+      AHF/62.5_dm_061.z0.000.AHF_halos
+
+   in which each line specifies a file to be read (by default path names are relative to the location of the descriptor file---fully-qualified path names can also be given).
+
+   The first line identifies a file which specifies properties of the simulation. This file should look like:
+
+   .. code-block:: none
+
+      WMAP7 cosmology:
+      ----------------
+      Omega0          =       0.272
+      OmegaLambda0    =       0.728
+      h               =       0.704
+
+      simulation:
+      -----------
+      B               =       62.5 Mpc/h
+      N               =       270^3 particles
+
+   Currently only the cosmological parameter and box length are read from this file.
+
+   The second line identifies the merger tree file which must be in the format specified by :cite:t:`srisawat_sussing_2013`.
+
+   The third line of the descriptor file specifies a snapshot file which should have the following format:
+
+   .. code-block:: none
+
+      #    snapnum       a             z           t(t0)      t(year)
+                 0    0.0196080      49.9996   0.00354284  4.87485e+07
+                 1    0.0322580      30.0001   0.00747572  1.02864e+08
+                 2    0.0478110      19.9157    0.0134888  1.85602e+08
+                 3    0.0519650      18.2437    0.0152842  2.10306e+08
+                 4    0.0564190      16.7245    0.0172905  2.37912e+08
+                 5    0.0611880      15.3431    0.0195280  2.68700e+08
+                 6    0.0662870      14.0859    0.0220186  3.02969e+08
+                   .
+                   .
+                   .
+
+   This file must contain one line for each snapshot of the simulation, giving the snapshot number, expansion factor, redshift, fractional time (relative to present day), and age of the universe (in years).
+
+   Subsequent lines identify the :term:`AHF` halo files for each snapshot (files can be listed in any order).
+
+   Merger tree files of this type can be split into subvolumes before processing. This is useful if the file is too large to read into memory in one go. The number of subvolumes to use (in each of the three dimensions of the simulation cube) is specified by the ``[subvolumeCount]`` parameter. The specific subvolume to process is specified by the ``[subvolumeIndex]`` parameter, which should give the index (running from :math:`0` to ``[subvolumeCount]``\ :math:`-1`) in each dimension (whitespace separated). To ensure that no halos are missed from trees near the edge of the subvolume, a buffer region around the subvolume is also read. The width of this buffer (in units of Mpc\ :math:`/h` to follow the format convention) is specified via the ``[subvolumeBuffer]`` parameter.
    </description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingASCII
-     !!{
-     A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.
+     !!{RST
+     A merger tree importer class for "Sussing Merger Trees" ASCII format merger tree files :cite:p:`srisawat_sussing_2013`.
      !!}
      private
      logical                 :: convertToBinary           , binaryFormatOld, &
@@ -107,8 +105,8 @@
   end type mergerTreeImporterSussingASCII
 
   interface mergerTreeImporterSussingASCII
-     !!{
-     Constructors for the \refClass{mergerTreeImporterSussingASCII} merger tree importer class.
+     !!{RST
+     Constructors for the ``mergerTreeImporterSussingASCII`` merger tree importer class.
      !!}
      module procedure sussingASCIIConstructorParameters
      module procedure sussingASCIIConstructorInternal
@@ -116,9 +114,11 @@
 
   ! Enumeration of file formats.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sussingHaloFormat</name>
-   <description>Enumeration of supported halo catalog file format versions for the ``Sussing Merger Trees'' ASCII importer: \mono{old} and \mono{new} refer to distinct AHF column layouts, while \mono{all} accepts either format.</description>
+   <description>
+   Enumeration of supported halo catalog file format versions for the "Sussing Merger Trees" ASCII importer: ``old`` and ``new`` refer to distinct AHF column layouts, while ``all`` accepts either format.
+   </description>
    <entry label="old"/>
    <entry label="new"/>
    <entry label="all"/>
@@ -128,9 +128,8 @@
 contains
 
   function sussingASCIIConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeImporterSussingASCII} ASCII format \citep{srisawat_sussing_2013} merger tree importer which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeImporterSussingASCII`` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -138,46 +137,58 @@ contains
     type(inputParameters               ), intent(inout) :: parameters
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convertToBinary</name>
       <variable>self%convertToBinary</variable>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
+      <description>
+      Specifies whether halo and tree files in the "Sussing" format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binaryFormatOld</name>
       <variable>self%binaryFormatOld</variable>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether the old binary format is to be used (for reading only).</description>
+      <description>
+      Specifies whether the old binary format is to be used (for reading only).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forestFile</name>
       <variable>self%forestFile</variable>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Name of file containing data on number of halos in each forest.</description>
+      <description>
+      Name of file containing data on number of halos in each forest.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forestFirst</name>
       <variable>self%forestFirst</variable>
       <defaultValue>1</defaultValue>
-      <description>The 1-based index of the first forest in the file to include when reading a subset of forests; forests before this index are skipped.</description>
+      <description>
+      The 1-based index of the first forest in the file to include when reading a subset of forests; forests before this index are skipped.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forestLast</name>
       <variable>self%forestLast</variable>
       <defaultValue>-1</defaultValue>
-      <description>The 1-based index of the last forest in the file to include when reading a subset of forests; a value of $-1$ includes all forests through the end of the file.</description>
+      <description>
+      The 1-based index of the last forest in the file to include when reading a subset of forests; a value of :math:`-1` includes all forests through the end of the file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forestReverseSnapshotOrder</name>
       <variable>self%forestReverseSnapshotOrder</variable>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
+      <description>
+      If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -190,8 +201,8 @@ contains
   end function sussingASCIIConstructorParameters
 
   function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeImporterSussingASCII} ASCII format \citep{srisawat_sussing_2013} merger tree importer.
+    !!{RST
+    Internal constructor for the ``mergerTreeImporterSussingASCII`` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer.
     !!}
     implicit none
     type            (mergerTreeImporterSussingASCII    )                              :: self
@@ -219,7 +230,7 @@ contains
   end function sussingASCIIConstructorInternal
 
   subroutine sussingASCIIInitialize(self)
-    !!{
+    !!{RST
     Initialize the object after construction.
     !!}
     implicit none
@@ -230,8 +241,8 @@ contains
   end subroutine sussingASCIIInitialize
 
   subroutine sussingASCIIOpen(self,fileName)
-    !!{
-    Validate a \mono{sussing} ASCII format merger tree file.
+    !!{RST
+    Validate a ``sussing`` ASCII format merger tree file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage         , verbosityLevelWarn
@@ -362,8 +373,8 @@ contains
   end subroutine sussingASCIIOpen
 
   subroutine sussingASCIILoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
-    !!{
-    Load a \mono{sussing} ASCII format merger tree data.
+    !!{RST
+    Load a ``sussing`` ASCII format merger tree data.
     !!}
     use            :: Array_Utilities                 , only : Array_Reverse
     use            :: Arrays_Search                   , only : searchArray            , searchIndexed
@@ -1445,7 +1456,7 @@ contains
        &   Zgroup        ,                        &
        &   quickRead                              &
        & )
-    !!{
+    !!{RST
     Read an ASCII halo definition.
     !!}
     use :: Error, only : Error_Report

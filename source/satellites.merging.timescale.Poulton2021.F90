@@ -17,35 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of satellite merging times using the \cite{poulton_extracting_2021} method.
+  !!{RST
+  Implements calculations of satellite merging times using the :cite:t:`poulton_extracting_2021` method.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesPoulton2021">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesPoulton2021" docformat="rst">
    <description>
-    A satellite merging timescales class which computes merging timescales using the fitting formula of
-    \cite{poulton_extracting_2021}. The merging timescale is:
-    \begin{equation}
-     T_\mathrm{merge} = A \, T_\mathrm{dyn}(r) \left(\frac{r}{R_\mathrm{vir}}\right)^b \left(\frac{R_\mathrm{peri}}{R_\mathrm{vir}}\right)^c,
-    \end{equation}
-    where $T_\mathrm{dyn}(r) = r/v_\mathrm{circ}(r)$ is the local dynamical time, $R_\mathrm{peri}$ is the
-    pericentric distance computed using the locally Keplerian approximation with the enclosed host mass, and
-    \begin{equation}
-     b = \begin{cases} b_\mathrm{interior} &amp; r &lt; R_\mathrm{vir} \\ b_\mathrm{exterior} &amp; r \geq R_\mathrm{vir} \end{cases}.
-    \end{equation}
-    Parameters are set via $A=$\mono{A}, $c=$\mono{[c]}, $b_\mathrm{interior}=$\mono{[bInterior]}, and $b_\mathrm{exterior}=$\mono{[bExterior]}.
-    The default parameter values $A=5.5$, $c=0.2$, $b_\mathrm{interior}=-0.5$, and $b_\mathrm{exterior}=-1.0$ are
-    those favored by \cite{poulton_extracting_2021}.
+   A satellite merging timescales class which computes merging timescales using the fitting formula of :cite:t:`poulton_extracting_2021`. The merging timescale is:
+
+   .. math::
+
+      T_\mathrm{merge} = A \, T_\mathrm{dyn}(r) \left(\frac{r}{R_\mathrm{vir}}\right)^b \left(\frac{R_\mathrm{peri}}{R_\mathrm{vir}}\right)^c,
+
+   where :math:`T_\mathrm{dyn}(r) = r/v_\mathrm{circ}(r)` is the local dynamical time, :math:`R_\mathrm{peri}` is the pericentric distance computed using the locally Keplerian approximation with the enclosed host mass, and
+
+   .. math::
+
+      b = \begin{cases} b_\mathrm{interior} &amp; r &lt; R_\mathrm{vir} \\ b_\mathrm{exterior} &amp; r \geq R_\mathrm{vir} \end{cases}.
+
+   Parameters are set via :math:`A=`\ ``A``, :math:`c=`\ ``[c]``, :math:`b_\mathrm{interior}=`\ ``[bInterior]``, and :math:`b_\mathrm{exterior}=`\ ``[bExterior]``. The default parameter values :math:`A=5.5`, :math:`c=0.2`, :math:`b_\mathrm{interior}=-0.5`, and :math:`b_\mathrm{exterior}=-1.0` are those favored by :cite:t:`poulton_extracting_2021`.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPoulton2021
-     !!{
-     A class implementing the \cite{poulton_extracting_2021} method for satellite merging timescales.
+     !!{RST
+     A class implementing the :cite:t:`poulton_extracting_2021` method for satellite merging timescales.
      !!}
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
@@ -58,8 +58,8 @@
   end type satelliteMergingTimescalesPoulton2021
 
   interface satelliteMergingTimescalesPoulton2021
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesPoulton2021} satellite merging timescale class.
+     !!{RST
+     Constructors for the ``satelliteMergingTimescalesPoulton2021`` satellite merging timescale class.
      !!}
      module procedure poulton2021ConstructorParameters
      module procedure poulton2021ConstructorInternal
@@ -68,8 +68,8 @@
 contains
 
   function poulton2021ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{poulton_extracting_2021} merging timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`poulton_extracting_2021` merging timescale class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent
@@ -84,28 +84,36 @@ contains
 
     if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>A</name>
       <defaultValue>5.5d0</defaultValue>
-      <description>The normalization constant, $A$, in the \cite{poulton_extracting_2021} satellite merging timescale fitting formula.</description>
+      <description>
+      The normalization constant, :math:`A`, in the :cite:t:`poulton_extracting_2021` satellite merging timescale fitting formula.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <defaultValue>0.2d0</defaultValue>
-      <description>The exponent, $c$, on the pericentric distance ratio in the \cite{poulton_extracting_2021} satellite merging timescale fitting formula.</description>
+      <description>
+      The exponent, :math:`c`, on the pericentric distance ratio in the :cite:t:`poulton_extracting_2021` satellite merging timescale fitting formula.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bInterior</name>
       <defaultValue>-0.5d0</defaultValue>
-      <description>The radial exponent, $b$, in the \cite{poulton_extracting_2021} satellite merging timescale fitting formula for satellites inside the virial radius ($r &lt; R_\mathrm{vir}$).</description>
+      <description>
+      The radial exponent, :math:`b`, in the :cite:t:`poulton_extracting_2021` satellite merging timescale fitting formula for satellites inside the virial radius (:math:`r &lt; R_\mathrm{vir}`).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bExterior</name>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The radial exponent, $b$, in the \cite{poulton_extracting_2021} satellite merging timescale fitting formula for satellites outside the virial radius ($r \geq R_\mathrm{vir}$).</description>
+      <description>
+      The radial exponent, :math:`b`, in the :cite:t:`poulton_extracting_2021` satellite merging timescale fitting formula for satellites outside the virial radius (:math:`r \geq R_\mathrm{vir}`).
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -121,8 +129,8 @@ contains
   end function poulton2021ConstructorParameters
 
   function poulton2021ConstructorInternal(A,c,bInterior,bExterior,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Constructor for the \cite{poulton_extracting_2021} merging timescale class.
+    !!{RST
+    Constructor for the :cite:t:`poulton_extracting_2021` merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesPoulton2021)                        :: self
@@ -138,8 +146,8 @@ contains
   end function poulton2021ConstructorInternal
 
   subroutine poulton2021Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMergingTimescalesPoulton2021} satellite merging timescale class.
+    !!{RST
+    Destructor for the ``satelliteMergingTimescalesPoulton2021`` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesPoulton2021), intent(inout) :: self
@@ -152,8 +160,8 @@ contains
   end subroutine poulton2021Destructor
 
   double precision function poulton2021TimeUntilMerging(self,node,orbit) result(timeUntilMerging)
-    !!{
-    Return the timescale for merging satellites using the \cite{poulton_extracting_2021} method.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`poulton_extracting_2021` method.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Kepler_Orbits                   , only : keplerOrbit

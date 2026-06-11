@@ -17,38 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a star formation histories class which records star formation split by metallicity.
 !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
 
   !![
-  <starFormationHistory name="starFormationHistoryMetallicitySplit">
+  <starFormationHistory name="starFormationHistoryMetallicitySplit" docformat="rst">
    <description>
-    A star formation histories class which records star formation split by metallicity. The star formation history is tabulated
-    on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size \mono{[timeStep]} between the time at which each galaxy formed and the final output time, and at most of size
-    \mono{[timeStepFine]} in the period \mono{[timeFine]} prior to each output time (all times specified in Gyr). The allows fine binning of recent
-    star formation just prior to each output.
+   A star formation histories class which records star formation split by metallicity. The star formation history is tabulated on a grid of time and metallicity. The binning in time is chosen such that bins are at most of size ``[timeStep]`` between the time at which each galaxy formed and the final output time, and at most of size ``[timeStepFine]`` in the period ``[timeFine]`` prior to each output time (all times specified in Gyr). The allows fine binning of recent star formation just prior to each output.
 
-    The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
-    minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
+   The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the minimum time corresponding to the value associated with the previous bin (or :math:`t=0` for the first bin).
 
-    The metallicity binning is arranged logarithmically in metallicity with \mono{[countMetallicities]} bins
-    between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
-    units). The metallicity bins are arranged logarithmically in metallicity with \mono{[countMetallicities]}
-    bins between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
-    units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
-    metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
-    final bin, extending to infinite metallicity, is always added automatically. If \mono{[countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
-    encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-    via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always added
-    automatically.
+   The metallicity binning is arranged logarithmically in metallicity with ``[countMetallicities]`` bins between ``[metallicityMinimum]`` and ``[metallicityMaximum]`` (specified in Solar units). The metallicity bins are arranged logarithmically in metallicity with ``[countMetallicities]`` bins between ``[metallicityMinimum]`` and ``[metallicityMaximum]`` (specified in Solar units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a final bin, extending to infinite metallicity, is always added automatically. If ``[countMetallicities]``\ :math:`=0` is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set via the ``[metallicityBoundaries]`` parameter---a final boundary corresponding to infinity is always added automatically.
    </description>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryMetallicitySplit
-     !!{
+     !!{RST
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
@@ -77,8 +64,8 @@ Implements a star formation histories class which records star formation split b
   end type starFormationHistoryMetallicitySplit
 
   interface starFormationHistoryMetallicitySplit
-     !!{
-     Constructors for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
+     !!{RST
+     Constructors for the ``starFormationHistoryMetallicitySplit`` star formation history class.
      !!}
      module procedure metallicitySplitConstructorParameters
      module procedure metallicitySplitConstructorInternal
@@ -98,8 +85,8 @@ Implements a star formation histories class which records star formation split b
 contains
 
   function metallicitySplitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``starFormationHistoryMetallicitySplit`` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,28 +100,36 @@ contains
     integer                                                                             :: countMetallicities
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStep</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The time step to use in tabulations of star formation histories [Gyr].</description>
+      <description>
+      The time step to use in tabulations of star formation histories [Gyr].
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepFine</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
+      <description>
+      The fine time step to use in tabulations of star formation histories [Gyr].
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeFine</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
+      <description>
+      The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massScaleAbsolute</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.</description>
+      <description>
+      The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -142,9 +137,11 @@ contains
        self%countMetallicities=parameters%count('metallicityBoundaries')
        allocate(metallicityBoundaries(self%countMetallicities))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityBoundaries</name>
-         <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
+         <description>
+         The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.
+         </description>
          <source>parameters</source>
          <variable>metallicityBoundaries</variable>
          <type>real</type>
@@ -153,22 +150,28 @@ contains
        !!]
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMetallicities</name>
          <defaultValue>10</defaultValue>
-         <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
+         <description>
+         The number of bins in metallicity to use when tabulating star formation histories.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityMinimum</name>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <description>
+         The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityMaximum</name>
          <defaultValue>1.0d+1</defaultValue>
-         <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <description>
+         The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -189,8 +192,8 @@ contains
   end function metallicitySplitConstructorParameters
 
   function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
+    !!{RST
+    Internal constructor for the ``starFormationHistoryMetallicitySplit`` star formation history class.
     !!}
     use :: Error           , only : Error_Report
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
@@ -247,8 +250,8 @@ contains
   end function metallicitySplitConstructorInternal
 
   subroutine metallicitySplitDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationHistoryMetallicitySplit} star formation history class.
+    !!{RST
+    Destructor for the ``starFormationHistoryMetallicitySplit`` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self
@@ -260,7 +263,7 @@ contains
   end subroutine metallicitySplitDestructor
 
   subroutine metallicitySplitCreate(self,node,historyStarFormation,timeBegin,timeEnd)
-    !!{
+    !!{RST
     Create the history required for storing star formation history.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -282,8 +285,8 @@ contains
   end subroutine metallicitySplitCreate
 
   subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !!{
-    Set the rate the star formation history for \mono{node}.
+    !!{RST
+    Set the rate the star formation history for ``node``.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
@@ -324,8 +327,8 @@ contains
   end subroutine metallicitySplitRate
 
   subroutine metallicitySplitUpdate(self,node,indexOutput,historyStarFormation)
-    !!{
-    Output the star formation history for \mono{node}.
+    !!{RST
+    Output the star formation history for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -359,7 +362,7 @@ contains
   end subroutine metallicitySplitUpdate
 
   subroutine metallicitySplitScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
-    !!{
+    !!{RST
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
@@ -384,7 +387,7 @@ contains
   end subroutine metallicitySplitScales
 
   subroutine metallicitySplitMake(self,historyStarFormation,timeBegin,timeEnd,timesCurrent)
-    !!{
+    !!{RST
     Create the history required for storing star formation history.
     !!}
     use :: Error           , only : Error_Report
@@ -524,7 +527,7 @@ contains
   end subroutine metallicitySplitMake
 
   function metallicitySplitMetallicityBoundaries(self)
-    !!{
+    !!{RST
     Return the boundaries of the metallicities used in this tabulation.
     !!}
     implicit none
@@ -537,7 +540,7 @@ contains
   end function metallicitySplitMetallicityBoundaries
 
   logical function metallicitySplitRangeIsSufficient(self,starFormationHistory,rangeHistory) result(rangeIsSufficient)
-    !!{
+    !!{RST
     Return true if the range of this history is sufficient.
     !!}
     use :: Error, only : Error_Report
@@ -558,7 +561,7 @@ contains
   end function metallicitySplitRangeIsSufficient
 
   subroutine metallicitySplitExtend(self,starFormationHistory,times)
-    !!{
+    !!{RST
     Extend this history to span a sufficient range.
     !!}
     implicit none

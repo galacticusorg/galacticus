@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An accretion flow mass distribution using the framework of \cite{shi_outer_2016}.
+  !!{RST
+  An accretion flow mass distribution using the framework of :cite:t:`shi_outer_2016`.
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
@@ -36,15 +36,15 @@
   !        * Physical  - these correspond to physical units (Mpc, M☉, km/s).
   
   !![
-  <massDistribution name="massDistributionShi2016">
+  <massDistribution name="massDistributionShi2016" docformat="rst">
     <description>
-      A mass distribution for accretion flows using the framework of \cite{shi_outer_2016}.
-   </description>
+    A mass distribution for accretion flows using the framework of :cite:t:`shi_outer_2016`.
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionShi2016
-     !!{
-     A mass distribution for accretion flows using the framework of \cite{shi_outer_2016}.
+     !!{RST
+     A mass distribution for accretion flows using the framework of :cite:t:`shi_outer_2016`.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_                               => null()
@@ -82,8 +82,8 @@
   end type massDistributionShi2016
 
   interface massDistributionShi2016
-     !!{
-     Constructors for the \refClass{massDistributionShi2016} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionShi2016`` mass distribution class.
      !!}
      module procedure massDistributionShi2016ConstructorParameters
      module procedure massDistributionShi2016ConstructorInternal
@@ -102,9 +102,8 @@
 contains
 
   function massDistributionShi2016ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionShi2016} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionShi2016`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -119,41 +118,55 @@ contains
          &                                                       radiusVirial        , redshift
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
-      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo used to set the normalization of the \cite{shi_outer_2016} accretion flow density profile.</description>
+      <description>
+      The virial mass (in :math:`\mathrm{M}_\odot`) of the halo used to set the normalization of the :cite:t:`shi_outer_2016` accretion flow density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massAccretionRate</name>
-      <description>The mass accretion rate (in $\mathrm{M}_\odot$/Gyr) of the halo, used in the \cite{shi_outer_2016} framework to set the amplitude of the outer accretion flow density profile.</description>
+      <description>
+      The mass accretion rate (in :math:`\mathrm{M}_\odot`/Gyr) of the halo, used in the :cite:t:`shi_outer_2016` framework to set the amplitude of the outer accretion flow density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
       <name>radiusVirial</name>
-      <description>The virial radius (in Mpc) of the halo, used together with the turnaround radius ratio to set the spatial scale of the \cite{shi_outer_2016} accretion flow.</description>
+      <description>
+      The virial radius (in Mpc) of the halo, used together with the turnaround radius ratio to set the spatial scale of the :cite:t:`shi_outer_2016` accretion flow.
+      </description>
       <source>parameters</source>
     </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
       <name>ratioRadiusTurnaroundVirial</name>
-      <description>The ratio of the turnaround to virial radii of the halo.</description>
+      <description>
+      The ratio of the turnaround to virial radii of the halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
-      <description>The cosmological redshift of the halo, used to evaluate the cosmic time and expansion factor for the \cite{shi_outer_2016} accretion flow solution.</description>
+      <description>
+      The cosmological redshift of the halo, used to evaluate the cosmic time and expansion factor for the :cite:t:`shi_outer_2016` accretion flow solution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -167,8 +180,8 @@ contains
   end function massDistributionShi2016ConstructorParameters
 
   function massDistributionShi2016ConstructorInternal(mass,massAccretionRate,radiusVirial,ratioRadiusTurnaroundVirial,time,scaleFactorVelocity,cosmologyFunctions_,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``shi2016'' mass distribution class.
+    !!{RST
+    Internal constructor for "shi2016" mass distribution class.
     !!}
     implicit none
     type            (massDistributionShi2016     )                          :: self
@@ -189,8 +202,8 @@ contains
   end function massDistributionShi2016ConstructorInternal
 
   subroutine shi2016Destructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionShi2016} mass distribution class.
+    !!{RST
+    Destructor for the ``massDistributionShi2016`` mass distribution class.
     !!}
     implicit none
     type(massDistributionShi2016), intent(inout) :: self
@@ -202,8 +215,8 @@ contains
   end subroutine shi2016Destructor
 
   double precision function shi2016Density(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class(massDistributionShi2016), intent(inout) :: self
@@ -222,8 +235,8 @@ contains
   end function shi2016Density
 
   double precision function shi2016DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class  (massDistributionShi2016), intent(inout), target   :: self
@@ -246,7 +259,7 @@ contains
   end function shi2016DensityGradientRadial
   
   subroutine shi2016Solve(self)
-    !!{
+    !!{RST
     Solve the accretion flow.
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
@@ -633,8 +646,8 @@ contains
   end subroutine shi2016Solve
 
   double precision function halfRadiusTurnAroundRoot(timeFinalScaled)
-    !!{
-    Root function used in finding the epoch at which a shell reaches a radius equal to half of its turnaround radius, $y^*$.
+    !!{RST
+    Root function used in finding the epoch at which a shell reaches a radius equal to half of its turnaround radius, :math:`y^*`.
     !!}
     implicit none
     double precision, intent(in   ) :: timeFinalScaled
@@ -652,7 +665,7 @@ contains
   end function halfRadiusTurnAroundRoot
   
   subroutine radiusScaledSolver(timeInitialScaled,timeFinalScaled,radiusInitialScaled,radiusGrowthRateInitialScaled,radiusScaled,radiusGrowthRateScaled)
-    !!{
+    !!{RST
     Compute the scaled radius (and its growth rate) as a function of the initial state and final time.
     !!}
     use :: Interface_GSL        , only : GSL_Success
@@ -676,8 +689,8 @@ contains
   end subroutine radiusScaledSolver
 
   integer function dynamicalODES(timeScaled,odeVariables,odeVariablesGrowthRate)
-    !!{
-    The dynamical equation describing the motion of a shell of matter in scaled variables \citep[][eqn.~A7]{shi_outer_2016}.
+    !!{RST
+    The dynamical equation describing the motion of a shell of matter in scaled variables :cite:p:`shi_outer_2016`.
     !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
@@ -748,8 +761,8 @@ contains
   end function dynamicalODES
 
   elemental double precision function expansionFactorFromTimeScaled(timeScaled) result(expansionFactor)
-    !!{
-    Compute the scaled expansion factor from the scaled time using equation~(A6) of \cite{shi_outer_2016}.
+    !!{RST
+    Compute the scaled expansion factor from the scaled time using equation (A6) of :cite:t:`shi_outer_2016`.
     !!}
     implicit none
     double precision, intent(in   ) :: timeScaled

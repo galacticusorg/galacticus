@@ -19,25 +19,23 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{
+  !!{RST
   Implements a black hole seed based on collapse of nuclear star clusters due to runaway stellar collisions.
   !!}
  
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <blackHoleSeeds name="blackHoleSeedsVergara2023">
+  <blackHoleSeeds name="blackHoleSeedsVergara2023" docformat="rst">
     <description>
-      A model of black hole seeds in which seeds are formed due to the collapse of nuclear star clusters into a black hole,
-      based on the model of \cite{vergara_global_2023} and \cite{escala_observational_2021}.
+    A model of black hole seeds in which seeds are formed due to the collapse of nuclear star clusters into a black hole, based on the model of :cite:t:`vergara_global_2023` and :cite:t:`escala_observational_2021`.
     </description>
   </blackHoleSeeds>
   !!]
 
   type, extends(blackHoleSeedsClass) :: blackHoleSeedsVergara2023
-     !!{
-     A black hole seeds class in which seeds are formed due to the collapse of nuclear star clusters into a black hole,
-     based on the model of \cite{vergara_global_2023} and \cite{escala_observational_2021}.
+     !!{RST
+     A black hole seeds class in which seeds are formed due to the collapse of nuclear star clusters into a black hole, based on the model of :cite:t:`vergara_global_2023` and :cite:t:`escala_observational_2021`.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_                   => null()
@@ -58,8 +56,8 @@
   end type blackHoleSeedsVergara2023
   
   interface blackHoleSeedsVergara2023
-     !!{
-     Constructors for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
+     !!{RST
+     Constructors for the ``blackHoleSeedsVergara2023`` black hole seeds class.
      !!}
      module procedure vergara2023ConstructorParameters
      module procedure vergara2023ConstructorInternal
@@ -68,8 +66,8 @@
 contains
 
   function vergara2023ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``blackHoleSeedsVergara2023`` black hole seeds class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,34 +79,44 @@ contains
        &                                                          massThreshold 
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massSingleStar</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the typical mass of a single star (in Solar masses) used in the \cite{vergara_global_2023} stellar cluster collapse model for computing the black hole seed mass from a dense star cluster.</description>
+      <description>
+      Specifies the typical mass of a single star (in Solar masses) used in the :cite:t:`vergara_global_2023` stellar cluster collapse model for computing the black hole seed mass from a dense star cluster.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSingleStar</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the typical radius of a single star (in Solar radii) used in the \cite{vergara_global_2023} stellar cluster collapse model for determining the cross-sections relevant to the seed formation process.</description>
+      <description>
+      Specifies the typical radius of a single star (in Solar radii) used in the :cite:t:`vergara_global_2023` stellar cluster collapse model for determining the cross-sections relevant to the seed formation process.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massEfficiency</name>
       <defaultValue>1.0d-1</defaultValue>
-      <description>Specifies the efficiency of the mass converted into a black hole seed.</description>
+      <description>
+      Specifies the efficiency of the mass converted into a black hole seed.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEfficiency</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the efficiency of the radius used to compute the critical mass.</description>
+      <description>
+      Specifies the efficiency of the radius used to compute the critical mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <defaultValue>1.0d3</defaultValue>
-      <description>Specifies the minimum stellar mass to apply the seeding prescription.</description>
+      <description>
+      Specifies the minimum stellar mass to apply the seeding prescription.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -122,8 +130,8 @@ contains
   end function vergara2023ConstructorParameters
   
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
+    !!{RST
+    Internal constructor for the ``blackHoleSeedsVergara2023`` black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsVergara2023)                        :: self
@@ -152,8 +160,8 @@ contains
   end function vergara2023ConstructorInternal
 
   subroutine vergara2023Destructor(self)
-      !!{
-      Destructor for the \refClass{blackHoleSeedsVergara2023} black hole seeds class.
+      !!{RST
+      Destructor for the ``blackHoleSeedsVergara2023`` black hole seeds class.
       !!}
       implicit none 
       type(blackHoleSeedsVergara2023), intent(inout) :: self
@@ -165,8 +173,8 @@ contains
   end subroutine vergara2023Destructor
 
   double precision function vergara2023Mass(self,node) result(mass)
-      !!{
-        Compute the nuclear star cluster collapse condition.
+      !!{RST
+      Compute the nuclear star cluster collapse condition.
       !!}
     use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode  
     use :: Abundances_Structure            , only : operator(*)
@@ -322,7 +330,7 @@ contains
   end function vergara2023Mass
 
   double precision function vergara2023Spin(self,node) result(spin)
-    !!{
+    !!{RST
     Compute the spin of the seed black hole.
     !!}
     implicit none
@@ -336,7 +344,7 @@ contains
   end function vergara2023Spin
 
   function vergara2023FormationChannel (self,node) result(channel)
-    !!{
+    !!{RST
     Compute the spin of the seed black hole.
     !!}
     implicit none

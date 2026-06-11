@@ -17,25 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a top-hat power spectrum window function class.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHat" docformat="rst">
    <description>
-    A top-hat in real space window function for filtering of power spectra. The window function is given by:
-    \begin{equation}
-     W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
-    \end{equation}
-    where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+   A top-hat in real space window function for filtering of power spectra. The window function is given by:
+
+   .. math::
+
+      W(k) = {3 (\sin(x)-x \cos(x)) \over x^3},
+
+   where :math:`x = k R` and :math:`R=(3M/4\pi\bar{\rho})^{1/3}` for a smoothing scale :math:`M` and mean matter density :math:`\bar{\rho}`.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHat
-     !!{
+     !!{RST
      A top-hat power spectrum window function class.
      !!}
      private
@@ -47,8 +49,8 @@
   end type powerSpectrumWindowFunctionTopHat
 
   interface powerSpectrumWindowFunctionTopHat
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
      !!}
      module procedure topHatConstructorParameters
      module procedure topHatConstructorInternal
@@ -57,8 +59,8 @@
 contains
 
   function topHatConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +80,8 @@ contains
   end function topHatConstructorParameters
 
   function topHatConstructorInternal(cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
     !!}
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                        :: self
@@ -92,8 +94,8 @@ contains
   end function topHatConstructorInternal
 
   subroutine topHatDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionTopHat} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHat), intent(inout) :: self
@@ -105,9 +107,8 @@ contains
   end subroutine topHatDestructor
 
   double precision function topHatValue(self,wavenumber,smoothingMass,time)
-    !!{
-    Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
-    spectrum.
+    !!{RST
+    Top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -149,9 +150,8 @@ contains
   end function topHatValue
 
   double precision function topHatWavenumberMaximum(self,smoothingMass)
-    !!{
-    Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    variance of the power spectrum.
+    !!{RST
+    Maximum wavenumber for a top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHat), intent(inout) :: self

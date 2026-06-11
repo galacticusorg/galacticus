@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a multi node property extractor class.
   !!}
 
@@ -30,15 +30,16 @@
   end type multiExtractorList
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMulti">
-   <description>Combines multiple individual property extractors into a single extractor, iterating through a list of \refClass{nodePropertyExtractorClass} objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMulti" docformat="rst">
+   <description>
+   Combines multiple individual property extractors into a single extractor, iterating through a list of ``nodePropertyExtractorClass`` objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.
+   </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
-     !!{
-     A multi property extractor output extractor class, which concatenates properties from any number of other property
-     extractors.
+     !!{RST
+     A multi property extractor output extractor class, which concatenates properties from any number of other property extractors.
      !!}
      private
      type(multiExtractorList), pointer :: extractors => null()
@@ -72,17 +73,19 @@
   end type nodePropertyExtractorMulti
 
   interface nodePropertyExtractorMulti
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMulti} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMulti`` property extractor class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface nodePropertyExtractorMulti
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>elementType</name>
-   <description>Enumeration of extracted property element types.</description>
+   <description>
+   Enumeration of extracted property element types.
+   </description>
    <visibility>public</visibility>
    <entry label="integer"/>
    <entry label="double" />
@@ -92,8 +95,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMulti} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMulti`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,8 +126,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(extractors) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMulti`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti)                         :: self
@@ -143,8 +146,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorMulti} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorMulti`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self
@@ -165,7 +168,7 @@ contains
   end subroutine multiDestructor
 
   integer function multiElementCount(self,elementType,time)
-    !!{
+    !!{RST
     Return the number of elements in the multiple property extractors.
     !!}
     use :: Error, only : Error_Report
@@ -206,7 +209,7 @@ contains
   end function multiElementCount
 
   function multiExtractDouble(self,node,time,instance,ranks)
-    !!{
+    !!{RST
     Implement a multi output extractor.
     !!}
     use :: Error     , only : Error_Report
@@ -309,7 +312,7 @@ contains
   end function multiExtractDouble
 
   function multiExtractInteger(self,node,time,instance,ranks)
-    !!{
+    !!{RST
     Implement a multi output extractor.
     !!}
     use :: Error     , only : Error_Report
@@ -395,7 +398,7 @@ contains
   end function multiExtractInteger
 
   subroutine multiAddInstances(self,node,instance)
-    !!{
+    !!{RST
     Implement adding of instances to a multi output extractor.
     !!}
     implicit none
@@ -413,7 +416,7 @@ contains
   end subroutine multiAddInstances
 
   subroutine multiNames(self,elementType,time,names)
-    !!{
+    !!{RST
     Return the names of the multiple properties.
     !!}
     use :: Error, only : Error_Report
@@ -513,7 +516,7 @@ contains
   end subroutine multiNames
 
   subroutine multiColumnDescriptions(self,elementType,i,time,descriptions,values,valuesDescription,valuesUnits)
-    !!{
+    !!{RST
     Return column descriptions of the multiple properties.
     !!}
     use :: Error       , only : Error_Report
@@ -615,7 +618,7 @@ contains
   end subroutine multiColumnDescriptions
 
   subroutine multiDescriptions(self,elementType,time,descriptions)
-    !!{
+    !!{RST
     Return the descriptions of the multiple properties.
     !!}
     use :: Error, only : Error_Report
@@ -715,7 +718,7 @@ contains
   end subroutine multiDescriptions
 
   function multiUnitsInSI(self,elementType,time)
-    !!{
+    !!{RST
     Return the units of the multiple properties in the SI system.
     !!}
     use :: Error, only : Error_Report
@@ -787,9 +790,8 @@ contains
   end function multiUnitsInSI
 
   function multiUnits(self,elementType,time)
-    !!{
-    Return the units of the multiple properties as \mono{unitType} objects, delegating to each sub-extractor's
-    \mono{nodePropertyExtractorClass}{units} method.
+    !!{RST
+    Return the units of the multiple properties as ``unitType`` objects, delegating to each sub-extractor's ``nodePropertyExtractorClass``\ units method.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -860,7 +862,7 @@ contains
   end function multiUnits
 
   function multiRanks(self,elementType,time)
-    !!{
+    !!{RST
     Return the ranks of the multiple properties. Negative values indicate variable length ranks.
     !!}
     use :: Error, only : Error_Report
@@ -931,7 +933,7 @@ contains
   end function multiRanks
 
   subroutine multiMetaData(self,node,elementType,time,iProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Populate multiple property meta-data.
     !!}
     use :: Error, only : Error_Report

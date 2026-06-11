@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements calculations of zero dust attenuation of stellar spectra.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
-   <description>Returns zero dust attenuation (an attenuation factor of unity) at all wavelengths, used to disable dust effects while still satisfying the interface requirements of the stellar spectra dust attenuation class.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero" docformat="rst">
+   <description>
+   Returns zero dust attenuation (an attenuation factor of unity) at all wavelengths, used to disable dust effects while still satisfying the interface requirements of the stellar spectra dust attenuation class.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationZero
-     !!{
+     !!{RST
      A class implementing zero dust attenuation of stellar spectra.
      !!}
      private
@@ -36,8 +38,8 @@
   end type stellarSpectraDustAttenuationZero
 
   interface stellarSpectraDustAttenuationZero
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationZero} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the ``stellarSpectraDustAttenuationZero`` stellar spectra dust attenuation class.
      !!}
      module procedure zeroConstructorParameters
   end interface stellarSpectraDustAttenuationZero
@@ -45,8 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{zero} stellar spectra dust attenuation class.
+    !!{RST
+    Default constructor for the ``zero`` stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroAttenuation(self,wavelength,age,vBandAttenuation)
-    !!{
+    !!{RST
     Return a zero attenuation.
     !!}
     implicit none

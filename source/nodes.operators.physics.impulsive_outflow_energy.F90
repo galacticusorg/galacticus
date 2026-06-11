@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that accumulates an estimate of the energy injected into the dark matter halo due to impulsive outflows.
   !!}
 
@@ -29,32 +29,35 @@
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
-  <nodeOperator name="nodeOperatorImpulsiveOutflowEnergy">
+  <nodeOperator name="nodeOperatorImpulsiveOutflowEnergy" docformat="rst">
     <description>
-      A node operator class that accumulates an estimate of the energy injected into the dark matter halo due to impulsive
-      outflows. The model assumed is that the energy injection is given by
-      \begin{equation}
-       \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-      \end{equation}
-      where $\alpha$ is a normalization factor, $t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}$ is the timescale for the
-      outflow, and $t_\mathrm{dyn} = r_{1/2}/v_{1/2}$ is the dynamical time at the half-mass radius. The function $f(x)$ accounts
-      for the fact that only impulsive changes in the potential should be accounted for, and is defined as
-      \begin{equation}
-       f(x) = ( 1 + \beta x )^\gamma,
-      \end{equation}
-      where $\beta=$\mono{[impulsiveCorrectionScale]} and $\gamma=$\mono{[impulsiveCorrectionExponent]}.
+    A node operator class that accumulates an estimate of the energy injected into the dark matter halo due to impulsive outflows. The model assumed is that the energy injection is given by
 
-      In practice, this operator accumulates just
-      \begin{equation}
-      \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-      \end{equation}
-      allowing the radial dependence to be inserted later.
+    .. math::
+
+       \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+
+    where :math:`\alpha` is a normalization factor, :math:`t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}` is the timescale for the outflow, and :math:`t_\mathrm{dyn} = r_{1/2}/v_{1/2}` is the dynamical time at the half-mass radius. The function :math:`f(x)` accounts for the fact that only impulsive changes in the potential should be accounted for, and is defined as
+
+    .. math::
+
+       f(x) = ( 1 + \beta x )^\gamma,
+
+    where :math:`\beta=`\ ``[impulsiveCorrectionScale]`` and :math:`\gamma=`\ ``[impulsiveCorrectionExponent]``.
+
+    In practice, this operator accumulates just
+
+    .. math::
+
+       \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+
+    allowing the radial dependence to be inserted later.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorImpulsiveOutflowEnergy
-     !!{
-     A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+     !!{RST
+     A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
      !!}
      private
      class           (darkMatterProfileDMOClass       ), pointer :: darkMatterProfileDMO_         => null()
@@ -74,8 +77,8 @@
   end type nodeOperatorImpulsiveOutflowEnergy
   
   interface nodeOperatorImpulsiveOutflowEnergy
-     !!{
-     Constructors for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
      !!}
      module procedure impulsiveOutflowEnergyConstructorParameters
      module procedure impulsiveOutflowEnergyConstructorInternal
@@ -84,8 +87,8 @@
 contains
 
   function impulsiveOutflowEnergyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,16 +106,20 @@ contains
     parametersDisks    =parameters%subParameters('disks'    ,requireValue=.false.)
     parametersSpheroids=parameters%subParameters('spheroids',requireValue=.false.)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>impulsiveCorrectionScale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The parameter $\beta$ appearing in the impulsive correction function.</description>
+      <description>
+      The parameter :math:`\beta` appearing in the impulsive correction function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>impulsiveCorrectionExponent</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The parameter $\gamma$ appearing in the impulsive correction function.</description>
+      <description>
+      The parameter :math:`\gamma` appearing in the impulsive correction function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"             source="parameters"         />
@@ -138,8 +145,8 @@ contains
   end function impulsiveOutflowEnergyConstructorParameters
 
   function impulsiveOutflowEnergyConstructorInternal(impulsiveCorrectionScale,impulsiveCorrectionExponent,darkMatterProfileDMO_,stellarFeedbackOutflowsDisks_,stellarFeedbackOutflowsSpheroids_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,mergerMassMovements_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorImpulsiveOutflowEnergy)                        :: self
@@ -162,8 +169,8 @@ contains
   end function impulsiveOutflowEnergyConstructorInternal
 
   subroutine impulsiveOutflowEnergyDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
     !!}
     implicit none
     type(nodeOperatorImpulsiveOutflowEnergy), intent(inout) :: self
@@ -181,7 +188,7 @@ contains
   end subroutine impulsiveOutflowEnergyDestructor
 
   subroutine impulsiveOutflowEnergyDifferentialEvolutionScales(self,node)
-    !!{
+    !!{RST
     Set absolute ODE solver scale for the impulsive mass outflowed.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -200,7 +207,7 @@ contains
   end subroutine impulsiveOutflowEnergyDifferentialEvolutionScales
   
   subroutine impulsiveOutflowEnergyDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Accumulates an estimate of the impulsive mass outflowed.
     !!}
     use :: Abundances_Structure            , only : abundances
@@ -325,7 +332,7 @@ contains
   contains
     
     double precision function impulsiveCorrection(timescaleOutflow,timescaleDynamical)
-      !!{
+      !!{RST
       Compute the correction factor for impulsive outflows.
       !!}
       implicit none
@@ -348,7 +355,7 @@ contains
   end subroutine impulsiveOutflowEnergyDifferentialEvolution
 
   subroutine impulsiveOutflowEnergyNodePromote(self,node)
-    !!{
+    !!{RST
     Sum any impulsive energy inputs in the parent and child halos prior to promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
@@ -373,7 +380,7 @@ contains
   end subroutine impulsiveOutflowEnergyNodePromote
 
   subroutine impulsiveOutflowEnergyGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Combine integrals of star formation rate when galaxies merge.
     !!}
     use :: Error                           , only : Error_Report

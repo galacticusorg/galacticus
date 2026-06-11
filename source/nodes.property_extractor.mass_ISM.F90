@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM mass output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassISM">
-   <description>Extracts the total interstellar medium (ISM) gas mass of a galaxy by summing the gaseous mass distributions of the disk and spheroid components. Provides the combined cold gas reservoir for comparison with observational ISM mass estimates from CO, dust, or HI surveys.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassISM" docformat="rst">
+   <description>
+   Extracts the total interstellar medium (ISM) gas mass of a galaxy by summing the gaseous mass distributions of the disk and spheroid components. Provides the combined cold gas reservoir for comparison with observational ISM mass estimates from CO, dust, or HI surveys.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassISM
-     !!{
+     !!{RST
      A stellar mass output analysis class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an ISM mass output analysis property extractor class.
   end type nodePropertyExtractorMassISM
 
   interface nodePropertyExtractorMassISM
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassISM} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassISM`` property extractor class.
      !!}
      module procedure massISMConstructorParameters
   end interface nodePropertyExtractorMassISM
@@ -50,8 +52,8 @@ Implements an ISM mass output analysis property extractor class.
 contains
 
   function massISMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassISM} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassISM`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +69,7 @@ contains
   end function massISMConstructorParameters
 
   double precision function massISMExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massISM output analysis.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk    , componentTypeSpheroid, massTypeGaseous
@@ -92,7 +94,7 @@ contains
 
 
   function massISMQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
@@ -106,7 +108,7 @@ contains
   end function massISMQuantity
 
   function massISMName(self)
-    !!{
+    !!{RST
     Return the name of the massISM property.
     !!}
     implicit none
@@ -119,7 +121,7 @@ contains
   end function massISMName
 
   function massISMDescription(self)
-    !!{
+    !!{RST
     Return a description of the massISM property.
     !!}
     implicit none
@@ -132,7 +134,7 @@ contains
   end function massISMDescription
 
   double precision function massISMUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the massISM property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -145,7 +147,7 @@ contains
   end function massISMUnitsInSI
 
   function massISMUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massISM property.
     !!}
     use :: Units_MetaData, only : unitType

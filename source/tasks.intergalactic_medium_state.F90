@@ -23,12 +23,14 @@
   use :: Output_Times                         , only : outputTimes                     , outputTimesClass
 
   !![
-  <task name="taskIntergalacticMediumState">
-   <description>A task which computes and outputs the thermal and ionization state of the intergalactic medium (IGM) at each output time, including the IGM temperature, neutral fraction, and Jeans filtering mass that regulates gas accretion onto low-mass halos.</description>
+  <task name="taskIntergalacticMediumState" docformat="rst">
+   <description>
+   A task which computes and outputs the thermal and ionization state of the intergalactic medium (IGM) at each output time, including the IGM temperature, neutral fraction, and Jeans filtering mass that regulates gas accretion onto low-mass halos.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskIntergalacticMediumState
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the thermal and ionization state of the intergalactic medium at each output time.
      !!}
      private
@@ -43,8 +45,8 @@
   end type taskIntergalacticMediumState
 
   interface taskIntergalacticMediumState
-     !!{
-     Constructors for the \refClass{taskIntergalacticMediumState} task.
+     !!{RST
+     Constructors for the ``taskIntergalacticMediumState`` task.
      !!}
      module procedure intergalacticMediumStateConstructorParameters
      module procedure intergalacticMediumStateConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function intergalacticMediumStateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskIntergalacticMediumState} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskIntergalacticMediumState`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,10 +69,12 @@ contains
     type (varying_string                       )                :: outputGroup
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('.')</defaultValue>
-      <description>The HDF5 output group within which to write intergalactic medium state data.</description>
+      <description>
+      The HDF5 output group within which to write intergalactic medium state data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
@@ -102,8 +106,8 @@ contains
        &                                               intergalacticMediumState_        , &
        &                                               intergalacticMediumFilteringMass_  &
        &                                              ) result(self)
-    !!{
-    Constructor for the \refClass{taskIntergalacticMediumState} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskIntergalacticMediumState`` task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskIntergalacticMediumState         )                        :: self
@@ -120,8 +124,8 @@ contains
   end function intergalacticMediumStateConstructorInternal
 
   subroutine intergalacticMediumStateDestructor(self)
-    !!{
-    Destructor for the \refClass{taskIntergalacticMediumState} task class.
+    !!{RST
+    Destructor for the ``taskIntergalacticMediumState`` task class.
     !!}
     implicit none
     type(taskIntergalacticMediumState), intent(inout) :: self
@@ -136,8 +140,8 @@ contains
   end subroutine intergalacticMediumStateDestructor
 
   subroutine intergalacticMediumStatePerform(self,status)
-    !!{
-    Output \gls{igm} state to the \glc\ output file.
+    !!{RST
+    Output :term:`IGM` state to the Galacticus output file.
     !!}
     use            :: Display         , only : displayIndent     , displayUnindent
     use            :: Error           , only : errorStatusSuccess

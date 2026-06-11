@@ -17,24 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling state initializer class which initializes all chains to values read from a parameter file.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile" docformat="rst">
     <description>
-      This class initializes all chains to values read from a parameter file.
+    This class initializes all chains to values read from a parameter file.
     </description>
     <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeParameterFile
-     !!{
-     Implementation of a posterior sampling state initialization class that initializes state to values read from a parameter
-     file.
+     !!{RST
+     Implementation of a posterior sampling state initialization class that initializes state to values read from a parameter file.
      !!}
      private
      type(varying_string) :: fileName
@@ -43,8 +42,8 @@
   end type posteriorSampleStateInitializeParameterFile
 
   interface posteriorSampleStateInitializeParameterFile
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
      !!}
      module procedure parameterFileConstructorParameters
      module procedure parameterFileConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function parameterFileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,9 +62,11 @@ contains
     type(varying_string                             )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the parameter file from which to read initial state.</description>
+      <description>
+      The name of the parameter file from which to read initial state.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +78,8 @@ contains
   end function parameterFileConstructorParameters
 
   function parameterFileConstructorInternal(fileName) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeParameterFile} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeParameterFile)                :: self
@@ -91,7 +92,7 @@ contains
   end function parameterFileConstructorInternal
 
   subroutine parameterFileInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by reading parameter values from a parameter file.
     !!}
     use :: Display                     , only : displayMessage

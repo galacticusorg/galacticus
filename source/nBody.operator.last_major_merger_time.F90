@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements an N-body data operator which computes progenitor halo order statistics.
 !!}
 
@@ -25,12 +25,14 @@ Contains a module which implements an N-body data operator which computes progen
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorTimeLastMajorMerger">
-   <description>An N-body data operator which computes progenitor halo order statistics.</description>
+  <nbodyOperator name="nbodyOperatorTimeLastMajorMerger" docformat="rst">
+   <description>
+   An N-body data operator which computes progenitor halo order statistics.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeLastMajorMerger
-     !!{
+     !!{RST
      An N-body data operator which computes progenitor halo order statistics.
      !!}
      private
@@ -49,8 +51,8 @@ Contains a module which implements an N-body data operator which computes progen
   end type nbodyOperatorTimeLastMajorMerger
 
   interface nbodyOperatorTimeLastMajorMerger
-     !!{
-     Constructors for the ``timeLastMajorMerger'' N-body operator class.
+     !!{RST
+     Constructors for the "timeLastMajorMerger" N-body operator class.
      !!}
      module procedure timeLastMajorMergerConstructorParameters
      module procedure timeLastMajorMergerConstructorInternal
@@ -59,8 +61,8 @@ Contains a module which implements an N-body data operator which computes progen
 contains
 
   function timeLastMajorMergerConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the ``timeLastMajorMerger'' N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "timeLastMajorMerger" N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,60 +78,82 @@ contains
          &                                                               description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>The minimum parent mass to consider.</description>
+      <description>
+      The minimum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>The maximum parent mass to consider.</description>
+      <description>
+      The maximum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of parent mass.</description>
+      <description>
+      The number of bins per decade of parent mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMergerMinimum</name>
       <source>parameters</source>
-      <description>The minimum merger redshift to consider.</description>
+      <description>
+      The minimum merger redshift to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMergerMaximum</name>
       <source>parameters</source>
-      <description>The maximum merger redshift to consider.</description>
+      <description>
+      The maximum merger redshift to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMergerCountPerUnit</name>
       <source>parameters</source>
-      <description>The number of bins per unit of merger redshift.</description>
+      <description>
+      The number of bins per unit of merger redshift.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotParents</name>
       <source>parameters</source>
-      <description>The snapshot at which to select parent halos.</description>
+      <description>
+      The snapshot at which to select parent halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioMajor</name>
       <source>parameters</source>
-      <description>The mass ratio used to define a major merger.</description>
+      <description>
+      The mass ratio used to define a major merger.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>
+      A description of this mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -142,8 +166,8 @@ contains
   end function timeLastMajorMergerConstructorParameters
 
   function timeLastMajorMergerConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,redshiftMergerMinimum,redshiftMergerMaximum,redshiftMergerCountPerUnit,snapshotParents,ratioMajor,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the ``timeLastMajorMerger'' N-body operator class.
+    !!{RST
+    Internal constructor for the "timeLastMajorMerger" N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorTimeLastMajorMerger)                        :: self
@@ -163,8 +187,8 @@ contains
   end function timeLastMajorMergerConstructorInternal
   
   subroutine timeLastMajorMergerDestructor(self)
-    !!{
-    Destructor for the ``timeLastMajorMerger'' N-body operator class.
+    !!{RST
+    Destructor for the "timeLastMajorMerger" N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeLastMajorMerger), intent(inout) :: self
@@ -176,7 +200,7 @@ contains
   end subroutine timeLastMajorMergerDestructor
 
   subroutine timeLastMajorMergerOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Arrays_Search     , only : searchArray            , searchIndexed

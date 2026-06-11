@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes">
+  <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes" docformat="rst">
    <description>
-   A galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes. Galaxies with absolute magnitude in each
-   band, $i$, less than or equal to a fixed threshold, $M_{0,i}=$\mono{[absoluteMagnitudeThreshold]}.
+   A galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes. Galaxies with absolute magnitude in each band, :math:`i`, less than or equal to a fixed threshold, :math:`M_{0,i}=`\ ``[absoluteMagnitudeThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStellarAbsoluteMagnitudes
-     !!{
+     !!{RST
      A galactic low-pass (i.e. bright pass) filter class for stellar absolute magnitudes.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute ma
   end type galacticFilterStellarAbsoluteMagnitudes
 
   interface galacticFilterStellarAbsoluteMagnitudes
-     !!{
-     Constructors for the \refClass{galacticFilterStellarAbsoluteMagnitudes} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class.
      !!}
      module procedure stellarAbsoluteMagnitudesConstructorParameters
      module procedure stellarAbsoluteMagnitudesConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute ma
 contains
 
   function stellarAbsoluteMagnitudesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStellarAbsoluteMagnitudes} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
@@ -69,10 +68,12 @@ contains
          &                   )
     allocate(absoluteMagnitudeThreshold(unitStellarLuminosities%luminosityCount(unmapped=.true.)))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>absoluteMagnitudeThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` appearing in the stellar absolute magnitude threshold for the stellar absolute magnitude galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
@@ -83,8 +84,8 @@ contains
   end function stellarAbsoluteMagnitudesConstructorParameters
 
   function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStellarAbsoluteMagnitudes} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
@@ -106,7 +107,7 @@ contains
   end function stellarAbsoluteMagnitudesConstructorInternal
 
   logical function stellarAbsoluteMagnitudesPasses(self,node)
-    !!{
+    !!{RST
     Implement a stellar absolute magnitude low-pass galactic filter.
     !!}
     use :: Galactic_Structure_Options    , only : massTypeStellar        , weightByLuminosity

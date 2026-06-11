@@ -36,7 +36,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
   !!}
 
@@ -47,91 +47,79 @@
   use :: Resource_Manager        , only : resourceManager
 
   !![
-  <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
+  <mergerTreeConstructor name="mergerTreeConstructorFullySpecified" docformat="rst">
    <description>
-    A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
-    a merger tree, and set properties of components in each node, using a description read from an XML document. The document
-    is specified via the \mono{[fileName]} input parameter.
-    
-    The tree specification document looks as follows:
-    \begin{verbatim}
-    &lt;!-- Simple initial conditions test case --&gt;
-    &lt;initialConditions&gt;
-    
-      &lt;node&gt;
-        &lt;index&gt;2&lt;/index&gt;
-        &lt;parent&gt;1&lt;/parent&gt;
-        &lt;firstChild&gt;-1&lt;/firstChild&gt;
-        &lt;sibling&gt;-1&lt;/sibling&gt;
-        &lt;basic&gt;
-          &lt;time&gt;1.0&lt;/time&gt;
-          &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
-          &lt;mass&gt;1.0e12&lt;/mass&gt;
-          &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
-        &lt;/basic&gt;
-        &lt;spin&gt;
-          &lt;spin&gt;0.1&lt;/spin&gt;
-        &lt;/spin&gt;
-        &lt;disk&gt;
-          &lt;massGas&gt;1.0e10&lt;/massGas&gt;
-          &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
-          &lt;abundancesGas&gt;
-    	&lt;metals&gt;1.0e9&lt;/metals&gt;
-    	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
-          &lt;/abundancesGas&gt;
-        &lt;/disk&gt;
-      &lt;/node&gt;
-    
-      &lt;node&gt;
-        &lt;index&gt;1&lt;/index&gt;
-        &lt;parent&gt;-1&lt;/parent&gt;
-        &lt;firstChild&gt;2&lt;/firstChild&gt;
-        &lt;sibling&gt;-1&lt;/sibling&gt;
-        &lt;basic&gt;
-          &lt;time&gt;13.8&lt;/time&gt;
-          &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
-          &lt;mass&gt;1.1e12&lt;/mass&gt;
-          &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
-        &lt;/basic&gt;
-        &lt;position&gt;
-          &lt;position&gt;1.23&lt;/position&gt;
-          &lt;position&gt;6.31&lt;/position&gt;
-          &lt;position&gt;3.59&lt;/position&gt;
-        &lt;/position&gt;
-      &lt;/node&gt;
-    
-    &lt;/initialConditions&gt;
-    \end{verbatim}
-    The document consists of a set of \mono{node} elements, each of which defines a single node in the merger
-    tree. Each \mono{node} element must specify the \mono{index} of the node, along with the
-    index of the node's \mono{parent}, \mono{firstChild}, and \mono{sibling}.
-    
-    Each \mono{node} element may contain elements which specify the properties of a component in the node. For
-    example, a \mono{basic} element will specify properties of the ``basic'' component. If multiple elements
-    for a given component type are present, then multiple instances of that component will be created in the node.
-    
-    Within a component definition element scalar properties are set using an element with the same name as that property
-    (e.g. \mono{mass} in the \mono{basic} components in the above example). Rank-1 properties
-    are set using a list of elements with the same name as the property (e.g. \mono{position} in the
-    \mono{position} component in the above example).
-    
-    For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
-    property of the composite. Currently only the \mono{abundances} object supports specification in this way,
-    as detailed below:
-    \begin{description}
-     \item [\mono{abundances}] (See \mono{abundancesGas} in the above example.) The total
-     metal content is specified via a \mono{metals} element. If other elements are being tracked, their
-     content is specified via an element with the short-name of the element (e.g. \mono{Fe} for iron).
-    \end{description}
+   A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct a merger tree, and set properties of components in each node, using a description read from an XML document. The document is specified via the ``[fileName]`` input parameter.
 
-    The parameter \mono{[countRealizations]} (defaulting to 1) controls how many merger tree realizations are
-    simulated for each input tree.
+   The tree specification document looks as follows:
+
+   .. code-block:: none
+
+      &lt;!-- Simple initial conditions test case --&gt;
+      &lt;initialConditions&gt;
+
+        &lt;node&gt;
+          &lt;index&gt;2&lt;/index&gt;
+          &lt;parent&gt;1&lt;/parent&gt;
+          &lt;firstChild&gt;-1&lt;/firstChild&gt;
+          &lt;sibling&gt;-1&lt;/sibling&gt;
+          &lt;basic&gt;
+            &lt;time&gt;1.0&lt;/time&gt;
+            &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
+            &lt;mass&gt;1.0e12&lt;/mass&gt;
+            &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
+          &lt;/basic&gt;
+          &lt;spin&gt;
+            &lt;spin&gt;0.1&lt;/spin&gt;
+          &lt;/spin&gt;
+          &lt;disk&gt;
+            &lt;massGas&gt;1.0e10&lt;/massGas&gt;
+            &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
+            &lt;abundancesGas&gt;
+      	&lt;metals&gt;1.0e9&lt;/metals&gt;
+      	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
+            &lt;/abundancesGas&gt;
+          &lt;/disk&gt;
+        &lt;/node&gt;
+
+        &lt;node&gt;
+          &lt;index&gt;1&lt;/index&gt;
+          &lt;parent&gt;-1&lt;/parent&gt;
+          &lt;firstChild&gt;2&lt;/firstChild&gt;
+          &lt;sibling&gt;-1&lt;/sibling&gt;
+          &lt;basic&gt;
+            &lt;time&gt;13.8&lt;/time&gt;
+            &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
+            &lt;mass&gt;1.1e12&lt;/mass&gt;
+            &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
+          &lt;/basic&gt;
+          &lt;position&gt;
+            &lt;position&gt;1.23&lt;/position&gt;
+            &lt;position&gt;6.31&lt;/position&gt;
+            &lt;position&gt;3.59&lt;/position&gt;
+          &lt;/position&gt;
+        &lt;/node&gt;
+
+      &lt;/initialConditions&gt;
+
+   The document consists of a set of ``node`` elements, each of which defines a single node in the merger tree. Each ``node`` element must specify the ``index`` of the node, along with the index of the node's ``parent``, ``firstChild``, and ``sibling``.
+
+   Each ``node`` element may contain elements which specify the properties of a component in the node. For example, a ``basic`` element will specify properties of the "basic" component. If multiple elements for a given component type are present, then multiple instances of that component will be created in the node.
+
+   Within a component definition element scalar properties are set using an element with the same name as that property (e.g. ``mass`` in the ``basic`` components in the above example). Rank-1 properties are set using a list of elements with the same name as the property (e.g. ``position`` in the ``position`` component in the above example).
+
+   For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each property of the composite. Currently only the ``abundances`` object supports specification in this way, as detailed below:
+
+   ``abundances``
+      (See ``abundancesGas`` in the above example.) The total metal content is specified via a ``metals`` element. If other elements are being tracked, their content is specified via an element with the short-name of the element (e.g. ``Fe`` for iron).
+
+   The parameter ``[countRealizations]`` (defaulting to 1) controls how many merger tree realizations are simulated for each input tree.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
-     !!{
+     !!{RST
      A class implementing merger tree construction from a full specification of the tree in XML.
      !!}
      private
@@ -148,7 +136,7 @@
   end type mergerTreeConstructorFullySpecified
 
   type :: documentContainer
-     !!{
+     !!{RST
      A container for XML documents.
      !!}
      private
@@ -158,8 +146,8 @@
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
-     !!{
-     Constructors for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
+     !!{RST
+     Constructors for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
      !!}
      module procedure fullySpecifiedConstructorParameters
      module procedure fullySpecifiedConstructorInternal
@@ -168,8 +156,8 @@
 contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,14 +169,18 @@ contains
     integer(c_size_t                           )                :: countRealizations
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file containing the merger tree specification.</description>
+      <description>
+      The name of the file containing the merger tree specification.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countRealizations</name>
-      <description>The number of realizations of each tree to generate.</description>
+      <description>
+      The number of realizations of each tree to generate.
+      </description>
       <source>parameters</source>
       <defaultValue>1_c_size_t</defaultValue>
     </inputParameter>
@@ -205,8 +197,8 @@ contains
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
+    !!{RST
+    Internal constructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
     !!}
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse
@@ -240,8 +232,10 @@ contains
        call Error_Report(message//{introspection:location})
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_        => self%document
     self%documentManager =  resourceManager(dummyPointer_)
@@ -259,8 +253,8 @@ contains
   end function fullySpecifiedConstructorInternal
 
   subroutine fullySpecifiedDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeConstructorFullySpecified} merger tree constructor class.
+    !!{RST
+    Destructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
@@ -273,7 +267,7 @@ contains
   end subroutine fullySpecifiedDestructor
 
   function fullySpecifiedConstruct(self,treeNumber,finished) result(tree)
-    !!{
+    !!{RST
     Construct a fully-specified merger tree.
     !!}
     use            :: Display         , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
@@ -388,7 +382,7 @@ contains
   contains
 
     function indexNode(nodeDefinition,indexType,required)
-      !!{
+      !!{RST
       Extract and return an index from a node definition as used when constructing fully-specified merger trees.
       !!}
       use :: FoX_Dom     , only : node                        , extractDataContent
@@ -428,8 +422,8 @@ contains
     end function indexNode
 
     function nodeLookup(nodeArray,indexValue) result (node)
-      !!{
-      Find the position of a node in the \mono{nodeArray} array given its \mono{indexValue}.
+      !!{RST
+      Find the position of a node in the ``nodeArray`` array given its ``indexValue``.
       !!}
       use :: Error           , only : Error_Report
       use :: Galacticus_Nodes, only : treeNode    , treeNodeList
@@ -455,8 +449,8 @@ contains
   end function fullySpecifiedConstruct
 
   subroutine documentContainerDestructor(self)
-    !!{
-    Destroy a \mono{documentContainer} object.
+    !!{RST
+    Destroy a ``documentContainer`` object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none

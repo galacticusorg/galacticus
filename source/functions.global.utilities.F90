@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides utilities needed by global functions.
 !!}
 
 module Functions_Global_Utilities
-  !!{
+  !!{RST
   Provides utilities needed by global functions.
   !!}
   private
@@ -31,7 +31,7 @@ module Functions_Global_Utilities
 contains
 
   subroutine Functions_Global_Set()
-    !!{
+    !!{RST
     Set pointers to all global functions.
     !!}
     use :: Functions_Global

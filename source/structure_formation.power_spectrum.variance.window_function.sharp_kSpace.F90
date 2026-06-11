@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a sharp $k$-space power spectrum window function class.
+!!{RST
+Implements a sharp :math:`k`-space power spectrum window function class.
 !!}
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSharpKSpace" docformat="rst">
    <description>
-    A sharp $k$-space window function for filtering of power spectra. The window function is given by:
-    \begin{equation}
-     W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
-    \end{equation}
-    where if \mono{[normalization]}$=$\mono{natural} then $k_\mathrm{s} = (6 \Pi^2 \bar{\rho}
-    / M)^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$. Otherwise, \mono{[normalization]} must be set to a numerical value, $\alpha$, in which case $k_\mathrm{s} = \alpha / R_\mathrm{th}$ with
-    $R_\mathrm{th}=3M/4\pi\bar{\rho}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
+   A sharp :math:`k`-space window function for filtering of power spectra. The window function is given by:
+
+   .. math::
+
+      W(k) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } k &lt; k_\mathrm{s} \\ 0 &amp; \hbox{if } k &gt; k_\mathrm{s}, \end{array} \right.
+
+   where if ``[normalization]``\ :math:`=`\ ``natural`` then :math:`k_\mathrm{s} = (6 \Pi^2 \bar{\rho} / M)^{1/3}` for a smoothing scale :math:`M` and mean matter density :math:`\bar{\rho}`. Otherwise, ``[normalization]`` must be set to a numerical value, :math:`\alpha`, in which case :math:`k_\mathrm{s} = \alpha / R_\mathrm{th}` with :math:`R_\mathrm{th}=3M/4\pi\bar{\rho}` for a smoothing scale :math:`M` and mean matter density :math:`\bar{\rho}`.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSharpKSpace
-     !!{
-     A sharp $k$-space power spectrum window function class.
+     !!{RST
+     A sharp :math:`k`-space power spectrum window function class.
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
@@ -51,8 +51,8 @@ Implements a sharp $k$-space power spectrum window function class.
   end type powerSpectrumWindowFunctionSharpKSpace
 
   interface powerSpectrumWindowFunctionSharpKSpace
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionSharpKSpace`` power spectrum window function class.
      !!}
      module procedure sharpKSpaceConstructorParameters
      module procedure sharpKSpaceConstructorInternal
@@ -61,8 +61,8 @@ Implements a sharp $k$-space power spectrum window function class.
 contains
 
   function sharpKSpaceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionSharpKSpace`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,16 +75,13 @@ contains
 
     ! Check parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <variable>normalization</variable>
       <defaultValue>var_str('natural')</defaultValue>
       <description>
-        The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
-        the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
-        requested smoothing mass. Alternatively, a value of \mono{natural} will be supplied in which case the normalization
-        is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
+      The parameter :math:`a` in the relation :math:`k_\mathrm{s} = a/r_\mathrm{s}`, where :math:`k_\mathrm{s}` is the cut-off wavenumber for the sharp :math:`k`-space window function and :math:`r_\mathrm{s}` is the radius of a sphere (in real-space) enclosing the requested smoothing mass. Alternatively, a value of ``natural`` will be supplied in which case the normalization is chosen such that, in real-space, :math:`W(r=0)=1`. This results in a contained mass of :math:`M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}`.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -104,8 +101,8 @@ contains
   end function sharpKSpaceConstructorParameters
 
   function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionSharpKSpace`` power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -146,8 +143,8 @@ contains
   end function sharpKSpaceConstructorInternal
 
   subroutine sharpKSpaceDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionSharpKSpace} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionSharpKSpace`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
@@ -159,8 +156,8 @@ contains
   end subroutine sharpKSpaceDestructor
 
   double precision function sharpKSpaceValue(self,wavenumber,smoothingMass,time)
-    !!{
-    Sharp $k$-space window function used in computing the variance of the power spectrum.
+    !!{RST
+    Sharp :math:`k`-space window function used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
@@ -181,8 +178,8 @@ contains
   end function sharpKSpaceValue
 
   double precision function sharpKSpaceWavenumberMaximum(self,smoothingMass)
-    !!{
-    Sharp $k$-space window function used in computing the variance of the power spectrum.
+    !!{RST
+    Sharp :math:`k`-space window function used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
@@ -193,8 +190,8 @@ contains
   end function sharpKSpaceWavenumberMaximum
 
   logical function sharpKSpaceAmplitudeIsMassIndependent(self)
-    !!{
-    Indicate the the sharp $k$-space power spectrum window function has constant amplitude below the maximum wavenumber.
+    !!{RST
+    Indicate the the sharp :math:`k`-space power spectrum window function has constant amplitude below the maximum wavenumber.
     !!}
     implicit none
     class(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self

@@ -18,13 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <outputTimes name="outputTimesSimulationSnapshots">
-   <description>An output times class which matches output times to snapshot times of a simulation.</description>
+  <outputTimes name="outputTimesSimulationSnapshots" docformat="rst">
+   <description>
+   An output times class which matches output times to snapshot times of a simulation.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesSimulationSnapshots
-     !!{
+     !!{RST
      Implementation of an output times class which matches output times to snapshot times of a simulation.
      !!}
      private
@@ -32,8 +34,8 @@
   end type outputTimesSimulationSnapshots
 
   interface outputTimesSimulationSnapshots
-     !!{
-     Constructors for the \refClass{outputTimesSimulationSnapshots} output times class.
+     !!{RST
+     Constructors for the ``outputTimesSimulationSnapshots`` output times class.
      !!}
      module procedure simulationSnapshotsConstructorParameters
      module procedure simulationSnapshotsConstructorInternal
@@ -42,8 +44,8 @@
 contains
 
   function simulationSnapshotsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesSimulationSnapshots} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputTimesSimulationSnapshots`` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -53,9 +55,11 @@ contains
     type (varying_string                )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which to read simulation snapshots.</description>
+      <description>
+      The name of the file from which to read simulation snapshots.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -69,8 +73,8 @@ contains
   end function simulationSnapshotsConstructorParameters
 
   function simulationSnapshotsConstructorInternal(fileName,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputTimesSimulationSnapshots} output times class.
+    !!{RST
+    Internal constructor for the ``outputTimesSimulationSnapshots`` output times class.
     !!}
     use :: Error         , only : Error_Report
     use :: FoX_DOM       , only : destroy       , node

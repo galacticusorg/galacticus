@@ -17,31 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing solvers for collapse of spherical perturbations.
 !!}
 
 module Spherical_Collapse_Solvers
-  !!{
+  !!{RST
   Provides a class implementing solvers for collapse of spherical perturbations.
   !!}
   use :: Tables, only : table1D, table2DLinLinLin
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>sphericalCollapseSolver</name>
    <descriptiveName>Spherical Collapse Solvers</descriptiveName>
-   <description>Class providing numerical solvers for the collapse of spherical density perturbations in a given
-    cosmology---computing the critical linear overdensity $\delta_\mathrm{c}$, the virial density
-    contrast $\Delta_\mathrm{vir}$, and the turnaround-to-virial radius ratio as functions of cosmic
-    time by integrating the spherical collapse equations. These tabulated quantities are consumed by
-    \refClass{criticalOverdensityClass} and \refClass{virialDensityContrastClass} implementations,
-    allowing the halo collapse threshold and virial radius definition to vary with redshift and
-    cosmological model.</description>
+   <description>
+   Class providing numerical solvers for the collapse of spherical density perturbations in a given cosmology---computing the critical linear overdensity :math:`\delta_\mathrm{c}`, the virial density contrast :math:`\Delta_\mathrm{vir}`, and the turnaround-to-virial radius ratio as functions of cosmic time by integrating the spherical collapse equations. These tabulated quantities are consumed by ``criticalOverdensityClass`` and ``virialDensityContrastClass`` implementations, allowing the halo collapse threshold and virial radius definition to vary with redshift and cosmological model.
+   </description>
    <default>cllsnlssMttrCsmlgclCnstnt</default>
    <method name="criticalOverdensity" >
-    <description>Returns a tabulation of the critical overdensity for collapse.</description>
+    <description>
+    Returns a tabulation of the critical overdensity for collapse.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                      , intent(in   ) :: time                </argument>
@@ -49,7 +47,9 @@ module Spherical_Collapse_Solvers
     <argument>class           (table1D), allocatable, intent(inout) :: criticalOverdensity_</argument>
    </method>
    <method name="virialDensityContrast" >
-    <description>Returns a tabulation of the virial density contrast.</description>
+    <description>
+    Returns a tabulation of the virial density contrast.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                      , intent(in   ) :: time                  </argument>
@@ -57,7 +57,9 @@ module Spherical_Collapse_Solvers
     <argument>class           (table1D), allocatable, intent(inout) :: virialDensityContrast_</argument>
    </method>
    <method name="radiusTurnaround" >
-    <description>Returns a tabulation of the ratio of turnaround to virial radii.</description>
+    <description>
+    Returns a tabulation of the ratio of turnaround to virial radii.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                      , intent(in   ) :: time               </argument>
@@ -65,7 +67,9 @@ module Spherical_Collapse_Solvers
     <argument>class           (table1D), allocatable, intent(inout) :: radiusTurnaround_  </argument>
    </method>
    <method name="linearNonlinearMap" >
-    <description>Returns a mapping of linear to nonlinear density overdensity.</description>
+    <description>
+    Returns a mapping of linear to nonlinear density overdensity.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                               , intent(in   ) :: time               </argument>

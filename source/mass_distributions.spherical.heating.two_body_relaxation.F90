@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a mass distribution heating class that computes heating due to two-body relaxation.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingTwoBodyRelaxation">
-    <description>A mass distribution heating class that computes heating due to two-body relaxation.</description>
+  <massDistributionHeating name="massDistributionHeatingTwoBodyRelaxation" docformat="rst">
+    <description>
+    A mass distribution heating class that computes heating due to two-body relaxation.
+    </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingTwoBodyRelaxation
-     !!{
+     !!{RST
      Implementation of a mass distribution heating class that computes heating due to two-body relaxation.
      !!}
      private
@@ -40,8 +42,8 @@
   end type massDistributionHeatingTwoBodyRelaxation
 
   interface massDistributionHeatingTwoBodyRelaxation
-     !!{
-     Constructors for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
+     !!{RST
+     Constructors for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -50,9 +52,8 @@
 contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,25 +63,33 @@ contains
            &                                                                     timeRelaxing, efficiency
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>The particle mass to use for two-body relaxation calculations.</description>
+      <description>
+      The particle mass to use for two-body relaxation calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSoftening</name>
       <source>parameters</source>
-      <description>The softening length to use for two-body relaxation calculations.</description>
+      <description>
+      The softening length to use for two-body relaxation calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeRelaxing</name>
       <source>parameters</source>
-      <description>The time for which the system has been relaxing.</description>
+      <description>
+      The time for which the system has been relaxing.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiency</name>
       <source>parameters</source>
-      <description>The fractional efficiency of two-body relaxation heating.</description>
+      <description>
+      The fractional efficiency of two-body relaxation heating.
+      </description>
     </inputParameter>
     !!]
     self=massDistributionHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeRelaxing,efficiency)
@@ -91,8 +100,8 @@ contains
   end function twoBodyRelaxationConstructorParameters
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingTwoBodyRelaxation} mass distribution heating class.
+    !!{RST
+    Constructor for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self
@@ -106,13 +115,8 @@ contains
   end function twoBodyRelaxationConstructorInternal
 
   double precision function twoBodyRelaxationSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
-    Returns the specific energy of heating in the given \mono{node}. The assumption here is that the mean
-    fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
-    within radius $r=$\mono{radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
-    circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
-    the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
-    specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
+    !!{RST
+    Returns the specific energy of heating in the given ``node``. The assumption here is that the mean fractional change in energy for a particle per crossing time is :math:`8 \log \Lambda / N` where :math:`N` is the number of particles within radius :math:`r=`\ ``radius``. The crossing time is approximated by :math:`r/V(r)` where :math:`V(r)` is the circular velocity at :math:`r`. The Coulomb logarithm is given by :math:`\log\Lambda=\hbox{max}(\epsilon,b_{90})` where :math:`\epsilon` is the softening length, :math:`b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)`, and :math:`m_\mathrm{p}` is the particle mass. Finally, the specific energy is assumed to be :math:`\sigma^2(r)/2\approx V^2(r)/4`.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec, gravitationalConstant_internal
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -159,7 +163,7 @@ contains
   end function twoBodyRelaxationSpecificEnergy
 
   double precision function twoBodyRelaxationSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -233,7 +237,7 @@ contains
   end function twoBodyRelaxationSpecificEnergyGradient
 
   logical function twoBodyRelaxationSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

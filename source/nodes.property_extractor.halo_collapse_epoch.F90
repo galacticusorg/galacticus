@@ -17,32 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node property extractor which extracts the redshift of collapse for a halo using the definition of
-  \cite{schneider_structure_2015}, which is based on the conditional first crossing distribution from excursion set theory.
+  !!{RST
+  Implements a node property extractor which extracts the redshift of collapse for a halo using the definition of :cite:t:`schneider_structure_2015`, which is based on the conditional first crossing distribution from excursion set theory.
   !!}
   
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorHaloCollapseEpoch">
+  <nodePropertyExtractor name="nodePropertyExtractorHaloCollapseEpoch" docformat="rst">
    <description>
-     A node property extractor which extracts the redshift of collapse, $z_\mathrm{c}$, for a halo using the definition of
-     \cite{schneider_structure_2015}, which is based on the conditional first crossing distribution from excursion set theory:     
-     \begin{equation}
+   A node property extractor which extracts the redshift of collapse, :math:`z_\mathrm{c}`, for a halo using the definition of :cite:t:`schneider_structure_2015`, which is based on the conditional first crossing distribution from excursion set theory:
+
+   .. math::
+
       \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
       \right)^{1/2}+\delta_\mathrm{c}(z_0),
-    \end{equation}
-    where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's
-    mass assembled at formation time (given by the \mono{[massFractionFormation]} parameter.
+
+   where :math:`\delta_\mathrm{c}(z)` is the critical overdensity for collapse at redshift :math:`z`, and :math:`f` is the fraction of a halo's mass assembled at formation time (given by the ``[massFractionFormation]`` parameter.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHaloCollapseEpoch
-     !!{     
-     A node property extractor which extracts the redshift of collapse for a halo using the definition of
-     \cite{schneider_structure_2015}, which is based on the conditional first crossing distribution from excursion set theory.
+     !!{RST
+     A node property extractor which extracts the redshift of collapse for a halo using the definition of :cite:t:`schneider_structure_2015`, which is based on the conditional first crossing distribution from excursion set theory.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -59,8 +57,8 @@
   end type nodePropertyExtractorHaloCollapseEpoch
 
   interface nodePropertyExtractorHaloCollapseEpoch
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
      !!}
      module procedure haloCollapseEpochConstructorParameters
      module procedure haloCollapseEpochConstructorInternal
@@ -69,8 +67,8 @@
 contains
 
   function haloCollapseEpochConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,11 +80,13 @@ contains
     double precision                                                        :: massFractionFormation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFractionFormation</name>
       <source>parameters</source>
       <defaultValue>0.05d0</defaultValue>
-      <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
+      <description>
+      The fraction of a halo's mass assembled at "formation" in the halo concentration algorithm of :cite:t:`schneider_structure_2015`.
+      </description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -103,8 +103,8 @@ contains
   end function haloCollapseEpochConstructorParameters
 
   function haloCollapseEpochConstructorInternal(massFractionFormation,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorHaloCollapseEpoch)                        :: self
@@ -120,8 +120,8 @@ contains
   end function haloCollapseEpochConstructorInternal
 
   subroutine haloCollapseEpochDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloCollapseEpoch} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
@@ -135,7 +135,7 @@ contains
   end subroutine haloCollapseEpochDestructor
 
   double precision function haloCollapseEpochExtract(self,node,instance) result(redshiftCollapse)
-    !!{
+    !!{RST
     Extract the redshift of collapse.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -186,8 +186,8 @@ contains
   end function haloCollapseEpochExtract
   
   function haloCollapseEpochName(self)
-    !!{
-    Return the names of the \mono{haloCollapseEpoch} properties.
+    !!{RST
+    Return the names of the ``haloCollapseEpoch`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochName
@@ -199,8 +199,8 @@ contains
   end function haloCollapseEpochName
 
   function haloCollapseEpochDescription(self)
-    !!{
-    Return the descriptions of the \mono{haloCollapseEpoch} properties.
+    !!{RST
+    Return the descriptions of the ``haloCollapseEpoch`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: haloCollapseEpochDescription
@@ -212,8 +212,8 @@ contains
   end function haloCollapseEpochDescription
 
   double precision function haloCollapseEpochUnitsInSI(self)
-    !!{
-    Return the units of the \mono{haloCollapseEpoch} properties in the SI system.
+    !!{RST
+    Return the units of the ``haloCollapseEpoch`` properties in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self
@@ -224,7 +224,7 @@ contains
   end function haloCollapseEpochUnitsInSI
 
   function haloCollapseEpochUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the haloCollapseEpoch property.
     !!}
     use :: Units_MetaData, only : unitType

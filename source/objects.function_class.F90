@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines the base class for all \mono{functionClass} classes.
+!!{RST
+Contains a module which defines the base class for all ``functionClass`` classes.
 !!}
 
 module Function_Classes
-  !!{
-  Defines the base class for all \mono{functionClass} classes.
+  !!{RST
+  Defines the base class for all ``functionClass`` classes.
   !!}
   use :: ISO_Varying_String, only : assignment(=), varying_string
   implicit none
@@ -31,8 +31,8 @@ module Function_Classes
   public :: functionClass
 
   type, abstract :: functionClass
-     !!{
-     The base class for all \mono{functionClass} classes.
+     !!{RST
+     The base class for all ``functionClass`` classes.
      !!}
      logical :: isDefaultOfClass=.false., reportOn_=.false.
      integer :: referenceCount  =0
@@ -56,7 +56,7 @@ module Function_Classes
 contains
 
   subroutine functionClassReportOn(self)
-    !!{
+    !!{RST
     Indicate that reference count changes to this object should be reported on.
     !!}
     use :: Display           , only : displayMessage
@@ -72,7 +72,7 @@ contains
   end subroutine functionClassReportOn
 
   logical function functionClassIsDefault(self)
-    !!{
+    !!{RST
     Return true if this is the default object of this class.
     !!}
     implicit none
@@ -83,7 +83,7 @@ contains
   end function functionClassIsDefault
 
   subroutine functionClassReferenceCountReset(self)
-    !!{
+    !!{RST
     Reset the reference count to this object to 0.
     !!}
     use :: Display           , only : displayMessage
@@ -101,7 +101,7 @@ contains
   end subroutine functionClassReferenceCountReset
 
   subroutine functionClassReferenceCountIncrement(self)
-    !!{
+    !!{RST
     Increment the reference count to this object.
     !!}
     use :: Display           , only : displayMessage
@@ -119,7 +119,7 @@ contains
   end subroutine functionClassReferenceCountIncrement
 
   integer function functionClassReferenceCountDecrement(self)
-    !!{
+    !!{RST
     Decrement the reference count to this object and return the new count.
     !!}
     use :: Display           , only : displayMessage

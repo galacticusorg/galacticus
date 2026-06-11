@@ -17,35 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides spectra for radiative transfer calculations.
 !!}
 
 module Radiative_Transfer_Spectra
-  !!{
+  !!{RST
   Provides a class that implements spectra for radiative transfer calculations.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>radiativeTransferSpectrum</name>
    <descriptiveName>Radiative Transfer Spectra</descriptiveName>
-   <description>Class providing spectral energy distributions of sources for Monte Carlo radiative transfer
-    calculations---the luminosity (in $L_\odot$~\AA$^{-1}$) as a function of wavelength and the
-    integrated luminosity over a wavelength range, used to initialize photon packet energies and to
-    draw photon wavelengths from the source spectrum. Implementations include blackbody spectra,
-    stellar population SEDs, and AGN power-law spectra, and determine the energy budget of
-    photon packets launched into the computational domain.</description>
+   <description>
+   Class providing spectral energy distributions of sources for Monte Carlo radiative transfer calculations---the luminosity (in :math:`L_\odot` \AA\ :math:`^{-1}`) as a function of wavelength and the integrated luminosity over a wavelength range, used to initialize photon packet energies and to draw photon wavelengths from the source spectrum. Implementations include blackbody spectra, stellar population SEDs, and AGN power-law spectra, and determine the energy budget of photon packets launched into the computational domain.
+   </description>
    <default>blackBody</default>
    <method name="luminosity" >
-    <description>Return the luminosity in the given wavelength range.</description>
+    <description>
+    Return the luminosity in the given wavelength range.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelengthMinimum, wavelengthMaximum</argument>
    </method>
    <method name="spectrum" >
-    <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given \mono{wavelength}.</description>
+    <description>
+    Return the spectrum (in units of :math:`L_\odot` \AA\ :math:`^{-1}`) of the source at the given ``wavelength``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength</argument>

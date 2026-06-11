@@ -17,24 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of cusp-NFW \citep{delos_cusp-halo_2025} dark matter halo profiles.
+  !!{RST
+  An implementation of cusp-NFW :cite:p:`delos_cusp-halo_2025` dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOCuspNFW">
+  <darkMatterProfileDMO name="darkMatterProfileDMOCuspNFW" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionCuspNFW} objects to implement the cusp-NFW density profile
-    \citep{delos_cusp-halo_2025}, normalized such that the total mass of the \gls{node} is enclosed with the virial radius and
-    with the scale length $r_\mathrm{s}$.
+   A dark matter profile DMO class which builds ``massDistributionCuspNFW`` objects to implement the cusp-NFW density profile :cite:p:`delos_cusp-halo_2025`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s}`.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOCuspNFW
-     !!{
-     A dark matter halo profile class implementing cusp-CuspNFW \citep{delos_cusp-halo_2025} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing cusp-CuspNFW :cite:p:`delos_cusp-halo_2025` dark matter halos.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                 => null()
@@ -48,8 +46,8 @@
   end type darkMatterProfileDMOCuspNFW
 
   interface darkMatterProfileDMOCuspNFW
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOCuspNFW} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
      !!}
      module procedure cuspNFWConstructorParameters
      module procedure cuspNFWConstructorInternal
@@ -58,8 +56,8 @@
 contains
 
   function cuspNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOCuspNFW} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,23 +68,29 @@ contains
     double precision                                             :: toleranceRelativeVelocityDispersion , toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionUseSeriesExpansion</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, radial velocity dispersion is computed using series expansion (but only for the case of $y=0$, i.e. an NFW profile).</description>
+      <description>
+      If ``true``, radial velocity dispersion is computed using series expansion (but only for the case of :math:`y=0`, i.e. an NFW profile).
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -99,8 +103,8 @@ contains
   end function cuspNFWConstructorParameters
 
   function cuspNFWConstructorInternal(velocityDispersionUseSeriesExpansion,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOCuspNFW} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -133,8 +137,8 @@ contains
   end function cuspNFWConstructorInternal
 
   subroutine cuspNFWDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOCuspNFW} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOCuspNFW), intent(inout) :: self
@@ -146,8 +150,8 @@ contains
   end subroutine cuspNFWDestructor
 
   function cuspNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic         , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                  , weightByMass

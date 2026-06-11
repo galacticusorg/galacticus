@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an abstract survey geometry using \gls{mangle} polygons.
+!!{RST
+Implements an abstract survey geometry using :term:`mangle` polygons.
 !!}
 
   use :: Geometry_Mangle, only : window
 
   !![
-  <surveyGeometry name="surveyGeometryMangle" abstract="yes">
-   <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
+  <surveyGeometry name="surveyGeometryMangle" abstract="yes" docformat="rst">
+   <description>
+   Implements an abstract survey geometry using :term:`mangle` polygons.
+   </description>
   </surveyGeometry>
   !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
@@ -79,8 +81,8 @@ Implements an abstract survey geometry using \gls{mangle} polygons.
 contains
 
   subroutine mangleInitialize(self)
-    !!{
-    Internal constructor for the \refClass{surveyGeometryMangle} survey geometry class.
+    !!{RST
+    Internal constructor for the ``surveyGeometryMangle`` survey geometry class.
     !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
@@ -92,7 +94,7 @@ contains
   end subroutine mangleInitialize
 
   logical function mangleWindowFunctionAvailable(self)
-    !!{
+    !!{RST
     Return false to indicate that survey window function is not available.
     !!}
     implicit none
@@ -104,7 +106,7 @@ contains
   end function mangleWindowFunctionAvailable
 
   logical function mangleAngularPowerAvailable(self)
-    !!{
+    !!{RST
     Return true to indicate that survey angular power is available.
     !!}
     implicit none
@@ -116,8 +118,8 @@ contains
   end function mangleAngularPowerAvailable
 
   double precision function mangleSolidAngle(self,field)
-    !!{
-    Return the survey solid angle computed from \gls{mangle} polygons.
+    !!{RST
+    Return the survey solid angle computed from :term:`mangle` polygons.
     !!}
     use :: Error          , only : Error_Report
     use :: Geometry_Mangle, only : geometryMangleSolidAngle
@@ -154,8 +156,8 @@ contains
   end function mangleSolidAngle
 
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !!{
-    Provides window functions for \gls{mangle}-based survey geometries.
+    !!{RST
+    Provides window functions for :term:`mangle`-based survey geometries.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_double_complex
@@ -172,8 +174,8 @@ contains
   end subroutine mangleWindowFunctions
 
   double precision function mangleAngularPower(self,i,j,l)
-    !!{
-    Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!{RST
+    Return the survey angular power :math:`C^{ij}_\ell` from :term:`mangle` polygons.
     !!}
     use :: Error          , only : Error_Report
     use :: Geometry_Mangle, only : geometryMangleAngularPower
@@ -213,8 +215,8 @@ contains
   end function mangleAngularPower
 
   integer function mangleFieldPairIndex(self,i,j)
-    !!{
-    Compute the index of a pair of fields in \gls{mangle}-based survey geometries.
+    !!{RST
+    Compute the index of a pair of fields in :term:`mangle`-based survey geometries.
     !!}
     implicit none
     class  (surveyGeometryMangle), intent(inout) :: self
@@ -228,7 +230,7 @@ contains
   end function mangleFieldPairIndex
 
   logical function manglePointIncluded(self,point,mass)
-    !!{
+    !!{RST
     Return true if a point is included in the survey geometry.
     !!}
     use :: Error  , only : Error_Report

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for intergalactic background light which computes the background internally.
   !!}
 
@@ -33,8 +33,10 @@
   use :: Stellar_Population_Selectors          , only : stellarPopulationSelectorClass
 
   !![
-  <radiationField name="radiationFieldIntergalacticBackgroundInternal">
-   <description>A radiation field class that computes the intergalactic background radiation field internally, tracking the buildup of ultraviolet and infrared photons from stellar and other sources across cosmic time. The wavelength grid is controlled by \mono{[wavelengthsPerDecade]}, \mono{[wavelengthMinimum]}, and \mono{[wavelengthMaximum]}, while the time resolution is set by \mono{[timesPerDecade]}.</description>
+  <radiationField name="radiationFieldIntergalacticBackgroundInternal" docformat="rst">
+   <description>
+   A radiation field class that computes the intergalactic background radiation field internally, tracking the buildup of ultraviolet and infrared photons from stellar and other sources across cosmic time. The wavelength grid is controlled by ``[wavelengthsPerDecade]``, ``[wavelengthMinimum]``, and ``[wavelengthMaximum]``, while the time resolution is set by ``[timesPerDecade]``.
+   </description>
    <deepCopy>
      <ignore variables="accretionDiskSpectra_"/>
    </deepCopy>
@@ -44,7 +46,7 @@
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
-     !!{
+     !!{RST
      A radiation field class for intergalactic background light with properties computed internally
      !!}
      private
@@ -90,17 +92,16 @@
   end type radiationFieldIntergalacticBackgroundInternal
 
   interface radiationFieldIntergalacticBackgroundInternal
-     !!{
-     Constructors for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
+     !!{RST
+     Constructors for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
      !!}
      module procedure intergalacticBackgroundInternalConstructorParameters
      module procedure intergalacticBackgroundInternalConstructorInternal
   end interface radiationFieldIntergalacticBackgroundInternal
 
   type :: intergalacticBackgroundInternalState
-     !!{
-     Class used to store the state of the intergalactic background radiation field for the internal solver. This will be stored
-     as an attribute of the universe object.
+     !!{RST
+     Class used to store the state of the intergalactic background radiation field for the internal solver. This will be stored as an attribute of the universe object.
      !!}
      double precision, allocatable, dimension(:,:) :: flux
      double precision                              :: timePrevious, timeNext
@@ -113,8 +114,8 @@
 contains
 
   function intergalacticBackgroundInternalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter                , inputParameters
     use :: Functions_Global, only : accretionDiskSpectraConstruct_, accretionDiskSpectraDestruct_
@@ -135,40 +136,52 @@ contains
          &                                                                            redshiftMinimum                   , redshiftMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.</description>
+      <description>
+      The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+      <description>
+      The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <defaultValue>100000.0d0</defaultValue>
-      <description>The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+      <description>
+      The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of time to use for calculations of the cosmic background radiation.</description>
+      <description>
+      The number of bins per decade of time to use for calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift to use in calculations of the cosmic background radiation.</description>
+      <description>
+      The minimum redshift to use in calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>30.0d0</defaultValue>
-      <description>The maximum redshift to use in calculations of the cosmic background radiation.</description>
+      <description>
+      The maximum redshift to use in calculations of the cosmic background radiation.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"               name="cosmologyParameters_"               source="parameters"/>
@@ -198,8 +211,8 @@ contains
   end function intergalacticBackgroundInternalConstructorParameters
 
   function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
+    !!{RST
+    Internal constructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
     !!}
     use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
     use :: Table_Labels    , only : extrapolationTypeFix, extrapolationTypeZero
@@ -312,8 +325,8 @@ contains
   end subroutine intergalacticBackgroundInternalAutoHook
 
   subroutine intergalacticBackgroundInternalDestructor(self)
-    !!{
-    Destructor for the \refClass{radiationFieldIntergalacticBackgroundInternal} radiation field class.
+    !!{RST
+    Destructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
     !!}
     use :: Events_Hooks    , only : universePreEvolveEventGlobal
     use :: Functions_Global, only : accretionDiskSpectraDestruct_
@@ -338,7 +351,7 @@ contains
   end subroutine intergalacticBackgroundInternalDestructor
 
   double precision function intergalacticBackgroundInternalTime(self)
-    !!{
+    !!{RST
     Return the epoch.
     !!}
     implicit none
@@ -349,7 +362,7 @@ contains
   end function intergalacticBackgroundInternalTime
 
   subroutine intergalacticBackgroundInternalTimeSet(self,time)
-    !!{
+    !!{RST
     Set the epoch.
     !!}
     implicit none
@@ -361,7 +374,7 @@ contains
   end subroutine intergalacticBackgroundInternalTimeSet
 
  double precision function intergalacticBackgroundInternalFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Return the flux in the internally-computed intergalactic background.
     !!}
     use            :: Error        , only : Error_Report
@@ -427,7 +440,7 @@ contains
   end function intergalacticBackgroundInternalFlux
 
   subroutine intergalacticBackgroundInternalUniversePreEvolve(self,universe_)
-    !!{
+    !!{RST
     Attach an initial event to the universe to cause the background radiation update function to be called.
     !!}
     use :: Error           , only : Error_Report
@@ -468,7 +481,7 @@ contains
   end subroutine intergalacticBackgroundInternalUniversePreEvolve
 
   logical function intergalacticBackgroundInternalUpdate(event,universe_) result (success)
-    !!{
+    !!{RST
     Update the radiation background for a given universe.
     !!}
     use            :: Abundances_Structure        , only : abundances                       , max
@@ -692,7 +705,7 @@ contains
   contains
 
     double precision function stellarSpectraConvolution(age)
-      !!{
+      !!{RST
       Integrand for convolution of stellar spectra.
       !!}
       use :: Error, only : errorStatusInputDomain, errorStatusSuccess
@@ -720,7 +733,7 @@ contains
   end function intergalacticBackgroundInternalUpdate
 
   integer function intergalacticBackgroundInternalODEs(time,spectrum,spectrumRateOfChange)
-    !!{
+    !!{RST
     Evaluates the ODEs controlling the evolution of cosmic background radiation.
     !!}
     use :: Interface_GSL                   , only : GSL_Success
@@ -809,7 +822,7 @@ contains
   end function intergalacticBackgroundInternalODEs
 
   logical function intergalacticBackgroundInternalTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return false as, while this radiation field depends only on time, it can not be evaluated for arbitrary times.
     !!}
     implicit none
@@ -821,7 +834,7 @@ contains
   end function intergalacticBackgroundInternalTimeDependentOnly
 
   subroutine intergalacticBackgroundInternalDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy reset of the object.
     !!}
     use :: Functions_Global, only : accretionDiskSpectraDeepCopyReset_
@@ -842,7 +855,7 @@ contains
   end subroutine intergalacticBackgroundInternalDeepCopyReset
   
   subroutine intergalacticBackgroundInternalDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep reset of the object.
     !!}
     use :: Functions_Global, only : accretionDiskSpectraDeepCopyFinalize_
@@ -862,7 +875,7 @@ contains
   end subroutine intergalacticBackgroundInternalDeepCopyFinalize
   
   subroutine intergalacticBackgroundInternalDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of the object.
     !!}
     use :: Functions_Global, only : accretionDiskSpectraDeepCopy_

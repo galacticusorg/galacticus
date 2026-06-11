@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
   !!}
 
@@ -33,35 +33,32 @@
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction" docformat="rst">
    <description>
-    The likelihood is computed as
-    \begin{equation}
-    \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
-    \end{equation}
-    where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$
-    is the computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed
-    projected correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the
-    halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
-    \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
-    correlation function calculation are specified by the following subparameters:
-    \begin{description}
-    \item[\mono{haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-    \item[\mono{redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-    \item[\mono{projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
-      correlation function and its covariance matrix.
-    \end{description}
-    
-    The HDF5 file specified by the \mono{projectedCorrelationFunctionFileName} element should contain a \mono{separation} dataset, giving the separations at which the projected correlation function is measured (in units of Mpc),
-    a \mono{projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
-    function at those separations (in units of Mpc), and a \mono{covariance} dataset, giving the covariance of the
-    projected correlation function (in units of Mpc$^2$).
+   The likelihood is computed as
+
+   .. math::
+
+      \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+
+   where :math:`\mathcal{C}` is the covariance matrix, and :math:`\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}`, :math:`w_i^\mathrm{model}` is the computed projected correlation function at the :math:`i^\mathrm{th}` separation, and :math:`w_i^\mathrm{obs}` is the observed projected correlation function at the :math:`i^\mathrm{th}` separation. The projected correlation function is computed using the halo model and the parameterized conditional galaxy mass function of :cite:t:`behroozi_comprehensive_2010`.  The details of the projected correlation function calculation are specified by the following subparameters:
+
+   ``haloMass(Min|Max)imum``
+      The minimum/maximum halo mass over which to integrate in the halo model;
+
+   ``redshift(Min|Max)imum``
+      The minimum/maximum redshift over which to integrate in the halo model;
+
+   ``projectedCorrelationFunctionFileName``
+      The name of an HDF5 file containing the observed projected correlation function and its covariance matrix.
+
+   The HDF5 file specified by the ``projectedCorrelationFunctionFileName`` element should contain a ``separation`` dataset, giving the separations at which the projected correlation function is measured (in units of Mpc), a ``projectedCorrelationFunctionObserved`` dataset giving the observed values of the projected correlation function at those separations (in units of Mpc), and a ``covariance`` dataset, giving the covariance of the projected correlation function (in units of Mpc\ :math:`^2`).
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
      !!}
      private
@@ -90,8 +87,8 @@
   end type posteriorSampleLikelihoodPrjctdCorrelationFunction
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -100,9 +97,8 @@
 contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -122,29 +118,39 @@ contains
     type            (varying_string                                    )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMinimum</name>
-      <description>The minimum halo mass over which to integrate.</description>
+      <description>
+      The minimum halo mass over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMaximum</name>
-      <description>The maximum halo mass over which to integrate.</description>
+      <description>
+      The maximum halo mass over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lineOfSightDepth</name>
-      <description>The line of sight depth over which to integrate.</description>
+      <description>
+      The line of sight depth over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>halfIntegral</name>
-      <description>If true, integrate only over positive line of sight depths.</description>
+      <description>
+      If true, integrate only over positive line of sight depths.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file containing the target projected correlation function.</description>
+      <description>
+      The name of the file containing the target projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
@@ -172,8 +178,8 @@ contains
   end function projectedCorrelationFunctionConstructorParameters
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
@@ -221,8 +227,8 @@ contains
   end function projectedCorrelationFunctionConstructorInternal
 
   subroutine projectedCorrelationFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodPrjctdCorrelationFunction} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
@@ -241,7 +247,7 @@ contains
   end subroutine projectedCorrelationFunctionDestructor
 
   double precision function projectedCorrelationFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the projected correlation function likelihood function.
     !!}
     use :: Conditional_Mass_Functions       , only : conditionalMassFunctionBehroozi2010
@@ -333,7 +339,7 @@ contains
   end function projectedCorrelationFunctionEvaluate
 
   subroutine projectedCorrelationFunctionFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

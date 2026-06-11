@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of virial orbits which assumes that the orbital angular momentum is correlated with the spin vector of the
-  host halo.
+  !!{RST
+  An implementation of virial orbits which assumes that the orbital angular momentum is correlated with the spin vector of the host halo.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <virialOrbit name="virialOrbitSpinCorrelated">
-   <description>A virial orbit class which assigns infall directions and tangential velocities directions to an orbit return by another virial orbit class such that the orbital angular momentum of the satellite is correlated with the spin vector of the host. Specifically, the angle, $\theta$, between the orbital angular momentum of the satellite and the spin of the host is assumed to be distributed such that $P(\cos \theta) = (1 + \alpha | \lambda | \cos \theta)/2$, where $|\lambda|$ is the magnitude of the host halo spin, and $\alpha$ is a parameter.</description>
+  <virialOrbit name="virialOrbitSpinCorrelated" docformat="rst">
+   <description>
+   A virial orbit class which assigns infall directions and tangential velocities directions to an orbit return by another virial orbit class such that the orbital angular momentum of the satellite is correlated with the spin vector of the host. Specifically, the angle, :math:`\theta`, between the orbital angular momentum of the satellite and the spin of the host is assumed to be distributed such that :math:`P(\cos \theta) = (1 + \alpha | \lambda | \cos \theta)/2`, where :math:`|\lambda|` is the magnitude of the host halo spin, and :math:`\alpha` is a parameter.
+   </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitSpinCorrelated
-     !!{
+     !!{RST
      A virial orbit class which assumes that the orbital angular momentum is correlated with the spin vector of the host halo.
      !!}
      private
@@ -53,8 +54,8 @@
   end type virialOrbitSpinCorrelated
 
   interface virialOrbitSpinCorrelated
-     !!{
-     Constructors for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
+     !!{RST
+     Constructors for the ``virialOrbitSpinCorrelated`` virial orbits class.
      !!}
      module procedure spinCorrelatedConstructorParameters
      module procedure spinCorrelatedConstructorInternal
@@ -63,8 +64,8 @@
 contains
 
   function spinCorrelatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialOrbitSpinCorrelated`` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,11 +77,13 @@ contains
     double precision                                           :: alpha
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alpha$ which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.</description>
+      <description>
+      The parameter :math:`\alpha` which expresses the strength of the correlation between satellite orbital angular momentum and the spin of the host halo.
+      </description>
     </inputParameter>
     <objectBuilder class="virialOrbit"          name="virialOrbit_"          source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -97,8 +100,8 @@ contains
   end function spinCorrelatedConstructorParameters
 
   function spinCorrelatedConstructorInternal(alpha,virialOrbit_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
+    !!{RST
+    Internal constructor for the ``virialOrbitSpinCorrelated`` virial orbits class.
     !!}
     use            :: Error               , only : Component_List      , Error_Report
     use            :: Galacticus_Nodes    , only : defaultSpinComponent
@@ -126,8 +129,8 @@ contains
   end function spinCorrelatedConstructorInternal
 
   subroutine spinCorrelatedDestructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitSpinCorrelated} virial orbits class.
+    !!{RST
+    Destructor for the ``virialOrbitSpinCorrelated`` virial orbits class.
     !!}
     implicit none
     type(virialOrbitSpinCorrelated), intent(inout) :: self
@@ -141,7 +144,7 @@ contains
   end subroutine spinCorrelatedDestructor
 
   function spinCorrelatedOrbit(self,node,host,acceptUnboundOrbits)
-    !!{
+    !!{RST
     Return spinCorrelated orbital parameters for a satellite.
     !!}
     use :: Coordinates             , only : assignment(=)                          , coordinateCartesian
@@ -205,7 +208,7 @@ contains
   end function spinCorrelatedOrbit
 
   function spinCorrelatedDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the definition of virial orbits.
     !!}
     implicit none
@@ -217,7 +220,7 @@ contains
   end function spinCorrelatedDensityContrastDefinition
 
   double precision function spinCorrelatedVelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
@@ -229,7 +232,7 @@ contains
   end function spinCorrelatedVelocityTangentialMagnitudeMean
 
   function spinCorrelatedVelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -250,7 +253,7 @@ contains
   end function spinCorrelatedVelocityTangentialVectorMean
 
   double precision function spinCorrelatedAngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     implicit none
@@ -262,7 +265,7 @@ contains
   end function spinCorrelatedAngularMomentumMagnitudeMean
 
   function spinCorrelatedAngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector angular momentum.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -283,7 +286,7 @@ contains
   end function spinCorrelatedAngularMomentumVectorMean
 
   double precision function spinCorrelatedVelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the root mean squared of the total velocity.
     !!}
     implicit none
@@ -295,7 +298,7 @@ contains
   end function spinCorrelatedVelocityTotalRootMeanSquared
 
   double precision function spinCorrelatedEnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the total energy.
     !!}
     implicit none
@@ -307,7 +310,7 @@ contains
   end function spinCorrelatedEnergyMean
 
   logical function spinCorrelatedIsAngularlyResolved(self)
-    !!{
+    !!{RST
     Return true indicating that orbits are angularly-resolved.
     !!}
     implicit none

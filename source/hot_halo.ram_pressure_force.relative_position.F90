@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
 
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
   !![
-  <hotHaloRamPressureForce name="hotHaloRamPressureForceRelativePosition">
+  <hotHaloRamPressureForce name="hotHaloRamPressureForceRelativePosition" docformat="rst">
    <description>
-    A hot halo ram pressure force class which computes the force based on the current position relative to the host
-    halo. Specifically, the ram pressure force is    
-    \begin{equation}
-    \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r) v^2(r),
-    \end{equation}
-    where $\rho_\mathrm{hot, host}(r)$ is the hot halo density profile of the nodes host halo, $v(r)$ is the orbital velocity
-    of the node in that host, and $r$ is the instantaneous distance to the host halo.
+   A hot halo ram pressure force class which computes the force based on the current position relative to the host halo. Specifically, the ram pressure force is
+
+   .. math::
+
+      \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r) v^2(r),
+
+   where :math:`\rho_\mathrm{hot, host}(r)` is the hot halo density profile of the nodes host halo, :math:`v(r)` is the orbital velocity of the node in that host, and :math:`r` is the instantaneous distance to the host halo.
    </description>
   </hotHaloRamPressureForce>
   !!]
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceRelativePosition
-     !!{
+     !!{RST
      Implementation of a hot halo ram pressure force class based on orbital position within the host halo.
      !!}
      private
@@ -48,8 +48,8 @@
   end type hotHaloRamPressureForceRelativePosition
 
   interface hotHaloRamPressureForceRelativePosition
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureForceRelativePosition} hot halo ram pressure force class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
      !!}
      module procedure relativePositionConstructorParameters
      module procedure relativePositionConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function relativePositionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureForceRelativePosition} hot halo ram pressure force class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +79,8 @@ contains
   end function relativePositionConstructorParameters
 
   function relativePositionConstructorInternal(hotHaloMassDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureForceRelativePosition} hot halo ram pressure force class.
+    !!{RST
+    Internal constructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report             , Component_List
@@ -114,8 +114,8 @@ contains
   end function relativePositionConstructorInternal
 
   subroutine relativePositionDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloRamPressureForceRelativePosition} hot halo ram pressure force class.
+    !!{RST
+    Destructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
     !!}
     implicit none
     type(hotHaloRamPressureForceRelativePosition), intent(inout) :: self
@@ -127,7 +127,7 @@ contains
   end subroutine relativePositionDestructor
 
   double precision function relativePositionForce(self,node) result(force)
-    !!{
+    !!{RST
     Return a ram pressure force due to the hot halo based on orbital position within the host halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentPosition, nodeComponentBasic

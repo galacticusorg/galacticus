@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the correction to halo accretion due to isocurvature perturbations from \cite{jessop_ripples_2026}.
+!!{RST
+Contains a program which tests the correction to halo accretion due to isocurvature perturbations from :cite:t:`jessop_ripples_2026`.
 !!}
 
 program Tests_Accretion_Halo_Isocurvature
-  !!{
-  Tests the correction to halo accretion due to isocurvature perturbations from \cite{jessop_ripples_2026}. Compares results for
-  halos of mass $10^{11}\mathrm{M}_\odot$ to their stated result \citep[][eqn.~9]{jessop_ripples_2026}.
+  !!{RST
+  Tests the correction to halo accretion due to isocurvature perturbations from :cite:t:`jessop_ripples_2026`. Compares results for halos of mass :math:`10^{11}\mathrm{M}_\odot` to their stated result :cite:p:`jessop_ripples_2026`.
   !!}
   use :: Accretion_Halos                     , only : accretionHaloIsocurvature
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple

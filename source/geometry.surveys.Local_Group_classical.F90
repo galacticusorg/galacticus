@@ -17,14 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a geometry corresponding to the detectability of classical Local Group galaxies.
 !!}
 
 
   !![
-  <surveyGeometry name="surveyGeometryLocalGroupClassical">
-   <description>Implements a survey geometry corresponding to the detectability of classical Local Group satellite galaxies, defined by \gls{mangle} polygon sky coverage. The maximum detection distance is set by \mono{[distanceMaximumSurvey]}, and a stellar mass threshold \mono{[massThreshold]} separates classical from ultra-faint satellites.</description>
+  <surveyGeometry name="surveyGeometryLocalGroupClassical" docformat="rst">
+   <description>
+   Implements a survey geometry corresponding to the detectability of classical Local Group satellite galaxies, defined by :term:`mangle` polygon sky coverage. The maximum detection distance is set by ``[distanceMaximumSurvey]``, and a stellar mass threshold ``[massThreshold]`` separates classical from ultra-faint satellites.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupClassical
@@ -39,8 +41,8 @@ Implements a geometry corresponding to the detectability of classical Local Grou
   end type surveyGeometryLocalGroupClassical
 
   interface surveyGeometryLocalGroupClassical
-     !!{
-     Constructors for the \cite{baldry_galaxy_2012} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`baldry_galaxy_2012` survey geometry class.
      !!}
      module procedure localGroupClassicalConstructorParameters
      module procedure localGroupClassicalConstructorInternal
@@ -55,8 +57,8 @@ Implements a geometry corresponding to the detectability of classical Local Grou
 contains
 
   function localGroupClassicalConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{surveyGeometryLocalGroupClassical} survey geometry class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``surveyGeometryLocalGroupClassical`` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,17 +67,21 @@ contains
     double precision                                                   :: distanceMaximumSurvey, massThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distanceMaximumSurvey</name>
       <source>parameters</source>
       <defaultValue>300.0d-3</defaultValue>
-      <description>The maximum distance for the sample of classical Local Group galaxies.</description>
+      <description>
+      The maximum distance for the sample of classical Local Group galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
       <defaultValue>1.0d5</defaultValue>
-      <description>The minimum stellar mass for a classical Local Group dwarf galaxy.</description>
+      <description>
+      The minimum stellar mass for a classical Local Group dwarf galaxy.
+      </description>
     </inputParameter>
     !!]
     self=surveyGeometryLocalGroupClassical(distanceMaximumSurvey,massThreshold)
@@ -86,8 +92,8 @@ contains
   end function localGroupClassicalConstructorParameters
 
   function localGroupClassicalConstructorInternal(distanceMaximumSurvey,massThreshold) result (self)
-    !!{
-    Internal constructor for the \cite{baldry_galaxy_2012} conditional mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`baldry_galaxy_2012` conditional mass function class.
     !!}
     implicit none
     type            (surveyGeometryLocalGroupClassical)                :: self
@@ -101,7 +107,7 @@ contains
   end function localGroupClassicalConstructorInternal
 
   integer function localGroupClassicalFieldCount(self)
-    !!{
+    !!{RST
     Return the number of fields in this sample.
     !!}
     implicit none
@@ -113,7 +119,7 @@ contains
   end function localGroupClassicalFieldCount
 
   double precision function localGroupClassicalDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -142,8 +148,8 @@ contains
   end function localGroupClassicalDistanceMaximum
 
   function localGroupClassicalMangleDirectory(self)
-    !!{
-    Return the path to the directory containing \gls{mangle} files.
+    !!{RST
+    Return the path to the directory containing :term:`mangle` files.
     !!}
     use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
@@ -156,8 +162,8 @@ contains
   end function localGroupClassicalMangleDirectory
 
   subroutine localGroupClassicalMangleFiles(self,mangleFiles)
-    !!{
-    Return a list of \gls{mangle} files.
+    !!{RST
+    Return a list of :term:`mangle` files.
     !!}
     implicit none
     class(surveyGeometryLocalGroupClassical)                           , intent(inout) :: self
@@ -169,7 +175,7 @@ contains
   end subroutine localGroupClassicalMangleFiles
 
   integer function localGroupClassicalAngularPowerMaximumDegree(self)
-    !!{
+    !!{RST
     Return the maximum degree for which angular power is computed for the Local Group Classical galaxies survey.
     !!}
     implicit none

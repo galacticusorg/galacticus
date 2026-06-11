@@ -19,100 +19,110 @@
 
   !+    Contributions to this file made by: Arya Farahi, Andrew Benson.
 
-  !!{
-  Implements a excursion set first crossing statistics class utilizing a higher order generalization of
-  the algorithm of \cite{zhang_random_2006}.
+  !!{RST
+  Implements a excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of :cite:t:`zhang_random_2006`.
   !!}
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHuiHighOrder">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHuiHighOrder" docformat="rst">
    <description>
-    An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of
-    \cite{zhang_random_2006}. First crossing (and non-crossing) rates are not supported by this method.
-    
-    In this method we discretize the first-crossing distribution function, and use a
-    \href{http://en.wikipedia.org/wiki/Newton%E2%80%93Cotes_formulas#Closed_Newton.E2.80.93Cotes_formulae}{closed Newton-Cotes
-    method} to perform integrations. First, we mesh the $S$ space using uniform spacing in $S$:
-    \begin{equation}
+   An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of :cite:t:`zhang_random_2006`. First crossing (and non-crossing) rates are not supported by this method.
+
+   In this method we discretize the first-crossing distribution function, and use a `closed Newton-Cotes method &lt;http://en.wikipedia.org/wiki/Newton%E2%80%93Cotes_formulas#Closed_Newton.E2.80.93Cotes_formulae&gt;`_ to perform integrations. First, we mesh the :math:`S` space using uniform spacing in :math:`S`:
+
+   .. math::
+
       S_i = i \times \Delta S , i = 0, 1, \dots, N, \Delta S = \frac{S}{N}.
-    \end{equation}
-    Then we discretize the integral equation by \href{http://en.wikipedia.org/wiki/Boole%27s_rule}{Boole's rule}. The integral
-    equation becomes a set of linear algebraic equations:
-    \begin{eqnarray}
-     f(S_i)  &amp;=&amp;  g_1(S_i)  +  \frac{ \Delta S}{90}  \sum_{j=0:4}^{i-4}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber\\
-     &amp;&amp;\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\}.
-    \end{eqnarray}
-    Since $g_2(S, S^\prime)$ approaches infinity when $S$ approaches $S^\prime$, one needs to define $g_2(S_i, S_i)$ carefully
-    when $j = i$. We can rewrite the equation:
-    \begin{eqnarray}
-           f(S_i)  &amp;=&amp;  g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber\\
-           &amp;&amp;\qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\} \nonumber\\
-           &amp;&amp;\qquad {}     + \frac{ 4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1}) + 7 f(S_i)  \Big).
-    \end{eqnarray}
-    For $ \bar{g}_2(S_i)$ we have:
-    \begin{equation}
+
+   Then we discretize the integral equation by `Boole's rule &lt;http://en.wikipedia.org/wiki/Boole%27s_rule&gt;`_. The integral equation becomes a set of linear algebraic equations:
+
+   .. math::
+
+      f(S_i) &amp; = g_1(S_i)  +  \frac{ \Delta S}{90}  \sum_{j=0:4}^{i-4}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber \\
+      &amp;  \qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\}.
+
+   Since :math:`g_2(S, S^\prime)` approaches infinity when :math:`S` approaches :math:`S^\prime`, one needs to define :math:`g_2(S_i, S_i)` carefully when :math:`j = i`. We can rewrite the equation:
+
+   .. math::
+
+      f(S_i) &amp; = g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\nonumber \\
+      &amp;  \qquad \left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})  \right\} \nonumber \\
+      &amp;  \qquad {}     + \frac{ 4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1}) + 7 f(S_i)  \Big).
+
+   For :math:`\bar{g}_2(S_i)` we have:
+
+   .. math::
+
       \bar{g}_2(S_i) = \frac{1}{\delta S} \int_{S - \delta S}^S g_2(S,S^\prime)\mathrm{d}S^\prime.
-    \end{equation}
-    In the above, $\delta S$ depends on the range of the previous integral part. Generally, $\delta S$ is equal to $4 \Delta
-    S$. The above equation can be solved for $f(S_i)$, giving:
-    \begin{eqnarray}
-           f(S_i)  &amp;=&amp;  \left( g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-           &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
-           &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S }{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2})  + 32 f(S_{i-1})   \Big) \right) \nonumber\\
-           &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1}.
-    \end{eqnarray}
-    Not all of the $i$'s are divisible by $4$. So, for the first $m^\mathrm{th}$ spaces, we need to calculate the integral
-    part, separately, where $m$ is the remainder of $i$ by the modulus of $4$. It is a good approximation to calculate the
-    first part linearly. Consequently, the final formula for the general problem is:
-    \begin{eqnarray}
-           f(S_i)  &amp;=&amp;  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
-           &amp;&amp;\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-           &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3})  + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
-           &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1})   \Big) \right) \nonumber\\
-           &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S }{90}  \right)^{-1}.
-    \end{eqnarray}
-    Finally, we can solve the first-crossing distribution function, giving:
-    \begin{eqnarray}
-           f(S_0)  &amp;=&amp;  g_1(S_0) = 0  \\
-           f(S_1)  &amp;=&amp;  g_1(S_1) \left( 1 -  \frac{\bar{g}_2(S_1) \Delta S}{2}  \right)^{-1}   \\
-           f(S_2)  &amp;=&amp;  \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_2) f(S_1) \Big) \left( 1 -  \frac{ \bar{g}_2(S_2) \Delta S}{2}  \right)^{-1}   \\
-           f(S_3)  &amp;=&amp;  \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_3) (f(S_1) + f(S_2)) \Big) \left( 1 -  \frac{ \bar{g}_2(S_3) \Delta S}{2}  \right)^{-1}   \\
-           f(S_i)  &amp;=&amp;  \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber\\
-           &amp;&amp;\qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber\\
-           &amp;&amp;\qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber\\
-           &amp;&amp;\qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3})+ 12 f(S_{i-2}) + 32 f(S_{i-1})  \Big) \right) \nonumber\\
-           &amp;&amp;\qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1},
-    \end{eqnarray}
-    where $\bar{g}_2(S_1)$ is defined as:
-    \begin{eqnarray}
-          \bar{g}_2(S_1) &amp;=&amp; \frac{1}{\Delta S} \int_{0}^{S_1} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 1 \\
-          \bar{g}_2(S_2) &amp;=&amp; \frac{1}{2 \Delta S} \int_{0}^{S_2} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
-          \bar{g}_2(S_3) &amp;=&amp; \frac{1}{3 \Delta S} \int_{0}^{S_3} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
-          \bar{g}_2(S_i) &amp;=&amp; \frac{1}{4 \Delta S} \int_{S_i - 4 \Delta S}^{S_i} g_2(S,S^\prime)\mathrm{d}S^\prime      \hbox{ if } i &gt; 3.
-    \end{eqnarray}
-    The error term for this method of discretization is:
-    \begin{equation}
+
+   In the above, :math:`\delta S` depends on the range of the previous integral part. Generally, :math:`\delta S` is equal to :math:`4 \Delta S`. The above equation can be solved for :math:`f(S_i)`, giving:
+
+   .. math::
+
+      f(S_i) &amp; = \left( g_1(S_i)  +  \frac{ 4 \Delta S}{90}  \sum_{j=0:4}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber \\
+      &amp;  \qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber \\
+      &amp;  \qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S }{90} \Big( 7 f(S_{i-4})  + 32 f(S_{i-3}) + 12 f(S_{i-2})  + 32 f(S_{i-1})   \Big) \right) \nonumber \\
+      &amp;  \qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1}.
+
+   Not all of the :math:`i`'s are divisible by :math:`4`. So, for the first :math:`m^\mathrm{th}` spaces, we need to calculate the integral part, separately, where :math:`m` is the remainder of :math:`i` by the modulus of :math:`4`. It is a good approximation to calculate the first part linearly. Consequently, the final formula for the general problem is:
+
+   .. math::
+
+      f(S_i) &amp; = \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber \\
+      &amp;  \qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j)  + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber \\
+      &amp;  \qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2})  + 32 f(S_{j+3}) g_2(S_i, S_{j+3})  + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber \\
+      &amp;  \qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3}) + 12 f(S_{i-2}) + 32 f(S_{i-1})   \Big) \right) \nonumber \\
+      &amp;  \qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S }{90}  \right)^{-1}.
+
+   Finally, we can solve the first-crossing distribution function, giving:
+
+   .. math::
+
+      f(S_0) &amp; = g_1(S_0) = 0 \\
+      f(S_1) &amp; = g_1(S_1) \left( 1 -  \frac{\bar{g}_2(S_1) \Delta S}{2}  \right)^{-1} \\
+      f(S_2) &amp; = \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_2) f(S_1) \Big) \left( 1 -  \frac{ \bar{g}_2(S_2) \Delta S}{2}  \right)^{-1} \\
+      f(S_3) &amp; = \Big( g_1(S_2) + \frac{ \Delta S}{2} 2 \bar{g}_2(S_3) (f(S_1) + f(S_2)) \Big) \left( 1 -  \frac{ \bar{g}_2(S_3) \Delta S}{2}  \right)^{-1} \\
+      f(S_i) &amp; = \left( g_1(S_i) + \frac{ \Delta S}{2}  \sum_{j=0}^{m-1}   \Big( f(S_j) g_2(S_i, S_j) + f(S_{j+1}) g_2(S_i, S_{j+1})   \Big) \right.\nonumber \\
+      &amp;  \qquad \left. {}     +  \frac{ 4 \Delta S}{90}  \sum_{\frac{j-m}{4}=0}^{i-8}   \left\{ 7 f(S_j) g_2(S_i, S_j) + 32 f(S_{j+1}) g_2(S_i, S_{j+1})  \right.\right.\nonumber \\
+      &amp;  \qquad \left.\left. {}     + 12 f(S_{j+2}) g_2(S_i, S_{j+2}) + 32 f(S_{j+3}) g_2(S_i, S_{j+3}) + 7 f(S_{j+4}) g_2(S_i, S_{j+4})    \right\} \right. \nonumber \\
+      &amp;  \qquad \left. {}     + \frac{4  \bar{g}_2(S_i) \Delta S}{90} \Big( 7 f(S_{i-4}) + 32 f(S_{i-3})+ 12 f(S_{i-2}) + 32 f(S_{i-1})  \Big) \right) \nonumber \\
+      &amp;  \qquad {}     \times \left( 1 -  \frac{ 4  \bar{g}_2(S_i) \Delta S}{90}  \right)^{-1},
+
+   where :math:`\bar{g}_2(S_1)` is defined as:
+
+   .. math::
+
+      \bar{g}_2(S_1) &amp; = \frac{1}{\Delta S} \int_{0}^{S_1} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 1 \\
+      \bar{g}_2(S_2) &amp; = \frac{1}{2 \Delta S} \int_{0}^{S_2} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
+      \bar{g}_2(S_3) &amp; = \frac{1}{3 \Delta S} \int_{0}^{S_3} g_2(S,S^\prime)\mathrm{d}S^\prime     \hbox{ if } i = 0 \\
+      \bar{g}_2(S_i) &amp; = \frac{1}{4 \Delta S} \int_{S_i - 4 \Delta S}^{S_i} g_2(S,S^\prime)\mathrm{d}S^\prime      \hbox{ if } i &gt; 3.
+
+   The error term for this method of discretization is:
+
+   .. math::
+
       \epsilon = \frac{(\delta S)^7}{1935360} f^{(6)}(\xi),
-    \end{equation}
-    where $f^{(6)}(\xi)$ is the absolute maximum of the sixth derivative in the range of $[S_i , S_i + \delta S]$. For this
-    problem, $\delta S = 4 \Delta S$, so:
-    \begin{equation}
+
+   where :math:`f^{(6)}(\xi)` is the absolute maximum of the sixth derivative in the range of :math:`[S_i , S_i + \delta S]`. For this problem, :math:`\delta S = 4 \Delta S`, so:
+
+   .. math::
+
       \epsilon \leq \frac{(\Delta S)^7}{118.125} f^{(6)}(\xi).
-    \end{equation}
-    Since there are $N/4$ intervals, the maximum deviation from the real value of the function is:
-    \begin{equation}
+
+   Since there are :math:`N/4` intervals, the maximum deviation from the real value of the function is:
+
+   .. math::
+
       \epsilon \leq \sum_{i=1}{\frac{N}{4}}\frac{(\Delta S)^7}{118.125} f^{(6)}(\xi _i) \nonumber\\
         \leq  N4\frac{(\Delta S)^7}{472.5} f^{(6)}(\xi),
-    \end{equation}
-    where $f^{(6)}(\xi)$ is the absolute maximum of the sixth derivative in the domain, $[0 , S]$.
-    
+
+   where :math:`f^{(6)}(\xi)` is the absolute maximum of the sixth derivative in the domain, :math:`[0 , S]`.
    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingZhangHui) :: excursionSetFirstCrossingZhangHuiHighOrder
-     !!{
-     An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of
-     \cite{zhang_random_2006}.
+     !!{RST
+     An excursion set first crossing statistics class utilizing a higher order generalization of the algorithm of :cite:t:`zhang_random_2006`.
      !!}
      private
      double precision :: timeMinimumPrevious, timeMaximumPrevious
@@ -127,8 +137,8 @@
   end type excursionSetFirstCrossingZhangHuiHighOrder
 
   interface excursionSetFirstCrossingZhangHuiHighOrder
-     !!{
-     Constructors for the \cite{zhang_random_2006} excursion set barrier class.
+     !!{RST
+     Constructors for the :cite:t:`zhang_random_2006` excursion set barrier class.
      !!}
      module procedure zhangHuiHighOrderConstructorParameters
      module procedure zhangHuiHighOrderConstructorInternal
@@ -137,7 +147,7 @@
 contains
 
   function zhangHuiHighOrderConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -154,7 +164,7 @@ contains
   end function zhangHuiHighOrderConstructorParameters
 
   function zhangHuiHighOrderConstructorInternal(excursionSetBarrier_) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
@@ -167,8 +177,8 @@ contains
   end function zhangHuiHighOrderConstructorInternal
 
   subroutine zhangHuiHighOrderInitialize(self)
-    !!{
-    Initialize the high order \cite{zhang_random_2006} excursion set first crossing class.
+    !!{RST
+    Initialize the high order :cite:t:`zhang_random_2006` excursion set first crossing class.
     !!}
     implicit none
     class(excursionSetFirstCrossingZhangHuiHighOrder), intent(inout) :: self
@@ -179,7 +189,7 @@ contains
   end subroutine zhangHuiHighOrderInitialize
 
   double precision function zhangHuiHighOrderProbability(self,variance,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &

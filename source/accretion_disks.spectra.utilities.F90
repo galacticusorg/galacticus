@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module of globally-accessible functions supporting the \refClass{accretionDiskSpectraClass} class.
+!!{RST
+Contains a module of globally-accessible functions supporting the ``accretionDiskSpectraClass`` class.
 !!}
 
 module Accretion_Disk_Spectra_Utilities
-  !!{
-  Provides globally-accessible functions supporting the \refClass{accretionDiskSpectraClass} class.
+  !!{RST
+  Provides globally-accessible functions supporting the ``accretionDiskSpectraClass`` class.
   !!}
   private
   public :: accretionDiskSpectraConstruct       , accretionDiskSpectraDestruct    , accretionDiskSpectraDeepCopy  , accretionDiskSpectraDeepCopyReset, &
@@ -46,9 +46,8 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraConstruct(parameters,accretionDiskSpectra_)
-    !!{
-    Build a \mono{accretionDiskSpectra} object from a given parameter set. This is a globally-callable function
-    to allow us to subvert the class/module hierarchy.
+    !!{RST
+    Build a ``accretionDiskSpectra`` object from a given parameter set. This is a globally-callable function to allow us to subvert the class/module hierarchy.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter           , inputParameters
@@ -88,8 +87,8 @@ contains
   </functionGlobal>
   !!]
   double precision function accretionDiskSpectraSpectrumNode(accretionDiskSpectra_,node,wavelength) result(spectrum)
-    !!{
-    Evaluate AGN spectra using a \mono{accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Evaluate AGN spectra using a ``accretionDiskSpectra`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error                 , only : Error_Report
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
@@ -117,8 +116,8 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraDestruct(accretionDiskSpectra_)
-    !!{
-    Destruct a \mono{accretionDiskSpectra} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Destruct a ``accretionDiskSpectra`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error                 , only : Error_Report
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
@@ -149,7 +148,7 @@ contains
    </functionGlobal>
   !!]
   subroutine accretionDiskSpectraStateRestore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use, intrinsic :: ISO_C_Binding         , only : c_ptr                    , c_size_t
@@ -182,7 +181,7 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraStateStore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use, intrinsic :: ISO_C_Binding         , only : c_ptr                    , c_size_t
@@ -211,7 +210,7 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use :: Error                 , only : Error_Report
@@ -236,7 +235,7 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep copy of galactic structure objects.
     !!}
     use :: Error                 , only : Error_Report
@@ -261,7 +260,7 @@ contains
   </functionGlobal>
   !!]
   subroutine accretionDiskSpectraDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use :: Error                 , only : Error_Report

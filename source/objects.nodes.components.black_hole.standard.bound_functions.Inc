@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the standard black hole component.
 !!}
 
 double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
-  !!{
+  !!{RST
   Return the seed spin for standard black holes.
   !!}
   implicit none
@@ -34,7 +34,7 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
 end function Node_Component_Black_Hole_Standard_Seed_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Spin(self)
-  !!{
+  !!{RST
   Return the spin of a standard black hole.
   !!}
   implicit none
@@ -47,7 +47,7 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
 end function Node_Component_Black_Hole_Standard_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the standard black hole component.
   !!}
   implicit none
@@ -58,7 +58,7 @@ double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self)
 end function Node_Component_Black_Hole_Standard_Mass_Baryonic
 
 function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-  !!{
+  !!{RST
   Return the mass distribution for the standard black hole component.
   !!}
   use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity         , &

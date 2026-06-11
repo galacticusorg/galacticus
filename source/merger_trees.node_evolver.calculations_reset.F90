@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles resetting of calculations before a new or updated node is processed.
 !!}
 
 module Calculations_Resets
-  !!{
+  !!{RST
   Handles resetting of calculations before a new or updated node is processed.
   !!}
   implicit none
@@ -40,7 +40,7 @@ contains
   </functionGlobal>
   !!]
   subroutine Calculations_Reset(node)
-    !!{
+    !!{RST
     Calls any routines required to reset all calculation for a new or updated node.
     !!}
     use :: Galacticus_Nodes, only : treeNode

@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-algorithm of \cite{smith_stable_2003}.
+!!{RST
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the algorithm of :cite:t:`smith_stable_2003`.
 !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
@@ -27,13 +26,15 @@ algorithm of \cite{smith_stable_2003}.
   use :: Power_Spectra       , only : powerSpectrumClass
 
   !![
-  <powerSpectrumNonlinear name="powerSpectrumNonlinearSmith2003">
-   <description>Provides a nonlinear matter power spectrum computed using the halofit algorithm of \cite{smith_stable_2003}, which models the transition from linear to nonlinear scales via contributions from quasi-linear modes and collapsed dark matter halos. Optional corrections from John Peacock's halofit web page can be included via \mono{[peacockCorrection]}.</description>
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearSmith2003" docformat="rst">
+   <description>
+   Provides a nonlinear matter power spectrum computed using the halofit algorithm of :cite:t:`smith_stable_2003`, which models the transition from linear to nonlinear scales via contributions from quasi-linear modes and collapsed dark matter halos. Optional corrections from John Peacock's halofit web page can be included via ``[peacockCorrection]``.
+   </description>
   </powerSpectrumNonlinear>
   !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearSmith2003
-     !!{
-     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{smith_stable_2003}.
+     !!{RST
+     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of :cite:t:`smith_stable_2003`.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_      => null()
@@ -61,8 +62,8 @@ algorithm of \cite{smith_stable_2003}.
   end type powerSpectrumNonlinearSmith2003
 
   interface powerSpectrumNonlinearSmith2003
-     !!{
-     Constructors for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
+     !!{RST
+     Constructors for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
      !!}
      module procedure smith2003ConstructorParameters
      module procedure smith2003ConstructorInternal
@@ -76,7 +77,7 @@ algorithm of \cite{smith_stable_2003}.
 contains
 
   function smith2003ConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the smith2003 nonlinear power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -90,24 +91,32 @@ contains
           &                                                            includeHaloPower
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includePeacockCorrection</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{\mono{https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
-      <description>If true, include the correction proposed on John Peacock's \href{https://www.roe.ac.uk/~jap/haloes/}{web page}.</description>
+      <defaultSource>
+      `https://www.roe.ac.uk/\~jap/haloes/ &lt;https://www.roe.ac.uk/~jap/haloes/&gt;`_
+      </defaultSource>
+      <description>
+      If true, include the correction proposed on John Peacock's `web page &lt;https://www.roe.ac.uk/~jap/haloes/&gt;`_.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeQuasiLinearPower</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, include quasi-linear contribution to the power spectrum.</description>
+      <description>
+      If true, include quasi-linear contribution to the power spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeHaloPower</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, include halo contribution to the power spectrum.</description>
+      <description>
+      If true, include halo contribution to the power spectrum.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -125,8 +134,8 @@ contains
   end function smith2003ConstructorParameters
 
   function smith2003ConstructorInternal(includePeacockCorrection,includeQuasiLinearPower,includeHaloPower,cosmologyParameters_,cosmologyFunctions_,powerSpectrum_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
     !!}
     implicit none
     type   (powerSpectrumNonlinearSmith2003)                        :: self
@@ -144,8 +153,8 @@ contains
   end function smith2003ConstructorInternal
 
   subroutine smith2003Destructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumNonlinearSmith2003} nonlinear power spectrum class.
+    !!{RST
+    Destructor for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearSmith2003), intent(inout) :: self
@@ -159,8 +168,8 @@ contains
   end subroutine smith2003Destructor
 
   double precision function smith2003Value(self,wavenumber,time)
-    !!{
-    Return a nonlinear power spectrum equal using the algorithm of \cite{smith_stable_2003}.
+    !!{RST
+    Return a nonlinear power spectrum equal using the algorithm of :cite:t:`smith_stable_2003`.
     !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
     use :: Numerical_Constants_Math, only : Pi
@@ -225,7 +234,7 @@ contains
   end function smith2003Value
   
   subroutine smith2003Coefficients(self,time)
-    !!{
+    !!{RST
     Evaluate the fitting function coefficients at the given time.
     !!}
     use :: Numerical_Comparison , only : Values_Agree
@@ -305,8 +314,8 @@ contains
   end subroutine smith2003Coefficients
 
   double precision function wavenumberNonLinearRoot(wavenumberNonLinear)
-    !!{
-    Root function used to find the non-linear wavenumber, using the definition of \cite[][eqns.~53 \& 54]{smith_stable_2003}.
+    !!{RST
+    Root function used to find the non-linear wavenumber, using the definition of :cite:t:`smith_stable_2003`.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -323,8 +332,8 @@ contains
   end function wavenumberNonLinearRoot
   
   double precision function integrandSigmaSquared(wavenumber)
-    !!{
-    Integrand used to compute $\sigma^2(R)$ \citep[][eqn.~54]{smith_stable_2003}.
+    !!{RST
+    Integrand used to compute :math:`\sigma^2(R)` :cite:p:`smith_stable_2003`.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -345,8 +354,8 @@ contains
   end function integrandSigmaSquared
 
   double precision function integrandEffectiveIndex(wavenumber)
-    !!{
-    Integrand used to compute the effective spectral index\citep[][eqn.~59]{smith_stable_2003}.
+    !!{RST
+    Integrand used to compute the effective spectral index\ :cite:p:`smith_stable_2003`.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -371,8 +380,8 @@ contains
   end function integrandEffectiveIndex
 
   double precision function integrandSpectralCurvature(wavenumber)
-    !!{
-    Integrand used to compute the spectral curvature \citep[][eqn.~60]{smith_stable_2003}.
+    !!{RST
+    Integrand used to compute the spectral curvature :cite:p:`smith_stable_2003`.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber

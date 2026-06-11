@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the freefall radius.
 !!}
 
 module Freefall_Radii
-  !!{
+  !!{RST
   Provides a class that implements calculations of the freefall radius.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,23 +30,25 @@ module Freefall_Radii
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>freefallRadius</name>
    <descriptiveName>Freefall Radii</descriptiveName>
-   <description>Class providing models of the freefall radius (in Mpc) for gas in the hot halo surrounding a galaxy,
-    defined as the radius from which gas would freefall to the center of the halo in the available time. Comparison
-    of the freefall radius with the cooling radius determines the cooling regime: when $r_\mathrm{cool} &lt; r_\mathrm{ff}$
-    the gas is in the rapid-cooling (cold-flow) regime, whereas when $r_\mathrm{cool} &gt; r_\mathrm{ff}$ a quasi-static
-    hot atmosphere forms and cooling proceeds more gradually.</description>
+   <description>
+   Class providing models of the freefall radius (in Mpc) for gas in the hot halo surrounding a galaxy, defined as the radius from which gas would freefall to the center of the halo in the available time. Comparison of the freefall radius with the cooling radius determines the cooling regime: when :math:`r_\mathrm{cool} &lt; r_\mathrm{ff}` the gas is in the rapid-cooling (cold-flow) regime, whereas when :math:`r_\mathrm{cool} &gt; r_\mathrm{ff}` a quasi-static hot atmosphere forms and cooling proceeds more gradually.
+   </description>
    <default>darkMatterHalo</default>
    <method name="radius" >
-    <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of Mpc.</description>
+    <description>
+    Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units of Mpc.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusGrowthRate" >
-    <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of Mpc/Gyr.</description>
+    <description>
+    Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units of Mpc/Gyr.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

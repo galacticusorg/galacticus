@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the velocity dispersion in a set of given spherical shells.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes the velocity dispersion in a s
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorVelocityDispersion">
-   <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
+  <nbodyOperator name="nbodyOperatorVelocityDispersion" docformat="rst">
+   <description>
+   An N-body data operator which computes the rotation curve at a set of given radii.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorVelocityDispersion
-     !!{
+     !!{RST
      An N-body data operator which computes the rotation curve at a set of given radii.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which computes the velocity dispersion in a s
   end type nbodyOperatorVelocityDispersion
 
   interface nbodyOperatorVelocityDispersion
-     !!{
-     Constructors for the \refClass{nbodyOperatorVelocityDispersion} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which computes the velocity dispersion in a s
 contains
 
   function velocityDispersionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorVelocityDispersion} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,26 +71,34 @@ contains
     allocate(radiusInner(parameters%count('radiusInner')))
     allocate(radiusOuter(parameters%count('radiusOuter')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the velocity dispersion is computed only for self-bound particles.</description>
+      <description>
+      If true, the velocity dispersion is computed only for self-bound particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusInner</name>
       <source>parameters</source>
-      <description>Inner radii of spherical shells within which the velocity dispersion should be computed.</description>
+      <description>
+      Inner radii of spherical shells within which the velocity dispersion should be computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOuter</name>
       <source>parameters</source>
-      <description>Outer radii of spherical shells within which the velocity dispersion should be computed.</description>
+      <description>
+      Outer radii of spherical shells within which the velocity dispersion should be computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -101,8 +111,8 @@ contains
   end function velocityDispersionConstructorParameters
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorVelocityDispersion} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -120,8 +130,8 @@ contains
   end function velocityDispersionConstructorInternal
 
   subroutine velocityDispersionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorVelocityDispersion} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVelocityDispersion), intent(inout) :: self
@@ -133,7 +143,7 @@ contains
   end subroutine velocityDispersionDestructor
 
   subroutine velocityDispersionOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error            , only : Error_Report

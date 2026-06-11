@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which constructs the convex hull of the particles.
 !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorConvexHull">
-   <description>An N-body data operator which constructs the convex hull of the particles.</description>
+  <nbodyOperator name="nbodyOperatorConvexHull" docformat="rst">
+   <description>
+   An N-body data operator which constructs the convex hull of the particles.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConvexHull
-     !!{
+     !!{RST
      An N-body data operator which constructs the convex hull of the particles.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an N-body data operator which constructs the convex hull of the parti
   end type nbodyOperatorConvexHull
 
   interface nbodyOperatorConvexHull
-     !!{
-     Constructors for the \refClass{nbodyOperatorConvexHull} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorConvexHull`` N-body operator class.
      !!}
      module procedure convexHullConstructorParameters
      module procedure convexHullConstructorInternal
@@ -50,8 +52,8 @@ Implements an N-body data operator which constructs the convex hull of the parti
 contains
 
   function convexHullConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorConvexHull} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorConvexHull`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function convexHullConstructorParameters
 
   function convexHullConstructorInternal(randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \mono{convexHull} N-body operator class.
+    !!{RST
+    Internal constructor for the ``convexHull`` N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorConvexHull   )                        :: self
@@ -85,8 +87,8 @@ contains
   end function convexHullConstructorInternal
 
   subroutine convexHullDestructor(self)
-    !!{
-    Destructor for the \mono{convexHull} N-body operator class.
+    !!{RST
+    Destructor for the ``convexHull`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConvexHull), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine convexHullDestructor
 
   subroutine convexHullOperate(self,simulations)
-    !!{
+    !!{RST
     Construct the convex hull of the points.
     !!}
     use :: Display           , only : displayIndent, displayUnindent, verbosityLevelStandard

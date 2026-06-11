@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers destruction of satellites based on their density profiles.
   !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteDestructionDensityProfileThreshold">
-   <description>A node operator class that destroys satellites when the mean enclosed density within their tidal radius falls below a threshold expressed as a fraction \mono{fractionDensityProfileVirialFraction} of the host halo virial density profile. This criterion approximates complete tidal disruption and prevents unphysically extended low-density subhalo evolution.</description>
+  <nodeOperator name="nodeOperatorSatelliteDestructionDensityProfileThreshold" docformat="rst">
+   <description>
+   A node operator class that destroys satellites when the mean enclosed density within their tidal radius falls below a threshold expressed as a fraction ``fractionDensityProfileVirialFraction`` of the host halo virial density profile. This criterion approximates complete tidal disruption and prevents unphysically extended low-density subhalo evolution.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDestructionDensityProfileThreshold
-     !!{
+     !!{RST
      A node operator class that triggers destruction of satellites based on their density profiles.
      !!}
      private
@@ -46,8 +48,8 @@
   end type nodeOperatorSatelliteDestructionDensityProfileThreshold
   
   interface nodeOperatorSatelliteDestructionDensityProfileThreshold
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
      !!}
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrInternal
@@ -60,8 +62,8 @@
 contains
 
   function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,9 +73,11 @@ contains
     double precision                                                                         :: fractionDensityProfileVirialFraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionDensityProfileVirialFraction</name>
-      <description>The absolute mass below which satellites are destroyed.</description>
+      <description>
+      The absolute mass below which satellites are destroyed.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -87,8 +91,8 @@ contains
   end function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
 
   function satelliteDestructionDensityProfileThresholdCnstrctrInternal(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionDensityProfileThreshold)                        :: self
@@ -102,8 +106,8 @@ contains
   end function satelliteDestructionDensityProfileThresholdCnstrctrInternal
 
   subroutine satelliteDestructionDensityProfileThresholdDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteDestructionDensityProfileThreshold} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDestructionDensityProfileThreshold), intent(inout) :: self
@@ -115,7 +119,7 @@ contains
   end subroutine satelliteDestructionDensityProfileThresholdDestructor
 
   logical function satelliteDestructionDensityProfileThresholdShouldDestroy(self,node) result(shouldDestroy)
-    !!{
+    !!{RST
     Determine if the satellite should be destroyed.
     !!}
     use :: Coordinates       , only : coordinateSpherical           , assignment(=)
@@ -144,7 +148,7 @@ contains
   end function satelliteDestructionDensityProfileThresholdShouldDestroy
   
   subroutine satelliteDestructionDensityProfileThresholdDiffEvoltn(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Trigger destruction of a satellite halo based on its density profile.
     !!}
     implicit none
@@ -167,7 +171,7 @@ contains
   end subroutine satelliteDestructionDensityProfileThresholdDiffEvoltn
   
   subroutine destructionTrigger(node,timeEnd)
-    !!{
+    !!{RST
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode

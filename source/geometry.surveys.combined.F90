@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a survey geometry which combines multiple other surveys.
 !!}
 
@@ -27,8 +27,10 @@ Implements a survey geometry which combines multiple other surveys.
   end type surveyGeometryList
 
   !![
-  <surveyGeometry name="surveyGeometryCombined">
-   <description>Implements a survey geometry which combines multiple other surveys.</description>
+  <surveyGeometry name="surveyGeometryCombined" docformat="rst">
+   <description>
+   Implements a survey geometry which combines multiple other surveys.
+   </description>
    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
   </surveyGeometry>
   !!]
@@ -53,8 +55,8 @@ Implements a survey geometry which combines multiple other surveys.
 contains
 
   function combinedConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{surveyGeometryCombined} survey geometry class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``surveyGeometryCombined`` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +86,7 @@ contains
   end function combinedConstructorParameters
 
   function combinedConstructorInternal(surveyGeometries) result (self)
-    !!{
+    !!{RST
     Internal constructor for the combined output analysis weight operator class.
     !!}
     implicit none
@@ -104,7 +106,7 @@ contains
   end function combinedConstructorInternal
 
   subroutine combinedDestructor(self)
-    !!{
+    !!{RST
     Destructor for the combined weight operator class.
     !!}
     implicit none
@@ -126,7 +128,7 @@ contains
   end subroutine combinedDestructor
 
   logical function combinedWindowFunctionAvailable(self)
-    !!{
+    !!{RST
     Return false to indicate that survey window function is not available.
     !!}
     implicit none
@@ -138,7 +140,7 @@ contains
   end function combinedWindowFunctionAvailable
 
   logical function combinedAngularPowerAvailable(self)
-    !!{
+    !!{RST
     Return false to indicate that survey angular power is not available.
     !!}
     implicit none
@@ -150,7 +152,7 @@ contains
   end function combinedAngularPowerAvailable
 
   double precision function combinedSolidAngle(self,field)
-    !!{
+    !!{RST
     Return the survey solid angle.
     !!}
     use :: Error, only : Error_Report
@@ -165,7 +167,7 @@ contains
   end function combinedSolidAngle
 
   subroutine combinedWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !!{
+    !!{RST
     Provides window functions for combined survey geometries.
     !!}
     use            :: Error        , only : Error_Report
@@ -183,8 +185,8 @@ contains
   end subroutine combinedWindowFunctions
 
   double precision function combinedAngularPower(self,i,j,l)
-    !!{
-    Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!{RST
+    Return the survey angular power :math:`C^{ij}_\ell` from :term:`mangle` polygons.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -199,7 +201,7 @@ contains
   end function combinedAngularPower
 
   logical function combinedPointIncluded(self,point,mass)
-    !!{
+    !!{RST
     Return true if a point is included in the combined survey geometry.
     !!}
     implicit none

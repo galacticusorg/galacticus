@@ -17,24 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body
-  simulations for example).
+  !!{RST
+  An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body simulations for example).
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Mass_Distributions , only : enumerationNonAnalyticSolversType
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution">
+  <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution" docformat="rst">
     <description>
-      A dark matter profile DMO class which builds \refClass{massDistributionSphericalFiniteResolution} objects to mimic the
-      effects of finite resolution in an N-body simulation.
+    A dark matter profile DMO class which builds ``massDistributionSphericalFiniteResolution`` objects to mimic the effects of finite resolution in an N-body simulation.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOFiniteResolution
-     !!{
+     !!{RST
      A dark matter halo profile class implementing finiteResolution dark matter halos.
      !!}
      private
@@ -60,8 +58,8 @@
   end type darkMatterProfileDMOFiniteResolution
 
  interface darkMatterProfileDMOFiniteResolution
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
      !!}
      module procedure finiteResolutionConstructorParameters
      module procedure finiteResolutionConstructorInternal
@@ -72,8 +70,8 @@
 contains
 
   function finiteResolutionConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{finiteResolution} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``finiteResolution`` dark matter halo profile class.
     !!}
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -87,26 +85,34 @@ contains
     logical                                                               :: resolutionIsComoving
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation, which sets the minimum spatial scale below which the dark matter profile is smoothed to avoid artificial two-body effects.</description>
+      <description>
+      The gravitational softening length :math:`\Delta x` (in Mpc) of the N-body simulation, which sets the minimum spatial scale below which the dark matter profile is smoothed to avoid artificial two-body effects.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolution</name>
       <source>parameters</source>
-       <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, representing the minimum halo mass that can be resolved; profiles of halos near this limit are softened to account for particle discreteness effects.</description>
+       <description>
+       The mass resolution :math:`\Delta M` (in :math:`\mathrm{M}_\odot`) of the N-body simulation, representing the minimum halo mass that can be resolved; profiles of halos near this limit are softened to account for particle discreteness effects.
+       </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resolutionIsComoving</name>
       <source>parameters</source>
-      <description>If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.</description>
+      <description>
+      If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -121,8 +127,8 @@ contains
   end function finiteResolutionConstructorParameters
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -141,7 +147,7 @@ contains
   end function finiteResolutionConstructorInternal
 
   subroutine finiteResolutionAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -153,8 +159,8 @@ contains
   end subroutine finiteResolutionAutoHook
   
   subroutine finiteResolutionDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOFiniteResolution} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -169,7 +175,7 @@ contains
   end subroutine finiteResolutionDestructor
 
   subroutine finiteResolutionCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -185,8 +191,8 @@ contains
   end subroutine finiteResolutionCalculationReset
 
   function finiteResolutionGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                    , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalFiniteResolution, kinematicsDistributionCollisionless, massDistributionSpherical
@@ -250,7 +256,7 @@ contains
   end function finiteResolutionGet
 
   double precision function finiteResolutionLengthResolutionPhysical(self,node)
-    !!{
+    !!{RST
     Return the resolution length in physical units.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

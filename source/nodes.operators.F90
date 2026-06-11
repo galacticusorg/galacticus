@@ -17,33 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements physical processes.
 !!}
 
 module Nodes_Operators
-  !!{
+  !!{RST
   Provides a class that implements physical processes.
   !!}
   use :: Galacticus_Nodes, only : treeNode, interruptTask
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
     <name>nodeOperator</name>
     <descriptiveName>Node Operators</descriptiveName>
-    <description>Class providing operators that act on merger tree nodes to implement physical processes. Node operators
-    are called at key moments during tree evolution---at tree construction, node initialization, derivative evaluation,
-    node merging, and promotion---to apply physics such as star formation, feedback, black hole growth, and structural
-    evolution. Multiple operators can be stacked in a multi-operator list to apply several physical processes
-    simultaneously.</description>
+    <description>
+    Class providing operators that act on merger tree nodes to implement physical processes. Node operators are called at key moments during tree evolution---at tree construction, node initialization, derivative evaluation, node merging, and promotion---to apply physics such as star formation, feedback, black hole growth, and structural evolution. Multiple operators can be stacked in a multi-operator list to apply several physical processes simultaneously.
+    </description>
     <default>null</default>
     <method name="nodeInitialize" >
       <description>
-	Perform initialization of node properties prior to tree evolution. This typically includes initializations related to the
-	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization). Initializations related to
-	the static structure of the tree (e.g. assigning scale radii, merging orbits, etc.) are typically handled by the
-	\mono{nodeTreeInitialize} method.
+      Perform initialization of node properties prior to tree evolution. This typically includes initializations related to the evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization). Initializations related to the static structure of the tree (e.g. assigning scale radii, merging orbits, etc.) are typically handled by the ``nodeTreeInitialize`` method.
       </description>
       <type>void</type>
       <pass>yes</pass>
@@ -55,10 +50,7 @@ module Nodes_Operators
     </method>
     <method name="nodeTreeInitialize" >
       <description>
-	Perform initialization of node properties immediately after tree construction. This typically includes initializations
-	related to the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to
-	evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled by the
-	\mono{nodeInitialize} method.
+      Perform initialization of node properties immediately after tree construction. This typically includes initializations related to the static structure of the tree (e.g. assign scale radii, merging orbits, etc.). Initializations related to evolution of the tree (e.g. growth rates of scale radii, baryonic component initialization) are typically handled by the ``nodeInitialize`` method.
       </description>
       <type>void</type>
       <pass>yes</pass>
@@ -69,7 +61,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="nodesMerge" >
-      <description>Apply node-operator-specific physics when two dark matter halo nodes merge, for example redistributing bound mass, transferring orbital energy, or recording merger event metadata.</description>
+      <description>
+      Apply node-operator-specific physics when two dark matter halo nodes merge, for example redistributing bound mass, transferring orbital energy, or recording merger event metadata.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -78,7 +72,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="nodePromote" >
-      <description>Apply node-operator-specific physics when a node is promoted to replace its parent in the merger tree, for example inheriting parent properties or updating mass and structural parameters.</description>
+      <description>
+      Apply node-operator-specific physics when a node is promoted to replace its parent in the merger tree, for example inheriting parent properties or updating mass and structural parameters.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -87,7 +83,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="galaxiesMerge" >
-      <description>Apply node-operator-specific physics when two galaxies merge within a common dark matter halo, for example triggering starbursts, transferring cold gas, or updating spheroid properties.</description>
+      <description>
+      Apply node-operator-specific physics when two galaxies merge within a common dark matter halo, for example triggering starbursts, transferring cold gas, or updating spheroid properties.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -96,7 +94,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionPre" >
-      <description>Apply pre-evolution setup operations on a node immediately before the differential equation solver advances its properties, for example resetting accumulators or evaluating cached quantities.</description>
+      <description>
+      Apply pre-evolution setup operations on a node immediately before the differential equation solver advances its properties, for example resetting accumulators or evaluating cached quantities.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -105,7 +105,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionScales" >
-      <description>Set the characteristic scale values for any meta-properties that are evolved by the ODE solver, so that relative tolerances are computed correctly during integration.</description>
+      <description>
+      Set the characteristic scale values for any meta-properties that are evolved by the ODE solver, so that relative tolerances are computed correctly during integration.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -114,7 +116,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionAnalytics" >
-      <description>Mark (meta-)properties as analytically solved in differential evolution.</description>
+      <description>
+      Mark (meta-)properties as analytically solved in differential evolution.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -123,7 +127,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionInactives" >
-      <description>Mark (meta-)properties as inactive in differential evolution.</description>
+      <description>
+      Mark (meta-)properties as inactive in differential evolution.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -132,7 +138,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolution" >
-      <description>Evaluate and add derivatives for any node meta-properties that this operator evolves during the ODE integration step, and signal if an interrupt is required.</description>
+      <description>
+      Evaluate and add derivatives for any node meta-properties that this operator evolves during the ODE integration step, and signal if an interrupt is required.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <selfTarget>yes</selfTarget>
@@ -145,7 +153,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionSolveAnalytics" >
-      <description>Set the values of analytically-solvable properties of a node during differential evolution.</description>
+      <description>
+      Set the values of analytically-solvable properties of a node during differential evolution.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type            (treeNode), intent(inout) :: node</argument>
@@ -155,7 +165,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="predeterminedSolveAnalytics" >
-      <description>Set the values of analytically-solvable pre-determined properties of a node.</description>
+      <description>
+      Set the values of analytically-solvable pre-determined properties of a node.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type            (treeNode), intent(inout) :: node</argument>
@@ -165,7 +177,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionStepFinalState" >
-      <description>Apply any required corrections or updates to node properties at the completion of each ODE integration step, before the solver accepts or rejects the step.</description>
+      <description>
+      Apply any required corrections or updates to node properties at the completion of each ODE integration step, before the solver accepts or rejects the step.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -174,7 +188,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionPost" >
-      <description>Apply post-evolution updates to a node after the ODE solver has advanced all properties to a new time, for example recording derived quantities or checking thresholds.</description>
+      <description>
+      Apply post-evolution updates to a node after the ODE solver has advanced all properties to a new time, for example recording derived quantities or checking thresholds.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type(treeNode), intent(inout) :: node</argument>
@@ -183,7 +199,9 @@ module Nodes_Operators
       </code>
     </method>
     <method name="differentialEvolutionPostStep" >
-      <description>Apply post-step corrections or diagnostics to a node after each accepted ODE solver step, allowing fine-grained control of properties between accepted integration steps.</description>
+      <description>
+      Apply post-step corrections or diagnostics to a node after each accepted ODE solver step, allowing fine-grained control of properties between accepted integration steps.
+      </description>
       <type>void</type>
       <pass>yes</pass>
       <argument>type   (treeNode), intent(inout) :: node</argument>

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements Lambert W functions.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements Lambert W functions.
 !; gsl
 
 module Lambert_Ws
-  !!{
+  !!{RST
   Implements Lambert W functions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
@@ -35,7 +35,7 @@ module Lambert_Ws
 
   interface
      function gsl_sf_lambert_W0(x) bind(c,name='gsl_sf_lambert_W0')
-       !!{
+       !!{RST
        Template for the GSL Lambert W (primary branch) C function.
        !!}
        import
@@ -46,7 +46,7 @@ module Lambert_Ws
 
   interface
      function gsl_sf_lambert_Wm1(x) bind(c,name='gsl_sf_lambert_Wm1')
-       !!{
+       !!{RST
        Template for the GSL Lambert W (secondary branch) C function.
        !!}
        import
@@ -58,8 +58,8 @@ module Lambert_Ws
 contains
 
   double precision function Lambert_W0(x)
-    !!{
-    Evaluate the (primary branch of the) Lambert W function, $W(x)$.
+    !!{RST
+    Evaluate the (primary branch of the) Lambert W function, :math:`W(x)`.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -69,8 +69,8 @@ contains
   end function Lambert_W0
 
   double precision function Lambert_Wm1(x)
-    !!{
-    Evaluate the (secondary branch of the) Lambert W function, $W(x)$.
+    !!{RST
+    Evaluate the (secondary branch of the) Lambert W function, :math:`W(x)`.
     !!}
     implicit none
     double precision, intent(in   ) :: x

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of decaying dark matter halo profiles.
   !!}
 
@@ -25,15 +25,14 @@
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMODecaying">
+  <darkMatterProfileDMO name="darkMatterProfileDMODecaying" docformat="rst">
    <description>
-     A dark matter profile DMO class which builds \refClass{massDistributionSphericalDecaying} objects to account for dark matter
-     particle decays in some other dark matter profile.
+   A dark matter profile DMO class which builds ``massDistributionSphericalDecaying`` objects to account for dark matter particle decays in some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMODecaying
-     !!{
+     !!{RST
      A dark matter halo profile class implementing decaying dark matter halos.
      !!}
      private
@@ -50,8 +49,8 @@
   end type darkMatterProfileDMODecaying
 
   interface darkMatterProfileDMODecaying
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
      !!}
      module procedure decayingConstructorParameters
      module procedure decayingConstructorInternal
@@ -60,8 +59,8 @@
 contains
 
   function decayingConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{decaying} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``decaying`` dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,41 +75,53 @@ contains
          &                                                           tolerateEnclosedMassIntegrationFailure
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the gravitational potential.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the gravitational potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>
+      If ``true``, tolerate failures to find the mass enclosed as a function of radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>
+      If ``true``, tolerate failures to find the radius of the maximum circular velocity.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of a decaying dark matter profile (e.g. due to extreme decay fractions), allowing the calculation to proceed with a fallback result rather than terminating.</description>
+      <description>
+      If ``true``, tolerate numerical failures when computing the gravitational potential of a decaying dark matter profile (e.g. due to extreme decay fractions), allowing the calculation to proceed with a fallback result rather than terminating.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -127,8 +138,8 @@ contains
   end function decayingConstructorParameters
 
   function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -149,8 +160,8 @@ contains
   end function decayingConstructorInternal
 
   subroutine decayingDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMODecaying} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMODecaying), intent(inout) :: self
@@ -164,8 +175,8 @@ contains
   end subroutine decayingDestructor
 
   function decayingGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo            , massTypeDark                       , weightByMass
     use :: Galacticus_Nodes          , only : nodeComponentBasic

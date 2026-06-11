@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the distance of each particle from a point.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorDistanceFromPoint">
-   <description>An N-body data operator which computes and stores the Euclidean distance of each particle from a fixed reference point in three-dimensional Cartesian space, adding this as a new particle property. The reference point coordinates are specified as a three-element array via the \mono{[point]} parameter.</description>
+  <nbodyOperator name="nbodyOperatorDistanceFromPoint" docformat="rst">
+   <description>
+   An N-body data operator which computes and stores the Euclidean distance of each particle from a fixed reference point in three-dimensional Cartesian space, adding this as a new particle property. The reference point coordinates are specified as a three-element array via the ``[point]`` parameter.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDistanceFromPoint
-     !!{
+     !!{RST
      An N-body data operator which computes the distance of each particle from a point.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which computes the distance of each particle 
   end type nbodyOperatorDistanceFromPoint
 
   interface nbodyOperatorDistanceFromPoint
-     !!{
-     Constructors for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorDistanceFromPoint`` N-body operator class.
      !!}
      module procedure distanceFromPointConstructorParameters
      module procedure distanceFromPointConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which computes the distance of each particle 
 contains
 
   function distanceFromPointConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorDistanceFromPoint`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     double precision                                , dimension(3)  :: point
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>point</name>
       <source>parameters</source>
-      <description>The Cartesian coordinates of the point from which to compute the distance.</description>
+      <description>
+      The Cartesian coordinates of the point from which to compute the distance.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorDistanceFromPoint(point)
@@ -71,8 +75,8 @@ contains
   end function distanceFromPointConstructorParameters
 
   function distanceFromPointConstructorInternal(point) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorDistanceFromPoint} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorDistanceFromPoint`` N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +90,7 @@ contains
   end function distanceFromPointConstructorInternal
 
   subroutine distanceFromPointOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the distance of each particle from a point.
     !!}
     use :: Display, only : displayIndent, displayUnindent, verbosityLevelStandard

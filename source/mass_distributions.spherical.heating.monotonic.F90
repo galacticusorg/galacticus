@@ -19,26 +19,25 @@
 
   !+    Contributions to this file made by: Xiaolong Du.
 
-  !!{
+  !!{RST
   Implements a mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingMonotonic">
+  <massDistributionHeating name="massDistributionHeatingMonotonic" docformat="rst">
     <description>
-      A mass distribution heating class which takes another heating source and enforces monotonic heating energy
-      perturbation. This is achieved by enforcing the constraint that      
-      \begin{equation}
-      \mathrm{d}/\mathrm{d}r \left[ \frac{\epsilon}{\mathrm{G} M(r) / r} \right] > 0,
-      \end{equation}
-      where $\epsilon$ is the specific heating energy \citep{du_tidal_2024}. At radii smaller than the shell-crossing radius
-      defined by the above condition the specific energy is assumed to be proportional to $\mathrm{G} M(r) / r$, with a smooth
-      transition through this radius.
+    A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation. This is achieved by enforcing the constraint that
+
+    .. math::
+
+       \mathrm{d}/\mathrm{d}r \left[ \frac{\epsilon}{\mathrm{G} M(r) / r} \right] &gt; 0,
+
+    where :math:`\epsilon` is the specific heating energy :cite:p:`du_tidal_2024`. At radii smaller than the shell-crossing radius defined by the above condition the specific energy is assumed to be proportional to :math:`\mathrm{G} M(r) / r`, with a smooth transition through this radius.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingMonotonic
-     !!{
+     !!{RST
      Implementation of a mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
@@ -65,8 +64,8 @@
   end type massDistributionHeatingMonotonic
 
   interface massDistributionHeatingMonotonic
-     !!{
-     Constructors for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
+     !!{RST
+     Constructors for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -80,9 +79,8 @@
 contains
 
   function monotonicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,8 +100,8 @@ contains
   end function monotonicConstructorParameters
   
   function monotonicConstructorInternal(massDistributionHeating_) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
+    !!{RST
+    Constructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonic)                        :: self
@@ -126,8 +124,8 @@ contains
   end function monotonicConstructorInternal
 
   subroutine monotonicDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionHeatingMonotonic} mass distribution heating class.
+    !!{RST
+    Destructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingMonotonic), intent(inout) :: self
@@ -139,7 +137,7 @@ contains
   end subroutine monotonicDestructor
 
   double precision function monotonicSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
+    !!{RST
     Compute the specific energy in a monotonically-heated mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -168,7 +166,7 @@ contains
   end function monotonicSpecificEnergy
 
   double precision function monotonicSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -207,7 +205,7 @@ contains
   end function monotonicSpecificEnergyGradient
 
   logical function monotonicSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none
@@ -218,7 +216,7 @@ contains
   end function monotonicSpecificEnergyIsEverywhereZero
 
   logical function monotonicNoShellCrossingIsValid(self,radius,massDistribution_)
-    !!{
+    !!{RST
     Determines if the no shell crossing assumption is valid.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -268,7 +266,7 @@ contains
   end function monotonicNoShellCrossingIsValid
 
   subroutine monotonicComputeRadiusShellCrossing(self,radius,massDistribution_)
-    !!{
+    !!{RST
     Determines if the no shell crossing assumption is valid.
     !!}
     use :: Root_Finder                     , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -337,7 +335,7 @@ contains
   end subroutine monotonicComputeRadiusShellCrossing
 
   double precision function monotonicRadiusShellCrossingRoot_(radius) result(root)
-    !!{
+    !!{RST
     Root function used in finding the radius where shell crossing happens.
     !!}
     implicit none
@@ -348,7 +346,7 @@ contains
   end function monotonicRadiusShellCrossingRoot_
   
   double precision function monotonicRadiusShellCrossingRoot(self,radius,massDistribution_)
-    !!{
+    !!{RST
     Root function used in finding the radius where shell crossing happens.
     !!}
     use :: Coordinates             , only : coordinateSpherical, assignment(=)

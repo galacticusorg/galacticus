@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that computes the time of the most recent major merger between nodes.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorNodeMajorMergerTime">
-   <description>A node operator class that records the cosmic time of the most recent dark matter halo--halo major merger for each node. A merger is classified as major when the progenitor mass ratio $M_2/M_1 \geq$ \mono{fractionMassMajorMerger} (default 0.25, where $M_2 \leq M_1$). The time is stored as a meta-property of the basic component and is propagated through promotions.</description>
+  <nodeOperator name="nodeOperatorNodeMajorMergerTime" docformat="rst">
+   <description>
+   A node operator class that records the cosmic time of the most recent dark matter halo--halo major merger for each node. A merger is classified as major when the progenitor mass ratio :math:`M_2/M_1 \geq` ``fractionMassMajorMerger`` (default 0.25, where :math:`M_2 \leq M_1`). The time is stored as a meta-property of the basic component and is propagated through promotions.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeMajorMergerTime
-     !!{
+     !!{RST
      A node operator class that computes the time of the most recent major merger between nodes.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorNodeMajorMergerTime
   
   interface nodeOperatorNodeMajorMergerTime
-     !!{
-     Constructors for the \refClass{nodeOperatorNodeMajorMergerTime} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorNodeMajorMergerTime`` node operator class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function nodeMajorMergerTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNodeMajorMergerTime} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorNodeMajorMergerTime`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -60,10 +62,12 @@ contains
     double precision                                                 :: fractionMassMajorMerger
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionMassMajorMerger</name>
       <defaultValue>0.25d0</defaultValue>
-      <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+      <description>
+      The mass ratio (:math:`M_2/M_1` where :math:`M_2 &lt; M_1`) of merging halos above which the merger should be considered to be "major".
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -75,8 +79,8 @@ contains
   end function nodeMajorMergerTimeConstructorParameters
 
   function nodeMajorMergerTimeConstructorInternal(fractionMassMajorMerger) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorNodeMajorMergerTime} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorNodeMajorMergerTime`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeMajorMergerTime)                :: self
@@ -92,7 +96,7 @@ contains
   end function nodeMajorMergerTimeConstructorInternal
 
   subroutine nodeMajorMergerTimeNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize nodeMajorMergerTime level data.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -107,7 +111,7 @@ contains
   end subroutine nodeMajorMergerTimeNodeInitialize
 
   subroutine nodeMajorMergerTimeNodesMerge(self,node)
-    !!{
+    !!{RST
     Record node major merger times.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -124,7 +128,7 @@ contains
   end subroutine nodeMajorMergerTimeNodesMerge
  
   subroutine nodeMajorMergerTimeNodePromote(self,node)
-    !!{
+    !!{RST
     Promote node major merger times.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

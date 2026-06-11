@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a min-max analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax">
-   <description>An output analysis property operator that clamps a galaxy property value to lie within a specified range, replacing values below \mono{thresholdMinimum} with the minimum threshold and values above \mono{thresholdMaximum} with the maximum threshold.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax" docformat="rst">
+   <description>
+   An output analysis property operator that clamps a galaxy property value to lie within a specified range, replacing values below ``thresholdMinimum`` with the minimum threshold and values above ``thresholdMaximum`` with the maximum threshold.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMinMax
-     !!{
+     !!{RST
      A high-pass filter property operator class.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a min-max analysis property operator class.
   end type outputAnalysisPropertyOperatorMinMax
 
   interface outputAnalysisPropertyOperatorMinMax
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class.
      !!}
      module procedure minMaxConstructorParameters
      module procedure minMaxConstructorInternal
@@ -47,8 +49,8 @@ Implements a min-max analysis property operator class.
 contains
 
   function minMaxConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,15 +60,19 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdMinimum</name>
       <source>parameters</source>
-      <description>Minimum threshold for the min-max property operator.</description>
+      <description>
+      Minimum threshold for the min-max property operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdMaximum</name>
       <source>parameters</source>
-      <description>Maximum threshold for the min-max property operator.</description>
+      <description>
+      Maximum threshold for the min-max property operator.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorMinMax(thresholdMinimum,thresholdMaximum)
@@ -77,8 +83,8 @@ contains
   end function minMaxConstructorParameters
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMinMax} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self
@@ -91,7 +97,7 @@ contains
   end function minMaxConstructorInternal
 
   double precision function minMaxOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an minMax output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

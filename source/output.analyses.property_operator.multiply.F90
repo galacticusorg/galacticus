@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a multiplication analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMultiply">
-   <description>An output analysis property operator that multiplies a galaxy property value by a fixed scalar \mono{multiplier}, useful for unit conversions or rescaling properties before binning or likelihood computation.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMultiply" docformat="rst">
+   <description>
+   An output analysis property operator that multiplies a galaxy property value by a fixed scalar ``multiplier``, useful for unit conversions or rescaling properties before binning or likelihood computation.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMultiply
-     !!{
+     !!{RST
      A multiplication property operator class.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a multiplication analysis property operator class.
   end type outputAnalysisPropertyOperatorMultiply
 
   interface outputAnalysisPropertyOperatorMultiply
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class.
      !!}
      module procedure multiplyConstructorParameters
      module procedure multiplyConstructorInternal
@@ -47,8 +49,8 @@ Implements a multiplication analysis property operator class.
 contains
 
   function multiplyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,11 +60,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>multiplier</name>
       <source>parameters</source>
       <variable>multiplier</variable>
-      <description>The fixed scalar value by which the galaxy property is multiplied, enabling unit conversions or rescaling before binning or likelihood computation.</description>
+      <description>
+      The fixed scalar value by which the galaxy property is multiplied, enabling unit conversions or rescaling before binning or likelihood computation.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorMultiply(multiplier)
@@ -73,8 +77,8 @@ contains
   end function multiplyConstructorParameters
 
   function multiplyConstructorInternal(multiplier) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMultiply} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self
@@ -87,7 +91,7 @@ contains
   end function multiplyConstructorInternal
 
   double precision function multiplyOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an multiply output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

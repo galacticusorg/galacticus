@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a random error output analysis distribution operator class providing errors in $\log_{10}$
-  of N-body halo concentration.
+  !!{RST
+  Implements a random error output analysis distribution operator class providing errors in :math:`\log_{10}` of N-body halo concentration.
   !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc">
-   <description>An output analysis distribution operator that applies N-body measurement errors in $\log_{10}$ halo concentration, modeling the error as a polynomial in concentration (coefficients \mono{a}) with particle-number scaling exponent \mono{b} and particle mass \mono{massParticle}.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbdyCnc" docformat="rst">
+   <description>
+   An output analysis distribution operator that applies N-body measurement errors in :math:`\log_{10}` halo concentration, modeling the error as a polynomial in concentration (coefficients ``a``) with particle-number scaling exponent ``b`` and particle mass ``massParticle``.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbdyCnc
-     !!{
-     A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
+     !!{RST
+     A random error output distribution operator class providing errors in :math:`\log_{10}` of N-body halo mass.
      !!}
      private
      class           (nodePropertyExtractorClass), pointer                   :: nodePropertyExtractor_ => null()
@@ -43,8 +44,8 @@
   end type outputAnalysisDistributionOperatorRndmErrNbdyCnc
 
   interface outputAnalysisDistributionOperatorRndmErrNbdyCnc
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisDistributionOperatorRndmErrNbdyCnc`` output analysis distribution operator class.
      !!}
      module procedure randomErrorNbdyCncConstructorParameters
      module procedure randomErrorNbdyCncConstructorInternal
@@ -53,8 +54,8 @@
 contains
 
   function randomErrorNbdyCncConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisDistributionOperatorRndmErrNbdyCnc`` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,20 +67,26 @@ contains
 
     allocate(a(parameters%count('a')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
-      <description>Coefficients of the polynomial in concentration in the concentration error model.</description>
+      <description>
+      Coefficients of the polynomial in concentration in the concentration error model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
       <source>parameters</source>
-      <description>The exponent of particle number in the concentration error model.</description>
+      <description>
+      The exponent of particle number in the concentration error model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>The mass of the particle in the N-body simulation.</description>
+      <description>
+      The mass of the particle in the N-body simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
@@ -92,8 +99,8 @@ contains
   end function randomErrorNbdyCncConstructorParameters
 
   function randomErrorNbdyCncConstructorInternal(a,b,massParticle,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisDistributionOperatorRndmErrNbdyCnc`` output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -116,8 +123,8 @@ contains
   end function randomErrorNbdyCncConstructorInternal
 
   subroutine randomErrorNbdyCncDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbdyCnc} output analysis distribution operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisDistributionOperatorRndmErrNbdyCnc`` output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorRndmErrNbdyCnc), intent(inout) :: self
 
@@ -128,8 +135,8 @@ contains
   end subroutine randomErrorNbdyCncDestructor
 
   double precision function randomErrorNbdyCncRootVariance(self,propertyValue,node)
-    !!{
-    Computes errors on $\log_{10}($halo concentration$)$ for N-body halos.
+    !!{RST
+    Computes errors on :math:`\log_{10}(`\ halo concentration\ :math:`)` for N-body halos.
     !!}
    use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
    implicit none

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a high-pass filter analysis weight operator class.
 !!}
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorFilterHighPass">
-   <description>An output analysis weight operator that multiplies galaxy weights by a high-pass filter function, suppressing contributions from galaxies with properties below \mono{filterThreshold} (with transition sharpness controlled by \mono{filterWidth}) during statistical comparisons.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorFilterHighPass" docformat="rst">
+   <description>
+   An output analysis weight operator that multiplies galaxy weights by a high-pass filter function, suppressing contributions from galaxies with properties below ``filterThreshold`` (with transition sharpness controlled by ``filterWidth``) during statistical comparisons.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorFilterHighPass
-     !!{
+     !!{RST
      A high-pass filter weight operator class.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a high-pass filter analysis weight operator class.
   end type outputAnalysisWeightOperatorFilterHighPass
 
   interface outputAnalysisWeightOperatorFilterHighPass
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis weight operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -47,8 +49,8 @@ Implements a high-pass filter analysis weight operator class.
 contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,17 +60,21 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterThreshold</name>
       <source>parameters</source>
       <variable>filterThreshold</variable>
-      <description>Threshold for the high-pass filter distribution operator.</description>
+      <description>
+      Threshold for the high-pass filter distribution operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterWidth</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The width of the filter (0 for a sharp transition; $&gt;0$ for a smoothed transition.</description>
+      <description>
+      The width of the filter (0 for a sharp transition; :math:`&gt;0` for a smoothed transition.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisWeightOperatorFilterHighPass(filterThreshold,filterWidth)
@@ -79,8 +85,8 @@ contains
   end function filterHighPassConstructorParameters
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorFilterHighPass} output analysis weight operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class.
     !!}
     implicit none
     type            (outputAnalysisWeightOperatorFilterHighPass)                          :: self
@@ -95,7 +101,7 @@ contains
   end function filterHighPassConstructorInternal
 
   double precision function filterHighPassOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an filterHighPass output analysis weight operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

@@ -17,23 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileScaleInterpolate">
+  <nodeOperator name="nodeOperatorDarkMatterProfileScaleInterpolate" docformat="rst">
    <description>
-    A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent
-    nodes. For primary progenitor nodes $\dot{r}_\mathrm{s} = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)$, where
-    $r_{\mathrm{s},i}$ is the scale radius of the dark matter profile of the node in the initialized tree, $r_{\mathrm{s},i+1}$
-    is the spin of its parent node, and $t_i$ and $t_{i+1}$ are the corresponding times. For non-primary progenitors the rate
-    of change is set to zero, i.e. $\dot{r}_\mathrm{s}=0$.
+   A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes. For primary progenitor nodes :math:`\dot{r}_\mathrm{s} = (r_{\mathrm{s},i+1}-r_{\mathrm{s},i})/(t_{i+1}-t_i)`, where :math:`r_{\mathrm{s},i}` is the scale radius of the dark matter profile of the node in the initialized tree, :math:`r_{\mathrm{s},i+1}` is the spin of its parent node, and :math:`t_i` and :math:`t_{i+1}` are the corresponding times. For non-primary progenitors the rate of change is set to zero, i.e. :math:`\dot{r}_\mathrm{s}=0`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileScaleInterpolate
-     !!{
+     !!{RST
      A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
      !!}
      private
@@ -46,8 +42,8 @@
   end type nodeOperatorDarkMatterProfileScaleInterpolate
   
   interface nodeOperatorDarkMatterProfileScaleInterpolate
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class.
      !!}
      module procedure dmpScaleInterpolateConstructorParameters
      module procedure dmpScaleInterpolateConstructorInternal
@@ -56,8 +52,8 @@
 contains
   
   function dmpScaleInterpolateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +68,8 @@ contains
   end function dmpScaleInterpolateConstructorParameters
 
   function dmpScaleInterpolateConstructorInternal() result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate) :: self
@@ -85,7 +81,7 @@ contains
   end function dmpScaleInterpolateConstructorInternal
 
   subroutine dmpScaleInterpolateNodeInitialize(self,node)
-    !!{
+    !!{RST
     Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
     !!}
     use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
@@ -140,7 +136,7 @@ contains
   end subroutine dmpScaleInterpolateNodeInitialize
   
   subroutine dmpScaleInterpolateDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
@@ -155,7 +151,7 @@ contains
   end subroutine dmpScaleInterpolateDifferentialEvolutionAnalytics
 
   subroutine dmpScaleInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Evolve dark matter profile scale radius at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -182,9 +178,8 @@ contains
   end subroutine dmpScaleInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine dmpScaleInterpolateNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    growth rate of \mono{node} to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the scale radius growth rate of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

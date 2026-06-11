@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a satellite bound mass initializor class that sets the initial bound mass using a specified density contrast
-  definition.
+  !!{RST
+  Implementation of a satellite bound mass initializor class that sets the initial bound mass using a specified density contrast definition.
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
@@ -27,19 +26,15 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
-  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorDensityContrast">
+  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorDensityContrast" docformat="rst">
    <description>
-    A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the mass enclosed within
-    the radius defined by a given density contrast. The density contrast is evaluated using the
-    \refClass{virialDensityContrastClass} object specified by \mono{[virialDensityContrastDefinition]}, and the mass is computed
-    using the \mono{Dark\_Matter\_Profile\_Mass\_Definition} function, which accounts for the halo density profile.
+   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the mass enclosed within the radius defined by a given density contrast. The density contrast is evaluated using the ``virialDensityContrastClass`` object specified by ``[virialDensityContrastDefinition]``, and the mass is computed using the ``Dark_Matter_Profile_Mass_Definition`` function, which accounts for the halo density profile.
    </description>
   </satelliteMassBoundInitializor>
   !!]
   type, extends(satelliteMassBoundInitializorClass) :: satelliteMassBoundInitializorDensityContrast
-     !!{
-     Implementation of a satellite bound mass initializor class that sets the initial bound mass using a specified density
-     contrast definition.
+     !!{RST
+     Implementation of a satellite bound mass initializor class that sets the initial bound mass using a specified density contrast definition.
      !!}
      private
      class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
@@ -52,8 +47,8 @@
   end type satelliteMassBoundInitializorDensityContrast
 
   interface satelliteMassBoundInitializorDensityContrast
-     !!{
-     Constructors for the \refClass{satelliteMassBoundInitializorDensityContrast} satellite bound mass initializor class.
+     !!{RST
+     Constructors for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
      !!}
      module procedure densityContrastConstructorParameters
      module procedure densityContrastConstructorInternal
@@ -62,9 +57,8 @@
 contains
 
   function densityContrastConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteMassBoundInitializorDensityContrast} satellite bound mass initializor class which
-    builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,8 +87,8 @@ contains
   end function densityContrastConstructorParameters
 
   function densityContrastConstructorInternal(cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteMassBoundInitializorDensityContrast} satellite bound mass initializor class.
+    !!{RST
+    Internal constructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
     !!}
     implicit none
     type (satelliteMassBoundInitializorDensityContrast)                        :: self
@@ -110,8 +104,8 @@ contains
   end function densityContrastConstructorInternal
 
   subroutine densityContrastDestructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMassBoundInitializorDensityContrast} satellite bound mass initializor class.
+    !!{RST
+    Destructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
     !!}
     implicit none
     type(satelliteMassBoundInitializorDensityContrast), intent(inout) :: self
@@ -126,7 +120,7 @@ contains
   end subroutine densityContrastDestructor
 
   double precision function densityContrastMassBound(self,node)
-    !!{
+    !!{RST
     Returns the initial bound mass of a satellite halo based on a specified density contrast definition.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

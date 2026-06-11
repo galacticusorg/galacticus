@@ -17,14 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales),
-  and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !!{RST
+  An implementation of linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
   !!}
 
   !![
-  <linearGrowth name="linearGrowthNonClusteringBaryonsDarkMatter">
-   <description>Linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
+  <linearGrowth name="linearGrowthNonClusteringBaryonsDarkMatter" docformat="rst">
+   <description>
+   Linear growth of cosmological structure in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+   </description>
   </linearGrowth>
   !!]
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
@@ -32,9 +33,8 @@
   use :: Tables              , only : table1D
 
   type, extends(linearGrowthClass) :: linearGrowthNonClusteringBaryonsDarkMatter
-     !!{
-     A linear growth of cosmological structure contrast class in the limit where baryons do not cluster (i.e. small scales),
-     and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+     !!{RST
+     A linear growth of cosmological structure contrast class in the limit where baryons do not cluster (i.e. small scales), and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
      !!}
      private
      logical                                                 :: tableInitialized             =  .false.
@@ -58,8 +58,8 @@
   end type linearGrowthNonClusteringBaryonsDarkMatter
 
   interface linearGrowthNonClusteringBaryonsDarkMatter
-     !!{
-     Constructors for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
+     !!{RST
+     Constructors for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
      !!}
      module procedure nonClusteringBaryonsDarkMatterConstructorParameters
      module procedure nonClusteringBaryonsDarkMatterConstructorInternal
@@ -71,8 +71,8 @@
 contains
 
   function nonClusteringBaryonsDarkMatterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,8 +95,8 @@ contains
   end function nonClusteringBaryonsDarkMatterConstructorParameters
 
   function nonClusteringBaryonsDarkMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
+    !!{RST
+    Internal constructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
     !!}
     implicit none
     type            (linearGrowthNonClusteringBaryonsDarkMatter)                           :: self
@@ -120,8 +120,8 @@ contains
   end function nonClusteringBaryonsDarkMatterConstructorInternal
 
   subroutine nonClusteringBaryonsDarkMatterDestructor(self)
-    !!{
-    Destructor for the \refClass{linearGrowthNonClusteringBaryonsDarkMatter} linear growth class.
+    !!{RST
+    Destructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
     !!}
     implicit none
     type (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self
@@ -138,9 +138,8 @@ contains
   end subroutine nonClusteringBaryonsDarkMatterDestructor
 
   subroutine nonClusteringBaryonsDarkMatterRetabulate(self,time)
-    !!{
-    Returns the linear growth factor $D(a)$ for expansion factor \mono{aExpansion}, normalized such that
-    $D(1)=1$ for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
+    !!{RST
+    Returns the linear growth factor :math:`D(a)` for expansion factor ``aExpansion``, normalized such that :math:`D(1)=1` for a nonClusteringBaryonsDarkMatter matter plus cosmological constant cosmology.
     !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
@@ -239,7 +238,7 @@ contains
   contains
 
     integer function growthFactorODEs(time,values,derivatives)
-      !!{
+      !!{RST
       System of differential equations to solve for the growth factor.
       !!}
       double precision              , intent(in   ) :: time
@@ -269,7 +268,7 @@ contains
   end subroutine nonClusteringBaryonsDarkMatterRetabulate
 
   double precision function nonClusteringBaryonsDarkMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
-    !!{
+    !!{RST
     Return the linear growth factor at the given epoch.
     !!}
     implicit none
@@ -300,7 +299,7 @@ contains
   end function nonClusteringBaryonsDarkMatterValue
 
   double precision function nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     !!}
     implicit none
@@ -324,7 +323,7 @@ contains
   end function nonClusteringBaryonsDarkMatterLogDerivativeExpansionFactor
 
   double precision function nonClusteringBaryonsDarkMatterLogDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic gradient of linear growth factor with respect to wavenumber at the given epoch.
     !!}
     implicit none
@@ -341,7 +340,7 @@ contains
   end function nonClusteringBaryonsDarkMatterLogDerivativeWavenumber
 
   logical function nonClusteringBaryonsDarkMatterIsWavenumberDependent(self,component)
-    !!{
+    !!{RST
     Return false indicating that the growth function is not wavenumber-dependent.
     !!}
     implicit none

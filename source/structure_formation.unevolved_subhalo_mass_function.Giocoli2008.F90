@@ -21,18 +21,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass function class.
+!!{RST
+Implements a :cite:t:`giocoli_population_2008` unevolved dark matter subhalo mass function class.
 !!}
 
   !![
-  <unevolvedSubhaloMassFunction name="unevolvedSubhaloMassFunctionGiocoli2008">
-   <description>The halo mass function is computed from the function given by \cite{giocoli_population_2008}.</description>
+  <unevolvedSubhaloMassFunction name="unevolvedSubhaloMassFunctionGiocoli2008" docformat="rst">
+   <description>
+   The halo mass function is computed from the function given by :cite:t:`giocoli_population_2008`.
+   </description>
   </unevolvedSubhaloMassFunction>
   !!]
   type, extends(unevolvedSubhaloMassFunctionClass) :: unevolvedSubhaloMassFunctionGiocoli2008
-     !!{
-     An unevolved subhalo mass function class using the model of \cite{giocoli_population_2008}.
+     !!{RST
+     An unevolved subhalo mass function class using the model of :cite:t:`giocoli_population_2008`.
      !!}
      private
      double precision :: normalization, exponent
@@ -42,8 +44,8 @@ Implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass f
   end type unevolvedSubhaloMassFunctionGiocoli2008
 
   interface unevolvedSubhaloMassFunctionGiocoli2008
-     !!{
-     Constructors for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class.
+     !!{RST
+     Constructors for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class.
      !!}
      module procedure giocoli2008ConstructorParameters
      module procedure giocoli2008ConstructorInternal
@@ -55,8 +57,8 @@ Implements a \cite{giocoli_population_2008} unevolved dark matter subhalo mass f
 contains
 
   function giocoli2008ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,19 +67,27 @@ contains
     double precision                                                         :: normalization, exponent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>0.21d0</defaultValue>
-      <defaultSource>\cite{giocoli_population_2008}</defaultSource>
-      <description>The parameter $N_0$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
+      <defaultSource>
+      :cite:t:`giocoli_population_2008`
+      </defaultSource>
+      <description>
+      The parameter :math:`N_0` in the :cite:t:`giocoli_population_2008` unevolved subhalo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <source>parameters</source>
       <defaultValue>0.8d0</defaultValue>
-      <defaultSource>\cite{giocoli_population_2008}</defaultSource>
-      <description>The parameter $\alpha$ in the \cite{giocoli_population_2008} unevolved subhalo mass function fit.</description>
+      <defaultSource>
+      :cite:t:`giocoli_population_2008`
+      </defaultSource>
+      <description>
+      The parameter :math:`\alpha` in the :cite:t:`giocoli_population_2008` unevolved subhalo mass function fit.
+      </description>
     </inputParameter>
     !!]
     self=unevolvedSubhaloMassFunctionGiocoli2008(normalization,exponent)
@@ -88,8 +98,8 @@ contains
   end function giocoli2008ConstructorParameters
 
   function giocoli2008ConstructorInternal(normalization,exponent) result(self)
-    !!{
-    Internal constructor for the \refClass{unevolvedSubhaloMassFunctionGiocoli2008} halo mass function class.
+    !!{RST
+    Internal constructor for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class.
     !!}
     implicit none
     type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: self
@@ -102,7 +112,7 @@ contains
   end function giocoli2008ConstructorInternal
 
   double precision function giocoli2008Differential(self,time,mass,massHost)
-    !!{
+    !!{RST
     Return the differential unevolved subhalo mass function at the given time and mass.
     !!}
     implicit none
@@ -127,7 +137,7 @@ contains
   end function giocoli2008Differential
 
   double precision function giocoli2008Integrated(self,time,massLow,massHigh,massHost)
-    !!{
+    !!{RST
     Return the integrated unevolved subhalo mass function at the given time and mass.
     !!}
     implicit none
@@ -158,7 +168,7 @@ contains
   contains
 
     double precision function gammaIncomplete(x)
-      !!{
+      !!{RST
       Evaluate the incomplete gamma function, possibly for a negative exponent.
       !!}
       use :: Error          , only : Error_Report

@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreePhysical">
-   <description>Extracts physical (floating-point) properties of nodes within galaxy merger trees, such as halo masses, virial radii, and cosmic times, providing the continuous-valued data needed for merger tree analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreePhysical" docformat="rst">
+   <description>
+   Extracts physical (floating-point) properties of nodes within galaxy merger trees, such as halo masses, virial radii, and cosmic times, providing the continuous-valued data needed for merger tree analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMergerTreePhysical
-     !!{
+     !!{RST
      A property extractor which extracts the physical properties of galaxy merger trees.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorGalaxyMergerTreePhysical
 
   interface nodePropertyExtractorGalaxyMergerTreePhysical
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class.
      !!}
      module procedure galaxyMergerTreePhysicalConstructorParameters
      module procedure galaxyMergerTreePhysicalConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function galaxyMergerTreePhysicalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function galaxyMergerTreePhysicalConstructorParameters
 
   function galaxyMergerTreePhysicalConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreePhysical} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreePhysical) :: self
@@ -78,7 +80,7 @@ contains
   end function galaxyMergerTreePhysicalConstructorInternal
 
   integer function galaxyMergerTreePhysicalElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount
@@ -90,7 +92,7 @@ contains
   end function galaxyMergerTreePhysicalElementCount
 
   function galaxyMergerTreePhysicalExtract(self,node,instance) result(galaxyMergerTree)
-    !!{
+    !!{RST
     Implement a galaxyMergerTreePhysical output extractor.
     !!}
     use :: Galacticus_Nodes                           , only : nodeComponentBasic
@@ -120,8 +122,8 @@ contains
   end function galaxyMergerTreePhysicalExtract
   
   subroutine galaxyMergerTreePhysicalNames(self,names)
-    !!{
-    Return the names of the \mono{galaxyMergerTreePhysical} properties.
+    !!{RST
+    Return the names of the ``galaxyMergerTreePhysical`` properties.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
@@ -149,8 +151,8 @@ contains
   end subroutine galaxyMergerTreePhysicalNames
 
   subroutine galaxyMergerTreePhysicalDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{galaxyMergerTreePhysical} properties.
+    !!{RST
+    Return the descriptions of the ``galaxyMergerTreePhysical`` properties.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
@@ -177,8 +179,8 @@ contains
   end subroutine galaxyMergerTreePhysicalDescriptions
 
   function galaxyMergerTreePhysicalUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{galaxyMergerTreePhysical} properties in the SI system.
+    !!{RST
+    Return the units of the ``galaxyMergerTreePhysical`` properties in the SI system.
     !!}
     use :: Error                                      , only : Error_Report
     use :: Numerical_Constants_Astronomical           , only : gigaYear
@@ -206,7 +208,7 @@ contains
   end function galaxyMergerTreePhysicalUnitsInSI
 
   function galaxyMergerTreePhysicalUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the galaxyMergerTreePhysical properties.
     !!}
     use :: Error                                      , only : Error_Report

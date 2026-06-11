@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Provides a node merger class implementing a multi level hierarchy.
   !!}
 
   !![
-  <mergerTreeNodeMerger name="mergerTreeNodeMergerMultiLevelHierarchy">
-   <description>A node merger class implementing a multi level hierarchy.</description>
+  <mergerTreeNodeMerger name="mergerTreeNodeMergerMultiLevelHierarchy" docformat="rst">
+   <description>
+   A node merger class implementing a multi level hierarchy.
+   </description>
   </mergerTreeNodeMerger>
   !!]
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerMultiLevelHierarchy
-     !!{
+     !!{RST
      Implementation of the multi-level hierarchy node merger class.
      !!}
      private
@@ -36,8 +38,8 @@
   end type mergerTreeNodeMergerMultiLevelHierarchy
 
   interface mergerTreeNodeMergerMultiLevelHierarchy
-     !!{
-     Constructors for the \refClass{mergerTreeNodeMergerMultiLevelHierarchy} node merger class.
+     !!{RST
+     Constructors for the ``mergerTreeNodeMergerMultiLevelHierarchy`` node merger class.
      !!}
      module procedure multiLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerMultiLevelHierarchy
@@ -45,8 +47,8 @@
 contains
 
   function multiLevelHierarchyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeNodeMergerMultiLevelHierarchy} node merger class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeNodeMergerMultiLevelHierarchy`` node merger class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function multiLevelHierarchyConstructorParameters
 
   subroutine multiLevelHierarchyProcess(self,node)
-    !!{
+    !!{RST
     Processes a node merging event, utilizing a multi level substructure hierarchy.
     !!}
     use :: Display            , only : displayGreen  , displayReset

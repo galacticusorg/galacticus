@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <nbodyOperator name="nbodyOperatorEnergyTensors">
-   <description>An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors of a particle distribution, characterizing the dynamical state and shape of N-body halos. Self-bound particle restriction is controlled by \mono{[selfBoundOnly]}, and statistical uncertainties can be estimated using bootstrap resampling via \mono{[bootstrapSampleCount]}.</description>
+  <nbodyOperator name="nbodyOperatorEnergyTensors" docformat="rst">
+   <description>
+   An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors of a particle distribution, characterizing the dynamical state and shape of N-body halos. Self-bound particle restriction is controlled by ``[selfBoundOnly]``, and statistical uncertainties can be estimated using bootstrap resampling via ``[bootstrapSampleCount]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnergyTensors
-     !!{
+     !!{RST
      An N-body data operator which determines the kinetic and Chandrasekhar potential energy tensors.
      !!}
      private
@@ -43,8 +45,8 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
   end type nbodyOperatorEnergyTensors
 
   interface nbodyOperatorEnergyTensors
-     !!{
-     Constructors for the \refClass{nbodyOperatorEnergyTensors} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorEnergyTensors`` N-body operator class.
      !!}
      module procedure energyTensorsConstructorParameters
      module procedure energyTensorsConstructorInternal
@@ -53,8 +55,8 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
 contains
 
   function energyTensorsConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorEnergyTensors} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorEnergyTensors`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,16 +67,20 @@ contains
     integer(c_size_t                  )                :: bootstrapSampleCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the mean position and velocity are computed only for self-bound particles</description>
+      <description>
+      If true, the mean position and velocity are computed only for self-bound particles
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -87,8 +93,8 @@ contains
   end function energyTensorsConstructorParameters
 
   function energyTensorsConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorEnergyTensors} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorEnergyTensors`` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorEnergyTensors)                        :: self
@@ -103,8 +109,8 @@ contains
   end function energyTensorsConstructorInternal
 
   subroutine energyTensorsDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorEnergyTensors} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorEnergyTensors`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorEnergyTensors), intent(inout) :: self
@@ -116,7 +122,7 @@ contains
   end subroutine energyTensorsDestructor
   
   subroutine energyTensorsOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the kinetic and potential energy tensors of N-body particles.
     !!}
     use    :: Display                         , only : displayCounter                , displayCounterClear   , displayIndent, displayMessage, &

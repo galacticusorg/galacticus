@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements an object to store octree data structure.
 !!}
 
 module Octree_Data_Structure
-  !!{
+  !!{RST
   Implements an object to store octree data structure.
   !!}
   use, intrinsic :: ISO_C_Binding , only : c_size_t
@@ -38,7 +38,7 @@ module Octree_Data_Structure
   !!]
 
   type :: octreeData
-     !!{
+     !!{RST
      Type to give an octree data structure.
      !!}
      private
@@ -64,7 +64,7 @@ module Octree_Data_Structure
   end type octreeData
 
   type :: octreeNodePointer
-     !!{
+     !!{RST
      Pointer to an octreeNode object.
      !!}
      private
@@ -72,7 +72,7 @@ module Octree_Data_Structure
   end type octreeNodePointer
 
   type :: octreeNode
-     !!{
+     !!{RST
      Type to give a node in the octree.
      !!}
      private
@@ -96,8 +96,8 @@ module Octree_Data_Structure
 contains
 
   subroutine Build_Octree(self,coordinates,weights)
-    !!{
-    Build an octree given the coordinates and weights of particles using the \cite{barnes_hierarchical_1986} algorithm.
+    !!{RST
+    Build an octree given the coordinates and weights of particles using the :cite:t:`barnes_hierarchical_1986` algorithm.
     !!}
     implicit none
     class           (octreeData),                 intent(inout) :: self
@@ -128,7 +128,7 @@ contains
   end subroutine Build_Octree
 
   subroutine Destroy_Octree(self)
-    !!{
+    !!{RST
     Destroy the octree.
     !!}
     implicit none
@@ -140,7 +140,7 @@ contains
   end subroutine Destroy_Octree
 
   subroutine Copy_Octree(self,selfCopy)
-    !!{
+    !!{RST
     Make a copy of the octree.
     !!}
     implicit none
@@ -153,7 +153,7 @@ contains
   end subroutine Copy_Octree
 
   subroutine Add_Particle_To_Octree(self,coordinate,weight)
-    !!{
+    !!{RST
     Add a particle to the octree.
     !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
@@ -218,7 +218,7 @@ contains
   end subroutine Add_Particle_To_Octree
 
   subroutine Remove_Particle_From_Octree(self,coordinate,weight)
-    !!{
+    !!{RST
     Remove a particle from the octree.
     !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
@@ -274,8 +274,8 @@ contains
   end subroutine Remove_Particle_From_Octree
 
   subroutine Traverse_Octree_Compute{Type¦label}(self,coordinate,weight,thetaTolerance,value,evaluateFunction,isExternalParticle)
-    !!{
-    Octree traversal using the \cite{barnes_hierarchical_1986} algorithm.
+    !!{RST
+    Octree traversal using the :cite:t:`barnes_hierarchical_1986` algorithm.
     !!}
     implicit none
     class           (octreeData          ),               intent(in   ) :: self
@@ -361,7 +361,7 @@ contains
   end subroutine Traverse_Octree_Compute{Type¦label}
 
   subroutine Create_Node(node,boxBottomLeft,boxWidth,depth)
-    !!{
+    !!{RST
     Create a node in the octree.
     !!}
     implicit none
@@ -383,7 +383,7 @@ contains
   end subroutine Create_Node
 
   recursive subroutine Copy_Node(node,nodeCopy)
-    !!{
+    !!{RST
     Make a copy of a node and all its child nodes.
     !!}
     implicit none
@@ -415,7 +415,7 @@ contains
   end subroutine Copy_Node
 
   recursive subroutine Destroy_Node(node)
-    !!{
+    !!{RST
     Destroy a node and all its child nodes.
     !!}
     implicit none
@@ -435,7 +435,7 @@ contains
   end subroutine Destroy_Node
 
   subroutine Create_Child_Node(node,childIndex)
-    !!{
+    !!{RST
     Create a child node with the given child index.
     !!}
     implicit none
@@ -471,7 +471,7 @@ contains
   end subroutine Create_Child_Node
 
   function getChildIndex(node,coordinate)
-    !!{
+    !!{RST
     Return the index of the child node that a particle belongs to.
     !!}
     use :: Display            , only : displayMessage, verbosityLevelWarn
@@ -511,7 +511,7 @@ contains
   end function getChildIndex
 
   function getNonEmptySibling(node) result(sibling)
-    !!{
+    !!{RST
     Return the next non-empty sibling node.
     !!}
     implicit none
@@ -536,7 +536,7 @@ contains
   end function getNonEmptySibling
 
   function getLeafNode(rootNode,coordinate,weight) result(leafNode)
-    !!{
+    !!{RST
     Return the leaf node that a particle belongs to.
     !!}
     use :: Numerical_Comparison, only : Values_Differ

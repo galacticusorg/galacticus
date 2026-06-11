@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a thermal warm dark matter particle class.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <darkMatterParticle name="darkMatterParticleWDMThermal">
-   <description>Provides a thermal relic warm dark matter particle whose free-streaming length suppresses small-scale structure formation. The particle mass in keV is set by \mono{[mass]}, and the effective number of relativistic degrees of freedom at freeze-out by \mono{[degreesOfFreedomEffective]}.</description>
+  <darkMatterParticle name="darkMatterParticleWDMThermal" docformat="rst">
+   <description>
+   Provides a thermal relic warm dark matter particle whose free-streaming length suppresses small-scale structure formation. The particle mass in keV is set by ``[mass]``, and the effective number of relativistic degrees of freedom at freeze-out by ``[degreesOfFreedomEffective]``.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleWDMThermal
-     !!{
+     !!{RST
      A thermal warm dark matter particle class.
      !!}
      private
@@ -49,8 +51,8 @@ Implements a thermal warm dark matter particle class.
   end type darkMatterParticleWDMThermal
 
   interface darkMatterParticleWDMThermal
-     !!{
-     Constructors for the \refClass{darkMatterParticleWDMThermal} dark matter particle class.
+     !!{RST
+     Constructors for the ``darkMatterParticleWDMThermal`` dark matter particle class.
      !!}
      module procedure wdmThermalConstructorParameters
      module procedure wdmThermalConstructorInternal
@@ -59,8 +61,8 @@ Implements a thermal warm dark matter particle class.
 contains
 
   function wdmThermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterParticleWDMThermal} dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterParticleWDMThermal`` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,19 +72,23 @@ contains
     double precision                                              :: massValue           , degreesOfFreedomEffectiveValue
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <source>parameters</source>
       <variable>massValue</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass (in keV) of the thermal warm dark matter particle, which determines the free-streaming length and the suppression of small-scale structure relative to cold dark matter; smaller masses give stronger suppression.</description>
+      <description>
+      The mass (in keV) of the thermal warm dark matter particle, which determines the free-streaming length and the suppression of small-scale structure relative to cold dark matter; smaller masses give stronger suppression.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>degreesOfFreedomEffective</name>
       <source>parameters</source>
       <variable>degreesOfFreedomEffectiveValue</variable>
       <defaultValue>1.5d0</defaultValue>
-      <description>The effective number of degrees of freedom for the thermal warm dark matter particle.</description>
+      <description>
+      The effective number of degrees of freedom for the thermal warm dark matter particle.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -95,8 +101,8 @@ contains
   end function wdmThermalConstructorParameters
 
   function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterParticleWDMThermal} dark matter particle class.
+    !!{RST
+    Internal constructor for the ``darkMatterParticleWDMThermal`` dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleWDMThermal)                        :: self
@@ -112,7 +118,7 @@ contains
   end function wdmThermalConstructorInternal
 
   subroutine wdmThermalDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cut off cooling rate class.
     !!}
     implicit none
@@ -125,7 +131,7 @@ contains
   end subroutine wdmThermalDestructor
 
   double precision function wdmThermalMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a thermal warm dark matter particle.
     !!}
     implicit none
@@ -136,7 +142,7 @@ contains
   end function wdmThermalMass
 
   double precision function wdmThermalDegreesOfFreedomEffective(self)
-    !!{
+    !!{RST
     Return the effective number of degrees of freedom of a thermal warm dark matter particle.
     !!}
     implicit none
@@ -147,11 +153,8 @@ contains
   end function wdmThermalDegreesOfFreedomEffective
 
   double precision function wdmThermalDegreesOfFreedomEffectiveDecoupling(self)
-    !!{
-    Return the effective number of relativistic degrees of freedom at the time of decoupling of a thermal warm dark matter
-    particle. The effective number of relativistic degrees of freedom at the time of decoupling is determined from the
-    requirement that the warm dark matter particle have the correct relic density to provide the entire mass of dark matter
-    \citep[][eqn.~17]{hogan_warm_1999}.
+    !!{RST
+    Return the effective number of relativistic degrees of freedom at the time of decoupling of a thermal warm dark matter particle. The effective number of relativistic degrees of freedom at the time of decoupling is determined from the requirement that the warm dark matter particle have the correct relic density to provide the entire mass of dark matter :cite:p:`hogan_warm_1999`.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none

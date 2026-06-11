@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
   !!}
 
@@ -25,24 +25,28 @@
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
 
   !![
-  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
+  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction" docformat="rst">
    <description>
-    A merger tree build mass distribution class in which the sampling density function equal to the halo mass function,
-    \begin{equation}
-    \gamma(M) = \hbox{minmax}(\phi_\mathrm{min},\phi_\mathrm{max},\mathrm{d} n(M)/\mathrm{d}\log M [1 + p_1
-    \log_{10}(M/10^{13}\mathrm{M}_\odot) + p_2 \log_{10}^2(M/10^{13}\mathrm{M}_\odot)),
-    \end{equation}
-     where $\phi_\mathrm{min}=$\mono{[abundanceMinimum]}, $\phi_\mathrm{max}=$\mono{[abundanceMaximum]}, $p_1=$\mono{[modifier1]}, $p_2=$\mono{[modifier2]}, and
-    \begin{equation}
-     \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
-     x &gt; b,\end{array}\right.
-    \end{equation}
-    resulting in a sample of halos representative of a volume of space.
+   A merger tree build mass distribution class in which the sampling density function equal to the halo mass function,
+
+   .. math::
+
+      \gamma(M) = \hbox{minmax}(\phi_\mathrm{min},\phi_\mathrm{max},\mathrm{d} n(M)/\mathrm{d}\log M [1 + p_1
+      \log_{10}(M/10^{13}\mathrm{M}_\odot) + p_2 \log_{10}^2(M/10^{13}\mathrm{M}_\odot)),
+
+   where :math:`\phi_\mathrm{min}=`\ ``[abundanceMinimum]``, :math:`\phi_\mathrm{max}=`\ ``[abundanceMaximum]``, :math:`p_1=`\ ``[modifier1]``, :math:`p_2=`\ ``[modifier2]``, and
+
+   .. math::
+
+      \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a &amp; \hbox{ if } x &lt; a \\ x &amp; \hbox{ if } a \leq x \leq b\\ b &amp; \hbox{ if }
+      x &gt; b,\end{array}\right.
+
+   resulting in a sample of halos representative of a volume of space.
    </description>
   </mergerTreeBuildMassDistribution>
   !!]
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
-     !!{
+     !!{RST
      Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
      !!}
      private
@@ -56,8 +60,8 @@
   end type mergerTreeBuildMassDistributionHaloMassFunction
 
   interface mergerTreeBuildMassDistributionHaloMassFunction
-     !!{
-     Constructors for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass function sampling class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildMassDistributionHaloMassFunction`` merger tree halo mass function sampling class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -66,7 +70,7 @@
 contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the haloMassFunction merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -79,28 +83,36 @@ contains
          &                                                                              modifier1        , modifier2
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>abundanceMinimum</name>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+      <description>
+      The abundance (in units of Mpc\ :math:`^{-3}`) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>abundanceMaximum</name>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+      <description>
+      The abundance (in units of Mpc\ :math:`^{-3}`) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>modifier1</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
+      <description>
+      Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>modifier2</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
+      <description>
+      Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
@@ -116,7 +128,7 @@ contains
   end function haloMassFunctionConstructorParameters
 
   function haloMassFunctionConstructorInternal(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_,haloEnvironment_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the haloMassFunction merger tree halo mass function sampling class.
     !!}
     implicit none
@@ -133,8 +145,8 @@ contains
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassDistributionHaloMassFunction} merger tree halo mass function sampling class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildMassDistributionHaloMassFunction`` merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
@@ -147,7 +159,7 @@ contains
   end subroutine haloMassFunctionDestructor
 
   double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
-    !!{
+    !!{RST
     Computes the halo mass function sampling rate using a volume-limited sampling.
     !!}
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode

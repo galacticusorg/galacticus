@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a accretionFlow spherical mass distribution.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalAccretionFlow">
+  <massDistribution name="massDistributionSphericalAccretionFlow" docformat="rst">
    <description>
-      An implementation of a mass distribution which includes the accretion flow surrounding a halo. The density
-      profile is modeled as
-      \begin{equation}
+   An implementation of a mass distribution which includes the accretion flow surrounding a halo. The density profile is modeled as
+
+   .. math::
+
       \rho(r) = f_\mathrm{trans}(r) \rho_\mathrm{halo}(r) + \rho_\mathrm{accretion}(r),
-      \end{equation}
-      where $\rho_\mathrm{halo}(r)$ is the halo mass distribution, $\rho_\mathrm{accretion}(r)$ is the accretion flow mass distribution,
-      and
-      \begin{equation}
+
+   where :math:`\rho_\mathrm{halo}(r)` is the halo mass distribution, :math:`\rho_\mathrm{accretion}(r)` is the accretion flow mass distribution, and
+
+   .. math::
+
       f_\mathrm{trans}(r) = \left( 1 + \left[\frac{r}{r_\mathrm{trans}}\right]^4 \right)^{-2}.
-      \end{equation}
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalAccretionFlow
-     !!{
+     !!{RST
      Implementation of an accretion flow spherical mass distribution.
      !!}
      private
@@ -59,8 +60,8 @@
   end type massDistributionSphericalAccretionFlow
 
   interface massDistributionSphericalAccretionFlow
-     !!{
-     Constructors for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalAccretionFlow`` mass distribution class.
      !!}
      module procedure sphericalAccretionFlowConstructorParameters
      module procedure sphericalAccretionFlowConstructorInternal
@@ -69,9 +70,8 @@
 contains
 
   function sphericalAccretionFlowConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAccretionFlow`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -84,27 +84,35 @@ contains
     type            (varying_string                        )                :: componentType    , massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTransition</name>
       <source>parameters</source>
-      <description>The transition radius (in Mpc) at which the density profile smoothly switches from the halo profile to the accretion flow, controlled by the fourth-order transition function $f_\mathrm{trans}(r)$.</description>
+      <description>
+      The transition radius (in Mpc) at which the density profile smoothly switches from the halo profile to the accretion flow, controlled by the fourth-order transition function :math:`f_\mathrm{trans}(r)`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_"              source="parameters"                                              />
@@ -129,8 +137,8 @@ contains
   end function sphericalAccretionFlowConstructorParameters
   
   function sphericalAccretionFlowConstructorInternal(radiusTransition,nonAnalyticSolver,massDistribution_,massDistributionAccretionFlow_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalAccretionFlow`` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccretionFlow)                          :: self
@@ -148,8 +156,8 @@ contains
   end function sphericalAccretionFlowConstructorInternal
 
   subroutine sphericalAccretionFlowDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalAccretionFlow} mass distribution class.
+    !!{RST
+    Destructor for the abstract ``massDistributionSphericalAccretionFlow`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccretionFlow), intent(inout) :: self
@@ -162,7 +170,7 @@ contains
   end subroutine sphericalAccretionFlowDestructor
 
   subroutine sphericalAccretionFlowTransitionFunction(self,radius,multiplier,multiplierGradient)
-    !!{
+    !!{RST
     Return the scaled truncation radial coordinate, and the truncation multiplier.
     !!}
     implicit none
@@ -193,8 +201,8 @@ contains
   end subroutine sphericalAccretionFlowTransitionFunction
 
   double precision function sphericalAccretionFlowDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
@@ -210,8 +218,8 @@ contains
   end function sphericalAccretionFlowDensity
 
   double precision function sphericalAccretionFlowDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a accretionFlow spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a accretionFlow spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout), target   :: self
@@ -239,10 +247,8 @@ contains
   end function sphericalAccretionFlowDensityGradientRadial
 
   double precision function sphericalAccretionFlowEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in a spherical accretion flow mass
-    distribution. Note that this is defined to be the potential energy of the \emph{virialized} component of the mass
-    distribution---the accretion flow itself is excluded.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in a spherical accretion flow mass distribution. Note that this is defined to be the potential energy of the *virialized* component of the mass distribution---the accretion flow itself is excluded.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout) :: self
@@ -253,10 +259,8 @@ contains
   end function sphericalAccretionFlowEnergyPotential
 
   double precision function sphericalAccretionFlowEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius} in a spherical accretion flow mass distribution. Note
-    that this is defined to be the potential energy of the \emph{virialized} component of the mass distribution---the accretion
-    flow itself is excluded.
+    !!{RST
+    Compute the kinetic energy within a given ``radius`` in a spherical accretion flow mass distribution. Note that this is defined to be the potential energy of the *virialized* component of the mass distribution---the accretion flow itself is excluded.
     !!}
     implicit none
     class           (massDistributionSphericalAccretionFlow), intent(inout) :: self

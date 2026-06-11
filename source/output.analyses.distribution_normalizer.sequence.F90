@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a sequence of normalizers on on-the-fly outputs.
   !!}
 
   !![
-  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
-   <description>An output analysis distribution normalizer class that applies a linked list of child \refClass{outputAnalysisDistributionNormalizerClass} objects in sequence, enabling composite normalization pipelines (e.g.\ bin-width division followed by volume normalization).</description>
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence" docformat="rst">
+   <description>
+   An output analysis distribution normalizer class that applies a linked list of child ``outputAnalysisDistributionNormalizerClass`` objects in sequence, enabling composite normalization pipelines (e.g.\ bin-width division followed by volume normalization).
+   </description>
    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
   </outputAnalysisDistributionNormalizer>
   !!]
@@ -34,7 +36,7 @@
   end type normalizerList
 
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerSequence
-     !!{
+     !!{RST
      A sequence on-the-fly-output normalizer class.
      !!}
      private
@@ -45,7 +47,7 @@
   end type outputAnalysisDistributionNormalizerSequence
 
   interface outputAnalysisDistributionNormalizerSequence
-     !!{
+     !!{RST
      Constructors for the sequence on-the-fly output distribution normalizer class.
      !!}
      module procedure sequenceConstructorParameters
@@ -55,7 +57,7 @@
 contains
 
   function sequenceConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the sequence on-the-fly output normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -86,7 +88,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(normalizers) result(self)
-    !!{
+    !!{RST
     Internal constructor for the sequence merger tree normalizer class.
     !!}
     implicit none
@@ -106,7 +108,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree normalizer function class.
     !!}
     implicit none
@@ -128,7 +130,7 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !!{
+    !!{RST
     Perform a sequence normalization on an on-the-fly output distribution.
     !!}
     implicit none

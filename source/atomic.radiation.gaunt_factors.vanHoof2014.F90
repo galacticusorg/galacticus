@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
+  !!{RST
+  An implementation of Gaunt factors using the :cite:t:`van_hoof_accurate_2014` fitting function.
   !!}
 
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
   !![
-  <gauntFactor name="gauntFactorVanHoof2014">
-   <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
+  <gauntFactor name="gauntFactorVanHoof2014" docformat="rst">
+   <description>
+   Gaunt factors are computed using the fitting function of :cite:t:`van_hoof_accurate_2014`.
+   </description>
   </gauntFactor>
   !!]
   type, extends(gauntFactorClass) :: gauntFactorVanHoof2014
-     !!{
-     A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
+     !!{RST
+     A gaunt factor class implementing the fitting function of :cite:t:`van_hoof_accurate_2014`.
      !!}
      private
      class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
@@ -40,8 +42,8 @@
   end type gauntFactorVanHoof2014
 
   interface gauntFactorVanHoof2014
-     !!{
-     Constructors for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
+     !!{RST
+     Constructors for the ``gauntFactorVanHoof2014`` gaunt factor class.
      !!}
      module procedure vanHoof2014ConstructorParameters
      module procedure vanHoof2014ConstructorInternal
@@ -82,8 +84,8 @@
 contains
 
   function vanHoof2014ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``gauntFactorVanHoof2014`` gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,8 +105,8 @@ contains
   end function vanHoof2014ConstructorParameters
 
   function vanHoof2014ConstructorInternal(atomicIonizationPotential_) result(self)
-    !!{
-    Internal constructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
+    !!{RST
+    Internal constructor for the ``gauntFactorVanHoof2014`` gaunt factor class.
     !!}
     implicit none
     type (gauntFactorVanHoof2014        )                        :: self
@@ -117,8 +119,8 @@ contains
   end function vanHoof2014ConstructorInternal
 
   subroutine vanHoof2014Destructor(self)
-    !!{
-    Destructor for the \refClass{gauntFactorVanHoof2014} gaunt factor class.
+    !!{RST
+    Destructor for the ``gauntFactorVanHoof2014`` gaunt factor class.
     !!}
     implicit none
     type(gauntFactorVanHoof2014), intent(inout) :: self
@@ -130,9 +132,8 @@ contains
   end subroutine vanHoof2014Destructor
 
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
-    !!{
-    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    \cite{van_hoof_accurate_2014}.
+    !!{RST
+    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of :cite:t:`van_hoof_accurate_2014`.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : boltzmannsConstant

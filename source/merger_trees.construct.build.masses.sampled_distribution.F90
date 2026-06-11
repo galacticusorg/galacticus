@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which samples masses from a distribution.
   !!}
 
   use :: Merger_Trees_Build_Masses_Distributions, only : mergerTreeBuildMassDistributionClass
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
-   <description>A merger tree masses class which samples halo masses from a user-specified distribution function to populate the halo mass function. The mass range is bounded by \mono{[massTreeMinimum]} and \mono{[massTreeMaximum]}, with the sampling density set by \mono{[treesPerDecade]} trees per decade of halo mass.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes" docformat="rst">
+   <description>
+   A merger tree masses class which samples halo masses from a user-specified distribution function to populate the halo mass function. The mass range is bounded by ``[massTreeMinimum]`` and ``[massTreeMaximum]``, with the sampling density set by ``[treesPerDecade]`` trees per decade of halo mass.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which samples masses from a distribution.
      !!}
      private
@@ -48,7 +50,7 @@
   end type mergerTreeBuildMassesSampledDistribution
 
   abstract interface
-     !!{
+     !!{RST
      Abstract interface for the mass distribution sampling function.
      !!}
      subroutine sampledDistributionCMF(self,x)
@@ -61,7 +63,7 @@
 contains
 
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
     use            :: Error                  , only : Error_Report
@@ -173,7 +175,7 @@ contains
   contains
 
     double precision function distributionIntegrand(logMass)
-      !!{
+      !!{RST
       The integrand over the mass function sampling density function.
       !!}
       implicit none

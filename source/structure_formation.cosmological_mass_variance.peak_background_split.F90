@@ -17,26 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of cosmological density field mass variance which modifies another member of the class by offsetting for
-  the peak-background split.
+  !!{RST
+  An implementation of cosmological density field mass variance which modifies another member of the class by offsetting for the peak-background split.
   !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit">
+  <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit" docformat="rst">
    <description>
-    The cosmological mass variance is computed by taking the variance from some other mass variance class, $\sigma^2(M)$, and
-    offsetting it by the variance of the background in the peak-background split model, $\sigma^2(M_\mathrm{e})$, where
-    $M_\mathrm{e}$ is the mass contained within the region defined as the background.
+   The cosmological mass variance is computed by taking the variance from some other mass variance class, :math:`\sigma^2(M)`, and offsetting it by the variance of the background in the peak-background split model, :math:`\sigma^2(M_\mathrm{e})`, where :math:`M_\mathrm{e}` is the mass contained within the region defined as the background.
    </description>
   </cosmologicalMassVariance>
   !!]
 
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVariancePeakBackgroundSplit
-     !!{
+     !!{RST
      A cosmological mass variance class computing variance from a filtered power spectrum.
      !!}
      private
@@ -64,8 +61,8 @@
   end type cosmologicalMassVariancePeakBackgroundSplit
 
   interface cosmologicalMassVariancePeakBackgroundSplit
-     !!{
-     Constructors for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
+     !!{RST
+     Constructors for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
      !!}
      module procedure variancePeakBackgroundSplitConstructorParameters
      module procedure variancePeakBackgroundSplitConstructorInternal
@@ -74,8 +71,8 @@
 contains
 
   function variancePeakBackgroundSplitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,10 +85,12 @@ contains
     double precision                                                             :: factorMassEnvironment
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassEnvironment</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The background variance is computed as $\sigma(\alpha M_\mathrm{env})^2$ where $M_\mathrm{env}$ is the environment mass and $\alpha=$\mono{[factorMassEnvironment]}.</description>
+      <description>
+      The background variance is computed as :math:`\sigma(\alpha M_\mathrm{env})^2` where :math:`M_\mathrm{env}` is the environment mass and :math:`\alpha=`\ ``[factorMassEnvironment]``.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
@@ -111,8 +110,8 @@ contains
   end function variancePeakBackgroundSplitConstructorParameters
 
   function variancePeakBackgroundSplitConstructorInternal(factorMassEnvironment,haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
+    !!{RST
+    Internal constructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
@@ -135,8 +134,8 @@ contains
   end function variancePeakBackgroundSplitConstructorInternal
 
   subroutine variancePeakBackgroundSplitDestructor(self)
-    !!{
-    Destructor for the \refClass{cosmologicalMassVariancePeakBackgroundSplit} cosmological mass variance class.
+    !!{RST
+    Destructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
     !!}
     implicit none
     type(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
@@ -151,7 +150,7 @@ contains
   end subroutine variancePeakBackgroundSplitDestructor
 
   double precision function variancePeakBackgroundSplitPowerNormalization(self)
-    !!{
+    !!{RST
     Return the normalization of the power spectrum.
     !!}
     use :: Error, only : Error_Report
@@ -165,8 +164,8 @@ contains
   end function variancePeakBackgroundSplitPowerNormalization
 
   double precision function variancePeakBackgroundSplitSigma8(self)
-    !!{
-    Return the value of $\sigma_8$.
+    !!{RST
+    Return the value of :math:`\sigma_8`.
     !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
     use :: Numerical_Constants_Math, only : Pi
@@ -193,8 +192,8 @@ contains
   end function variancePeakBackgroundSplitSigma8
 
   double precision function variancePeakBackgroundSplitRootVariance(self,mass,time)
-    !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
@@ -215,9 +214,8 @@ contains
   end function variancePeakBackgroundSplitRootVariance
 
   double precision function variancePeakBackgroundSplitRootVarianceLogarithmicGradient(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
@@ -240,9 +238,8 @@ contains
   end function variancePeakBackgroundSplitRootVarianceLogarithmicGradient
 
   subroutine variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    !!{
-    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
@@ -272,8 +269,8 @@ contains
   end subroutine variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient
 
   double precision function variancePeakBackgroundSplitMass(self,rootVariance,time)
-    !!{
-    Return the mass corresponding to the given \mono{} root-variance of the cosmological density field.
+    !!{RST
+    Return the mass corresponding to the given ```` root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
@@ -294,7 +291,7 @@ contains
   end function variancePeakBackgroundSplitMass
 
   double precision function variancePeakBackgroundSplitVarianceBackground(self,time)
-    !!{
+    !!{RST
     Return the variance of the background at this time.
     !!}
     implicit none
@@ -314,7 +311,7 @@ contains
   end function variancePeakBackgroundSplitVarianceBackground
 
   logical function variancePeakBackgroundSplitGrowthIsMassDependent(self)
-    !!{
+    !!{RST
     Return true if the growth rate of the variance is mass-dependent.
     !!}
     implicit none

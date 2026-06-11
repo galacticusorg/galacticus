@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements quasi-random sequences.
 !!}
 
@@ -34,7 +34,7 @@ Contains a module which implements quasi-random sequences.
 !; gsl
 
 module Numerical_ODE_Solvers
-  !!{
+  !!{RST
   Implements an ODE solver class.
   !!}
   use, intrinsic :: ISO_C_Binding         , only : c_double                   , c_funptr  , c_int, c_ptr, &
@@ -61,7 +61,7 @@ module Numerical_ODE_Solvers
 
   interface
      function gsl_odeiv2_step_type_get(i) bind(c,name='gsl_odeiv2_step_type_get')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 stepper type function.
        !!}
        import c_ptr, c_int
@@ -69,7 +69,7 @@ module Numerical_ODE_Solvers
        integer(c_int), intent(in   ), value :: i
      end function gsl_odeiv2_step_type_get
      function gsl_odeiv2_system_init(dim,func,jacobian) bind(c,name='gsl_odeiv2_system_init')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 system initialization function.
        !!}
        import c_ptr, c_funptr, c_size_t
@@ -78,14 +78,14 @@ module Numerical_ODE_Solvers
        type   (c_funptr), intent(in   ), value :: func                  , jacobian
      end function gsl_odeiv2_system_init
      subroutine gsl_odeiv2_system_free(system) bind(c,name='gsl_odeiv2_system_free')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 system free function.
        !!}
        import c_ptr
        type(c_ptr), intent(in   ), value :: system
      end subroutine gsl_odeiv2_system_free
      function gsl_odeiv2_driver_alloc_y_new(sys,T,hstart,epsabs,epsrel) bind(c,name='gsl_odeiv2_driver_alloc_y_new')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 step allocation function.
        !!}
        import c_ptr, c_double
@@ -95,7 +95,7 @@ module Numerical_ODE_Solvers
             &                                  hstart
      end function gsl_odeiv2_driver_alloc_y_new
      function gsl_odeiv2_driver_alloc_scaled2_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs,is_non_negative) bind(c,name='gsl_odeiv2_driver_alloc_scaled2_new')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 step allocation function.
        !!}
        import c_ptr, c_double, c_int
@@ -108,14 +108,14 @@ module Numerical_ODE_Solvers
        integer(c_int   ), intent(in   ), dimension(*) :: is_non_negative
      end function gsl_odeiv2_driver_alloc_scaled2_new
      subroutine gsl_odeiv2_driver_free(d) bind(c,name='gsl_odeiv2_driver_free')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 driver free function.
        !!}
        import c_ptr
        type(c_ptr), intent(in   ), value :: d
      end subroutine gsl_odeiv2_driver_free     
      function gsl_odeiv2_driver_reset(d) bind(c,name='gsl_odeiv2_driver_reset')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 driver reset function.
        !!}
        import c_ptr, c_int
@@ -123,7 +123,7 @@ module Numerical_ODE_Solvers
        type   (c_ptr), intent(in   ), value :: d
      end function gsl_odeiv2_driver_reset
      function gsl_odeiv2_driver_reset_hstart(d,hstart) bind(c,name='gsl_odeiv2_driver_reset_hstart')
-       !!{
+       !!{RST
        Template for GSL interface ODEIV2 driver timestep reset function.
        !!}
        import c_ptr, c_int, c_double
@@ -132,7 +132,7 @@ module Numerical_ODE_Solvers
        real   (c_double), intent(in   ), value :: hstart
      end function gsl_odeiv2_driver_reset_hstart
      function gsl_odeiv2_driver2_apply(d,t,t1,y,ps,li,sa) bind(c,name='gsl_odeiv2_driver2_apply')
-       !!{
+       !!{RST
        Interface for GSL interface ODEIV2 driver apply function.
        !!}
        import c_ptr, c_funptr, c_double, c_int
@@ -146,7 +146,7 @@ module Numerical_ODE_Solvers
        type   (c_funptr), intent(in   ), value        :: sa
      end function gsl_odeiv2_driver2_apply
      function gsl_odeiv2_driver_h(d) bind(c,name='gsl_odeiv2_driver_h')
-       !!{
+       !!{RST
        Template for GSL interface to ODEIV2 driver timestep get function.
        !!}
        import c_ptr, c_double
@@ -154,7 +154,7 @@ module Numerical_ODE_Solvers
        type(c_ptr   ), intent(in   ), value :: d
      end function gsl_odeiv2_driver_h     
      subroutine msbdfactive_context(d,dim,t,y,dydt) bind(c)
-       !!{
+       !!{RST
        Template for MSBDF active stepper context.
        !!}
        import c_ptr, c_size_t, c_double
@@ -164,7 +164,7 @@ module Numerical_ODE_Solvers
        real   (c_double), intent(inout), dimension(*) :: y  , dydt
      end subroutine msbdfactive_context
      subroutine msbdfactive_state(d,dim,y) bind(c,name='msbdfactive_state')
-       !!{
+       !!{RST
        Template for MSBDF active ODE stepper state function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -173,7 +173,7 @@ module Numerical_ODE_Solvers
        real   (c_double), intent(inout), dimension(*) :: y
      end subroutine msbdfactive_state
      subroutine gsl_odeiv2_driver_errors(d,yerr) bind(c,name='gsl_odeiv2_driver_errors')
-       !!{
+       !!{RST
        Template for GSL ODE driver errors.
        !!}
        import c_ptr, c_double
@@ -181,7 +181,7 @@ module Numerical_ODE_Solvers
        real   (c_double), intent(  out), dimension(*) :: yerr
      end subroutine gsl_odeiv2_driver_errors
      subroutine gsl_odeiv2_driver_init_errors(d) bind(c,name='gsl_odeiv2_driver_init_errors')
-       !!{
+       !!{RST
        Template for GSL ODE driver error initialization.
        !!}
        import c_ptr
@@ -190,7 +190,7 @@ module Numerical_ODE_Solvers
   end interface
   
   type :: gslODEDriverWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL ODE drivers.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -199,7 +199,7 @@ module Numerical_ODE_Solvers
   end type gslODEDriverWrapper
   
   type :: gslODESystemWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL ODE drivers.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -208,7 +208,7 @@ module Numerical_ODE_Solvers
   end type gslODESystemWrapper
   
   type :: odeSolver
-     !!{
+     !!{RST
      Type providing ODE solving.
      !!}
      private
@@ -243,8 +243,8 @@ module Numerical_ODE_Solvers
   end type odeSolver
   
   interface odeSolver
-     !!{
-     Constructor for the \mono{odeSolver} class.
+     !!{RST
+     Constructor for the ``odeSolver`` class.
      !!}
      module procedure odeSolverConstructor
   end interface odeSolver
@@ -319,7 +319,7 @@ module Numerical_ODE_Solvers
   end interface
 
   type :: solverList
-     !!{
+     !!{RST
      Type used to maintain a list of ODE solvers when ODE solving is performed recursively.
      !!}
      type(odeSolver), pointer :: solver => null()
@@ -333,8 +333,8 @@ module Numerical_ODE_Solvers
 contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler,isNonNegative) result(self)
-    !!{
-    Constructor for \mono{odeSolver} objects.
+    !!{RST
+    Constructor for ``odeSolver`` objects.
     !!}
     use            :: Error        , only : Error_Report
     use, intrinsic :: ISO_C_Binding, only : c_funloc    , c_null_funptr
@@ -384,8 +384,10 @@ contains
        self%system%gsl=gsl_odeiv2_system_init(self%dim,c_funloc(derivativesWrapper),c_null_funptr                 )
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%system
     self%systemManager =  resourceManager(dummyPointer_)
@@ -408,8 +410,10 @@ contains
        self%driver%gsl=gsl_odeiv2_driver_alloc_y_new      (self%system%gsl,self%gsl_odeiv2_step_type,hStart_,toleranceAbsolute_,toleranceRelative_                                         )
     end if
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%driver
     self%driverManager =  resourceManager(dummyPointer_)
@@ -422,8 +426,8 @@ contains
   end function odeSolverConstructor
 
   subroutine gslODEDriverWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslODEDriverWrapper} object.
+    !!{RST
+    Destroy a ``gslODEDriverWrapper`` object.
     !!}
     implicit none
     type(gslODEDriverWrapper), intent(inout) :: self
@@ -433,8 +437,8 @@ contains
   end subroutine gslODEDriverWrapperDestructor
 
   subroutine gslODESystemWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslODESystemWrapper} object.
+    !!{RST
+    Destroy a ``gslODESystemWrapper`` object.
     !!}
     implicit none
     type(gslODESystemWrapper), intent(inout) :: self
@@ -444,8 +448,8 @@ contains
   end subroutine gslODESystemWrapperDestructor
 
   subroutine odeSolverDestructor(self)
-    !!{
-    Destructor for \mono{odeSolver} objects.
+    !!{RST
+    Destructor for ``odeSolver`` objects.
     !!}
     implicit none
     type(odeSolver), intent(inout) :: self
@@ -455,8 +459,8 @@ contains
   end subroutine odeSolverDestructor
 
   subroutine odeSolverAssign(to,from)
-    !!{
-    Assignment operator for \refClass{odeSolver} objects.
+    !!{RST
+    Assignment operator for ``odeSolver`` objects.
     !!}
     implicit none
     class(odeSolver), intent(  out) :: to
@@ -486,7 +490,7 @@ contains
   end subroutine odeSolverAssign
 
   subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
-    !!{
+    !!{RST
     Solve the ODE system.
     !!}
     use            :: Error                 , only : Error_Report
@@ -634,7 +638,7 @@ contains
   contains
 
     subroutine latentIntegrator(x)
-      !!{
+      !!{RST
       Wrapper function which performs integration of latent variables.
       !!}
       use :: Display, only : displayMessage
@@ -664,7 +668,7 @@ contains
     end subroutine latentIntegrator
     
     subroutine integrandsWrapper(nz,x,e,dzdx)
-      !!{
+      !!{RST
       Wrapper function which calls the integrands functions.
       !!}
       implicit none
@@ -687,8 +691,8 @@ contains
   end subroutine odeSolverSolve
   
   function derivativesWrapper(x,y,dydx,parameterPointer) bind(c)
-    !!{
-    Wrapper function used for \gls{gsl} ODEIV2 derivative functions.
+    !!{RST
+    Wrapper function used for :term:`GSL` ODEIV2 derivative functions.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
@@ -708,8 +712,8 @@ contains
   end function derivativesWrapper
 
   function jacobianWrapper(x,y,dfdy,dfdx,parameterPointer) bind(c)
-    !!{
-    Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
+    !!{RST
+    Wrapper function used for :term:`GSL` ODEIV2 Jacobian functions.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
@@ -730,7 +734,7 @@ contains
   end function jacobianWrapper
 
   subroutine odeSolverErrors(self,yError)
-    !!{
+    !!{RST
     Return estimates of the errors in ODE properties.
     !!}
     implicit none

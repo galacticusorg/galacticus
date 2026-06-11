@@ -19,27 +19,28 @@
 
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!!{
+!!{RST
 Contains a module that implements an atomic ionization potential class.
 !!}
 
 module Atomic_Ionization_Potentials
-  !!{
+  !!{RST
   Implements an atomic ionization potential class.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>atomicIonizationPotential</name>
    <descriptiveName>Atomic Ionization Potentials</descriptiveName>
-   <description>Class providing atomic ionization potentials (in eV) for atoms of given atomic number in a specified
-    ionization state (i.e. with a given number of remaining electrons). Ionization potentials set the energy
-    threshold for photo-ionization and are used in computing photo-ionization rates from a given radiation field
-    spectrum in \gls{igm} and \gls{cgm} calculations.</description>
+   <description>
+   Class providing atomic ionization potentials (in eV) for atoms of given atomic number in a specified ionization state (i.e. with a given number of remaining electrons). Ionization potentials set the energy threshold for photo-ionization and are used in computing photo-ionization rates from a given radiation field spectrum in :term:`IGM` and :term:`CGM` calculations.
+   </description>
    <default>verner</default>
    <method name="potential" >
-    <description>Returns the ionization potential (in units of eV) for a given atom in a given ionization state.</description>
+    <description>
+    Returns the ionization potential (in units of eV) for a given atom in a given ionization state.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: atomicNumber, electronNumber</argument>

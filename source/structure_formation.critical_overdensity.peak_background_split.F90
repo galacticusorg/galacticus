@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an peak-background split critical overdensity class.
 !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensityPeakBackgroundSplit">
-   <description>The critical overdensity is given by some other critical overdensity class offset by the halo environmental overdensity.</description>
+  <criticalOverdensity name="criticalOverdensityPeakBackgroundSplit" docformat="rst">
+   <description>
+   The critical overdensity is given by some other critical overdensity class offset by the halo environmental overdensity.
+   </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityPeakBackgroundSplit
-     !!{
+     !!{RST
      A peak-background split critical overdensity class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an peak-background split critical overdensity class.
   end type criticalOverdensityPeakBackgroundSplit
 
   interface criticalOverdensityPeakBackgroundSplit
-     !!{
-     Constructors for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
+     !!{RST
+     Constructors for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
      !!}
      module procedure peakBackgroundSplitConstructorParameters
      module procedure peakBackgroundSplitConstructorInternal
@@ -54,8 +56,8 @@ Implements an peak-background split critical overdensity class.
 contains
 
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,8 +90,8 @@ contains
   end function peakBackgroundSplitConstructorParameters
 
   function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
+    !!{RST
+    Internal constructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
     !!}
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
@@ -106,8 +108,8 @@ contains
   end function peakBackgroundSplitConstructorInternal
 
   subroutine peakBackgroundSplitDestructor(self)
-    !!{
-    Destructor for the \refClass{criticalOverdensityPeakBackgroundSplit} critical overdensity class.
+    !!{RST
+    Destructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
@@ -123,7 +125,7 @@ contains
   end subroutine peakBackgroundSplitDestructor
 
   double precision function peakBackgroundSplitValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity for collapse at the given time and mass.
     !!}
     implicit none
@@ -145,7 +147,7 @@ contains
   end function peakBackgroundSplitValue
 
   double precision function peakBackgroundSplitGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function peakBackgroundSplitGradientTime
 
   double precision function peakBackgroundSplitGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -176,7 +178,7 @@ contains
   end function peakBackgroundSplitGradientMass
 
   logical function peakBackgroundSplitIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -187,7 +189,7 @@ contains
   end function peakBackgroundSplitIsMassDependent
 
   logical function peakBackgroundSplitIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -198,7 +200,7 @@ contains
   end function peakBackgroundSplitIsNodeDependent
 
   logical function peakBackgroundSplitIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

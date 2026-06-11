@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body data operator which determines an ID of the root halo found by following hosts.
   !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorHostedRootID">
-   <description>An N-body data operator which determines the ID of the topmost root halo in the host hierarchy by iteratively following host links upward from each particle. The \mono{errorIfNotFound} parameter controls whether a missing host causes a fatal error or instead assigns a sentinel value of $-1$.</description>
+  <nbodyOperator name="nbodyOperatorHostedRootID" docformat="rst">
+   <description>
+   An N-body data operator which determines the ID of the topmost root halo in the host hierarchy by iteratively following host links upward from each particle. The ``errorIfNotFound`` parameter controls whether a missing host causes a fatal error or instead assigns a sentinel value of :math:`-1`.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHostedRootID
-     !!{
+     !!{RST
      An N-body data operator which determines an ID of the root halo found by following hosts.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nbodyOperatorHostedRootID
 
   interface nbodyOperatorHostedRootID
-     !!{
-     Constructors for the \refClass{nbodyOperatorHostedRootID} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorHostedRootID`` N-body operator class.
      !!}
      module procedure hostedRootIDConstructorParameters
      module procedure hostedRootIDConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function hostedRootIDConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorHostedRootID} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorHostedRootID`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,11 +59,13 @@ contains
     logical                                           :: missingHalosAreFatal
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>missingHalosAreFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a \mono{hostedRootID} value of $-1$ is assigned to the particle.</description>
+      <description>
+      If true, if a halo is not found during the search through hosts and descendants then a fatal error occurs. Otherwise, such missing halos are ignored, and a ``hostedRootID`` value of :math:`-1` is assigned to the particle.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)
@@ -72,8 +76,8 @@ contains
   end function hostedRootIDConstructorParameters
 
   function hostedRootIDConstructorInternal(missingHalosAreFatal) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorHostedRootID} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorHostedRootID`` N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +91,7 @@ contains
   end function hostedRootIDConstructorInternal
 
   subroutine hostedRootIDOperate(self,simulations)
-    !!{
+    !!{RST
     Determine an ID of the root halo found by following hosts.
     !!}
     use    :: Arrays_Search     , only : searchIndexed

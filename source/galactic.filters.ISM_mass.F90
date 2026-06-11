@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for total ISM mass.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterISMMass">
+  <galacticFilter name="galacticFilterISMMass" docformat="rst">
    <description>
-   A galactic high-pass filter for ISM mass. Galaxies with a combined disk plus spheroid ISM mass greater than or equal
-   to a fixed threshold, $M_\mathrm{ISM,0}=$\mono{[massThreshold]}.
+   A galactic high-pass filter for ISM mass. Galaxies with a combined disk plus spheroid ISM mass greater than or equal to a fixed threshold, :math:`M_\mathrm{ISM,0}=`\ ``[massThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterISMMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for ISM mass.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for total ISM mass.
   end type galacticFilterISMMass
 
   interface galacticFilterISMMass
-     !!{
-     Constructors for the \refClass{galacticFilterISMMass} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterISMMass`` galactic filter class.
      !!}
      module procedure ismMassConstructorParameters
      module procedure ismMassConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for total ISM mass.
 contains
 
   function ismMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterISMMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterISMMass`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +59,12 @@ contains
     double precision                                       :: massThreshold
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the ISM mass threshold for the ISM mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the ISM mass threshold for the ISM mass galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterISMMass(massThreshold)
@@ -74,8 +75,8 @@ contains
   end function ismMassConstructorParameters
 
   function ismMassConstructorInternal(massThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterISMMass} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterISMMass`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterISMMass)                :: self
@@ -88,7 +89,7 @@ contains
   end function ismMassConstructorInternal
 
   logical function ismMassPasses(self,node)
-    !!{
+    !!{RST
     Implement an ismMass-pass galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode

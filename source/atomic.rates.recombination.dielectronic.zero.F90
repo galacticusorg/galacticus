@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an atomic dielectronic recombination class which assumes zero rate.
   !!}
 
   !![
-  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicZero">
-   <description>Implements an atomic dielectronic recombination class which assumes zero rate.</description>
+  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicZero" docformat="rst">
+   <description>
+   Implements an atomic dielectronic recombination class which assumes zero rate.
+   </description>
   </atomicRecombinationRateDielectronic>
   !!]
   type, extends(atomicRecombinationRateDielectronicClass) :: atomicRecombinationRateDielectronicZero
-     !!{
+     !!{RST
      Implements an atomic dielectronic recombination class which assumes zero rate.
      !!}
      private
@@ -36,8 +38,8 @@
   end type atomicRecombinationRateDielectronicZero
 
   interface atomicRecombinationRateDielectronicZero
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateDielectronicZero} atomic dielectronic recombination rate class.
+     !!{RST
+     Constructors for the ``atomicRecombinationRateDielectronicZero`` atomic dielectronic recombination rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicRecombinationRateDielectronicZero
@@ -45,9 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateDielectronicZero} atomic dielectronic recombination rate class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``atomicRecombinationRateDielectronicZero`` atomic dielectronic recombination rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,atomicNumber,electronNumber,temperature)
-    !!{
+    !!{RST
     Returns a zero rate of dielectronic recombination.
     !!}
     implicit none

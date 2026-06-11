@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides various interfaces to the \gls{camb} code.
+!!{RST
+Contains a module which provides various interfaces to the :term:`CAMB` code.
 !!}
 
 module Interfaces_CAMB
-  !!{
-  Provides various interfaces to the \gls{camb} code.
+  !!{RST
+  Provides various interfaces to the :term:`CAMB` code.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -37,9 +37,11 @@ module Interfaces_CAMB
   double precision                , parameter :: cambLogWavenumberMaximumDefault=log(10.0d0)
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>cambSpecies</name>
-   <description>Enumeration of particle species tracked by the CAMB Boltzmann code when computing transfer functions: \mono{darkMatter} and \mono{baryons}, used to select which species' transfer function is returned.</description>
+   <description>
+   Enumeration of particle species tracked by the CAMB Boltzmann code when computing transfer functions: ``darkMatter`` and ``baryons``, used to select which species' transfer function is returned.
+   </description>
    <visibility>public</visibility>
    <indexing>1</indexing>
    <entry label="darkMatter"/>
@@ -55,7 +57,7 @@ module Interfaces_CAMB
 contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
     !!}
     use :: Dependencies      , only : dependencyVersion
@@ -137,7 +139,7 @@ contains
   end subroutine Interface_CAMB_Initialize
 
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
-    !!{
+    !!{RST
     Run CAMB as necessary to compute transfer functions.
     !!}
     use            :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH

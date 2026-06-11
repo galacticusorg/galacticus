@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an output analysis class that computes the stellar mass-halo mass relation in the Local
-  Group.
+  !!{RST
+  Implements an output analysis class that computes the stellar mass-halo mass relation in the Local Group.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisLocalGroupStellarMassHaloMassRelation">
-   <description>Computes the stellar mass--halo mass relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass random/systematic error polynomial coefficients, binomial covariance matrix parameters, and position-type selection.</description>
+  <outputAnalysis name="outputAnalysisLocalGroupStellarMassHaloMassRelation" docformat="rst">
+   <description>
+   Computes the stellar mass--halo mass relation for Local Group satellite galaxies, comparing model predictions against observed data with stellar mass random/systematic error polynomial coefficients, binomial covariance matrix parameters, and position-type selection.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupStellarMassHaloMassRelation
-     !!{
+     !!{RST
      An output analysis class for the Local Group stellar mass-halo mass relation.
      !!}
      private
@@ -49,8 +50,8 @@
   end type outputAnalysisLocalGroupStellarMassHaloMassRelation
 
   interface outputAnalysisLocalGroupStellarMassHaloMassRelation
-     !!{
-     Constructors for the \refClass{outputAnalysisLocalGroupStellarMassHaloMassRelation} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLocalGroupStellarMassHaloMassRelation`` output analysis class.
      !!}
      module procedure localGroupStellarMassHaloMassRelationConstructorParameters
      module procedure localGroupStellarMassHaloMassRelationConstructorInternal
@@ -59,8 +60,8 @@
 contains
 
   function localGroupStellarMassHaloMassRelationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassHaloMassRelation} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLocalGroupStellarMassHaloMassRelation`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -82,67 +83,85 @@ contains
     allocate(           systematicErrorPolynomialCoefficient(max(1,parameters%count(           'systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(               randomErrorPolynomialCoefficient(max(1,parameters%count(               'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for halo masses.</description>
+      <description>
+      The minimum random error for halo masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for halo masses.</description>
+      <description>
+      The minimum random error for halo masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.1d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for halo masses.</description>
+      <description>
+      The coefficients of the random error polynomial for halo masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellarSystematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>massStellarSystematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the stellar mass systematic error polynomial.</description>
+      <description>
+      The coefficients of the stellar mass systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing Local Group stellar mass-halo mass relation covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>positionType</name>
       <source>parameters</source>
       <defaultValue>var_str('orbital')</defaultValue>
-      <description>The type of position to use in survey geometry filters.</description>
+      <description>
+      The type of position to use in survey geometry filters.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -155,8 +174,8 @@ contains
   end function localGroupStellarMassHaloMassRelationConstructorParameters
 
   function localGroupStellarMassHaloMassRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassHaloMassRelation} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisLocalGroupStellarMassHaloMassRelation`` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                          , galacticFilterAll                         , galacticFilterHaloNotIsolated         , galacticFilterHostMassRange                    , &
           &                                                 galacticFilterSurveyGeometry                        , galacticFilterStellarMass                 , enumerationPositionTypeType
@@ -439,8 +458,8 @@ contains
   end function localGroupStellarMassHaloMassRelationConstructorInternal
 
   subroutine localGroupStellarMassHaloMassRelationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLocalGroupStellarMassHaloMassRelation} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLocalGroupStellarMassHaloMassRelation`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
@@ -453,8 +472,8 @@ contains
   end subroutine localGroupStellarMassHaloMassRelationDestructor
 
   subroutine localGroupStellarMassHaloMassRelationAnalyze(self,node,iOutput)
-    !!{
-    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis.
+    !!{RST
+    Implement a ``localGroupStellarMassHaloMassRelation`` output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self
@@ -466,8 +485,8 @@ contains
   end subroutine localGroupStellarMassHaloMassRelationAnalyze
 
   subroutine localGroupStellarMassHaloMassRelationReduce(self,reduced)
-    !!{
-    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis reduction.
+    !!{RST
+    Implement a ``localGroupStellarMassHaloMassRelation`` output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -484,8 +503,8 @@ contains
   end subroutine localGroupStellarMassHaloMassRelationReduce
 
   subroutine localGroupStellarMassHaloMassRelationFinalize(self,groupName)
-    !!{
-    Implement a \mono{localGroupStellarMassHaloMassRelation} output analysis finalization.
+    !!{RST
+    Implement a ``localGroupStellarMassHaloMassRelation`` output analysis finalization.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout)           :: self
@@ -496,8 +515,8 @@ contains
   end subroutine localGroupStellarMassHaloMassRelationFinalize
 
   double precision function localGroupStellarMassHaloMassRelationLogLikelihood(self)
-    !!{
-    Return the log-likelihood of a \mono{localGroupStellarMassHaloMassRelation} output analysis.
+    !!{RST
+    Return the log-likelihood of a ``localGroupStellarMassHaloMassRelation`` output analysis.
     !!}
     implicit none
     class(outputAnalysisLocalGroupStellarMassHaloMassRelation), intent(inout) :: self

@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which follows branches only if they pass a filter.
 !!}
   
   use :: Galactic_Filters, only : galacticFilterClass
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerFiltered">
-   <description>A merger tree build controller class which builds filtered trees.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerFiltered" docformat="rst">
+   <description>
+   A merger tree build controller class which builds filtered trees.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerFiltered
-     !!{     
-     A merger tree build controller class which builds filtered trees. Specifically, only nodes which pass a provided filtered are
-     followed.
+     !!{RST
+     A merger tree build controller class which builds filtered trees. Specifically, only nodes which pass a provided filtered are followed.
      !!}
      private
      class(mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
@@ -44,8 +45,8 @@ Implements a merger tree build controller class which follows branches only if t
   end type mergerTreeBuildControllerFiltered
 
   interface mergerTreeBuildControllerFiltered
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class.
      !!}
      module procedure filteredConstructorParameters
      module procedure filteredConstructorInternal
@@ -54,8 +55,8 @@ Implements a merger tree build controller class which follows branches only if t
 contains
 
   function filteredConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +78,8 @@ contains
   end function filteredConstructorParameters
 
   function filteredConstructorInternal(mergerTreeBranchingProbability_,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class .
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerFiltered  )                        :: self
@@ -92,8 +93,8 @@ contains
   end function filteredConstructorInternal
 
   subroutine filteredDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerFiltered} merger tree build controller class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerFiltered), intent(inout) :: self
@@ -106,7 +107,7 @@ contains
   end subroutine filteredDestructor
 
   logical function filteredControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Skip side branches of a tree under construction.
     !!}
     implicit none
@@ -128,7 +129,7 @@ contains
   end function filteredControl
 
   function filteredBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -142,7 +143,7 @@ contains
   end function filteredBranchingProbabilityObject
 
   subroutine filteredNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

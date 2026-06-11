@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
 !!}
 
@@ -25,12 +25,14 @@ Implements a merger tree operator which assigns orbits to non-primary progenitor
   use :: Virial_Orbits               , only : virialOrbit               , virialOrbitClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
-   <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
+  <mergerTreeOperator name="mergerTreeOperatorAssignOrbits" docformat="rst">
+   <description>
+   Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
-     !!{
+     !!{RST
      An orbit assigning merger tree operator class.
      !!}
      private
@@ -42,7 +44,7 @@ Implements a merger tree operator which assigns orbits to non-primary progenitor
   end type mergerTreeOperatorAssignOrbits
 
   interface mergerTreeOperatorAssignOrbits
-     !!{
+     !!{RST
      Constructors for the orbit assigning merger tree operator class.
      !!}
      module procedure assignOrbitsConstructorParameters
@@ -52,7 +54,7 @@ Implements a merger tree operator which assigns orbits to non-primary progenitor
 contains
 
   function assignOrbitsConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,7 +78,7 @@ contains
   end function assignOrbitsConstructorParameters
 
   function assignOrbitsConstructorInternal(satelliteMergingTimescales_,virialOrbit_) result(self)
-    !!{
+    !!{RST
     Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -91,7 +93,7 @@ contains
   end function assignOrbitsConstructorInternal
 
   subroutine assignOrbitsDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree operator function class.
     !!}
     implicit none
@@ -105,7 +107,7 @@ contains
   end subroutine assignOrbitsDestructor
 
   subroutine assignOrbitsOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a orbit assigning operation on a merger tree.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, nodeComponentSatellite, treeNode

@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor class that allows selection of output times at which to extract properties.
   !!}
 
   use :: Output_Times, only : outputTimesClass
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorOutputSelector">
-   <description>A wrapper property extractor that delegates extraction to one or more child \refClass{nodePropertyExtractorClass} objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by \mono{toleranceRelative}); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorOutputSelector" docformat="rst">
+   <description>
+   A wrapper property extractor that delegates extraction to one or more child ``nodePropertyExtractorClass`` objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by ``toleranceRelative``); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.
+   </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorOutputSelector
-     !!{
+     !!{RST
      A node output extractor class that allows selection of output times at which to extract properties.
      !!}
      private
@@ -51,8 +53,8 @@
   end type nodePropertyExtractorOutputSelector
 
   interface nodePropertyExtractorOutputSelector
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorOutputSelector`` property extractor class.
      !!}
      module procedure outputSelectorConstructorParameters
      module procedure outputSelectorConstructorInternal
@@ -61,8 +63,8 @@
 contains
 
   function outputSelectorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorOutputSelector`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,12 +89,14 @@ contains
     end do
     !![
     <objectBuilder class="outputTimes" name="self%outputTimes_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <variable>self%toleranceRelative</variable>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The relative tolerance to accept when comparing times.</description>
+      <description>
+      The relative tolerance to accept when comparing times.
+      </description>
     </inputParameter>
     !!]
     call self%initialize()
@@ -103,8 +107,8 @@ contains
   end function outputSelectorConstructorParameters
 
   function outputSelectorConstructorInternal(extractors,outputTimes_,toleranceRelative) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorOutputSelector`` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorOutputSelector)                         :: self
@@ -129,8 +133,8 @@ contains
   end function outputSelectorConstructorInternal
 
   subroutine outputSelectorDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorOutputSelector} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorOutputSelector`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorOutputSelector), intent(inout) :: self
@@ -142,8 +146,8 @@ contains
   end subroutine outputSelectorDestructor
 
   subroutine outputSelectorInitialize(self)
-    !!{
-    Initialize a \mono{outputSelector} object with the list of times to select.
+    !!{RST
+    Initialize a ``outputSelector`` object with the list of times to select.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -158,7 +162,7 @@ contains
   end subroutine outputSelectorInitialize
 
   integer function outputSelectorElementCount(self,elementType,time)
-    !!{
+    !!{RST
     Return the number of elements in the outputSelector property extractors.
     !!}
     implicit none
@@ -175,8 +179,8 @@ contains
   end function outputSelectorElementCount
 
   logical function outputSelectorTimeMatches(self,time) result(matches)
-    !!{
-    Return true if the given \mono{time} matches a time for which we should extract properties.
+    !!{RST
+    Return true if the given ``time`` matches a time for which we should extract properties.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none

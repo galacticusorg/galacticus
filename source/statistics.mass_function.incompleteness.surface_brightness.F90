@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements calculations of incompleteness assuming a normal distribution of surface brightnesses.
   !!}
 
   !![
-  <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness">
+  <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness" docformat="rst">
    <description>
-    A mass function incompleteness class which models the surface brightness distribution of galaxies as a normal distribution
-    with mean $\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta$, with root-variance $\sigma$, where
-    $\alpha=$\mono{[slope]}, $\beta=$\mono{[zeroPoint]}, and $\sigma=$\mono{[scatter]}. The completeness is the fraction of this distribution above the surface brightness limit given by \mono{[limit]}.
+   A mass function incompleteness class which models the surface brightness distribution of galaxies as a normal distribution with mean :math:`\langle \mu \rangle (M) = \alpha \log_{10}(M/M_0)+\beta`, with root-variance :math:`\sigma`, where :math:`\alpha=`\ ``[slope]``, :math:`\beta=`\ ``[zeroPoint]``, and :math:`\sigma=`\ ``[scatter]``. The completeness is the fraction of this distribution above the surface brightness limit given by ``[limit]``.
    </description>
   </massFunctionIncompleteness>
   !!]
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessSurfaceBrightness
-     !!{
+     !!{RST
      A class implementing incompleteness calculations assuming a normal distribution of surface brightnesses.
      !!}
      private
@@ -43,8 +41,8 @@
   end type massFunctionIncompletenessSurfaceBrightness
 
   interface massFunctionIncompletenessSurfaceBrightness
-     !!{
-     Constructors for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class.
+     !!{RST
+     Constructors for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class.
      !!}
      module procedure surfaceBrightnessConstructorParameters
      module procedure surfaceBrightnessConstructorInternal
@@ -53,8 +51,8 @@
 contains
 
   function surfaceBrightnessConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,29 +63,39 @@ contains
          &                                                                          scatter
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limit</name>
-      <description>Limiting surface brightness for mass function incompleteness calculations.</description>
+      <description>
+      Limiting surface brightness for mass function incompleteness calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zeroPoint</name>
-      <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+      <description>
+      Mass zero point for the mass function incompleteness surface brightness model, i.e. :math:`M_0` in :math:`\mu(M) = \alpha \log_{10}(M/M_0)+\beta`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>slope</name>
-      <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+      <description>
+      Slope of mass function incompleteness surface brightness model, i.e. :math:`\alpha` in :math:`\mu(M) = \alpha \log_{10}(M/M_0)+\beta`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>offset</name>
-      <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+      <description>
+      Offset in the mass function incompleteness surface brightness model, i.e. :math:`beta` in :math:`\mu(M) = \alpha \log_{10}(M/M_0)+\beta`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
-      <description>Scatter in the mass function incompleteness surface brightness model.</description>
+      <description>
+      Scatter in the mass function incompleteness surface brightness model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -99,8 +107,8 @@ contains
   end function surfaceBrightnessConstructorParameters
 
   function surfaceBrightnessConstructorInternal(limit,zeroPoint,slope,offset,scatter) result(self)
-    !!{
-    Internal constructor for the \refClass{massFunctionIncompletenessSurfaceBrightness} incompleteness class.
+    !!{RST
+    Internal constructor for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class.
     !!}
     implicit none
     type            (massFunctionIncompletenessSurfaceBrightness)                :: self
@@ -115,7 +123,7 @@ contains
   end function surfaceBrightnessConstructorInternal
 
   double precision function surfaceBrightnessCompleteness(self,mass)
-    !!{
+    !!{RST
     Return the completeness.
     !!}
     use :: Error_Functions, only : Error_Function

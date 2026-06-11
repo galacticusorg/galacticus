@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements error reporting for the {\normalfont \scshape Galacticus} package.
+!!{RST
+Contains a module which implements error reporting for the  Galacticus package.
 !!}
 
 module Error
-  !!{
-  Implements error reporting for the {\normalfont \scshape Galacticus} package.
+  !!{RST
+  Implements error reporting for the  Galacticus package.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_int
   use            :: ISO_Varying_String, only : varying_string
@@ -104,7 +104,7 @@ module Error
      end subroutine signalHandlerInterface
   end  interface
   type :: signalHandler
-     !!{
+     !!{RST
      Type used to maintain a linked-list of functions to call on error handling.
      !!}
      procedure(signalHandlerInterface), pointer, nopass :: handler
@@ -117,7 +117,7 @@ module Error
 contains
 
   subroutine Error_Report_VarStr(message)
-    !!{
+    !!{RST
     Display an error message.
     !!}
     use :: ISO_Varying_String, only : char
@@ -129,7 +129,7 @@ contains
   end subroutine Error_Report_VarStr
 
   subroutine Error_Report_Char(message)
-    !!{
+    !!{RST
     Display an error message.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
@@ -186,7 +186,7 @@ contains
   end subroutine Error_Report_Char
 
   subroutine Warn_VarStr(message)
-    !!{
+    !!{RST
     Display a warning message
     !!}
     use :: ISO_Varying_String, only : char
@@ -198,7 +198,7 @@ contains
   end subroutine Warn_VarStr
 
   subroutine Warn_Char(message)
-    !!{
+    !!{RST
     Display a warning message.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
@@ -233,7 +233,7 @@ contains
   end subroutine Warn_Char
 
   subroutine Warn_Review()
-    !!{
+    !!{RST
     Review any warning messages emitted during the run.
     !!}
     use, intrinsic :: ISO_Fortran_Env   , only : error_unit, output_unit
@@ -255,7 +255,7 @@ contains
   end subroutine Warn_Review
 
   subroutine Error_Handler_Register()
-    !!{
+    !!{RST
     Register signal handlers.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funptr
@@ -278,8 +278,8 @@ contains
   end subroutine Error_Handler_Register
 
   subroutine Signal_Handler_SIGINT()
-    !!{
-    Handle \mono{SIGINT} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGINT`` signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -335,8 +335,8 @@ contains
   end subroutine Signal_Handler_SIGINT
 
   subroutine Signal_Handler_SIGSEGV()
-    !!{
-    Handle \mono{SIGSEGV} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGSEGV`` signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -393,8 +393,8 @@ contains
   end subroutine Signal_Handler_SIGSEGV
 
   subroutine Signal_Handler_SIGFPE()
-    !!{
-    Handle \mono{SIGFPE} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGFPE`` signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -451,8 +451,8 @@ contains
   end subroutine Signal_Handler_SIGFPE
 
   subroutine Signal_Handler_SIGBUS()
-    !!{
-    Handle \mono{SIGBUS} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGBUS`` signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -509,8 +509,8 @@ contains
   end subroutine Signal_Handler_SIGBUS
 
   subroutine Signal_Handler_SIGILL()
-    !!{
-    Handle \mono{SIGILL} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGILL`` signals, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -567,8 +567,8 @@ contains
   end subroutine Signal_Handler_SIGILL
 
   subroutine Signal_Handler_SIGXCPU()
-    !!{
-    Handle \mono{SIGXCPU} signals, by flushing all data and then aborting.
+    !!{RST
+    Handle ``SIGXCPU`` signals, by flushing all data and then aborting.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : error_unit  , output_unit
     use            :: Display        , only : displayBold , displayRed , displayReset
@@ -591,8 +591,8 @@ contains
   end subroutine Signal_Handler_SIGXCPU
 
   subroutine Signal_Handler_SIGUSR1()
-    !!{
-    Handle \mono{SIGUSR1} signals, by outputting a backtrace.
+    !!{RST
+    Handle ``SIGUSR1`` signals, by outputting a backtrace.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : error_unit
     use            :: Display        , only : displayBold  , displayMagenta, displayReset
@@ -632,7 +632,7 @@ contains
   end subroutine Signal_Handler_SIGUSR1
 
   subroutine errorHandlerGSL(reason,file,line,errorNumber) bind(c)
-    !!{
+    !!{RST
     Handle errors from the GSL library, by flushing all data and then aborting.
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit         , output_unit
@@ -701,7 +701,7 @@ contains
   end subroutine errorHandlerGSL
 
   subroutine GSL_Error_Handler_Abort_On()
-    !!{
+    !!{RST
     Record that we should abort on GSL errors.
     !!}
     implicit none
@@ -711,7 +711,7 @@ contains
   end subroutine GSL_Error_Handler_Abort_On
 
   subroutine GSL_Error_Handler_Abort_Off()
-    !!{
+    !!{RST
     Record that we should not abort on GSL errors.
     !!}
     implicit none
@@ -721,7 +721,7 @@ contains
   end subroutine GSL_Error_Handler_Abort_Off
 
   integer function GSL_Error_Status()
-    !!{
+    !!{RST
     Return current GSL error status.
     !!}
     implicit none
@@ -731,7 +731,7 @@ contains
   end function GSL_Error_Status
 
   subroutine GSL_Error_Details(reason,file,line,errorStatus)
-    !!{
+    !!{RST
     Return current GSL error details.
     !!}
     implicit none
@@ -746,7 +746,7 @@ contains
   end subroutine GSL_Error_Details
 
   function Component_List(className,componentList)
-    !!{
+    !!{RST
     Construct a message describing which implementations of a component class provide required functionality.
     !!}
     use :: ISO_Varying_String, only : assignment(=), operator(//)
@@ -766,7 +766,7 @@ contains
   end function Component_List
 
   subroutine Error_Wait_Set(errorWaitTimeNew)
-    !!{
+    !!{RST
     Set the time to wait after an error occurs.
     !!}
     implicit none
@@ -778,7 +778,7 @@ contains
 
 #ifndef UNCLEANEXIT
   subroutine closeHDF5()
-    !!{
+    !!{RST
     Close HDF5 functionality on error.
     !!}
     use :: HDF5         , only : H5Close_F
@@ -797,7 +797,7 @@ contains
 #endif
 
   function commandLine()
-    !!{
+    !!{RST
     Return the command line used to run this model.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=)
@@ -813,7 +813,7 @@ contains
   end function commandLine
 
   function commandLineUnlimited(length,status) result(argument)
-    !!{
+    !!{RST
     Get the full command line of unlimited length.
     !!}
     implicit none
@@ -826,7 +826,7 @@ contains
   end function commandLineUnlimited
 
   subroutine signalHandlerRegister(handler)
-    !!{
+    !!{RST
     Register an error handler to the list.
     !!}
     implicit none
@@ -846,7 +846,7 @@ contains
   end subroutine signalHandlerRegister
   
   subroutine signalHandlerDeregister(handler)
-    !!{
+    !!{RST
     Deregister an error handler to the list.
     !!}
     implicit none
@@ -874,7 +874,7 @@ contains
   end subroutine signalHandlerDeregister
 
   subroutine signalHandlersCall(signal)
-    !!{
+    !!{RST
     Call all registered signal handlers.
     !!}
     implicit none

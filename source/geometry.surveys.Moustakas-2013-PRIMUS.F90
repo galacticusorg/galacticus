@@ -17,46 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_2013}.
+!!{RST
+Implements the geometry of the PRIMUS survey used by :cite:t:`moustakas_primus:_2013`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
+  <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS" docformat="rst">
    <description>
-    A survey geometry class that describes the survey geometry of \cite{moustakas_primus:_2013}. 
-    
-    For the angular mask, we make use of \gls{mangle} polygon files provided by J.~Moustakas (private communication)
-    corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the \gls{mangle} \mono{harmonize} command.
-    
-    To determine the depth as a function of stellar mass, we make use of completeness limits for ``All'' galaxies given in
-    Table~2 of \cite{moustakas_primus:_2013}. These are fit, for each field with a second order polynomial to give the limiting
-    redshift as a function of stellar mass. Figure~\ref{fig:MoustakasPRIMUSDepthFit} shows the resulting relation between
-    stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from
-    \cite{moustakas_primus:_2013}, while the line shows a polynomial fits:
-    \begin{eqnarray}
-    z_\mathrm{max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) &amp; &amp; \hbox{COSMOS} \\
-    z_\mathrm{max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) &amp; &amp; \hbox{XMM-SXDS} \\
-    z_\mathrm{max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) &amp; &amp; \hbox{XMM-CFHTLS} \\
-    z_\mathrm{max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) &amp; &amp; \hbox{CDFS} \\
-    z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) &amp; &amp; \hbox{ELAIS-S1}
-     \label{eq:MoustakasDepthPolynomial}
-    \end{eqnarray}
-    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
-    stellar mass.
-    
-    \begin{figure}
-     \begin{center}
-     \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/MoustakasPRIMUSMassRedshiftRelation.pdf}
-     \end{center}
-     \caption{The maximum distance at which a galaxy of given stellar mass can be detected in the sample of
-     \protect\cite{moustakas_primus:_2013}. Points show the results obtained from completeness limit data taken from Table~2 of
-     \protect\cite{moustakas_primus:_2013}, while the lines shows a polynomial fit to these results (given in
-     eqn.~\ref{eq:MoustakasDepthPolynomial}).}
-     \label{fig:MoustakasPRIMUSDepthFit}
-    \end{figure}
+   A survey geometry class that describes the survey geometry of :cite:t:`moustakas_primus:_2013`.
+
+   For the angular mask, we make use of :term:`mangle` polygon files provided by J. Moustakas (private communication) corresponding to the give PRIMUS fields. The solid angle of each mask is computed using the :term:`mangle` ``harmonize`` command.
+
+   To determine the depth as a function of stellar mass, we make use of completeness limits for "All" galaxies given in Table 2 of :cite:t:`moustakas_primus:_2013`. These are fit, for each field with a second order polynomial to give the limiting redshift as a function of stellar mass. Figure  shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate results from :cite:t:`moustakas_primus:_2013`, while the line shows a polynomial fits:
+
+   .. math::
+
+      z_\mathrm{max}(M_\star) = +3.51+m(-0.941+m(+0.0651)) &amp;  \hbox{COSMOS} \\
+      z_\mathrm{max}(M_\star) = +2.46+m(-0.730+m(+0.0542)) &amp;  \hbox{XMM-SXDS} \\
+      z_\mathrm{max}(M_\star) = -3.60+m(+0.500+m(-0.0078)) &amp;  \hbox{XMM-CFHTLS} \\
+      z_\mathrm{max}(M_\star) = +5.87+m(-1.528+m(+0.0982)) &amp;  \hbox{CDFS} \\
+      z_\mathrm{max}(M_\star) = +6.87+m(-1.656+m(+0.1003)) &amp;  \hbox{ELAIS-S1}
+       \label{eq:MoustakasDepthPolynomial}
+
+   where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+   The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`moustakas_primus:_2013`. Points show the results obtained from completeness limit data taken from Table 2 of :cite:t:`moustakas_primus:_2013`, while the lines shows a polynomial fit to these results (given in eqn. ).
    </description>
   </surveyGeometry>
   !!]
@@ -78,8 +65,8 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
   end type surveyGeometryMoustakas2013PRIMUS
 
   interface surveyGeometryMoustakas2013PRIMUS
-     !!{
-     Constructors for the \cite{moustakas_primus:_2013} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`moustakas_primus:_2013` survey geometry class.
      !!}
      module procedure moustakas2013PRIMUSConstructorParameters
      module procedure moustakas2013PRIMUSConstructorInternal
@@ -94,8 +81,8 @@ Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_201
 contains
 
   function moustakas2013PRIMUSConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \cite{moustakas_primus:_2013} conditional mass function class.
+    !!{RST
+    Default constructor for the :cite:t:`moustakas_primus:_2013` conditional mass function class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,10 +94,12 @@ contains
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftBin</name>
       <source>parameters</source>
-      <description>The redshift bin (0, 1, 2, 3, 4, 5, or 5) of the \cite{moustakas_primus:_2013} mass function to use.</description>
+      <description>
+      The redshift bin (0, 1, 2, 3, 4, 5, or 5) of the :cite:t:`moustakas_primus:_2013` mass function to use.
+      </description>
     </inputParameter>
     !!]
     self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_)
@@ -122,8 +111,8 @@ contains
   end function moustakas2013PRIMUSConstructorParameters
 
   function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \cite{moustakas_primus:_2013} mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`moustakas_primus:_2013` mass function class.
     !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -177,8 +166,8 @@ contains
   end function moustakas2013PRIMUSConstructorInternal
 
   subroutine moustakas2013PRIMUSDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryMoustakas2013PRIMUS} survey geometry class.
+    !!{RST
+    Destructor for the ``surveyGeometryMoustakas2013PRIMUS`` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
@@ -190,7 +179,7 @@ contains
   end subroutine moustakas2013PRIMUSDestructor
 
   integer function moustakas2013PRIMUSFieldCount(self)
-    !!{
+    !!{RST
     Return the number of fields in this sample.
     !!}
     implicit none
@@ -202,7 +191,7 @@ contains
   end function moustakas2013PRIMUSFieldCount
 
   double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
@@ -217,7 +206,7 @@ contains
   end function moustakas2013PRIMUSDistanceMinimum
 
   double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -284,7 +273,7 @@ contains
   end function moustakas2013PRIMUSDistanceMaximum
 
   double precision function moustakas2013PRIMUSVolumeMaximum(self,mass,field)
-    !!{
+    !!{RST
     Compute the maximum volume within which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
@@ -311,8 +300,8 @@ contains
   end function moustakas2013PRIMUSVolumeMaximum
 
   function moustakas2013PRIMUSMangleDirectory(self)
-    !!{
-    Return the path to the directory containing \gls{mangle} files.
+    !!{RST
+    Return the path to the directory containing :term:`mangle` files.
     !!}
     use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
@@ -325,8 +314,8 @@ contains
   end function moustakas2013PRIMUSMangleDirectory
 
   subroutine moustakas2013PRIMUSMangleFiles(self,mangleFiles)
-    !!{
-    Return a list of \gls{mangle} files.
+    !!{RST
+    Return a list of :term:`mangle` files.
     !!}
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS)                           , intent(inout) :: self
@@ -342,8 +331,8 @@ contains
   end subroutine moustakas2013PRIMUSMangleFiles
 
   integer function moustakas2013PRIMUSAngularPowerMaximumDegree(self)
-    !!{
-    Return the maximum degree for which angular power is computed for the \cite{moustakas_primus:_2013} survey.
+    !!{RST
+    Return the maximum degree for which angular power is computed for the :cite:t:`moustakas_primus:_2013` survey.
     !!}
     implicit none
     class(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
@@ -354,8 +343,8 @@ contains
   end function moustakas2013PRIMUSAngularPowerMaximumDegree
 
   integer function moustakas2013PRIMUSFieldPairIndex(i,j)
-    !!{
-    Compute the index of a pair of fields in the \cite{moustakas_primus:_2013} survey.
+    !!{RST
+    Compute the index of a pair of fields in the :cite:t:`moustakas_primus:_2013` survey.
     !!}
     implicit none
     integer, intent(in   ) ::  i,  j

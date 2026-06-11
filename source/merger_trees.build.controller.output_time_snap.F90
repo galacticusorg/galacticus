@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class that forces tree time steps to exactly coincidence with output times.
 !!}
 
@@ -25,12 +25,14 @@ Implements a merger tree build controller class that forces tree time steps to e
   use :: Output_Times              , only : outputTimesClass
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerOutputTimeSnap">
-   <description>A merger tree build controller class that forces tree time steps to exactly coincidence with output times.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerOutputTimeSnap" docformat="rst">
+   <description>
+   A merger tree build controller class that forces tree time steps to exactly coincidence with output times.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerOutputTimeSnap
-     !!{
+     !!{RST
      A merger tree build controller class that forces tree time steps to exactly coincidence with output times.
      !!}
      private
@@ -47,8 +49,8 @@ Implements a merger tree build controller class that forces tree time steps to e
   end type mergerTreeBuildControllerOutputTimeSnap
 
   interface mergerTreeBuildControllerOutputTimeSnap
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildControllerOutputTimeSnap`` merger tree build controller class.
      !!}
      module procedure outputTimeSnapConstructorParameters
      module procedure outputTimeSnapConstructorInternal
@@ -57,8 +59,8 @@ Implements a merger tree build controller class that forces tree time steps to e
 contains
 
   function outputTimeSnapConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildControllerOutputTimeSnap`` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +89,8 @@ contains
   end function outputTimeSnapConstructorParameters
 
   function outputTimeSnapConstructorInternal(mergerTreeBranchingProbability_,outputTimes_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildControllerOutputTimeSnap`` merger tree build controller class.
     !!}
     implicit none
     type (mergerTreeBuildControllerOutputTimeSnap)                        :: self
@@ -104,8 +106,8 @@ contains
   end function outputTimeSnapConstructorInternal
 
   subroutine outputTimeSnapDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerOutputTimeSnap} merger tree build controller class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildControllerOutputTimeSnap`` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerOutputTimeSnap), intent(inout) :: self
@@ -120,7 +122,7 @@ contains
   end subroutine outputTimeSnapDestructor
 
   logical function outputTimeSnapControl(self,node,treeWalker_) result(control)
-    !!{
+    !!{RST
     Apply control to merger tree building.
     !!}
     implicit none
@@ -135,7 +137,7 @@ contains
   end function outputTimeSnapControl
 
   function outputTimeSnapBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end function outputTimeSnapBranchingProbabilityObject
 
   subroutine outputTimeSnapNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none
@@ -164,7 +166,7 @@ contains
   end subroutine outputTimeSnapNodesInserted
 
   double precision function outputTimeSnapTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode) result(timeMaximum)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     use, intrinsic :: ISO_C_Binding       , only : c_size_t

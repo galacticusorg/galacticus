@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter that passes nodes only if they exist at an output time.
 !!}
 
   use :: Output_Times, only : outputTimesClass
 
   !![
-  <galacticFilter name="galacticFilterOutputTimes">
+  <galacticFilter name="galacticFilterOutputTimes" docformat="rst">
    <description>
-     A filter that passes nodes only if their cosmic time coincides with one of the requested simulation output times, within a relative tolerance specified by \mono{[toleranceRelative]}. This ensures that only nodes snapshotted at designated output epochs are included in post-processing analyses.
-  </description>
+   A filter that passes nodes only if their cosmic time coincides with one of the requested simulation output times, within a relative tolerance specified by ``[toleranceRelative]``. This ensures that only nodes snapshotted at designated output epochs are included in post-processing analyses.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterOutputTimes
-     !!{
+     !!{RST
      A filter that passes nodes only if they exist at an output time.
      !!}
      private
@@ -43,8 +43,8 @@ Implements a filter that passes nodes only if they exist at an output time.
   end type galacticFilterOutputTimes
 
   interface galacticFilterOutputTimes
-     !!{
-     Constructors for the \refClass{galacticFilterOutputTimes} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterOutputTimes`` galactic filter class.
      !!}
      module procedure outputTimesConstructorParameters
      module procedure outputTimesConstructorInternal
@@ -53,8 +53,8 @@ Implements a filter that passes nodes only if they exist at an output time.
 contains
 
   function outputTimesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterOutputTimes} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterOutputTimes`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,11 +64,13 @@ contains
     double precision                                           :: toleranceRelative
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The fractional tolerance to allow when comparing the time at which a node exists to output times.</description>
+      <description>
+      The fractional tolerance to allow when comparing the time at which a node exists to output times.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -81,8 +83,8 @@ contains
   end function outputTimesConstructorParameters
 
   function outputTimesConstructorInternal(toleranceRelative,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterOutputTimes} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterOutputTimes`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterOutputTimes)                        :: self
@@ -96,8 +98,8 @@ contains
   end function outputTimesConstructorInternal
 
   subroutine outputTimesDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterOutputTimes} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterOutputTimes`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterOutputTimes), intent(inout) :: self
@@ -109,7 +111,7 @@ contains
   end subroutine outputTimesDestructor
 
   logical function outputTimesPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
     use, intrinsic :: ISO_C_Binding       , only : c_size_t

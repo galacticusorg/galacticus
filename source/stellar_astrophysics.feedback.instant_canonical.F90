@@ -17,22 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar feedback class which assumes instantaneous injection of energy at the canonical rate. Primarily intended
-  for testing purposes. 
+  !!{RST
+  Implements a stellar feedback class which assumes instantaneous injection of energy at the canonical rate. Primarily intended for testing purposes.
   !!}
 
   !![
-  <stellarFeedback name="stellarFeedbackInstantCanonical">
+  <stellarFeedback name="stellarFeedbackInstantCanonical" docformat="rst">
    <description>
-    A stellar feedback class which assumes that energy input from a stellar population occurs instantly, and at the canonical rate.
+   A stellar feedback class which assumes that energy input from a stellar population occurs instantly, and at the canonical rate.
    </description>
   </stellarFeedback>
   !!]
   type, extends(stellarFeedbackClass) :: stellarFeedbackInstantCanonical
-     !!{
-     A stellar feedback class which assumes instantaneous injection of energy at the canonical rate. Primarily intended
-     for testing purposes.
+     !!{RST
+     A stellar feedback class which assumes instantaneous injection of energy at the canonical rate. Primarily intended for testing purposes.
      !!}
      private
    contains
@@ -40,8 +38,8 @@
   end type stellarFeedbackInstantCanonical
 
   interface stellarFeedbackInstantCanonical
-     !!{
-     Constructors for the \refClass{stellarFeedbackInstantCanonical} stellar feedback class.
+     !!{RST
+     Constructors for the ``stellarFeedbackInstantCanonical`` stellar feedback class.
      !!}
      module procedure instantCanonicalConstructorParameters
   end interface stellarFeedbackInstantCanonical
@@ -49,8 +47,8 @@
 contains
 
   function instantCanonicalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarFeedbackInstantCanonical} stellar feedback class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarFeedbackInstantCanonical`` stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,8 +63,8 @@ contains
   end function instantCanonicalConstructorParameters
 
   double precision function instantCanonicalEnergyInputCumulative(self,initialMassFunction_,initialMass,age,metallicity)
-    !!{
-    Compute the cumulative energy input from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity}.
+    !!{RST
+    Compute the cumulative energy input from a star of given ``initialMass``, ``age`` and ``metallicity``.
     !!}
     implicit none
     class           (stellarFeedbackInstantCanonical), intent(inout), target :: self

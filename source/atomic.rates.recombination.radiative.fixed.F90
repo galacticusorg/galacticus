@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of atomic radiative recombination rates which uses a fixed rate coefficient.
   !!}
 
   !![
-  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeFixed">
-   <description>Computes atomic radiative recombination rates using a fixed, constant rate coefficient specified by \mono{[rateCoefficient]} in units of cm$^3$~s$^{-1}$. This provides a simple, temperature-independent approximation to the recombination rate for use in ionization and cooling calculations.</description>
+  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeFixed" docformat="rst">
+   <description>
+   Computes atomic radiative recombination rates using a fixed, constant rate coefficient specified by ``[rateCoefficient]`` in units of cm\ :math:`^3` s\ :math:`^{-1}`. This provides a simple, temperature-independent approximation to the recombination rate for use in ionization and cooling calculations.
+   </description>
   </atomicRecombinationRateRadiative>
   !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeFixed
-     !!{
+     !!{RST
      A radiative recombination rate class which uses a fixed rate coefficient.
      !!}
      private
@@ -37,8 +39,8 @@
   end type atomicRecombinationRateRadiativeFixed
 
   interface atomicRecombinationRateRadiativeFixed
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateRadiativeFixed} atomic radiative recombination class.
+     !!{RST
+     Constructors for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateRadiativeFixed} atomic radiative recombination class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,9 +59,11 @@ contains
     double precision                                                       :: rateCoefficient
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateCoefficient</name>
-      <description>The rate coefficient (in units of cm$^3$ s$^{-1}$) for radiative recombination.</description>
+      <description>
+      The rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for radiative recombination.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -71,8 +75,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(rateCoefficient) result(self)
-    !!{
-    Internal constructor for the \refClass{atomicRecombinationRateRadiativeFixed} atomic radiative recombination class.
+    !!{RST
+    Internal constructor for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +90,7 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedRate(self,atomicNumber,ionizationState,temperature,level)
-    !!{
+    !!{RST
     Returns a fixed rate coefficient.
     !!}
     implicit none

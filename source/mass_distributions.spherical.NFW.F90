@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an NFW \citep{navarro_structure_1996} mass distribution class.
+  !!{RST
+  Implementation of an NFW :cite:p:`navarro_structure_1996` mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -26,19 +26,20 @@
   public :: massDistributionNFWStateStore, massDistributionNFWStateRestore
   
   !![
-  <massDistribution name="massDistributionNFW">
+  <massDistribution name="massDistributionNFW" docformat="rst">
     <description>
-      An NFW \citep{navarro_structure_1996} mass distribution class. The density profile is given by:
-      \begin{equation}
-       \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
-      \right]^{-2}.
-      \end{equation}
+    An NFW :cite:p:`navarro_structure_1996` mass distribution class. The density profile is given by:
+
+    .. math::
+
+        \rho_\mathrm{dark matter}(r) \propto \left({r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
+       \right]^{-2}.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionNFW
-     !!{
-     The NFW \citep{navarro_structure_1996} mass distribution.
+     !!{RST
+     The NFW :cite:p:`navarro_structure_1996` mass distribution.
      !!}
      private
      double precision :: densityNormalization      , scaleLength
@@ -71,8 +72,8 @@
   end type massDistributionNFW
   
   interface massDistributionNFW
-     !!{
-     Constructors for the \refClass{massDistributionNFW} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionNFW`` mass distribution class.
      !!}
      module procedure massDistributionNFWConstructorParameters
      module procedure massDistributionNFWConstructorInternal
@@ -101,9 +102,8 @@
 contains
 
   function massDistributionNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionNFW} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionNFW`` mass distribution class which builds the object from a parameter set.
     !!}
      use :: Input_Parameters          , only : inputParameter                , inputParameters
      use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -119,52 +119,68 @@ contains
     type            (varying_string     )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>1.0d0/2.0d0/Pi/(log(4.0d0)-1.0d0)</defaultValue>
-      <description>The density normalization of the NFW profile.</description>
+      <description>
+      The density normalization of the NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleLength</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The NFW scale radius (in Mpc) $r_\mathrm{s}$ at which the density profile transitions from the inner $\rho \propto r^{-1}$ to the outer $\rho \propto r^{-3}$ slope.</description>
+      <description>
+      The NFW scale radius (in Mpc) :math:`r_\mathrm{s}` at which the density profile transitions from the inner :math:`\rho \propto r^{-1}` to the outer :math:`\rho \propto r^{-3}` slope.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the NFW profile, used to set the density normalization when the concentration and virial radius are provided.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the NFW profile, used to set the density normalization when the concentration and virial radius are provided.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentration</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The halo concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of the NFW profile, controlling how centrally concentrated the dark matter density profile is.</description>
+      <description>
+      The halo concentration parameter :math:`c = r_\mathrm{vir}/r_\mathrm{s}` of the NFW profile, controlling how centrally concentrated the dark matter density profile is.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>virialRadius</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The virial radius (in Mpc) $r_\mathrm{vir}$ of the NFW halo, which defines the outer boundary of the profile at which the mean enclosed density equals the virial overdensity threshold.</description>
+      <description>
+      The virial radius (in Mpc) :math:`r_\mathrm{vir}` of the NFW halo, which defines the outer boundary of the profile at which the mean enclosed density equals the virial overdensity threshold.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the NFW profile is considered to be dimensionless.</description>
+      <description>
+      If true the NFW profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -182,8 +198,8 @@ contains
   end function massDistributionNFWConstructorParameters
 
   function massDistributionNFWConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``nfw'' mass distribution class.
+    !!{RST
+    Internal constructor for "nfw" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -242,7 +258,7 @@ contains
   end function massDistributionNFWConstructorInternal
 
   double precision function nfwMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in an NFW mass distribution.
     !!}
     implicit none
@@ -253,8 +269,8 @@ contains
   end function nfwMassTotal
 
   double precision function nfwDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in an NFW mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
@@ -271,8 +287,8 @@ contains
   end function nfwDensity
 
   double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in an NFW \citep{navarro_structure_1996} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an NFW :cite:p:`navarro_structure_1996` mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -308,8 +324,8 @@ contains
   end function nfwDensityGradientRadial
 
   double precision function nfwDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
-    Computes radial moments of the density in an NFW \citep{navarro_structure_1996} mass distribution.
+    !!{RST
+    Computes radial moments of the density in an NFW :cite:p:`navarro_structure_1996` mass distribution.
     !!}
     implicit none
     class           (massDistributionNFW), intent(inout)           :: self
@@ -349,7 +365,7 @@ contains
   contains
 
     double precision function radialMomentScaleFree(radius)
-      !!{
+      !!{RST
       Provides the scale-free part of the radial moment of the NFW density profile.
       !!}
       use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -392,8 +408,8 @@ contains
   end function nfwDensityRadialMoment
 
   double precision function nfwMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for nfw mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -414,7 +430,7 @@ contains
   end function nfwMassEnclosedBySphere
   
   double precision function nfwRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for nfw mass distributions.
     !!}    
     use :: Numerical_Constants_Math, only : Pi
@@ -467,7 +483,7 @@ contains
   end function nfwRadiusEnclosingMass
   
   double precision function nfwRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for nfw mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
@@ -510,7 +526,7 @@ contains
   end function nfwRadiusEnclosingDensity
 
   elemental double precision function massEnclosedScaleFree(radius) result(mass)
-    !!{
+    !!{RST
     Evaluate the mass enclosed by a given radius in a scale-free NFW mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -533,7 +549,7 @@ contains
   end function massEnclosedScaleFree
 
   elemental double precision function densityEnclosedScaleFree(radius) result(density)
-    !!{
+    !!{RST
     Evaluate the mean enclosed density at a given radius in a scale-free NFW mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -549,7 +565,7 @@ contains
   end function densityEnclosedScaleFree  
 
   double precision function nfwRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -600,7 +616,7 @@ contains
   end function nfwRadiusFromSpecificAngularMomentum
 
   elemental double precision function angularMomentumSpecificEnclosedScaleFree(radius) result(angularMomentumSpecific)
-    !!{
+    !!{RST
     Evaluate the specific angular momentum at a given radius in a scale-free NFW mass distribution.
     !!}
     implicit none
@@ -614,7 +630,7 @@ contains
   end function angularMomentumSpecificEnclosedScaleFree
 
   double precision function nfwVelocityRotationCurveMaximum(self) result(velocity)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an nfw mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -638,7 +654,7 @@ contains
   end function nfwVelocityRotationCurveMaximum
 
   double precision function nfwRadiusRotationCurveMaximum(self) result(radius)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an nfw mass distribution.
     !!}
     implicit none
@@ -652,7 +668,7 @@ contains
   end function nfwRadiusRotationCurveMaximum
 
   logical function nfwPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -663,8 +679,8 @@ contains
   end function nfwPotentialIsAnalytic
 
   double precision function nfwPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an nfw mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an nfw mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -688,7 +704,7 @@ contains
   end function nfwPotential
 
   elemental double precision function potentialScaleFree(radius) result(potential)
-    !!{
+    !!{RST
     Compute the potential in a scale-free NFW mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -711,7 +727,7 @@ contains
   end function potentialScaleFree
 
  double precision function potentialDifferenceScaleFree(radius1,radius2) result(potential)
-    !!{
+    !!{RST
     Compute the potential difference in a scale-free NFW mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -746,9 +762,8 @@ contains
   end function potentialDifferenceScaleFree
   
   double precision function nfwFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an NFW mass
-    distribution, using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in an NFW mass distribution, using the expression given in :cite:author:`cooray_halo_2002` (:cite:year:`cooray_halo_2002`; eqn. 81).
     !!}
     use :: Exponential_Integrals, only : Cosine_Integral, Sine_Integral
     implicit none
@@ -768,8 +783,8 @@ contains
   end function nfwFourierTransform
   
   double precision function nfwRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in an NFW mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in an NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -796,9 +811,8 @@ contains
   end function nfwRadiusFreefall
   
   double precision function nfwRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an nfw mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an nfw mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -826,8 +840,8 @@ contains
   end function nfwRadiusFreefallIncreaseRate
   
   subroutine nfwTimeFreefallTabulate(self,timeScaleFree)
-    !!{
-    Tabulate the freefall radius at the given \mono{time} in an NFW mass distribution.
+    !!{RST
+    Tabulate the freefall radius at the given ``time`` in an NFW mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -870,7 +884,7 @@ contains
   contains
     
     double precision function timeFreefallScaleFree(radius)
-      !!{
+      !!{RST
       Evaluate the freefall time from a given radius in a scale-free NFW mass distribution.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -890,7 +904,7 @@ contains
     end function timeFreefallScaleFree
     
     double precision function timeFreeFallIntegrand(radius)
-      !!{
+      !!{RST
       Integrand used to find the freefall time in a scale-free NFW mass distribution.
       !!}
       implicit none
@@ -917,13 +931,15 @@ contains
   end subroutine nfwTimeFreefallTabulate
   
   double precision function nfwEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in an NFW mass distribution. This is
-    \begin{eqnarray}
-      W &=& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \frac{m^2(x)}{x^2} \mathrm{d} x, \nonumber \\
-        &-& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \left[ \frac{x}{1+x} - \frac{\log^2(1+x)}{x} + \frac{\left\{\log(1+x)-x/(1+x)\right\}^2}{x} \right],
-    \end{eqnarray}
-    where $x=r/r_\mathrm{s}$ and $m(x)$ is the scale-free mass distribution.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in an NFW mass distribution. This is
+
+    .. math::
+
+       W &=& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \frac{m^2(x)}{x^2} \mathrm{d} x, \nonumber \\
+       &-& - \frac{\mathrm{G}}{2} \rho_0^2 r_\mathrm{s}^5 \left[ \frac{x}{1+x} - \frac{\log^2(1+x)}{x} + \frac{\left\{\log(1+x)-x/(1+x)\right\}^2}{x} \right],
+
+    where :math:`x=r/r_\mathrm{s}` and :math:`m(x)` is the scale-free mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -948,13 +964,15 @@ contains
   end function nfwEnergyPotential
 
   double precision function nfwEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius} in an NFW mass distribution. This is
-    \begin{eqnarray}
-      T &=& 6 \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \rho(x) \sigma^2(x) x^2 \mathrm{d} x, \nonumber \\
-        &=& \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \left[ 6 x^3 \text{Li}_2(-x)+x^3 (-\log (x))+\log (x+1) \left(3 x^3 \log (x+1)+((x-6) x+3) x-2\right)+\left(x \left(\pi ^2 x-7\right)+5\right) x+\frac{3}{x+1} \right],
-    \end{eqnarray}
-    where $x=r/r_\mathrm{s}$, $\rho(x)$ is the scale-free density, and $\sigma^2(x)$ is the scale-free velocity dispersion.
+    !!{RST
+    Compute the kinetic energy within a given ``radius`` in an NFW mass distribution. This is
+
+    .. math::
+
+       T &=& 6 \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \int_0^{x_\mathrm{out}} \rho(x) \sigma^2(x) x^2 \mathrm{d} x, \nonumber \\
+       &=& \pi \mathrm{G} \rho_0^2 r_\mathrm{s}^5 \left[ 6 x^3 \text{Li}_2(-x)+x^3 (-\log (x))+\log (x+1) \left(3 x^3 \log (x+1)+((x-6) x+3) x-2\right)+\left(x \left(\pi ^2 x-7\right)+5\right) x+\frac{3}{x+1} \right],
+
+    where :math:`x=r/r_\mathrm{s}`, :math:`\rho(x)` is the scale-free density, and :math:`\sigma^2(x)` is the scale-free velocity dispersion.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi
@@ -1019,7 +1037,7 @@ contains
   end function nfwEnergyKinetic
 
   subroutine nfwDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -1044,7 +1062,7 @@ contains
   <stateStoreTask function="massDistributionNFWStateStore"/>
   !!]
   subroutine massDistributionNFWStateStore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the tabulation state to file.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -1068,7 +1086,7 @@ contains
   <stateRetrieveTask function="massDistributionNFWStateRestore"/>
   !!]
   subroutine massDistributionNFWStateRestore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

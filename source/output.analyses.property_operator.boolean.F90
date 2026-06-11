@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a boolean analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
-   <description>An output analysis property operator that converts a continuous property to a boolean value ($x \rightarrow 0$ if $x=0$, otherwise $x \rightarrow 1$), with \mono{preciseZero} controlling whether zero inputs map to exact zero or the smallest representable non-zero value.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean" docformat="rst">
+   <description>
+   An output analysis property operator that converts a continuous property to a boolean value (:math:`x \rightarrow 0` if :math:`x=0`, otherwise :math:`x \rightarrow 1`), with ``preciseZero`` controlling whether zero inputs map to exact zero or the smallest representable non-zero value.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorBoolean
-     !!{
+     !!{RST
      A boolean property operator class.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a boolean analysis property operator class.
   end type outputAnalysisPropertyOperatorBoolean
 
   interface outputAnalysisPropertyOperatorBoolean
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorBoolean} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class.
      !!}
      module procedure booleanConstructorParameters
      module procedure booleanConstructorInternal
@@ -47,8 +49,8 @@ Implements a boolean analysis property operator class.
 contains
 
   function booleanConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorBoolean} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,11 +59,13 @@ contains
     logical :: preciseZero
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>preciseZero</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, \mono{epsilon(0.0d0)}. This is useful since a precise 0 is treated differently by the \refClass{outputAnalysisMeanFunction1D} output analysis class.</description>
+      <description>
+      If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, ``epsilon(0.0d0)``. This is useful since a precise 0 is treated differently by the ``outputAnalysisMeanFunction1D`` output analysis class.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorBoolean(preciseZero)
@@ -72,8 +76,8 @@ contains
   end function booleanConstructorParameters
 
   function booleanConstructorInternal(preciseZero) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorBoolean} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class.
     !!}
     implicit none
     type   (outputAnalysisPropertyOperatorBoolean)                :: self
@@ -86,7 +90,7 @@ contains
   end function booleanConstructorInternal
 
   double precision function booleanOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an boolean output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

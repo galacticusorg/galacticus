@@ -19,22 +19,20 @@
 
   !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-  !!{
-  Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
-  \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+  !!{RST
+  Implements an atomic dielectronic recombination class which uses the fits from :cite:t:`aldrovandi_radiative_1973`, :cite:t:`shull_ionization_1982` and :cite:t:`arnaud_updated_1985`.
   !!}
 
   !![
-  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicArnaud1985">
+  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicArnaud1985" docformat="rst">
    <description>
-    Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+   Implements an atomic dielectronic recombination class which uses the fits from :cite:t:`aldrovandi_radiative_1973`, :cite:t:`shull_ionization_1982` and :cite:t:`arnaud_updated_1985`.
    </description>
   </atomicRecombinationRateDielectronic>
   !!]
   type, extends(atomicRecombinationRateDielectronicClass) :: atomicRecombinationRateDielectronicArnaud1985
-     !!{
-     Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
-     \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+     !!{RST
+     Implements an atomic dielectronic recombination class which uses the fits from :cite:t:`aldrovandi_radiative_1973`, :cite:t:`shull_ionization_1982` and :cite:t:`arnaud_updated_1985`.
      !!}
      private
    contains
@@ -42,8 +40,8 @@
   end type atomicRecombinationRateDielectronicArnaud1985
 
   interface atomicRecombinationRateDielectronicArnaud1985
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic dielectronic recombination rate class.
+     !!{RST
+     Constructors for the ``atomicRecombinationRateDielectronicArnaud1985`` atomic dielectronic recombination rate class.
      !!}
      module procedure arnaud1985ConstructorParameters
   end interface atomicRecombinationRateDielectronicArnaud1985
@@ -222,9 +220,8 @@
 contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateDielectronicArnaud1985} atomic dielectronic recombination rate class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``atomicRecombinationRateDielectronicArnaud1985`` atomic dielectronic recombination rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -239,11 +236,8 @@ contains
   end function arnaud1985ConstructorParameters
 
   double precision function arnaud1985Rate(self,atomicNumber,electronNumber,temperature)
-    !!{
-    Calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni ($Z=28$) by use of the
-    fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
-    \mono{atomicNumber}: atomic number; \mono{electronNumber}: number of electrons;
-    \mono{temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
+    !!{RST
+    Calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni (:math:`Z=28`) by use of the fits from :cite:t:`aldrovandi_radiative_1973`, :cite:t:`shull_ionization_1982` and :cite:t:`arnaud_updated_1985`.  Input parameters: ``atomicNumber``: atomic number; ``electronNumber``: number of electrons; ``temperature``: temperature [K].  Output parameter: rate coefficient [cm\ :math:`^3` s\ :math:`^{-1}`].
     !!}
     use :: Error, only : Error_Report
     implicit none

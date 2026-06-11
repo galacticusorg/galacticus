@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an object that implements dark matter halo profiles.
 !!}
 
 module Dark_Matter_Profiles_DMO
-  !!{
+  !!{RST
   Provides an object that implements dark matter halo profiles.
   !!}
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale              , darkMatterHaloScaleClass
@@ -32,18 +32,17 @@ module Dark_Matter_Profiles_DMO
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterProfileDMO</name>
    <descriptiveName>Dark Matter Only Halo Profiles</descriptiveName>
    <description>
-    Class providing dark matter-only halo density profiles, i.e. the profile a halo would have in the absence of baryonic
-    effects. This returns a \refClass{massDistributionClass} object for the specified node. Common implementations include
-    NFW and Einasto profiles parameterized by a scale radius or concentration. This class is used in calculations of
-    dynamical friction, tidal stripping, and other processes where the unmodified dark matter profile is needed.
+   Class providing dark matter-only halo density profiles, i.e. the profile a halo would have in the absence of baryonic effects. This returns a ``massDistributionClass`` object for the specified node. Common implementations include NFW and Einasto profiles parameterized by a scale radius or concentration. This class is used in calculations of dynamical friction, tidal stripping, and other processes where the unmodified dark matter profile is needed.
    </description>
    <default>NFW</default>
    <method name="get" >
-    <description>Return the mass distribution of the dark matter-only profile.</description>
+    <description>
+    Return the mass distribution of the dark matter-only profile.
+    </description>
     <type>class(massDistributionClass)</type>
     <pass>yes</pass>
     <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
@@ -54,18 +53,17 @@ module Dark_Matter_Profiles_DMO
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterProfileHeating</name>
    <descriptiveName>Dark Matter Profile Heating</descriptiveName>
    <description>
-    Class providing models of heating applied to dark matter-only halo profiles. Heating can modify the density profile
-    of a dark matter halo, for example due to tidal shocks, dynamical heating from baryons, or other perturbative
-    processes. This class returns a \refClass{massDistributionHeatingClass} object encoding the heating distribution
-    for a given node.
+   Class providing models of heating applied to dark matter-only halo profiles. Heating can modify the density profile of a dark matter halo, for example due to tidal shocks, dynamical heating from baryons, or other perturbative processes. This class returns a ``massDistributionHeatingClass`` object encoding the heating distribution for a given node.
    </description>
    <default>null</default>
    <method name="get" >
-    <description>Return the dark matter profile heating in the dark matter-only profile.</description>
+    <description>
+    Return the dark matter profile heating in the dark matter-only profile.
+    </description>
     <type>class(massDistributionHeatingClass)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

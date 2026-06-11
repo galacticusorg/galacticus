@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{dutton_cold_2014} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`dutton_cold_2014` algorithm.
   !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
@@ -26,9 +26,11 @@
 
   ! Fit types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>duttonMaccio2014FitType</name>
-   <description>Enumeration of fit types in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of fit types in the ``duttonMaccio2014`` dark matter halo profile concentration class.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="nfwVirial"         />
@@ -40,9 +42,11 @@
 
   ! Density contrast methods.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>duttonMaccio2014DensityContrastMethod</name>
-   <description>Enumeration of density contrast methods available in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of density contrast methods available in the ``duttonMaccio2014`` dark matter halo profile concentration class.
+   </description>
    <visibility>private</visibility>
    <entry label="virial"     />
    <entry label="critical200"/>
@@ -51,9 +55,11 @@
 
   ! Density profile methods.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>duttonMaccio2014DensityProfileMethod</name>
-   <description>Enumeration of density profile methods available in the \mono{duttonMaccio2014} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of density profile methods available in the ``duttonMaccio2014`` dark matter halo profile concentration class.
+   </description>
    <visibility>private</visibility>
    <entry label="NFW"    />
    <entry label="einasto"/>
@@ -61,45 +67,30 @@
   !!]
   
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed using a fitting function from
-    \cite{dutton_cold_2014}:
-    \begin{equation}
-    \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
-    \end{equation}
-    The parameters are a function of redshift, $z$. We use the following fit suggested by \cite{dutton_cold_2014} results:
-    \begin{eqnarray}
-    A &amp;=&amp; A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
-    B &amp;=&amp; B_1+B_2 z.
-    \end{eqnarray}
-    The coefficients are chosen from one of the three sets given by \cite{dutton_cold_2014}, controlled via the \mono{[duttonMaccio2014FitType]} parameter, as described in Table~\ref{tb:DuttonMaccioConcentrationCoefficients}.
-    
-    \begin{table}
-    \begin{center}
-    \begin{tabular}{lccrrrrrr}
-    \hline
-    {\normalfont \bfseries Fit type} &amp; {\normalfont \bfseries Profile} &amp; {\boldmath $\Delta_\mathrm{vir}$ } &amp;
-    {\boldmath $A_1$} &amp; {\boldmath $A_2$} &amp; {\boldmath $A_3$} &amp; {\boldmath $A_4$} &amp; {\boldmath $B_1$} &amp;
-    {\boldmath $B_2$} \\
-    \hline
-    \mono{nfwVirial}  &amp; \gls{nfw} &amp; Top-hat &amp; $+0.537$ &amp; $+1.025$ &amp; $-0.718$ &amp; $+1.080$ &amp; $-0.097$ &amp; $+0.024$ \\
-    \mono{nfw200}     &amp; \gls{nfw} &amp; 200     &amp; $+0.520$ &amp; $+0.905$ &amp; $-0.617$ &amp; $+1.210$ &amp; $-0.101$ &amp; $+0.026$ \\
-    \mono{einasto200} &amp; Einasto   &amp; 200     &amp; $+0.459$ &amp; $+0.977$ &amp; $-0.490$ &amp; $+1.303$ &amp; $-0.130$ &amp; $+0.029$ \\
-    \hline
-    \end{tabular}
-    \end{center}
-    \caption{Coefficients appearing in the dark matter halo profile concentration fitting functions of
-    \protect\cite{dutton_cold_2014}. The ``fit type'' is specified by the \mono{[duttonMaccio2014FitType]}
-    parameter.}
-    \label{tb:DuttonMaccioConcentrationCoefficients}
-    \end{table}
+   A dark matter profile concentration class in which the concentration is computed using a fitting function from :cite:t:`dutton_cold_2014`:
+
+   .. math::
+
+      \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
+
+   The parameters are a function of redshift, :math:`z`. We use the following fit suggested by :cite:t:`dutton_cold_2014` results:
+
+   .. math::
+
+      A &amp; = A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
+      B &amp; = B_1+B_2 z.
+
+   The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[duttonMaccio2014FitType]`` parameter, as described in Table .
+
+   Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[duttonMaccio2014FitType]`` parameter.
    </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`dutton_cold_2014`.
      !!}
      private
      class           (cosmologyParametersClass                            ), pointer :: cosmologyParameters_             => null()
@@ -126,8 +117,8 @@
   end type darkMatterProfileConcentrationDuttonMaccio2014
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
      !!}
      module procedure duttonMaccio2014ConstructorParameters
      module procedure duttonMaccio2014ConstructorInternalType
@@ -137,8 +128,8 @@
 contains
 
   function duttonMaccio2014ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{duttonMaccio2014} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``duttonMaccio2014`` dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: self
@@ -154,44 +145,58 @@ contains
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fitType</name>
       <source>parameters</source>
       <defaultValue>var_str('nfwVirial')</defaultValue>
-      <description>The type of halo definition for which the concentration-mass relation should be computed. Allowed values are \mono{nfwVirial}, \mono{nfwCritical200}, \mono{einastoCritical200}, and \mono{userDefined}.</description>
+      <description>
+      The type of halo definition for which the concentration-mass relation should be computed. Allowed values are ``nfwVirial``, ``nfwCritical200``, ``einastoCritical200``, and ``userDefined``.
+      </description>
     </inputParameter>
     !!]
     if (enumerationDuttonMaccio2014FitTypeEncode(char(fitType),includesPrefix=.false.) == duttonMaccio2014FitTypeUserDefined) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>a1</name>
          <source>parameters</source>
-         <description>Parameter $a_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`a_1` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>a2</name>
          <source>parameters</source>
-         <description>Parameter $a_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`a_2` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>a3</name>
          <source>parameters</source>
-         <description>Parameter $a_3$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`a_3` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>a4</name>
          <source>parameters</source>
-         <description>Parameter $a_4$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`a_4` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>b1</name>
          <source>parameters</source>
-         <description>Parameter $b_1$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`b_1` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>b2</name>
          <source>parameters</source>
-         <description>Parameter $b_2$ in the \cite{dutton_cold_2014} halo concentration--mass relation.</description>
+         <description>
+         Parameter :math:`b_2` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
+         </description>
        </inputParameter>
        !!]
        self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
@@ -207,8 +212,8 @@ contains
   end function duttonMaccio2014ConstructorParameters
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
+    !!{RST
+    Constructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -256,9 +261,8 @@ contains
   end function duttonMaccio2014ConstructorInternalType
 
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class with user defined
-    parameters.
+    !!{RST
+    Constructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class with user defined parameters.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
@@ -278,7 +282,7 @@ contains
 
 
   subroutine duttonMaccio2014Definitions(self)
-    !!{
+    !!{RST
     Establish virial density contrast and dark matter profile definitions.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -372,8 +376,8 @@ contains
   end subroutine duttonMaccio2014Definitions
 
   subroutine duttonMaccio2014Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationDuttonMaccio2014} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
@@ -388,9 +392,8 @@ contains
   end subroutine duttonMaccio2014Destructor
 
   double precision function duttonMaccio2014Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the \cite{dutton_cold_2014}
-    algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`dutton_cold_2014` algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -425,8 +428,8 @@ contains
   end function duttonMaccio2014Concentration
 
   function duttonMaccio2014DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the \cite{dutton_cold_2014} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`dutton_cold_2014` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                    ), pointer       :: duttonMaccio2014DensityContrastDefinition
@@ -437,9 +440,8 @@ contains
   end function duttonMaccio2014DensityContrastDefinition
 
   function duttonMaccio2014DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                     ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition

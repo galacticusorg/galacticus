@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a log-normal halo environment.
 !!}
 
@@ -27,12 +27,14 @@ Implements a log-normal halo environment.
   use :: Statistics_Distributions, only : distributionFunction1DLogNormal
 
   !![
-  <haloEnvironment name="haloEnvironmentLogNormal">
-   <description>Implements a halo environment in which the large-scale overdensity follows a log-normal probability distribution, modeling the statistical distribution of cosmic environments around dark matter halos. The variance of the density field is computed within a sphere of radius given by \mono{[radiusEnvironment]}, drawn from the linear power spectrum.</description>
+  <haloEnvironment name="haloEnvironmentLogNormal" docformat="rst">
+   <description>
+   Implements a halo environment in which the large-scale overdensity follows a log-normal probability distribution, modeling the statistical distribution of cosmic environments around dark matter halos. The variance of the density field is computed within a sphere of radius given by ``[radiusEnvironment]``, drawn from the linear power spectrum.
+   </description>
   </haloEnvironment>
   !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal
-     !!{
+     !!{RST
      A logNormal halo environment class.
      !!}
      private
@@ -59,8 +61,8 @@ Implements a log-normal halo environment.
    end type haloEnvironmentLogNormal
 
   interface haloEnvironmentLogNormal
-     !!{
-     Constructors for the \refClass{haloEnvironmentLogNormal} halo environment class.
+     !!{RST
+     Constructors for the ``haloEnvironmentLogNormal`` halo environment class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -69,8 +71,8 @@ Implements a log-normal halo environment.
 contains
 
   function logNormalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloEnvironmentLogNormal} halo environment class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloEnvironmentLogNormal`` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,12 +91,14 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEnvironment</name>
       <source>parameters</source>
       <variable>radiusEnvironment</variable>
       <defaultValue>7.0d0</defaultValue>
-      <description>The radius of the sphere used to determine the variance in the environmental density.</description>
+      <description>
+      The radius of the sphere used to determine the variance in the environmental density.
+      </description>
     </inputParameter>
     !!]
     self=haloEnvironmentLogNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
@@ -110,8 +114,8 @@ contains
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloEnvironmentLogNormal} halo environment class.
+    !!{RST
+    Internal constructor for the ``haloEnvironmentLogNormal`` halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -154,8 +158,8 @@ contains
   end function logNormalConstructorInternal
 
   subroutine logNormalDestructor(self)
-    !!{
-    Destructor for the \refClass{haloEnvironmentLogNormal} halo environment class.
+    !!{RST
+    Destructor for the ``haloEnvironmentLogNormal`` halo environment class.
     !!}
     implicit none
     type(haloEnvironmentLogNormal), intent(inout) :: self
@@ -171,8 +175,8 @@ contains
   end subroutine logNormalDestructor
 
   double precision function logNormalOverdensityLinear(self,node,presentDay)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Kind_Numbers    , only : kind_int8
@@ -211,8 +215,8 @@ contains
   end function logNormalOverdensityLinear
 
   double precision function logNormalOverdensityLinearGradientTime(self,node)
-    !!{
-    Return the time gradient of the environment of the given \mono{node}.
+    !!{RST
+    Return the time gradient of the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -230,8 +234,8 @@ contains
   end function logNormalOverdensityLinearGradientTime
 
   double precision function logNormalOverdensityNonLinear(self,node)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -244,7 +248,7 @@ contains
   end function logNormalOverdensityNonLinear
 
   double precision function logNormalEnvironmentRadius(self)
-    !!{
+    !!{RST
     Return the radius of the environment.
     !!}
     implicit none
@@ -255,7 +259,7 @@ contains
   end function logNormalEnvironmentRadius
 
   double precision function logNormalEnvironmentMass(self)
-    !!{
+    !!{RST
     Return the mass of the environment.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -271,8 +275,8 @@ contains
   end function logNormalEnvironmentMass
 
   double precision function logNormalOverdensityLinearMinimum(self)
-    !!{
-    Return the minimum overdensity for which the \gls{pdf} is non-zero.
+    !!{RST
+    Return the minimum overdensity for which the :term:`PDF` is non-zero.
     !!}
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
@@ -283,7 +287,7 @@ contains
   end function logNormalOverdensityLinearMinimum
 
   double precision function logNormalPDF(self,overdensity)
-    !!{
+    !!{RST
     Return the PDF of the environmental overdensity.
     !!}
     implicit none
@@ -295,7 +299,7 @@ contains
   end function logNormalPDF
 
   double precision function logNormalCDF(self,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     implicit none
@@ -307,7 +311,7 @@ contains
   end function logNormalCDF
 
   subroutine logNormalOverdensityLinearSet(self,node,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     use :: Error, only : Error_Report
@@ -323,7 +327,7 @@ contains
   end subroutine logNormalOverdensityLinearSet
 
   logical function logNormalIsNodeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the node.
     !!}
     implicit none
@@ -335,7 +339,7 @@ contains
   end function logNormalIsNodeDependent
 
   logical function logNormalIsTreeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is dependent on the tree.
     !!}
     implicit none

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo scales based on virial density contrast.
   !!}
 
@@ -28,15 +28,17 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
   
   !![
-  <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes">
-   <description>Dark matter halo scales derived from virial density contrasts.</description>
+  <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes" docformat="rst">
+   <description>
+   Dark matter halo scales derived from virial density contrasts.
+   </description>
    <deepCopy>
     <ignore variables="recursiveSelf"/>
    </deepCopy>
   </darkMatterHaloScale>
   !!]
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
-     !!{
+     !!{RST
      A dark matter halo scale contrast class using virial density contrasts.
      !!}
      private
@@ -82,8 +84,8 @@
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
-     !!{
-     Constructors for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
+     !!{RST
+     Constructors for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class.
      !!}
      module procedure virialDensityContrastDefinitionConstructorParameters
      module procedure virialDensityContrastDefinitionConstructorInternal
@@ -94,8 +96,8 @@
 contains
 
   recursive function virialDensityContrastDefinitionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,8 +123,8 @@ contains
   end function virialDensityContrastDefinitionConstructorParameters
 
   recursive function virialDensityContrastDefinitionConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
-    !!{
-    Default constructor for the \mono{virialDensityContrastDefinition} dark matter halo scales class.
+    !!{RST
+    Default constructor for the ``virialDensityContrastDefinition`` dark matter halo scales class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -149,7 +151,7 @@ contains
   end function virialDensityContrastDefinitionConstructorInternal
 
   subroutine virialDensityContrastDefinitionAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -161,8 +163,8 @@ contains
   end subroutine virialDensityContrastDefinitionAutoHook
 
   subroutine virialDensityContrastDefinitionDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloScaleVirialDensityContrastDefinition} dark matter halo scales class.
+    !!{RST
+    Destructor for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -179,7 +181,7 @@ contains
   end subroutine virialDensityContrastDefinitionDestructor
 
   subroutine virialDensityContrastDefinitionCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the halo scales calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -198,8 +200,8 @@ contains
   end subroutine virialDensityContrastDefinitionCalculationReset
 
   double precision function virialDensityContrastDefinitionDynamicalTimescale(self,node)
-    !!{
-    Returns the dynamical timescale for \mono{node}.
+    !!{RST
+    Returns the dynamical timescale for ``node``.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -227,8 +229,8 @@ contains
   end function virialDensityContrastDefinitionDynamicalTimescale
 
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
-    !!{
-    Returns the virial velocity scale for \mono{node}.
+    !!{RST
+    Returns the virial velocity scale for ``node``.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -260,8 +262,8 @@ contains
   end function virialDensityContrastDefinitionVirialVelocity
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
-    !!{
-    Returns the growth rate of the virial velocity scale for \mono{node}.
+    !!{RST
+    Returns the growth rate of the virial velocity scale for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -289,8 +291,8 @@ contains
   end function virialDensityContrastDefinitionVirialVelocityGrowthRate
 
   double precision function virialDensityContrastDefinitionVirialTemperature(self,node)
-    !!{
-    Returns the virial temperature (in Kelvin) for \mono{node}.
+    !!{RST
+    Returns the virial temperature (in Kelvin) for ``node``.
     !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
@@ -319,8 +321,8 @@ contains
   end function virialDensityContrastDefinitionVirialTemperature
 
   double precision function virialDensityContrastDefinitionVirialRadius(self,node)
-    !!{
-    Returns the virial radius scale for \mono{node}.
+    !!{RST
+    Returns the virial radius scale for ``node``.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
@@ -352,8 +354,8 @@ contains
   end function virialDensityContrastDefinitionVirialRadius
 
   double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,node)
-    !!{
-    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for \mono{node}.
+    !!{RST
+    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for ``node``.
     !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -371,8 +373,8 @@ contains
   end function virialDensityContrastDefinitionVirialRadiusGradientLogMass
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
-    !!{
-    Returns the growth rate of the virial radius scale for \mono{node}.
+    !!{RST
+    Returns the growth rate of the virial radius scale for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -394,8 +396,8 @@ contains
   end function virialDensityContrastDefinitionVirialRadiusGrowthRate
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
-    !!{
-    Returns the mean density for \mono{node}.
+    !!{RST
+    Returns the mean density for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -454,8 +456,8 @@ contains
   end function virialDensityContrastDefinitionMeanDensity
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
-    !!{
-    Returns the growth rate of the mean density for \mono{node}.
+    !!{RST
+    Returns the growth rate of the mean density for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -501,7 +503,7 @@ contains
   end function virialDensityContrastDefinitionMeanDensityGrowthRate
 
   subroutine virialDensityContrastDefinitionDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy reset of the object.
     !!}
     implicit none
@@ -516,7 +518,7 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopyReset
   
   subroutine virialDensityContrastDefinitionDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep reset of the object.
     !!}
     implicit none
@@ -530,7 +532,7 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopyFinalize
   
   subroutine virialDensityContrastDefinitionDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of the object.
     !!}
     use :: Error, only : Error_Report
@@ -631,7 +633,7 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopy
 
   subroutine virialDensityContrastDefinitionDeepCopyAssign(self,destination)
-    !!{
+    !!{RST
     Perform pointer assignment during a deep copy of the object.
     !!}
     implicit none
@@ -646,7 +648,7 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopyAssign
 
   subroutine virialDensityContrastFindParent(self)
-    !!{
+    !!{RST
     Find the deep-copied parent of a recursive child.
     !!}
     use :: Error, only : Error_Report

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that records the times of gas-mass-based major mergers between galaxies.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <nodeOperator name="nodeOperatorGalaxyGasMajorMergerTime">
-   <description>A node operator class that records the cosmic time of each galaxy--galaxy merger in which the cold gas mass ratio of the merging pair exceeds \mono{ratioGasMajorMerger} (default 0.25). Times are accumulated as a rank-1 meta-property of the basic node component; \mono{countTimesMaximum} caps the number of merger times stored per node. This enables analysis of the gas-rich merger history of galaxies across cosmic time.</description>
+  <nodeOperator name="nodeOperatorGalaxyGasMajorMergerTime" docformat="rst">
+   <description>
+   A node operator class that records the cosmic time of each galaxy--galaxy merger in which the cold gas mass ratio of the merging pair exceeds ``ratioGasMajorMerger`` (default 0.25). Times are accumulated as a rank-1 meta-property of the basic node component; ``countTimesMaximum`` caps the number of merger times stored per node. This enables analysis of the gas-rich merger history of galaxies across cosmic time.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyGasMajorMergerTime
-     !!{
+     !!{RST
      A node operator class that records the times of gas-mass-based major mergers between galaxies.
      !!}
      private
@@ -42,8 +44,8 @@
   end type nodeOperatorGalaxyGasMajorMergerTime
   
   interface nodeOperatorGalaxyGasMajorMergerTime
-     !!{
-     Constructors for the \refClass{nodeOperatorGalaxyGasMajorMergerTime} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
      !!}
      module procedure galaxyGasMajorMergerTimeConstructorParameters
      module procedure galaxyGasMajorMergerTimeConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function galaxyGasMajorMergerTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorGalaxyGasMajorMergerTime} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,16 +65,20 @@ contains
     double precision                                                      :: ratioGasMajorMerger
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countTimesMaximum</name>
       <defaultValue>huge(0_c_size_t)</defaultValue>
-      <description>The maximum number of major merger times to accumulate for each node. Defaults to the maximum possible.</description>
+      <description>
+      The maximum number of major merger times to accumulate for each node. Defaults to the maximum possible.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioGasMajorMerger</name>
       <defaultValue>0.25d0</defaultValue>
-      <description>The gas mass ratio threshold defining a major merger.</description>
+      <description>
+      The gas mass ratio threshold defining a major merger.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -84,8 +90,8 @@ contains
   end function galaxyGasMajorMergerTimeConstructorParameters
 
   function galaxyGasMajorMergerTimeConstructorInternal(countTimesMaximum,ratioGasMajorMerger) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorGalaxyGasMajorMergerTime} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -103,7 +109,7 @@ contains
   end function galaxyGasMajorMergerTimeConstructorInternal
 
   subroutine galaxyGasMajorMergerTimeAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
@@ -117,8 +123,8 @@ contains
   end subroutine galaxyGasMajorMergerTimeAutoHook
   
   subroutine galaxyGasMajorMergerTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorGalaxyGasMajorMergerTime} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -129,7 +135,7 @@ contains
   end subroutine galaxyGasMajorMergerTimeDestructor
 
   subroutine satelliteMerger(self,node)
-    !!{
+    !!{RST
     Record times of galaxy-galaxy major mergers.
     !!}
     use :: Error                           , only : Error_Report

@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which performs subsampling of branches.
 !!}
 
   ! Options controlling when to destroy stub branches.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
     <name>destroyStubs</name>
-    <description>Enumeration of options controlling when to destroy stub branches.</description>
+    <description>
+    Enumeration of options controlling when to destroy stub branches.
+    </description>
     <encodeFunction>yes</encodeFunction>
     <visibility>public</visibility>
     <entry label="always"          />
@@ -35,24 +37,23 @@ Implements a merger tree build controller class which performs subsampling of br
   !!]
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerSubsample">
-   <description>A merger tree build controller class which performs probabilistic subsampling of branches during tree construction, retaining low-mass branches with a mass-dependent probability $P(M) = P_0 (M/M_0)^\alpha$ for $M &lt; M_0$. The mass threshold $M_0$, sampling rate $P_0$, and exponent $\alpha$ are set by \mono{[massThreshold]}, \mono{[subsamplingRateAtThreshold]}, and \mono{[exponent]}, with node weights adjusted to compensate.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerSubsample" docformat="rst">
+   <description>
+   A merger tree build controller class which performs probabilistic subsampling of branches during tree construction, retaining low-mass branches with a mass-dependent probability :math:`P(M) = P_0 (M/M_0)^\alpha` for :math:`M &lt; M_0`. The mass threshold :math:`M_0`, sampling rate :math:`P_0`, and exponent :math:`\alpha` are set by ``[massThreshold]``, ``[subsamplingRateAtThreshold]``, and ``[exponent]``, with node weights adjusted to compensate.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerSubsample
-     !!{     
-     A merger tree build controller class which performs subsampling of branches. A branch of mass $M$ will be retained with
-     probability
-     \begin{equation}
-       P(M) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } M \ge M_0 \\ P_0 (M/M_0)^\alpha &amp; \hbox{if } M &lt; M_0, \end{array} \right.
-     \end{equation}
-     where $M_0=$\mono{[massThreshold]}, $P_0=$\mono{[subsamplingRateAtThreshold]} and
-     $\alpha=$\mono{[exponent]}, otherwise being pruned. Node weights are adjusted to account for this pruning.
+     !!{RST
+     A merger tree build controller class which performs subsampling of branches. A branch of mass :math:`M` will be retained with probability
 
-     If, after pruning, a section of tree is branchless, the nodes along that branch can be consolidated into fewer nodes with the
-     constraint that the mass of the node increases by a fractional amount \mono{[factorMassGrowthConsolidate]}
-     relative to its child node. This avoids having very long, non-branching runs of nodes with only tiny mass differences between
-     each parent and child. If \mono{[factorMassGrowthConsolidate]}$\le 0$ no consolidation will be performed.     
+     .. math::
+
+        P(M) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } M \ge M_0 \\ P_0 (M/M_0)^\alpha &amp; \hbox{if } M &lt; M_0, \end{array} \right.
+
+     where :math:`M_0=`\ ``[massThreshold]``, :math:`P_0=`\ ``[subsamplingRateAtThreshold]`` and :math:`\alpha=`\ ``[exponent]``, otherwise being pruned. Node weights are adjusted to account for this pruning.
+
+     If, after pruning, a section of tree is branchless, the nodes along that branch can be consolidated into fewer nodes with the constraint that the mass of the node increases by a fractional amount ``[factorMassGrowthConsolidate]`` relative to its child node. This avoids having very long, non-branching runs of nodes with only tiny mass differences between each parent and child. If ``[factorMassGrowthConsolidate]``\ :math:`\le 0` no consolidation will be performed.
      !!}
      private
      class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
@@ -70,8 +71,8 @@ Implements a merger tree build controller class which performs subsampling of br
   end type mergerTreeBuildControllerSubsample
 
   interface mergerTreeBuildControllerSubsample
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -80,8 +81,8 @@ Implements a merger tree build controller class which performs subsampling of br
 contains
 
   function subsampleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,46 +98,58 @@ contains
     if (parameters%isPresent('massThreshold')) then
        if (parameters%isPresent('fractionMassThreshold')) call Error_Report('only one of [massThreshold] and [fractionMassThreshold] may be present'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>massThreshold</name>
 	 <source>parameters</source>
-	 <description>The mass threshold, $M_0$, below which subsampling is applied.</description>
+	 <description>
+	 The mass threshold, :math:`M_0`, below which subsampling is applied.
+	 </description>
        </inputParameter>
        !!]
     else if (parameters%isPresent('fractionMassThreshold')) then
        if (parameters%isPresent('massThreshold')) call Error_Report('only one of [massThreshold] and [fractionMassThreshold] may be present'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>fractionMassThreshold</name>
 	 <source>parameters</source>
-	 <description>The fractional (relative to the tree mass) mass threshold, $f_0$, below which subsampling is applied.</description>
+	 <description>
+	 The fractional (relative to the tree mass) mass threshold, :math:`f_0`, below which subsampling is applied.
+	 </description>
        </inputParameter>
        !!]
     else
        call Error_Report('either [massThreshold] or [fractionMassThreshold] must be present')
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subsamplingRateAtThreshold</name>
       <source>parameters</source>
-      <description>The subsampling rate at the mass threshold, $P_0$.</description>
+      <description>
+      The subsampling rate at the mass threshold, :math:`P_0`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <source>parameters</source>
-      <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = P_0 (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
+      <description>
+      The exponent, :math:`\alpha`, of mass in the subsampling probability, i.e. :math:`P(M) = P_0 (M/M_0)^\alpha` for :math:`M &lt; M_0`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassGrowthConsolidate</name>
       <source>parameters</source>
-      <description>The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.</description>
+      <description>
+      The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.
+      </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>destroyStubs</name>
       <source>parameters</source>
       <defaultValue>var_str('always')</defaultValue>
-      <description>Parameter controlling when to destroy stub branches. Options are `always`, `never`, and `sideBranchesOnly`.</description>
+      <description>
+      Parameter controlling when to destroy stub branches. Options are `always`, `never`, and `sideBranchesOnly`.
+      </description>
     </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     <conditionalCall>
@@ -151,8 +164,8 @@ contains
   end function subsampleConstructorParameters
 
   function subsampleConstructorInternal(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroyStubs,massThreshold,fractionMassThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -177,8 +190,8 @@ contains
   end function subsampleConstructorInternal
 
   subroutine subsampleDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerSubsample} merger tree build controller class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerSubsample), intent(inout) :: self
@@ -190,7 +203,7 @@ contains
   end subroutine subsampleDestructor
 
   logical function subsampleControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Subsample branches of a tree under construction.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -344,7 +357,7 @@ contains
   end function subsampleControl
 
   function subsampleBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -358,7 +371,7 @@ contains
   end function subsampleBranchingProbabilityObject
 
   subroutine subsampleNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

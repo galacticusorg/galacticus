@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a mass distribution for accretion flow using the fitting function of \cite{diemer_dependence_2014}.
+  !!{RST
+  Implementation of a mass distribution for accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`.
   !!}
 
   !![
-  <massDistribution name="massDistributionDiemerKravtsov2014">
+  <massDistribution name="massDistributionDiemerKravtsov2014" docformat="rst">
     <description>
-      A mass distribution class for accretion flows which models the accretion flow using the fitting function of
-      \cite{diemer_dependence_2014}. Specifically, the density profile of the accretion flow is modeled using their equation~(4).
-   </description>
+    A mass distribution class for accretion flows which models the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`. Specifically, the density profile of the accretion flow is modeled using their equation (4).
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionDiemerKravtsov2014
-     !!{
-     A mass distribution for accretion flow using the fitting function of \cite{diemer_dependence_2014}.
+     !!{RST
+     A mass distribution for accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`.
      !!}
      private
      double precision :: radius200Mean, densityMean, &
@@ -43,8 +42,8 @@
   end type massDistributionDiemerKravtsov2014
 
   interface massDistributionDiemerKravtsov2014
-     !!{
-     Constructors for the \refClass{massDistributionDiemerKravtsov2014} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionDiemerKravtsov2014`` mass distribution class.
      !!}
      module procedure massDistributionDiemerKravtsov2014ConstructorParameters
      module procedure massDistributionDiemerKravtsov2014ConstructorInternal
@@ -53,9 +52,8 @@
 contains
 
   function massDistributionDiemerKravtsov2014ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionDiemerKravtsov2014} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionDiemerKravtsov2014`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -69,42 +67,56 @@ contains
     type            (varying_string                    )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityMean</name>
-      <description>The mean density of the universe in the \cite{diemer_dependence_2014} accretion flow mass distribution.</description>
+      <description>
+      The mean density of the universe in the :cite:t:`diemer_dependence_2014` accretion flow mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius200Mean</name>
-      <description>The radius enclosing a density of 200 times the mean density of the universe in the \cite{diemer_dependence_2014} accretion flow mass distribution.</description>
+      <description>
+      The radius enclosing a density of 200 times the mean density of the universe in the :cite:t:`diemer_dependence_2014` accretion flow mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeMean</name>
-      <description>If true, include the mean density of the universe in the profile, otherwise, subtract off that mean density.</description>
+      <description>
+      If true, include the mean density of the universe in the profile, otherwise, subtract off that mean density.
+      </description>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
-      <description>The coefficient $b$ in the \cite{diemer_dependence_2014} accretion flow mass distribution.</description>
+      <description>
+      The coefficient :math:`b` in the :cite:t:`diemer_dependence_2014` accretion flow mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>s</name>
-      <description>The exponent $s$ in the \cite{diemer_dependence_2014} accretion flow mass distribution.</description>
+      <description>
+      The exponent :math:`s` in the :cite:t:`diemer_dependence_2014` accretion flow mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -116,8 +128,8 @@ contains
   end function massDistributionDiemerKravtsov2014ConstructorParameters
 
   function massDistributionDiemerKravtsov2014ConstructorInternal(densityMean,radius200Mean,includeMean,b,s,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``diemerKravtsov2014'' mass distribution class.
+    !!{RST
+    Internal constructor for "diemerKravtsov2014" mass distribution class.
     !!}
     implicit none
     type            (massDistributionDiemerKravtsov2014)                          :: self
@@ -135,8 +147,8 @@ contains
   end function massDistributionDiemerKravtsov2014ConstructorInternal
 
   double precision function diemerKravtsov2014Density(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a \cite{diemer_dependence_2014} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :cite:t:`diemer_dependence_2014` mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
@@ -157,8 +169,8 @@ contains
   end function diemerKravtsov2014Density
 
   double precision function diemerKravtsov2014DensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density gradient at the specified \mono{coordinates} in a \cite{diemer_dependence_2014} mass distribution.
+    !!{RST
+    Return the density gradient at the specified ``coordinates`` in a :cite:t:`diemer_dependence_2014` mass distribution.
     !!}
     implicit none
     class  (massDistributionDiemerKravtsov2014), intent(inout), target   :: self

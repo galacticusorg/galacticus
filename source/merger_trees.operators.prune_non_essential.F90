@@ -17,27 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which prunes all branches which do not contain an ``essential''
-  node.
+  !!{RST
+  Implements a merger tree operator which prunes all branches which do not contain an "essential" node.
   !!}
 
   use :: Kind_Numbers, only : kind_int8
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
+  <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential" docformat="rst">
    <description>
-    A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
-    does not connect to the branch into which the node identified by ID \mono{[essentialNodeID]} descends by
-    time \mono{essentialNodeTime]} will be pruned. Specifying the time is important---if the node is a
-    satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
-    lives at the specified time.
+   A merger tree operator class which prunes branches that do not directly influence an "essential" node. Any branch which does not connect to the branch into which the node identified by ID ``[essentialNodeID]`` descends by time ``essentialNodeTime]`` will be pruned. Specifying the time is important---if the node is a satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node lives at the specified time.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneNonEssential
-     !!{
-     A merger tree operator class which prunes branches which do not contain an ``essential'' node.
+     !!{RST
+     A merger tree operator class which prunes branches which do not contain an "essential" node.
      !!}
      private
      integer         (kind=kind_int8) :: essentialNodeID
@@ -47,7 +42,7 @@
   end type mergerTreeOperatorPruneNonEssential
 
   interface mergerTreeOperatorPruneNonEssential
-     !!{
+     !!{RST
      Constructors for the prune-non-essential merger tree operator class.
      !!}
      module procedure pruneNonEssentialConstructorParameters
@@ -57,7 +52,7 @@
 contains
 
   function pruneNonEssentialConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -67,15 +62,19 @@ contains
     double precision                                                     :: essentialNodeTime
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>essentialNodeID</name>
       <source>parameters</source>
-      <description>ID of the essential node to avoid pruning.</description>
+      <description>
+      ID of the essential node to avoid pruning.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>essentialNodeTime</name>
       <source>parameters</source>
-      <description>Time of the essential node to avoid pruning.</description>
+      <description>
+      Time of the essential node to avoid pruning.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorPruneNonEssential(essentialNodeID,essentialNodeTime)
@@ -86,7 +85,7 @@ contains
   end function pruneNonEssentialConstructorParameters
 
   function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-non-essential merger tree operator class.
     !!}
     implicit none
@@ -101,7 +100,7 @@ contains
   end function pruneNonEssentialConstructorInternal
 
   subroutine pruneNonEssentialOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-non-essential operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode

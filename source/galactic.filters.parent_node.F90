@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which applies another filter to a parent node of the given node.
 !!}
   
   !![
-  <galacticFilter name="galacticFilterParentNode">
+  <galacticFilter name="galacticFilterParentNode" docformat="rst">
    <description>
-     Applies a filter to a parent node of the given node. If a parent of the specified rank does not exist this filter fails to
-     pass.
+   Applies a filter to a parent node of the given node. If a parent of the specified rank does not exist this filter fails to pass.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterParentNode
-     !!{
+     !!{RST
      A galactic filter which applies another filter to a parent node of the given node.
      !!}
      private
@@ -41,8 +40,8 @@ Implements a galactic filter which applies another filter to a parent node of th
   end type galacticFilterParentNode
 
   interface galacticFilterParentNode
-     !!{
-     Constructors for the \refClass{galacticFilterParentNode} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterParentNode`` galactic filter class.
      !!}
      module procedure parentNodeConstructorParameters
      module procedure parentNodeConstructorInternal
@@ -51,8 +50,8 @@ Implements a galactic filter which applies another filter to a parent node of th
 contains
 
   function parentNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterParentNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterParentNode`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +71,8 @@ contains
   end function parentNodeConstructorParameters
   
   function parentNodeConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterParentNode} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterParentNode`` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterParentNode)                        :: self
@@ -86,8 +85,8 @@ contains
   end function parentNodeConstructorInternal
   
   subroutine parentNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterParentNode} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterParentNode`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterParentNode), intent(inout) :: self
@@ -99,7 +98,7 @@ contains
   end subroutine parentNodeDestructor
   
   logical function parentNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on parent node properties.
     !!}
     implicit none

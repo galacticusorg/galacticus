@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements weight on operators for on-the-fly analyses.
 !!}
 
 module Output_Analysis_Weight_Operators
-  !!{
+  !!{RST
   Provides a class that implements operators on weights for on-the-fly analyses.
   !!}
   use            :: Galacticus_Nodes       , only : treeNode
@@ -31,18 +31,17 @@ module Output_Analysis_Weight_Operators
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>outputAnalysisWeightOperator</name>
    <descriptiveName>Output Analysis Weight Operator</descriptiveName>
-   <description>Class providing operators on statistical weights for on-the-fly output analysis---transformations
-    applied to the per-galaxy weight (e.g.\ $1/V_\mathrm{max}$ or merger tree weight) before accumulating
-    it into binned statistics such as mass functions or luminosity functions. Weight operators can implement
-    survey completeness corrections, volume corrections for non-representative samples, or reweighting by
-    derived galaxy properties. The operator receives the current weight, the property value, its intrinsic
-    value, the property type and quantity, and the output index.</description>
+   <description>
+   Class providing operators on statistical weights for on-the-fly output analysis---transformations applied to the per-galaxy weight (e.g.\ :math:`1/V_\mathrm{max}` or merger tree weight) before accumulating it into binned statistics such as mass functions or luminosity functions. Weight operators can implement survey completeness corrections, volume corrections for non-representative samples, or reweighting by derived galaxy properties. The operator receives the current weight, the property value, its intrinsic value, the property type and quantity, and the output index.
+   </description>
    <default>identity</default>
    <method name="operate" >
-    <description>Operate on the given weight.</description>
+    <description>
+    Operate on the given weight.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                                               , intent(in   ) :: weightValue                             </argument>

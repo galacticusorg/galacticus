@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests functionality of the event hook infrastructure.
 !!}
 
 program Tests_Events_Hooks
-  !!{
+  !!{RST
   Tests the event hooks infrastructure.
   !!}
   use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard

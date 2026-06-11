@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a hot halo mass distribution class.
 !!}
 
 module Hot_Halo_Mass_Distributions
-  !!{
+  !!{RST
   Provides an object which provides a hot halo mass distribution class.
   !!}
   use :: Galacticus_Nodes          , only : treeNode
@@ -31,17 +31,17 @@ module Hot_Halo_Mass_Distributions
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hotHaloMassDistribution</name>
    <descriptiveName>Hot Halo Mass Distributions</descriptiveName>
-   <description>Class providing the radial mass distribution of hot (virialized) gas in the halo, returned
-    as a \refClass{massDistributionClass} object. The density profile of the hot atmosphere sets the local
-    cooling rate and pressure support, and determines the ram pressure experienced by satellite galaxies.
-    Common profiles include the $\beta$-model and hydrostatic equilibrium solutions. The distribution can
-    be weighted by mass or by other quantities for use in different physical calculations.</description>
+   <description>
+   Class providing the radial mass distribution of hot (virialized) gas in the halo, returned as a ``massDistributionClass`` object. The density profile of the hot atmosphere sets the local cooling rate and pressure support, and determines the ram pressure experienced by satellite galaxies. Common profiles include the :math:`\beta`-model and hydrostatic equilibrium solutions. The distribution can be weighted by mass or by other quantities for use in different physical calculations.
+   </description>
    <default>betaProfile</default>
    <method name="get" >
-    <description>Return the mass distribution of the hot halo.</description>
+    <description>
+    Return the mass distribution of the hot halo.
+    </description>
     <type>class(massDistributionClass)</type>
     <pass>yes</pass>
     <argument>type   (treeNode               ), intent(inout)           :: node       </argument>

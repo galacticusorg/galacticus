@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard class for outputting merger trees.
   !!}
 
@@ -30,7 +30,7 @@
   use :: Locks                             , only : ompLock
 
   type outputGroup
-     !!{
+     !!{RST
      Type used for output group information.
      !!}
      logical                                 :: doubleAttributesWritten, integerAttributesWritten, &
@@ -60,8 +60,10 @@
   logical                     :: treeLockInitialized          =.false.
   
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterStandard">
-   <description>The standard merger tree outputter which writes galaxy and halo properties to HDF5 output files at each requested output time during galaxy evolution. Output is organized into groups named by \mono{[outputsGroupName]}, with optional dataset reference output controlled by the \mono{[outputReferences]} parameter.</description>
+  <mergerTreeOutputter name="mergerTreeOutputterStandard" docformat="rst">
+   <description>
+   The standard merger tree outputter which writes galaxy and halo properties to HDF5 output files at each requested output time during galaxy evolution. Output is organized into groups named by ``[outputsGroupName]``, with optional dataset reference output controlled by the ``[outputReferences]`` parameter.
+   </description>
    <stateStorable>
     <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
@@ -72,7 +74,7 @@
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
-     !!{
+     !!{RST
      Implementation of the standard merger tree outputter.
      !!}
      private
@@ -123,8 +125,8 @@
   end type mergerTreeOutputterStandard
 
   interface mergerTreeOutputterStandard
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterStandard} merger tree outputter.
+     !!{RST
+     Constructors for the ``mergerTreeOutputterStandard`` merger tree outputter.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -133,8 +135,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeOutputterStandard`` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -147,17 +149,21 @@ contains
     type   (varying_string             )                :: outputsGroupName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputsGroupName</name>
       <source>parameters</source>
       <defaultValue>var_str('Outputs')</defaultValue>
-      <description>The name of the HDF5 group to which outputs will be written.</description>
+      <description>
+      The name of the HDF5 group to which outputs will be written.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputReferences</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not references to individual merger tree datasets should be output.</description>
+      <description>
+      Specifies whether or not references to individual merger tree datasets should be output.
+      </description>
     </inputParameter>
     <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -174,8 +180,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOutputterStandard`` merger tree outputter class.
     !!}
     implicit none
     type   (mergerTreeOutputterStandard)                        :: self
@@ -212,8 +218,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOutputterStandard} merger tree outputter class.
+    !!{RST
+    Destructor for the ``mergerTreeOutputterStandard`` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self
@@ -227,8 +233,8 @@ contains
   end subroutine standardDestructor
 
   subroutine standardOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
-    Write properties of nodes in \mono{tree} to the \glc\ output file.
+    !!{RST
+    Write properties of nodes in ``tree`` to the Galacticus output file.
     !!}
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
@@ -339,7 +345,7 @@ contains
   end subroutine standardOutputTree
 
   subroutine standardOutputNode(self,node,indexOutput,outputType)
-    !!{
+    !!{RST
     Output a single node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -384,7 +390,7 @@ contains
   end subroutine standardOutputNode
 
   subroutine standardOutput(self,node,indexOutput,time)
-    !!{
+    !!{RST
     Output the provided node.
     !!}
     use :: Calculations_Resets     , only : Calculations_Reset
@@ -685,8 +691,8 @@ contains
   end subroutine standardOutput
 
   subroutine standardMakeGroup(self,tree,indexOutput)
-    !!{
-    Make an group in the \glc\ file in which to store \mono{tree}.
+    !!{RST
+    Make an group in the Galacticus file in which to store ``tree``.
     !!}
     use            :: Galacticus_Nodes                , only : mergerTree
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -714,8 +720,8 @@ contains
   end subroutine standardMakeGroup
 
   subroutine standardDumpIntegerBuffer(self,indexOutput)
-    !!{
-    Dump the contents of the integer properties buffer to the \glc\ output file.
+    !!{RST
+    Dump the contents of the integer properties buffer to the Galacticus output file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -772,8 +778,8 @@ contains
   end subroutine standardDumpIntegerBuffer
 
   subroutine standardDumpDoubleBuffer(self,indexOutput)
-    !!{
-    Dump the contents of the double precision properties buffer to the \glc\ output file.
+    !!{RST
+    Dump the contents of the double precision properties buffer to the Galacticus output file.
     !!}
     use            :: HDF5_Access  , only : hdf5Access
     use            :: IO_HDF5      , only : hdf5Object
@@ -854,7 +860,7 @@ contains
   end subroutine standardDumpDoubleBuffer
 
   subroutine standardExtendIntegerBuffer(self)
-    !!{
+    !!{RST
     Extend the size of the integer buffer.
     !!}
     use :: IO_HDF5, only : hdf5VarInteger8
@@ -895,7 +901,7 @@ contains
   end subroutine standardExtendIntegerBuffer
 
   subroutine standardExtendDoubleBuffer(self)
-    !!{
+    !!{RST
     Extend the size of the double buffer.
     !!}
     use :: IO_HDF5, only : hdf5VarDouble , hdf5VarDouble2D
@@ -948,7 +954,7 @@ contains
   end subroutine standardExtendDoubleBuffer
 
   subroutine standardPropertiesCount(self,time,node)
-    !!{
+    !!{RST
     Count up the number of properties that will be output.
     !!}
     use :: Error                   , only : Error_Report
@@ -1005,7 +1011,7 @@ contains
   end subroutine standardPropertiesCount
 
   subroutine standardBuffersAllocate(self,indexOutput)
-    !!{
+    !!{RST
     Allocate buffers for storage of properties.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -1025,7 +1031,7 @@ contains
   end subroutine standardBuffersAllocate
 
   subroutine standardPropertyNamesEstablish(self,time,node)
-    !!{
+    !!{RST
     Set names for the properties.
     !!}
     use :: Display                 , only : displayGreen              , displayReset
@@ -1222,7 +1228,7 @@ contains
   end subroutine standardPropertyNamesEstablish
 
   subroutine standardOutputGroupCreate(self,indexOutput,time,outputType)
-    !!{
+    !!{RST
     Create a group in which to store this output.
     !!}
     use            :: Output_HDF5                     , only : outputTo     => outputGroup
@@ -1248,13 +1254,12 @@ contains
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           !![
-	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
+	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
 	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=124012"/>
 	    <description>
-             Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
+	    Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
 
-             After removing the workaround for PRs 46897/57696, an ICE in `gimplify\_var\_or\_parm\_decl` is triggered (see the
-             `seeAlso` above). So the workaround is left in place for now.
+	    After removing the workaround for PRs 46897/57696, an ICE in `gimplify_var_or_parm_decl` is triggered (see the `seeAlso` above). So the workaround is left in place for now.
 	    </description>
 	  !!]
           do i=1,size(outputGroupsTemporary)

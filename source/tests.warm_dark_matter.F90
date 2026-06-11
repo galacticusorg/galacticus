@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests calculations of critical overdensity for collapse in warm dark matter model.
 !!}
 
 program Tests_Warm_Dark_Matter
-  !!{
+  !!{RST
   Tests calculations of critical overdensity for collapse in warm dark matter model.
   !!}
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterDarkEnergy

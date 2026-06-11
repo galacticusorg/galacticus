@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property extractor class for the core mass of the \gls{fdm} soliton.
+  !!{RST
+  Implements a property extractor class for the core mass of the :term:`FDM` soliton.
   !!}
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSoliton">
-   <description>Extracts physical properties of the fuzzy dark matter (\gls{fdm}) soliton core (such as core radius and core mass) associated with each halo node, enabling analysis of quantum pressure effects in FDM models.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSoliton" docformat="rst">
+   <description>
+   Extracts physical properties of the fuzzy dark matter (:term:`FDM`) soliton core (such as core radius and core mass) associated with each halo node, enabling analysis of quantum pressure effects in FDM models.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSoliton
-     !!{
-     A property extractor class for the properties of the \gls{fdm} soliton.
+     !!{RST
+     A property extractor class for the properties of the :term:`FDM` soliton.
      !!}
      private
      integer :: massCoreNormalID, massCoreID, densityCoreID, radiusCoreID, radiusSolitonID, zetaID
@@ -42,8 +44,8 @@
   end type nodePropertyExtractorSoliton
 
   interface nodePropertyExtractorSoliton
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSoliton} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorSoliton`` property extractor class.
      !!}
      module procedure solitonConstructorParameters
      module procedure solitonConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function solitonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSoliton} property extractor class.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorSoliton`` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,8 +70,8 @@ contains
   end function solitonConstructorParameters
 
   function solitonConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSoliton} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorSoliton`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSoliton) :: self
@@ -86,8 +88,8 @@ contains
   end function solitonConstructorInternal
 
   integer function solitonElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{soliton} property extractors.
+    !!{RST
+    Return the number of elements in the ``soliton`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSoliton), intent(inout) :: self
@@ -99,8 +101,8 @@ contains
   end function solitonElementCount
 
   function solitonExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{soliton} property extractor.
+    !!{RST
+    Implement a ``soliton`` property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -139,8 +141,8 @@ contains
   end function solitonExtract
 
   subroutine solitonNames(self,time,names)
-    !!{
-    Return the names of the \mono{soliton} property.
+    !!{RST
+    Return the names of the ``soliton`` property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -159,8 +161,8 @@ contains
   end subroutine solitonNames
 
   subroutine solitonDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{soliton} property.
+    !!{RST
+    Return the descriptions of the ``soliton`` property.
     !!}
     implicit none
     class(nodePropertyExtractorSoliton), intent(inout)                             :: self
@@ -179,8 +181,8 @@ contains
   end subroutine solitonDescriptions
 
   function solitonUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{Soliton} property in the SI system.
+    !!{RST
+    Return the units of the ``Soliton`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -202,7 +204,7 @@ contains
   end function solitonUnitsInSI
 
   function solitonUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the soliton properties.
     !!}
     use :: Units_MetaData, only : unitType

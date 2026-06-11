@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes subhalo radial distribution functions.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes subhalo radial distribution fu
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorSubhaloRadiusFunction">
-   <description>An N-body data operator which computes subhalo radial distribution functions.</description>
+  <nbodyOperator name="nbodyOperatorSubhaloRadiusFunction" docformat="rst">
+   <description>
+   An N-body data operator which computes subhalo radial distribution functions.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSubhaloRadiusFunction
-     !!{
+     !!{RST
      An N-body data operator which computes subhalo radial distribution functions.
      !!}
      private
@@ -46,8 +48,8 @@ Implements an N-body data operator which computes subhalo radial distribution fu
   end type nbodyOperatorSubhaloRadiusFunction
 
   interface nbodyOperatorSubhaloRadiusFunction
-     !!{
-     Constructors for the \refClass{nbodyOperatorSubhaloRadiusFunction} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
      !!}
      module procedure subhaloRadiusFunctionConstructorParameters
      module procedure subhaloRadiusFunctionConstructorInternal
@@ -56,8 +58,8 @@ Implements an N-body data operator which computes subhalo radial distribution fu
 contains
 
   function subhaloRadiusFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSubhaloRadiusFunction} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,45 +73,61 @@ contains
          &                                                                 description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum subhalo mass to include.</description>
+      <description>
+      The minimum subhalo mass to include.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirialHost</name>
       <source>parameters</source>
-      <description>The virial radius of the host halo.</description>
+      <description>
+      The virial radius of the host halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusRatioMinimum</name>
       <source>parameters</source>
-      <description>The minimum radius ratio to consider.</description>
+      <description>
+      The minimum radius ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusRatioMaximum</name>
       <source>parameters</source>
-      <description>The maximum radius ratio to consider.</description>
+      <description>
+      The maximum radius ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of radius ratio.</description>
+      <description>
+      The number of bins per decade of radius ratio.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this subhalo radial distribution function.</description>
+      <description>
+      A description of this subhalo radial distribution function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -122,8 +140,8 @@ contains
   end function subhaloRadiusFunctionConstructorParameters
 
   function subhaloRadiusFunctionConstructorInternal(massMinimum,radiusVirialHost,radiusRatioMinimum,radiusRatioMaximum,radiusCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSubhaloRadiusFunction} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloRadiusFunction)                        :: self
@@ -141,8 +159,8 @@ contains
   end function subhaloRadiusFunctionConstructorInternal
   
   subroutine subhaloRadiusFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSubhaloRadiusFunction} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloRadiusFunction), intent(inout) :: self
@@ -154,7 +172,7 @@ contains
   end subroutine subhaloRadiusFunctionDestructor
 
   subroutine subhaloRadiusFunctionOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time

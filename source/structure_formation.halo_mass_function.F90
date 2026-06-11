@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements halo mass functions.
 !!}
 
@@ -28,16 +28,17 @@ module Halo_Mass_Functions
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>haloMassFunction</name>
    <descriptiveName>Halo Mass Function</descriptiveName>
-   <description>Class providing halo mass functions, $\mathrm{d}n/\mathrm{d}M$, which give the comoving number density of dark
-    matter halos per unit mass interval as a function of halo mass and cosmic time. The halo mass function is a fundamental
-    quantity in models of large-scale structure and galaxy formation, encoding the statistics of gravitational collapse from a
-    given primordial density field.</description>
+   <description>
+   Class providing halo mass functions, :math:`\mathrm{d}n/\mathrm{d}M`, which give the comoving number density of dark matter halos per unit mass interval as a function of halo mass and cosmic time. The halo mass function is a fundamental quantity in models of large-scale structure and galaxy formation, encoding the statistics of gravitational collapse from a given primordial density field.
+   </description>
    <default>tinker2008</default>
    <method name="differential" >
-    <description>Return the differential halo mass function for \mono{mass} [$\mathrm{M}_\odot$] at \mono{time} [Gyr].</description>
+    <description>
+    Return the differential halo mass function for ``mass`` [:math:`\mathrm{M}_\odot`] at ``time`` [Gyr].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -45,7 +46,9 @@ module Halo_Mass_Functions
     <argument>type            (treeNode), intent(inout), optional :: node      </argument>
    </method>
    <method name="integrated" >
-    <description>Return the halo mass function at \mono{time} [Gyr] integrated between \mono{massLow} and \mono{massHigh} [$\mathrm{M}_\odot$].</description>
+    <description>
+    Return the halo mass function at ``time`` [Gyr] integrated between ``massLow`` and ``massHigh`` [:math:`\mathrm{M}_\odot`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -92,7 +95,9 @@ module Halo_Mass_Functions
     </code>
    </method>
    <method name="massFraction" >
-    <description>Return the halo mass fraction at \mono{time} [Gyr] integrated between \mono{massLow} and \mono{massHigh} [$\mathrm{M}_\odot$].</description>
+    <description>
+    Return the halo mass fraction at ``time`` [Gyr] integrated between ``massLow`` and ``massHigh`` [:math:`\mathrm{M}_\odot`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -145,7 +150,7 @@ module Halo_Mass_Functions
   !!]
 
   type :: massFunctionList
-     !!{
+     !!{RST
      Type used to maintain a list of mass function finder objects when integrations may occur recursively.
      !!}
      class(haloMassFunctionClass), pointer :: haloMassFunction_ => null()
@@ -160,7 +165,7 @@ module Halo_Mass_Functions
 contains
 
   double precision function integratedIntegrand(logMass)
-    !!{
+    !!{RST
     Integrand function used to integrate the dark matter halo mass function.
     !!}
     implicit none
@@ -181,7 +186,7 @@ contains
   end function integratedIntegrand
 
   double precision function massFractionIntegrand(logMass)
-    !!{
+    !!{RST
     Integrand function used in computing the halo mass fraction.
     !!}
     implicit none

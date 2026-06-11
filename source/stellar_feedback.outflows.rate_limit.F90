@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a rate-limiting stellar feedback model.
   !!}
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsRateLimit">
-   <description>A rate-limiting stellar feedback outflow model that wraps another outflow model and enforces a minimum outflow timescale (in units of the component dynamical time), preventing unphysically rapid ejection of gas from the galaxy.</description>
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsRateLimit" docformat="rst">
+   <description>
+   A rate-limiting stellar feedback outflow model that wraps another outflow model and enforces a minimum outflow timescale (in units of the component dynamical time), preventing unphysically rapid ejection of gas from the galaxy.
+   </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsRateLimit
-     !!{
+     !!{RST
      Implementation of a rate-limiting stellar feedback model.
      !!}
      private
@@ -39,7 +41,7 @@
   end type stellarFeedbackOutflowsRateLimit
 
   interface stellarFeedbackOutflowsRateLimit
-     !!{
+     !!{RST
      Constructors for the rate-limiting stellar feedback class.
      !!}
      module procedure rateLimitConstructorParameters
@@ -49,7 +51,7 @@
 contains
 
   function rateLimitConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the rate-limiting stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
@@ -61,10 +63,12 @@ contains
     double precision                                                  :: timescaleOutflowFractionalMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleOutflowFractionalMinimum</name>
       <source>parameters</source>
-      <description>The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.</description>
+      <description>
+      The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.
+      </description>
     </inputParameter>
     <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
     !!]
@@ -77,7 +81,7 @@ contains
   end function rateLimitConstructorParameters
 
   function rateLimitConstructorInternal(timescaleOutflowFractionalMinimum,stellarFeedbackOutflows_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the rateLimit stellar feedback class.
     !!}
     implicit none
@@ -92,7 +96,7 @@ contains
   end function rateLimitConstructorInternal
 
   subroutine rateLimitDestructor(self)
-    !!{
+    !!{RST
     Internal constructor for the rateLimit stellar feedback class.
     !!}
     implicit none
@@ -105,9 +109,8 @@ contains
   end subroutine rateLimitDestructor
 
   subroutine rateLimitOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Limits the outflow rate from another stellar feedback class such that the outflow timescale never falls below a given
-    fraction of the dynamical time.
+    !!{RST
+    Limits the outflow rate from another stellar feedback class such that the outflow timescale never falls below a given fraction of the dynamical time.
     !!}
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid

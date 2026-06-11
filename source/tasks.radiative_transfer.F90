@@ -26,12 +26,14 @@
   use            :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
   
   !![
-  <task name="taskRadiativeTransfer">
-   <description>A task which performs radiative transfer.</description>
+  <task name="taskRadiativeTransfer" docformat="rst">
+   <description>
+   A task which performs radiative transfer.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskRadiativeTransfer
-     !!{
+     !!{RST
      Implementation of a task which performs radiative transfer.
      !!}
      private
@@ -55,8 +57,8 @@
   end type taskRadiativeTransfer
 
   interface taskRadiativeTransfer
-     !!{
-     Constructors for the \refClass{taskRadiativeTransfer} task.
+     !!{RST
+     Constructors for the ``taskRadiativeTransfer`` task.
      !!}
      module procedure radiativeTransferConstructorParameters
      module procedure radiativeTransferConstructorInternal
@@ -65,8 +67,8 @@
 contains
 
   function radiativeTransferConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskRadiativeTransfer} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskRadiativeTransfer`` task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : var_str
     use :: Input_Parameters  , only : inputParameter              , inputParameters
@@ -103,58 +105,76 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <defaultValue>0.3d4</defaultValue>
-      <description>The minimum wavelength at which to sample photon packets.</description>
+      <description>
+      The minimum wavelength at which to sample photon packets.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <defaultValue>10.0d4</defaultValue>
-      <description>The maximum wavelength at which to sample photon packets.</description>
+      <description>
+      The maximum wavelength at which to sample photon packets.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of wavelengths per decade at which to sample photon packets.</description>
+      <description>
+      The number of wavelengths per decade at which to sample photon packets.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countPhotonsPerWavelength</name>
       <defaultValue>10_c_size_t</defaultValue>
-      <description>The number of photon packets to generate at each wavelength.</description>
+      <description>
+      The number of photon packets to generate at each wavelength.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countPhotonsPerWavelengthFinalIteration</name>
       <defaultValue>countPhotonsPerWavelength</defaultValue>
-      <description>The number of photon packets to generate at each wavelength on the final iteration.</description>
+      <description>
+      The number of photon packets to generate at each wavelength on the final iteration.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countIterationsMinimum</name>
       <defaultValue>1_c_size_t</defaultValue>
-      <description>The minimum number of iterations.</description>
+      <description>
+      The minimum number of iterations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countIterationsMaximum</name>
       <defaultValue>10_c_size_t</defaultValue>
-      <description>The maximum number of iterations.</description>
+      <description>
+      The maximum number of iterations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroupName</name>
       <defaultValue>var_str('radiativeTransferModel')</defaultValue>
-      <description>The name of the group to which results should be output.</description>
+      <description>
+      The name of the group to which results should be output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputIterations</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, output data for all iterations, not just the final iteration.</description>
+      <description>
+      If true, output data for all iterations, not just the final iteration.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
@@ -178,8 +198,8 @@ contains
   end function radiativeTransferConstructorParameters
 
   function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{taskRadiativeTransfer} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskRadiativeTransfer`` task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
@@ -215,8 +235,8 @@ contains
   end function radiativeTransferConstructorInternal
 
   subroutine radiativeTransferDestructor(self)
-    !!{
-    Destructor for the \refClass{taskRadiativeTransfer} task class.
+    !!{RST
+    Destructor for the ``taskRadiativeTransfer`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -235,7 +255,7 @@ contains
   end subroutine radiativeTransferDestructor
 
   subroutine radiativeTransferPerform(self,status)
-    !!{
+    !!{RST
     Perform radiative transfer and output results.
     !!}
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard

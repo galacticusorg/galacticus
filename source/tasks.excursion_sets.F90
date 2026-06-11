@@ -26,12 +26,14 @@
   use :: Power_Spectra                 , only : powerSpectrumClass
 
   !![
-  <task name="taskExcursionSets">
-   <description>A task which computes and outputs excursion set statistics over a grid of halo masses and cosmic times, including the variance of the density field, the excursion set barrier, the first-crossing probability and rate, the halo mass function, and the matter power spectrum. These quantities characterize the stochastic evolution of density perturbations in the extended Press-Schechter formalism.</description>
+  <task name="taskExcursionSets" docformat="rst">
+   <description>
+   A task which computes and outputs excursion set statistics over a grid of halo masses and cosmic times, including the variance of the density field, the excursion set barrier, the first-crossing probability and rate, the halo mass function, and the matter power spectrum. These quantities characterize the stochastic evolution of density perturbations in the extended Press-Schechter formalism.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskExcursionSets
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
@@ -54,8 +56,8 @@
   end type taskExcursionSets
 
   interface taskExcursionSets
-     !!{
-     Constructors for the \refClass{taskExcursionSets} task.
+     !!{RST
+     Constructors for the ``taskExcursionSets`` task.
      !!}
      module procedure excursionSetsConstructorParameters
      module procedure excursionSetsConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function excursionSetsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskExcursionSets} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskExcursionSets`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -102,46 +104,60 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass at which to tabulate excursion set solutions.</description>
+      <description>
+      The minimum mass at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass at which to tabulate excursion set solutions.</description>
+      <description>
+      The maximum mass at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massesPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of points per decade of mass at which to tabulate excursion set solutions.</description>
+      <description>
+      The number of points per decade of mass at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift at which to tabulate excursion set solutions.</description>
+      <description>
+      The minimum redshift at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum redshift at which to tabulate excursion set solutions.</description>
+      <description>
+      The maximum redshift at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timesPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of points per decade of time at which to tabulate excursion set solutions.</description>
+      <description>
+      The number of points per decade of time at which to tabulate excursion set solutions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('excursionSets')</defaultValue>
-      <description>The HDF5 output group within which to write excursion set solution data.</description>
+      <description>
+      The HDF5 output group within which to write excursion set solution data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
@@ -200,8 +216,8 @@ contains
        &                                    excursionSetFirstCrossing_, &
        &                                    powerSpectrum_              &
        &                                   ) result(self)
-    !!{
-    Constructor for the \refClass{taskExcursionSets} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskExcursionSets`` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskExcursionSets             )                        :: self
@@ -226,8 +242,8 @@ contains
   end function excursionSetsConstructorInternal
 
   subroutine excursionSetsDestructor(self)
-    !!{
-    Destructor for the \refClass{taskExcursionSets} task class.
+    !!{RST
+    Destructor for the ``taskExcursionSets`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -248,7 +264,7 @@ contains
   end subroutine excursionSetsDestructor
 
   subroutine excursionSetsPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use :: Display                 , only : displayIndent     , displayUnindent

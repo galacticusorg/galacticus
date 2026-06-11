@@ -17,79 +17,96 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements random number generators.
 !!}
 
 module Numerical_Random_Numbers
-  !!{
+  !!{RST
   Provides a class that implements random number generators.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_long
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>randomNumberGenerator</name>
    <descriptiveName>Random Number Generators</descriptiveName>
-   <description>Class providing pseudo-random number generators---algorithms that produce sequences of numbers
-    with the statistical properties of true randomness. Methods return uniform deviates on $[0,1)$, Gaussian
-    deviates, and raw integer samples, with support for seeding and independent sequences per MPI process
-    and OpenMP thread. Random number generators are used throughout \glc\ for Monte Carlo sampling,
-    stochastic merger tree construction, posterior sampling simulations, and generating scatter in
-    model predictions.</description>
+   <description>
+   Class providing pseudo-random number generators---algorithms that produce sequences of numbers with the statistical properties of true randomness. Methods return uniform deviates on :math:`[0,1)`, Gaussian deviates, and raw integer samples, with support for seeding and independent sequences per MPI process and OpenMP thread. Random number generators are used throughout Galacticus for Monte Carlo sampling, stochastic merger tree construction, posterior sampling simulations, and generating scatter in model predictions.
+   </description>
    <default>GSL</default>
    <method name="mpiIndependent" >
-    <description>Return true if this random number generator produces independent sequences per MPI process (when using the same seed and offsetting is requested).</description>
+    <description>
+    Return true if this random number generator produces independent sequences per MPI process (when using the same seed and offsetting is requested).
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="openMPIndependent" >
-    <description>Return true if this random number generator produces independent sequences per OpenMP thread (when using the same seed and offsetting is requested).</description>
+    <description>
+    Return true if this random number generator produces independent sequences per OpenMP thread (when using the same seed and offsetting is requested).
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="rangeMinimum" >
-    <description>Return the smallest integer in the range for this generator.</description>
+    <description>
+    Return the smallest integer in the range for this generator.
+    </description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
    </method>
    <method name="rangeMaximum" >
-    <description>Return the largest integer in the range for this generator.</description>
+    <description>
+    Return the largest integer in the range for this generator.
+    </description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
    </method>
    <method name="sample" >
-    <description>Return a random integer. If the optional argument \mono{n} is supplied the random integer will lie in the range 0 to  \mono{n}-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.</description>
+    <description>
+    Return a random integer. If the optional argument ``n`` is supplied the random integer will lie in the range 0 to  ``n``-1 inclusive (with all integers being equally likely). Otherwise, the integer will be drawn from the full range provided by the generator.
+    </description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
     <argument>integer(c_long), intent(in   ), optional :: n</argument>
    </method>
    <method name="uniformSample" >
-    <description>Return a random number drawn from a uniform distribution on [0,1).</description>
+    <description>
+    Return a random number drawn from a uniform distribution on [0,1).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="poissonSample" >
-    <description>Return a random number drawn from a Poisson distribution with the given \mono{mean}.</description>
+    <description>
+    Return a random number drawn from a Poisson distribution with the given ``mean``.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mean</argument>
    </method>
    <method name="standardNormalSample" >
-    <description>Return a random number drawn from a standard normal distribution.</description>
+    <description>
+    Return a random number drawn from a standard normal distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="seedSet" >
-    <description>Reset the seed for this random number generator.</description>
+    <description>
+    Reset the seed for this random number generator.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer(c_long), intent(in   ) :: seed</argument>
     <argument>logical        , intent(in   ) :: offset</argument>
    </method>
    <method name="seed" >
-    <description>Return the seed for this random number generator.</description>
+    <description>
+    Return the seed for this random number generator.
+    </description>
     <type>integer(c_long)</type>
     <pass>yes</pass>
    </method>

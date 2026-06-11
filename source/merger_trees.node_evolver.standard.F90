@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard class for evolving nodes in merger trees.
   !!}
 
@@ -30,9 +30,11 @@
   
   ! Enumeration of latent variable integrator.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>latentIntegratorType</name>
-   <description>Used to specify the type of latent variable integrator to use.</description>
+   <description>
+   Used to specify the type of latent variable integrator to use.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="gaussKronrod"/>
    <entry label="trapezoidal" />
@@ -41,9 +43,11 @@
 
   ! Enumeration of ODE algorithms.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>standardODEAlgorithm</name>
-   <description>Used to specify the type of ODE algorithm to use.</description>
+   <description>
+   Used to specify the type of ODE algorithm to use.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="rungeKuttaCashKarp"     />
    <entry label="rungeKuttaSecondOrder"  />
@@ -57,16 +61,11 @@
   !!]
 
   !![
-  <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
+  <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard" docformat="rst">
     <description>
-      The standard merger tree node evolver.
+    The standard merger tree node evolver.
 
-      If the parameter \mono{[enforceNonNegativity] = true} then properties which are marked as being
-      non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires
-      smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for
-      arbitrarily small timesteps\footnote{This can occur if a property as a non-zero, negative derivative as the property
-      approaches zero. Such cases are quite likely unphysical, but are tolerated here.}. In such cases, if a property remains
-      negative with the smallest possible time step, it will be zeroed and evolution continues.
+    If the parameter ``[enforceNonNegativity] = true`` then properties which are marked as being non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for arbitrarily small timesteps\footnoteThis can occur if a property as a non-zero, negative derivative as the property approaches zero. Such cases are quite likely unphysical, but are tolerated here.. In such cases, if a property remains negative with the smallest possible time step, it will be zeroed and evolution continues.
     </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>
@@ -77,7 +76,7 @@
   </mergerTreeNodeEvolver>
   !!]
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
-     !!{
+     !!{RST
      Implementation of the standard merger tree node evolver.
      !!}
      private
@@ -123,8 +122,8 @@
   end type mergerTreeNodeEvolverStandard
 
   interface mergerTreeNodeEvolverStandard
-     !!{
-     Constructors for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver.
+     !!{RST
+     Constructors for the ``mergerTreeNodeEvolverStandard`` merger tree node evolver.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -143,8 +142,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeNodeEvolverStandard`` merger tree node evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -162,70 +161,92 @@ contains
          &                                                            enforceNonNegativity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeToleranceAbsolute</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The absolute tolerance used in solving differential equations for node evolution.</description>
+      <description>
+      The absolute tolerance used in solving differential equations for node evolution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeToleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The relative tolerance used in solving differential equations for node evolution.</description>
+      <description>
+      The relative tolerance used in solving differential equations for node evolution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeJacobianStepSizeRelative</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.</description>
+      <description>
+      The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeAlgorithm</name>
       <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
-      <description>The algorithm to use in the ODE solver.</description>
+      <description>
+      The algorithm to use in the ODE solver.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeAlgorithmNonJacobian</name>
       <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
-      <description>The algorithm to use in the ODE solver.</description>
+      <description>
+      The algorithm to use in the ODE solver.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeLatentIntegratorType</name>
       <defaultValue>var_str('trapezoidal')</defaultValue>
-      <description>The type of integrator to use for latent variables.</description>
+      <description>
+      The type of integrator to use for latent variables.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeLatentIntegratorOrder</name>
       <defaultValue>15</defaultValue>
-      <description>The order of the integrator for latent variables.</description>
+      <description>
+      The order of the integrator for latent variables.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>odeLatentIntegratorIntervalsMaximum</name>
       <defaultValue>1000</defaultValue>
-      <description>The maximum number of intervals allowed in the integrator for latent variables.</description>
+      <description>
+      The maximum number of intervals allowed in the integrator for latent variables.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>profileOdeEvolver</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not to profile the ODE evolver.</description>
+      <description>
+      Specifies whether or not to profile the ODE evolver.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reuseODEStepSize</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
+      <description>
+      If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>enforceNonNegativity</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, properties that are marked as non-negative (e.g. masses) will be evolved in such a way as to enforce that non-negativity.</description>
+      <description>
+      If true, properties that are marked as non-negative (e.g. masses) will be evolved in such a way as to enforce that non-negativity.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
@@ -258,8 +279,8 @@ contains
   end function standardConstructorParameters
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,enforceNonNegativity,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
-     !!{
-     Internal constructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class.
+     !!{RST
+     Internal constructor for the ``mergerTreeNodeEvolverStandard`` merger tree node evolver class.
      !!}
      use :: Error                , only : Error_Report
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2  , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
@@ -331,7 +352,7 @@ contains
    end function standardConstructorInternal
 
   subroutine standardAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, subhaloPromotionEvent
@@ -343,8 +364,8 @@ contains
   end subroutine standardAutoHook
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeNodeEvolverStandard} merger tree node evolver class.
+    !!{RST
+    Destructor for the ``mergerTreeNodeEvolverStandard`` merger tree node evolver class.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none
@@ -360,8 +381,8 @@ contains
   end subroutine standardDestructor
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,treeLock,systemClockMaximum,status)
-    !!{
-    Evolves \mono{node} to time \mono{timeEnd}, or until evolution is interrupted.
+    !!{RST
+    Evolves ``node`` to time ``timeEnd``, or until evolution is interrupted.
     !!}
     use            :: Display               , only : displayIndent              , displayMessage                                  , displayUnindent                                , displayMagenta    , &
          &                                           displayReset
@@ -732,7 +753,7 @@ contains
   end subroutine standardEvolve
 
   logical function standardIsAccurate(self,valueNode,valueExpected)
-    !!{
+    !!{RST
     Return true if a tree node property is within expected accuracy of a given value.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
@@ -745,7 +766,7 @@ contains
   end function standardIsAccurate
 
   subroutine standardIntegrands(time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
-    !!{
+    !!{RST
     Evaluates integrands for node evolution.
     !!}
     use :: Galacticus_Nodes, only : interruptTask, propertyTypeInactive, rateComputeState
@@ -792,7 +813,7 @@ contains
   end subroutine standardIntegrands
 
   subroutine standardFinalStateProcessing(time,propertyValues)
-    !!{
+    !!{RST
     Perform any actions based on the final state of the ODE step.
     !!}
     implicit none
@@ -806,7 +827,7 @@ contains
   end subroutine standardFinalStateProcessing
 
   integer function standardODEs(time,y,dydt)
-    !!{
+    !!{RST
     Function which evaluates the set of ODEs for the evolution of a specific node.
     !!}
 #ifdef DEBUGGING
@@ -923,7 +944,7 @@ contains
   end function standardODEs
 
   integer function standardODEsJacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
-    !!{
+    !!{RST
     Function which evaluates the set of ODEs for the evolution of a specific node.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -994,8 +1015,8 @@ contains
   end function standardODEsJacobian
 
   subroutine standardDerivativesCompute(node,interrupt,functionInterruptReturn,propertyType)
-    !!{
-    Call routines to set all derivatives for \mono{node}.
+    !!{RST
+    Call routines to set all derivatives for ``node``.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
     implicit none
@@ -1026,8 +1047,8 @@ contains
   end subroutine standardDerivativesCompute
 
   subroutine standardErrorHandler(status,time,timeStep,y)
-    !!{
-    Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    !!{RST
+    Handles errors in the ODE solver when evolving Galacticus nodes. Dumps the content of the node.
     !!}
     use            :: Display        , only : displayIndent      , displayMessage        , displayUnindent              , displayVerbosity, &
           &                                   displayVerbositySet, verbosityLevelStandard, enumerationVerbosityLevelType
@@ -1105,7 +1126,7 @@ contains
   end subroutine standardErrorHandler
 
   function standardODEStepTolerances(propertyValues)
-    !!{
+    !!{RST
     Compute the tolerances on each property being evolved in the ODE system at the current timestep.
     !!}
     implicit none
@@ -1123,7 +1144,7 @@ contains
   end function standardODEStepTolerances
 
   subroutine standardPostStepProcessing(time,y,postStepStatus) bind(c)
-    !!{
+    !!{RST
     Perform any post-step actions on the node.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
@@ -1150,7 +1171,7 @@ contains
   end subroutine standardPostStepProcessing
 
   subroutine standardStepErrorAnalyzer(time,timeEnd,currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
-    !!{
+    !!{RST
     Profiles ODE solver step sizes and errors.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
@@ -1204,8 +1225,8 @@ contains
   end subroutine standardStepErrorAnalyzer
 
   subroutine standardPromote(self,node)
-    !!{
-    Transfer the properties of \mono{node} to its parent node, then destroy it.
+    !!{RST
+    Transfer the properties of ``node`` to its parent node, then destroy it.
     !!}
     use :: Display        , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: String_Handling, only : operator(//)
@@ -1292,8 +1313,8 @@ contains
   end subroutine standardPromote
 
   subroutine standardMerge(self,node)
-    !!{
-    Handles instances where \mono{node} is about to merge with its parent node.
+    !!{RST
+    Handles instances where ``node`` is about to merge with its parent node.
     !!}
     use :: Display         , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -1321,7 +1342,7 @@ contains
   end subroutine standardMerge
 
   subroutine standardNodeSubhaloPromotion(self,node,nodePromotion)
-    !!{
+    !!{RST
     Promote a recently promoted subhalo to its new parent.
     !!}
     use :: Error, only : Error_Report

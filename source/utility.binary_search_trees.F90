@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements \href{https://en.wikipedia.org/wiki/Binary_search_tree}{binary search tree} data structures.
+!!{RST
+Contains a module which implements `binary search tree <https://en.wikipedia.org/wiki/Binary_search_tree>`_ data structures.
 !!}
 
 module Binary_Search_Trees
-  !!{
-  Implements \href{https://en.wikipedia.org/wiki/Binary_search_tree}{binary search tree} data structures.
+  !!{RST
+  Implements `binary search tree <https://en.wikipedia.org/wiki/Binary_search_tree>`_ data structures.
   !!}
   implicit none
   private
   public :: binaryTree, binaryTreeNode
 
   type :: binaryTree
-     !!{
-     A type for implementing \href{https://en.wikipedia.org/wiki/Binary_search_tree}{binary search tree} data structures.
+     !!{RST
+     A type for implementing `binary search tree <https://en.wikipedia.org/wiki/Binary_search_tree>`_ data structures.
      !!}
      type(binaryTreeNode), pointer :: root => null()
    contains
@@ -47,8 +47,8 @@ module Binary_Search_Trees
   end type binaryTree
   
   type :: binaryTreeNode
-     !!{
-     A type for implementing \href{https://en.wikipedia.org/wiki/Binary_search_tree}{binary search tree} data structures.
+     !!{RST
+     A type for implementing `binary search tree <https://en.wikipedia.org/wiki/Binary_search_tree>`_ data structures.
      !!}
      type            (binaryTreeNode), pointer :: left   => null(), right => null(), &
           &                                       parent => null()
@@ -70,7 +70,7 @@ module Binary_Search_Trees
   end type binaryTreeNode
 
   interface binaryTreeNode
-     !!{
+     !!{RST
      Constructor for binary search tree nodes.
      !!}
      module procedure :: binaryTreeNodeConstructor
@@ -80,7 +80,7 @@ module Binary_Search_Trees
 contains
 
   subroutine binaryTreeDestructor(self)
-    !!{
+    !!{RST
     Destructor for binary search trees.
     !!}
     implicit none
@@ -91,7 +91,7 @@ contains
   end subroutine binaryTreeDestructor
 
   subroutine binaryTreeInsert(self,key,value)
-    !!{
+    !!{RST
     Insert a new node to a binary search tree.
     !!}
     implicit none
@@ -123,7 +123,7 @@ contains
   end subroutine binaryTreeInsert
   
   subroutine binaryTreeBracket(self,key,left,right)
-    !!{
+    !!{RST
     Find nodes which bracket a key.
     !!}
     implicit none
@@ -152,7 +152,7 @@ contains
   end subroutine binaryTreeBracket
   
   function binaryTreeNodeConstructor(key,value) result(self)
-    !!{
+    !!{RST
     Constructor for binary search tree nodes.
     !!}
     implicit none
@@ -168,7 +168,7 @@ contains
   end function binaryTreeNodeConstructor
 
   subroutine binaryTreeNodeDestructor(self)
-    !!{
+    !!{RST
     Destructor for binary search trees.
     !!}
     implicit none
@@ -180,7 +180,7 @@ contains
   end subroutine binaryTreeNodeDestructor
 
   function binaryTreeNodeSuccessor(self) result(successor)
-    !!{
+    !!{RST
     Return a pointer to the successor node of the given node.
     !!}
     implicit none
@@ -201,7 +201,7 @@ contains
   end function binaryTreeNodeSuccessor
   
   function binaryTreeNodePredecessor(self) result(predecessor)
-    !!{
+    !!{RST
     Return a pointer to the predecessor node of the given node.
     !!}
     implicit none
@@ -222,7 +222,7 @@ contains
   end function binaryTreeNodePredecessor
   
   function binaryTreeNodeSubTreeMinimum(self) result(treeMinimum)
-    !!{
+    !!{RST
     Return a pointer to the minimum node in the sub-tree of the given node.
     !!}
     implicit none
@@ -237,7 +237,7 @@ contains
   end function binaryTreeNodeSubTreeMinimum
   
   function binaryTreeNodeSubTreeMaximum(self) result(treeMaximum)
-    !!{
+    !!{RST
     Return a pointer to the maximum node in the sub-tree of the given node.
     !!}
     implicit none

@@ -24,48 +24,58 @@
   use, intrinsic :: ISO_C_Binding      , only : c_size_t
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLightcone">
+  <nodePropertyExtractor name="nodePropertyExtractorLightcone" docformat="rst">
    <description>
-    A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a
-    lightcone will be extracted. Specifically, these properties are extracted as:
-    \begin{description}
-     \item [\mono{lightconePositionX}] Position of the galaxy (in comoving Mpc) along the radial direction of
-     the lightcone;
-     \item [\mono{lightconePositionY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
-     angular direction of the lightcone;
-     \item [\mono{lightconePositionZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
-     angular direction of the lightcone;
-     \item [\mono{lightconePositionObservedX}] Position of the galaxy (in comoving Mpc) along the radial
-     direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if \mono{[includeObservedPosition]}=\mono{true});
-     \item [\mono{lightconePositionObservedY}] Position of the galaxy (in comoving Mpc) along the 1$^\mathrm{st}$
-     angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     \mono{[includeObservedPosition]}=\mono{true});
-     \item [\mono{lightconePositionObservedZ}] Position of the galaxy (in comoving Mpc) along the 2$^\mathrm{nd}$
-     angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if
-     \mono{[includeObservedPosition]}=\mono{true});
-     \item [\mono{lightconeVelocityX}] Velocity of the galaxy (in km/s) along the radial direction of the
-     lightcone;
-     \item [\mono{lightconeVelocityY}] Velocity of the galaxy (in km/s) along the 1$^\mathrm{st}$ angular
-     direction of the lightcone;
-     \item [\mono{lightconeVelocityZ}] Velocity of the galaxy (in km/s) along the 2$^\mathrm{nd}$ angular
-     direction of the lightcone;
-     \item [\mono{lightconeRedshiftCosmological}] Redshift of the galaxy in the lightcone\footnote{Note that this will
-     not, in general, be precisely the same as the redshift corresponding to the output time.};
-     \item [\mono{lightconeRedshiftObserved}] Observed redshift of the galaxy, accounting for the effects of
-     line-of-sight peculiar velocity (included only if \mono{[includeObservedRedshift]}=\mono{true});
-     \item [\mono{lightconeAngularTheta}] Angular distance from pole of coordinate system (i.e. $\theta$ in a
-     spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
-     \item [\mono{lightconeAngularPhi}] Angular distance around the pole of coordinate system system (i.e. $\phi$
-     in a spherical coordinate system; included only if \mono{[includeAngularCoordinates]}=\mono{true}) [radians]
-     \item [\mono{angularWeight}] The mean number density of this galaxy per unit area on the sky (in
-     degrees$^{-2}$).
-    \end{description}
-    In order to allow this output a lightcone geometry (see \refPhysics{geometryLightcone}) must be specified.
+   A lightcone output extractor property extractor class. The position (and velocity and redshift) of a galaxy within a lightcone will be extracted. Specifically, these properties are extracted as:
+
+   ``lightconePositionX``
+      Position of the galaxy (in comoving Mpc) along the radial direction of the lightcone;
+
+   ``lightconePositionY``
+      Position of the galaxy (in comoving Mpc) along the 1\ :math:`^\mathrm{st}` angular direction of the lightcone;
+
+   ``lightconePositionZ``
+      Position of the galaxy (in comoving Mpc) along the 2\ :math:`^\mathrm{nd}` angular direction of the lightcone;
+
+   ``lightconePositionObservedX``
+      Position of the galaxy (in comoving Mpc) along the radial direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedPosition]``\ =\ ``true``);
+
+   ``lightconePositionObservedY``
+      Position of the galaxy (in comoving Mpc) along the 1\ :math:`^\mathrm{st}` angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedPosition]``\ =\ ``true``);
+
+   ``lightconePositionObservedZ``
+      Position of the galaxy (in comoving Mpc) along the 2\ :math:`^\mathrm{nd}` angular direction of the lightcone, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedPosition]``\ =\ ``true``);
+
+   ``lightconeVelocityX``
+      Velocity of the galaxy (in km/s) along the radial direction of the lightcone;
+
+   ``lightconeVelocityY``
+      Velocity of the galaxy (in km/s) along the 1\ :math:`^\mathrm{st}` angular direction of the lightcone;
+
+   ``lightconeVelocityZ``
+      Velocity of the galaxy (in km/s) along the 2\ :math:`^\mathrm{nd}` angular direction of the lightcone;
+
+   ``lightconeRedshiftCosmological``
+      Redshift of the galaxy in the lightcone\footnoteNote that this will not, in general, be precisely the same as the redshift corresponding to the output time.;
+
+   ``lightconeRedshiftObserved``
+      Observed redshift of the galaxy, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedRedshift]``\ =\ ``true``);
+
+   ``lightconeAngularTheta``
+      Angular distance from pole of coordinate system (i.e. :math:`\theta` in a spherical coordinate system; included only if ``[includeAngularCoordinates]``\ =\ ``true``) [radians]
+
+   ``lightconeAngularPhi``
+      Angular distance around the pole of coordinate system system (i.e. :math:`\phi` in a spherical coordinate system; included only if ``[includeAngularCoordinates]``\ =\ ``true``) [radians]
+
+   ``angularWeight``
+      The mean number density of this galaxy per unit area on the sky (in degrees\ :math:`^{-2}`).
+
+   In order to allow this output a lightcone geometry (see ``geometryLightcone``) must be specified.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone
-     !!{
+     !!{RST
      A property extractor which extracts lightcone properties.
      !!}
      private
@@ -91,8 +101,8 @@
   end type nodePropertyExtractorLightcone
 
   interface nodePropertyExtractorLightcone
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLightcone} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorLightcone`` property extractor class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -101,8 +111,8 @@
 contains
 
   function lightconeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorLightcone`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,35 +125,45 @@ contains
          &                                                    failIfNotInLightcone
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeObservedRedshift</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output the observed redshift (i.e. including the effects of peculiar velocities).</description>
+      <description>
+      If true output the observed redshift (i.e. including the effects of peculiar velocities).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeAngularCoordinates</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output angular coordinates in the lightcone.</description>
+      <description>
+      If true output angular coordinates in the lightcone.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeObservedPosition</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output the observed position (i.e. including the effects of peculiar velocities).</description>
+      <description>
+      If true output the observed position (i.e. including the effects of peculiar velocities).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>atCrossing</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.</description>
+      <description>
+      If true output positions/velocities at the time of lightcone crossing. Otherwise, output positions at the output time.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>failIfNotInLightcone</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, a node that is not in the lightcone will cause a fatal error. Otherwise, such nodes are simply assigned unphysical values for lightcone properties.</description>
+      <description>
+      If true, a node that is not in the lightcone will cause a fatal error. Otherwise, such nodes are simply assigned unphysical values for lightcone properties.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
@@ -158,8 +178,8 @@ contains
   end function lightconeConstructorParameters
 
   function lightconeConstructorInternal(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorLightcone`` property extractor class.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -243,8 +263,8 @@ contains
   end function lightconeConstructorInternal
 
   subroutine lightconeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLightcone} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorLightcone`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLightcone), intent(inout) :: self
@@ -257,7 +277,7 @@ contains
   end subroutine lightconeDestructor
 
   integer function lightconeElementCount(self,time)
-    !!{
+    !!{RST
     Return the number of elements in the lightcone property extractors.
     !!}
     implicit none
@@ -270,7 +290,7 @@ contains
   end function lightconeElementCount
 
   function lightconeExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a lightcone output extractor.
     !!}
     use :: Cosmology_Functions_Options     , only : distanceTypeComoving
@@ -362,7 +382,7 @@ contains
   end function lightconeExtract
 
   subroutine lightconeAddInstances(self,node,instance)
-    !!{
+    !!{RST
     Implement adding of instances to a lightcone property extractor.
     !!}
     use :: Error          , only : Error_Report
@@ -400,7 +420,7 @@ contains
   end subroutine lightconeAddInstances
 
   subroutine lightconeNames(self,time,names)
-    !!{
+    !!{RST
     Return the names of the lightcone properties.
     !!}
     implicit none
@@ -415,7 +435,7 @@ contains
   end subroutine lightconeNames
 
   subroutine lightconeDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return the descriptions of the lightcone properties.
     !!}
     implicit none
@@ -430,7 +450,7 @@ contains
   end subroutine lightconeDescriptions
 
   function lightconeUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of the lightcone properties in the SI system.
     !!}
     implicit none
@@ -448,7 +468,7 @@ contains
   end function lightconeUnitsInSI
 
   function lightconeUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the lightcone properties.
     !!}
     implicit none

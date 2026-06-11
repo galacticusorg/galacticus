@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.
+  !!{RST
+  An implementation of virial orbits using the :cite:t:`benson_orbital_2005` orbital parameter distribution.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -28,12 +28,9 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !![
-  <virialOrbit name="virialOrbitBenson2005">
+  <virialOrbit name="virialOrbitBenson2005" docformat="rst">
    <description>
-    A virial orbits class which selects orbital parameters randomly from the distribution given by
-    \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005}
-    then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius
-    relevant to the current definition of density contrast.
+   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -44,8 +41,8 @@
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
-     !!{
-     A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
+     !!{RST
+     A virial orbit class using the :cite:t:`benson_orbital_2005` orbital parameter distribution.
      !!}
      private
      class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_             => null()
@@ -67,8 +64,8 @@
   end type virialOrbitBenson2005
 
   interface virialOrbitBenson2005
-     !!{
-     Constructors for the \refClass{virialOrbitBenson2005} virial orbits class.
+     !!{RST
+     Constructors for the ``virialOrbitBenson2005`` virial orbits class.
      !!}
      module procedure benson2005ConstructorParameters
      module procedure benson2005ConstructorInternal
@@ -77,8 +74,8 @@
 contains
 
   function benson2005ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitBenson2005} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialOrbitBenson2005`` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,8 +107,8 @@ contains
   end function benson2005ConstructorParameters
 
   function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitBenson2005} virial orbits class.
+    !!{RST
+    Internal constructor for the ``virialOrbitBenson2005`` virial orbits class.
     !!}
     use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
     implicit none
@@ -133,8 +130,8 @@ contains
   end function benson2005ConstructorInternal
 
   subroutine benson2005Destructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitBenson2005} virial orbits class.
+    !!{RST
+    Destructor for the ``virialOrbitBenson2005`` virial orbits class.
     !!}
     implicit none
     type(virialOrbitBenson2005), intent(inout) :: self
@@ -151,7 +148,7 @@ contains
   end subroutine benson2005Destructor
 
   function benson2005Orbit(self,node,host,acceptUnboundOrbits)
-    !!{
+    !!{RST
     Return benson2005 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -251,8 +248,8 @@ contains
   end function benson2005Orbit
 
   function benson2005DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of :cite:t:`benson_orbital_2005` virial orbits.
     !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
@@ -263,7 +260,7 @@ contains
   end function benson2005DensityContrastDefinition
 
   double precision function benson2005VelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -286,7 +283,7 @@ contains
   end function benson2005VelocityTangentialMagnitudeMean
 
   function benson2005VelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -302,7 +299,7 @@ contains
   end function benson2005VelocityTangentialVectorMean
 
   double precision function benson2005AngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -328,7 +325,7 @@ contains
   end function benson2005AngularMomentumMagnitudeMean
 
   function benson2005AngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector angular momentum.
     !!}
     use :: Error, only : Error_Report
@@ -344,7 +341,7 @@ contains
   end function benson2005AngularMomentumVectorMean
 
   double precision function benson2005VelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -367,7 +364,7 @@ contains
   end function benson2005VelocityTotalRootMeanSquared
 
   double precision function benson2005EnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean energy of the orbits.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

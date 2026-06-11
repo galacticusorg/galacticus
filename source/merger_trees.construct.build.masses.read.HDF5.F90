@@ -17,36 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which reads masses from an HDF5 file.
   !!}
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5">
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5" docformat="rst">
    <description>
-    A merger tree build masses class which reads masses from an HDF5 file. The HDF5 file should have the following structure:
-    \begin{verbatim}
-    HDF5 {
-    GROUP '/' {
-       DATASET 'treeRootMass' {
-          DATATYPE  H5T_IEEE_F64BE
-          DATASPACE  SIMPLE { ( * ) / ( * ) }
-       }
-       DATASET 'treeWeight' {
-          DATATYPE  H5T_IEEE_F64BE
-          DATASPACE  SIMPLE { ( * ) / ( * ) }
-       }
-    }
-    }
-    \end{verbatim}
-    where the \mono{treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to
-    generate, and the (optional) \mono{treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to
-    assign to each tree.
+   A merger tree build masses class which reads masses from an HDF5 file. The HDF5 file should have the following structure:
+
+   .. code-block:: none
+
+      HDF5 {
+      GROUP '/' {
+         DATASET 'treeRootMass' {
+            DATATYPE  H5T_IEEE_F64BE
+            DATASPACE  SIMPLE { ( * ) / ( * ) }
+         }
+         DATASET 'treeWeight' {
+            DATATYPE  H5T_IEEE_F64BE
+            DATASPACE  SIMPLE { ( * ) / ( * ) }
+         }
+      }
+      }
+
+   where the ``treeRootMass`` dataset contains the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) ``treeWeight`` dataset contains the weight (in units of Mpc\ :math:`^{-3}`) to assign to each tree.
    </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadHDF5
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which reads masses from an HDF5 file.
      !!}
      private
@@ -62,9 +62,8 @@
 contains
 
   function readHDF5ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesReadHDF5} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildMassesReadHDF5`` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,15 +73,19 @@ contains
     double precision                                               :: massIntervalFractional
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which to read merger tree masses.</description>
+      <description>
+      The name of the file from which to read merger tree masses.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massIntervalFractional</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
+      <description>
+      The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -94,8 +97,8 @@ contains
   end function readHDF5ConstructorParameters
 
   function readHDF5ConstructorInternal(fileName,massIntervalFractional) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesReadHDF5} merger tree masses class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildMassesReadHDF5`` merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesReadHDF5)                :: self
@@ -109,7 +112,7 @@ contains
   end function readHDF5ConstructorInternal
 
   subroutine readHDF5Read(self,mass,weight)
-    !!{
+    !!{RST
     Read merger tree masses from file.
     !!}
     use :: HDF5_Access, only : hdf5Access

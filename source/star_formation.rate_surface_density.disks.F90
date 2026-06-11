@@ -17,32 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements surface density rates of star formation in disks.
 !!}
 
 module Star_Formation_Rate_Surface_Density_Disks
-  !!{
+  !!{RST
   Provides a class that implements surface density rates of star formation in disks.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationRateSurfaceDensityDisks</name>
    <descriptiveName>Surface Density Rates of Star Formation in Disks</descriptiveName>
    <description>
-    Class providing models of the radial profile of the star formation rate surface density
-    $\dot{\Sigma}_\star(r)$ (in $\mathrm{M}_\odot \, \mathrm{Gyr}^{-1} \, \mathrm{Mpc}^{-2}$) in
-    disk components of galaxies. The surface density is a function of radius and depends on the local
-    gas surface density, dynamical time, and molecular gas fraction according to the chosen star
-    formation law. It is integrated radially over the disk to yield the total disk star formation rate,
-    and is expected to vary strongly between implementations based on the assumed sub-grid physics.
+   Class providing models of the radial profile of the star formation rate surface density :math:`\dot{\Sigma}_\star(r)` (in :math:`\mathrm{M}_\odot \, \mathrm{Gyr}^{-1} \, \mathrm{Mpc}^{-2}`) in disk components of galaxies. The surface density is a function of radius and depends on the local gas surface density, dynamical time, and molecular gas fraction according to the chosen star formation law. It is integrated radially over the disk to yield the total disk star formation rate, and is expected to vary strongly between implementations based on the assumed sub-grid physics.
    </description>
    <default>krumholz2009</default>
    <method name="intervals" >
-    <description>Return a set of integration intervals to use when integrating over the surface density of star formation rate.</description>
+    <description>
+    Return a set of integration intervals to use when integrating over the surface density of star formation rate.
+    </description>
     <type>double precision, allocatable, dimension(:,:)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -59,7 +56,9 @@ module Star_Formation_Rate_Surface_Density_Disks
     </code>
    </method>
    <method name="unchanged" >
-    <description>Return true if the surface density rate of star formation is unchanged since the previous evaluation.</description>
+    <description>
+    Return true if the surface density rate of star formation is unchanged since the previous evaluation.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
@@ -69,7 +68,9 @@ module Star_Formation_Rate_Surface_Density_Disks
     </code>
    </method>
    <method name="rate" >
-    <description>Returns the star formation rate surface density (in $\mathrm{M}_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of \mono{node} at the given \mono{radius}.</description>
+    <description>
+    Returns the star formation rate surface density (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}` Mpc\ :math:`^{-2}`) in the disk component of ``node`` at the given ``radius``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

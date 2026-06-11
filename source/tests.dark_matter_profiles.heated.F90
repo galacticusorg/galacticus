@@ -17,26 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests heated dark matter profile implementations.
 !!}
 
 program Test_Dark_Matter_Profiles_Heated
-  !!{
-  Tests heated dark matter profile implementations. An isothermal dark matter halo is used, since analytic solutions are available
-  for this case. Specifically, the initial radius in the unheated profile is given by $r_\mathrm{i}(r) = (r_\mathrm{h}^4/4 r^2 +
-  r_\mathrm{h}^2)^{1/2}-r_\mathrm{h}^2/2 r$ where $r$ is the radius in the heated profile, and $r_\mathrm{h}=(\mathrm{G}
-  M_\mathrm{v} / 2 Q r_\mathrm{v})^{1/2}$ is a characteristic heating radius. Here, $M_\mathrm{v}$, and $r_\mathrm{v}$ are the
-  virial mass and radius of the halo respectively, and $Q r_\mathrm{i}^2$ is the specific heat input to the density profile, with
-  $Q$ assumed to be a constant (as expected for tidal heating). Assuming no shell crossing, the enclosed mass in the final profile
-  is simply $M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}$, from which the density of the final profile is found as $\rho(r) =
-  (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$. The velocity dispersion can also be found analytically in this
-  case. Integrating the Jeans equation in the variables of the initial profile gives a result:
-  \begin{eqnarray}
-    \rho(r) \sigma^2(r) &=& \int_{r_\mathrm{i}(r)}^{r_\mathrm{h}} \mathrm{d}r^\prime_\mathrm{i} \frac{\mathrm{G} M(r^\prime_\mathrm{i})}{r^{\prime 2}_\mathrm{i}} \rho_\mathrm{i}(r^\prime_\mathrm{i}) \left(\frac{r^\prime_\mathrm{i}}{r}\right)^4 \nonumber \\
-    &=& \frac{10}{6} \frac{\mathrm{G} M(r_\mathrm{h}) \rho_\mathrm{i}(r_\mathrm{h}}{r_\mathrm{h}} - \frac{(-3+18 y^4 - 6 y^6 + y^8 - 24 y^2 \log(y))}{6} \frac{\mathrm{G} M(r_\mathrm{i}) \rho_\mathrm{i}(r_\mathrm{i}}{r_\mathrm{i}},
-  \end{eqnarray}
-  where $y=r_\mathrm{i}/r_\mathrm{h}$.  
+  !!{RST
+  Tests heated dark matter profile implementations. An isothermal dark matter halo is used, since analytic solutions are available for this case. Specifically, the initial radius in the unheated profile is given by :math:`r_\mathrm{i}(r) = (r_\mathrm{h}^4/4 r^2 + r_\mathrm{h}^2)^{1/2}-r_\mathrm{h}^2/2 r` where :math:`r` is the radius in the heated profile, and :math:`r_\mathrm{h}=(\mathrm{G} M_\mathrm{v} / 2 Q r_\mathrm{v})^{1/2}` is a characteristic heating radius. Here, :math:`M_\mathrm{v}`, and :math:`r_\mathrm{v}` are the virial mass and radius of the halo respectively, and :math:`Q r_\mathrm{i}^2` is the specific heat input to the density profile, with :math:`Q` assumed to be a constant (as expected for tidal heating). Assuming no shell crossing, the enclosed mass in the final profile is simply :math:`M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}`, from which the density of the final profile is found as :math:`\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r`. The velocity dispersion can also be found analytically in this case. Integrating the Jeans equation in the variables of the initial profile gives a result:
+
+  .. math::
+
+     \rho(r) \sigma^2(r) &=& \int_{r_\mathrm{i}(r)}^{r_\mathrm{h}} \mathrm{d}r^\prime_\mathrm{i} \frac{\mathrm{G} M(r^\prime_\mathrm{i})}{r^{\prime 2}_\mathrm{i}} \rho_\mathrm{i}(r^\prime_\mathrm{i}) \left(\frac{r^\prime_\mathrm{i}}{r}\right)^4 \nonumber \\
+     &=& \frac{10}{6} \frac{\mathrm{G} M(r_\mathrm{h}) \rho_\mathrm{i}(r_\mathrm{h}}{r_\mathrm{h}} - \frac{(-3+18 y^4 - 6 y^6 + y^8 - 24 y^2 \log(y))}{6} \frac{\mathrm{G} M(r_\mathrm{i}) \rho_\mathrm{i}(r_\mathrm{i}}{r_\mathrm{i}},
+
+  where :math:`y=r_\mathrm{i}/r_\mathrm{h}`.
   !!}
   use :: Coordinates                     , only : coordinateSpherical                                              , assignment(=)
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple

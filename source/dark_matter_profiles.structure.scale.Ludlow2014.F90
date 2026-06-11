@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2014}
-  algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2014` algorithm.
   !!}
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014">
-   <description>Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014" docformat="rst">
+   <description>
+   Dark matter halo scale radii are computed using the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2014`.
+   </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusLudlow2016) :: darkMatterProfileScaleRadiusLudlow2014
-     !!{
-     A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.
+     !!{RST
+     A dark matter halo profile scale radii class implementing the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2014`.
      !!}
      private
    contains
@@ -38,8 +39,8 @@
   end type darkMatterProfileScaleRadiusLudlow2014
 
   interface darkMatterProfileScaleRadiusLudlow2014
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the ``darkMatterProfileScaleRadiusLudlow2014`` dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2014ConstructorParameters
      module procedure ludlow2014ConstructorInternal
@@ -48,8 +49,8 @@
 contains
 
   function ludlow2014ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{ludlow2014} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``ludlow2014`` dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +65,8 @@ contains
   end function ludlow2014ConstructorParameters
 
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2014} dark matter halo profile scale radius class.
+    !!{RST
+    Constructor for the ``darkMatterProfileScaleRadiusLudlow2014`` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
@@ -83,7 +84,7 @@ contains
   end function ludlow2014ConstructorInternal
 
   subroutine ludlow2014FormationTimeRootFunctionSet(self,finder)
-    !!{
+    !!{RST
     Initialize the finder object to compute the relevant formation history.
     !!}
     use :: Root_Finder, only : rootFinder
@@ -102,8 +103,8 @@ contains
   end subroutine ludlow2014FormationTimeRootFunctionSet
 
   double precision function ludlow2014FormationTimeRoot(timeFormation)
-    !!{
-    Function used to find the formation time of a halo in the \mono{ludlow2014} concentration algorithm.
+    !!{RST
+    Function used to find the formation time of a halo in the ``ludlow2014`` concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode

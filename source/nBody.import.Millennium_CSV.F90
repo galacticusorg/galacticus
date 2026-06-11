@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer for Millennium database CSV files.
 !!}
 
@@ -25,13 +25,15 @@ Implements an N-body data importer for Millennium database CSV files.
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   
   !![
-  <nbodyImporter name="nbodyImporterMillenniumCSV">
-   <description>An importer for halo catalog data stored in comma-separated value (CSV) format as exported from the Millennium Simulation database, reading halo masses and positions at a specified redshift. The input file path is set by \mono{[fileName]}, the target redshift by \mono{[redshift]}, and a simulation label by \mono{[label]}.</description>
+  <nbodyImporter name="nbodyImporterMillenniumCSV" docformat="rst">
+   <description>
+   An importer for halo catalog data stored in comma-separated value (CSV) format as exported from the Millennium Simulation database, reading halo masses and positions at a specified redshift. The input file path is set by ``[fileName]``, the target redshift by ``[redshift]``, and a simulation label by ``[label]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMillenniumCSV
-     !!{
+     !!{RST
      An importer for Millennium database CSV files.
      !!}
      private
@@ -46,15 +48,15 @@ Implements an N-body data importer for Millennium database CSV files.
   end type nbodyImporterMillenniumCSV
 
   interface nbodyImporterMillenniumCSV
-     !!{
-     Constructors for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
+     !!{RST
+     Constructors for the ``nbodyImporterMillenniumCSV`` N-body importer class.
      !!}
      module procedure millenniumCSVConstructorParameters
      module procedure millenniumCSVConstructorInternal
   end interface nbodyImporterMillenniumCSV
 
   type columnType
-     !!{
+     !!{RST
      Type used to describe column types.
      !!}
      logical                 :: isPosition=.false., isVelocity=.false., &
@@ -67,8 +69,8 @@ Implements an N-body data importer for Millennium database CSV files.
 contains
 
   function millenniumCSVConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyImporterMillenniumCSV`` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,21 +82,27 @@ contains
     double precision                                            :: redshift            , time
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to read.</description>
+      <description>
+      The name of the file to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label for the simulation.</description>
+      <description>
+      A label for the simulation.
+      </description>
       <defaultValue>var_str('primary')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
-      <description>The redshift of the data.</description>
+      <description>
+      The redshift of the data.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -110,8 +118,8 @@ contains
   end function millenniumCSVConstructorParameters
 
   function millenniumCSVConstructorInternal(fileName,label,time,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
+    !!{RST
+    Internal constructor for the ``nbodyImporterMillenniumCSV`` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
@@ -128,8 +136,8 @@ contains
   end function millenniumCSVConstructorInternal
 
   subroutine millenniumCSVDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterMillenniumCSV} N-body importer class.
+    !!{RST
+    Destructor for the ``nbodyImporterMillenniumCSV`` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self
@@ -142,7 +150,7 @@ contains
   end subroutine millenniumCSVDestructor
 
   subroutine millenniumCSVImport(self,simulations)
-    !!{
+    !!{RST
     Import data from a MillenniumCSV file.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
@@ -324,7 +332,7 @@ contains
   end subroutine millenniumCSVImport
 
   logical function millenniumCSVIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

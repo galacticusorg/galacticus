@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body data operator which identifies flyby halos following the algorithm of \cite{mansfield_three_2020}.
+!!{RST
+Implements an N-body data operator which identifies flyby halos following the algorithm of :cite:t:`mansfield_three_2020`.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorIdentifyFlybysMansfieldKravtsov2020">
-   <description>An N-body data operator which identifies flyby halos using the algorithm of \cite{mansfield_three_2020}, classifying halos that pass through a larger host without merging as flybys. The \mono{errorIfNotFound} parameter controls how missing host halos are handled during the flyby search.</description>
+  <nbodyOperator name="nbodyOperatorIdentifyFlybysMansfieldKravtsov2020" docformat="rst">
+   <description>
+   An N-body data operator which identifies flyby halos using the algorithm of :cite:t:`mansfield_three_2020`, classifying halos that pass through a larger host without merging as flybys. The ``errorIfNotFound`` parameter controls how missing host halos are handled during the flyby search.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorIdentifyFlybysMansfieldKravtsov2020
-     !!{
-     An N-body data operator which identifies flyby halos following the algorithm of \cite{mansfield_three_2020}.
+     !!{RST
+     An N-body data operator which identifies flyby halos following the algorithm of :cite:t:`mansfield_three_2020`.
      !!}
      private
      logical :: missingHostsAreFatal
@@ -37,8 +39,8 @@ Implements an N-body data operator which identifies flyby halos following the al
   end type nbodyOperatorIdentifyFlybysMansfieldKravtsov2020
 
   interface nbodyOperatorIdentifyFlybysMansfieldKravtsov2020
-     !!{
-     Constructors for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class.
      !!}
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorParameters
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which identifies flyby halos following the al
 contains
 
   function identifyFlybysMansfieldKravtsov2020ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     logical                                                                  :: missingHostsAreFatal
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>missingHostsAreFatal</name>
       <source>parameters</source>
-      <description>If true, missing hosts cause a fatal error. Otherwise, a missing host causes the halo to be ignored in flyby analysis of its descendants.</description>
+      <description>
+      If true, missing hosts cause a fatal error. Otherwise, a missing host causes the halo to be ignored in flyby analysis of its descendants.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorIdentifyFlybysMansfieldKravtsov2020(missingHostsAreFatal)
@@ -71,8 +75,8 @@ contains
   end function identifyFlybysMansfieldKravtsov2020ConstructorParameters
 
   function identifyFlybysMansfieldKravtsov2020ConstructorInternal(missingHostsAreFatal) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorIdentifyFlybysMansfieldKravtsov2020} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorIdentifyFlybysMansfieldKravtsov2020)                :: self
@@ -85,7 +89,7 @@ contains
   end function identifyFlybysMansfieldKravtsov2020ConstructorInternal
 
   subroutine identifyFlybysMansfieldKravtsov2020Operate(self,simulations)
-    !!{
+    !!{RST
     Identify flyby halos.
     !!}
     use    :: Arrays_Search     , only : searchIndexed

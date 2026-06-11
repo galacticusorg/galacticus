@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
+  !!{RST
+  Implements an output analysis class for the quiescent fraction measurements of :cite:t:`wagner_evolution_2016`.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   ! Enumerations of analyses.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>wagner2016QuiescentRedshiftRange</name>
-   <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis.</description>
+   <description>
+   Specifies the redshift range for the :cite:t:`wagner_evolution_2016` analysis.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -38,13 +40,15 @@
   !!]
   
   !![
-  <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
-    <description>Computes the quiescent galaxy fraction as a function of stellar mass for a low or high redshift interval from \cite{wagner_evolution_2016}, with stellar mass and specific star formation rate random/systematic error polynomial coefficients and redshift range selection.</description>
+  <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016" docformat="rst">
+    <description>
+    Computes the quiescent galaxy fraction as a function of stellar mass for a low or high redshift interval from :cite:t:`wagner_evolution_2016`, with stellar mass and specific star formation rate random/systematic error polynomial coefficients and redshift range selection.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016
-     !!{
-     An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
+     !!{RST
+     An output analysis class for the quiescent fraction measurements of :cite:t:`wagner_evolution_2016`.
      !!}
      private
      class           (cosmologyParametersClass                       ), pointer                     :: cosmologyParameters_                       => null()
@@ -59,8 +63,8 @@
   end type outputAnalysisQuiescentFractionWagner2016
 
   interface outputAnalysisQuiescentFractionWagner2016
-     !!{
-     Constructors for the \refClass{outputAnalysisQuiescentFractionWagner2016} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisQuiescentFractionWagner2016`` output analysis class.
      !!}
      module procedure quiescentFractionWagner2016ConstructorParameters
      module procedure quiescentFractionWagner2016ConstructorInternal
@@ -69,8 +73,8 @@
 contains
 
   function quiescentFractionWagner2016ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisQuiescentFractionWagner2016} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisQuiescentFractionWagner2016`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -108,45 +112,57 @@ contains
        allocate(weightSystematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>weightSystematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>weightSystematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for specific star formation rates.</description>
+      <description>
+      The coefficients of the systematic error polynomial for specific star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
+      <description>
+      The redshift range ("``low``" or "``high``") for this analysis.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
@@ -173,8 +189,8 @@ contains
   end function quiescentFractionWagner2016ConstructorParameters
 
   function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_, starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisQuiescentFractionWagner2016} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisQuiescentFractionWagner2016`` output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -390,8 +406,8 @@ contains
   end function quiescentFractionWagner2016ConstructorInternal
 
   subroutine quiescentFractionWagner2016Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisQuiescentFractionWagner2016} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisQuiescentFractionWagner2016`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisQuiescentFractionWagner2016), intent(inout) :: self

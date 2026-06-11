@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree filter which passes if the base node in the tree passes the given galactic filter.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
   !![
-  <mergerTreeFilter name="mergerTreeFilterBaseNode">
-   <description>A merger tree filter which passes if the base node in the tree passes the given galactic filter.</description>
+  <mergerTreeFilter name="mergerTreeFilterBaseNode" docformat="rst">
+   <description>
+   A merger tree filter which passes if the base node in the tree passes the given galactic filter.
+   </description>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterBaseNode
-     !!{
+     !!{RST
      A merger tree filter class which passes if the base node in the tree passes the given galactic filter.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a merger tree filter which passes if the base node in the tree passes
   end type mergerTreeFilterBaseNode
 
   interface mergerTreeFilterBaseNode
-     !!{
-     Constructors for the \refClass{mergerTreeFilterBaseNode} merger tree filter class.
+     !!{RST
+     Constructors for the ``mergerTreeFilterBaseNode`` merger tree filter class.
      !!}
      module procedure baseNodeConstructorParameters
      module procedure baseNodeConstructorInternal
@@ -50,8 +52,8 @@ Implements a merger tree filter which passes if the base node in the tree passes
 contains
   
   function baseNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterBaseNode} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeFilterBaseNode`` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,8 +72,8 @@ contains
   end function baseNodeConstructorParameters
 
   function baseNodeConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeFilterBaseNode} merger tree filter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeFilterBaseNode`` merger tree filter class.
     !!}
     implicit none
     type (mergerTreeFilterBaseNode)                        :: self
@@ -84,8 +86,8 @@ contains
   end function baseNodeConstructorInternal
 
   subroutine baseNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeFilterBaseNode} merger tree filter class.
+    !!{RST
+    Destructor for the ``mergerTreeFilterBaseNode`` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterBaseNode), intent(inout) :: self
@@ -97,7 +99,7 @@ contains
   end subroutine baseNodeDestructor
 
   logical function baseNodePasses(self,tree) result(passes)
-    !!{
+    !!{RST
     Implement a merger tree filter which passes if the base node in the tree passes the given merger tree filter.
     !!}
     implicit none

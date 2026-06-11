@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a negative binomial 1D discrete distribution function.
   !!}
 
   !![
-  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial">
-   <description>A negative binomial 1D discrete distribution function class, modeling the number of successes $k$ observed before a fixed number of failures $r$ in a sequence of independent Bernoulli trials each with success probability $p$, with probability mass function $P(k) = \binom{k+r-1}{k} p^r (1-p)^k$. Note that the cumulative and inverse CDF methods are not currently implemented; only the probability mass function and its logarithm are available.</description>
+  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DNegativeBinomial" docformat="rst">
+   <description>
+   A negative binomial 1D discrete distribution function class, modeling the number of successes :math:`k` observed before a fixed number of failures :math:`r` in a sequence of independent Bernoulli trials each with success probability :math:`p`, with probability mass function :math:`P(k) = \binom{k+r-1}{k} p^r (1-p)^k`. Note that the cumulative and inverse CDF methods are not currently implemented; only the probability mass function and its logarithm are available.
+   </description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DNegativeBinomial
-     !!{
+     !!{RST
      Implementation of a negativeBinomial 1D discrete distribution function.
      !!}
      private
@@ -43,8 +45,8 @@
   end type distributionFunctionDiscrete1DNegativeBinomial
 
   interface distributionFunctionDiscrete1DNegativeBinomial
-     !!{
-     Constructors for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class.
+     !!{RST
+     Constructors for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class.
      !!}
      module procedure negativeBinomialConstructorParameters
      module procedure negativeBinomialConstructorInternal
@@ -53,9 +55,8 @@
 contains
 
   function negativeBinomialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,14 +66,18 @@ contains
     double precision                                                                :: probabilitySuccess    , countFailures
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>probabilitySuccess</name>
-      <description>The probability $p \in (0,1]$ of success on a single Bernoulli trial; the distribution models the number of successes before $r$ failures occur, with mean $pr/(1-p)$.</description>
+      <description>
+      The probability :math:`p \in (0,1]` of success on a single Bernoulli trial; the distribution models the number of successes before :math:`r` failures occur, with mean :math:`pr/(1-p)`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countFailures</name>
-      <description>The target number of failures $r$ before the experiment stops; the distribution gives the number of successes $k$ observed before the $r$-th failure, with variance $pr/(1-p)^2$.</description>
+      <description>
+      The target number of failures :math:`r` before the experiment stops; the distribution gives the number of successes :math:`k` observed before the :math:`r`-th failure, with variance :math:`pr/(1-p)^2`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -86,8 +91,8 @@ contains
   end function negativeBinomialConstructorParameters
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DNegativeBinomial} 1D discrete distribution function class.
+    !!{RST
+    Constructor for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -104,7 +109,7 @@ contains
   end function negativeBinomialConstructorInternal
 
   double precision function negativeBinomialMass(self,x)
-    !!{
+    !!{RST
     Return the mass of a negative binomial discrete distribution.
     !!}
     use :: Error          , only : Error_Report
@@ -125,7 +130,7 @@ contains
   end function negativeBinomialMass
 
   double precision function negativeBinomialMassLogarithmic(self,x)
-    !!{
+    !!{RST
     Return the logarithmic mass of a negative binomial discrete distribution.
     !!}
     use :: Error          , only : Error_Report
@@ -144,7 +149,7 @@ contains
   end function negativeBinomialMassLogarithmic
 
   double precision function negativeBinomialCumulative(self,x,status)
-    !!{
+    !!{RST
     Return the cumulative probability of a negative binomial discrete distribution.
     !!}
     use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
@@ -158,7 +163,7 @@ contains
   end function negativeBinomialCumulative
 
   double precision function negativeBinomialCumulativeComplementary(self,x,status)
-    !!{
+    !!{RST
     Return the complementary cumulative probability of a negative binomial discrete distribution.
     !!}
     use :: Beta_Functions, only : Beta_Function_Incomplete_Normalized
@@ -172,7 +177,7 @@ contains
   end function negativeBinomialCumulativeComplementary
 
   integer function negativeBinomialInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a negative binomial discrete distribution.
     !!}
     use :: Error, only : Error_Report
@@ -187,7 +192,7 @@ contains
   end function negativeBinomialInverse
 
   integer function negativeBinomialMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value in a negative binomial discrete distribution.
     !!}
     implicit none
@@ -199,7 +204,7 @@ contains
   end function negativeBinomialMinimum
 
   integer function negativeBinomialMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value in a negative binomial discrete distribution.
     !!}
     implicit none

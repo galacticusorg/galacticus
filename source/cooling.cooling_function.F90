@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides a class implementing cooling functions.
 !!}
 
 module Cooling_Functions
-  !!{
+  !!{RST
   Provides a class implementing cooling functions.
   !!}
   use :: Abundances_Structure         , only : abundances
@@ -32,22 +32,16 @@ module Cooling_Functions
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>coolingFunction</name>
    <descriptiveName>Cooling Function</descriptiveName>
    <description>
-    Class providing radiative cooling functions of gas, $\Lambda(\rho,T,\mathbf{Z})$, in units of erg cm$^{-3}$ s$^{-1}$.
-    The cooling function encodes the rate at which gas loses energy per unit volume through line emission, bremsstrahlung,
-    and other radiative processes, as a function of hydrogen number density, temperature, and metal abundances.
-    Implementations may assume collisional ionization equilibrium (CIE) or account for photoionization by a radiation
-    field. The logarithmic slopes with respect to density and temperature are also provided.
+   Class providing radiative cooling functions of gas, :math:`\Lambda(\rho,T,\mathbf{Z})`, in units of erg cm\ :math:`^{-3}` s\ :math:`^{-1}`. The cooling function encodes the rate at which gas loses energy per unit volume through line emission, bremsstrahlung, and other radiative processes, as a function of hydrogen number density, temperature, and metal abundances. Implementations may assume collisional ionization equilibrium (CIE) or account for photoionization by a radiation field. The logarithmic slopes with respect to density and temperature are also provided.
    </description>
    <default>atomicCIECloudy</default>
    <method name="coolingFunction" >
      <description>
-       Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation
-       field. Units of the returned cooling function are the traditional ergs cm$^{-3}$ s$^{-1}$. Note that the cooling function
-       here is defined per unit volume, rather than per unit hydrogen as is often the case.
+     Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm\ :math:`^{-3}` s\ :math:`^{-1}`. Note that the cooling function here is defined per unit volume, rather than per unit hydrogen as is often the case.
      </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -58,7 +52,9 @@ module Cooling_Functions
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="coolingFunctionFractionInBand" >
-    <description>Return the fraction of the total cooling function due to emission in the the given energy range, specified by \mono{energyLow} and \mono{energyHigh} (in units of keV).</description>
+    <description>
+    Return the fraction of the total cooling function due to emission in the the given energy range, specified by ``energyLow`` and ``energyHigh`` (in units of keV).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode           ), intent(inout) :: node</argument>
@@ -69,7 +65,9 @@ module Cooling_Functions
     <argument>double precision                     , intent(in   ) :: energyLow            , energyHigh </argument>
    </method>
    <method name="coolingFunctionDensityLogSlope" >
-    <description>Return $\d\ln\Lambda/\d\ln\rho$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
+    <description>
+    Return :math:`\d\ln\Lambda/\d\ln\rho` for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass> 
     <argument>type            (treeNode           ), intent(inout) :: node</argument>
@@ -79,7 +77,9 @@ module Cooling_Functions
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="coolingFunctionTemperatureLogSlope" >
-    <description>Return $\d\ln\Lambda/\d\ln T$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
+    <description>
+    Return :math:`\d\ln\Lambda/\d\ln T` for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode           ), intent(inout) :: node</argument>

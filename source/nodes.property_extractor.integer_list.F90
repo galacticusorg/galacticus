@@ -22,12 +22,14 @@
   use :: Units_MetaData, only : unitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIntegerList" abstract="yes">
-   <description>Abstract base class for extractors that return a variable-length list of integer values per node, defining the interface (element count, names, descriptions, and units) for extractors that output sequences of integer-valued node properties in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIntegerList" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a variable-length list of integer values per node, defining the interface (element count, names, descriptions, and units) for extractors that output sequences of integer-valued node properties in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerList
-     !!{
+     !!{RST
      An integer list property extractor.
      !!}
      private
@@ -54,7 +56,7 @@
 
   abstract interface
      function integerListElementCount(self)
-       !!{
+       !!{RST
        Interface for integer list property count.
        !!}
        import nodePropertyExtractorIntegerList
@@ -65,7 +67,7 @@
 
   abstract interface
      function integerListExtract(self,node,instance)
-       !!{
+       !!{RST
        Interface for integer list property extraction.
        !!}
        import nodePropertyExtractorIntegerList, treeNode, multiCounter, kind_int8
@@ -78,7 +80,7 @@
 
   abstract interface
      subroutine integerListNames(self,names)
-       !!{
+       !!{RST
        Interface for list names.
        !!}
        import varying_string, nodePropertyExtractorIntegerList
@@ -89,7 +91,7 @@
 
   abstract interface
      subroutine integerListDescriptions(self,descriptions)
-       !!{
+       !!{RST
        Interface for list descriptions.
        !!}
        import varying_string, nodePropertyExtractorIntegerList
@@ -100,7 +102,7 @@
 
   abstract interface
      function integerListUnitsInSI(self)
-       !!{
+       !!{RST
        Interface for list property units.
        !!}
        import nodePropertyExtractorIntegerList
@@ -112,9 +114,8 @@
 contains
 
   function integerListUnits(self) result(units)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorIntegerList} \mono{unitsInSI} array into an array of
-    \mono{unitType}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorIntegerList`` ``unitsInSI`` array into an array of ``unitType``.
     !!}
     implicit none
     type (unitType                          ), dimension(:), allocatable :: units
@@ -131,7 +132,7 @@ contains
   end function integerListUnits
 
   subroutine integerListMetaData(self,node,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for list property meta-data.
     !!}
     implicit none

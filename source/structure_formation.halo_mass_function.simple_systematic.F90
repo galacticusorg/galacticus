@@ -17,25 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter halo mass function class which modifies another mass function using a simple model for systematics.
 !!}
 
   !![
-  <haloMassFunction name="haloMassFunctionSimpleSystematic">
+  <haloMassFunction name="haloMassFunctionSimpleSystematic" docformat="rst">
    <description>
-    A halo mass function class in which the mass function is computed by modifying another halo mass function (specified as a
-    subparameter) using a simple model for systematic errors as follows:
-    \begin{equation}
+   A halo mass function class in which the mass function is computed by modifying another halo mass function (specified as a subparameter) using a simple model for systematic errors as follows:
+
+   .. math::
+
       {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta
       \log_{10}\left[ {M \over 10^{12}\mathrm{M}_\odot} \right] \right)
-    \end{equation}
-    where $\alpha=$\mono{[alpha]}, and $\beta=$\mono{[beta]}.
+
+   where :math:`\alpha=`\ ``[alpha]``, and :math:`\beta=`\ ``[beta]``.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimpleSystematic
-     !!{
+     !!{RST
      A halo mass function class which modifies another mass function using a simple model for systematics.
      !!}
      private
@@ -47,8 +48,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
   end type haloMassFunctionSimpleSystematic
 
   interface haloMassFunctionSimpleSystematic
-     !!{
-     Constructors for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
+     !!{RST
+     Constructors for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
      !!}
      module procedure simpleSystematicConstructorParameters
      module procedure simpleSystematicConstructorInternal
@@ -57,8 +58,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
 contains
 
   function simpleSystematicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,17 +71,21 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter $\alpha$ appearing in model for simple systematic shift in the halo mass function.</description>
+      <description>
+      Parameter :math:`\alpha` appearing in model for simple systematic shift in the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter $\beta$ appearing in model for simple systematic shift in the halo mass function.</description>
+      <description>
+      Parameter :math:`\beta` appearing in model for simple systematic shift in the halo mass function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="referenceMassFunction" source="parameters"/>
@@ -95,8 +100,8 @@ contains
   end function simpleSystematicConstructorParameters
 
   function simpleSystematicConstructorInternal(alpha,beta,cosmologyParameters_,referenceMassFunction) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
+    !!{RST
+    Internal constructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionSimpleSystematic)                        :: self
@@ -111,8 +116,8 @@ contains
   end function simpleSystematicConstructorInternal
 
   subroutine simpleSystematicDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionSimpleSystematic} halo mass function class.
+    !!{RST
+    Destructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionSimpleSystematic), intent(inout) :: self
@@ -125,7 +130,7 @@ contains
   end subroutine simpleSystematicDestructor
 
   double precision function simpleSystematicDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none

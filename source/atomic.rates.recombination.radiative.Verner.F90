@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of atomic radiative recombination rates based on the
-  \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+  !!{RST
+  An implementation of atomic radiative recombination rates based on the `code <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_ originally written by Dima Verner.
   !!}
 
   !![
-  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996">
-   <description>Atomic radiative recombination rates are computed based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.</description>
+  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeVerner1996" docformat="rst">
+   <description>
+   Atomic radiative recombination rates are computed based on the `code &lt;https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f&gt;`_ originally written by Dima Verner.
+   </description>
   </atomicRecombinationRateRadiative>
   !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeVerner1996
-     !!{
-     A radiative recombination rate class based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner.
+     !!{RST
+     A radiative recombination rate class based on the `code <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_ originally written by Dima Verner.
      !!}
      private
    contains
@@ -37,8 +38,8 @@
   end type atomicRecombinationRateRadiativeVerner1996
 
   interface atomicRecombinationRateRadiativeVerner1996
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateRadiativeVerner1996} atomic radiative recombination class.
+     !!{RST
+     Constructors for the ``atomicRecombinationRateRadiativeVerner1996`` atomic radiative recombination class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicRecombinationRateRadiativeVerner1996
@@ -546,8 +547,8 @@
 contains
 
   function verner1996ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateRadiativeVerner1996} atomic radiative recombination class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``atomicRecombinationRateRadiativeVerner1996`` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -562,22 +563,19 @@ contains
   end function verner1996ConstructorParameters
 
   double precision function verner1996Rate(self,atomicNumber,ionizationState,temperature,level)
-    !!{
-    Computes the rate coefficient of radiative recombination (in units of cm$^3$ s$^{-1}$) at the specified \mono{temperature} for all ions
-    of all elements from H through Zn (selected by the \mono{atomicNumber} and the \mono{ionizationState} \emph{of the recombined
-    ion}) use of the following fits:
-    \begin{itemize}
-    \item H-like, He-like, Li-like, Na-like: \citep{verner_atomic_1996};
-    \item Other ions of C, N, O, Ne: \citep{pequignot_total_1991}, refitted by Verner \& Ferland formula to ensure correct asymptotes;
-    \item Fe XVII-XXIII: \citep{arnaud_iron_1992};
-    \item Fe I-XV: refitted by Verner \& Ferland formula to ensure correct asymptotes;
-    \item Other ions of Mg, Si, S, Ar, Ca, Fe, Ni: \citep{shull_ionization_1982};
-    \item Other ions of Na, Al: \citep{landini_x-uv_1990};
-    \item Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): \citep{landini_ion_1991};
-    \item All other species: interpolations of the power-law fits.
-    \end{itemize}
-    Based on the \href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{code} originally written by Dima Verner. The ionization state
-    passed to this function should be that of the atom/ion post recombination.
+    !!{RST
+    Computes the rate coefficient of radiative recombination (in units of cm\ :math:`^3` s\ :math:`^{-1}`) at the specified ``temperature`` for all ions of all elements from H through Zn (selected by the ``atomicNumber`` and the ``ionizationState`` *of the recombined ion*) use of the following fits:
+
+    * H-like, He-like, Li-like, Na-like: :cite:p:`verner_atomic_1996`;
+    * Other ions of C, N, O, Ne: :cite:p:`pequignot_total_1991`, refitted by Verner & Ferland formula to ensure correct asymptotes;
+    * Fe XVII-XXIII: :cite:p:`arnaud_iron_1992`;
+    * Fe I-XV: refitted by Verner & Ferland formula to ensure correct asymptotes;
+    * Other ions of Mg, Si, S, Ar, Ca, Fe, Ni: :cite:p:`shull_ionization_1982`;
+    * Other ions of Na, Al: :cite:p:`landini_x-uv_1990`;
+    * Other ions of F, P, Cl, K, Ti, Cr, Mn, Co (excluding Ti I-II, Cr I-IV, Mn I-V, Co I): :cite:p:`landini_ion_1991`;
+    * All other species: interpolations of the power-law fits.
+
+    Based on the `code <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_ originally written by Dima Verner. The ionization state passed to this function should be that of the atom/ion post recombination.
     !!}
     use :: Error, only : Error_Report
     implicit none

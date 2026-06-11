@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines a labels for the \mono{table} class.
+!!{RST
+Contains a module which defines a labels for the ``table`` class.
 !!}
 
 module Table_Labels
-  !!{
-  Defines labels for the \mono{table} class.
+  !!{RST
+  Defines labels for the ``table`` class.
   !!}
   private
 
   ! Enumeration for extrapolation options in tables.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>extrapolationType</name>
-   <description>Used to specify the type of extrapolation to use when interpolating in tables.</description>
+   <description>
+   Used to specify the type of extrapolation to use when interpolating in tables.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="extrapolate" description="Extrapolate beyond the range of the tabulated data"/>
    <entry label="fix"         description="Fix the value to that at the last tabulated point" />

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that extracts the Einstein radius of the halo.
 !!}
 
@@ -28,12 +28,14 @@ Implements an output analysis property extractor class that extracts the Einstei
   use :: Numerical_Integration  , only : integrator
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusEinstein">
-   <description>A property extractor that computes the Einstein radius (in arcseconds) of the dark matter halo for gravitational lensing, given a background source at redshift \mono{redshiftSource}. The Einstein radius is determined numerically by finding the projected impact parameter at which the mean projected surface mass density enclosed within that radius equals the critical surface density $\Sigma_\mathrm{cr} = \mathrm{c}^2 D_\mathrm{s} / (4\pi \mathrm{G} D_\mathrm{l} D_\mathrm{ls})$, where $D_\mathrm{s}$, $D_\mathrm{l}$, and $D_\mathrm{ls}$ are the angular diameter distances to the source, lens, and from lens to source, respectively. Numerical integration over the line-of-sight and impact parameter is performed using the halo mass distribution from \refClass{massDistributionClass}.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusEinstein" docformat="rst">
+   <description>
+   A property extractor that computes the Einstein radius (in arcseconds) of the dark matter halo for gravitational lensing, given a background source at redshift ``redshiftSource``. The Einstein radius is determined numerically by finding the projected impact parameter at which the mean projected surface mass density enclosed within that radius equals the critical surface density :math:`\Sigma_\mathrm{cr} = \mathrm{c}^2 D_\mathrm{s} / (4\pi \mathrm{G} D_\mathrm{l} D_\mathrm{ls})`, where :math:`D_\mathrm{s}`, :math:`D_\mathrm{l}`, and :math:`D_\mathrm{ls}` are the angular diameter distances to the source, lens, and from lens to source, respectively. Numerical integration over the line-of-sight and impact parameter is performed using the halo mass distribution from ``massDistributionClass``.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusEinstein
-     !!{
+     !!{RST
      A property extractor output analysis class that extracts the Einstein radius of the halo.
      !!}
      private
@@ -52,8 +54,8 @@ Implements an output analysis property extractor class that extracts the Einstei
   end type nodePropertyExtractorRadiusEinstein
 
   interface nodePropertyExtractorRadiusEinstein
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiusEinstein`` property extractor class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal
@@ -69,8 +71,8 @@ Implements an output analysis property extractor class that extracts the Einstei
 contains
 
   function radiusEinsteinConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiusEinstein`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,10 +83,12 @@ contains
     double precision                                                     :: redshiftSource
         
      !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>redshiftSource</name>
      <source>parameters</source>
-     <description>The source redshift to using in Einstein radius calculations.</description>
+     <description>
+     The source redshift to using in Einstein radius calculations.
+     </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -103,8 +107,8 @@ contains
   end function radiusEinsteinConstructorParameters
 
   function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusEinstein} node property extractor.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRadiusEinstein`` node property extractor.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -140,8 +144,8 @@ contains
   end function radiusEinsteinConstructorInternal
 
   subroutine radiusEinsteinDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusEinstein} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorRadiusEinstein`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusEinstein), intent(inout) :: self
@@ -154,7 +158,7 @@ contains
   end subroutine radiusEinsteinDestructor
 
   double precision function radiusEinsteinExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement an Einstein radius calculation.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -213,7 +217,7 @@ contains
   end function radiusEinsteinExtract
 
   double precision function radiusEinsteinProjectedDensityRoot(radius)
-    !!{
+    !!{RST
     Root function used to find the Einstein radius.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -228,9 +232,9 @@ contains
   end function radiusEinsteinProjectedDensityRoot
   
   double precision function radiusEinsteinProjectedDensityIntegrandImpact(radiusImpact)
-    !!{
+    !!{RST
     Integrand function used in finding the mean enclosed projected density.
-      !!}
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radiusImpact
@@ -253,7 +257,7 @@ contains
   end function radiusEinsteinProjectedDensityIntegrandImpact
   
   double precision function radiusEinsteinProjectedDensityIntegrandLineOfSight(distance)
-    !!{
+    !!{RST
     Integrand function used in finding the mean enclosed projected density.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll   , massTypeAll
@@ -273,7 +277,7 @@ contains
   end function radiusEinsteinProjectedDensityIntegrandLineOfSight
   
   function radiusEinsteinName(self)
-    !!{
+    !!{RST
     Return the name of the Einstein radius property.
     !!}
     implicit none
@@ -286,7 +290,7 @@ contains
   end function radiusEinsteinName
 
   function radiusEinsteinDescription(self) result(description)
-    !!{
+    !!{RST
     Return a description of the Einstein radius property.
     !!}
     use :: ISO_Varying_String, only : assignment(=), operator(//)
@@ -302,7 +306,7 @@ contains
   end function radiusEinsteinDescription
 
   double precision function radiusEinsteinUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the Einstein radius property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, arcsecondsToDegrees
@@ -316,7 +320,7 @@ contains
   end function radiusEinsteinUnitsInSI
 
   function radiusEinsteinUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the Einstein radius property.
     !!}
     use :: Units_MetaData, only : unitType

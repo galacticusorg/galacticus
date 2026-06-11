@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for total star formation rate.
 !!}
 
@@ -26,19 +26,20 @@ Implements a galactic high-pass filter for total star formation rate.
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <galacticFilter name="galacticFilterStarFormationRate">
+  <galacticFilter name="galacticFilterStarFormationRate" docformat="rst">
    <description>
-   A galactic high-pass filter for star formation rate. Galaxies with a combined disk,
-   spheroid, plus \gls{nsc} star formation rate greater than or equal to a mass-dependent threshold. The threshold is given by
-   \begin{equation}
-   \log_{10} \left( { \dot{\phi}_\mathrm{t} \over \mathrm{M}_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
-   \end{equation}
-   where $M_0=$\mono{[logM0]}, $\alpha_0=$\mono{[logSFR0]}, and $\alpha_1=$\mono{[logSFR1]}.
+   A galactic high-pass filter for star formation rate. Galaxies with a combined disk, spheroid, plus :term:`NSC` star formation rate greater than or equal to a mass-dependent threshold. The threshold is given by
+
+   .. math::
+
+      \log_{10} \left( { \dot{\phi}_\mathrm{t} \over \mathrm{M}_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
+
+   where :math:`M_0=`\ ``[logM0]``, :math:`\alpha_0=`\ ``[logSFR0]``, and :math:`\alpha_1=`\ ``[logSFR1]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStarFormationRate
-     !!{
+     !!{RST
      A galactic high-pass filter class for star formation rate.
      !!}
      private
@@ -53,8 +54,8 @@ Implements a galactic high-pass filter for total star formation rate.
   end type galacticFilterStarFormationRate
 
   interface galacticFilterStarFormationRate
-     !!{
-     Constructors for the \refClass{galacticFilterStarFormationRate} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterStarFormationRate`` galactic filter class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -63,8 +64,8 @@ Implements a galactic high-pass filter for total star formation rate.
 contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStarFormationRate} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterStarFormationRate`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,23 +79,29 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logM0</name>
       <source>parameters</source>
       <defaultValue>10.0d0</defaultValue>
-      <description>The parameter $\log_{10} M_0$ (with $M_0$ in units of $\mathrm{M}_\odot$) appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
+      <description>
+      The parameter :math:`\log_{10} M_0` (with :math:`M_0` in units of :math:`\mathrm{M}_\odot`) appearing in the star formation rate threshold expression for the star formation rate galactic filter class.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logSFR0</name>
       <source>parameters</source>
       <defaultValue>9.0d0</defaultValue>
-      <description>The parameter $\alpha_0$ appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
+      <description>
+      The parameter :math:`\alpha_0` appearing in the star formation rate threshold expression for the star formation rate galactic filter class.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logSFR1</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\alpha_1$ appearing in the star formation rate threshold expression for the star formation rate galactic filter class.</description>
+      <description>
+      The parameter :math:`\alpha_1` appearing in the star formation rate threshold expression for the star formation rate galactic filter class.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"               name="starFormationRateDisks_"               source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids"           name="starFormationRateSpheroids_"           source="parameters"/>
@@ -111,8 +118,8 @@ contains
   end function starFormationRateConstructorParameters
 
   function starFormationRateConstructorInternal(logM0,logSFR0,logSFR1,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStarFormationRate} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterStarFormationRate`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStarFormationRate          )                        :: self
@@ -130,8 +137,8 @@ contains
   end function starFormationRateConstructorInternal
 
   subroutine starFormationRateDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterStarFormationRate} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterStarFormationRate`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStarFormationRate), intent(inout) :: self
@@ -145,7 +152,7 @@ contains
   end subroutine starFormationRateDestructor
 
   logical function starFormationRatePasses(self,node)
-    !!{
+    !!{RST
     Implement an star formation rate galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC, treeNode

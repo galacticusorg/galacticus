@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree processing time estimator that provides no estimates.
 !!}
 
   !![
-  <metaTreeProcessingTime name="metaTreeProcessingTimeNull">
+  <metaTreeProcessingTime name="metaTreeProcessingTimeNull" docformat="rst">
    <description>
-    A merger tree processing time class provides no estimates.
+   A merger tree processing time class provides no estimates.
    </description>
   </metaTreeProcessingTime>
   !!]
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeNull
-     !!{
+     !!{RST
      A merger tree processing time estimator that provides no estimates.
      !!}
      private
@@ -39,8 +39,8 @@ Implements a merger tree processing time estimator that provides no estimates.
   end type metaTreeProcessingTimeNull
 
   interface metaTreeProcessingTimeNull
-     !!{
-     Constructors for the \refClass{metaTreeProcessingTimeNull} merger tree processing time estimator.
+     !!{RST
+     Constructors for the ``metaTreeProcessingTimeNull`` merger tree processing time estimator.
      !!}
      module procedure nullConstructorParameters
   end interface metaTreeProcessingTimeNull
@@ -48,8 +48,8 @@ Implements a merger tree processing time estimator that provides no estimates.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{metaTreeProcessingTimeNull} merger tree processing time estimator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``metaTreeProcessingTimeNull`` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
   end function nullConstructorParameters
 
   double precision function nullTime(self,massTree)
-    !!{
+    !!{RST
     Return a null estimate of the time to process a merger tree.
     !!}
     implicit none
@@ -77,7 +77,7 @@ contains
   end function nullTime
 
   double precision function nullTimeRemaining(self,tree,timeFinal)
-    !!{
+    !!{RST
     Return a null estimate of the time to process a merger tree.
     !!}
     implicit none

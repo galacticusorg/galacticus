@@ -17,23 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a star formation rate in galactic spheroids which computes the rate by dividing the available gas mass by a
-  timescale.
+  !!{RST
+  Implementation of a star formation rate in galactic spheroids which computes the rate by dividing the available gas mass by a timescale.
   !!}
 
   use :: Star_Formation_Timescales   , only : starFormationTimescaleClass
   use :: Star_Formation_Active_Masses, only : starFormationActiveMassClass
   
   !![
-  <starFormationRateSpheroids name="starFormationRateSpheroidsTimescale">
-   <description>A star formation rate in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.</description>
+  <starFormationRateSpheroids name="starFormationRateSpheroidsTimescale" docformat="rst">
+   <description>
+   A star formation rate in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.
+   </description>
   </starFormationRateSpheroids>
   !!]
   type, extends(starFormationRateSpheroidsClass) :: starFormationRateSpheroidsTimescale
-     !!{
-     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
-     over the spheroid.
+     !!{RST
+     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.
      !!}
      private
      class(starFormationTimescaleClass ), pointer :: starFormationTimescale_  => null()
@@ -44,8 +44,8 @@
   end type starFormationRateSpheroidsTimescale
 
   interface starFormationRateSpheroidsTimescale
-     !!{
-     Constructors for the \refClass{starFormationRateSpheroidsTimescale} star formation rate in spheroids class.
+     !!{RST
+     Constructors for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
      !!}
      module procedure timescaleConstructorParameters
      module procedure timescaleConstructorInternal
@@ -54,9 +54,8 @@
 contains
 
   function timescaleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationRateSpheroidsTimescale} star formation rate in spheroids class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +78,8 @@ contains
   end function timescaleConstructorParameters
 
   function timescaleConstructorInternal(starFormationActiveMass_,starFormationTimescale_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationRateSpheroidsTimescale} star formation rate in spheroids class.
+    !!{RST
+    Internal constructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
     !!}
     implicit none
     type (starFormationRateSpheroidsTimescale)                        :: self
@@ -94,8 +93,8 @@ contains
   end function timescaleConstructorInternal
 
   subroutine timescaleDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationRateSpheroidsTimescale} star formation rate in spheroids class.
+    !!{RST
+    Destructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
     !!}
     implicit none
     type(starFormationRateSpheroidsTimescale), intent(inout) :: self
@@ -108,9 +107,8 @@ contains
   end subroutine timescaleDestructor
 
   double precision function timescaleRate(self,node)
-    !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of \mono{node}, by
-    dividing the available gas mass by a timescale.
+    !!{RST
+    Returns the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the galactic spheroid of ``node``, by dividing the available gas mass by a timescale.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none

@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of ``Einasto'' dark matter halo profiles.
+  !!{RST
+  An implementation of "Einasto" dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
+  <darkMatterProfileDMO name="darkMatterProfileDMOEinasto" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionEinasto} objects to compute the Einasto density profile
-    (e.g. \citealt{cardone_spherical_2005}), normalized such that the total mass of the \gls{node} is enclosed with the virial
-    radius and with the characteristic length $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
-    \refPhysics{darkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method
-    (see \refPhysics{darkMatterProfileShape}).
+   A dark matter profile DMO class which builds ``massDistributionEinasto`` objects to compute the Einasto density profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see ``darkMatterProfileConcentration``). The shape parameter, :math:`\alpha`, is set using the density profile shape method (see ``darkMatterProfileShape``).
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOEinasto
-     !!{
-     A dark matter halo profile class implementing ``Einasto'' dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing "Einasto" dark matter halos.
      !!}
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
@@ -45,8 +41,8 @@
   end type darkMatterProfileDMOEinasto
 
   interface darkMatterProfileDMOEinasto
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
      !!}
      module procedure einastoConstructorParameters
      module procedure einastoConstructorInternal
@@ -55,8 +51,8 @@
 contains
 
   function einastoConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,8 +72,8 @@ contains
   end function einastoConstructorParameters
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -115,8 +111,8 @@ contains
   end function einastoConstructorInternal
 
   subroutine einastoDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOEinasto} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -128,8 +124,8 @@ contains
   end subroutine einastoDestructor
 
   function einastoGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                       , weightByMass

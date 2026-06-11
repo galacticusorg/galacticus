@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter for halo mass under a given definition.
 !!}
 
@@ -26,12 +26,14 @@ Implements a galactic filter for halo mass under a given definition.
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
-  <galacticFilter name="galacticFilterHaloMassRange">
-   <description>Passes nodes whose halo mass (under a specified virial density contrast definition) falls within the range [\mono{massLow}, \mono{massHigh}), enabling selection of halos by mass.</description>
+  <galacticFilter name="galacticFilterHaloMassRange" docformat="rst">
+   <description>
+   Passes nodes whose halo mass (under a specified virial density contrast definition) falls within the range [``massLow``, ``massHigh``), enabling selection of halos by mass.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloMassRange
-     !!{
+     !!{RST
      A galactic filter class on halo mass.
      !!}
      private
@@ -45,8 +47,8 @@ Implements a galactic filter for halo mass under a given definition.
   end type galacticFilterHaloMassRange
 
   interface galacticFilterHaloMassRange
-     !!{
-     Constructors for the \refClass{galacticFilterHaloMassRange} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterHaloMassRange`` galactic filter class.
      !!}
      module procedure haloMassRangeConstructorParameters
      module procedure haloMassRangeConstructorInternal
@@ -55,8 +57,8 @@ Implements a galactic filter for halo mass under a given definition.
 contains
 
   function haloMassRangeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHaloMassRange} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterHaloMassRange`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,15 +71,19 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massLow</name>
       <source>parameters</source>
-      <description>The minimum halo mass (in $\mathrm{M}_\odot$) that a node must have to pass the filter; nodes with mass below this threshold are rejected.</description>
+      <description>
+      The minimum halo mass (in :math:`\mathrm{M}_\odot`) that a node must have to pass the filter; nodes with mass below this threshold are rejected.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHigh</name>
       <source>parameters</source>
-      <description>The maximum halo mass (in $\mathrm{M}_\odot$) that a node must have to pass the filter; nodes with mass above this threshold are rejected.</description>
+      <description>
+      The maximum halo mass (in :math:`\mathrm{M}_\odot`) that a node must have to pass the filter; nodes with mass above this threshold are rejected.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -96,8 +102,8 @@ contains
   end function haloMassRangeConstructorParameters
 
   function haloMassRangeConstructorInternal(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHaloMassRange} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterHaloMassRange`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMassRange)                        :: self
@@ -113,8 +119,8 @@ contains
   end function haloMassRangeConstructorInternal
 
   subroutine haloMassRangeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterHaloMassRange} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterHaloMassRange`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloMassRange), intent(inout) :: self
@@ -129,7 +135,7 @@ contains
   end subroutine haloMassRangeDestructor
 
   logical function haloMassRangePasses(self,node)
-    !!{
+    !!{RST
     Implement a halo mass high-pass galactic filter.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

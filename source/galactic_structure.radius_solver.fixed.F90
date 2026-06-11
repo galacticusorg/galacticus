@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-  proportion to specific angular momentum).
+  !!{RST
+  Implementation of a "fixed" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
   
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>radiusFixed</name>
-   <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
+   <description>
+   Enumerates the possible definitions of radius used by the "fixed" galactic structure solver.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -38,19 +39,22 @@
   !!]
 
   !![
-  <galacticStructureSolver name="galacticStructureSolverFixed">
+  <galacticStructureSolver name="galacticStructureSolverFixed" docformat="rst">
    <description>
-    A galactic structure solver that determines the sizes of galactic components by assuming that radius equals \begin{equation} r
-    = f_\mathrm{r} \lambda r_0 \end{equation} where $r_0$ is the virial or turnaround radius of the \gls{node} if \mono{[radiusFixed]}$=$\mono{virialRadius} or \mono{turnaround} respectively, $\lambda$
-    is its spin parameter and $f_\mathrm{r}=$\mono{[factor]} is a parameter. Optionally, different values of
-    $f_\mathrm{r}$ can be specified for disks and spheroids using the \mono{[factorDisk]} and \mono{[factorSpheroid]} parameters respectively---if either or both are not provided the value of \mono{[factor]} will be used for the corresponding component.
+   A galactic structure solver that determines the sizes of galactic components by assuming that radius equals
+
+   .. math::
+
+       r
+      = f_\mathrm{r} \lambda r_0
+
+   where :math:`r_0` is the virial or turnaround radius of the :term:`node` if ``[radiusFixed]``\ :math:`=`\ ``virialRadius`` or ``turnaround`` respectively, :math:`\lambda` is its spin parameter and :math:`f_\mathrm{r}=`\ ``[factor]`` is a parameter. Optionally, different values of :math:`f_\mathrm{r}` can be specified for disks and spheroids using the ``[factorDisk]`` and ``[factorSpheroid]`` parameters respectively---if either or both are not provided the value of ``[factor]`` will be used for the corresponding component.
    </description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
-     !!{
-     Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-     proportion to specific angular momentum).
+     !!{RST
+     Implementation of a "fixed" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
      !!}
      private
      double precision                                      :: factor                          , factorDisk        , &
@@ -66,8 +70,8 @@
   end type galacticStructureSolverFixed
 
   interface galacticStructureSolverFixed
-     !!{
-     Constructors for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
+     !!{RST
+     Constructors for the ``galacticStructureSolverFixed`` galactic structure solver class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -76,9 +80,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``galacticStructureSolverFixed`` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,31 +94,45 @@ contains
     type            (varying_string              )                :: radiusFixed
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factor</name>
-      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultSource>
+      :cite:p:`mo_formation_1998`
+      </defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm. This will be applied to any component for which no component-specific value is provided.</description>
+      <description>
+      The ratio of galaxy radius to :math:`\lambda r_\mathrm{vir}` in the "fixed" galactic structure radius solver algorithm. This will be applied to any component for which no component-specific value is provided.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorDisk</name>
-      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultSource>
+      :cite:p:`mo_formation_1998`
+      </defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for disks. This will override the generic value supplied by \mono{[factor]} for disks.</description>
+      <description>
+      The ratio of galaxy radius to :math:`\lambda r_\mathrm{vir}` in the "fixed" galactic structure radius solver algorithm for disks. This will override the generic value supplied by ``[factor]`` for disks.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorSpheroid</name>
-      <defaultSource>\citep{mo_formation_1998}</defaultSource>
+      <defaultSource>
+      :cite:p:`mo_formation_1998`
+      </defaultSource>
       <defaultValue>sqrt(0.5d0)</defaultValue>
-      <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by \mono{[factor]} for spheroids.</description>
+      <description>
+      The ratio of galaxy radius to :math:`\lambda r_\mathrm{vir}` in the "fixed" galactic structure radius solver algorithm for spheroids. This will override the generic value supplied by ``[factor]`` for spheroids.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusFixed</name>
       <defaultValue>var_str('virial')</defaultValue>
-      <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
+      <description>
+      The radius to use in the "fixed" galactic structure radius solver algorithm. Allowed options are "virial" and "turnaround".
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
@@ -133,8 +150,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(darkMatterHaloScale_,virialDensityContrast_,radiusFixed,factor,factorDisk,factorSpheroid) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
+    !!{RST
+    Internal constructor for the ``galacticStructureSolverFixed`` galactic structure solver class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -155,7 +172,7 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
@@ -173,8 +190,8 @@ contains
   end subroutine fixedAutoHook
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticStructureSolverFixed} galactic structure solver class.
+    !!{RST
+    Destructor for the ``galacticStructureSolverFixed`` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
@@ -192,7 +209,7 @@ contains
   end subroutine fixedDestructor
 
   subroutine fixedSolveHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -210,7 +227,7 @@ contains
   end subroutine fixedSolveHook
 
   subroutine fixedSolvePreDeriativeHook(self,node,propertyType)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -230,9 +247,8 @@ contains
   end subroutine fixedSolvePreDeriativeHook
 
   subroutine fixedSolve(self,node,plausibilityOnly)
-    !!{
-    Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
-    proportion to specific angular momentum.
+    !!{RST
+    Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in proportion to specific angular momentum.
     !!}
     use :: Calculations_Resets                       , only : Calculations_Reset
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities, radiusSolverTasks, radiusSolver
@@ -259,7 +275,7 @@ contains
   contains
 
     subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
-      !!{
+      !!{RST
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                              , solverSet
@@ -321,7 +337,7 @@ contains
   end subroutine fixedSolve
 
   subroutine fixedRevert(self,node)
-    !!{
+    !!{RST
     Revert radii for the fixed galactic structure solve. Not necessary for this algorithm.
     !!}
     implicit none

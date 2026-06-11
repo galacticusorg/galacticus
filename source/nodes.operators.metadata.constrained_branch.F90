@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node operator class that shifts node constrained branch status at node promotion.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorConstrainedBranch">
-   <description>Propagates the constrained-branch flag from a node to its promoted descendant during node promotion events, ensuring that constraint metadata (e.g., from N-body simulations) is preserved as halos evolve between timesteps.</description>
+  <nodeOperator name="nodeOperatorConstrainedBranch" docformat="rst">
+   <description>
+   Propagates the constrained-branch flag from a node to its promoted descendant during node promotion events, ensuring that constraint metadata (e.g., from N-body simulations) is preserved as halos evolve between timesteps.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorConstrainedBranch
-     !!{
+     !!{RST
      A node operator class that shifts node constrained branch status at node promotion.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a node operator class that shifts node constrained branch status at n
   end type nodeOperatorConstrainedBranch
 
   interface nodeOperatorConstrainedBranch
-     !!{
-     Constructors for the \refClass{nodeOperatorConstrainedBranch} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorConstrainedBranch`` node operator class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -47,8 +49,8 @@ Implements a node operator class that shifts node constrained branch status at n
 contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorConstrainedBranch} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorConstrainedBranch`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function constrainedBranchConstructorParameters
 
   function constrainedBranchConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorConstrainedBranch} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorConstrainedBranch`` node operator class.
     !!}
     implicit none
     type(nodeOperatorConstrainedBranch) :: self
@@ -78,7 +80,7 @@ contains
   end function constrainedBranchConstructorInternal
 
   subroutine constrainedBranchNodePromote(self,node)
-    !!{
+    !!{RST
     Act on node promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a merger tree evolution timestep class which limits the step to the next satellite destruction event.
   !!}
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatelliteDestruction">
-   <description>A merger tree evolution timestepping class which limits the step to the next satellite destruction event.</description>
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatelliteDestruction" docformat="rst">
+   <description>
+   A merger tree evolution timestepping class which limits the step to the next satellite destruction event.
+   </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatelliteDestruction
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestepping class which limits the step to the next satellite destruction event.
      !!}
      private
@@ -37,8 +39,8 @@
   end type mergerTreeEvolveTimestepSatelliteDestruction
 
   interface mergerTreeEvolveTimestepSatelliteDestruction
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class.
      !!}
      module procedure satelliteDestructionConstructorParameters
      module procedure satelliteDestructionConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function satelliteDestructionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function satelliteDestructionConstructorParameters
 
   function satelliteDestructionConstructorInternal() result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSatelliteDestruction} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
@@ -75,8 +77,8 @@ contains
   end function satelliteDestructionConstructorInternal
 
   double precision function satelliteDestructionTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} such that it does not exceed the time of the next satellite merger.
+    !!{RST
+    Determine a suitable timestep for ``node`` such that it does not exceed the time of the next satellite merger.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite
@@ -121,7 +123,7 @@ contains
   end function satelliteDestructionTimeEvolveTo
 
   subroutine satelliteDestructionDestructionProcess(self,tree,node,deadlockStatus)
-    !!{
+    !!{RST
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo

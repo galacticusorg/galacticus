@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for total black hole mass.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterBlackHoleMass">
+  <galacticFilter name="galacticFilterBlackHoleMass" docformat="rst">
    <description>
-   A galactic high-pass filter for black hole mass. Galaxies with a central black hole mass greater than or equal
-   to a fixed threshold, $M_{\bullet,0}=$\mono{[massThreshold]}, are passed.
+   A galactic high-pass filter for black hole mass. Galaxies with a central black hole mass greater than or equal to a fixed threshold, :math:`M_{\bullet,0}=`\ ``[massThreshold]``, are passed.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterBlackHoleMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for black hole mass.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for total black hole mass.
   end type galacticFilterBlackHoleMass
 
   interface galacticFilterBlackHoleMass
-     !!{
-     Constructors for the \refClass{galacticFilterBlackHoleMass} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterBlackHoleMass`` galactic filter class.
      !!}
      module procedure blackHoleMassConstructorParameters
      module procedure blackHoleMassConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for total black hole mass.
 contains
 
   function blackHoleMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterBlackHoleMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterBlackHoleMass`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +59,12 @@ contains
     double precision                                             :: massThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the black hole mass threshold for the black hole mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the black hole mass threshold for the black hole mass galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterBlackHoleMass(massThreshold)
@@ -74,8 +75,8 @@ contains
   end function blackHoleMassConstructorParameters
 
   function blackHoleMassConstructorInternal(massThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterBlackHoleMass} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterBlackHoleMass`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterBlackHoleMass)                :: self
@@ -88,7 +89,7 @@ contains
   end function blackHoleMassConstructorInternal
 
   logical function blackHoleMassPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a black hole mass high-pass galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole

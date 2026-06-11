@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that extracts a property from a descendant node of the given node.
 !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDescendantNode">
-   <description>A property extractor that traverses the merger tree forward in time from the current node and applies a scalar \refClass{nodePropertyExtractorClass} to the descendant node found at redshift \mono{redshiftDescendant}. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from \mono{redshiftDescendant} via \refClass{cosmologyFunctionsClass}). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDescendantNode" docformat="rst">
+   <description>
+   A property extractor that traverses the merger tree forward in time from the current node and applies a scalar ``nodePropertyExtractorClass`` to the descendant node found at redshift ``redshiftDescendant``. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from ``redshiftDescendant`` via ``cosmologyFunctionsClass``). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDescendantNode
-     !!{
+     !!{RST
      A property extractor output analysis class that extracts a property from a descendant node of the given node.
      !!}
      private
@@ -46,8 +48,8 @@ Implements an output analysis property extractor class that extracts a property 
   end type nodePropertyExtractorDescendantNode
 
   interface nodePropertyExtractorDescendantNode
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorDescendantNode`` property extractor class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -56,8 +58,8 @@ Implements an output analysis property extractor class that extracts a property 
 contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorDescendantNode`` property extractor class which takes a parameter set as input.
     !!}
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -69,10 +71,12 @@ contains
     double precision                                                     :: redshiftDescendant
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftDescendant</name>
       <source>parameters</source>
-      <description>The redshift of the descendant node to which to apply the filter.</description>
+      <description>
+      The redshift of the descendant node to which to apply the filter.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
@@ -92,8 +96,8 @@ contains
   end function descendantNodeConstructorParameters
 
   function descendantNodeConstructorInternal(timeDescendant,cosmologyFunctions_,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorDescendantNode`` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendantNode)                        :: self
@@ -109,8 +113,8 @@ contains
   end function descendantNodeConstructorInternal
   
   subroutine descendantNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDescendantNode} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorDescendantNode`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendantNode), intent(inout) :: self
@@ -123,7 +127,7 @@ contains
   end subroutine descendantNodeDestructor
   
   double precision function descendantNodeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a descendantNode output analysis.
     !!}
     use :: Error               , only : Error_Report
@@ -153,7 +157,7 @@ contains
 
 
   function descendantNodeName(self)
-    !!{
+    !!{RST
     Return the name of the descendantNode property.
     !!}
     use :: String_Handling, only : String_Upper_Case_First
@@ -166,7 +170,7 @@ contains
   end function descendantNodeName
 
   function descendantNodeDescription(self)
-    !!{
+    !!{RST
     Return a description of the descendantNode property.
     !!}
     implicit none
@@ -178,7 +182,7 @@ contains
   end function descendantNodeDescription
 
   double precision function descendantNodeUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the descendantNode property in the SI system.
     !!}
     implicit none
@@ -189,7 +193,7 @@ contains
   end function descendantNodeUnitsInSI
 
   function descendantNodeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the descendantNode property.
     !!}
     use :: Units_MetaData, only : unitType

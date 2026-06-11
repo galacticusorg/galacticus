@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferConvergence name="radiativeTransferConvergenceLycEscape">
-   <description>A radiative transfer convergence class that monitors the hydrogen Lyman continuum photon escape rate across successive iterations, declaring convergence when the relative change in the total escape rate falls below the specified tolerance. The convergence criterion is set by \mono{[toleranceRelative]}.</description>
+  <radiativeTransferConvergence name="radiativeTransferConvergenceLycEscape" docformat="rst">
+   <description>
+   A radiative transfer convergence class that monitors the hydrogen Lyman continuum photon escape rate across successive iterations, declaring convergence when the relative change in the total escape rate falls below the specified tolerance. The convergence criterion is set by ``[toleranceRelative]``.
+   </description>
   </radiativeTransferConvergence>
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceLycEscape
-     !!{
+     !!{RST
      Implementation of a radiative transfer convergence class based on the recombination rate of hydrogen.
      !!}
      private
@@ -35,8 +37,8 @@
   end type radiativeTransferConvergenceLycEscape
   
   interface radiativeTransferConvergenceLycEscape
-     !!{
-     Constructors for the \refClass{radiativeTransferConvergenceLycEscape} radiative transfer matter class.
+     !!{RST
+     Constructors for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class.
      !!}
      module procedure lycEscapeConstructorParameters
      module procedure lycEscapeConstructorInternal
@@ -45,8 +47,8 @@
 contains
 
   function lycEscapeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferConvergenceLycEscape} radiative transfer matter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -55,10 +57,12 @@ contains
     double precision                                                       :: toleranceRelative
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance in hydrogen Lyc escape required to declare convergence.</description>
+      <description>
+      The relative tolerance in hydrogen Lyc escape required to declare convergence.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -70,8 +74,8 @@ contains
   end function lycEscapeConstructorParameters
 
   function lycEscapeConstructorInternal(toleranceRelative) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferConvergenceLycEscape} radiative transfer matter class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class.
     !!}
     implicit none
     type            (radiativeTransferConvergenceLycEscape)                :: self
@@ -86,7 +90,7 @@ contains
   end function lycEscapeConstructorInternal
   
   subroutine lycEscapeTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
-    !!{
+    !!{RST
     Test convergence in the computational domain cell.
     !!}
     use :: Display                   , only : displayMessage               , verbosityLevelStandard
@@ -127,7 +131,7 @@ contains
   end subroutine lycEscapeTestConvergence
 
   subroutine lycEscapePhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar

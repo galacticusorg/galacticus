@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements fixed mass and spin black hole seeds.
   !!}
 
   !![
-  <blackHoleSeeds name="blackHoleSeedsFixed">
+  <blackHoleSeeds name="blackHoleSeedsFixed" docformat="rst">
    <description>
-    A model of black hole seeds in which seeds have fixed mass and spin, independent of the halo in which they form.
+   A model of black hole seeds in which seeds have fixed mass and spin, independent of the halo in which they form.
    </description>
   </blackHoleSeeds>
   !!]
   type, extends(blackHoleSeedsClass) :: blackHoleSeedsFixed
-     !!{
+     !!{RST
      A model of black hole seeds in which seeds have fixed mass and spin, independent of the halo in which they form.
      !!}
      private
@@ -41,8 +41,8 @@
   end type blackHoleSeedsFixed
   
   interface blackHoleSeedsFixed
-     !!{
-     Constructors for the \refClass{blackHoleSeedsFixed} black hole seeds class.
+     !!{RST
+     Constructors for the ``blackHoleSeedsFixed`` black hole seeds class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -51,8 +51,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleSeedsFixed} black hole seeds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``blackHoleSeedsFixed`` black hole seeds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,16 +61,20 @@ contains
     double precision                                     :: mass      , spin
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The fixed mass (in $\mathrm{M}_\odot$) assigned to all newly-formed seed black holes in this implementation, representing the initial black hole mass when a halo first forms a central black hole.</description>
+      <description>
+      The fixed mass (in :math:`\mathrm{M}_\odot`) assigned to all newly-formed seed black holes in this implementation, representing the initial black hole mass when a halo first forms a central black hole.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spin</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The dimensionless spin parameter (between $-1$ and $+1$) assigned to all newly-formed seed black holes, where $0$ corresponds to a non-rotating Schwarzschild black hole and $\pm 1$ to a maximally rotating Kerr black hole.</description>
+      <description>
+      The dimensionless spin parameter (between :math:`-1` and :math:`+1`) assigned to all newly-formed seed black holes, where :math:`0` corresponds to a non-rotating Schwarzschild black hole and :math:`\pm 1` to a maximally rotating Kerr black hole.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -82,8 +86,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(mass_,spin_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleSeedsFixed} black hole seeds class.
+    !!{RST
+    Internal constructor for the ``blackHoleSeedsFixed`` black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsFixed)                :: self
@@ -96,7 +100,7 @@ contains
   end function standardConstructorInternal
 
   double precision function fixedMass(self,node) result(mass)
-    !!{
+    !!{RST
     Compute the mass of the seed black hole.
     !!}
     implicit none
@@ -109,7 +113,7 @@ contains
   end function fixedMass
 
   double precision function fixedSpin(self,node) result(spin)
-    !!{
+    !!{RST
     Compute the spin of the seed black hole.
     !!}
     implicit none
@@ -122,7 +126,7 @@ contains
   end function fixedSpin
 
   function fixedFormationChannel(self,node) result(channel)
-    !!{
+    !!{RST
     Compute the spin of the seed black hole.
     !!}
     implicit none

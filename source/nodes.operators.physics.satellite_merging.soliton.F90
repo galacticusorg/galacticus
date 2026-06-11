@@ -19,19 +19,21 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers merging of satellites based on their orbital radius.
   !!}
 
   use :: Kepler_Orbits, only : keplerOrbitCount
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteMergingSoliton">
-   <description>A node operator class for fuzzy dark matter (FDM/wave dark matter) models that triggers satellite merging when the orbital radius falls below the sum of the soliton core radii of the host and satellite halos. \mono{recordMergedSubhaloProperties} optionally records Keplerian orbital elements of merged subhalos; \mono{recordFirstLevelOnly} restricts recording to first-level subhalos.</description>
+  <nodeOperator name="nodeOperatorSatelliteMergingSoliton" docformat="rst">
+   <description>
+   A node operator class for fuzzy dark matter (FDM/wave dark matter) models that triggers satellite merging when the orbital radius falls below the sum of the soliton core radii of the host and satellite halos. ``recordMergedSubhaloProperties`` optionally records Keplerian orbital elements of merged subhalos; ``recordFirstLevelOnly`` restricts recording to first-level subhalos.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingSoliton
-     !!{
+     !!{RST
      A node operator that triggers satellite merging in FDM models when the orbital radius falls below the sum of the soliton core radii of the host and satellite.
      !!}
      private
@@ -52,8 +54,8 @@
   end type nodeOperatorSatelliteMergingSoliton
   
   interface nodeOperatorSatelliteMergingSoliton
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteMergingSoliton} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
      !!}
      module procedure satelliteMergingSolitonConstructorParameters
      module procedure satelliteMergingSolitonConstructorInternal
@@ -66,8 +68,8 @@
 contains
 
   function satelliteMergingSolitonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteMergingSoliton} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,16 +78,20 @@ contains
     logical                                                     :: recordMergedSubhaloProperties, recordFirstLevelOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recordMergedSubhaloProperties</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, record the orbital properties of subhalo that merge.</description>
+      <description>
+      If true, record the orbital properties of subhalo that merge.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recordFirstLevelOnly</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, record only mergers with first-level subhalos relative to the host.</description>
+      <description>
+      If true, record only mergers with first-level subhalos relative to the host.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -97,8 +103,8 @@ contains
   end function satelliteMergingSolitonConstructorParameters
 
   function satelliteMergingSolitonConstructorInternal(recordMergedSubhaloProperties,recordFirstLevelOnly) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteMergingSoliton} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -131,7 +137,7 @@ contains
   end function satelliteMergingSolitonConstructorInternal
 
   subroutine satelliteMergingSolitonAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
@@ -145,8 +151,8 @@ contains
   end subroutine satelliteMergingSolitonAutoHook
 
   subroutine satelliteMergingSolitonDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteMergingSoliton} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -157,7 +163,7 @@ contains
   end subroutine satelliteMergingSolitonDestructor
   
   subroutine satelliteMergingSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Trigger merging of a satellite halo based on its orbital radius.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -192,7 +198,7 @@ contains
   end subroutine satelliteMergingSolitonDifferentialEvolution
 
   subroutine mergerTrigger(node,timeEnd)
-    !!{
+    !!{RST
     Trigger a merger of the satellite by setting the time until merging to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite     , nodeComponentBasic    , treeNode
@@ -265,7 +271,7 @@ contains
   end subroutine mergerTrigger
 
   double precision function satelliteMergingSolitonRadiusMerge(self,node) result(radiusMerge)
-    !!{
+    !!{RST
     Compute the merging radius for a node.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
@@ -292,7 +298,7 @@ contains
   end function satelliteMergingSolitonRadiusMerge
 
   subroutine satelliteMerger(self,node)
-    !!{
+    !!{RST
     Merge the solitonic cores of the satellite and host halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode

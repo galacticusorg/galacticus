@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a last-defined virial radius property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusVirialLastDefined">
-   <description>Extracts the most recently computed virial radius of a halo, retaining the last well-defined value even after a node becomes a subhalo and its own virial radius is no longer physically meaningful.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusVirialLastDefined" docformat="rst">
+   <description>
+   Extracts the most recently computed virial radius of a halo, retaining the last well-defined value even after a node becomes a subhalo and its own virial radius is no longer physically meaningful.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVirialLastDefined
-     !!{
+     !!{RST
      A last-defined virial radius infall property extractor class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a last-defined virial radius property extractor class.
   end type nodePropertyExtractorRadiusVirialLastDefined
 
   interface nodePropertyExtractorRadiusVirialLastDefined
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -51,8 +53,8 @@ Implements a last-defined virial radius property extractor class.
 contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,8 +69,8 @@ contains
   end function radiusVirialLastDefinedConstructorParameters
 
   function radiusVirialLastDefinedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusVirialLastDefined) :: self
@@ -80,7 +82,7 @@ contains
   end function radiusVirialLastDefinedConstructorInternal
 
   double precision function radiusVirialLastDefinedExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a time of first infall property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -97,7 +99,7 @@ contains
   end function radiusVirialLastDefinedExtract
 
   function radiusVirialLastDefinedName(self)
-    !!{
+    !!{RST
     Return the name of the time of first infall property.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function radiusVirialLastDefinedName
 
   function radiusVirialLastDefinedDescription(self)
-    !!{
+    !!{RST
     Return a description of the time of first infall property.
     !!}
     implicit none
@@ -123,7 +125,7 @@ contains
   end function radiusVirialLastDefinedDescription
 
   double precision function radiusVirialLastDefinedUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the time of first infall property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -136,7 +138,7 @@ contains
   end function radiusVirialLastDefinedUnitsInSI
 
   function radiusVirialLastDefinedUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusVirialLastDefined property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -18,14 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSatelliteMinimumDistance">
-   <description>Extracts the minimum pericentric distance ever reached by a satellite node within its current host halo, recording the closest approach to the halo center as an indicator of tidal stripping history.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteMinimumDistance" docformat="rst">
+   <description>
+   Extracts the minimum pericentric distance ever reached by a satellite node within its current host halo, recording the closest approach to the halo center as an indicator of tidal stripping history.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSatelliteMinimumDistance
-     !!{     
-     A node property extractor which extracts the minimum distance from the center that a satellite has ever reached in its
-     current host halo.
+     !!{RST
+     A node property extractor which extracts the minimum distance from the center that a satellite has ever reached in its current host halo.
      !!}
      private
      integer :: satelliteDistanceMinimumID
@@ -38,8 +39,8 @@
   end type nodePropertyExtractorSatelliteMinimumDistance
 
   interface nodePropertyExtractorSatelliteMinimumDistance
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -48,8 +49,8 @@
 contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +65,8 @@ contains
   end function satelliteMinimumDistanceConstructorParameters
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteMinimumDistance} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self
@@ -77,7 +78,7 @@ contains
   end function satelliteMinimumDistanceConstructorInternal
 
   double precision function satelliteMinimumDistanceExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a satelliteMinimumDistance output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -98,8 +99,8 @@ contains
   end function satelliteMinimumDistanceExtract
   
   function satelliteMinimumDistanceName(self)
-    !!{
-    Return the names of the \mono{satelliteMinimumDistance} properties.
+    !!{RST
+    Return the names of the ``satelliteMinimumDistance`` properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceName
@@ -111,8 +112,8 @@ contains
   end function satelliteMinimumDistanceName
 
   function satelliteMinimumDistanceDescription(self)
-    !!{
-    Return the descriptions of the \mono{satelliteMinimumDistance} properties.
+    !!{RST
+    Return the descriptions of the ``satelliteMinimumDistance`` properties.
     !!}
     implicit none
     type (varying_string                               )                :: satelliteMinimumDistanceDescription
@@ -124,8 +125,8 @@ contains
   end function satelliteMinimumDistanceDescription
 
   double precision function satelliteMinimumDistanceUnitsInSI(self)
-    !!{
-    Return the units of the \mono{satelliteMinimumDistance} properties in the SI system.
+    !!{RST
+    Return the units of the ``satelliteMinimumDistance`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
@@ -137,7 +138,7 @@ contains
   end function satelliteMinimumDistanceUnitsInSI
 
   function satelliteMinimumDistanceUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the satelliteMinimumDistance property.
     !!}
     use :: Units_MetaData, only : unitType

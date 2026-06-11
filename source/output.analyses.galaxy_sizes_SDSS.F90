@@ -17,27 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galaxy size output analysis class for SDSS data.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
+  <outputAnalysis name="outputAnalysisGalaxySizesSDSS" docformat="rst">
    <description>
-    An output analysis class which computes the mass-dependent $z\approx 0.07$ galaxy size distribution of \cite{shen_size_2003} from
-    the \gls{sdss}. The size function reported by \cite{shen_size_2003} is converted to the appropriate cosmology for the given \glc\
-    model (assuming that sizes scale as the angular diameter distance, and masses as the square of the luminosity distance). The model
-    sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and
-    mass bins reported by \cite{shen_size_2003} (modified as described above) as the centers of the bins (with bin boundaries placed
-    at the geometric means of consecutive bin centers). Distributions are computed for both late-type and early-type galaxies,
-    classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by \mono{[massStellarRatio]}.
+   An output analysis class which computes the mass-dependent :math:`z\approx 0.07` galaxy size distribution of :cite:t:`shen_size_2003` from the :term:`SDSS`. The size function reported by :cite:t:`shen_size_2003` is converted to the appropriate cosmology for the given Galacticus model (assuming that sizes scale as the angular diameter distance, and masses as the square of the luminosity distance). The model sizes and masses are then used to construct a mass-dependent radius function by binning into a 2-D histogram using the size and mass bins reported by :cite:t:`shen_size_2003` (modified as described above) as the centers of the bins (with bin boundaries placed at the geometric means of consecutive bin centers). Distributions are computed for both late-type and early-type galaxies, classified on the basis of the stellar mass spheroid-to-total ratio, with the division at a ratio given by ``[massStellarRatio]``.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisGalaxySizesSDSS
-     !!{
+     !!{RST
      A galaxySizesSDSS output analysis class.
      !!}
      private
@@ -50,8 +44,8 @@ Implements a galaxy size output analysis class for SDSS data.
   end type outputAnalysisGalaxySizesSDSS
 
   interface outputAnalysisGalaxySizesSDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisGalaxySizesSDSS} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
      !!}
      module procedure galaxySizesSDSSConstructorParameters
      module procedure galaxySizesSDSSConstructorInternal
@@ -60,8 +54,8 @@ Implements a galaxy size output analysis class for SDSS data.
 contains
 
   function galaxySizesSDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisGalaxySizesSDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,23 +68,29 @@ contains
     integer                                                        :: distributionNumber
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionNumber</name>
       <source>parameters</source>
-      <description>The number (1-34) of the distribution to compute.</description>
+      <description>
+      The number (1-34) of the distribution to compute.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellarRatio</name>
       <source>parameters</source>
       <defaultValue>0.3d0</defaultValue>
-      <description>The stellar mass bulge-to-total ratio used to discriminate late-type vs. early-type galaxies.</description>
+      <description>
+      The stellar mass bulge-to-total ratio used to discriminate late-type vs. early-type galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -107,8 +107,8 @@ contains
   end function galaxySizesSDSSConstructorParameters
 
   function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisGalaxySizesSDSS} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                      , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -497,8 +497,8 @@ contains
   end function galaxySizesSDSSConstructorInternal
 
   subroutine galaxySizesSDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisGalaxySizesSDSS} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisGalaxySizesSDSS), intent(inout) :: self

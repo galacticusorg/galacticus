@@ -19,33 +19,30 @@
 
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
-  !!{
-  An implementation of the \gls{igm} state class in which state is computed using {\normalfont \scshape RecFast}.
+  !!{RST
+  An implementation of the :term:`IGM` state class in which state is computed using  RecFast.
   !!}
 
   use :: File_Utilities, only : lockDescriptor
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateRecFast">
+  <intergalacticMediumState name="intergalacticMediumStateRecFast" docformat="rst">
    <description>
-    An \gls{igm} state class which computes the state of the intergalactic medium using the
-    \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
-    \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
-    intergalactic medium state as needed, which will then be stored for future use.
+   An :term:`IGM` state class which computes the state of the intergalactic medium using the `RecFast &lt;https://www.astro.ubc.ca/people/scott/recfast.html&gt;`_ code :cite:t:`seager_how_2000,wong_how_2008`. The  RecFast code will be downloaded and run to compute the intergalactic medium state as needed, which will then be stored for future use.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
-     !!{
-     An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
+     !!{RST
+     An :term:`IGM` state class which computes state using  RecFast.
      !!}
      private
      type(lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
 
   interface intergalacticMediumStateRecFast
-     !!{
-     Constructors for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
+     !!{RST
+     Constructors for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
      !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
@@ -54,8 +51,8 @@
 contains
 
   function recFastConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
+    !!{RST
+    Default constructor for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +76,8 @@ contains
   end function recFastConstructorParameters
 
   function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateRecFast} \gls{igm} state class.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time

@@ -20,12 +20,14 @@
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
   
   !![
-  <radiativeTransferOutputter name="radiativeTransferOutputterContinuuaRates">
-   <description>A radiative transfer outputter class that records the ionizing photon emission rates in the photoionization continua of all specified chemical elements, enabling tracking of the Lyman continuum and other ionizing fluxes. The list of elements to track is specified via the \mono{[elements]} parameter.</description>
+  <radiativeTransferOutputter name="radiativeTransferOutputterContinuuaRates" docformat="rst">
+   <description>
+   A radiative transfer outputter class that records the ionizing photon emission rates in the photoionization continua of all specified chemical elements, enabling tracking of the Lyman continuum and other ionizing fluxes. The list of elements to track is specified via the ``[elements]`` parameter.
+   </description>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterContinuuaRates
-     !!{
+     !!{RST
      Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
      !!}
      private
@@ -45,8 +47,8 @@
   end type radiativeTransferOutputterContinuuaRates
 
   interface radiativeTransferOutputterContinuuaRates
-     !!{
-     Constructors for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
+     !!{RST
+     Constructors for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
      !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal
@@ -55,9 +57,8 @@
 contains
 
   function continuuaRatesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Atomic_Data     , only : Atom_Lookup
     use :: Input_Parameters, only : inputParameters
@@ -73,9 +74,11 @@ contains
     allocate(elements      (elementsCount))
     allocate(elementIndices(elementsCount))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>elements</name>
-      <description>The names of the elements to be tracked.</description>
+      <description>
+      The names of the elements to be tracked.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -94,8 +97,8 @@ contains
   end function continuuaRatesConstructorParameters
 
   function continuuaRatesConstructorInternal(elementIndices,atomicIonizationPotential_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
     !!}
     use :: Atomic_Data                 , only : Atomic_Number, Atomic_Short_Label
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
@@ -139,8 +142,8 @@ contains
   end function continuuaRatesConstructorInternal
 
   subroutine continuuaRatesDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferOutputterContinuuaRates} radiative transfer outputter class.
+    !!{RST
+    Destructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
@@ -152,7 +155,7 @@ contains
   end subroutine continuuaRatesDestructor
 
   subroutine continuuaRatesReset(self)
-    !!{
+    !!{RST
     Reset the accumulated Lyman continuum photon escape rate.
     !!}
     implicit none
@@ -164,7 +167,7 @@ contains
   end subroutine continuuaRatesReset
 
   subroutine continuuaRatesSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !!{
+    !!{RST
     Compute and output the Lyman continuum photon emission rate.
     !!}
     use :: Atomic_Data             , only : Atomic_Number, Atomic_Short_Label
@@ -224,7 +227,7 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !!{
+      !!{RST
       Integrand over the source spectrum.
       !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
@@ -247,7 +250,7 @@ contains
   end subroutine continuuaRatesSourceProperties
 
   subroutine continuuaRatesPhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     use :: Atomic_Data                     , only : Atomic_Number    , Atomic_Short_Label
@@ -283,7 +286,7 @@ contains
   end subroutine continuuaRatesPhotonPacketEscapes
 
   subroutine continuuaRatesFinalize(self)
-    !!{
+    !!{RST
     Finalize the Lyman continuum photon escape rate.
     !!}
     use :: MPI_Utilities, only : mpiSelf
@@ -297,7 +300,7 @@ contains
   end subroutine continuuaRatesFinalize
 
   subroutine continuuaRatesOutput(self,outputGroup)
-    !!{
+    !!{RST
     Output the Lyman continuum photon escape rate.
     !!}
     use :: Atomic_Data             , only : Atomic_Number          , Atomic_Short_Label

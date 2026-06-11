@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard black hole accretion rate calculation.
   !!}
 
@@ -28,15 +28,15 @@
   use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
 
   !![
-  <blackHoleAccretionRate name="blackHoleAccretionRateStandard">
+  <blackHoleAccretionRate name="blackHoleAccretionRateStandard" docformat="rst">
    <description>
-    Computes black hole accretion rates via Bondi-Hoyle accretion from spheroid gas, hot halo gas, and nuclear star cluster gas. Enhancement factors above the classical Bondi rate are set independently via \mono{[bondiHoyleAccretionEnhancementSpheroid]}, \mono{[bondiHoyleAccretionEnhancementHotHalo]}, and \mono{[bondiHoyleAccretionEnhancementNuclearStarCluster]}. The gas temperature assumed for each component and whether to restrict hot halo accretion to the hot-mode only are also configurable.
+   Computes black hole accretion rates via Bondi-Hoyle accretion from spheroid gas, hot halo gas, and nuclear star cluster gas. Enhancement factors above the classical Bondi rate are set independently via ``[bondiHoyleAccretionEnhancementSpheroid]``, ``[bondiHoyleAccretionEnhancementHotHalo]``, and ``[bondiHoyleAccretionEnhancementNuclearStarCluster]``. The gas temperature assumed for each component and whether to restrict hot halo accretion to the hot-mode only are also configurable.
    </description>
   </blackHoleAccretionRate>
   !!]
   type, extends(blackHoleAccretionRateClass) :: blackHoleAccretionRateStandard
-     !!{
-     The standard black hole accretion rate calculation.      
+     !!{RST
+     The standard black hole accretion rate calculation.
      !!}
      private
      class           (blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_   => null()
@@ -66,8 +66,8 @@
   end type blackHoleAccretionRateStandard
 
   interface blackHoleAccretionRateStandard
-     !!{
-     Constructors for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class.
+     !!{RST
+     Constructors for the ``blackHoleAccretionRateStandard`` black hole accretion rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -76,8 +76,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``blackHoleAccretionRateStandard`` black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,40 +94,52 @@ contains
     logical                                                                   :: bondiHoyleAccretionHotModeOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionEnhancementSpheroid</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes is enhanced.</description>
+      <description>
+      The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes is enhanced.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionEnhancementHotHalo</name>
       <defaultValue>6.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes is enhanced.</description>
+      <description>
+      The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes is enhanced.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionEnhancementNuclearStarCluster</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The factor by which the Bondi-Hoyle accretion rate of \gls{nsc} gas onto black holes is enhanced.</description>
+      <description>
+      The factor by which the Bondi-Hoyle accretion rate of :term:`NSC` gas onto black holes is enhanced.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionHotModeOnly</name>
       <defaultValue>.true.</defaultValue>
-      <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
+      <description>
+      Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionTemperatureSpheroid</name>
       <defaultValue>1.0d2</defaultValue>
-      <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
+      <description>
+      The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bondiHoyleAccretionTemperatureNuclearStarCluster</name>
       <defaultValue>1.0d2</defaultValue>
-      <description>The assumed temperature (in Kelvin) of gas in the \gls{nsc} when computing Bondi-Hoyle accretion rates onto black holes.</description>
+      <description>
+      The assumed temperature (in Kelvin) of gas in the :term:`NSC` when computing Bondi-Hoyle accretion rates onto black holes.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="accretionDisks"                      name="accretionDisks_"                      source="parameters"/>
@@ -149,8 +161,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateStandard} black hole accretion rate class.
+    !!{RST
+    Internal constructor for the ``blackHoleAccretionRateStandard`` black hole accretion rate class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
@@ -174,7 +186,7 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity standard set barrier class.
     !!}
     implicit none
@@ -191,7 +203,7 @@ contains
   end subroutine standardDestructor
 
   subroutine standardRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
-    !!{
+    !!{RST
     Compute the accretion rate onto a black hole.
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
@@ -412,7 +424,7 @@ contains
   end subroutine standardRateAccretion
 
   double precision function standardHotModeFraction(self,node)
-    !!{
+    !!{RST
     A simple interpolating function which is used as a measure of the fraction of a halo which is in the hot accretion mode.
     !!}
     use :: Galacticus_Nodes, only : treeNode

@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+!!{RST
+Implements a stellar population spectra class which utilizes the FSPS package :cite:p:`conroy_propagation_2009`.
 !!}
 
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunction, initialMassFunctionClass
 
   !![
-  <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
+  <stellarPopulationSpectra name="stellarPopulationSpectraFSPS" docformat="rst">
    <description>
-    A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
-    \href{https://github.com/cconroy20/fsps}\mono{FSPS} code will be downloaded, patched and compiled and run
-    to generate spectra. These tabulations are then stored to file for later re-use. The file name used is \mono{datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
-    $&lt;$\mono{version}$&gt;$ is the FSPS version used, and $&lt;$\mono{descriptor}$&gt;$ is
-    an MD5 hash descriptor of the selected stellar population.
+   A stellar population spectra class utilizing the FSPS package :cite:p:`conroy_propagation_2009`. If necessary, the `FSPS &lt;https://github.com/cconroy20/fsps&gt;`_ code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later re-use. The file name used is ``datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v&lt;version&gt;_&lt;descriptor&gt;.hdf5`` where :math:`&lt;`\ ``version``\ :math:`&gt;` is the FSPS version used, and :math:`&lt;`\ ``descriptor``\ :math:`&gt;` is an MD5 hash descriptor of the selected stellar population.
    </description>
   </stellarPopulationSpectra>
   !!]
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
-     !!{
-     A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
+     !!{RST
+     A stellar population spectra class which utilizes the FSPS package :cite:p:`conroy_propagation_2009`.
      !!}
      private
      class(initialMassFunctionClass), pointer :: initialMassFunction_ => null()
@@ -46,7 +42,7 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
   end type stellarPopulationSpectraFSPS
 
   interface stellarPopulationSpectraFSPS
-     !!{
+     !!{RST
      Constructors for the FSPS stellar spectra class.
      !!}
      module procedure fspsConstructorParameters
@@ -56,7 +52,7 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
 contains
 
   function fspsConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the FSPS stellar spectra class which takes a parameter set as input.
     !!}
     implicit none
@@ -66,11 +62,13 @@ contains
     logical                                              :: forceZeroMetallicity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forceZeroMetallicity</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
+      <description>
+      Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.
+      </description>
     </inputParameter>
     <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     !!]
@@ -83,7 +81,7 @@ contains
   end function fspsConstructorParameters
 
   function fspsConstructorInternal(forceZeroMetallicity,initialMassFunction_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the FSPS stellar spectra class.
     !!}
     use :: Input_Paths       , only : inputPath             , pathTypeDataDynamic
@@ -104,8 +102,8 @@ contains
   end function fspsConstructorInternal
 
   subroutine fspsDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationSpectraFSPS} stellar population spectra class.
+    !!{RST
+    Destructor for the ``stellarPopulationSpectraFSPS`` stellar population spectra class.
     !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self
@@ -120,7 +118,7 @@ contains
   end subroutine fspsDestructor
 
   subroutine fspsReadFile(self)
-    !!{
+    !!{RST
     Ensure that the requested stellar population has been generated.
     !!}
     use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &

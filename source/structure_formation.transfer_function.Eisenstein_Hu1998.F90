@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class using the fitting function of \cite{eisenstein_baryonic_1998}.
+  !!{RST
+  Implements a transfer function class using the fitting function of :cite:t:`eisenstein_baryonic_1998`.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -26,16 +26,15 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionEisensteinHu1998">
+  <transferFunction name="transferFunctionEisensteinHu1998" docformat="rst">
    <description>
-    Provides the \cite{eisenstein_baryonic_1998} fitting function to the transfer function. The effective number of neutrino
-    species and the summed mass (in electron volts) of all neutrino species are specified via the \mono{neutrinoNumberEffective} and \mono{neutrinoMassSummed} parameters respectively.
+   Provides the :cite:t:`eisenstein_baryonic_1998` fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the ``neutrinoNumberEffective`` and ``neutrinoMassSummed`` parameters respectively.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1998
-     !!{
-     The \mono{eisensteinHu1998} transfer function class.
+     !!{RST
+     The ``eisensteinHu1998`` transfer function class.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_      => null()
@@ -66,8 +65,8 @@
   end type transferFunctionEisensteinHu1998
 
   interface transferFunctionEisensteinHu1998
-     !!{
-     Constructors for the \refClass{transferFunctionEisensteinHu1998} transfer function class.
+     !!{RST
+     Constructors for the ``transferFunctionEisensteinHu1998`` transfer function class.
      !!}
      module procedure eisensteinHu1998ConstructorParameters
      module procedure eisensteinHu1998ConstructorInternal
@@ -76,9 +75,8 @@
 contains
 
   function eisensteinHu1998ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionEisensteinHu1998} transfer function class
-    which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``transferFunctionEisensteinHu1998`` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,8 +104,8 @@ contains
   end function eisensteinHu1998ConstructorParameters
 
   function eisensteinHu1998ConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionEisensteinHu1998} transfer function class.
+    !!{RST
+    Internal constructor for the ``transferFunctionEisensteinHu1998`` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -224,7 +222,7 @@ contains
   end function eisensteinHu1998ConstructorInternal
 
   subroutine eisensteinHu1998Destructor(self)
-    !!{
+    !!{RST
     Destructor for the eisensteinHu1998 transfer function class.
     !!}
     implicit none
@@ -239,8 +237,8 @@ contains
   end subroutine eisensteinHu1998Destructor
 
   subroutine eisensteinHu1998ComputeFactors(self,wavenumber)
-    !!{
-    Compute common factors required by \mono{eisensteinHu1998} transfer function class.
+    !!{RST
+    Compute common factors required by ``eisensteinHu1998`` transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : e
     implicit none
@@ -314,8 +312,8 @@ contains
   contains
     
     double precision function DT0(C,DC,beta)
-      !!{
-      Evaluate derivatives of the $T_0$ factors.
+      !!{RST
+      Evaluate derivatives of the :math:`T_0` factors.
       !!}
       implicit none
       double precision, intent(in   ) :: C, DC, beta
@@ -350,7 +348,7 @@ contains
   end subroutine eisensteinHu1998ComputeFactors
 
   double precision function eisensteinHu1998Value(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -366,7 +364,7 @@ contains
   end function eisensteinHu1998Value
 
   double precision function eisensteinHu1998LogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -389,9 +387,8 @@ contains
   end function eisensteinHu1998LogarithmicDerivative
 
   double precision function eisensteinHu1998HalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -409,9 +406,8 @@ contains
   end function eisensteinHu1998HalfModeMass
 
   double precision function eisensteinHu1998QuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -429,7 +425,7 @@ contains
   end function eisensteinHu1998QuarterModeMass
 
   double precision function eisensteinHu1998EpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

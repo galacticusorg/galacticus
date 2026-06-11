@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a halo mass output analysis property extractor class.
 !!}
 
@@ -27,22 +27,15 @@ Implements a halo mass output analysis property extractor class.
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
-   <description>A property extractor that returns the dark-matter-only halo mass (in
-    $\mathrm{M}_\odot$) enclosed within a radius defined by a specified virial density contrast. Two
-    density contrast objects must be provided: \mono{virialDensityContrast} for the profile
-    interpolation and \mono{virialDensityContrastDefinition} for the mass definition. If
-    \mono{useLastIsolatedTime} is \mono{true}, the density contrast is evaluated at the halo's last
-    isolated time rather than the current time, yielding the conventional virial mass definition used
-    by many halo finders.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassHalo" docformat="rst">
+   <description>
+   A property extractor that returns the dark-matter-only halo mass (in :math:`\mathrm{M}_\odot`) enclosed within a radius defined by a specified virial density contrast. Two density contrast objects must be provided: ``virialDensityContrast`` for the profile interpolation and ``virialDensityContrastDefinition`` for the mass definition. If ``useLastIsolatedTime`` is ``true``, the density contrast is evaluated at the halo's last isolated time rather than the current time, yielding the conventional virial mass definition used by many halo finders.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHalo
-     !!{
-     A halo mass property extractor output analysis class. The property extracted is the ''\gls{dmou}'' mass of the halo within
-     a radius enclosing a density contrast as defined by the supplied \mono{virialDensityContrast} class
-     object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
-     time at which is was last isolated (as is used for standard definition of halo mass).
+     !!{RST
+     A halo mass property extractor output analysis class. The property extracted is the ":term:`dark matter-only universe`" mass of the halo within a radius enclosing a density contrast as defined by the supplied ``virialDensityContrast`` class object. Note that the density contrast is defined here at the time at which the halo presently exists, *not* at the time at which is was last isolated (as is used for standard definition of halo mass).
      !!}
      private
      class  (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
@@ -60,8 +53,8 @@ Implements a halo mass output analysis property extractor class.
   end type nodePropertyExtractorMassHalo
 
   interface nodePropertyExtractorMassHalo
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassHalo`` property extractor class.
      !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
@@ -70,8 +63,8 @@ Implements a halo mass output analysis property extractor class.
 contains
 
   function massHaloConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassHalo`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,11 +77,13 @@ contains
     logical                                               :: useLastIsolatedTime
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>useLastIsolatedTime</name>
      <source>parameters</source>
      <defaultValue>.false.</defaultValue>
-     <description>If true, evaluate the halo mass using a the virial density definition at the last isolated time of the halo.</description>
+     <description>
+     If true, evaluate the halo mass using a the virial density definition at the last isolated time of the halo.
+     </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -109,8 +104,8 @@ contains
   end function massHaloConstructorParameters
 
   function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMassHalo`` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassHalo)                        :: self
@@ -127,8 +122,8 @@ contains
   end function massHaloConstructorInternal
 
   subroutine massHaloDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorMassHalo} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorMassHalo`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassHalo), intent(inout) :: self
@@ -144,7 +139,7 @@ contains
   end subroutine massHaloDestructor
 
   double precision function massHaloExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massHalo output analysis.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -176,7 +171,7 @@ contains
   end function massHaloExtract
 
   function massHaloName(self)
-    !!{
+    !!{RST
     Return the name of the massHalo property.
     !!}
     implicit none
@@ -189,7 +184,7 @@ contains
   end function massHaloName
 
   function massHaloDescription(self)
-    !!{
+    !!{RST
     Return a description of the massHalo property.
     !!}
     implicit none
@@ -202,7 +197,7 @@ contains
   end function massHaloDescription
 
   double precision function massHaloUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the halo mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -215,7 +210,7 @@ contains
   end function massHaloUnitsInSI
 
   function massHaloUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the halo mass property.
     !!}
     use :: Units_MetaData, only : unitType

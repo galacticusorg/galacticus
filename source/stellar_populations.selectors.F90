@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for selecting stellar populations.
 !!}
 
 module Stellar_Population_Selectors
-  !!{
+  !!{RST
   Implements a class for selecting stellar populations.
   !!}
   use :: Abundances_Structure, only : abundances
@@ -32,18 +32,17 @@ module Stellar_Population_Selectors
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarPopulationSelector</name>
    <descriptiveName>Stellar Population Selectors</descriptiveName>
-   <description>Class providing selectors for stellar populations---algorithms that choose the appropriate
-    \refClass{stellarPopulationClass} object to associate with a star formation event given the current
-    star formation rate, the component metallicity, and the galaxy component. Different implementations
-    may always return the same (fixed) stellar population, or may select a metal-poor population at low
-    metallicities to represent Population~III stars or a starburst population at high star formation
-    rates, allowing heterogeneous stellar populations within a single galaxy.</description>
+   <description>
+   Class providing selectors for stellar populations---algorithms that choose the appropriate ``stellarPopulationClass`` object to associate with a star formation event given the current star formation rate, the component metallicity, and the galaxy component. Different implementations may always return the same (fixed) stellar population, or may select a metal-poor population at low metallicities to represent Population III stars or a starburst population at high star formation rates, allowing heterogeneous stellar populations within a single galaxy.
+   </description>
    <default>fixed</default>
    <method name="select" >
-    <description>Return the appropriate \refClass{stellarPopulationClass} object for a star formation event given the current star formation rate, the elemental abundances of the fuel, and the galaxy component type (disk, spheroid, etc.).</description>
+    <description>
+    Return the appropriate ``stellarPopulationClass`` object for a star formation event given the current star formation rate, the elemental abundances of the fuel, and the galaxy component type (disk, spheroid, etc.).
+    </description>
     <type>class(stellarPopulationClass)</type>
     <pass>yes</pass>
     <argument>double precision               , intent(in   ) :: rateStarFormation</argument>
@@ -51,7 +50,9 @@ module Stellar_Population_Selectors
     <argument>class           (nodeComponent), intent(in   ) :: component        </argument>
    </method>
    <method name="isStarFormationRateDependent" >
-    <description>Return true if the selection of stellar population is dependent on star formation rate.</description>
+    <description>
+    Return true if the selection of stellar population is dependent on star formation rate.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>

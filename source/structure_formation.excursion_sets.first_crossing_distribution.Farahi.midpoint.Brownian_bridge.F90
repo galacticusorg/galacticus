@@ -19,84 +19,85 @@
 
 !+    Contributions to this file made by: Andrew Benson, Ethan Nadler.
 
-!!{
-Implements an excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint
-method to perform the integrations \citep{du_substructure_2017}, and with a Brownian bridge constraint.
+!!{RST
+Implements an excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a Brownian bridge constraint.
 !!}
   
   use :: Cosmological_Density_Field, only : criticalOverdensityClass
   use :: Linear_Growth             , only : linearGrowthClass 
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpointBrownianBridge">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpointBrownianBridge" docformat="rst">
     <description>
-      An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
-      to perform the integrations \citep{du_substructure_2017}, and with a \href{https://en.wikipedia.org/wiki/Brownian_bridge}{Brownian bridge} constraint.
+    An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a `Brownian bridge &lt;https://en.wikipedia.org/wiki/Brownian_bridge&gt;`_ constraint.
 
-      Specifically, the trajectories are constrained to pass through a point $(S_2,\delta_2)$ (specified by the parameter
-      \mono{[varianceConstrained]} and \mono{[criticalOverdensityConstrained]}, or equivalently
-      by the parameters \mono{[massConstrained]} and \mono{[timeConstrained]}---note that
-      $(S_2,\delta_2)$ here follow the convention in excursion set literature that $S_2$ is the variance evaluated at the present
-      day, while $\delta_2$ the the critical overdensity for collapse divided by the linear growth factor), and, of course, always
-      pass through the initial point $(S_1,\delta_1)$ corresponding to the current halo.
+    Specifically, the trajectories are constrained to pass through a point :math:`(S_2,\delta_2)` (specified by the parameter ``[varianceConstrained]`` and ``[criticalOverdensityConstrained]``, or equivalently by the parameters ``[massConstrained]`` and ``[timeConstrained]``---note that :math:`(S_2,\delta_2)` here follow the convention in excursion set literature that :math:`S_2` is the variance evaluated at the present day, while :math:`\delta_2` the the critical overdensity for collapse divided by the linear growth factor), and, of course, always pass through the initial point :math:`(S_1,\delta_1)` corresponding to the current halo.
 
-      For a Brownian bridge the distribution of $\delta$ at some $S$ (where $S_1 \le S \le S_2$), $P_0(\delta|S)$, is given by a normal distribution with mean
-      \begin{equation}
-      \mu(S) = \delta_1 + \frac{\delta_2-\delta_1}{S_2-S_1}(S - S_1)
-      \end{equation}
-      and variance
-      \begin{equation}
-      \mathrm{Var}(S) =  \frac{(S_2-S)(S-S_1)}{S_2-S_1},
-      \end{equation}
-      and the covariance between two points $S_\mathrm{a}$ and $S_\mathrm{b} > S_\mathrm{a}$ is given by,
-      \begin{equation}
-      \mathrm{Cov}(S_\mathrm{a},S_\mathrm{b}) = \frac{(S_2-S_\mathrm{b})(S_\mathrm{a}-S_1)}{S_2-S_1}.
-      \end{equation}      
-      Therefore, the same approach to solving for the first crossing distribution as was utilized by \cite{benson_dark_2012} and
-      improved by \citep{du_substructure_2017} can be used (see \refClass{excursionSetFirstCrossingFarahi} and
-      \refClass{excursionSetFirstCrossingFarahiMidpoint} for details), with just the appropriate change in the effective offset,
-      $\Delta \delta$, and residual variance, $\Delta S$.
+    For a Brownian bridge the distribution of :math:`\delta` at some :math:`S` (where :math:`S_1 \le S \le S_2`), :math:`P_0(\delta|S)`, is given by a normal distribution with mean
 
-      Considering two points $(S,\delta)$ and $(\tilde{S},\tilde{\delta})$ the effective offset is just the difference in their offsets relative to their local means:
-      \begin{equation}
-      \Delta \delta = [ \delta - \mu(S) ] - [ \tilde{\delta} - \mu(\tilde{S}) ] = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-S_1}(\delta_2-\delta_1),
-      \end{equation}
-      while the residual variance is, as always, just the variance at $(S,\delta)$ minus the covariance between the two points:
-      \begin{equation}
-      \Delta S = \mathrm{Var}(S) - \mathrm{Cov}(B({\tilde{S}}),\delta) = \frac{(S_2-S)(S-S_1)}{S_2-S_1} - \frac{(S_2-S)(\tilde{S}-S_1)}{S_2-S_1}.
-      \end{equation}
-      which simplifies to
-      \begin{equation}
-      \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-S_1}.
-      \end{equation}
+    .. math::
 
-      Note that, in solving for the first crossing distribution we must also evaluate terms of the form
-      \begin{equation}
-      \int_{-\infty}^{\delta} P_{0}(\delta^\prime,S) \mathrm{d}\delta^\prime = \mathrm{erf}\left( \frac{\delta^\prime - \mu(S)}{\sqrt{2 \mathrm{Var}(S)}}\right).
-      \end{equation}
-      In these cases we still use the residual variance since $\Delta S \rightarrow \mathrm{Var}(S)$ as $\tilde{S} \rightarrow S_1$.
+       \mu(S) = \delta_1 + \frac{\delta_2-\delta_1}{S_2-S_1}(S - S_1)
 
-      When computing the distribution, $p(\delta,s)$, of trajectories at variance $S$, given that the first crossed the barrier,
-      $B(\tilde{S})$, at some smaller variance, $\tilde{S}$, (equation A2 of \citealt{benson_dark_2012}) we must condition
-      \emph{both} the residual variance and drift term on the intermediate point, $\tilde{S},B(\tilde{S})$. Fortunately, given any
-      Brownian random walk (including Brownian bridges) for which we know two points, the distribution of trajectories between
-      those points is simply another Brownian bridge. Therefore, we can write:      
-      \begin{equation}
-      \Delta \delta = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-\tilde{S}}(\delta_2-\tilde{\delta}),
-      \end{equation}
-      and:
-      \begin{equation}
-      \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-\tilde{S}}.
-      \end{equation}
-      
-      This class provides functions implementing these modified effective offset and residual variance.
+    and variance
+
+    .. math::
+
+       \mathrm{Var}(S) =  \frac{(S_2-S)(S-S_1)}{S_2-S_1},
+
+    and the covariance between two points :math:`S_\mathrm{a}` and :math:`S_\mathrm{b} &gt; S_\mathrm{a}` is given by,
+
+    .. math::
+
+       \mathrm{Cov}(S_\mathrm{a},S_\mathrm{b}) = \frac{(S_2-S_\mathrm{b})(S_\mathrm{a}-S_1)}{S_2-S_1}.
+
+    Therefore, the same approach to solving for the first crossing distribution as was utilized by :cite:t:`benson_dark_2012` and improved by :cite:p:`du_substructure_2017` can be used (see ``excursionSetFirstCrossingFarahi`` and ``excursionSetFirstCrossingFarahiMidpoint`` for details), with just the appropriate change in the effective offset, :math:`\Delta \delta`, and residual variance, :math:`\Delta S`.
+
+    Considering two points :math:`(S,\delta)` and :math:`(\tilde{S},\tilde{\delta})` the effective offset is just the difference in their offsets relative to their local means:
+
+    .. math::
+
+       \Delta \delta = [ \delta - \mu(S) ] - [ \tilde{\delta} - \mu(\tilde{S}) ] = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-S_1}(\delta_2-\delta_1),
+
+    while the residual variance is, as always, just the variance at :math:`(S,\delta)` minus the covariance between the two points:
+
+    .. math::
+
+       \Delta S = \mathrm{Var}(S) - \mathrm{Cov}(B({\tilde{S}}),\delta) = \frac{(S_2-S)(S-S_1)}{S_2-S_1} - \frac{(S_2-S)(\tilde{S}-S_1)}{S_2-S_1}.
+
+    which simplifies to
+
+    .. math::
+
+       \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-S_1}.
+
+    Note that, in solving for the first crossing distribution we must also evaluate terms of the form
+
+    .. math::
+
+       \int_{-\infty}^{\delta} P_{0}(\delta^\prime,S) \mathrm{d}\delta^\prime = \mathrm{erf}\left( \frac{\delta^\prime - \mu(S)}{\sqrt{2 \mathrm{Var}(S)}}\right).
+
+    In these cases we still use the residual variance since :math:`\Delta S \rightarrow \mathrm{Var}(S)` as :math:`\tilde{S} \rightarrow S_1`.
+
+    When computing the distribution, :math:`p(\delta,s)`, of trajectories at variance :math:`S`, given that the first crossed the barrier, :math:`B(\tilde{S})`, at some smaller variance, :math:`\tilde{S}`, (equation A2 of :cite:author:`benson_dark_2012` :cite:year:`benson_dark_2012`) we must condition *both* the residual variance and drift term on the intermediate point, :math:`\tilde{S},B(\tilde{S})`. Fortunately, given any Brownian random walk (including Brownian bridges) for which we know two points, the distribution of trajectories between those points is simply another Brownian bridge. Therefore, we can write:
+
+    .. math::
+
+       \Delta \delta = \delta - \tilde{\delta} - \frac{S-\tilde{S}}{S_2-\tilde{S}}(\delta_2-\tilde{\delta}),
+
+    and:
+
+    .. math::
+
+       \Delta S = \frac{(S_2-S)(S-\tilde{S})}{S_2-\tilde{S}}.
+
+    This class provides functions implementing these modified effective offset and residual variance.
     </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingFarahiMidpoint) :: excursionSetFirstCrossingFarahiMidpointBrownianBridge
-     !!{
-     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method
-     to perform the integrations \citep{du_substructure_2017}, and with a Brownian bridge constraint.
+     !!{RST
+     An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`, and with a Brownian bridge constraint.
      !!}
      private
      class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_     => null()
@@ -116,7 +117,7 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
   end type excursionSetFirstCrossingFarahiMidpointBrownianBridge
 
   interface excursionSetFirstCrossingFarahiMidpointBrownianBridge
-     !!{
+     !!{RST
      Constructors for the Farahi-midpoint Brownian bridge excursion set barrier class.
      !!}
      module procedure farahiMidpointBrownianBridgeConstructorParameters
@@ -126,7 +127,7 @@ method to perform the integrations \citep{du_substructure_2017}, and with a Brow
 contains
 
   function farahiMidpointBrownianBridgeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
@@ -156,15 +157,19 @@ contains
             &       parameters%isPresent('massConstrained'               )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>criticalOverdensityConstrained</name>
          <source>parameters</source>
-         <description>The linear theory critical overdensity $\delta_\mathrm{c}$ (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with \mono{varianceConstrained} to pin the random walk to a specific progenitor halo.</description>
+         <description>
+         The linear theory critical overdensity :math:`\delta_\mathrm{c}` (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with ``varianceConstrained`` to pin the random walk to a specific progenitor halo.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>varianceConstrained</name>
          <source>parameters</source>
-         <description>The mass variance $\sigma^2(M)$ corresponding to the constrained end-point mass of the Brownian bridge; together with \mono{criticalOverdensityConstrained} it specifies the progenitor mass to which the excursion-set random walk is conditioned.</description>
+         <description>
+         The mass variance :math:`\sigma^2(M)` corresponding to the constrained end-point mass of the Brownian bridge; together with ``criticalOverdensityConstrained`` it specifies the progenitor mass to which the excursion-set random walk is conditioned.
+         </description>
        </inputParameter>
        !!]
        massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
@@ -179,15 +184,19 @@ contains
             &       parameters%isPresent('varianceConstrained'           )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.</description>
+         <description>
+         The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massConstrained</name>
          <source>parameters</source>
-         <description>The halo mass ($\mathrm{M}_\odot$) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance $\sigma^2(M)$ that pins the excursion-set random walk to a specific progenitor scale.</description>
+         <description>
+         The halo mass (:math:`\mathrm{M}_\odot`) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance :math:`\sigma^2(M)` that pins the excursion-set random walk to a specific progenitor scale.
+         </description>
        </inputParameter>
        !!]
        expansionFactor               =+self%cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
@@ -214,7 +223,7 @@ contains
   end function farahiMidpointBrownianBridgeConstructorParameters
 
   function farahiMidpointBrownianBridgeConstructorInternal(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_,excursionSetFirstCrossing_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the Farahi-midpoint excursion set class first crossing class.
     !!}
     implicit none
@@ -248,7 +257,7 @@ contains
   end function farahiMidpointBrownianBridgeConstructorInternal
 
   subroutine farahiMidpointBrownianBridgeDestructor(self)
-    !!{
+    !!{RST
     Destructor for the piecewise Farahi excursion Brownian bridge set first crossing class.
     !!}
     implicit none
@@ -263,7 +272,7 @@ contains
   end subroutine farahiMidpointBrownianBridgeDestructor
 
   double precision function farahiMidpointBrownianBridgeRate(self,variance,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     implicit none
@@ -302,7 +311,7 @@ contains
   end function farahiMidpointBrownianBridgeRate
 
   double precision function farahiMidpointBrownianBridgeRateNonCrossing(self,variance,massMinimum,time,node)
-    !!{
+    !!{RST
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
@@ -334,9 +343,8 @@ contains
   end function farahiMidpointBrownianBridgeRateNonCrossing
   
   double precision function farahiMidpointBrownianBridgeVarianceLimit(self,varianceProgenitor)
-    !!{
-    Return the maximum variance to which to tabulate. For the case of a Brownian bridge the variance must not be allowed to exceed
-    the variance $S_2$ at the end of the bridge---all trajectories must have crossed the barrier by this variance by construction.
+    !!{RST
+    Return the maximum variance to which to tabulate. For the case of a Brownian bridge the variance must not be allowed to exceed the variance :math:`S_2` at the end of the bridge---all trajectories must have crossed the barrier by this variance by construction.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout) :: self
@@ -353,7 +361,7 @@ contains
   end function farahiMidpointBrownianBridgeVarianceLimit
 
   function farahiMidpointBrownianBridgeVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
-    !!{
+    !!{RST
     Return the residual variance between two points for a Brownian bridge.
     !!}
     use :: Kind_Numbers, only : kind_quad
@@ -409,7 +417,7 @@ contains
   end function farahiMidpointBrownianBridgeVarianceResidual
 
   function farahiMidpointBrownianBridgeOffsetEffective(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,deltaCurrent,deltaProgenitor,deltaIntermediate,cosmologicalMassVariance_) result(offsetEffective)
-    !!{
+    !!{RST
     Return the residual variance between two points for a Brownian bridge.
     !!}
     use :: Kind_Numbers, only : kind_quad
@@ -481,9 +489,8 @@ contains
   end function farahiMidpointBrownianBridgeOffsetEffective
  
   subroutine farahiMidpointBrownianBridgeFileWrite(self)
-    !!{
-    Write additional data on excursion set first crossing probabilities to file for the case of the Brownian bridge. Specifically,
-    linear growth factors are written to the file as a convenience useful for interpreting the results.
+    !!{RST
+    Write additional data on excursion set first crossing probabilities to file for the case of the Brownian bridge. Specifically, linear growth factors are written to the file as a convenience useful for interpreting the results.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object

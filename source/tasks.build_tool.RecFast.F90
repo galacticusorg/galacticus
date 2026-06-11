@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolRecFast">
-   <description>A task which downloads, compiles, and installs the RecFast recombination code, making it available for computing the ionization history of the universe during hydrogen and helium recombination for use in Boltzmann solvers and CMB calculations.</description>
+  <task name="taskBuildToolRecFast" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the RecFast recombination code, making it available for computing the ionization history of the universe during hydrogen and helium recombination for use in Boltzmann solvers and CMB calculations.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolRecFast
-     !!{
+     !!{RST
      Implementation of a task which builds the RecFast tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolRecFast
 
   interface taskBuildToolRecFast
-     !!{
-     Constructors for the \refClass{taskBuildToolRecFast} task.
+     !!{RST
+     Constructors for the ``taskBuildToolRecFast`` task.
      !!}
      module procedure buildToolRecFastParameters
   end interface taskBuildToolRecFast
@@ -42,8 +44,8 @@
 contains
 
   function buildToolRecFastParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolRecFast} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildToolRecFast`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolRecFastParameters
 
   subroutine buildToolRecFastPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display           , only : displayIndent               , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolRecFastPerform
 
   logical function buildToolRecFastRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

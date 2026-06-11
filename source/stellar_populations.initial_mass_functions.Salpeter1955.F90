@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.
+  !!{RST
+  Implements a stellar initial mass function class for the :cite:t:`salpeter_luminosity_1955` :term:`IMF`.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionSalpeter1955">
+  <initialMassFunction name="initialMassFunctionSalpeter1955" docformat="rst">
    <description>
-    A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf} defined as:
-    \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\ 0 &amp; \hbox
-     {otherwise.} \end{array} \right.
-    \end{equation}
+   A stellar initial mass function class for the :cite:t:`salpeter_luminosity_1955` :term:`IMF` defined as:
+
+   .. math::
+
+      \phi(M) \propto \left\{ \begin{array}{ll} M^{-2.35} &amp; \hbox{ for } 0.1\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\ 0 &amp; \hbox
+      {otherwise.} \end{array} \right.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionSalpeter1955
-     !!{
-     A stellar initial mass function class for the \cite{salpeter_luminosity_1955} \gls{imf}.
+     !!{RST
+     A stellar initial mass function class for the :cite:t:`salpeter_luminosity_1955` :term:`IMF`.
      !!}
      private
    contains
@@ -42,8 +43,8 @@
   end type initialMassFunctionSalpeter1955
 
   interface initialMassFunctionSalpeter1955
-     !!{
-     Constructors for the \refClass{initialMassFunctionSalpeter1955} initial mass function class.
+     !!{RST
+     Constructors for the ``initialMassFunctionSalpeter1955`` initial mass function class.
      !!}
      module procedure salpeter1955ConstructorParameters
      module procedure salpeter1955ConstructorInternal
@@ -52,8 +53,8 @@
 contains
 
   function salpeter1955ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionSalpeter1955} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``initialMassFunctionSalpeter1955`` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,8 +69,8 @@ contains
   end function salpeter1955ConstructorParameters
 
   function salpeter1955ConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionSalpeter1955} initial mass function.
+    !!{RST
+    Internal constructor for the ``initialMassFunctionSalpeter1955`` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionSalpeter1955):: self
@@ -82,8 +83,8 @@ contains
   end function salpeter1955ConstructorInternal
 
   function salpeter1955Label(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionSalpeter1955), intent(inout) :: self

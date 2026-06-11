@@ -19,48 +19,58 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{
-  Implementation of the \cite{antonini_coevolution_2015} star formation rate law for galactic \glspl{nsc}.
+  !!{RST
+  Implementation of the :cite:t:`antonini_coevolution_2015` star formation rate law for galactic :term:`NSC`.
   !!}
   use :: Abundances_Structure, only : abundances
 
   !![
-  <starFormationRateNuclearStarClusters name="starFormationRateNuclearStarClustersKrumholz2009">
+  <starFormationRateNuclearStarClusters name="starFormationRateNuclearStarClustersKrumholz2009" docformat="rst">
    <description>
-    A star formation rate implementing the model of \citep{antonini_coevolution_2015} for galactic \glspl{nsc}. This model
-    uses the \citep{krumholz_star_2009} star formation rule:
-    \begin{equation}
-     \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
-    \end{equation}
-    where $f_c$ is the fraction of cold gas available for star formation given by
-    \begin{equation}
-     f_c = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
-    \end{equation}
-     if $f_c > 0.02$ and $f_c = 0.02 $ otherwise, with 
-    \begin{equation}
-     \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
-    \end{equation}
-    and
-    \begin{equation}
-     s = {\ln(1+0.6\chi+0.01\chi) \over 0.04 \Sigma_1 Z^\prime},
-    \end{equation}
-    with
-    \begin{equation}
-     \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
-    \end{equation}
-    and $\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}$ where $\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}$
-    is the surface density of the NSC gas reservoir. The timescale is given by 
-    \begin{equation}
-    t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
-    \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.33}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
-    \end{equation}
-    with $\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}$
+   A star formation rate implementing the model of :cite:p:`antonini_coevolution_2015` for galactic :term:`NSC`. This model uses the :cite:p:`krumholz_star_2009` star formation rule:
+
+   .. math::
+
+      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
+
+   where :math:`f_c` is the fraction of cold gas available for star formation given by
+
+   .. math::
+
+      f_c = 1 - \left( 1 + \left[ { 3 s \over 4 (1+\delta)} \right]^{-5} \right)^{-1/5},
+
+   if :math:`f_c &gt; 0.02` and :math:`f_c = 0.02` otherwise, with
+
+   .. math::
+
+      \delta = 0.0712 \left[ 0.1 s^{-1} + 0.675 \right]^{-2.8},
+
+   and
+
+   .. math::
+
+      s = {\ln(1+0.6\chi+0.01\chi) \over 0.04 \Sigma_1 Z^\prime},
+
+   with
+
+   .. math::
+
+      \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
+
+   and :math:`\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}` is the surface density of the NSC gas reservoir. The timescale is given by
+
+   .. math::
+
+      t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
+      \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.33}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
+
+   with :math:`\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}`
    </description>
   </starFormationRateNuclearStarClusters>
   !!]
   type, extends(starFormationRateNuclearStarClustersClass) :: starFormationRateNuclearStarClustersKrumholz2009
-     !!{
-     Implementation of the \cite{krumholz_star_2009} star formation rate law for galactic \glspl{nsc}.
+     !!{RST
+     Implementation of the :cite:t:`krumholz_star_2009` star formation rate law for galactic :term:`NSC`.
      !!}
      private
      double precision :: frequencyStarFormation                       
@@ -69,8 +79,8 @@
   end type starFormationRateNuclearStarClustersKrumholz2009
 
   interface starFormationRateNuclearStarClustersKrumholz2009
-     !!{
-     Constructors for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc}.
+     !!{RST
+     Constructors for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC`.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -79,8 +89,8 @@
 contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc} which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC` which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,11 +99,15 @@ contains
     double precision                                                                  :: frequencyStarFormation         
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>frequencyStarFormation</name>
-      <defaultSource>\citep{krumholz_star_2009}</defaultSource>
+      <defaultSource>
+      :cite:p:`krumholz_star_2009`
+      </defaultSource>
       <defaultValue>2.36d0</defaultValue>
-      <description>The characteristic timescale for star formation in nuclear star clusters (in units of Gyr), corresponding to the normalization factor $(2.36~\mathrm{Gyr})^{-1}$ in the \cite{krumholz_star_2009} star formation rate law.</description>
+      <description>
+      The characteristic timescale for star formation in nuclear star clusters (in units of Gyr), corresponding to the normalization factor :math:`(2.36~\mathrm{Gyr})^{-1}` in the :cite:t:`krumholz_star_2009` star formation rate law.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -105,8 +119,8 @@ contains
   end function krumholz2009ConstructorParameters
 
   function krumholz2009ConstructorInternal(frequencyStarFormation) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationRateNuclearStarClustersKrumholz2009} star formation rate law for galactic \glspl{nsc}.
+    !!{RST
+    Internal constructor for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC`.
     !!}
     implicit none
     type            (starFormationRateNuclearStarClustersKrumholz2009)                 :: self
@@ -118,8 +132,8 @@ contains
   end function krumholz2009ConstructorInternal
 
   double precision function krumholz2009Rate(self,node)
-    !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the galactic \gls{nsc} of \mono{node}. The \gls{nsc} is assumed to obey the \cite{krumholz_star_2009} star formation rule.
+    !!{RST
+    Returns the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the galactic :term:`NSC` of ``node``. The :term:`NSC` is assumed to obey the :cite:t:`krumholz_star_2009` star formation rule.
     !!}
     use :: Galacticus_Nodes                          , only : nodeComponentNSC
     use :: Abundances_Structure                      , only : metallicityTypeLinearByMassSolar
@@ -183,7 +197,7 @@ contains
   end function krumholz2009Rate
   
   double precision function surfaceDensityGas(radiusNuclearStarCluster,massGasNuclearStarCluster)
-    !!{
+    !!{RST
     Compute surface density of the nuclear star cluster.
     !!}
     use :: Numerical_Constants_Math    , only : Pi

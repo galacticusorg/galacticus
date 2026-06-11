@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements useful shared utilities for calculations of decaying dark matter.
 !!}
 
 module Decaying_Dark_Matter
-  !!{
+  !!{RST
   Implements useful shared utilities for calculations of decaying dark matter.
   !!}
   use :: Numerical_Interpolation, only : interpolator
@@ -47,7 +47,7 @@ module Decaying_Dark_Matter
 contains
 
   double precision function decayingDarkMatterFractionRetained(velocityDispersion,velocityEscape,velocityKick) result(fraction)
-    !!{
+    !!{RST
     Compute the fraction of decaying dark matter particles retained in a halo.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -100,7 +100,7 @@ contains
   end function decayingDarkMatterFractionRetained
   
   double precision function decayingDarkMatterEnergyRetained(velocityDispersion,velocityEscape,velocityKick) result(energy)
-    !!{
+    !!{RST
     Compute the fraction of decaying dark matter particle energy retained in a halo.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -156,7 +156,7 @@ contains
   end function decayingDarkMatterEnergyRetained
 
   subroutine decayingDarkMatterFractionRetainedDerivatives(velocityDispersion,velocityEscape,velocityKick,fractionDerivativeVelocityEscapeScaleFree,fractionDerivativeVelocityKickScaleFree)
-    !!{
+    !!{RST
     Compute the partial derivatives of the fraction of decaying dark matter particles retained in a halo.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -213,7 +213,7 @@ contains
   end subroutine decayingDarkMatterFractionRetainedDerivatives
 
   subroutine decayingDarkMatterEnergyRetainedDerivatives(velocityDispersion,velocityEscape,velocityKick,energyDerivativeVelocityEscapeScaleFree,energyDerivativeVelocityKickScaleFree)
-    !!{
+    !!{RST
     Compute the partial derivatives of the energy of decaying dark matter particles retained in a halo.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -279,41 +279,42 @@ contains
   end subroutine decayingDarkMatterEnergyRetainedDerivatives
 
   subroutine decayingDarkMatterRetainedTabulate(velocityEscapeScaleFree,velocityKickScaleFree)
-    !!{
-    Compute the fraction of the decaying dark matter particles and kick energy that is retained. Assumes that the initial
-    distribution of particle velocities is a Maxwell-Boltzmann distribution, truncated at the escape velocity. The mean energy of
-    retained particles, minus their mean energy pre-kick is computed.
+    !!{RST
+    Compute the fraction of the decaying dark matter particles and kick energy that is retained. Assumes that the initial distribution of particle velocities is a Maxwell-Boltzmann distribution, truncated at the escape velocity. The mean energy of retained particles, minus their mean energy pre-kick is computed.
 
     The truncated Maxwell-Boltzmann distribution is
-    \begin{equation}
-      p(v,\theta|s) = \left\{ \begin{array}{ll} A^{-1} v^2 \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) & \hbox{if } v < v_\mathrm{e} \\ 0 &  \hbox{if } v \ge v_\mathrm{e}, \end{array} \right.
-    \end{equation}
-    where $s$ is the velocity width, $v_\mathrm{e}$ is the escape velocity, $v$ is particle speed, $\theta$ is the direction of
-    the particle velocity relative to the $z$-axis, and
-    \begin{equation}
-      A = \sqrt{2 \pi} s^3 \hbox{erf}\left( \frac{v_\mathrm{e}}{\sqrt{2}s} \right) - 2 v_\mathrm{e} s^2 \exp \left( -\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right)
-    \end{equation}
+
+    .. math::
+
+       p(v,\theta|s) = \left\{ \begin{array}{ll} A^{-1} v^2 \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) & \hbox{if } v < v_\mathrm{e} \\ 0 &  \hbox{if } v \ge v_\mathrm{e}, \end{array} \right.
+
+    where :math:`s` is the velocity width, :math:`v_\mathrm{e}` is the escape velocity, :math:`v` is particle speed, :math:`\theta` is the direction of the particle velocity relative to the :math:`z`-axis, and
+
+    .. math::
+
+       A = \sqrt{2 \pi} s^3 \hbox{erf}\left( \frac{v_\mathrm{e}}{\sqrt{2}s} \right) - 2 v_\mathrm{e} s^2 \exp \left( -\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right)
+
     is a normalization factor.
 
-    Assume, without loss of generality, that the kick is along the $z$-axis. The specific kinetic energy of the retained particles,
-    in excess of their original energy is:
-    \begin{equation}
-      \epsilon =  \int_{-1}^{+1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} \mathrm{d}v \frac{1}{2} \left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta - v^2 \right) p(v,\theta|s) H\left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta < v_\mathrm{e}^2 \right)
-    \end{equation}
+    Assume, without loss of generality, that the kick is along the :math:`z`-axis. The specific kinetic energy of the retained particles, in excess of their original energy is:
 
-    where $v_\mathrm{k}$ is the scale-free kick velocity, and $H(x) = 1$ if $x$ is true, and 0 otherwise. Solving the inequality
-    for the velocity, $v$, that will remain bound as a function of $\theta$, gives
-    $v_\mathrm{max|min}(\theta) = \pm \left( v_\mathrm{e}^2 - v_\mathrm{k}^2 \sin^2\theta \right)^{1/2} - v_\mathrm{k} \cos
-    \theta$, so:
-    \begin{equation}
-      \epsilon =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v \frac{1}{2} \left( v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta \right) p(v,\theta|s).
-      \label{eq:decayingDMRetainedEnergy}
-    \end{equation}
+    .. math::
+
+       \epsilon =  \int_{-1}^{+1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} \mathrm{d}v \frac{1}{2} \left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta - v^2 \right) p(v,\theta|s) H\left( v^2 + v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta < v_\mathrm{e}^2 \right)
+
+    where :math:`v_\mathrm{k}` is the scale-free kick velocity, and :math:`H(x) = 1` if :math:`x` is true, and 0 otherwise. Solving the inequality for the velocity, :math:`v`, that will remain bound as a function of :math:`\theta`, gives :math:`v_\mathrm{max|min}(\theta) = \pm \left( v_\mathrm{e}^2 - v_\mathrm{k}^2 \sin^2\theta \right)^{1/2} - v_\mathrm{k} \cos \theta`, so:
+
+    .. math::
+
+       \epsilon =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v \frac{1}{2} \left( v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta \right) p(v,\theta|s).
+       \label{eq:decayingDMRetainedEnergy}
+
     Similarly, the retained fraction of particles is simply
-    \begin{equation}
-      f =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v p(v,\theta|s).
-      \label{eq:decayingDMRetainedFraction}
-    \end{equation}
+
+    .. math::
+
+       f =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v p(v,\theta|s).
+       \label{eq:decayingDMRetainedFraction}
     !!}
     use :: Display                 , only : displayCounter, displayCounterClear          , displayIndent                , displayUnindent          , &
          &                                  displayMessage, verbosityLevelStandard
@@ -513,7 +514,7 @@ contains
   contains
 
     double precision function fractionRetainedIntegrand(cosTheta) result(integrand)
-      !!{
+      !!{RST
       The integrand used to find the retained fraction of particles.
       !!}
       implicit none
@@ -531,7 +532,7 @@ contains
     end function fractionRetainedIntegrand
 
     double precision function energyRetainedIntegrand(cosTheta) result(integrand)
-      !!{
+      !!{RST
       The integrand used to find the retained energy of particles.
       !!}
       implicit none
@@ -549,12 +550,12 @@ contains
     end function energyRetainedIntegrand
 
     double precision function fractionRetainedIntegrandIndefinite(velocityScaleFree) result(integrand)
-      !!{      
-      The indefinite integral over velocity of the retained fraction of particles (note that the normalization factor is not
-      included here; see eqn.~\ref{eq:decayingDMRetainedFraction}):
-      \begin{equation}
-        \sqrt{2 \pi} s^3 \hbox{erf}\left( \frac{v}{\sqrt{2}s} \right) - 2 v s^2 \exp \left( -\frac{1}{2}\left[\frac{v}{s}\right]^2\right).
-      \end{equation}
+      !!{RST
+      The indefinite integral over velocity of the retained fraction of particles (note that the normalization factor is not included here; see eqn. ):
+
+      .. math::
+
+         \sqrt{2 \pi} s^3 \hbox{erf}\left( \frac{v}{\sqrt{2}s} \right) - 2 v s^2 \exp \left( -\frac{1}{2}\left[\frac{v}{s}\right]^2\right).
       !!}
       implicit none
       double precision, intent(in   ) :: velocityScaleFree
@@ -565,12 +566,12 @@ contains
     end function fractionRetainedIntegrandIndefinite
     
     double precision function energyRetainedIntegrandIndefinite(cosTheta,velocityScaleFree) result(integrand)
-      !!{      
-      The indefinite integral over velocity of the retained energy of particles (note that the normalization factor is not
-      included here; see eqn.~\ref{eq:decayingDMRetainedEnergy}):
-      \begin{equation}
-        \frac{1}{4} v_\mathrm{k} s^2 \left\{ 8 s^2 \cos\theta - 2 (v v_\mathrm{k} + 2 [v^2+2s^2]\cos\theta) \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) + \sqrt{2 \pi} v_\mathrm{k} s \, \hbox{erf}\left(\frac{v}{\sqrt{2}s}\right) \right\}.
-      \end{equation}
+      !!{RST
+      The indefinite integral over velocity of the retained energy of particles (note that the normalization factor is not included here; see eqn. ):
+
+      .. math::
+
+         \frac{1}{4} v_\mathrm{k} s^2 \left\{ 8 s^2 \cos\theta - 2 (v v_\mathrm{k} + 2 [v^2+2s^2]\cos\theta) \exp\left(-\frac{1}{2}\left[\frac{v}{s}\right]^2\right) + \sqrt{2 \pi} v_\mathrm{k} s \, \hbox{erf}\left(\frac{v}{\sqrt{2}s}\right) \right\}.
       !!}
       implicit none
       double precision, intent(in   ) :: cosTheta,velocityScaleFree
@@ -586,10 +587,8 @@ contains
     end function energyRetainedIntegrandIndefinite
     
     subroutine velocityLimitsScaleFree(cosTheta,velocityMinimumScaleFree,velocityMaximumScaleFree)
-      !!{
-      Find the minimum and maximum velocity, as a function of $\cos\theta$, for which particles remain bound:
-      $v_\mathrm{max|min}(\theta) = \pm \left( v_\mathrm{e}^2 - v_\mathrm{k}^2 \sin^2\theta \right)^{1/2} - v_\mathrm{k} \cos
-      \theta$.      
+      !!{RST
+      Find the minimum and maximum velocity, as a function of :math:`\cos\theta`, for which particles remain bound: :math:`v_\mathrm{max|min}(\theta) = \pm \left( v_\mathrm{e}^2 - v_\mathrm{k}^2 \sin^2\theta \right)^{1/2} - v_\mathrm{k} \cos \theta`.
       !!}
       implicit none
       double precision, intent(in   ) :: cosTheta
@@ -610,20 +609,20 @@ contains
     end subroutine velocityLimitsScaleFree
     
     double precision function velocityWidthRoot(velocityWidthScaleFree)
-      !!{      
-      The root function used to find the velocity width parameter of the truncated Maxwell-Boltzmann distribution such that the
-      3D, scale-free (i.e. all velocities are expressed in units of the 1D root-mean-squared velocity, $\sigma$) root-mean-squared
-      speed is 3 (i.e. a non-scale-free root-mean-squared velocity of $3\sigma$ as expected for a non-truncated Maxwell-Boltzmann
-      distribution). This ensures that the kinetic energy density in the distribution is as predicted by a Jeans analysis.
-      
+      !!{RST
+      The root function used to find the velocity width parameter of the truncated Maxwell-Boltzmann distribution such that the 3D, scale-free (i.e. all velocities are expressed in units of the 1D root-mean-squared velocity, :math:`\sigma`) root-mean-squared speed is 3 (i.e. a non-scale-free root-mean-squared velocity of :math:`3\sigma` as expected for a non-truncated Maxwell-Boltzmann distribution). This ensures that the kinetic energy density in the distribution is as predicted by a Jeans analysis.
+
       This requires that:
-      \begin{equation}
-        \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} v^2 p(v,\theta|s) \mathrm{d}v = 3,
-      \end{equation}
+
+      .. math::
+
+         \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_0^{v_\mathrm{e}} v^2 p(v,\theta|s) \mathrm{d}v = 3,
+
       which implies that:
-      \begin{equation}
-        3 \sqrt{2 \pi} s^3 \, \hbox{erf}\left(\frac{v_\mathrm{e}}{\sqrt{2}s}\right) - 2 (3 s^2 + v_\mathrm{e}^2) v_\mathrm{e} \exp\left(-\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right) = 3 \left\{ \sqrt{2\pi} s \, \hbox{erf}\left(\frac{v_\mathrm{e}}{\sqrt{2}s}\right) -2 v_\mathrm{e} \exp\left(-\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right)  \right\}.
-      \end{equation}
+
+      .. math::
+
+         3 \sqrt{2 \pi} s^3 \, \hbox{erf}\left(\frac{v_\mathrm{e}}{\sqrt{2}s}\right) - 2 (3 s^2 + v_\mathrm{e}^2) v_\mathrm{e} \exp\left(-\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right) = 3 \left\{ \sqrt{2\pi} s \, \hbox{erf}\left(\frac{v_\mathrm{e}}{\sqrt{2}s}\right) -2 v_\mathrm{e} \exp\left(-\frac{1}{2}\left[\frac{v_\mathrm{e}}{s}\right]^2\right)  \right\}.
       !!}
       implicit none
       double precision, intent(in   ) :: velocityWidthScaleFree

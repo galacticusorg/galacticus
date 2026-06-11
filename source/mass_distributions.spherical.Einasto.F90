@@ -17,26 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an Einasto (e.g. \citealt{cardone_spherical_2005}) mass distribution class.
+  !!{RST
+  Implementation of an Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
   
   !![
-  <massDistribution name="massDistributionEinasto">
+  <massDistribution name="massDistributionEinasto" docformat="rst">
     <description>
-      An Einasto (e.g. \citealt{cardone_spherical_2005}) mass distribution class. The density profile is given by:
-      \begin{equation}
-      \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
-      \right] \right).
-      \end{equation}
+    An Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution class. The density profile is given by:
+
+    .. math::
+
+       \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
+       \right] \right).
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionEinasto
-     !!{
-     The Einasto (e.g. \citealt{cardone_spherical_2005}) mass distribution.
+     !!{RST
+     The Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution.
      !!}
      private
      double precision                            :: densityNormalization                         , scaleLength                                  , &
@@ -79,8 +80,8 @@
   end type massDistributionEinasto
   
   interface massDistributionEinasto
-     !!{
-     Constructors for the \refClass{massDistributionEinasto} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionEinasto`` mass distribution class.
      !!}
      module procedure massDistributionEinastoConstructorParameters
      module procedure massDistributionEinastoConstructorInternal
@@ -89,9 +90,8 @@
 contains
 
   function massDistributionEinastoConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionEinasto} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionEinasto`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -108,57 +108,75 @@ contains
     type            (varying_string         )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>shapeParameter</name>
-      <description>The shape parameter, $\alpha$, of the Einasto profile.</description>
+      <description>
+      The shape parameter, :math:`\alpha`, of the Einasto profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>shapeParameter/4.0d0/Pi*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)*exp(-2.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)</defaultValue>
-      <description>The density normalization of the Einasto profile.</description>
+      <description>
+      The density normalization of the Einasto profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleLength</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the Einasto profile.</description>
+      <description>
+      The scale radius of the Einasto profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the Einasto profile, used to set the density normalization $\rho_{-2}$ when \mono{densityNormalization} is not supplied.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the Einasto profile, used to set the density normalization :math:`\rho_{-2}` when ``densityNormalization`` is not supplied.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentration</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The concentration of the Einasto profile.</description>
+      <description>
+      The concentration of the Einasto profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>virialRadius</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The virial radius of the Einasto profile.</description>
+      <description>
+      The virial radius of the Einasto profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the Einasto profile is considered to be dimensionless.</description>
+      <description>
+      If true the Einasto profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -176,8 +194,8 @@ contains
   end function massDistributionEinastoConstructorParameters
 
   function massDistributionEinastoConstructorInternal(shapeParameter,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``einasto'' mass distribution class.
+    !!{RST
+    Internal constructor for "einasto" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -258,7 +276,7 @@ contains
   end function massDistributionEinastoConstructorInternal
 
   double precision function einastoMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in an Einasto mass distribution.
     !!}
     implicit none
@@ -269,8 +287,8 @@ contains
   end function einastoMassTotal
 
   double precision function einastoDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in an Einasto mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an Einasto mass distribution.
     !!}
     implicit none
     class           (massDistributionEinasto     ), intent(inout) :: self
@@ -292,8 +310,8 @@ contains
   end function einastoDensity
 
   double precision function einastoDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in an Einasto \citep{navarro_structure_1996} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an Einasto :cite:p:`navarro_structure_1996` mass distribution.
     !!}
     implicit none
     class           (massDistributionEinasto), intent(inout), target   :: self
@@ -319,8 +337,8 @@ contains
   end function einastoDensityGradientRadial
 
   double precision function einastoDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
-    Computes radial moments of the density in an Einasto \citep{navarro_structure_1996} mass distribution.
+    !!{RST
+    Computes radial moments of the density in an Einasto :cite:p:`navarro_structure_1996` mass distribution.
     !!}
     implicit none
     class           (massDistributionEinasto), intent(inout)           :: self
@@ -360,7 +378,7 @@ contains
   contains
 
     double precision function radialMomentScaleFree(radius)
-      !!{
+      !!{RST
       Provides the scale-free part of the radial moment of the Einasto density profile.
       !!}
       use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete
@@ -378,8 +396,8 @@ contains
   end function einastoDensityRadialMoment
 
   double precision function einastoMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for einasto mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for einasto mass distributions.
     !!}
     implicit none
     class           (massDistributionEinasto), intent(inout), target :: self
@@ -399,7 +417,7 @@ contains
   end function einastoMassEnclosedBySphere
   
   double precision function einastoRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for einasto mass distributions.
     !!}    
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
@@ -454,7 +472,7 @@ contains
   end function einastoRadiusEnclosingMass
   
   double precision function einastoRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for Einasto mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
@@ -499,7 +517,7 @@ contains
   end function einastoRadiusEnclosingDensity
 
   double precision function massEnclosedScaleFree(radius,shapeParameter) result(mass)
-    !!{
+    !!{RST
     Evaluate the mass enclosed by a given radius in a scale-free Einasto mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -518,7 +536,7 @@ contains
   end function massEnclosedScaleFree
 
   double precision function densityEnclosedScaleFree(radius,shapeParameter) result(density)
-    !!{
+    !!{RST
     Evaluate the mean enclosed density at a given radius in a scale-free Einasto mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -534,7 +552,7 @@ contains
   end function densityEnclosedScaleFree
   
   double precision function einastoRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for einasto mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -587,7 +605,7 @@ contains
   end function einastoRadiusFromSpecificAngularMomentum
 
   double precision function angularMomentumSpecificEnclosedScaleFree(radius,shapeParameter) result(angularMomentumSpecific)
-    !!{
+    !!{RST
     Evaluate the specific angular momentum at a given radius in a scale-free Einasto mass distribution.
     !!}
     implicit none
@@ -601,7 +619,7 @@ contains
   end function angularMomentumSpecificEnclosedScaleFree
 
   logical function einastoPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -612,8 +630,8 @@ contains
   end function einastoPotentialIsAnalytic
 
   double precision function einastoPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an einasto mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an einasto mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -637,9 +655,8 @@ contains
   end function einastoPotential
 
   double precision function potentialScaleFree(radius,shapeParameter) result(potential)
-    !!{
-    Compute the potential in a scale-free Einasto mass distribution. Uses the results from \cite{retana-montenegro_analytical_2012},
-    their equations (19) and (20), but with different normalizations for the density and scale radius.
+    !!{RST
+    Compute the potential in a scale-free Einasto mass distribution. Uses the results from :cite:t:`retana-montenegro_analytical_2012`, their equations (19) and (20), but with different normalizations for the density and scale radius.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Gamma_Functions         , only : Gamma_Function, Gamma_Function_Incomplete, Gamma_Function_Incomplete_Complementary
@@ -673,7 +690,7 @@ contains
   end function potentialScaleFree
 
  double precision function potentialDifferenceScaleFree(radius1,radius2,shapeParameter) result(potential)
-    !!{
+    !!{RST
     Compute the potential difference in a scale-free Einasto mass distribution.
     !!}
     implicit none
@@ -686,8 +703,8 @@ contains
   end function potentialDifferenceScaleFree
   
   double precision function einastoRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in an Einasto mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in an Einasto mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -714,9 +731,8 @@ contains
   end function einastoRadiusFreefall
   
   double precision function einastoRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an einasto mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an einasto mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -744,7 +760,7 @@ contains
   end function einastoRadiusFreefallIncreaseRate
 
   double precision function einastoTimeFreefallMinimum(self) result(timeScaleFreeMinimum)
-    !!{
+    !!{RST
     Compute the minimum freefall time in a scale-free Einasto profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -764,8 +780,8 @@ contains
   end function einastoTimeFreefallMinimum
   
   subroutine einastoTimeFreefallTabulate(self,timeScaleFree)
-    !!{
-    Tabulate the freefall radius at the given \mono{time} in an Einasto mass distribution.
+    !!{RST
+    Tabulate the freefall radius at the given ``time`` in an Einasto mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -808,7 +824,7 @@ contains
   contains
     
     double precision function timeFreefallScaleFree(radius)
-      !!{
+      !!{RST
       Evaluate the freefall time from a given radius in a scale-free Einasto mass distribution.
       !!}
       implicit none
@@ -820,7 +836,7 @@ contains
     end function timeFreefallScaleFree
     
     double precision function timeFreeFallIntegrand(radius)
-      !!{
+      !!{RST
       Integrand used to find the freefall time in a scale-free Einasto mass distribution.
       !!}
       implicit none
@@ -847,7 +863,7 @@ contains
   end subroutine einastoTimeFreefallTabulate
 
   subroutine einastoDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

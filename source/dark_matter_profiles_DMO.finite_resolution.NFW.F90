@@ -17,24 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body
-  simulations for example).
+  !!{RST
+  An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body simulations for example).
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolutionNFW">
+  <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolutionNFW" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionSphericalFiniteResolutionNFW} objects to mimic a finite
-    resolution to an NFW density profile.
+   A dark matter profile DMO class which builds ``massDistributionSphericalFiniteResolutionNFW`` objects to mimic a finite resolution to an NFW density profile.
    </description>
 
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOFiniteResolution) :: darkMatterProfileDMOFiniteResolutionNFW
-     !!{
+     !!{RST
      A dark matter halo profile class implementing finiteResolutionNFW dark matter halos.
      !!}
      private
@@ -45,8 +43,8 @@
   end type darkMatterProfileDMOFiniteResolutionNFW
 
   interface darkMatterProfileDMOFiniteResolutionNFW
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -55,8 +53,8 @@
 contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{finiteResolutionNFW} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``finiteResolutionNFW`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -70,26 +68,34 @@ contains
     logical                                                                  :: resolutionIsComoving
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The gravitational softening length $\Delta x$ (in Mpc) of the N-body simulation used to smooth the NFW profile at small radii, preventing artificial divergence below the resolution scale.</description>
+      <description>
+      The gravitational softening length :math:`\Delta x` (in Mpc) of the N-body simulation used to smooth the NFW profile at small radii, preventing artificial divergence below the resolution scale.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolution</name>
       <source>parameters</source>
-      <description>The mass resolution $\Delta M$ (in $\mathrm{M}_\odot$) of the N-body simulation, used to determine the finite-resolution softening of the NFW profile for halos near the resolution limit.</description>
+      <description>
+      The mass resolution :math:`\Delta M` (in :math:`\mathrm{M}_\odot`) of the N-body simulation, used to determine the finite-resolution softening of the NFW profile for halos near the resolution limit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resolutionIsComoving</name>
       <source>parameters</source>
-      <description>If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.</description>
+      <description>
+      If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -104,8 +110,8 @@ contains
   end function finiteResolutionNFWConstructorParameters
 
   function finiteResolutionNFWConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none
@@ -137,8 +143,8 @@ contains
   end function finiteResolutionNFWConstructorInternal
   
   subroutine finiteResolutionNFWDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOFiniteResolutionNFW} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self
@@ -150,8 +156,8 @@ contains
   end subroutine finiteResolutionNFWDestructor
 
   function finiteResolutionNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic                          , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                       , massTypeDark                             , weightByMass

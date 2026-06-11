@@ -17,25 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling state initializer class which initializes to the maximum likelihood state of a previous simulation.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeMaximumLikelihood">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeMaximumLikelihood" docformat="rst">
    <description>
-    This class initializes state to the maximum likelihood state from a previous simulation---the state will be the same for all
-    chains. The \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous
-    simulation.
-  </description>
+   This class initializes state to the maximum likelihood state from a previous simulation---the state will be the same for all chains. The ``[logFileRoot]`` parameter is used to specify the log-file root name used in the previous simulation.
+   </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeMaximumLikelihood
-     !!{
-     Implementation of a posterior sampling state initialization class that initializes state to the maximum likelihood state
-     from a previous simulation---the state will be the same for all chains.
+     !!{RST
+     Implementation of a posterior sampling state initialization class that initializes state to the maximum likelihood state from a previous simulation---the state will be the same for all chains.
      !!}
      private
      type   (varying_string) :: logFileRoot
@@ -44,8 +41,8 @@
   end type posteriorSampleStateInitializeMaximumLikelihood
 
   interface posteriorSampleStateInitializeMaximumLikelihood
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
      !!}
      module procedure maximumLikelihoodConstructorParameters
      module procedure maximumLikelihoodConstructorInternal
@@ -54,8 +51,8 @@
 contains
 
   function maximumLikelihoodConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,9 +61,11 @@ contains
     type(varying_string                                 )                :: logFileRoot
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>The root file name of the state files from which to maximum likelihood state.</description>
+      <description>
+      The root file name of the state files from which to maximum likelihood state.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -78,8 +77,8 @@ contains
   end function maximumLikelihoodConstructorParameters
 
   function maximumLikelihoodConstructorInternal(logFileRoot) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeMaximumLikelihood} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeMaximumLikelihood)                :: self
@@ -92,7 +91,7 @@ contains
   end function maximumLikelihoodConstructorInternal
 
   subroutine maximumLikelihoodInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Display                     , only : displayMessage

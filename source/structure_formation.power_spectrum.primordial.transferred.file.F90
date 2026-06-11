@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A transferred primordial power spectrum class which reads the power spectrum from file and interpolates in it.
   !!}
   
@@ -26,105 +26,105 @@
   use :: Numerical_Interpolation, only : interpolator
   
   !![
-  <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredFile">
+  <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredFile" docformat="rst">
     <description>
-      A transferred primordial spectrum class which reads the power spectrum from file and interpolates in it. The HDF5 file
-      containing the data should have the following structure:
-       \begin{verbatim}
-       HDF5 "powerSpectrum.hdf5" {
-       GROUP "/" {
-          ATTRIBUTE "description" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 71;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-          }
-          ATTRIBUTE "fileFormat" {
-             DATATYPE  H5T_STD_I32LE
-             DATASPACE  SCALAR
-          }
-          ATTRIBUTE "extrapolationWavenumber" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 11;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-          }
-          ATTRIBUTE "extrapolationRedshift" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 11;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-          }
-          GROUP "parameters" {
-             ATTRIBUTE "HubbleConstant" {
-                DATATYPE  H5T_STRING {
-                   STRSIZE 4;
-                   STRPAD H5T_STR_NULLTERM;
-                   CSET H5T_CSET_ASCII;
-                   CTYPE H5T_C_S1;
-                }
-                DATASPACE  SCALAR
-             }
-             ATTRIBUTE "OmegaBaryon" {
-                DATATYPE  H5T_STRING {
-                   STRSIZE 6;
-                   STRPAD H5T_STR_NULLTERM;
-                   CSET H5T_CSET_ASCII;
-                   CTYPE H5T_C_S1;
-                }
-                DATASPACE  SCALAR
-             }
-             ATTRIBUTE "OmegaDarkEnergy" {
-                DATATYPE  H5T_STRING {
-                   STRSIZE 5;
-                   STRPAD H5T_STR_NULLTERM;
-                   CSET H5T_CSET_ASCII;
-                   CTYPE H5T_C_S1;
-                }
-                DATASPACE  SCALAR
-             }
-             ATTRIBUTE "OmegaMatter" {
-                DATATYPE  H5T_STRING {
-                   STRSIZE 5;
-                   STRPAD H5T_STR_NULLTERM;
-                   CSET H5T_CSET_ASCII;
-                   CTYPE H5T_C_S1;
-                }
-                DATASPACE  SCALAR
-             }
-          }
-          DATASET "wavenumber" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-          }
-          DATASET "redshift" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( 10 ) / ( 10 ) }
-          }
-          DATASET "power" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SIMPLE { ( 10 ) / ( 10 ), ( 1000 ) / ( 1000 ) }
-          }
-       }
-       }
-       \end{verbatim}
-      The `power` dataset should tabulate the transferred power spectrum as a function of $(z,k)$ where $z$
-      is redshift and $k$ is wavenumber.
+    A transferred primordial spectrum class which reads the power spectrum from file and interpolates in it. The HDF5 file containing the data should have the following structure:
+
+    .. code-block:: none
+
+        HDF5 "powerSpectrum.hdf5" {
+        GROUP "/" {
+           ATTRIBUTE "description" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 71;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+           ATTRIBUTE "fileFormat" {
+              DATATYPE  H5T_STD_I32LE
+              DATASPACE  SCALAR
+           }
+           ATTRIBUTE "extrapolationWavenumber" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 11;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+           ATTRIBUTE "extrapolationRedshift" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 11;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+           GROUP "parameters" {
+              ATTRIBUTE "HubbleConstant" {
+                 DATATYPE  H5T_STRING {
+                    STRSIZE 4;
+                    STRPAD H5T_STR_NULLTERM;
+                    CSET H5T_CSET_ASCII;
+                    CTYPE H5T_C_S1;
+                 }
+                 DATASPACE  SCALAR
+              }
+              ATTRIBUTE "OmegaBaryon" {
+                 DATATYPE  H5T_STRING {
+                    STRSIZE 6;
+                    STRPAD H5T_STR_NULLTERM;
+                    CSET H5T_CSET_ASCII;
+                    CTYPE H5T_C_S1;
+                 }
+                 DATASPACE  SCALAR
+              }
+              ATTRIBUTE "OmegaDarkEnergy" {
+                 DATATYPE  H5T_STRING {
+                    STRSIZE 5;
+                    STRPAD H5T_STR_NULLTERM;
+                    CSET H5T_CSET_ASCII;
+                    CTYPE H5T_C_S1;
+                 }
+                 DATASPACE  SCALAR
+              }
+              ATTRIBUTE "OmegaMatter" {
+                 DATATYPE  H5T_STRING {
+                    STRSIZE 5;
+                    STRPAD H5T_STR_NULLTERM;
+                    CSET H5T_CSET_ASCII;
+                    CTYPE H5T_C_S1;
+                 }
+                 DATASPACE  SCALAR
+              }
+           }
+           DATASET "wavenumber" {
+              DATATYPE  H5T_IEEE_F64LE
+              DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+           }
+           DATASET "redshift" {
+              DATATYPE  H5T_IEEE_F64LE
+              DATASPACE  SIMPLE { ( 10 ) / ( 10 ) }
+           }
+           DATASET "power" {
+              DATATYPE  H5T_IEEE_F64LE
+              DATASPACE  SIMPLE { ( 10 ) / ( 10 ), ( 1000 ) / ( 1000 ) }
+           }
+        }
+        }
+
+    The `power` dataset should tabulate the transferred power spectrum as a function of :math:`(z,k)` where :math:`z` is redshift and :math:`k` is wavenumber.
     </description>
     <runTimeFileDependencies paths="fileName"/>
   </powerSpectrumPrimordialTransferred>
   !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredFile
-     !!{
+     !!{RST
      Implements a file transferred primordial power spectrum.
      !!}
      private
@@ -148,8 +148,8 @@
   end type powerSpectrumPrimordialTransferredFile
 
   interface powerSpectrumPrimordialTransferredFile
-     !!{
-     Constructors for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class.
+     !!{RST
+     Constructors for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -161,9 +161,8 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -174,10 +173,12 @@ contains
     type (varying_string                        )                :: fileName
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read a tabulated transfer function.</description>
+      <description>
+      The name of the file from which to read a tabulated transfer function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -190,8 +191,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumPrimordialTransferredFile} transferred primordial power spectrum class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredFile)                        :: self
@@ -207,7 +208,7 @@ contains
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
-    !!{
+    !!{RST
     Destructor for the file transfer function class.
     !!}
     implicit none
@@ -221,7 +222,7 @@ contains
   end subroutine fileDestructor
 
   subroutine fileReadFile(self,fileName)
-    !!{
+    !!{RST
     Read a tabulated power spectrum from file.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -326,8 +327,8 @@ contains
   end subroutine fileReadFile
   
   double precision function filePower(self,wavenumber,time)
-    !!{
-    Return the transferred primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the transferred primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self
@@ -352,9 +353,8 @@ contains
   end function filePower
 
   double precision function fileLogarithmicDerivative(self,wavenumber,time)
-    !!{
-    Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given \mono{wavenumber}.
+    !!{RST
+    Return the logarithmic derivative of the transferred primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self
@@ -382,7 +382,7 @@ contains
   end function fileLogarithmicDerivative
 
   logical function fileGrowthIsWavenumberDependent(self)
-    !!{
+    !!{RST
     Return true if the growth of the power spectrum is wavenumber-dependent.
     !!}
     implicit none

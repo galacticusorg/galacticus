@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassBertschinger">
-   <description>Extracts the Bertschinger mass of each halo node, which is the mass enclosed within the secondary infall turnaround radius and provides a measure of the total mass within the halo's influence region.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassBertschinger" docformat="rst">
+   <description>
+   Extracts the Bertschinger mass of each halo node, which is the mass enclosed within the secondary infall turnaround radius and provides a measure of the total mass within the halo's influence region.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBertschinger
-     !!{
+     !!{RST
      A property extractor which extracts the Bertschinger mass of the halo.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorMassBertschinger
 
   interface nodePropertyExtractorMassBertschinger
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassBertschinger`` property extractor class.
      !!}
      module procedure massBertschingerConstructorParameters
      module procedure massBertschingerConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function massBertschingerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassBertschinger`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function massBertschingerConstructorParameters
 
   function massBertschingerConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassBertschinger} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMassBertschinger`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassBertschinger) :: self
@@ -76,8 +78,8 @@ contains
   end function massBertschingerConstructorInternal
 
   double precision function massBertschingerExtract(self,node,instance)
-    !!{
-    Implement an output extractor for the mass of gas cooled out of the \gls{cgm}.
+    !!{RST
+    Implement an output extractor for the mass of gas cooled out of the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -93,8 +95,8 @@ contains
   end function massBertschingerExtract
 
   function massBertschingerName(self)
-    !!{
-    Return the names of the \mono{massBertschinger} property.
+    !!{RST
+    Return the names of the ``massBertschinger`` property.
     !!}
     implicit none
     type (varying_string                        )               :: massBertschingerName
@@ -106,8 +108,8 @@ contains
   end function massBertschingerName
 
   function massBertschingerDescription(self)
-    !!{
-    Return the description of the \mono{massBertschinger} property.
+    !!{RST
+    Return the description of the ``massBertschinger`` property.
     !!}
     implicit none
     type (varying_string                       )                :: massBertschingerDescription
@@ -119,8 +121,8 @@ contains
   end function massBertschingerDescription
 
   double precision function massBertschingerUnitsInSI(self)
-    !!{
-    Return the units of the \mono{massBertschinger} property in the SI system.
+    !!{RST
+    Return the units of the ``massBertschinger`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -132,7 +134,7 @@ contains
   end function massBertschingerUnitsInSI
 
   function massBertschingerUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massBertschinger property.
     !!}
     use :: Units_MetaData, only : unitType

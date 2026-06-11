@@ -17,24 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of Jiang et
-  al. (2022), including the effects of a baryonic potential.
+  !!{RST
+  An implementation of dark matter halo profiles for self-interacting dark matter following the "isothermal" model of Jiang et al. (2022), including the effects of a baryonic potential.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <darkMatterProfile name="darkMatterProfileSIDMIsothermal">
+  <darkMatterProfile name="darkMatterProfileSIDMIsothermal" docformat="rst">
     <description>
-      A dark matter halo profile class that builds \refClass{massDistributionSphericalSIDMIsothermalBaryons} objects for
-      isothermal SIDM profiles containing baryons.
+    A dark matter halo profile class that builds ``massDistributionSphericalSIDMIsothermalBaryons`` objects for isothermal SIDM profiles containing baryons.
     </description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileSIDMIsothermal
-     !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
      class(darkMatterProfileClass ), pointer :: darkMatterProfile_  => null()
@@ -45,8 +43,8 @@
   end type darkMatterProfileSIDMIsothermal
 
   interface darkMatterProfileSIDMIsothermal
-     !!{
-     Constructors for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -55,8 +53,8 @@
 contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,8 +77,8 @@ contains
   end function sidmIsothermalConstructorParameters
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -102,8 +100,8 @@ contains
   end function sidmIsothermalConstructorInternal
 
   subroutine sidmIsothermalDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileSIDMIsothermal} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileSIDMIsothermal), intent(inout) :: self
@@ -116,8 +114,8 @@ contains
   end subroutine sidmIsothermalDestructor
 
   function sidmIsothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                         , massTypeDark                        , weightByMass
@@ -196,8 +194,8 @@ contains
   end function sidmIsothermalGet
 
   subroutine sidmIsothermalInitialize(self,node,massDistributionBaryonic)
-    !!{
-    Initialize the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Initialize the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : massTypeBaryonic
     implicit none

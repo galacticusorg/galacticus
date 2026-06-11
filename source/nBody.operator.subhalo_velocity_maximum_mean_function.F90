@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body data operator which computes the mean subhalo $V_\mathrm{max}$ as a function of subhalo mass.
+!!{RST
+Implements an N-body data operator which computes the mean subhalo :math:`V_\mathrm{max}` as a function of subhalo mass.
 !!}
 
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorSubhaloVelocityMaximumMeanFunction">
-   <description>An N-body data operator which computes the mean subhalo $V_\mathrm{max}$ as a function of subhalo mass.</description>
+  <nbodyOperator name="nbodyOperatorSubhaloVelocityMaximumMeanFunction" docformat="rst">
+   <description>
+   An N-body data operator which computes the mean subhalo :math:`V_\mathrm{max}` as a function of subhalo mass.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSubhaloVelocityMaximumMeanFunction
-     !!{
-     An N-body data operator which computes the mean subhalo $V_\mathrm{max}$ as a function of subhalo mass.
+     !!{RST
+     An N-body data operator which computes the mean subhalo :math:`V_\mathrm{max}` as a function of subhalo mass.
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes the mean subhalo $V_\mathrm{ma
   end type nbodyOperatorSubhaloVelocityMaximumMeanFunction
 
   interface nbodyOperatorSubhaloVelocityMaximumMeanFunction
-     !!{
-     Constructors for the \refClass{nbodyOperatorSubhaloVelocityMaximumMeanFunction} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
      !!}
      module procedure subhaloVelocityMaximumMeanFunctionConstructorParameters
      module procedure subhaloVelocityMaximumMeanFunctionConstructorInternal
@@ -55,8 +57,8 @@ Implements an N-body data operator which computes the mean subhalo $V_\mathrm{ma
 contains
 
   function subhaloVelocityMaximumMeanFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSubhaloVelocityMaximumMeanFunction} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,35 +71,47 @@ contains
          &                                                                              description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to consider.</description>
+      <description>
+      The minimum mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass to consider.</description>
+      <description>
+      The maximum mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass.</description>
+      <description>
+      The number of bins per decade of mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this subhalo mass function.</description>
+      <description>
+      A description of this subhalo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -110,8 +124,8 @@ contains
   end function subhaloVelocityMaximumMeanFunctionConstructorParameters
 
   function subhaloVelocityMaximumMeanFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSubhaloVelocityMaximumMeanFunction} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloVelocityMaximumMeanFunction)                        :: self
@@ -128,8 +142,8 @@ contains
   end function subhaloVelocityMaximumMeanFunctionConstructorInternal
   
   subroutine subhaloVelocityMaximumMeanFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSubhaloVelocityMaximumMeanFunction} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloVelocityMaximumMeanFunction), intent(inout) :: self
@@ -141,7 +155,7 @@ contains
   end subroutine subhaloVelocityMaximumMeanFunctionDestructor
 
   subroutine subhaloVelocityMaximumMeanFunctionOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time

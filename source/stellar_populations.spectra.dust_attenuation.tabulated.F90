@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements calculations of attenuation of stellar spectra using a tabulation.
   !!}
 
   use :: Tables, only : table1DGeneric
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationTabulated" abstract="yes">
-   <description>Returns the dust attenuation of stellar spectra from a tabulated relation.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationTabulated" abstract="yes" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra from a tabulated relation.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
 
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationTabulated
-     !!{
+     !!{RST
      A class implementing calculations of attenuation of stellar spectra using a tabulated relation.
      !!}
      private
@@ -43,8 +45,8 @@
 contains
 
   subroutine tabulatedDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarSpectraDustAttenuationTabulated} stellar spectra dust attenuation class.
+    !!{RST
+    Destructor for the ``stellarSpectraDustAttenuationTabulated`` stellar spectra dust attenuation class.
     !!}
     implicit none
     type(stellarSpectraDustAttenuationTabulated), intent(inout) :: self
@@ -54,8 +56,8 @@ contains
   end subroutine tabulatedDestructor
 
   double precision function tabulatedAttenuation(self,wavelength,age,vBandAttenuation)
-    !!{
-    Return attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.
+    !!{RST
+    Return attenuation of stellar spectra according to the model of :cite:t:`gordon_quantitative_2003`.
     !!}
     use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none

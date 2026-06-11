@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a projected orbital radius property extractor class.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbitalProjected">
-   <description>Extracts the projected orbital radius of a satellite node on the plane of the sky (projected along the $z$-axis), providing the 2D projected separation from the host halo center for comparison with observational satellite radial profiles.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbitalProjected" docformat="rst">
+   <description>
+   Extracts the projected orbital radius of a satellite node on the plane of the sky (projected along the :math:`z`-axis), providing the 2D projected separation from the host halo center for comparison with observational satellite radial profiles.
+   </description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
    </deepCopy>
@@ -33,8 +35,8 @@
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusOrbitalProjected
-     !!{
-     A property extractor that extracts the projected orbital radius. Projection is always along the $z$-axis.
+     !!{RST
+     A property extractor that extracts the projected orbital radius. Projection is always along the :math:`z`-axis.
      !!}
      private
      type(nodePropertyExtractorPositionOrbital), pointer :: nodePropertyExtractor_  => null()
@@ -48,8 +50,8 @@
   end type nodePropertyExtractorRadiusOrbitalProjected
 
   interface nodePropertyExtractorRadiusOrbitalProjected
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
      !!}
      module procedure radiusOrbitalProjectedConstructorParameters
      module procedure radiusOrbitalProjectedConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function radiusOrbitalProjectedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function radiusOrbitalProjectedConstructorParameters
 
   function radiusOrbitalProjectedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
@@ -88,8 +90,8 @@ contains
   end function radiusOrbitalProjectedConstructorInternal
 
   subroutine radiusOrbitalProjectedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusOrbitalProjected} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self
@@ -101,7 +103,7 @@ contains
   end subroutine radiusOrbitalProjectedDestructor
 
   double precision function radiusOrbitalProjectedExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a radiusOrbitalProjected output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -120,7 +122,7 @@ contains
   end function radiusOrbitalProjectedExtract
 
   function radiusOrbitalProjectedName(self)
-    !!{
+    !!{RST
     Return the name of the radiusOrbitalProjected property.
     !!}
     implicit none
@@ -133,7 +135,7 @@ contains
   end function radiusOrbitalProjectedName
 
   function radiusOrbitalProjectedDescription(self)
-    !!{
+    !!{RST
     Return a description of the radiusOrbitalProjected property.
     !!}
     implicit none
@@ -146,7 +148,7 @@ contains
   end function radiusOrbitalProjectedDescription
 
   double precision function radiusOrbitalProjectedUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the radiusOrbitalProjected property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -159,7 +161,7 @@ contains
   end function radiusOrbitalProjectedUnitsInSI
 
   function radiusOrbitalProjectedUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusOrbitalProjected property.
     !!}
     use :: Units_MetaData, only : unitType

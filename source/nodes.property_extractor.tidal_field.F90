@@ -19,22 +19,22 @@
 
 !+    Contributions to this file made by: Andrew Benson, Charles Gannon.
 
-!!{
+!!{RST
 Implements a tidal field property extractor class.
 !!}
 
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTidalField">
-   <description> 
-    A property extractor class which extracts the radial component of the tidal tensor in units of $\mathrm{Gyr^{-2}}$.
+  <nodePropertyExtractor name="nodePropertyExtractorTidalField" docformat="rst">
+   <description>
+   A property extractor class which extracts the radial component of the tidal tensor in units of :math:`\mathrm{Gyr^{-2}}`.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTidalField
-     !!{
-      A property extractor class which extracts the radial component of the tidal tensor in units of $\mathrm{Gyr^{-2}}$.
+     !!{RST
+     A property extractor class which extracts the radial component of the tidal tensor in units of :math:`\mathrm{Gyr^{-2}}`.
      !!}
      class(satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
    contains
@@ -47,8 +47,8 @@ Implements a tidal field property extractor class.
   end type nodePropertyExtractorTidalField
 
   interface nodePropertyExtractorTidalField
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTidalField} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTidalField`` property extractor class.
      !!}
      module procedure tidalFieldConstructorParameters
      module procedure tidalFieldConstructorInternal
@@ -57,8 +57,8 @@ Implements a tidal field property extractor class.
 contains
 
   function tidalFieldConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTidalField`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,8 +78,8 @@ contains
   end function tidalFieldConstructorParameters
 
   function tidalFieldConstructorInternal(satelliteTidalField_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorTidalField`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidalField)                        :: self
@@ -92,8 +92,8 @@ contains
   end function tidalFieldConstructorInternal
 
   subroutine tidalFieldDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorTidalField} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorTidalField`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidalField), intent(inout) :: self
@@ -105,7 +105,7 @@ contains
   end subroutine tidalFieldDestructor
 
   double precision function tidalFieldExtract(self,node,instance)
-    !!{
+    !!{RST
     Return the radial part of the tidal tensor for satellite halos.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
@@ -130,7 +130,7 @@ contains
   end function tidalFieldExtract
 
   function tidalFieldName(self)
-    !!{
+    !!{RST
     Return the name of the tidal radius property.
     !!}
     implicit none
@@ -143,7 +143,7 @@ contains
   end function tidalFieldName
 
   function tidalFieldDescription(self)
-    !!{
+    !!{RST
     Return a description of the tidal radius property.
     !!}
     implicit none
@@ -156,7 +156,7 @@ contains
   end function tidalFieldDescription
 
   double precision function tidalFieldUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the tidal radius property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -169,7 +169,7 @@ contains
   end function tidalFieldUnitsInSI
 
   function tidalFieldUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the tidalField property.
     !!}
     use :: Units_MetaData, only : unitType

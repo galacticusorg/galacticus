@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for truncated mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionTruncated">
-   <description>An truncated kinematic distribution class masses.</description>
+  <kinematicsDistribution name="kinematicsDistributionTruncated" docformat="rst">
+   <description>
+   An truncated kinematic distribution class masses.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionTruncated
-     !!{
+     !!{RST
      A kinematic distribution for truncated mass distributions.
      !!}
      double precision :: velocityDispersionDecoratedTruncateMinimum, velocityDispersionTruncateMinimum, &
@@ -39,8 +41,8 @@
   end type kinematicsDistributionTruncated
 
   interface kinematicsDistributionTruncated
-     !!{
-     Constructors for the \refClass{kinematicsDistributionTruncated} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionTruncated`` kinematic distribution class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -49,9 +51,8 @@
 contains
 
   function truncatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionTruncated} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionTruncated`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +67,8 @@ contains
   end function truncatedConstructorParameters
 
   function truncatedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionTruncated} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionTruncated`` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionTruncated) :: self
@@ -77,7 +78,7 @@ contains
   end function truncatedConstructorInternal
   
   logical function truncatedIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the truncated kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -88,8 +89,8 @@ contains
   end function truncatedIsCollisional
 
   double precision function truncatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an truncated kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an truncated kinematic distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none

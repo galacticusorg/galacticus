@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a supernovae type Ia class which operates through the differential delay time distribution.
   !!}
 
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaDifferentialDTD" abstract="yes">
+  <supernovaeTypeIa name="supernovaeTypeIaDifferentialDTD" abstract="yes" docformat="rst">
    <description>
-    A supernovae type Ia class which operates through the differential delay time distribution.
+   A supernovae type Ia class which operates through the differential delay time distribution.
    </description>
   </supernovaeTypeIa>
   !!]
   type, abstract, extends(supernovaeTypeIaMassIndependentDTD) :: supernovaeTypeIaDifferentialDTD
-     !!{
+     !!{RST
      A supernovae type Ia class which operates through the differential delay time distribution.
      !!}
      private
@@ -49,7 +49,7 @@
 
   abstract interface
      double precision function numberDifferentialTemplate(self,age,metallicity)
-       !!{
+       !!{RST
        Interface for differential number of Type Ia SNe.
        !!}
        import supernovaeTypeIaDifferentialDTD
@@ -66,7 +66,7 @@
 contains
   
   double precision function differentialDTTimeDelayMinimum(self) result(time)
-    !!{
+    !!{RST
     Compute the minimum time in the type Ia supernovae delay time distribution.
     !!}
     implicit none
@@ -78,7 +78,7 @@ contains
   end function differentialDTTimeDelayMinimum
   
   double precision function differentialDTTimeDelayMaximum(self) result(time)
-    !!{
+    !!{RST
     Compute the maximum time in the type Ia supernovae delay time distribution.
     !!}
     implicit none
@@ -90,10 +90,8 @@ contains
   end function differentialDTTimeDelayMaximum
   
   double precision function differentialDTDNumberCumulative(self,age,metallicity) result(number)
-    !!{
-    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. Here we
-    assume that the total number of Type Ias is specified independent of secondary star mass.
+    !!{RST
+    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given ``initialMass`` and ``metallicity`` after a time ``age``. Here we assume that the total number of Type Ias is specified independent of secondary star mass.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -119,7 +117,7 @@ contains
   end function differentialDTDNumberCumulative
   
   double precision function timeDelayDistributionDifferential(time)
-    !!{
+    !!{RST
     Integrand used to compute the cumulative number of type Ia supernovae occurring by a given time.
     !!}
     implicit none

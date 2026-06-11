@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a generalized top-hat power spectrum window function class \citep{brown_towards_2022}.
+  !!{RST
+  Implements a generalized top-hat power spectrum window function class :cite:p:`brown_towards_2022`.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatGeneralized">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatGeneralized" docformat="rst">
    <description>
-    A generalized top-hat in real space window function for filtering of power spectra. The window function is given by
-    \citep{brown_towards_2022}:
-    \begin{equation}
-     W(k) = {3 (\sin(\mu_\mathrm{g} x)-\mu_\mathrm{g} x \cos(\mu_\mathrm{g} x)) \over \mu_\mathrm{g} x^3},
-    \end{equation}
-    where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$, and
-    $\mu_\mathrm{g}$ is a parameter.
+   A generalized top-hat in real space window function for filtering of power spectra. The window function is given by :cite:p:`brown_towards_2022`:
+
+   .. math::
+
+      W(k) = {3 (\sin(\mu_\mathrm{g} x)-\mu_\mathrm{g} x \cos(\mu_\mathrm{g} x)) \over \mu_\mathrm{g} x^3},
+
+   where :math:`x = k R` and :math:`R=(3M/4\pi\bar{\rho})^{1/3}` for a smoothing scale :math:`M` and mean matter density :math:`\bar{\rho}`, and :math:`\mu_\mathrm{g}` is a parameter.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHatGeneralized
-     !!{
+     !!{RST
      A top-hat power spectrum window function class.
      !!}
      private
@@ -50,8 +50,8 @@
   end type powerSpectrumWindowFunctionTopHatGeneralized
 
   interface powerSpectrumWindowFunctionTopHatGeneralized
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionTopHatGeneralized`` power spectrum window function class.
      !!}
      module procedure topHatGeneralizedConstructorParameters
      module procedure topHatGeneralizedConstructorInternal
@@ -60,8 +60,8 @@
 contains
 
   function topHatGeneralizedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionTopHatGeneralized`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,10 +71,12 @@ contains
     double precision                                                              :: mu
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu</name>
       <source>parameters</source>
-      <description>The parameter $\mu_\mathrm{g}$ appearing in the generalized top-hat window function of \cite{brown_towards_2022}.</description>
+      <description>
+      The parameter :math:`\mu_\mathrm{g}` appearing in the generalized top-hat window function of :cite:t:`brown_towards_2022`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -87,8 +89,8 @@ contains
   end function topHatGeneralizedConstructorParameters
 
   function topHatGeneralizedConstructorInternal(mu,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionTopHatGeneralized`` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionTopHatGeneralized)                        :: self
@@ -102,8 +104,8 @@ contains
   end function topHatGeneralizedConstructorInternal
 
   subroutine topHatGeneralizedDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionTopHatGeneralized} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionTopHatGeneralized`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatGeneralized), intent(inout) :: self
@@ -115,9 +117,8 @@ contains
   end subroutine topHatGeneralizedDestructor
 
   double precision function topHatGeneralizedValue(self,wavenumber,smoothingMass,time)
-    !!{
-    Generalized top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the
-    power spectrum.
+    !!{RST
+    Generalized top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -160,9 +161,8 @@ contains
   end function topHatGeneralizedValue
 
   double precision function topHatGeneralizedWavenumberMaximum(self,smoothingMass)
-    !!{
-    Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    variance of the power spectrum.
+    !!{RST
+    Maximum wavenumber for a top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatGeneralized), intent(inout) :: self

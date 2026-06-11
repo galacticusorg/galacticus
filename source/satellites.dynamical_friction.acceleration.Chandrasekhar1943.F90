@@ -19,33 +19,30 @@
 
   !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
-  Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
+  !!{RST
+  Implementation of a satellite dynamical friction class which uses the model of :cite:t:`chandrasekhar_dynamical_1943`.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943" docformat="rst">
    <description>
-    A satellite dynamical friction class which uses the \cite{chandrasekhar_dynamical_1943} formula to compute the acceleration
-    of a satellite at radius $r$ from the center of the host due to dynamical friction:
-    \begin{equation}
-    \mathbf{a}_{DF} = -\frac{4\pi \mathrm{G}^2M_\mathrm{sat}\rho_\mathrm{host}(r)}{v_\mathrm{sat}^3}\ln
-    \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
-    \end{equation}
-    where $M_\mathrm{sat}$ and $\mathbf{v}_\mathrm{sat}$ are the satellite's mass and velocity, respectively,
-    $v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|$, $\rho_\mathrm{host}(r)$ is the host's density profile,
-    $\ln\Lambda=$\mono{[logarithmCoulomb]} is the Coulomb logarithm, and $x\equiv
-    v_\mathrm{sat}/\sqrt{2}\sigma(r)$, where $\sigma(r)$ is the velocity dispersion of the host halo at radius $r$,
-    approximated to be equal to the host virial velocity, $v_\mathrm{vir}$.
+   A satellite dynamical friction class which uses the :cite:t:`chandrasekhar_dynamical_1943` formula to compute the acceleration of a satellite at radius :math:`r` from the center of the host due to dynamical friction:
+
+   .. math::
+
+      \mathbf{a}_{DF} = -\frac{4\pi \mathrm{G}^2M_\mathrm{sat}\rho_\mathrm{host}(r)}{v_\mathrm{sat}^3}\ln
+      \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
+
+   where :math:`M_\mathrm{sat}` and :math:`\mathbf{v}_\mathrm{sat}` are the satellite's mass and velocity, respectively, :math:`v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|`, :math:`\rho_\mathrm{host}(r)` is the host's density profile, :math:`\ln\Lambda=`\ ``[logarithmCoulomb]`` is the Coulomb logarithm, and :math:`x\equiv v_\mathrm{sat}/\sqrt{2}\sigma(r)`, where :math:`\sigma(r)` is the velocity dispersion of the host halo at radius :math:`r`, approximated to be equal to the host virial velocity, :math:`v_\mathrm{vir}`.
    </description>
   </satelliteDynamicalFriction>
   !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
-     !!{
-     Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
+     !!{RST
+     Implementation of a satellite dynamical friction class which uses the model of :cite:t:`chandrasekhar_dynamical_1943`.
      !!}
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
@@ -63,7 +60,7 @@
   end type satelliteDynamicalFrictionChandrasekhar1943
 
   interface satelliteDynamicalFrictionChandrasekhar1943
-     !!{
+     !!{RST
      Constructors for the chandrasekhar1943 satellite dynamical friction class.
      !!}
      module procedure chandrasekhar1943ConstructorParameters
@@ -73,8 +70,8 @@
 contains
 
   function chandrasekhar1943ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteDynamicalFrictionChandrasekhar1943} satellite dynamical friction class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``satelliteDynamicalFrictionChandrasekhar1943`` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,10 +82,12 @@ contains
     double precision                                                             :: logarithmCoulomb
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logarithmCoulomb</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.</description>
+      <description>
+      The Coulomb logarithm, :math:`\ln \Lambda`, appearing in the :cite:t:`chandrasekhar_dynamical_1943` formulation of the acceleration due to dynamical friction.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -104,8 +103,8 @@ contains
   end function chandrasekhar1943ConstructorParameters
 
   function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteDynamicalFrictionChandrasekhar1943} satellite dynamical friction class.
+    !!{RST
+    Internal constructor for the ``satelliteDynamicalFrictionChandrasekhar1943`` satellite dynamical friction class.
     !!}
     implicit none
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
@@ -120,7 +119,7 @@ contains
   end function chandrasekhar1943ConstructorInternal
 
   subroutine chandrasekhar1943Destructor(self)
-    !!{
+    !!{RST
     Destructor for the simple cooling radius class.
     !!}
     implicit none
@@ -134,8 +133,8 @@ contains
   end subroutine chandrasekhar1943Destructor
 
   function chandrasekhar1943Acceleration(self,node)
-    !!{
-    Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
+    !!{RST
+    Return an acceleration for satellites due to dynamical friction using the formulation of :cite:t:`chandrasekhar_dynamical_1943`.
     !!}
     use :: Coordinates                     , only : coordinateCartesian      , assignment(=)
     use :: Error_Functions                 , only : Error_Function
@@ -182,8 +181,8 @@ contains
   end function chandrasekhar1943Acceleration
 
   double precision function chandrasekhar1943CoulombLogarithm(self,node) result(coulombLogarithm)
-    !!{
-    Evaluate the Coulomb logarithm for the \cite{chandrasekhar_dynamical_1943} dynamical friction model.
+    !!{RST
+    Evaluate the Coulomb logarithm for the :cite:t:`chandrasekhar_dynamical_1943` dynamical friction model.
     !!}
     implicit none
     class(satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self

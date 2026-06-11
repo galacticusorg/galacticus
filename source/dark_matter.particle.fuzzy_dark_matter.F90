@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a fuzzy dark matter particle class.
 !!}
 
   !![
-  <darkMatterParticle name="darkMatterParticleFuzzyDarkMatter">
-   <description>Provides a fuzzy dark matter particle, representing an ultralight axion-like boson whose quantum pressure suppresses structure on small scales. The particle mass in units of $10^{-22}$~eV is set by \mono{[mass]}, and the fraction of the total dark matter density in this component by \mono{[densityFraction]}.</description>
+  <darkMatterParticle name="darkMatterParticleFuzzyDarkMatter" docformat="rst">
+   <description>
+   Provides a fuzzy dark matter particle, representing an ultralight axion-like boson whose quantum pressure suppresses structure on small scales. The particle mass in units of :math:`10^{-22}` eV is set by ``[mass]``, and the fraction of the total dark matter density in this component by ``[densityFraction]``.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleFuzzyDarkMatter
-     !!{
+     !!{RST
      A fuzzy dark matter particle class.
      !!}
      private
@@ -43,8 +45,8 @@ Implements a fuzzy dark matter particle class.
   end type darkMatterParticleFuzzyDarkMatter
 
   interface darkMatterParticleFuzzyDarkMatter
-     !!{
-     Constructors for the \refClass{darkMatterParticleFuzzyDarkMatter} dark matter particle class.
+     !!{RST
+     Constructors for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class.
      !!}
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
@@ -53,8 +55,8 @@ Implements a fuzzy dark matter particle class.
 contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterParticleFuzzyDarkMatter} dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,19 +65,23 @@ contains
     double precision                                                   :: massValue , densityFractionValue
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <source>parameters</source>
       <variable>massValue</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass (in units of $10^{-22}$~eV) of the fuzzy dark matter particle.</description>
+      <description>
+      The mass (in units of :math:`10^{-22}` eV) of the fuzzy dark matter particle.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityFraction</name>
       <source>parameters</source>
       <variable>densityFractionValue</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The density fraction of the fuzzy dark matter with respect to the total dark matter density.</description>
+      <description>
+      The density fraction of the fuzzy dark matter with respect to the total dark matter density.
+      </description>
     </inputParameter>
     !!]
     self=darkMatterParticleFuzzyDarkMatter(massValue,densityFractionValue)
@@ -86,8 +92,8 @@ contains
   end function fuzzyDMConstructorParameters
 
   function fuzzyDMConstructorInternal(mass,densityFraction) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterParticleFuzzyDarkMatter} dark matter particle class.
+    !!{RST
+    Internal constructor for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -102,7 +108,7 @@ contains
   end function fuzzyDMConstructorInternal
 
   double precision function fuzzyDMMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a fuzzy dark matter particle.
     !!}
     implicit none
@@ -113,7 +119,7 @@ contains
   end function fuzzyDMMass
 
   double precision function fuzzyDMDensityFraction(self)
-    !!{
+    !!{RST
     Return the density fraction of the fuzzy dark matter with respect to the total dark matter density.
     !!}
     implicit none

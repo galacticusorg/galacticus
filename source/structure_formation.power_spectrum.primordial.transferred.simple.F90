@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A simple transferred primordial power spectrum class.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Transfer_Functions      , only : transferFunctionClass
 
   !![
-  <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
-   <description>Implements a simple transferred primordial power spectrum.</description>
+  <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple" docformat="rst">
+   <description>
+   Implements a simple transferred primordial power spectrum.
+   </description>
   </powerSpectrumPrimordialTransferred>
   !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
-     !!{
+     !!{RST
      A simple transferred primordial power spectrum class.
      !!}
      private
@@ -49,8 +51,8 @@
   end type powerSpectrumPrimordialTransferredSimple
 
   interface powerSpectrumPrimordialTransferredSimple
-     !!{
-     Constructors for the \refClass{powerSpectrumPrimordialTransferredSimple} transferred primordial power spectrum class.
+     !!{RST
+     Constructors for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -59,9 +61,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumPrimordialTransferredSimple} transferred primordial power spectrum class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +88,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(powerSpectrumPrimordial_,transferFunction_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumPrimordialTransferredSimple} transferred primordial power spectrum class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                        :: self
@@ -109,8 +110,8 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumPrimordialTransferredSimple} transferred primordial power spectrum class.
+    !!{RST
+    Destructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
     !!}
     implicit none
     type(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
@@ -124,8 +125,8 @@ contains
   end subroutine simpleDestructor
 
   double precision function simplePower(self,wavenumber,time)
-    !!{
-    Return the transferred primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the transferred primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
@@ -152,9 +153,8 @@ contains
   end function simplePower
 
   double precision function simpleLogarithmicDerivative(self,wavenumber,time)
-    !!{
-    Return the logarithmic derivative of the transferred primordial power spectrum at the
-    given \mono{wavenumber}.
+    !!{RST
+    Return the logarithmic derivative of the transferred primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
@@ -168,7 +168,7 @@ contains
   end function simpleLogarithmicDerivative
 
   logical function simpleGrowthIsWavenumberDependent(self)
-    !!{
+    !!{RST
     Return true if the growth of the power spectrum is wavenumber-dependent.
     !!}
     implicit none

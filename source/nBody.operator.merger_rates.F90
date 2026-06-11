@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes merger rates of halos.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <nbodyOperator name="nbodyOperatorMergerRates">
-   <description>An N-body data operator which computes halo--halo merger rates from N-body simulation snapshots. Parameters control the snapshot index, primary and secondary halo mass ranges, whether to consider only always-isolated halos, and an optional suffix for labeling multiple merger rate outputs.</description>
+  <nbodyOperator name="nbodyOperatorMergerRates" docformat="rst">
+   <description>
+   An N-body data operator which computes halo--halo merger rates from N-body simulation snapshots. Parameters control the snapshot index, primary and secondary halo mass ranges, whether to consider only always-isolated halos, and an optional suffix for labeling multiple merger rate outputs.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMergerRates
-     !!{
+     !!{RST
      An N-body data operator which computes merger rates of halos.
      !!}
      private
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes merger rates of halos.
   end type nbodyOperatorMergerRates
 
   interface nbodyOperatorMergerRates
-     !!{
-     Constructors for the \refClass{nbodyOperatorMergerRates} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorMergerRates`` N-body operator class.
      !!}
      module procedure mergerRatesConstructorParameters
      module procedure mergerRatesConstructorInternal
@@ -55,8 +57,8 @@ Implements an N-body data operator which computes merger rates of halos.
 contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorMergerRates} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorMergerRates`` N-body operator class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : operator(/=)
     use :: Input_Parameters  , only : inputParameters
@@ -71,48 +73,64 @@ contains
     logical                                                   :: missingHostIsFatal , alwaysIsolatedOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>indexSnapshot</name>
       <source>parameters</source>
-      <description>The snapshot index of the descendant epoch at which halo mergers are identified; progenitors from the immediately preceding snapshot are matched to descendants at this epoch.</description>
+      <description>
+      The snapshot index of the descendant epoch at which halo mergers are identified; progenitors from the immediately preceding snapshot are matched to descendants at this epoch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+      <description>
+      The minimum mass (of the secondary halo) for which to accumulate merging statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+      <description>
+      The maximum mass (of the secondary halo) for which to accumulate merging statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHostMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
+      <description>
+      The minimum mass (of the primary halo) for which to accumulate merging statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHostMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
+      <description>
+      The maximum mass (of the primary halo) for which to accumulate merging statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>missingHostIsFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
+      <description>
+      If true, missing host halos are cause for a fatal error. Otherwise they are ignored.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alwaysIsolatedOnly</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
+      <description>
+      If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>suffix</name>
       <source>parameters</source>
       <defaultValue>var_str('')</defaultValue>
-      <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
+      <description>
+      A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -125,8 +143,8 @@ contains
   end function mergerRatesConstructorParameters
 
   function mergerRatesConstructorInternal(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorMergerRates} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorMergerRates`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMergerRates)                        :: self
@@ -144,8 +162,8 @@ contains
   end function mergerRatesConstructorInternal
 
   subroutine mergerRatesDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorMergerRates} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorMergerRates`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMergerRates), intent(inout) :: self
@@ -157,7 +175,7 @@ contains
   end subroutine mergerRatesDestructor
   
   subroutine mergerRatesOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the merger rate at a given snapshot.
     !!}
     use    :: Arrays_Search, only : searchIndexed

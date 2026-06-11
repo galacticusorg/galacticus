@@ -17,14 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM mass output analysis property extractor class.
 !!}
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>satelliteStatusDiscriminator</name>
-   <description>Enumeration of possible discriminators for satellite orphan status.</description>
+   <description>
+   Enumeration of possible discriminators for satellite orphan status.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="boundMass"/>
@@ -33,17 +35,14 @@ Implements an ISM mass output analysis property extractor class.
   !!]
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSatelliteStatus">
-   <description>A property extractor that returns an integer satellite status flag for each node:
-    0 for central (non-satellite) halos, 1 for satellites that still have a resolved dark matter
-    subhalo, and 2 for orphaned satellites that have lost their subhalo below the resolution limit.
-    The \mono{discriminator} parameter (default: \mono{boundMass}) controls whether orphan status is
-    determined from the bound mass history of the satellite component or the position history of the
-    position component, allowing flexibility in how subhalo disruption is identified.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteStatus" docformat="rst">
+   <description>
+   A property extractor that returns an integer satellite status flag for each node: 0 for central (non-satellite) halos, 1 for satellites that still have a resolved dark matter subhalo, and 2 for orphaned satellites that have lost their subhalo below the resolution limit. The ``discriminator`` parameter (default: ``boundMass``) controls whether orphan status is determined from the bound mass history of the satellite component or the position history of the position component, allowing flexibility in how subhalo disruption is identified.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorSatelliteStatus
-     !!{
+     !!{RST
      A stellar mass output analysis class.
      !!}
      private
@@ -56,8 +55,8 @@ Implements an ISM mass output analysis property extractor class.
   end type nodePropertyExtractorSatelliteStatus
 
   interface nodePropertyExtractorSatelliteStatus
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorSatelliteStatus`` property extractor class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal
@@ -66,8 +65,8 @@ Implements an ISM mass output analysis property extractor class.
 contains
 
   function satelliteStatusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorSatelliteStatus`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,10 +75,12 @@ contains
     type(varying_string                      )                :: discriminator
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>discriminator</name>
       <defaultValue>var_str('boundMass')</defaultValue>
-      <description>Specifies whether bound mass or position history will be used to determine satellite orphan status.</description>
+      <description>
+      Specifies whether bound mass or position history will be used to determine satellite orphan status.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -91,8 +92,8 @@ contains
   end function satelliteStatusConstructorParameters
 
   function satelliteStatusConstructorInternal(discriminator) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteStatus} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorSatelliteStatus`` property extractor class.
     !!}
     use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
@@ -139,8 +140,8 @@ contains
   end function satelliteStatusConstructorInternal
 
   function satelliteStatusExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{satelliteStatus} node property extractor.
+    !!{RST
+    Implement a ``satelliteStatus`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
     use :: Histories       , only : history
@@ -187,7 +188,7 @@ contains
 
 
   function satelliteStatusName(self)
-    !!{
+    !!{RST
     Return the name of the satelliteStatus property.
     !!}
     implicit none
@@ -200,7 +201,7 @@ contains
   end function satelliteStatusName
 
   function satelliteStatusDescription(self)
-    !!{
+    !!{RST
     Return a description of the satelliteStatus property.
     !!}
     implicit none
@@ -213,7 +214,7 @@ contains
   end function satelliteStatusDescription
 
   function satelliteStatusUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the satelliteStatus property.
     !!}
     use :: Units_MetaData, only : unitType

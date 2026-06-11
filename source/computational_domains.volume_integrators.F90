@@ -17,34 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides computational domains.
 !!}
 
 module Computational_Domain_Volume_Integrators
-  !!{
+  !!{RST
   Provides a class that implements computational domains.
   !!}
   use :: Coordinates, only : coordinate
   private
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>computationalDomainVolumeIntegrator</name>
    <descriptiveName>Computational Domain Volume Integrators</descriptiveName>
-   <description>Class providing numerical volume integrators over computational domains, computing the
-    integral of a scalar function over the spatial domain. This is used e.g.\ to compute total
-    emission or absorption from all cells, or to normalize radiative transfer solutions. Implementations
-    provide the total domain volume and perform multi-dimensional quadrature using the domain's
-    coordinate system (Cartesian, spherical, etc.).</description>
+   <description>
+   Class providing numerical volume integrators over computational domains, computing the integral of a scalar function over the spatial domain. This is used e.g.\ to compute total emission or absorption from all cells, or to normalize radiative transfer solutions. Implementations provide the total domain volume and perform multi-dimensional quadrature using the domain's coordinate system (Cartesian, spherical, etc.).
+   </description>
    <default>cartesian3D</default>
    <method name="volume" >
-    <description>Returns the total volume of the integration region defined by the domain boundaries, used for normalizing volume-averaged quantities in the radiative transfer calculation.</description>
+    <description>
+    Returns the total volume of the integration region defined by the domain boundaries, used for normalizing volume-averaged quantities in the radiative transfer calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="integrate" >
-    <description>Numerically integrate a scalar function over the full extent of the computational domain using the appropriate coordinate system (Cartesian, cylindrical, or spherical), returning the total integral value.</description>
+    <description>
+    Numerically integrate a scalar function over the full extent of the computational domain using the appropriate coordinate system (Cartesian, cylindrical, or spherical), returning the total integral value.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -55,7 +57,7 @@ module Computational_Domain_Volume_Integrators
 
   abstract interface
      double precision function computationalDomainVolumeIntegrand(coordinates)
-       !!{
+       !!{RST
        Interface for integrands used by computational domain volume integrators.
        !!}
        import coordinate

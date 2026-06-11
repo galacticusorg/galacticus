@@ -19,29 +19,29 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module that provides a class implementing stellar population spectra.
 !!}
 
 module Stellar_Population_Spectra
-  !!{
+  !!{RST
   Provides a class implementing stellar population spectra.
   !!}
   use :: Abundances_Structure, only : abundances
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarPopulationSpectra</name>
    <descriptiveName>Stellar Population Spectra</descriptiveName>
-   <description>Class providing spectral energy distributions (SEDs) for simple stellar populations (SSPs)---the
-    luminosity per unit frequency (in $L_\odot$ Hz$^{-1}$) of a coeval population of stars as a function of age,
-    metallicity, and wavelength. These SEDs are convolved with the star formation history to produce the integrated
-    galaxy SED, which is compared to observed photometry or spectra. Implementations typically wrap stellar
-    isochrone libraries and atmosphere grids such as FSPS, BC03, or BPASS.</description>
+   <description>
+   Class providing spectral energy distributions (SEDs) for simple stellar populations (SSPs)---the luminosity per unit frequency (in :math:`L_\odot` Hz\ :math:`^{-1}`) of a coeval population of stars as a function of age, metallicity, and wavelength. These SEDs are convolved with the star formation history to produce the integrated galaxy SED, which is compared to observed photometry or spectra. Implementations typically wrap stellar isochrone libraries and atmosphere grids such as FSPS, BC03, or BPASS.
+   </description>
    <default>FSPS</default>
    <method name="luminosity" >
-    <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition \mono{abundances}, of the given \mono{age} (in Gyr), at the specified \mono{wavelength} (in Angstroms).</description>
+    <description>
+    Return the luminosity (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) for a stellar population, composition ``abundances``, of the given ``age`` (in Gyr), at the specified ``wavelength`` (in Angstroms).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (abundances), intent(in   )           :: abundancesStellar</argument>
@@ -49,21 +49,27 @@ module Stellar_Population_Spectra
     <argument>integer                     , intent(  out), optional :: status</argument>
    </method>
    <method name="tabulation" >
-    <description>Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.</description>
+    <description>
+    Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                                    , intent(  out) :: agesCount, metallicitiesCount</argument>
     <argument>double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity</argument>
    </method>
    <method name="wavelengths" >
-    <description>Return a tabulation of wavelengths at which stellar spectra are defined.</description>
+    <description>
+    Return a tabulation of wavelengths at which stellar spectra are defined.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
     <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
    </method>
    <method name="wavelengthInterval" >
-    <description>At a given wavelength, return the wavelength interval in the tabulation of wavelength for which stellar spectra are defined.</description>
+    <description>
+    At a given wavelength, return the wavelength interval in the tabulation of wavelength for which stellar spectra are defined.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength</argument>

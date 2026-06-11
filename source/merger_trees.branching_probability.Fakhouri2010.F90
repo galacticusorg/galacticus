@@ -17,32 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree branching probability class using the algorithm of \cite{fakhouri_merger_2010}.
+!!{RST
+Implements a merger tree branching probability class using the algorithm of :cite:t:`fakhouri_merger_2010`.
 !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass, haloEnvironmentClass
 
   !![
-  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityFakhouri2010">
+  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityFakhouri2010" docformat="rst">
    <description>
-    Merger tree branching probabilities using the algorithm of \cite{fakhouri_merger_2010}. The branching rate is given by
-    \begin{equation}
-     \frac{\mathrm{d}^2 N}{\mathrm{d} \xi \mathrm{d} z} = A \left(\frac{M}{10^{12}\hbox{M}_\odot}\right)^\alpha \xi^\beta \exp \left(\left[\frac{\xi}{\bar{\xi}}\right]^\gamma\right) (1+z)^\eta f_\mathrm{env}(\delta,M),
-    \end{equation}
-    where $M$ is the mass of the primary halo, $\xi$ is the mass ratio of the merging halos, and $A=$\mono{[A]}, $\alpha=$\mono{[alpha]}, $\beta=$\mono{[beta]}, $\gamma=$\mono{[gamma]}, and $\bar{\xi}=$\mono{[xiBar]} are parameters. The function $f_\mathrm{env}(\delta,M)$ describes
-    environmental dependence in the merger rate. We use the model of \cite[][their eqn.~(11)]{fakhouri_environmental_2009}:
-    \begin{equation}
-     f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,
-    \end{equation}
-    where $\delta$ is the non-linear overdensity of the environment and $B=$\mono{[B]}, $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]} are parameters.
+   Merger tree branching probabilities using the algorithm of :cite:t:`fakhouri_merger_2010`. The branching rate is given by
+
+   .. math::
+
+      \frac{\mathrm{d}^2 N}{\mathrm{d} \xi \mathrm{d} z} = A \left(\frac{M}{10^{12}\hbox{M}_\odot}\right)^\alpha \xi^\beta \exp \left(\left[\frac{\xi}{\bar{\xi}}\right]^\gamma\right) (1+z)^\eta f_\mathrm{env}(\delta,M),
+
+   where :math:`M` is the mass of the primary halo, :math:`\xi` is the mass ratio of the merging halos, and :math:`A=`\ ``[A]``, :math:`\alpha=`\ ``[alpha]``, :math:`\beta=`\ ``[beta]``, :math:`\gamma=`\ ``[gamma]``, and :math:`\bar{\xi}=`\ ``[xiBar]`` are parameters. The function :math:`f_\mathrm{env}(\delta,M)` describes environmental dependence in the merger rate. We use the model of :cite:t:`fakhouri_environmental_2009`:
+
+   .. math::
+
+      f_\mathrm{env}(\delta,M) = B (1+\delta)^\mu \left( \frac{M}{10^{12}\mathrm{M}_\odot} \right)^\nu,
+
+   where :math:`\delta` is the non-linear overdensity of the environment and :math:`B=`\ ``[B]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]`` are parameters.
    </description>
   </mergerTreeBranchingProbability>
   !!]
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityFakhouri2010
-     !!{
-     A merger tree branching probability class using the algorithm of \cite{fakhouri_merger_2010}.
+     !!{RST
+     A merger tree branching probability class using the algorithm of :cite:t:`fakhouri_merger_2010`.
      !!}
      private
      double precision                                         :: alpha                              , beta , &
@@ -60,8 +63,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
   end type mergerTreeBranchingProbabilityFakhouri2010
 
   interface mergerTreeBranchingProbabilityFakhouri2010
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class.
+     !!{RST
+     Constructors for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class.
      !!}
      module procedure fakhouri2010ConstructorParameters
      module procedure fakhouri2010ConstructorInternal
@@ -70,9 +73,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
 contains
 
   function fakhouri2010ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class which reads parameters from a provided
-    parameter list.
+    !!{RST
+    Constructor for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                :: self
@@ -88,67 +90,103 @@ contains
          &                                                                         nu
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <defaultValue>0.133d0</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $\alpha$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`\alpha` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>-1.995d0</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $\beta$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`\beta` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <defaultValue>0.263d0</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $\gamma$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`\gamma` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>eta</name>
       <defaultValue>0.0993d0</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $\eta$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`\eta` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>A</name>
       <defaultValue>0.0104d0</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $A$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`A` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xiBar</name>
       <defaultValue>9.72d-3</defaultValue>
-      <defaultSource>\citep{fakhouri_merger_2010}</defaultSource>
-      <description>The parameter $\bar{\xi}$ appearing in equation~(1) of \cite{fakhouri_merger_2010}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_merger_2010`
+      </defaultSource>
+      <description>
+      The parameter :math:`\bar{\xi}` appearing in equation (1) of :cite:t:`fakhouri_merger_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>B</name>
       <defaultValue>0.963d0</defaultValue>
-      <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
-      <description>The parameter $B$ (the overall normalization) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_environmental_2009`
+      </defaultSource>
+      <description>
+      The parameter :math:`B` (the overall normalization) appearing in equation (11; :math:`\delta_\mathrm{7-FOF}` case) of :cite:t:`fakhouri_environmental_2009`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu</name>
       <defaultValue>0.130d0</defaultValue>
-      <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
-      <description>The parameter $\mu$ (exponent of the density) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_environmental_2009`
+      </defaultSource>
+      <description>
+      The parameter :math:`\mu` (exponent of the density) appearing in equation (11; :math:`\delta_\mathrm{7-FOF}` case) of :cite:t:`fakhouri_environmental_2009`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nu</name>
       <defaultValue>-0.0156d0</defaultValue>
-      <defaultSource>\citep{fakhouri_environmental_2009}</defaultSource>
-      <description>The parameter $\nu$ (exponent of the halo mass) appearing in equation~(11; $\delta_\mathrm{7-FOF}$ case) of \cite{fakhouri_environmental_2009}.</description>
+      <defaultSource>
+      :cite:p:`fakhouri_environmental_2009`
+      </defaultSource>
+      <description>
+      The parameter :math:`\nu` (exponent of the halo mass) appearing in equation (11; :math:`\delta_\mathrm{7-FOF}` case) of :cite:t:`fakhouri_environmental_2009`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -168,8 +206,8 @@ contains
   end function fakhouri2010ConstructorParameters
 
   function fakhouri2010ConstructorInternal(alpha,beta,gamma,eta,A,xiBar,B,mu,nu,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBranchingProbabilityFakhouri2010} merger tree branching probability class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                        :: self
@@ -203,9 +241,8 @@ contains
   end subroutine fakhouri2010Destructor
 
   double precision function fakhouri2010Rate(self,mass,deltaCritical,time,massBranch,node)
-    !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
-    \mono{deltaCritical} will undergo a branching to progenitors with mass \mono{massBranch}.
+    !!{RST
+    Return the rate per unit mass and per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass ``massBranch``.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityFakhouri2010), intent(inout), target :: self

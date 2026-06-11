@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements merger tree index property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIndicesTree">
-   <description>Extracts index identifiers for the merger tree containing each node, including the tree index and node index within that tree, enabling unique identification of nodes across all merger trees in a simulation output for cross-matching and provenance tracking.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIndicesTree" docformat="rst">
+   <description>
+   Extracts index identifiers for the merger tree containing each node, including the tree index and node index within that tree, enabling unique identification of nodes across all merger trees in a simulation output for cross-matching and provenance tracking.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesTree
-     !!{
+     !!{RST
      A merger tree index property extractor class.
      !!}
      private
@@ -39,8 +41,8 @@ Implements merger tree index property extractor class.
   end type nodePropertyExtractorIndicesTree
 
   interface nodePropertyExtractorIndicesTree
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesTree} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorIndicesTree`` property extractor class.
      !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree
@@ -48,8 +50,8 @@ Implements merger tree index property extractor class.
 contains
 
   function indicesTreeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesTree} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorIndicesTree`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function indicesTreeConstructorParameters
 
   function indicesTreeExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{indicesTree} node property extractor.
+    !!{RST
+    Implement a ``indicesTree`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesTreeExtract
@@ -81,7 +83,7 @@ contains
 
 
   function indicesTreeName(self)
-    !!{
+    !!{RST
     Return the name of the indicesTree property.
     !!}
     implicit none
@@ -94,7 +96,7 @@ contains
   end function indicesTreeName
 
   function indicesTreeDescription(self)
-    !!{
+    !!{RST
     Return a description of the indicesTree property.
     !!}
     implicit none
@@ -107,7 +109,7 @@ contains
   end function indicesTreeDescription
 
   function indicesTreeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the indicesTree property.
     !!}
     use :: Units_MetaData, only : unitType

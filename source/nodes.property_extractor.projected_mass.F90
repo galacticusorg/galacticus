@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the projected density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorProjectedMass">
+  <nodePropertyExtractor name="nodePropertyExtractorProjectedMass" docformat="rst">
    <description>
-    A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output
-    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
-    entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-    specifier}.
+   A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid `radius specifier &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers&gt;`_.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorProjectedMass
-     !!{
+     !!{RST
      A property extractor class for the projected density at a set of radii.
      !!}
      private
@@ -61,8 +57,8 @@
   end type nodePropertyExtractorProjectedMass
 
   interface nodePropertyExtractorProjectedMass
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorProjectedMass`` property extractor class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal
@@ -75,8 +71,8 @@
 contains
 
   function projectedMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorProjectedMass`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,15 +84,19 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the projected mass profile.</description>
+      <description>
+      A list of radius specifiers at which to output the projected mass profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which projected mass data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which projected mass data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -110,8 +110,8 @@ contains
   end function projectedMassConstructorParameters
 
   function projectedMassConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorProjectedMass`` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -144,8 +144,8 @@ contains
   end function projectedMassConstructorInternal
 
   subroutine projectedMassDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorProjectedMass} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorProjectedMass`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedMass), intent(inout) :: self
@@ -157,8 +157,8 @@ contains
   end subroutine projectedMassDestructor
 
   integer function projectedMassElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{projectedMass} property extractors.
+    !!{RST
+    Return the number of elements in the ``projectedMass`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout) :: self
@@ -170,8 +170,8 @@ contains
   end function projectedMassElementCount
 
   function projectedMassSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{projectedMass} property extractors.
+    !!{RST
+    Return the number of array elements in the ``projectedMass`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: projectedMassSize
@@ -184,8 +184,8 @@ contains
   end function projectedMassSize
 
   function projectedMassExtract(self,node,time,instance) result(massProjected)
-    !!{
-    Implement a \mono{projectedMass} property extractor.
+    !!{RST
+    Implement a ``projectedMass`` property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius           , radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
@@ -306,7 +306,7 @@ contains
   contains
 
     double precision function projectedMassIntegrand(radiusLogarithmic)
-      !!{
+      !!{RST
       Integrand function used for computing projected masses.
       !!}
       use :: Coordinates             , only : coordinateSpherical, assignment(=)
@@ -343,8 +343,8 @@ contains
   end function projectedMassExtract
 
   subroutine projectedMassNames(self,names,time)
-    !!{
-    Return the names of the \mono{projectedMass} properties.
+    !!{RST
+    Return the names of the ``projectedMass`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -360,8 +360,8 @@ contains
   end subroutine projectedMassNames
 
   subroutine projectedMassDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{projectedMass} property.
+    !!{RST
+    Return descriptions of the ``projectedMass`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedMass), intent(inout)                             :: self
@@ -377,8 +377,8 @@ contains
   end subroutine projectedMassDescriptions
 
   subroutine projectedMassColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{projectedMass} property.
+    !!{RST
+    Return column descriptions of the ``projectedMass`` property.
     !!}
     use            :: Units_MetaData, only : unitType
     use, intrinsic :: ISO_C_Binding , only : c_int
@@ -401,8 +401,8 @@ contains
   end subroutine projectedMassColumnDescriptions
 
   function projectedMassUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{projectedMass} properties in the SI system.
+    !!{RST
+    Return the units of the ``projectedMass`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -419,7 +419,7 @@ contains
   end function projectedMassUnitsInSI
 
   function projectedMassUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the projectedMass properties.
     !!}
     use :: Units_MetaData, only : unitType

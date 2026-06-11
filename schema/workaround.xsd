@@ -18,6 +18,8 @@
       <xs:attribute name="type" use="required"/>
       <xs:attribute name="PR"                 />
       <xs:attribute name="url"                />
+      <!-- docformat="rst" marks the description as reStructuredText. -->
+      <xs:attribute name="docformat"          />
     </xs:complexType>
   </xs:element>
   

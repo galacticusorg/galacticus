@@ -17,32 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a generalization of the ETHOS power spectrum window function class from \cite{bohr_halo_2021}.
+  !!{RST
+  Implements a generalization of the ETHOS power spectrum window function class from :cite:t:`bohr_halo_2021`.
   !!}
   
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
   use :: Numerical_Interpolation             , only : interpolator
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOSExtended">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOSExtended" docformat="rst">
    <description>
-     A generalization of the ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. The window function
-     has the same functional form
-     \begin{equation}
+   A generalization of the ETHOS window function for filtering of power spectra from :cite:t:`bohr_halo_2021`. The window function has the same functional form
+
+   .. math::
+
       W(kR) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } \frac{kR}{c_\mathrm{W}} &lt; x_\mathrm{min} \\ \frac{1}{1+ \left(\frac{kR}{c_\mathrm{W}} - x_\mathrm{min}\right)^\beta} &amp; \hbox{otherwise,} \end{array} \right.
-     \end{equation}
-     but the parameters $c_\mathrm{W}$ and $\beta$ are now scale dependent following     
-     \begin{equation}
-     x = x_0 x_1^{n-n_0}
-     \end{equation}     
-     where $x$ refers to either $c_\mathrm{W}$ or $\beta$, $n = \mathrm{d}\log P / \mathrm{d} \log k$ is the logarithmic
-     derivative of the linear theory power spectrum, and $n_0 = -2.6$ is a convenient zero-point.
+
+   but the parameters :math:`c_\mathrm{W}` and :math:`\beta` are now scale dependent following
+
+   .. math::
+
+      x = x_0 x_1^{n-n_0}
+
+   where :math:`x` refers to either :math:`c_\mathrm{W}` or :math:`\beta`, :math:`n = \mathrm{d}\log P / \mathrm{d} \log k` is the logarithmic derivative of the linear theory power spectrum, and :math:`n_0 = -2.6` is a convenient zero-point.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionETHOS) :: powerSpectrumWindowFunctionETHOSExtended
-     !!{
+     !!{RST
      A generalization of the ETHOS power spectrum window function class.
      !!}
      private
@@ -68,7 +70,7 @@
   end type powerSpectrumWindowFunctionETHOSExtended
 
   interface powerSpectrumWindowFunctionETHOSExtended
-     !!{
+     !!{RST
      Constructors for the ETHOS power spectrum window function class.
      !!}
      module procedure ETHOSExtendedConstructorParameters
@@ -90,7 +92,7 @@
 contains
 
   function ETHOSExtendedConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the ETHOS  power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -104,41 +106,53 @@ contains
          &                                                                       wavenumberScaledMinimum            , powerSpectrumSmoothingWidth
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cW0</name>
       <source>parameters</source>
       <defaultValue>3.78062835d0</defaultValue>
-      <description>The parameter $c_\mathrm{W,0}$ in the generalized ETHOS power spectrum window function.</description>
+      <description>
+      The parameter :math:`c_\mathrm{W,0}` in the generalized ETHOS power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta0</name>
       <source>parameters</source>
       <defaultValue>3.4638743d0</defaultValue>
-      <description>The parameter $\beta_0$ in the generalized ETHOS power spectrum window function.</description>
+      <description>
+      The parameter :math:`\beta_0` in the generalized ETHOS power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cW1</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $c_\mathrm{W,1}$ in the generalized ETHOS power spectrum window function.</description>
+      <description>
+      The parameter :math:`c_\mathrm{W,1}` in the generalized ETHOS power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta1</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\beta_1$ in the generalized ETHOS power spectrum window function.</description>
+      <description>
+      The parameter :math:`\beta_1` in the generalized ETHOS power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberScaledMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $x_\mathrm{min}$ in the generalized ETHOS power spectrum window function.</description>
+      <description>
+      The parameter :math:`x_\mathrm{min}` in the generalized ETHOS power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>powerSpectrumSmoothingWidth</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The width (in natural logarithm of wavenumber) over which to smooth the power spectrum when estimating the power spectrum slope.</description>
+      <description>
+      The width (in natural logarithm of wavenumber) over which to smooth the power spectrum when estimating the power spectrum slope.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
@@ -153,7 +167,7 @@ contains
   end function ETHOSExtendedConstructorParameters
 
   function ETHOSExtendedConstructorInternal(cW0,cW1,beta0,beta1,wavenumberScaledMinimum_,powerSpectrumSmoothingWidth,cosmologyParameters_,powerSpectrumPrimordialTransferred_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the ETHOS power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -175,8 +189,8 @@ contains
   end function ETHOSExtendedConstructorInternal
 
   subroutine ETHOSExtendedDestructor(self)
-    !!{
-    Destructor for the \mono{ETHOS} window function class.
+    !!{RST
+    Destructor for the ``ETHOS`` window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
@@ -188,8 +202,8 @@ contains
   end subroutine ETHOSExtendedDestructor
   
   double precision function ETHOSExtendedCW(self,wavenumber,time) result(cW)
-    !!{
-    Compute the $c_\mathrm{W}$ parameter for the extended ETHOS window function.
+    !!{RST
+    Compute the :math:`c_\mathrm{W}` parameter for the extended ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
@@ -213,8 +227,8 @@ contains
   end function ETHOSExtendedCW
   
   double precision function ETHOSExtendedBeta(self,wavenumber,time) result(beta)
-    !!{
-    Compute the $\beta$ parameter for the extended ETHOS window function.
+    !!{RST
+    Compute the :math:`\beta` parameter for the extended ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
@@ -238,8 +252,8 @@ contains
   end function ETHOSExtendedBeta
   
   double precision function ETHOSExtendedWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
-    !!{
-    Compute the $\beta$ parameter for the extended ETHOS window function.
+    !!{RST
+    Compute the :math:`\beta` parameter for the extended ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self
@@ -251,7 +265,7 @@ contains
   end function ETHOSExtendedWavenumberScaledMinimum
   
   double precision function ETHOSExtendedPowerSpectrumSlopeSmoothed(self,wavenumber,time) result(slope)
-    !!{
+    !!{RST
     Compute the logarithmic derivate of the power spectrum after smoothing.
     !!}
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLinear
@@ -337,7 +351,7 @@ contains
   end function ETHOSExtendedPowerSpectrumSlopeSmoothed
   
   double precision function integrandSmoothing(logWavenumber)
-    !!{
+    !!{RST
     Integrand function used in smoothing the power spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi

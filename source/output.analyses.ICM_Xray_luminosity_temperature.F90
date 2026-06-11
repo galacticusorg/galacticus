@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an ICM X-ray luminosity-temperature relation output analysis class.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisICMXrayLuminosityTemperature">
-   <description>Computes the intracluster medium X-ray luminosity--temperature relation for galaxy groups and clusters, comparing model predictions to observational data with configurable random and systematic error polynomial coefficients for both luminosity and temperature.</description>
+  <outputAnalysis name="outputAnalysisICMXrayLuminosityTemperature" docformat="rst">
+   <description>
+   Computes the intracluster medium X-ray luminosity--temperature relation for galaxy groups and clusters, comparing model predictions to observational data with configurable random and systematic error polynomial coefficients for both luminosity and temperature.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisICMXrayLuminosityTemperature
-     !!{
+     !!{RST
      An ICM X-ray luminosity-temperature relation output analysis class.
      !!}
      private
@@ -41,8 +43,8 @@
   end type outputAnalysisICMXrayLuminosityTemperature
 
   interface outputAnalysisICMXrayLuminosityTemperature
-     !!{
-     Constructors for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisICMXrayLuminosityTemperature`` output analysis class.
      !!}
      module procedure icmXrayLuminosityTemperatureConstructorParameters
      module procedure icmXrayLuminosityTemperatureConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function icmXrayLuminosityTemperatureConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisICMXrayLuminosityTemperature`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter          , inputParameters
     use :: Cooling_Functions      , only : coolingFunctionClass
@@ -72,33 +74,41 @@ contains
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.05d0</defaultValue>
-      <description>The minimum random error for X-ray temperature.</description>
+      <description>
+      The minimum random error for X-ray temperature.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.05d0</defaultValue>
-      <description>The maximum random error for X-ray temperature.</description>
+      <description>
+      The maximum random error for X-ray temperature.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -118,8 +128,8 @@ contains
   end function icmXrayLuminosityTemperatureConstructorParameters
 
   function icmXrayLuminosityTemperatureConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,outputTimes_,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisICMXrayLuminosityTemperature`` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                      , only : filterList                                         , galacticFilterAll                      , galacticFilterBasicMass               , galacticFilterHaloIsolated
     use :: Error                                 , only : Error_Report
@@ -318,8 +328,8 @@ contains
 
 
   subroutine icmXrayLuminosityTemperatureDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisICMXrayLuminosityTemperature} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisICMXrayLuminosityTemperature`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisICMXrayLuminosityTemperature), intent(inout) :: self

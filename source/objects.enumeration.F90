@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines the base class for all \mono{enumeration} classes.
+!!{RST
+Contains a module which defines the base class for all ``enumeration`` classes.
 !!}
 
 module Enumerations
-  !!{
-  Defines the base class for all \mono{enumeration} classes.
+  !!{RST
+  Defines the base class for all ``enumeration`` classes.
   !!}
   implicit none
   private
   public :: enumerationType
 
   type, abstract :: enumerationType
-     !!{
-     The base class for all \mono{enumeration} classes.
+     !!{RST
+     The base class for all ``enumeration`` classes.
      !!}
      integer :: ID
    contains
@@ -62,8 +62,8 @@ module Enumerations
 contains
 
   elemental logical function enumerationIsNotEqual(enumerationA,enumerationB)
-    !!{
-    Return true if \mono{enumerationA} is not equal to \mono{enumerationB}.
+    !!{RST
+    Return true if ``enumerationA`` is not equal to ``enumerationB``.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -77,8 +77,8 @@ contains
   end function enumerationIsNotEqual
 
   elemental logical function enumerationLessThan(enumerationA,enumerationB)
-    !!{
-    Return true if \mono{enumerationA} is less than \mono{enumerationB}.
+    !!{RST
+    Return true if ``enumerationA`` is less than ``enumerationB``.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -92,8 +92,8 @@ contains
   end function enumerationLessThan
 
   elemental logical function enumerationLessThanOrEqual(enumerationA,enumerationB)
-    !!{
-    Return true if \mono{enumerationA} is less than or equal to \mono{enumerationB}.
+    !!{RST
+    Return true if ``enumerationA`` is less than or equal to ``enumerationB``.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -107,8 +107,8 @@ contains
   end function enumerationLessThanOrEqual
 
   elemental logical function enumerationGreaterThan(enumerationA,enumerationB)
-    !!{
-    Return true if \mono{enumerationA} is greater than \mono{enumerationB}.
+    !!{RST
+    Return true if ``enumerationA`` is greater than ``enumerationB``.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -122,8 +122,8 @@ contains
   end function enumerationGreaterThan
 
   elemental logical function enumerationGreaterThanOrEqual(enumerationA,enumerationB)
-    !!{
-    Return true if \mono{enumerationA} is greater than or equal to \mono{enumerationB}.
+    !!{RST
+    Return true if ``enumerationA`` is greater than or equal to ``enumerationB``.
     !!}
     implicit none
     class(enumerationType), intent(in   ) :: enumerationA, enumerationB
@@ -137,8 +137,8 @@ contains
   end function enumerationGreaterThanOrEqual
 
   elemental subroutine enumerationSubtractionInteger(enumerationA,enumerationBID)
-    !!{
-    Subtract an integer ID from \mono{enumerationA}.
+    !!{RST
+    Subtract an integer ID from ``enumerationA``.
     !!}
     implicit none
     class  (enumerationType), intent(inout) :: enumerationA

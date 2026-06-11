@@ -23,7 +23,7 @@
   use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: cylindricalBoundaries
-     !!{
+     !!{RST
      Type used to store boundaries of computational domain cells for cylindrical domains.
      !!}
      private
@@ -31,12 +31,14 @@
   end type cylindricalBoundaries
   
   !![
-  <computationalDomain name="computationalDomainCylindrical">
-   <description>Defines a computational domain on a cylindrical grid, with radial and vertical boundaries specified by \mono{[rBoundaries]} and \mono{[zBoundaries]}, and the number of cells in each dimension by \mono{[countCells]}. Convergence of integrated cell quantities is monitored using percentile and threshold criteria set by \mono{[convergencePercentile]} and \mono{[convergenceThreshold]}.</description>
+  <computationalDomain name="computationalDomainCylindrical" docformat="rst">
+   <description>
+   Defines a computational domain on a cylindrical grid, with radial and vertical boundaries specified by ``[rBoundaries]`` and ``[zBoundaries]``, and the number of cells in each dimension by ``[countCells]``. Convergence of integrated cell quantities is monitored using percentile and threshold criteria set by ``[convergencePercentile]`` and ``[convergenceThreshold]``.
+   </description>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCylindrical
-     !!{
+     !!{RST
      Implementation of a computational domain using a cylindrical grid.
      !!}
      private
@@ -67,15 +69,15 @@
   end type computationalDomainCylindrical
 
   interface computationalDomainCylindrical
-     !!{
-     Constructors for the \refClass{computationalDomainCylindrical} computational domain.
+     !!{RST
+     Constructors for the ``computationalDomainCylindrical`` computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
   end interface computationalDomainCylindrical
 
   type, extends(domainIterator) :: domainIteratorCylindrical
-     !!{
+     !!{RST
      An interactor for cylindrical computational domains.
      !!}
      private
@@ -92,8 +94,8 @@
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainCylindrical} computational domain class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainCylindrical`` computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -108,40 +110,52 @@ contains
          &                                                                 convergenceRatioThreshold
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rBoundaries</name>
       <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[r_\mathrm{min}, r_\mathrm{max}]$ specifying the radial extent of the cylindrical computational domain, where $r=0$ is the cylinder axis.</description>
+      <description>
+      A two-element array :math:`[r_\mathrm{min}, r_\mathrm{max}]` specifying the radial extent of the cylindrical computational domain, where :math:`r=0` is the cylinder axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the vertical extent of the cylindrical computational domain along the symmetry axis.</description>
+      <description>
+      A two-element array :math:`[z_\mathrm{min}, z_\mathrm{max}]` specifying the vertical extent of the cylindrical computational domain along the symmetry axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countCells</name>
       <defaultValue>[3_c_size_t,3_c_size_t]</defaultValue>
-      <description>A two-element integer array specifying the number of grid cells along the $r$ and $z$ dimensions of the cylindrical computational domain, controlling the spatial resolution of the radiative transfer calculation.</description>
+      <description>
+      A two-element integer array specifying the number of grid cells along the :math:`r` and :math:`z` dimensions of the cylindrical computational domain, controlling the spatial resolution of the radiative transfer calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergencePercentile</name>
       <defaultValue>0.99d0</defaultValue>
-      <description>The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells must satisfy the convergence threshold, allowing outlier cells to be excluded.</description>
+      <description>
+      The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells must satisfy the convergence threshold, allowing outlier cells to be excluded.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergenceThreshold</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value.</description>
+      <description>
+      The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergenceRatioThreshold</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating the solution is no longer changing significantly.</description>
+      <description>
+      The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating the solution is no longer changing significantly.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
@@ -159,8 +173,8 @@ contains
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainCylindrical} computational domain class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainCylindrical`` computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -191,8 +205,8 @@ contains
   end function cylindricalConstructorInternal
 
   subroutine cylindricalDestructor(self)
-    !!{
-    Destructor for the \refClass{computationalDomainCylindrical} computational domain class.
+    !!{RST
+    Destructor for the ``computationalDomainCylindrical`` computational domain class.
     !!}
     implicit none
     type(computationalDomainCylindrical), intent(inout) :: self
@@ -205,7 +219,7 @@ contains
   end subroutine cylindricalDestructor
 
   subroutine cylindricalInitialize(self)
-    !!{
+    !!{RST
     Initialize the computational domain.
     !!}
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCylindrical
@@ -290,7 +304,7 @@ contains
   end subroutine cylindricalInitialize
 
   subroutine cylindricalIterator(self,iterator)
-    !!{
+    !!{RST
     Construct an iterator for this domain,
     !!}
     implicit none
@@ -315,7 +329,7 @@ contains
   end function domainIteratorCylindricalNext
   
   subroutine cylindricalReset(self)
-    !!{
+    !!{RST
     Reset the computational domain prior to a new iteration.
     !!}
     implicit none
@@ -331,7 +345,7 @@ contains
   end subroutine cylindricalReset
 
   subroutine cylindricalIndicesFromPosition(self,position,indices)
-    !!{
+    !!{RST
     Determine the indices of the cell containing the given point.
     !!}
     use :: Arrays_Search, only : searchArray
@@ -366,7 +380,7 @@ contains
   end subroutine cylindricalIndicesFromPosition
 
   double precision function cylindricalAbsorptionCoefficient(self,photonPacket,indices)
-    !!{
+    !!{RST
     Return the absorption coefficient for the given photon packet in the given domain cell.
     !!}
     implicit none
@@ -385,7 +399,7 @@ contains
   end function cylindricalAbsorptionCoefficient
   
   double precision function cylindricalLengthToCellBoundary(self,photonPacket,indices,indicesNeighbor,positionBoundary)
-    !!{
+    !!{RST
     Return the length to the first domain cell boundary intersected by the given photon packet.
     !!}
     implicit none
@@ -509,8 +523,8 @@ contains
   end function cylindricalLengthToCellBoundary
 
   subroutine cylindricalAccumulatePhotonPacket(self,photonPacket,indices,absorptionCoefficient,lengthTraversed)
-    !!{
-    Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!{RST
+    Accumulate "absorptions" from the photon packet as it traverses a cell of the computational domain.
     !!}
     implicit none
     class           (computationalDomainCylindrical    )              , intent(inout) :: self
@@ -531,7 +545,7 @@ contains
   end subroutine cylindricalAccumulatePhotonPacket
 
   logical function cylindricalInteractWithPhotonPacket(self,photonPacket,indices)
-    !!{
+    !!{RST
     Allow matter in a domain cell to interact with the photon packet.
     !!}
     implicit none
@@ -550,7 +564,7 @@ contains
   end function cylindricalInteractWithPhotonPacket
   
   subroutine cylindricalStateSolve(self)
-    !!{
+    !!{RST
     Solve for the state of matter in the computational domain.
     !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
@@ -632,7 +646,7 @@ contains
   end subroutine cylindricalStateSolve
 
   logical function cylindricalConverged(self)
-    !!{
+    !!{RST
     Return the convergence state of the computational domain.
     !!}
     use :: Arrays_Search                  , only : searchArray
@@ -719,7 +733,7 @@ contains
   end function cylindricalConverged
 
   subroutine cylindricalOutput(self,outputGroup)
-    !!{
+    !!{RST
     Output the computational domain.
     !!}
     !$ use :: HDF5_Access                     , only : hdf5Access

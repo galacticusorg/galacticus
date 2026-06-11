@@ -21,12 +21,14 @@
   use :: NBody_Operators, only : nbodyOperator, nbodyOperatorClass
 
   !![
-  <task name="taskNBodyAnalyze">
-   <description>A task which imports particle or halo data from an N-body simulation using a configurable importer, applies a chain of operators (e.g., computing density profiles, identifying substructure, computing statistics), and optionally writes the processed data back to the imported format.</description>
+  <task name="taskNBodyAnalyze" docformat="rst">
+   <description>
+   A task which imports particle or halo data from an N-body simulation using a configurable importer, applies a chain of operators (e.g., computing density profiles, identifying substructure, computing statistics), and optionally writes the processed data back to the imported format.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskNBodyAnalyze
-     !!{
+     !!{RST
      Implementation of a task which analyzes N-body simulation data.
      !!}
      private
@@ -42,8 +44,8 @@
   end type taskNBodyAnalyze
 
   interface taskNBodyAnalyze
-     !!{
-     Constructors for the \refClass{taskNBodyAnalyze} task.
+     !!{RST
+     Constructors for the ``taskNBodyAnalyze`` task.
      !!}
      module procedure nbodyAnalyzeConstructorParameters
      module procedure nbodyAnalyzeConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function nbodyAnalyzeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskNBodyAnalyze} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskNBodyAnalyze`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -81,11 +83,13 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>storeBackToImported</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, computed properties and results will be stored back to the file from which a simulation was imported (assuming it is of HDF5 type).</description>
+      <description>
+      If true, computed properties and results will be stored back to the file from which a simulation was imported (assuming it is of HDF5 type).
+      </description>
     </inputParameter>
     <objectBuilder class="nbodyImporter" name="nbodyImporter_" source="parameters"/>
     <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
@@ -100,8 +104,8 @@ contains
   end function nbodyAnalyzeConstructorParameters
 
   function nbodyAnalyzeConstructorInternal(storeBackToImported,nbodyImporter_,nbodyOperator_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskNBodyAnalyze} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskNBodyAnalyze`` task class which takes a parameter set as input.
     !!}
     implicit none
     type   (taskNBodyAnalyze  )                        :: self
@@ -119,8 +123,8 @@ contains
   end function nbodyAnalyzeConstructorInternal
 
   subroutine nbodyAnalyzeDestructor(self)
-    !!{
-    Destructor for the \refClass{taskNBodyAnalyze} task class.
+    !!{RST
+    Destructor for the ``taskNBodyAnalyze`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -135,7 +139,7 @@ contains
   end subroutine nbodyAnalyzeDestructor
 
   subroutine nbodyAnalyzePerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use :: Display              , only : displayIndent                    , displayUnindent
@@ -176,7 +180,7 @@ contains
   end subroutine nbodyAnalyzePerform
 
   logical function nbodyAnalyzeRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

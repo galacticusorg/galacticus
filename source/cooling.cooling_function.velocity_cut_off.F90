@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
   !!}
 
@@ -26,9 +26,11 @@
 
   ! Enumeration for whether cut off is before or after the given epoch.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>cutOffWhen</name>
-   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <description>
+   Specifies whether cooling is cut off before or after the given epoch.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="before"/>
@@ -37,12 +39,14 @@
   !!]
 
   !![
-  <coolingFunction name="coolingFunctionVelocityCutOff">
-   <description>A cooling function class which suppresses the cooling function of another class in halos with virial velocities below \mono{[velocityCutOff]} and at redshifts before or after \mono{[redshiftCutOff]}, as selected by \mono{[whenCutOff]}. The formation or current node virial velocity is used depending on \mono{[useFormationNode]}.</description>
+  <coolingFunction name="coolingFunctionVelocityCutOff" docformat="rst">
+   <description>
+   A cooling function class which suppresses the cooling function of another class in halos with virial velocities below ``[velocityCutOff]`` and at redshifts before or after ``[redshiftCutOff]``, as selected by ``[whenCutOff]``. The formation or current node virial velocity is used depending on ``[useFormationNode]``.
+   </description>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionVelocityCutOff
-     !!{
+     !!{RST
      A cooling function class which cuts off another cooling function below a certain velocity and before/after a certain epoch.
      !!}
      private
@@ -68,8 +72,8 @@
   end type coolingFunctionVelocityCutOff
 
   interface coolingFunctionVelocityCutOff
-     !!{
-     Constructors for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
+     !!{RST
+     Constructors for the ``coolingFunctionVelocityCutOff`` cooling function class.
      !!}
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
@@ -78,8 +82,8 @@
 contains
 
   function velocityCutOffConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``coolingFunctionVelocityCutOff`` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,29 +97,37 @@ contains
     logical                                                        :: useFormationNode
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFormationNode</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
+      <description>
+      Specifies whether to use the virial velocity of the formation node or current node in the cooling rate "cut-off" modifier.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCutOff</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+      <description>
+      The velocity below which cooling is suppressed in the "cut-off" cooling rate modifier method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftCutOff</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+      <description>
+      The redshift below which cooling is suppressed in the "cut-off" cooling rate modifier method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>whenCutOff</name>
       <defaultValue>var_str('after')</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether cooling is cut off before or after \mono{[redshiftCutOff]}.</description>
+      <description>
+      Specifies whether cooling is cut off before or after ``[redshiftCutOff]``.
+      </description>
     </inputParameter>
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -147,8 +159,8 @@ contains
   end function velocityCutOffConstructorParameters
 
   function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
+    !!{RST
+    Internal constructor for the ``coolingFunctionVelocityCutOff`` cooling function class.
     !!}
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
@@ -167,8 +179,8 @@ contains
   end function velocityCutOffConstructorInternal
 
   subroutine velocityCutOffDestructor(self)
-    !!{
-    Destructor for the \refClass{coolingFunctionVelocityCutOff} cooling function class.
+    !!{RST
+    Destructor for the ``coolingFunctionVelocityCutOff`` cooling function class.
     !!}
     implicit none
     type(coolingFunctionVelocityCutOff), intent(inout) :: self
@@ -182,7 +194,7 @@ contains
   end subroutine velocityCutOffDestructor
   
   logical function velocityCutOffIsCutOff(self,node)
-    !!{
+    !!{RST
     Return true if this cooling function is to be cut off.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -210,7 +222,7 @@ contains
   end function velocityCutOffIsCutOff
 
   double precision function velocityCutOffCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the cooling function cut off above/below a given velocity.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -231,7 +243,7 @@ contains
   end function velocityCutOffCoolingFunction
 
   double precision function velocityCutOffCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !!{
+    !!{RST
     Return the fraction of the cooling function due to emission in the given band.
     !!}
     implicit none
@@ -252,7 +264,7 @@ contains
   end function velocityCutOffCoolingFunctionFractionInBand
 
   double precision function velocityCutOffCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the logarithmic gradient with respect to density of the cooling function.
     !!}
    implicit none
@@ -272,7 +284,7 @@ contains
   end function velocityCutOffCoolingFunctionDensityLogSlope
 
   double precision function velocityCutOffCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the logarithmic gradient with respect to temperature of the cooling function.
     !!}
     implicit none

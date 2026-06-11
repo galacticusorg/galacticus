@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles node branch jump events.
 !!}
 
 module Node_Branch_Jumps
-  !!{
+  !!{RST
   Handles satellite node branch jump events.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Node_Branch_Jumps
 contains
 
   logical function Node_Branch_Jump(event,node,deadlockStatus)
-    !!{
+    !!{RST
     Moves a satellite node to a different branch of the merger tree.
     !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo

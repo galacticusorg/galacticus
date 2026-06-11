@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that outputs complete data on node evolution.
   !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
   !![
-  <nodeOperator name="nodeOperatorEvolutionOutput">
-   <description>A node operator class that records the complete evolutionary trajectory of each node to an XML file at each ODE post-step, for debugging and detailed analysis. \mono{outputFileName} specifies the output file (default: \mono{mergerTreeEvolution.xml}); a \mono{galacticFilter} selects which nodes to record (default: all nodes). Useful for inspecting how galaxy properties evolve between output snapshots.</description>
+  <nodeOperator name="nodeOperatorEvolutionOutput" docformat="rst">
+   <description>
+   A node operator class that records the complete evolutionary trajectory of each node to an XML file at each ODE post-step, for debugging and detailed analysis. ``outputFileName`` specifies the output file (default: ``mergerTreeEvolution.xml``); a ``galacticFilter`` selects which nodes to record (default: all nodes). Useful for inspecting how galaxy properties evolve between output snapshots.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEvolutionOutput
-     !!{
+     !!{RST
      A node operator class that shifts node indices at node promotion.
      !!}
      private
@@ -42,8 +44,8 @@
   end type nodeOperatorEvolutionOutput
   
   interface nodeOperatorEvolutionOutput
-     !!{
-     Constructors for the \refClass{nodeOperatorEvolutionOutput} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorEvolutionOutput`` node operator class.
      !!}
      module procedure evolutionOutputConstructorParameters
      module procedure evolutionOutputConstructorInternal
@@ -52,8 +54,8 @@
 contains
   
   function evolutionOutputConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorEvolutionOutput} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorEvolutionOutput`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,10 +65,12 @@ contains
     type (varying_string             )                :: outputFileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputFileName</name>
       <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
-      <description>The name of the file to which merger tree evolution should be output.</description>
+      <description>
+      The name of the file to which merger tree evolution should be output.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="galacticFilter" parameterName="galacticFilter" name="galacticFilter_" source="parameters">
@@ -84,8 +88,8 @@ contains
   end function evolutionOutputConstructorParameters
 
   function evolutionOutputConstructorInternal(outputFileName,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorEvolutionOutput} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorEvolutionOutput`` node operator class.
     !!}
     implicit none
     type (nodeOperatorEvolutionOutput)                        :: self
@@ -101,8 +105,8 @@ contains
   end function evolutionOutputConstructorInternal
   
   subroutine evolutionOutputDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorEvolutionOutput} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorEvolutionOutput`` node operator class.
     !!}
     implicit none
     type(nodeOperatorEvolutionOutput), intent(inout) :: self
@@ -116,7 +120,7 @@ contains
   end subroutine evolutionOutputDestructor
   
   subroutine evolutionOutputDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Operate on the node after differential evolution
     !!}
     implicit none

@@ -17,25 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that implements reincorporation of outflowing gas into the \gls{cgm}.
+  !!{RST
+  Implements a node operator class that implements reincorporation of outflowing gas into the :term:`CGM`.
   !!}
 
   use :: Hot_Halo_Outflows_Reincorporations, only : hotHaloOutflowReincorporationClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMOutflowReincorporation">
+  <nodeOperator name="nodeOperatorCGMOutflowReincorporation" docformat="rst">
    <description>
-    A node operator class that reincorporates gas previously ejected by stellar feedback back into the \gls{cgm} hot gas
-    reservoir, using a \refClass{hotHaloOutflowReincorporationClass} to compute the reincorporation rate.
-    \mono{includeSatellites} controls whether satellite halos also have their outflowing gas reincorporated, or whether
-    reincorporation is applied only to central galaxies.
+   A node operator class that reincorporates gas previously ejected by stellar feedback back into the :term:`CGM` hot gas reservoir, using a ``hotHaloOutflowReincorporationClass`` to compute the reincorporation rate. ``includeSatellites`` controls whether satellite halos also have their outflowing gas reincorporated, or whether reincorporation is applied only to central galaxies.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMOutflowReincorporation
-     !!{
-     A node operator class that implements reincorporation of outflowing gas into the \gls{cgm}.
+     !!{RST
+     A node operator class that implements reincorporation of outflowing gas into the :term:`CGM`.
      !!}
      private
      class  (hotHaloOutflowReincorporationClass), pointer :: hotHaloOutflowReincorporation_ => null()
@@ -48,8 +45,8 @@
   end type nodeOperatorCGMOutflowReincorporation
   
   interface nodeOperatorCGMOutflowReincorporation
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
      !!}
      module procedure cgmOutflowReincorporationConstructorParameters
      module procedure cgmOutflowReincorporationConstructorInternal
@@ -58,8 +55,8 @@
 contains
   
   function cgmOutflowReincorporationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,19 +66,19 @@ contains
     logical                                                       :: includeSatellites             , outflowToColdMode
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeSatellites</name>
       <defaultValue>.true.</defaultValue>
       <description>
-	If true, perform reincorporation for all galaxies. Otherwise, reincorporation is performed only for central galaxies.
+      If true, perform reincorporation for all galaxies. Otherwise, reincorporation is performed only for central galaxies.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outflowToColdMode</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	If true, outflows are reincorporated into the cold mode component. Otherwise they are reincorporated into the hot mode component.
+      If true, outflows are reincorporated into the cold mode component. Otherwise they are reincorporated into the hot mode component.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -96,8 +93,8 @@ contains
   end function cgmOutflowReincorporationConstructorParameters
 
   function cgmOutflowReincorporationConstructorInternal(includeSatellites,outflowToColdMode,hotHaloOutflowReincorporation_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
     !!}
     implicit none
     type   (nodeOperatorCGMOutflowReincorporation)                        :: self
@@ -111,7 +108,7 @@ contains
   end function cgmOutflowReincorporationConstructorInternal
 
   subroutine cgmOutflowReincorporationAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
@@ -125,8 +122,8 @@ contains
   end subroutine cgmOutflowReincorporationAutoHook
   
   subroutine cgmOutflowReincorporationDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMOutflowReincorporation} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -140,8 +137,8 @@ contains
   end subroutine cgmOutflowReincorporationDestructor
 
   subroutine cgmOutflowReincorporationNodePromote(self,node)
-    !!{
-    Update the \gls{cgm} outflowed content of a node as a result of promotion.
+    !!{RST
+    Update the :term:`CGM` outflowed content of a node as a result of promotion.
     !!}
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo
     use :: Abundances_Structure         , only : zeroAbundances
@@ -196,8 +193,8 @@ contains
   end subroutine cgmOutflowReincorporationNodePromote
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Remove any hot halo associated with \mono{node} before it merges with its host halo.
+    !!{RST
+    Remove any hot halo associated with ``node`` before it merges with its host halo.
     !!}
     use :: Error                        , only : Error_Report
     use :: Abundances_Structure         , only : zeroAbundances
@@ -269,8 +266,8 @@ contains
   end subroutine satelliteMerger
   
   subroutine cgmOutflowReincorporationDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Perform accretion of gas into the \gls{cgm}.
+    !!{RST
+    Perform accretion of gas into the :term:`CGM`.
     !!}
     use :: Abundances_Structure         , only : abundances          , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances  , operator(*)

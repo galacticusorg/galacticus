@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a fixed halo environment.
 !!}
 
@@ -27,8 +27,10 @@ Implements a fixed halo environment.
   use :: Tables                    , only : table2DLinLinLin
 
   !![
-  <haloEnvironment name="haloEnvironmentFixed">
-   <description>Implements a halo environment with a fixed, user-specified overdensity, representing a deterministic large-scale density field around a halo. The environmental overdensity is set by \mono{[overdensity]}, while the filtering scale for variance computations is specified by either \mono{[radiusEnvironment]} or the corresponding environmental mass \mono{[massEnvironment]}.</description>
+  <haloEnvironment name="haloEnvironmentFixed" docformat="rst">
+   <description>
+   Implements a halo environment with a fixed, user-specified overdensity, representing a deterministic large-scale density field around a halo. The environmental overdensity is set by ``[overdensity]``, while the filtering scale for variance computations is specified by either ``[radiusEnvironment]`` or the corresponding environmental mass ``[massEnvironment]``.
+   </description>
    <deepCopy>
     <functionClass variables="sphericalCollapseSolver_"/>
    </deepCopy>
@@ -38,7 +40,7 @@ Implements a fixed halo environment.
   </haloEnvironment>
   !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentFixed
-     !!{
+     !!{RST
      A fixed halo environment class.
      !!}
      private
@@ -66,8 +68,8 @@ Implements a fixed halo environment.
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
-     !!{
-     Constructors for the \refClass{haloEnvironmentFixed} halo environment class.
+     !!{RST
+     Constructors for the ``haloEnvironmentFixed`` halo environment class.
      !!}
      module procedure fixedHEConstructorParameters
      module procedure fixedHEConstructorInternal
@@ -76,8 +78,8 @@ Implements a fixed halo environment.
 contains
 
   function fixedHEConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloEnvironmentFixed} halo environment class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloEnvironmentFixed`` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,22 +91,28 @@ contains
          &                                                      overdensity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>overdensity</name>
       <source>parameters</source>
-      <description>The fixed linear overdensity $\delta$ of the large-scale environment assigned uniformly to all halos; a positive value places halos in an overdense region, while negative values simulate voids.</description>
+      <description>
+      The fixed linear overdensity :math:`\delta` of the large-scale environment assigned uniformly to all halos; a positive value places halos in an overdense region, while negative values simulate voids.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEnvironment</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The radius of the sphere used to determine the variance in the environmental density.</description>
+      <description>
+      The radius of the sphere used to determine the variance in the environmental density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massEnvironment</name>
       <source>parameters</source>
       <defaultValue>1.0d15</defaultValue>
-      <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
+      <description>
+      The mass within the sphere sphere used to determine the variance in the environmental density.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
@@ -121,8 +129,8 @@ contains
   end function fixedHEConstructorParameters
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
-    !!{
-    Internal constructor for the \refClass{haloEnvironmentFixed} halo environment class.
+    !!{RST
+    Internal constructor for the ``haloEnvironmentFixed`` halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -165,8 +173,8 @@ contains
   end function fixedHEConstructorInternal
 
   subroutine fixedHEDestructor(self)
-    !!{
-    Destructor for the \refClass{haloEnvironmentFixed} halo environment class.
+    !!{RST
+    Destructor for the ``haloEnvironmentFixed`` halo environment class.
     !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self
@@ -180,8 +188,8 @@ contains
   end subroutine fixedHEDestructor
 
   double precision function fixedHEOverdensityLinear(self,node,presentDay)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -203,8 +211,8 @@ contains
   end function fixedHEOverdensityLinear
 
   double precision function fixedHEOverdensityLinearGradientTime(self,node)
-    !!{
-    Return the time gradient of the environment of the given \mono{node}.
+    !!{RST
+    Return the time gradient of the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -222,8 +230,8 @@ contains
   end function fixedHEOverdensityLinearGradientTime
 
   double precision function fixedHEOverdensityNonLinear(self,node)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -243,7 +251,7 @@ contains
   end function fixedHEOverdensityNonLinear
 
   double precision function fixedHEEnvironmentRadius(self)
-    !!{
+    !!{RST
     Return the radius of the environment.
     !!}
     implicit none
@@ -254,7 +262,7 @@ contains
   end function fixedHEEnvironmentRadius
 
   double precision function fixedHEEnvironmentMass(self)
-    !!{
+    !!{RST
     Return the mass of the environment.
     !!}
     implicit none
@@ -265,8 +273,8 @@ contains
   end function fixedHEEnvironmentMass
 
   double precision function fixedHEOverdensityLinearMaximum(self)
-    !!{
-    Return the maximum overdensity for which the \gls{pdf} is non-zero.
+    !!{RST
+    Return the maximum overdensity for which the :term:`PDF` is non-zero.
     !!}
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
@@ -276,7 +284,7 @@ contains
   end function fixedHEOverdensityLinearMaximum
 
   double precision function fixedHEPDF(self,overdensity)
-    !!{
+    !!{RST
     Return the PDF of the environmental overdensity.
     !!}
     implicit none
@@ -290,7 +298,7 @@ contains
   end function fixedHEPDF
 
   double precision function fixedHECDF(self,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     implicit none
@@ -307,7 +315,7 @@ contains
   end function fixedHECDF
 
   subroutine fixedHEOverdensityLinearSet(self,node,overdensity)
-    !!{
+    !!{RST
     Set the overdensity of the environmental overdensity.
     !!}
     use :: Error, only : Error_Report
@@ -322,7 +330,7 @@ contains
   end subroutine fixedHEOverdensityLinearSet
 
   logical function fixedHEOverdensityIsSettable(self)
-    !!{
+    !!{RST
     Return false as the overdensity is not settable.
     !!}
     implicit none
@@ -334,7 +342,7 @@ contains
   end function fixedHEOverdensityIsSettable
 
   logical function fixedHEIsNodeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the node.
     !!}
     implicit none
@@ -346,7 +354,7 @@ contains
   end function fixedHEIsNodeDependent
 
   logical function fixedHEIsTreeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the tree.
     !!}
     implicit none

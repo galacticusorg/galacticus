@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an abstract spherical mass distribution class for SIDM models.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
   
   !![
-  <massDistribution name="massDistributionSphericalSIDM" abstract="yes">
+  <massDistribution name="massDistributionSphericalSIDM" abstract="yes" docformat="rst">
    <description>
-     An abstract mass distribution class for spherical SIDM models. Provides a method to compute interaction radii.
+   An abstract mass distribution class for spherical SIDM models. Provides a method to compute interaction radii.
    </description>
   </massDistribution>
   !!]
   type, abstract, extends(massDistributionSphericalDecorator) :: massDistributionSphericalSIDM
-     !!{
+     !!{RST
      Implementation of a spherical mass distribution for SIDM models.
      !!}
      private
@@ -55,8 +55,8 @@
 contains
 
   double precision function sidmRadiusInteraction(self) result(radiusInteraction)
-    !!{
-    Returns the characteristic interaction radius (in Mpc) of the self-interacting dark matter profile of \mono{node}.
+    !!{RST
+    Returns the characteristic interaction radius (in Mpc) of the self-interacting dark matter profile of ``node``.
     !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Error                           , only : Error_Report
@@ -106,7 +106,7 @@ contains
   end function sidmRadiusInteraction
 
   double precision function sidmRadiusInteractionRoot(radius) result(residual)
-    !!{
+    !!{RST
     Root function used in seeking the characteristic interaction radius in self-interacting dark matter profiles.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr

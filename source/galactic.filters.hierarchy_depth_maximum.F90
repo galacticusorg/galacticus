@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only halos below a specified hierarchy depth.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterHierarchyDepthMaximum">
-   <description>Passes only nodes up to a specified maximum depth in the subhalo hierarchy, filtering out sub-subhalos and higher-order substructure beyond a given level of nesting, useful when analyses should not extend beyond a certain hierarchy depth.</description>
+  <galacticFilter name="galacticFilterHierarchyDepthMaximum" docformat="rst">
+   <description>
+   Passes only nodes up to a specified maximum depth in the subhalo hierarchy, filtering out sub-subhalos and higher-order substructure beyond a given level of nesting, useful when analyses should not extend beyond a certain hierarchy depth.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHierarchyDepthMaximum
-     !!{
+     !!{RST
      A galactic filter class which passes only isolated halos.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a filter which passes only halos below a specified hierarchy depth.
   end type galacticFilterHierarchyDepthMaximum
 
   interface galacticFilterHierarchyDepthMaximum
-     !!{
-     Constructors for the \refClass{galacticFilterHierarchyDepthMaximum} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class.
      !!}
      module procedure hierarchyDepthMaximumConstructorParameters
      module procedure hierarchyDepthMaximumConstructorInternal
@@ -47,8 +49,8 @@ Implements a filter which passes only halos below a specified hierarchy depth.
 contains
 
   function hierarchyDepthMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHierarchyDepthMaximum} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     integer                                                     :: depthHierarchyLargest
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthHierarchyLargest</name>
       <source>parameters</source>
-      <description>The largest value of hierarchy maximum depth to pass.</description>
+      <description>
+      The largest value of hierarchy maximum depth to pass.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterHierarchyDepthMaximum(depthHierarchyLargest)
@@ -71,8 +75,8 @@ contains
   end function hierarchyDepthMaximumConstructorParameters
 
   function hierarchyDepthMaximumConstructorInternal(depthHierarchyLargest) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHierarchyDepthMaximum} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterHierarchyDepthMaximum)                :: self
@@ -88,7 +92,7 @@ contains
   end function hierarchyDepthMaximumConstructorInternal
 
   logical function hierarchyDepthMaximumPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only isolated halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

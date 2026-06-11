@@ -20,12 +20,14 @@
   use :: Posterior_Sampling_Simulation, only : posteriorSampleSimulation, posteriorSampleSimulationClass
 
   !![
-  <task name="taskPosteriorSample">
-   <description>A task which performs Bayesian inference by sampling from the posterior distribution of model parameters given observational constraints. Delegates to a \refClass{posteriorSampleSimulationClass} object that implements the specific sampling algorithm (e.g., MCMC, differential evolution, or particle swarm optimization).</description>
+  <task name="taskPosteriorSample" docformat="rst">
+   <description>
+   A task which performs Bayesian inference by sampling from the posterior distribution of model parameters given observational constraints. Delegates to a ``posteriorSampleSimulationClass`` object that implements the specific sampling algorithm (e.g., MCMC, differential evolution, or particle swarm optimization).
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskPosteriorSample
-     !!{
+     !!{RST
      Implementation of a task which performs sampling from a posterior distribution.
      !!}
      private
@@ -37,8 +39,8 @@
   end type taskPosteriorSample
 
   interface taskPosteriorSample
-     !!{
-     Constructors for the \refClass{taskPosteriorSample} task.
+     !!{RST
+     Constructors for the ``taskPosteriorSample`` task.
      !!}
      module procedure posteriorSampleConstructorParameters
      module procedure posteriorSampleConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function posteriorSampleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskPosteriorSample} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskPosteriorSample`` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -61,9 +63,11 @@ contains
     logical                                                :: initializeNodeClassHierarchy
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>initializeNodeClassHierarchy</name>
-      <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
+      <description>
+      If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.
+      </description>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -95,8 +99,8 @@ contains
   end function posteriorSampleConstructorParameters
 
   function posteriorSampleConstructorInternal(posteriorSampleSimulation_) result(self)
-    !!{
-    Internal constructor for the \refClass{taskPosteriorSample} task class.
+    !!{RST
+    Internal constructor for the ``taskPosteriorSample`` task class.
     !!}
     implicit none
     type (taskPosteriorSample           )                        :: self
@@ -110,8 +114,8 @@ contains
   end function posteriorSampleConstructorInternal
 
   subroutine posteriorSampleDestructor(self)
-    !!{
-    Destructor for the \refClass{taskPosteriorSample} task class.
+    !!{RST
+    Destructor for the ``taskPosteriorSample`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
@@ -128,7 +132,7 @@ contains
   end subroutine posteriorSampleDestructor
 
   subroutine posteriorSamplePerform(self,status)
-    !!{
+    !!{RST
     Perform the posterior sampling.
     !!}
     use :: Display         , only : displayIndent     , displayUnindent

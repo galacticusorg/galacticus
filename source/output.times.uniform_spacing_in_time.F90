@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <outputTimes name="outputTimesUniformSpacingInTime">
-   <description>An output times class which generates a set of output times spaced uniformly in time.</description>
+  <outputTimes name="outputTimesUniformSpacingInTime" docformat="rst">
+   <description>
+   An output times class which generates a set of output times spaced uniformly in time.
+   </description>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesUniformSpacingInTime
-     !!{
+     !!{RST
      Implementation of an output times class which generates a set of output times spaced uniformly in time.
      !!}
      private
@@ -33,8 +35,8 @@
   end type outputTimesUniformSpacingInTime
 
   interface outputTimesUniformSpacingInTime
-     !!{
-     Constructors for the \refClass{outputTimesUniformSpacingInTime} output times class.
+     !!{RST
+     Constructors for the ``outputTimesUniformSpacingInTime`` output times class.
      !!}
      module procedure uniformSpacingInTimeConstructorParameters
      module procedure uniformSpacingInTimeConstructorInternal
@@ -43,8 +45,8 @@
 contains
 
   function uniformSpacingInTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesUniformSpacingInTime} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputTimesUniformSpacingInTime`` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -62,9 +64,11 @@ contains
     if (parameters%isPresent('timeMinimum')) then
        if (parameters%isPresent('redshiftMaximum')) call Error_Report("can not specify both 'timeMinimum' and 'redshiftMaximum'"//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>timeMinimum</name>
-	 <description>The minimum time at which to output. Negative times are interpreted as look-back times.</description>
+	 <description>
+	 The minimum time at which to output. Negative times are interpreted as look-back times.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -74,9 +78,11 @@ contains
        end if
     else if (parameters%isPresent('redshiftMaximum')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>redshiftMaximum</name>
-	 <description>The maximum redshift at which to output.</description>
+	 <description>
+	 The maximum redshift at which to output.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -87,9 +93,11 @@ contains
     if (parameters%isPresent('timeMaximum')) then
        if (parameters%isPresent('redshiftMinimum')) call Error_Report("can not specify both 'timeMaximum' and 'redshiftMinimum'"//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>timeMaximum</name>
-	 <description>The maximum time at which to output. Negative times are interpreted as look-back times.</description>
+	 <description>
+	 The maximum time at which to output. Negative times are interpreted as look-back times.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -99,9 +107,11 @@ contains
        end if
     else if (parameters%isPresent('redshiftMinimum')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>redshiftMinimum</name>
-	 <description>The minimum redshift at which to output.</description>
+	 <description>
+	 The minimum redshift at which to output.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -110,9 +120,11 @@ contains
        call Error_Report("must specify either 'timeMinimum' or 'redshiftMaximum'"//{introspection:location})
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countTimes</name>
-      <description>The number of times at which to output.</description>
+      <description>
+      The number of times at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -125,8 +137,8 @@ contains
   end function uniformSpacingInTimeConstructorParameters
 
   function uniformSpacingInTimeConstructorInternal(timeMinimum,timeMaximum,countTimes,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputTimesUniformSpacingInTime} output times class.
+    !!{RST
+    Internal constructor for the ``outputTimesUniformSpacingInTime`` output times class.
     !!}
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLinear
     use :: Error           , only : Error_Report

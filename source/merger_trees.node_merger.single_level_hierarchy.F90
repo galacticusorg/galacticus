@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Provides a node merger class implementing a single level hierarchy.
   !!}
 
   !![
-  <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
+  <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy" docformat="rst">
    <description>
-    A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only
-    substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the
-    list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from
-    the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
+   A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only substructures, not sub-substructures or deeper levels. When a :term:`node` first becomes a satellite it is appended to the list of satellites associated with its host halo. If the :term:`node` contains its own satellites they will be detached from the :term:`node` and appended to the list of satellites of the new host (and assigned new merging times).
    </description>
   </mergerTreeNodeMerger>
   !!]
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
-     !!{
+     !!{RST
      Implementation of the standard merger tree evolver.
      !!}
      private
@@ -41,8 +38,8 @@
   end type mergerTreeNodeMergerSingleLevelHierarchy
 
   interface mergerTreeNodeMergerSingleLevelHierarchy
-     !!{
-     Constructors for the \refClass{mergerTreeNodeMergerSingleLevelHierarchy} merger tree evolver.
+     !!{RST
+     Constructors for the ``mergerTreeNodeMergerSingleLevelHierarchy`` merger tree evolver.
      !!}
      module procedure singleLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerSingleLevelHierarchy
@@ -50,8 +47,8 @@
 contains
 
   function singleLevelHierarchyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeNodeMergerSingleLevelHierarchy} node merger class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeNodeMergerSingleLevelHierarchy`` node merger class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +63,7 @@ contains
   end function singleLevelHierarchyConstructorParameters
 
   subroutine singleLevelHierarchyProcess(self,node)
-    !!{
+    !!{RST
     Processes a node merging event, utilizing a single level substructure hierarchy.
     !!}
     use :: Display            , only : displayGreen              , displayReset

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a constant density spherical cloud mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionConstantDensityCloud">
-   <description>A mass distribution class for constant density spherical clouds.</description>
+  <massDistribution name="massDistributionConstantDensityCloud" docformat="rst">
+   <description>
+   A mass distribution class for constant density spherical clouds.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionConstantDensityCloud
-     !!{
+     !!{RST
      A constant density spherical cloud mass distribution
      !!}
      double precision :: mass    , radius       , &
@@ -42,8 +44,8 @@
   end type massDistributionConstantDensityCloud
 
   interface massDistributionConstantDensityCloud
-     !!{
-     Constructors for the \refClass{massDistributionConstantDensityCloud} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionConstantDensityCloud`` mass distribution class.
      !!}
      module procedure constantDensityCloudConstructorParameters
      module procedure constantDensityCloudConstructorInternal
@@ -52,9 +54,8 @@
 contains
 
   function constantDensityCloudConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionConstantDensityCloud} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionConstantDensityCloud`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -66,26 +67,34 @@ contains
     type            (varying_string                      )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the constant-density spherical cloud, used together with the radius to set the uniform density of the cloud.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the constant-density spherical cloud, used together with the radius to set the uniform density of the cloud.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius</name>
-      <description>The outer radius (in Mpc) of the constant-density spherical cloud; the density is zero beyond this radius and uniform within it.</description>
+      <description>
+      The outer radius (in Mpc) of the constant-density spherical cloud; the density is zero beyond this radius and uniform within it.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -97,8 +106,8 @@ contains
   end function constantDensityCloudConstructorParameters
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionConstantDensityCloud} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionConstantDensityCloud`` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -120,8 +129,8 @@ contains
   end function constantDensityCloudConstructorInternal
 
   double precision function constantDensityCloudDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution.
     !!}
     implicit none
     class(massDistributionConstantDensityCloud), intent(inout) :: self
@@ -136,7 +145,7 @@ contains
   end function constantDensityCloudDensity
 
   double precision function constantDensityCloudDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction in a constant density cloud.
     !!}
     implicit none
@@ -150,8 +159,8 @@ contains
   end function constantDensityCloudDensityGradientRadial
 
   double precision function constantDensityCloudMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a constant density cloud.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a constant density cloud.
     !!}
     implicit none
     class           (massDistributionConstantDensityCloud), intent(inout), target :: self
@@ -170,7 +179,7 @@ contains
   end function constantDensityCloudMassEnclosedBySphere
 
   logical function constantDensityCloudPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -181,8 +190,8 @@ contains
   end function constantDensityCloudPotentialIsAnalytic
 
   double precision function constantDensityCloudPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a constant density cloud.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a constant density cloud.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -215,7 +224,7 @@ contains
   end function constantDensityCloudPotential
 
   double precision function constantDensityCloudDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Computes radial moments of the density in a constant density cloud.
     !!}
     use :: Numerical_Comparison, only : Values_Agree

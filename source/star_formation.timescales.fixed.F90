@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a fixed timescale for star formation.
   !!}
 
   !![
-  <starFormationTimescale name="starFormationTimescaleFixed">
+  <starFormationTimescale name="starFormationTimescaleFixed" docformat="rst">
    <description>
-    A star formation timescale class that returns a constant, user-specified gas consumption timescale regardless of the galactic component properties. This implements the simplest possible star formation model for testing and comparison purposes. The timescale is set by the \mono{[timescale]} parameter in units of Gyr.
+   A star formation timescale class that returns a constant, user-specified gas consumption timescale regardless of the galactic component properties. This implements the simplest possible star formation model for testing and comparison purposes. The timescale is set by the ``[timescale]`` parameter in units of Gyr.
    </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleFixed
-     !!{
+     !!{RST
      Implementation of a fixed timescale for star formation.
      !!}
      private
@@ -39,8 +39,8 @@
   end type starFormationTimescaleFixed
 
   interface starFormationTimescaleFixed
-     !!{
-     Constructors for the \refClass{starFormationTimescaleFixed} timescale for star formation.
+     !!{RST
+     Constructors for the ``starFormationTimescaleFixed`` timescale for star formation.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -49,8 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleFixed} timescale for star formation class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``starFormationTimescaleFixed`` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -59,10 +59,12 @@ contains
     double precision                                             :: timescale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale for star formation in the fixed timescale model.</description>
+      <description>
+      The timescale for star formation in the fixed timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -74,8 +76,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(timescale) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleFixed} timescale for star formation class.
+    !!{RST
+    Internal constructor for the ``starFormationTimescaleFixed`` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleFixed)                :: self
@@ -86,9 +88,8 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedTimescale(self,component)
-    !!{
-    Returns the timescale (in Gyr) for star formation in the given \mono{component}, assuming a fixed
-    timescale.
+    !!{RST
+    Returns the timescale (in Gyr) for star formation in the given ``component``, assuming a fixed timescale.
     !!}
     implicit none
     class(starFormationTimescaleFixed), intent(inout) :: self

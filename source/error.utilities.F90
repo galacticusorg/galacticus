@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides error handling utilities.
 !!}
 
 module Error_Utilities
-  !!{
+  !!{RST
   Provides error handling utilities.
   !!}
   implicit none
@@ -31,9 +31,11 @@ module Error_Utilities
 
   ! Enumeration of signal numbers.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
     <name>signal</name>
-    <description>Enumeration of POSIX signal numbers (\mono{SIGHUP} through \mono{SIGSYS}) used to identify which signal should trigger a graceful pause or abort of the simulation when caught by the error handler.</description>
+    <description>
+    Enumeration of POSIX signal numbers (``SIGHUP`` through ``SIGSYS``) used to identify which signal should trigger a graceful pause or abort of the simulation when caught by the error handler.
+    </description>
     <decodeFunction>yes</decodeFunction>
     <visibility>public</visibility>
     <indexing>1</indexing>
@@ -67,7 +69,7 @@ module Error_Utilities
 contains
 
   subroutine Error_Wait_Set_From_Parameters(parameters)
-    !!{
+    !!{RST
     Read the parameter that controls the verbosity level, and set that level.
     !!}
     use :: Error           , only : Error_Wait_Set
@@ -77,10 +79,12 @@ contains
     integer                                 :: errorWaitTime
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorWaitTime</name>
       <defaultValue>0</defaultValue>
-      <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
+      <description>
+      The time, in seconds, for which Galacticus should sleep after a fatal error when running under MPI.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]

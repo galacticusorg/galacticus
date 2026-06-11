@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a standard stellar population class.
   !!}
 
@@ -30,7 +30,7 @@
   use :: ISO_Varying_String                        , only : varying_string
 
   abstract interface
-     !!{
+     !!{RST
      Interface for stellar population property integrands.
      !!}
      double precision function integrandTemplate(massInitial)
@@ -39,7 +39,7 @@
   end interface
 
   type :: populationTable
-     !!{
+     !!{RST
      Table used to store properties of the stellar population as a function of age and metallicity.
      !!}
      type            (varying_string   )                              :: label
@@ -60,76 +60,76 @@
   end type populationTable
 
   interface populationTable
-     !!{
-     Constructors for the \mono{populationTable} class.
+     !!{RST
+     Constructors for the ``populationTable`` class.
      !!}
      module procedure populationTableConstructor
   end interface populationTable
 
   !![
-  <stellarPopulation name="stellarPopulationStandard">
+  <stellarPopulation name="stellarPopulationStandard" docformat="rst">
     <description>
-      A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal
-      production and rates. These rates are determined from the \refClass{stellarPopulationClass} object provided by a
-      \refClass{stellarPopulationSelectorClass}.
+    A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and rates. These rates are determined from the ``stellarPopulationClass`` object provided by a ``stellarPopulationSelectorClass``.
 
-      It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for
-      testing and comparison) by setting:
-      \begin{lstlisting}[language=XML]
-      &lt;stellarPopulations value="standard"&gt;
-      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
-      &nbsp;&nbsp;&lt;!-- be done assuming instantaneous recycling             --&gt;
-      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      &nbsp;&nbsp;&lt;!-- Set the recycled fraction and yield --&gt;
-      &nbsp;&nbsp;&lt;recycledFraction value="0.35"/&gt;
-      &nbsp;&nbsp;&lt;metalYield       value="0.02"/&gt;
-      &lt;/stellarPopulationProperties&gt;
-      \end{lstlisting}
-      where the recycled fraction and metal yield are specified directly, or
-      \begin{lstlisting}[language=XML]
-      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
-      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
-      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
-      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
-      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
-      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
-      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
-      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
-      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
-      &lt;/stellarPopulationProperties&gt;
-      \end{lstlisting}
-      in which case the recycled fraction and metal yield will be computed that all stars with mass greater than \mono{massLongLived} have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming
-      that stellar populations instantaneously reach an age of \mono{ageEffective}.
+    It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
 
-      Similar options are available to control whether metal yields and energy input from stellar populations are computed using
-      the fully non-instantaneous or instantaneous approximations, e.g.:
-      \begin{lstlisting}[language=XML]
-      &nbsp;&nbsp;&lt;stellarPopulations value="standard"&gt;
-      &nbsp;&nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
-      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      &nbsp;&nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-      &nbsp;&nbsp;&lt;!-- Force the calculation of yields to be done          --&gt;
-      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      &nbsp;&nbsp;&lt;instantaneousYieldApproximation value="true"/&gt;
-      &nbsp;&nbsp;&lt;!-- Force the calculation of energy input to be done    --&gt;
-      &nbsp;&nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-      &nbsp;&nbsp;&lt;instantaneousEnergyInputApproximation value="true"/&gt;
-      &nbsp;&nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
-      &nbsp;&nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
-      &nbsp;&nbsp;&lt;!-- evolving in this approximation.                      --&gt;
-      &nbsp;&nbsp;&lt;massLongLived value="1.0"/&gt;
-      &nbsp;&nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
-      &nbsp;&nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
-      &nbsp;&nbsp;&lt;ageEffective value="13.8"/&gt;
-      &lt;/stellarPopulationProperties&gt;
-      \end{lstlisting}
+    .. code-block:: none
+
+       &lt;stellarPopulations value="standard"&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- be done assuming instantaneous recycling             --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Set the recycled fraction and yield --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;recycledFraction value="0.35"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;metalYield       value="0.02"/&gt;
+       &lt;/stellarPopulationProperties&gt;
+
+    where the recycled fraction and metal yield are specified directly, or
+
+    .. code-block:: none
+
+       &amp;nbsp;&amp;nbsp;&lt;stellarPopulations value="standard"&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;massLongLived value="1.0"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;ageEffective value="13.8"/&gt;
+       &lt;/stellarPopulationProperties&gt;
+
+    in which case the recycled fraction and metal yield will be computed that all stars with mass greater than ``massLongLived`` have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming that stellar populations instantaneously reach an age of ``ageEffective``.
+
+    Similar options are available to control whether metal yields and energy input from stellar populations are computed using the fully non-instantaneous or instantaneous approximations, e.g.:
+
+    .. code-block:: none
+
+       &amp;nbsp;&amp;nbsp;&lt;stellarPopulations value="standard"&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of yields to be done          --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;instantaneousYieldApproximation value="true"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of energy input to be done    --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;instantaneousEnergyInputApproximation value="true"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- evolving in this approximation.                      --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;massLongLived value="1.0"/&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
+       &amp;nbsp;&amp;nbsp;&lt;ageEffective value="13.8"/&gt;
+       &lt;/stellarPopulationProperties&gt;
     </description>
   </stellarPopulation>
   !!]
   type, extends(stellarPopulationClass) :: stellarPopulationStandard
-     !!{
+     !!{RST
      A standard stellar population class.
      !!}
      private
@@ -166,8 +166,8 @@
   end type stellarPopulationStandard
 
   interface stellarPopulationStandard
-     !!{
-     Constructors for the \refClass{stellarPopulationStandard} stellar population class.
+     !!{RST
+     Constructors for the ``stellarPopulationStandard`` stellar population class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -198,8 +198,8 @@
 contains
 
   function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative,instantaneousApproximation) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationStandard} stellar population class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarPopulationStandard`` stellar population class which takes a parameter list as input.
     !!}
     implicit none
     type            (populationTable)                :: self
@@ -216,8 +216,8 @@ contains
   end function populationTableConstructor
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationStandard} stellar population class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarPopulationStandard`` stellar population class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -235,46 +235,60 @@ contains
     !$GLC attributes initialized :: self
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>instantaneousRecyclingApproximation</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then use an instantaneous recycling approximation when computing recycling rates.</description>
+      <description>
+      If true, then use an instantaneous recycling approximation when computing recycling rates.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>instantaneousYieldApproximation</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then use an instantaneous recycling approximation when computing yield rates.</description>
+      <description>
+      If true, then use an instantaneous recycling approximation when computing yield rates.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>instantaneousEnergyInputApproximation</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then use an instantaneous recycling approximation when computing energy input rates.</description>
+      <description>
+      If true, then use an instantaneous recycling approximation when computing energy input rates.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massLongLived</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
+      <description>
+      The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ageEffective</name>
       <defaultValue>13.8d0</defaultValue>
-      <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
+      <description>
+      The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recycledFraction</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
+      <description>
+      The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>metalYield</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
+      <description>
+      The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="initialMassFunction"      name="initialMassFunction_"      source="parameters"/>
@@ -312,8 +326,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,instantaneousYieldApproximation,instantaneousEnergyInputApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationStandard} stellar population.
+    !!{RST
+    Internal constructor for the ``stellarPopulationStandard`` stellar population.
     !!}
     use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
@@ -361,8 +375,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationStandard} stellar population class.
+    !!{RST
+    Destructor for the ``stellarPopulationStandard`` stellar population class.
     !!}
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self
@@ -378,8 +392,8 @@ contains
   end subroutine standardDestructor
 
   subroutine populationTableAssign(to,from)
-    !!{
-    Assignment operator for \refClass{populationTable} objects.
+    !!{RST
+    Assignment operator for ``populationTable`` objects.
     !!}
     implicit none
     class(populationTable), intent(  out) :: to
@@ -412,10 +426,8 @@ contains
   end subroutine populationTableAssign
   
   double precision function standardRateRecycling(self,abundances_,ageMinimum,ageMaximum)
-    !!{
-    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    the population's mass returned to the \gls{ism} per Gyr) is computed between the given \mono{ageMinimum}
-    and \mono{ageMaximum} (in Gyr).
+    !!{RST
+    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of the population's mass returned to the :term:`ISM` per Gyr) is computed between the given ``ageMinimum`` and ``ageMaximum`` (in Gyr).
     !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
@@ -427,10 +439,8 @@ contains
   end function standardRateRecycling
 
   double precision function standardRateYield(self,abundances_,ageMinimum,ageMaximum,elementIndex)
-    !!{
-    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    the population's mass returned to the \gls{ism} per Gyr) is computed between the given \mono{ageMinimum}
-    and \mono{ageMaximum} (in Gyr).
+    !!{RST
+    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of the population's mass returned to the :term:`ISM` per Gyr) is computed between the given ``ageMinimum`` and ``ageMaximum`` (in Gyr).
     !!}
     use :: Abundances_Structure, only : Abundances_Atomic_Index
     implicit none
@@ -448,10 +458,8 @@ contains
   end function standardRateYield
 
   double precision function standardRateEnergy(self,abundances_,ageMinimum,ageMaximum)
-    !!{
-    Return the rate at which energy is being output by this stellar population in (km/s)$^2$ Gyr$^{-1}$. The mean energy output
-    rate per Gyr is computed between the given \mono{ageMinimum} and \mono{ageMaximum} (in
-    Gyr).
+    !!{RST
+    Return the rate at which energy is being output by this stellar population in (km/s)\ :math:`^2` Gyr\ :math:`^{-1}`. The mean energy output rate per Gyr is computed between the given ``ageMinimum`` and ``ageMaximum`` (in Gyr).
     !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
@@ -463,10 +471,8 @@ contains
   end function standardRateEnergy
 
   double precision function standardInterpolate(self,abundances_,ageMinimum,ageMaximum,property)
-    !!{
-    Return the rate at which at cumulative property is being produced from this stellar population. The cumulative property is
-    computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent runs. This is
-    useful as computation of the table is relatively slow.
+    !!{RST
+    Return the rate at which at cumulative property is being produced from this stellar population. The cumulative property is computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     !!}
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
@@ -704,7 +710,7 @@ contains
   end function standardInterpolate
 
   double precision function standardIntegrandRecycledFraction(massInitial)
-    !!{
+    !!{RST
     Integrand used in evaluating recycled fractions.
     !!}
     implicit none
@@ -720,7 +726,7 @@ contains
   end function standardIntegrandRecycledFraction
 
   double precision function standardIntegrandYield(massInitial)
-    !!{
+    !!{RST
     Integrand used in evaluating metal yields.
     !!}
     implicit none
@@ -764,7 +770,7 @@ contains
   end function standardIntegrandYield
 
   double precision function standardIntegrandEnergyOutput(massInitial)
-    !!{
+    !!{RST
     Integrand used in evaluating energy output.
     !!}
     implicit none
@@ -790,8 +796,8 @@ contains
   end function standardIntegrandEnergyOutput
 
   logical function standardStarIsEvolved(self,massInitial,metallicity,age)
-    !!{
-    Returns true if the specified star is evolved by the given \mono{age}.
+    !!{RST
+    Returns true if the specified star is evolved by the given ``age``.
     !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
@@ -809,7 +815,7 @@ contains
   end function standardStarIsEvolved
 
   double precision function standardRecycledFractionInstantaneous(self)
-    !!{
+    !!{RST
     Return the recycled fraction from the stellar population in the instantaneous approximation.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -827,7 +833,7 @@ contains
   end function standardRecycledFractionInstantaneous
 
   double precision function standardYieldInstantaneous(self)
-    !!{
+    !!{RST
     Return the metal yield from the stellar population in the instantaneous approximation.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -845,7 +851,7 @@ contains
   end function standardYieldInstantaneous
 
   function standardSpectra(self) result(spectra)
-    !!{
+    !!{RST
     Return the stellar spectra associated with this population.
     !!}
     implicit none

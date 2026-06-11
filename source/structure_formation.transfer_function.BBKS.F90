@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements the transfer function fitting function of \cite{bardeen_statistics_1986}.
+  !!{RST
+  Implements the transfer function fitting function of :cite:t:`bardeen_statistics_1986`.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -26,15 +26,14 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionBBKS">
+  <transferFunction name="transferFunctionBBKS" docformat="rst">
    <description>
-    A transfer function class implementing the \cite{bardeen_statistics_1986} fitting function to compute the \gls{cdm}
-    transfer function.
+   A transfer function class implementing the :cite:t:`bardeen_statistics_1986` fitting function to compute the :term:`CDM` transfer function.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionBBKS
-     !!{
+     !!{RST
      A bbks transfer function class.
      !!}
      private
@@ -51,8 +50,8 @@
   end type transferFunctionBBKS
 
   interface transferFunctionBBKS
-     !!{
-     Constructors for the \refClass{transferFunctionBBKS} transfer function class.
+     !!{RST
+     Constructors for the ``transferFunctionBBKS`` transfer function class.
      !!}
      module procedure constructorParameters
      module procedure constructorInternal
@@ -64,8 +63,8 @@
 contains
 
   function constructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionBBKS} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``transferFunctionBBKS`` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,8 +90,8 @@ contains
   end function constructorParameters
 
   function constructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionBBKS} transfer function class.
+    !!{RST
+    Internal constructor for the ``transferFunctionBBKS`` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -137,8 +136,8 @@ contains
   end function constructorInternal
 
   subroutine destructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionBBKS} transfer function class.
+    !!{RST
+    Destructor for the ``transferFunctionBBKS`` transfer function class.
     !!}
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
@@ -152,7 +151,7 @@ contains
   end subroutine destructor
 
   double precision function bbksValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
@@ -186,7 +185,7 @@ contains
   end function bbksValue
 
   double precision function bbksLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
@@ -247,9 +246,8 @@ contains
   end function bbksLogarithmicDerivative
 
   double precision function bbksHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -267,9 +265,8 @@ contains
   end function bbksHalfModeMass
 
   double precision function bbksQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -287,7 +284,7 @@ contains
   end function bbksQuarterModeMass
 
   double precision function bbksEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

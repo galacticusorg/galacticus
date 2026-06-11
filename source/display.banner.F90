@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which displays a banner for \glc.
+!!{RST
+Contains a module which displays a banner for Galacticus.
 !!}
 
 module Display_Banner
-  !!{
-  Displays a banner for \glc.
+  !!{RST
+  Displays a banner for Galacticus.
   !!}
   implicit none
   private
@@ -32,8 +32,8 @@ module Display_Banner
 contains
 
   subroutine Display_Banner_Show
-    !!{
-    Displays the \glc\ banner.
+    !!{RST
+    Displays the Galacticus banner.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : output_unit
     use            :: Display        , only : displayVerbosity, verbosityLevelSilent

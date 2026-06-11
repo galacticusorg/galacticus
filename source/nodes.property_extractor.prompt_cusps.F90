@@ -17,17 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property extractor class for the parameters of prompt cusps in the \cite{delos_cusp-halo_2025} model.
+  !!{RST
+  Implements a property extractor class for the parameters of prompt cusps in the :cite:t:`delos_cusp-halo_2025` model.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOCuspNFW
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorPromptCusps">
+  <nodePropertyExtractor name="nodePropertyExtractorPromptCusps" docformat="rst">
    <description>
-    A property extractor class for the properties of the nuclear star cluster at the moment of the black hole formation.
+   A property extractor class for the properties of the nuclear star cluster at the moment of the black hole formation.
    </description>
    <deepCopy>
     <functionClass variables="darkMatterProfileDMOCuspNFW"/>
@@ -38,7 +38,7 @@
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPromptCusps
-     !!{
+     !!{RST
      A property extractor class for the velocity dispersion at a set of radii.
      !!}
      private
@@ -58,8 +58,8 @@
   end type nodePropertyExtractorPromptCusps
 
   interface nodePropertyExtractorPromptCusps
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorPromptCusps`` property extractor class.
      !!}
      module procedure promptCuspsConstructorParameters
      module procedure promptCuspsConstructorInternal
@@ -68,8 +68,8 @@
 contains
 
   function promptCuspsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,8 +89,8 @@ contains
   end function promptCuspsConstructorParameters
 
   function promptCuspsConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPromptCusps)                        :: self
@@ -121,8 +121,8 @@ contains
   end function promptCuspsConstructorInternal
 
   subroutine promptCuspsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorPromptCusps} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorPromptCusps), intent(inout) :: self
@@ -135,8 +135,8 @@ contains
   end subroutine promptCuspsDestructor
 
   integer function promptCuspsElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{promptCusps} property extractors.
+    !!{RST
+    Return the number of elements in the ``promptCusps`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout) :: self
@@ -148,8 +148,8 @@ contains
   end function promptCuspsElementCount
 
   function promptCuspsExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{promptCusps} property extractor.
+    !!{RST
+    Implement a ``promptCusps`` property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -209,8 +209,8 @@ contains
   end function promptCuspsExtract
 
   subroutine promptCuspsNames(self,time,names)
-    !!{
-    Return the names of the \mono{promptCusps} properties.
+    !!{RST
+    Return the names of the ``promptCusps`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -229,8 +229,8 @@ contains
   end subroutine promptCuspsNames
 
   subroutine promptCuspsDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{promptCusps} property.
+    !!{RST
+    Return descriptions of the ``promptCusps`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorPromptCusps), intent(inout)                             :: self
@@ -249,8 +249,8 @@ contains
   end subroutine promptCuspsDescriptions
 
   function promptCuspsUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{PromptCusps} properties in the SI system.
+    !!{RST
+    Return the units of the ``PromptCusps`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -272,7 +272,7 @@ contains
   end function promptCuspsUnitsInSI
 
   function promptCuspsUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the promptCusps properties.
     !!}
     use :: Units_MetaData, only : unitType

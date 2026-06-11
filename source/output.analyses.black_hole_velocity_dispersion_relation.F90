@@ -19,20 +19,22 @@
 
 !+    Contributions to this file made by Sachi Weerasooriya
   
-  !!{
-  Implements a black hole-velocity dispersion mass relation analysis class using the data from \cite{mcconnell_revisiting_2013}.
+  !!{RST
+  Implements a black hole-velocity dispersion mass relation analysis class using the data from :cite:t:`mcconnell_revisiting_2013`.
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   !![
-  <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation">
-   <description>Computes the relation between supermassive black hole mass and host bulge stellar velocity dispersion using the observational data from \cite{mcconnell_revisiting_2013}, with configurable random and systematic error polynomial coefficients for both black hole mass and velocity dispersion.</description>
+  <outputAnalysis name="outputAnalysisBlackHoleVelocityDispersionRelation" docformat="rst">
+   <description>
+   Computes the relation between supermassive black hole mass and host bulge stellar velocity dispersion using the observational data from :cite:t:`mcconnell_revisiting_2013`, with configurable random and systematic error polynomial coefficients for both black hole mass and velocity dispersion.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleVelocityDispersionRelation
-     !!{
-     A black hole-velocity dispersion mass relation output analysis class using the data from \cite{mcconnell_revisiting_2013}.
+     !!{RST
+     A black hole-velocity dispersion mass relation output analysis class using the data from :cite:t:`mcconnell_revisiting_2013`.
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_                        => null()
@@ -46,8 +48,8 @@
   end type outputAnalysisBlackHoleVelocityDispersionRelation
 
   interface outputAnalysisBlackHoleVelocityDispersionRelation
-     !!{
-     Constructors for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class.
      !!}
      module procedure blackHoleVelocityDispersionRelationConstructorParameters
      module procedure blackHoleVelocityDispersionRelationConstructorInternal
@@ -56,8 +58,8 @@
 contains
 
   function blackHoleVelocityDispersionRelationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,39 +76,49 @@ contains
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <description>The minimum random error for velocity dispersions.</description>
+      <description>
+      The minimum random error for velocity dispersions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <description>The minimum random error for velocity dispersions.</description>
+      <description>
+      The minimum random error for velocity dispersions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>report</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, report on statistics accumulation.</description>
+      <description>
+      If true, report on statistics accumulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
@@ -124,8 +136,8 @@ contains
   end function blackHoleVelocityDispersionRelationConstructorParameters
 
   function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -386,8 +398,8 @@ contains
   end function blackHoleVelocityDispersionRelationConstructorInternal
 
   subroutine blackHoleVelocityDispersionRelationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisBlackHoleVelocityDispersionRelation} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisBlackHoleVelocityDispersionRelation), intent(inout) :: self

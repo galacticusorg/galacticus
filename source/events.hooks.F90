@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains module which handles hooking of objects into events.
 !!}
 
 module Events_Hooks
-  !!{
+  !!{RST
   Handles hooking of object function class into events.
   !!}
   use :: Regular_Expressions, only : regEx
@@ -32,9 +32,11 @@ module Events_Hooks
        &    eventsHooksInitialize, eventsHooksFutureThread, eventsHooksAtLevelToAllLevels
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>dependencyDirection</name>
-   <description>Used to specify direction of event hook dependencies.</description>
+   <description>
+   Used to specify direction of event hook dependencies.
+   </description>
    <visibility>public</visibility>
    <entry label="before"/>
    <entry label="after" />
@@ -59,9 +61,11 @@ module Events_Hooks
   ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
   ! lower level. When default functionClass objects are removed this option should be deprecated.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>openMPThreadBinding</name>
-   <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
+   <description>
+   Used to specify how hooked functions are bound to OpenMP threads.
+   </description>
    <visibility>public</visibility>
    <entry label="none"     />
    <entry label="atLevel"  />
@@ -70,7 +74,7 @@ module Events_Hooks
   !!]
 
   type :: dependency
-     !!{
+     !!{RST
      Base class for event hook dependencies.
      !!}
      private
@@ -79,13 +83,13 @@ module Events_Hooks
   end type dependency
 
   type, extends(dependency) :: dependencyExact
-     !!{
+     !!{RST
      Type for exactly matching event hook dependencies.
      !!}
   end type dependencyExact
 
   type, extends(dependency) :: dependencyRegEx
-     !!{
+     !!{RST
      Type for matching event hook dependencies via a regular expression.
      !!}
      private
@@ -101,21 +105,21 @@ module Events_Hooks
   end type dependencyRegEx
 
   interface dependencyExact
-     !!{
+     !!{RST
      Constructor for exactly matching event hook dependencies.
      !!}
      module procedure dependencyExactConstructor
   end interface dependencyExact
 
   interface dependencyRegEx
-     !!{
+     !!{RST
      Constructor for matching event hook dependencies via a regular expression.
      !!}
      module procedure dependencyRegExConstructor
   end interface dependencyRegEx
 
   type :: hook
-     !!{
+     !!{RST
      Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
      !!}
      class    (*                                 ), pointer                   :: object_             => null()
@@ -127,21 +131,21 @@ module Events_Hooks
   end type hook
 
   type, extends(hook) :: hookUnspecified
-     !!{
+     !!{RST
      Class for hooked function calls with unspecified interfaces.
      !!}
      procedure(), pointer, nopass :: function_ => null()
   end type hookUnspecified
 
   type :: hookList
-     !!{
+     !!{RST
      List of pointers to hooks.
      !!}
      class(hook), pointer :: hook_ => null()
   end type hookList
   
   type :: eventHook
-     !!{
+     !!{RST
      Class used to define a set of hooked function calls for a given event.
      !!}
      private
@@ -174,7 +178,7 @@ module Events_Hooks
   end type eventHook
 
   type :: eventHookList
-     !!{
+     !!{RST
      List of event hooks.
      !!}
      class(eventHook    ), allocatable :: eventHook_
@@ -182,7 +186,7 @@ module Events_Hooks
   end type eventHookList
   
   type, extends(eventHook) :: eventHookUnspecified
-     !!{
+     !!{RST
      Class used to define a set of hooked function calls for a given event.
      !!}
      private
@@ -221,7 +225,7 @@ module Events_Hooks
 contains
 
   subroutine dependencyRegExAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of reg-ex dependencies.
     !!}
     implicit none
@@ -235,7 +239,7 @@ contains
   end subroutine dependencyRegExAssign
 
   subroutine eventsHooksFutureThread(futureThread)
-    !!{
+    !!{RST
     Set the future thread to which events will attach. If no argument is given, future threads are disabled.
     !!}
     implicit none
@@ -250,8 +254,8 @@ contains
   end subroutine eventsHooksFutureThread
 
   subroutine eventsHooksAtLevelToAllLevels(atLevelToAllLevels)
-    !!{
-    Set the promotion state for events attaching ``at-level''.
+    !!{RST
+    Set the promotion state for events attaching "at-level".
     !!}
     implicit none
     logical, intent(in   ) :: atLevelToAllLevels
@@ -261,7 +265,7 @@ contains
   end subroutine eventsHooksAtLevelToAllLevels
 
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding,label,dependencies)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -345,7 +349,7 @@ contains
   end subroutine eventHookUnspecifiedAttach
 
   subroutine eventHookResolveDependencies(self,hookNew,dependencies)
-    !!{
+    !!{RST
     Resolve dependencies between hooked function calls.
     !!}
     use :: Error              , only : Error_Report    , errorStatusSuccess
@@ -447,7 +451,7 @@ contains
   end subroutine eventHookResolveDependencies
   
   logical function eventHookUnspecifiedIsAttached(self,object_,function_)
-    !!{
+    !!{RST
     Return true if an object is attached to an event hook.
     !!}
     use :: Error, only : Error_Report
@@ -476,7 +480,7 @@ contains
   end function eventHookUnspecifiedIsAttached
 
   subroutine eventHookUnspecifiedDetach(self,object_,function_)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -529,8 +533,8 @@ contains
   end subroutine eventHookUnspecifiedDetach
 
   subroutine eventHookAssign(to,from)
-    !!{
-    Assignment operator for \mono{eventHook} objects.
+    !!{RST
+    Assignment operator for ``eventHook`` objects.
     !!}
     implicit none
     class(eventHook), intent(  out) :: to
@@ -553,7 +557,7 @@ contains
   end subroutine eventHookAssign
   
   integer function eventHookCount(self)
-    !!{
+    !!{RST
     Return a count of the number of hooks into this event.
     !!}
     use :: Error, only : Error_Report
@@ -567,7 +571,7 @@ contains
   end function eventHookCount
 
   subroutine eventHookFilter(self)
-    !!{
+    !!{RST
     Filter hooked functions for the current OpenMP thread/level.
     !!}
     !$ use :: Error  , only : Error_Report
@@ -646,7 +650,7 @@ contains
   end subroutine eventHookFilter
   
   subroutine eventHookLock(self,writeLock)
-    !!{
+    !!{RST
     Lock the event to avoid race conditions between OpenMP threads.
     !!}
 #ifdef OMPPROFILE
@@ -689,7 +693,7 @@ contains
   end subroutine eventHookLock
 
   subroutine eventHookUnlock(self,writeLock)
-    !!{
+    !!{RST
     Unlock the event to avoid race conditions between OpenMP threads.
     !!}
     implicit none
@@ -708,7 +712,7 @@ contains
   end subroutine eventHookUnlock
   
   function dependencyExactConstructor(direction,label) result(self)
-    !!{
+    !!{RST
     Constructor for an exact dependency.
     !!}
     implicit none
@@ -723,7 +727,7 @@ contains
   end function dependencyExactConstructor
   
   function dependencyRegExConstructor(direction,label) result(self)
-    !!{
+    !!{RST
     Constructor for a regular expression dependency.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to coordinate system functions.
 !!}
 
 program Test_Coordinate_Systems
-  !!{
+  !!{RST
   Tests of coordinate system functions.
   !!}
   use :: Coordinate_Systems      , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical, Coordinates_Spherical_To_Cylindrical

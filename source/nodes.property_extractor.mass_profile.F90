@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the enclosed mass at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
@@ -25,18 +25,14 @@
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
-   <description>A property extractor that returns the enclosed mass profile
-    (in $\mathrm{M}_\odot$) at a user-specified set of radii, supporting a variety of radius
-    definitions (virial radius multiples, disk/spheroid scale radii, half-mass radii, galactic mass
-    or light fractions, and satellite bound-mass fractions). The \mono{radiusSpecifiers} parameter
-    specifies the list of radii; if \mono{includeRadii} is \mono{true}, the actual radii in Mpc are
-    also written to the output. The dark matter fraction from cosmological parameters is used to
-    translate satellite bound mass into a corresponding dark matter radius.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassProfile" docformat="rst">
+   <description>
+   A property extractor that returns the enclosed mass profile (in :math:`\mathrm{M}_\odot`) at a user-specified set of radii, supporting a variety of radius definitions (virial radius multiples, disk/spheroid scale radii, half-mass radii, galactic mass or light fractions, and satellite bound-mass fractions). The ``radiusSpecifiers`` parameter specifies the list of radii; if ``includeRadii`` is ``true``, the actual radii in Mpc are also written to the output. The dark matter fraction from cosmological parameters is used to translate satellite bound mass into a corresponding dark matter radius.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile
-     !!{
+     !!{RST
      A property extractor class for the enclosed mass at a set of radii.
      !!}
      private
@@ -65,8 +61,8 @@
   end type nodePropertyExtractorMassProfile
 
   interface nodePropertyExtractorMassProfile
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassProfile`` property extractor class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
@@ -75,8 +71,8 @@
 contains
 
   function massProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassProfile`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,15 +85,19 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the enclosed mass profile.</description>
+      <description>
+      A list of radius specifiers at which to output the enclosed mass profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which enclosed mass data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which enclosed mass data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -112,8 +112,8 @@ contains
   end function massProfileConstructorParameters
 
   function massProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMassProfile`` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -152,8 +152,8 @@ contains
   end function massProfileConstructorInternal
 
   subroutine massProfileDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorMassProfile} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorMassProfile`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassProfile), intent(inout) :: self
@@ -166,8 +166,8 @@ contains
   end subroutine massProfileDestructor
 
   integer function massProfileElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{massProfile} property extractors.
+    !!{RST
+    Return the number of elements in the ``massProfile`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout) :: self
@@ -179,8 +179,8 @@ contains
   end function massProfileElementCount
 
   function massProfileSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{massProfile} property extractors.
+    !!{RST
+    Return the number of array elements in the ``massProfile`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                        )                :: massProfileSize
@@ -193,8 +193,8 @@ contains
   end function massProfileSize
 
   function massProfileExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{massProfile} property extractor.
+    !!{RST
+    Implement a ``massProfile`` property extractor.
     !!}
 
     use :: Galactic_Structure_Options          , only : componentTypeAll                          , massTypeGalactic            , massTypeStellar                     , massTypeDark
@@ -322,8 +322,8 @@ contains
   end function massProfileExtract
 
   subroutine massProfileNames(self,names,time)
-    !!{
-    Return the names of the \mono{massProfile} properties.
+    !!{RST
+    Return the names of the ``massProfile`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -338,8 +338,8 @@ contains
   end subroutine massProfileNames
 
   subroutine massProfileDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{massProfile} property.
+    !!{RST
+    Return descriptions of the ``massProfile`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
@@ -355,8 +355,8 @@ contains
   end subroutine massProfileDescriptions
 
   subroutine massProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{massProfile} property.
+    !!{RST
+    Return column descriptions of the ``massProfile`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassProfile), intent(inout)                            :: self
@@ -376,8 +376,8 @@ contains
   end subroutine massProfileColumnDescriptions
 
   function massProfileUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{massProfile} properties in the SI system.
+    !!{RST
+    Return the units of the ``massProfile`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -394,7 +394,7 @@ contains
   end function massProfileUnitsInSI
 
   function massProfileUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the mass profile properties.
     !!}
     use :: Units_MetaData, only : unitType

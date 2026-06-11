@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an output analysis class that computes mass functions for Local Group satellite galaxies.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisLocalGroupStellarMassFunction">
-   <description>Computes the stellar mass function of Local Group satellite galaxies for comparison with observational data, with random/systematic error polynomial coefficients, fractional scatter, binomial covariance matrix parameters, position-type selection, and zero-point log-likelihood control.</description>
+  <outputAnalysis name="outputAnalysisLocalGroupStellarMassFunction" docformat="rst">
+   <description>
+   Computes the stellar mass function of Local Group satellite galaxies for comparison with observational data, with random/systematic error polynomial coefficients, fractional scatter, binomial covariance matrix parameters, position-type selection, and zero-point log-likelihood control.
+   </description>
    <deepCopy>
     <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
    </deepCopy>
@@ -33,7 +35,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupStellarMassFunction
-     !!{
+     !!{RST
      An output analysis class for Local Group satellite galaxy mass functions.
      !!}
      private
@@ -65,8 +67,8 @@
   end type outputAnalysisLocalGroupStellarMassFunction
 
   interface outputAnalysisLocalGroupStellarMassFunction
-     !!{
-     Constructors for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class.
      !!}
      module procedure localGroupStellarMassFunctionConstructorParameters
      module procedure localGroupStellarMassFunctionConstructorInternal
@@ -75,8 +77,8 @@
 contains
 
   function localGroupStellarMassFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -105,73 +107,95 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>negativeBinomialScatterFractional</name>
       <source>parameters</source>
       <defaultValue>0.18d0</defaultValue>
-      <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
-      <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
+      <defaultSource>
+      :cite:p:`boylan-kolchin_theres_2010`
+      </defaultSource>
+      <description>
+      The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing Local Group stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>positionType</name>
       <source>parameters</source>
       <defaultValue>var_str('orbital')</defaultValue>
-      <description>The type of position to use in survey geometry filters.</description>
+      <description>
+      The type of position to use in survey geometry filters.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logLikelihoodZero</name>
       <source>parameters</source>
       <defaultValue>logImprobable</defaultValue>
-      <description>The log-likelihood to assign to bins where the model expectation is zero.</description>
+      <description>
+      The log-likelihood to assign to bins where the model expectation is zero.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -184,8 +208,8 @@ contains
   end function localGroupStellarMassFunctionConstructorParameters
 
   function localGroupStellarMassFunctionConstructorInternal(outputTimes_,positionType,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
           &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry       , enumerationPositionTypeType
@@ -516,8 +540,8 @@ contains
   end function localGroupStellarMassFunctionConstructorInternal
 
   subroutine localGroupStellarMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLocalGroupStellarMassFunction} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
@@ -531,8 +555,8 @@ contains
   end subroutine localGroupStellarMassFunctionDestructor
 
   subroutine localGroupStellarMassFunctionAnalyze(self,node,iOutput)
-    !!{
-    Implement a \mono{localGroupStellarMassFunction} output analysis.
+    !!{RST
+    Implement a ``localGroupStellarMassFunction`` output analysis.
     !!}
     implicit none
     class  (outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self
@@ -546,8 +570,8 @@ contains
   end subroutine localGroupStellarMassFunctionAnalyze
 
   subroutine localGroupStellarMassFunctionReduce(self,reduced)
-    !!{
-    Implement a \mono{localGroupStellarMassFunction} output analysis reduction.
+    !!{RST
+    Implement a ``localGroupStellarMassFunction`` output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -565,8 +589,8 @@ contains
   end subroutine localGroupStellarMassFunctionReduce
 
   subroutine localGroupStellarMassFunctionFinalizeAnalysis(self)
-    !!{
-    Finalize analysis of a \mono{localGroupStellarMassFunction} output analysis.
+    !!{RST
+    Finalize analysis of a ``localGroupStellarMassFunction`` output analysis.
     !!}
     implicit none
     class           (outputAnalysisLocalGroupStellarMassFunction), intent(inout)                 :: self
@@ -601,8 +625,8 @@ contains
   end subroutine localGroupStellarMassFunctionFinalizeAnalysis
 
   subroutine localGroupStellarMassFunctionFinalize(self,groupName)
-    !!{
-    Implement a \mono{localGroupStellarMassFunction} output analysis finalization.
+    !!{RST
+    Implement a ``localGroupStellarMassFunction`` output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
@@ -648,12 +672,8 @@ contains
   end subroutine localGroupStellarMassFunctionFinalize
 
   double precision function localGroupStellarMassFunctionLogLikelihood(self)
-    !!{
-    Return the log-likelihood of a \mono{localGroupStellarMassFunction} output analysis. The likelihood function
-    assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
-    distribution as was found for dark matter subhalos \citep[][see also
-    \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
-    tree realizations, although it in principal could be model-dependent.
+    !!{RST
+    Return the log-likelihood of a ``localGroupStellarMassFunction`` output analysis. The likelihood function assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial distribution as was found for dark matter subhalos :cite:p:`boylan-kolchin_theres_2010`. This has been confirmed by examining the results of many tree realizations, although it in principal could be model-dependent.
     !!}
     use :: Numerical_Constants_Math         , only : Pi
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial

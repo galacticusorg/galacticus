@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+  !!{RST
+  Implements a merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
   !!}
 
   use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass
@@ -26,36 +26,30 @@
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !![
-  <mergerRemnantSize name="mergerRemnantSizeCovington2008">
+  <mergerRemnantSize name="mergerRemnantSizeCovington2008" docformat="rst">
    <description>
-    A merger remnant size class which uses the algorithm of \cite{covington_predicting_2008} to compute merger remnant spheroid
-    sizes. Specifically
-    \begin{equation}
-    \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
-    \left[ \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
-    \frac{M_1 M_2}{r_1+r_2}\right] \left( 1 + f_\mathrm{gas} C_\mathrm{rad} \right),
-    \label{eq:Covington2008Radius}
-    \end{equation}
-    where $M_1$ and $M_2$ are the baryonic masses of the merging galaxies and $r_1$ and $r_2$ are their half mass radii,
-    $r_\mathrm{new}$ is the half mass radius of the spheroidal \gls{component} of the remnant galaxy and $c$ is a constant
-    which depends on the distribution of the mass. For a Hernquist spheroid $c=0.40$ can be found by numerical integration
-    while for a exponential disk $c=0.49$. For simplicity a value of $c=0.5$ is adopted for all components. The parameter
-    $f_\mathrm{orbit}=$\mono{mergerRemnantSizeOrbitalEnergy} depends on the orbital parameters of the galaxy
-    pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point mass galaxies in circular orbits about their
-    center of mass. The final term on the right hand side of eqn.~(\ref{eq:Covington2008Radius}) gives a correction to the
-    final energy of the remnant due to dissipational losses based on the results of \cite{covington_effects_2011}, with
-    \begin{equation}
-     f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
-    \end{equation}
-    begin the gas fraction of the progenitor galaxies. By default, $C_\mathrm{rad}=2.75$ \citep{covington_effects_2011}. To
-    account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the
-    \cite{cole_hierarchical_2000} algorithm (see \refPhysics{mergerRemnantSizeCole2000}).
+   A merger remnant size class which uses the algorithm of :cite:t:`covington_predicting_2008` to compute merger remnant spheroid sizes. Specifically
+
+   .. math::
+
+      \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+      \left[ \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+      \frac{M_1 M_2}{r_1+r_2}\right] \left( 1 + f_\mathrm{gas} C_\mathrm{rad} \right),
+      \label{eq:Covington2008Radius}
+
+   where :math:`M_1` and :math:`M_2` are the baryonic masses of the merging galaxies and :math:`r_1` and :math:`r_2` are their half mass radii, :math:`r_\mathrm{new}` is the half mass radius of the spheroidal :term:`component` of the remnant galaxy and :math:`c` is a constant which depends on the distribution of the mass. For a Hernquist spheroid :math:`c=0.40` can be found by numerical integration while for a exponential disk :math:`c=0.49`. For simplicity a value of :math:`c=0.5` is adopted for all components. The parameter :math:`f_\mathrm{orbit}=`\ ``mergerRemnantSizeOrbitalEnergy`` depends on the orbital parameters of the galaxy pair. For example, a value of :math:`f_\mathrm{orbit} = 1` corresponds to point mass galaxies in circular orbits about their center of mass. The final term on the right hand side of eqn. () gives a correction to the final energy of the remnant due to dissipational losses based on the results of :cite:t:`covington_effects_2011`, with
+
+   .. math::
+
+      f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
+
+   begin the gas fraction of the progenitor galaxies. By default, :math:`C_\mathrm{rad}=2.75` :cite:p:`covington_effects_2011`. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the :cite:t:`cole_hierarchical_2000` algorithm (see ``mergerRemnantSizeCole2000``).
    </description>
   </mergerRemnantSize>
   !!]
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCovington2008
-     !!{
-     A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+     !!{RST
+     A merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
      !!}
      private
      class           (darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_        => null()
@@ -73,8 +67,8 @@
   end type mergerRemnantSizeCovington2008
 
   interface mergerRemnantSizeCovington2008
-     !!{
-     Constructors for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
+     !!{RST
+     Constructors for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
      !!}
      module procedure covington2008ConstructorParameters
      module procedure covington2008ConstructorInternal
@@ -83,8 +77,8 @@
 contains
 
   function covington2008ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,17 +89,23 @@ contains
     double precision                                                 :: energyOrbital              , efficiencyRadiative
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyOrbital</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The orbital energy in units of the characteristic orbital energy.</description>
+      <description>
+      The orbital energy in units of the characteristic orbital energy.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyRadiative</name>
-      <defaultSource>\citep{covington_predicting_2008}</defaultSource>
+      <defaultSource>
+      :cite:p:`covington_predicting_2008`
+      </defaultSource>
       <defaultValue>2.75d0</defaultValue>
-      <description>The coefficient, $C_\mathrm{rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
+      <description>
+      The coefficient, :math:`C_\mathrm{rad}` energy used in the :cite:t:`covington_predicting_2008` merger remnant size algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
@@ -121,8 +121,8 @@ contains
   end function covington2008ConstructorParameters
 
   function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
+    !!{RST
+    Internal constructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCovington2008 )                        :: self
@@ -138,7 +138,7 @@ contains
   end function covington2008ConstructorInternal
 
   subroutine covington2008AutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
@@ -151,8 +151,8 @@ contains
   end subroutine covington2008AutoHook
 
   subroutine covington2008Destructor(self)
-    !!{
-    Destructor for the \refClass{mergerRemnantSizeCovington2008} merger remnant size class.
+    !!{RST
+    Destructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
@@ -168,7 +168,7 @@ contains
   end subroutine covington2008Destructor
 
   subroutine covington2008CalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Error       , only : Error_Report
@@ -190,7 +190,7 @@ contains
   end subroutine covington2008CalculationReset
 
   subroutine covington2008GetHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the get function.
     !!}
     use :: Error, only : Error_Report
@@ -210,8 +210,8 @@ contains
   end subroutine covington2008GetHook
   
   subroutine covington2008Get(self,node,radius,velocityCircular,angularMomentumSpecific)
-    !!{
-    Compute the size of the merger remnant for \mono{node} using the \cite{covington_predicting_2008} algorithm.
+    !!{RST
+    Compute the size of the merger remnant for ``node`` using the :cite:t:`covington_predicting_2008` algorithm.
     !!}
     use :: Display                         , only : displayMagenta                , displayMessage, displayReset, displayVerbosity, &
           &                                         verbosityLevelWarn

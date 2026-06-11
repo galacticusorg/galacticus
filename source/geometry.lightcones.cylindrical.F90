@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the lightcone geometry class which assumes a cylindrical ``cone''.
+  !!{RST
+  An implementation of the lightcone geometry class which assumes a cylindrical "cone".
   !!}
 
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
@@ -32,16 +32,15 @@
   use :: Power_Spectra                  , only : powerSpectrumClass
   
   !![
-  <geometryLightcone name="geometryLightconeCylindrical">
+  <geometryLightcone name="geometryLightconeCylindrical" docformat="rst">
    <description>
-    A lightcone geometry class which assumes a cylindrical ``cone'', i.e. defined such that a point $(x,y,z)$ is in the survey
-    if $\sqrt{x^2+y^2} &lt; r$, where $r$ is the radius of the ``cone''.
+   A lightcone geometry class which assumes a cylindrical "cone", i.e. defined such that a point :math:`(x,y,z)` is in the survey if :math:`\sqrt{x^2+y^2} &lt; r`, where :math:`r` is the radius of the "cone".
    </description>
   </geometryLightcone>
   !!]
   type, extends(geometryLightconeClass) :: geometryLightconeCylindrical
-     !!{
-     A lightcone geometry class which assumes a cylindrical ``cone''.
+     !!{RST
+     A lightcone geometry class which assumes a cylindrical "cone".
      !!}
      private
      class           (cosmologyFunctionsClass         ), pointer                     :: cosmologyFunctions_          => null()
@@ -66,9 +65,11 @@
      integer         (c_size_t                        )                              :: activeOutput
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method method="sampleNode">
-       <description>Determine if, and how many times, the given node appears in the ``lightcone'', and choose positions for each instance.</description>
+       <description>
+       Determine if, and how many times, the given node appears in the "lightcone", and choose positions for each instance.
+       </description>
       </method>
      </methods>
      !!]
@@ -86,8 +87,8 @@
   end type geometryLightconeCylindrical
 
   interface geometryLightconeCylindrical
-     !!{
-     Constructors for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
+     !!{RST
+     Constructors for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -99,9 +100,8 @@
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class which takes a parameter list as
-    input.
+    !!{RST
+    Constructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,28 +119,36 @@ contains
          &                                                               massHaloLens                , redshiftLens
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusCylinderComoving</name>
       <source>parameters</source>
-      <description>The comoving radius of the cylinder to populate.</description>
+      <description>
+      The comoving radius of the cylinder to populate.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusBufferComoving</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The comoving buffer radius to add around the cylinder. This is used to ensure that the sample within the cylinder is complete.</description>
+      <description>
+      The comoving buffer radius to add around the cylinder. This is used to ensure that the sample within the cylinder is complete.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloLens</name>
       <source>parameters</source>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The mass of the primary lens halo (or a negative value for no lens).</description>
+      <description>
+      The mass of the primary lens halo (or a negative value for no lens).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftLens</name>
       <source>parameters</source>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The redshift of the primary lens halo (or a negative value for no lens).</description>
+      <description>
+      The redshift of the primary lens halo (or a negative value for no lens).
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"          source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                 source="parameters"/>
@@ -167,8 +175,8 @@ contains
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
+    !!{RST
+    Internal constructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
     !!}
     use :: File_Utilities          , only : File_Exists, File_Lock          , File_Unlock  , lockDescriptor
     use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
@@ -361,7 +369,7 @@ contains
   contains
 
     double precision function cosmicVarianceIntegrandVertical(wavenumberVerticalLogarithmic)
-      !!{
+      !!{RST
       Vertical integrand used in evaluating the cosmic variance.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J1_Zero
@@ -392,7 +400,7 @@ contains
     end function cosmicVarianceIntegrandVertical
 
     double precision function cosmicVarianceIntegrandRadial(wavenumberRadial)
-      !!{
+      !!{RST
       Radial integrand used in evaluating the cosmic variance.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -413,7 +421,7 @@ contains
     end function cosmicVarianceIntegrandRadial
 
     double complex function windowFunctionVertical(wavenumberVertical,heightLower,heightUpper)
-      !!{
+      !!{RST
       Window function used in evaluating the cosmic variance.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -433,7 +441,7 @@ contains
     end function windowFunctionVertical
     
     double precision function windowFunctionRadial(wavenumberRadial,radius)
-      !!{
+      !!{RST
       Window function used in evaluating the cosmic variance.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J1
@@ -452,8 +460,8 @@ contains
   end function cylindricalConstructorInternal
 
   subroutine cylindricalDestructor(self)
-    !!{
-    Destructor for the \refClass{geometryLightconeCylindrical} lightcone geometry distribution class.
+    !!{RST
+    Destructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
     !!}
     implicit none
     type(geometryLightconeCylindrical), intent(inout) :: self
@@ -472,8 +480,8 @@ contains
   end subroutine cylindricalDestructor
 
   function cylindricalReplicationCount(self,node)
-    !!{
-    Determine the number of times \mono{node} appears in the lightcone.
+    !!{RST
+    Determine the number of times ``node`` appears in the lightcone.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -487,7 +495,7 @@ contains
   end function cylindricalReplicationCount
   
   double precision function cylindricalTimeMinimum(self)
-    !!{
+    !!{RST
     Return the minimum time in the lightcone.
     !!}
     implicit none
@@ -498,7 +506,7 @@ contains
   end function cylindricalTimeMinimum
 
   double precision function cylindricalTimeMaximum(self)
-    !!{
+    !!{RST
     Return the minimum time in the lightcone.
     !!}
     implicit none
@@ -509,8 +517,8 @@ contains
   end function cylindricalTimeMaximum
 
   logical function cylindricalIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !!{
-    Determine if the given \mono{node} lies within the lightcone.
+    !!{RST
+    Determine if the given ``node`` lies within the lightcone.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic 
     use :: Numerical_Comparison, only : Values_Agree
@@ -558,7 +566,7 @@ contains
   end function cylindricalIsInLightcone
 
   double precision function cylindricalSolidAngle(self)
-    !!{
+    !!{RST
     Return the solid angle (in steradians) of a cylindrical lightcone.
     !!}
     implicit none
@@ -571,7 +579,7 @@ contains
   end function cylindricalSolidAngle
 
   function cylindricalPosition(self,node,instance)
-    !!{
+    !!{RST
     Return the position of the node in lightcone coordinates.
     !!}
     use            :: Error               , only : Error_Report
@@ -608,7 +616,7 @@ contains
   end function cylindricalPosition
 
   function cylindricalVelocity(self,node,instance)
-    !!{
+    !!{RST
     Return the velocity of the node in lightcone coordinates.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, treeNode
@@ -625,7 +633,7 @@ contains
   end function cylindricalVelocity
 
   double precision function cylindricalTimeLightconeCrossing(self,node,timeStart,timeEnd,timesCrossing)
-    !!{
+    !!{RST
     Return the time of the next lightcone crossing for this node.
     !!}
     use :: Error, only : Error_Report
@@ -642,7 +650,7 @@ contains
   end function cylindricalTimeLightconeCrossing
   
   function cylindricalPositionLightconeCrossing(self,node)
-    !!{
+    !!{RST
     Return the position at the next lightcone crossing for this node.
     !!}
     use :: Error, only : Error_Report
@@ -658,8 +666,8 @@ contains
   end function cylindricalPositionLightconeCrossing
   
   subroutine cylindricalSampleNode(self,node)
-    !!{
-    Determine how many times the given node appears in the ``lightcone''.
+    !!{RST
+    Determine how many times the given node appears in the "lightcone".
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Comparison    , only : Values_Agree

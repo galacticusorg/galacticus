@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{cole_hierarchical_2000} method for computing the time available for freefall in cooling
-  calculations in hot halos.
+  !!{RST
+  Implementation of the :cite:t:`cole_hierarchical_2000` method for computing the time available for freefall in cooling calculations in hot halos.
   !!}
 
   !![
-  <freefallTimeAvailable name="freefallTimeAvailableHaloFormation">
+  <freefallTimeAvailable name="freefallTimeAvailableHaloFormation" docformat="rst">
    <description>
-    A freefall time available class in which the time available for freefall is equal to
-    \begin{equation}
-     t_\mathrm{available} = t - t_\mathrm{form},
-    \end{equation}
-    where $t_\mathrm{form}$ is the time at which the halo formed (see \S\ref{sec:ComponentFormationTimes}).
+   A freefall time available class in which the time available for freefall is equal to
+
+   .. math::
+
+      t_\mathrm{available} = t - t_\mathrm{form},
+
+   where :math:`t_\mathrm{form}` is the time at which the halo formed (see Section ).
    </description>
   </freefallTimeAvailable>
   !!]
   type, extends(freefallTimeAvailableClass) :: freefallTimeAvailableHaloFormation
-     !!{
+     !!{RST
      Implementation of freefall time available class in which the time available is determined by the halo formation time.
      !!}
      private
@@ -45,7 +46,7 @@
   end type freefallTimeAvailableHaloFormation
 
   interface freefallTimeAvailableHaloFormation
-     !!{
+     !!{RST
      Constructors for the haloFormation freefall time available class.
      !!}
      module procedure haloFormationConstructorParameters
@@ -55,8 +56,8 @@
 contains
 
   function haloFormationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{freefallTimeAvailableHaloFormation} freefall time available class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``freefallTimeAvailableHaloFormation`` freefall time available class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters  , only : inputParameters
     implicit none
@@ -71,8 +72,8 @@ contains
   end function haloFormationConstructorParameters
 
   function haloFormationConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{freefallTimeAvailableHaloFormation} freefall time available class.
+    !!{RST
+    Internal constructor for the ``freefallTimeAvailableHaloFormation`` freefall time available class.
     !!}
     implicit none
     type(freefallTimeAvailableHaloFormation) :: self
@@ -84,9 +85,8 @@ contains
   end function haloFormationConstructorInternal
   
   double precision function haloFormationTimeAvailableIncreaseRate(self,node)
-    !!{
-    Compute the rate of increase of the time available for freefall using the \cite{cole_hierarchical_2000} method. We return a rate
-    of 1.
+    !!{RST
+    Compute the rate of increase of the time available for freefall using the :cite:t:`cole_hierarchical_2000` method. We return a rate of 1.
     !!}
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
@@ -99,9 +99,8 @@ contains
   end function haloFormationTimeAvailableIncreaseRate
 
   double precision function haloFormationTimeAvailable(self,node)
-    !!{
-    Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
-    assumed to be the time since the halo formation event.
+    !!{RST
+    Compute the time available for freefall using the :cite:t:`cole_hierarchical_2000` method. Specifically, the time available is assumed to be the time since the halo formation event.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

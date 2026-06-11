@@ -17,23 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+!!{RST
+Contains a module which wraps the `ANN <http://www.cs.umd.edu/~mount/ANN/>`_ (Approximate Nearest Neighbor) library.
 !!}
 
 ! Specify an explicit dependence on the ANN.o object file.
 !: $(BUILDPATH)/ANN.o
 
 module Nearest_Neighbors
-  !!{
-  Wraps the \href{http://www.cs.umd.edu/~mount/ANN/}{ANN} (Approximate Nearest Neighbor) library.
+  !!{RST
+  Wraps the `ANN <http://www.cs.umd.edu/~mount/ANN/>`_ (Approximate Nearest Neighbor) library.
   !!}
   use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr, c_ptr, c_int, c_double
   private
   public :: nearestNeighbors, nearestNeighborsClose
 
   type :: nearestNeighbors
-     !!{
+     !!{RST
      Wrapper object for nearest neighbor searching.
      !!}
      type(c_ptr) :: ANNkd_tree=C_Null_Ptr
@@ -56,8 +56,8 @@ module Nearest_Neighbors
 #ifdef ANNAVAIL
   interface
      function nearestNeighborsConstructorC(n,d,pa) bind(c,name='nearestNeighborsConstructorC')
-       !!{
-       Template for a C function that constructs an \mono{ANNkd\_tree}.
+       !!{RST
+       Template for a C function that constructs an ``ANNkd_tree``.
        !!}
        import
        type   (c_ptr   )                              :: nearestNeighborsConstructorC
@@ -68,7 +68,7 @@ module Nearest_Neighbors
 
   interface
     subroutine nearestNeighborsSearchC(ANN,point,neighborCount,tolerance,neighborIndex,neighborDistance) bind(c,name='nearestNeighborsSearchC')
-       !!{
+       !!{RST
        Template for a C function that searches for nearest neighbors.
        !!}
       import
@@ -83,7 +83,7 @@ module Nearest_Neighbors
 
   interface
      function nearestNeighborsSearchFixedRadiusC(ANN,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance) bind(c,name='nearestNeighborsSearchFixedRadiusC')
-       !!{
+       !!{RST
        Template for a C function that searches for nearest neighbors.
        !!}
        import
@@ -100,8 +100,8 @@ module Nearest_Neighbors
 
   interface
      subroutine nearestNeighborsDestructorC(ANN) bind(c,name='nearestNeighborsDestructorC')
-       !!{
-       Template for a C function that destroys an \mono{ANNkd\_tree}.
+       !!{RST
+       Template for a C function that destroys an ``ANNkd_tree``.
        !!}
        import
        type(c_ptr), intent(in   ), value :: ANN
@@ -110,7 +110,7 @@ module Nearest_Neighbors
 
   interface
      subroutine nearestNeighborsCloseC() bind(c,name='nearestNeighborsCloseC')
-       !!{
+       !!{RST
        Template for a C function that closes the ANN library.
        !!}
        import
@@ -121,7 +121,7 @@ module Nearest_Neighbors
 contains
 
   function nearestNeighborsConstructor(points) result(self)
-    !!{
+    !!{RST
     Constructs a nearest neighbor search object.
     !!}
 #ifndef ANNAVAIL
@@ -142,7 +142,7 @@ contains
   end function nearestNeighborsConstructor
 
   subroutine nearestNeighborsDestructor(self)
-    !!{
+    !!{RST
     Destroys a nearest neighbor search object.
     !!}
 #ifdef ANNAVAIL
@@ -163,7 +163,7 @@ contains
   end subroutine nearestNeighborsDestructor
 
   subroutine nearestNeighborsClose()
-    !!{
+    !!{RST
     Closes the ANN (Approximate Nearest Neighbor) library.
     !!}
 #ifndef ANNAVAIL
@@ -180,7 +180,7 @@ contains
   end subroutine nearestNeighborsClose
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
-    !!{
+    !!{RST
     Return indices and distances to the (approximate) nearest neighbors.
     !!}
 #ifndef ANNAVAIL
@@ -209,8 +209,8 @@ contains
   end subroutine nearestNeighborsSearch
 
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
-    !!{
-    Return indices and distances to all neighbors within a given \mono{radius}.
+    !!{RST
+    Return indices and distances to all neighbors within a given ``radius``.
     !!}
 #ifndef ANNAVAIL
     use :: Error            , only : Error_Report

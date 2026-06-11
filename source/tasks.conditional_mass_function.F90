@@ -24,12 +24,14 @@
   use :: Mass_Function_Incompletenesses, only : massFunctionIncompleteness, massFunctionIncompletenessClass
 
   !![
-  <task name="taskConditionalMassFunction">
-   <description>A task which computes the conditional mass function in bins of mass for a fixed halo mass.</description>
+  <task name="taskConditionalMassFunction" docformat="rst">
+   <description>
+   A task which computes the conditional mass function in bins of mass for a fixed halo mass.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskConditionalMassFunction
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
@@ -53,8 +55,8 @@
   end type taskConditionalMassFunction
 
   interface taskConditionalMassFunction
-     !!{
-     Constructors for the \refClass{taskConditionalMassFunction} task.
+     !!{RST
+     Constructors for the ``taskConditionalMassFunction`` task.
      !!}
      module procedure conditionalMassFunctionConstructorParameters
      module procedure conditionalMassFunctionConstructorInternal
@@ -63,8 +65,8 @@
 contains
 
   function conditionalMassFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskConditionalMassFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskConditionalMassFunction`` task class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -88,27 +90,35 @@ contains
     character       (len=32                         )                              :: text
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroupName</name>
-      <description>The name of the file to which the computed conditional mass function should be output.</description>
+      <description>
+      The name of the file to which the computed conditional mass function should be output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift for which to compute the conditional mass function.</description>
+      <description>
+      The minimum redshift for which to compute the conditional mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The maximum redshift for which to compute the conditional mass function.</description>
+      <description>
+      The maximum redshift for which to compute the conditional mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useSurveyLimits</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
+      <description>
+      Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -126,14 +136,18 @@ contains
             &        parameters%isPresent('countMass'         ) &
             & ) call Error_Report('ambigous mass specification'                                                               //{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massBinCenters</name>
-         <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
+         <description>
+         Logarithmic mass bins centers for conditional mass function calculations.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massLogarithmDelta</name>
-         <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
+         <description>
+         Logarithmic widths of mass bins for conditional mass function calculations.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -151,31 +165,39 @@ contains
             &   .not.parameters%isPresent('countMass'         ) &
             & ) call Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <defaultValue>1.0d8</defaultValue>
-         <description>The minimum mass for which to compute the conditional mass function.</description>
+         <description>
+         The minimum mass for which to compute the conditional mass function.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <defaultValue>1.0d12</defaultValue>
-         <description>The maximum mass for which to compute the conditional mass function.</description>
+         <description>
+         The maximum mass for which to compute the conditional mass function.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMass</name>
          <defaultValue>21</defaultValue>
-         <description>The number of bins for which to compute the conditional mass function.</description>
+         <description>
+         The number of bins for which to compute the conditional mass function.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHalo</name>
       <defaultValue>var_str('all')</defaultValue>
-      <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
+      <description>
+      The halo mass for which to compute the conditional mass function. A value of "all" will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.
+      </description>
       <source>parameters</source>
       <variable>massHalo_</variable>
     </inputParameter>
@@ -183,16 +205,20 @@ contains
     integrateOverHaloMassFunction=(massHalo_ == "all")
     if (integrateOverHaloMassFunction) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massHaloMinimum</name>
          <defaultValue>1.0d6</defaultValue>
-         <description>The minimum halo mass to use when integrating over the halo mass function.</description>
+         <description>
+         The minimum halo mass to use when integrating over the halo mass function.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massHaloMaximum</name>
          <defaultValue>1.0d16</defaultValue>
-         <description>The maximum halo mass to use when integrating over the halo mass function.</description>
+         <description>
+         The maximum halo mass to use when integrating over the halo mass function.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -236,8 +262,8 @@ contains
   end function conditionalMassFunctionConstructorParameters
 
   function conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_,countMass,massMinimum,massMaximum,massBinCenters,massLogarithmDelta,massHalo,massHaloMinimum,massHaloMaximum) result(self)
-    !!{
-    Constructor for the \refClass{taskConditionalMassFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskConditionalMassFunction`` task class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -288,8 +314,8 @@ contains
   end function conditionalMassFunctionConstructorInternal
 
   subroutine conditionalMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskConditionalMassFunction} task class.
+    !!{RST
+    Destructor for the ``taskConditionalMassFunction`` task class.
     !!}
     implicit none
     type(taskConditionalMassFunction), intent(inout) :: self
@@ -305,7 +331,7 @@ contains
   end subroutine conditionalMassFunctionDestructor
 
   subroutine conditionalMassFunctionPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use :: Display              , only : displayIndent, displayUnindent
@@ -434,7 +460,7 @@ contains
   contains
 
     double precision function integrandTime(timePrime)
-      !!{
+      !!{RST
       Integral over time.
       !!}
       implicit none
@@ -449,7 +475,7 @@ contains
     end function integrandTime
 
     double precision function integrandNormalizationTime(timePrime)
-      !!{
+      !!{RST
       Normalization integral over time.
       !!}
       implicit none
@@ -460,7 +486,7 @@ contains
     end function integrandNormalizationTime
 
     double precision function integrandMassHalo(logMass)
-      !!{
+      !!{RST
       Integral over halo mass function.
       !!}
       implicit none

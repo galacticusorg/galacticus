@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which exports merger trees to
-  file.
+  !!{RST
+  Implements a merger tree operator which exports merger trees to file.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -28,31 +27,20 @@
   use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatType
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorExport">
+  <mergerTreeOperator name="mergerTreeOperatorExport" docformat="rst">
    <description>
-    This operator will export merger trees to a file specified by the \mono{[outputFileName]} using the format
-    specified by \mono{[exportFormat]}. Currently, node indices (plus host indices, which are assumed identical to
-    the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If
-    \mono{IRATE}-format output is requested then ``snapshot'' numbers will be assigned to nodes based on the time
-    at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted
-    from an N-body simulation, or if trees were re-gridded onto such a time grid; see \refPhysics{mergerTreeOperatorRegridTimes}).
-    Export happens during the merger tree pre-evolution phase.
+   This operator will export merger trees to a file specified by the ``[outputFileName]`` using the format specified by ``[exportFormat]``. Currently, node indices (plus host indices, which are assumed identical to the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If ``IRATE``-format output is requested then "snapshot" numbers will be assigned to nodes based on the time at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted from an N-body simulation, or if trees were re-gridded onto such a time grid; see ``mergerTreeOperatorRegridTimes``). Export happens during the merger tree pre-evolution phase.
 
-    Node positions and velocities will be exported if they are available.
-    
-    If \mono{[skipSingleNodeTrees]} is true then trees consisting of a single node (which are typically left over
-    from pruning operators, and which are effectively inert) are not output. If \mono{[includeScaleRadii]} is
-    true then scale radii will be included in the output (if they are available and have been set).  If \mono{[includeAngularMomenta]} is true then halo angular momenta will be included in the output (if they are available and have been
-    set).
+   Node positions and velocities will be exported if they are available.
 
-    If \mono{[includeSubhalos]} is true then subhalos are included in the exported data. Note that if particle
-    positions were used to track subhalos after their destruction in an N-body simulation, attempting to output subhalos may lead
-    to errors.
+   If ``[skipSingleNodeTrees]`` is true then trees consisting of a single node (which are typically left over from pruning operators, and which are effectively inert) are not output. If ``[includeScaleRadii]`` is true then scale radii will be included in the output (if they are available and have been set).  If ``[includeAngularMomenta]`` is true then halo angular momenta will be included in the output (if they are available and have been set).
+
+   If ``[includeSubhalos]`` is true then subhalos are included in the exported data. Note that if particle positions were used to track subhalos after their destruction in an N-body simulation, attempting to output subhalos may lead to errors.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
-     !!{
+     !!{RST
      A merger tree operator class which exports merger trees to file.
      !!}
      private
@@ -70,7 +58,7 @@
   end type mergerTreeOperatorExport
 
   interface mergerTreeOperatorExport
-     !!{
+     !!{RST
      Constructors for the export merger tree operator class.
      !!}
      module procedure exportConstructorParameters
@@ -80,9 +68,8 @@
 contains
 
   function exportConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the export merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the export merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure, only : enumerationMergerTreeFormatEncode
@@ -97,41 +84,53 @@ contains
          &                                                   includeSubhalos          , skipSingleNodeTrees
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputFileName</name>
       <source>parameters</source>
       <defaultValue>var_str('galacticusExportedTrees.hdf5')</defaultValue>
-      <description>The name of the file to which merger trees should be exported.</description>
+      <description>
+      The name of the file to which merger trees should be exported.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exportFormat</name>
       <source>parameters</source>
       <defaultValue>var_str('galacticus')</defaultValue>
-      <description>The output format to use when exporting merger trees.</description>
+      <description>
+      The output format to use when exporting merger trees.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>skipSingleNodeTrees</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, trees consisting of a single node (which are inert in Galacticus) are not output.</description>
+      <description>
+      If true, trees consisting of a single node (which are inert in Galacticus) are not output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeScaleRadii</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include scale radii (if available) in the output.</description>
+      <description>
+      If true, include scale radii (if available) in the output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeAngularMomenta</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include angular momenta (if available) in the output.</description>
+      <description>
+      If true, include angular momenta (if available) in the output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeSubhalos</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, subhalos are included in the exported data. (Note that subhalo export is not supported in cases where particle data was used to track halos after they are destroyed in an N-body simulation.)</description>
+      <description>
+      If true, subhalos are included in the exported data. (Note that subhalo export is not supported in cases where particle data was used to track halos after they are destroyed in an N-body simulation.)
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -148,7 +147,7 @@ contains
   end function exportConstructorParameters
 
   function exportConstructorInternal(outputFileName,exportFormat,skipSingleNodeTrees,includeScaleRadii,includeAngularMomenta,includeSubhalos,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the export merger tree operator class.
     !!}
     use :: Error                     , only : Error_Report
@@ -174,7 +173,7 @@ contains
   end function exportConstructorInternal
 
   subroutine exportDestructor(self)
-    !!{
+    !!{RST
     Destructor for the export merger tree operator function class.
     !!}
     implicit none
@@ -189,8 +188,8 @@ contains
   end subroutine exportDestructor
 
   subroutine exportOperatePreEvolution(self,tree)
-    !!{
-    Output the structure of \mono{tree}.
+    !!{RST
+    Output the structure of ``tree``.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time

@@ -19,18 +19,20 @@
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
-  !!{
+  !!{RST
   Implements a concentration distribution output analysis class.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisConcentrationDistribution">
-   <description>Computes the distribution of dark matter halo concentration parameters within a specified mass range and redshift, reading bin configuration from a file and comparing model predictions against target data with a minimum fractional root variance floor.</description>
+  <outputAnalysis name="outputAnalysisConcentrationDistribution" docformat="rst">
+   <description>
+   Computes the distribution of dark matter halo concentration parameters within a specified mass range and redshift, reading bin configuration from a file and comparing model predictions against target data with a minimum fractional root variance floor.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisConcentrationDistribution
-     !!{
+     !!{RST
      A concentration distribution output analysis class.
      !!}
      private
@@ -51,8 +53,8 @@
   end type outputAnalysisConcentrationDistribution
 
   interface outputAnalysisConcentrationDistribution
-     !!{
-     Constructors for the \refClass{outputAnalysisConcentrationDistribution} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisConcentrationDistribution`` output analysis class.
      !!}
      module procedure concentrationDistributionConstructorParameters
      module procedure concentrationDistributionConstructorFile
@@ -62,8 +64,8 @@
 contains
 
   function concentrationDistributionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisConcentrationDistribution} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisConcentrationDistribution`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter    , inputParameters
@@ -96,109 +98,143 @@ contains
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVarianceFractionalMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum fractional root variance (relative to the target dataset).</description>
+      <description>
+      The minimum fractional root variance (relative to the target dataset).
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read concentration distribution function parameters.</description>
+         <description>
+         The name of the file from which to read concentration distribution function parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisConcentrationDistribution(char(fileName),label,comment,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the concentration distribution function.</description>
+         <description>
+         A label for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the concentration distribution function.</description>
+         <description>
+         A descriptive comment for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshift</name>
          <source>parameters</source>
-         <description>The redshift at which to compute the concentration distribution function.</description>
+         <description>
+         The redshift at which to compute the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <source>parameters</source>
-         <description>Minimum halo mass for the concentration distribution function.</description>
+         <description>
+         Minimum halo mass for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <source>parameters</source>
-         <description>Maximum halo mass for the concentration distribution function.</description>
+         <description>
+         Maximum halo mass for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>concentrationMinimum</name>
          <source>parameters</source>
-         <description>Minimum concentration for the concentration distribution function.</description>
+         <description>
+         Minimum concentration for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>concentrationMaximum</name>
          <source>parameters</source>
-         <description>Maximum concentration for the concentration distribution function.</description>
+         <description>
+         Maximum concentration for the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countConcentrationsPerDecade</name>
          <source>parameters</source>
-         <description>Number of concentrations per decade at which to compute the concentration distribution function.</description>
+         <description>
+         Number of concentrations per decade at which to compute the concentration distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>timeRecent</name>
          <source>parameters</source>
-         <description>Halos which experienced a major node merger within a time $\Delta t=$\mono{[timeRecent]} of the analysis time will be excluded from the analysis.</description>
+         <description>
+         Halos which experienced a major node merger within a time :math:`\Delta t=`\ ``[timeRecent]`` of the analysis time will be excluded from the analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParticle</name>
          <source>parameters</source>
-         <description>The particle mass in the source N-body simulation.</description>
+         <description>
+         The particle mass in the source N-body simulation.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
 	  !!]
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
              !![
-	     <inputParameter>
+	     <inputParameter docformat="rst">
                <name>functionValueTarget</name>
 	       <source>parameters</source>
-	       <description>The target function for likelihood calculations.</description>
+	       <description>
+	       The target function for likelihood calculations.
+	       </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionCovarianceTarget</name>
 	       <source>parameters</source>
 	       <variable>functionCovarianceTarget1D</variable>
-	       <description>The target function covariance for likelihood calculations.</description>
+	       <description>
+	       The target function covariance for likelihood calculations.
+	       </description>
              </inputParameter>
              !!]
              if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -260,8 +296,8 @@ contains
   end function concentrationDistributionConstructorParameters
 
   function concentrationDistributionConstructorFile(fileName,label,comment,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisConcentrationDistribution} output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the ``outputAnalysisConcentrationDistribution`` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object
@@ -328,8 +364,8 @@ contains
   end function concentrationDistributionConstructorFile
 
   function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,virialDensityContrastDefinition_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisConcentrationDistribution} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisConcentrationDistribution`` output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
@@ -609,7 +645,7 @@ contains
   end function concentrationDistributionConstructorInternal
 
   double precision function concentrationDistributionLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of the concentration distribution function.
     !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
@@ -679,8 +715,8 @@ contains
   end function concentrationDistributionLogLikelihood
 
   subroutine concentrationDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisConcentrationDistribution} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisConcentrationDistribution`` output analysis class.
     !!}
     type(outputAnalysisConcentrationDistribution), intent(inout) :: self
 

@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements storage and recovery of the \glc\ internal state. Used for restoring random number
-generator sequences for example.
+!!{RST
+Contains a module which implements storage and recovery of the Galacticus internal state. Used for restoring random number generator sequences for example.
 !!}
 
 module State
-  !!{
-  Implements storage and recovery of the \glc\ internal state. Used for restoring random number
-  generator sequences for example.
+  !!{RST
+  Implements storage and recovery of the Galacticus internal state. Used for restoring random number generator sequences for example.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string
@@ -56,10 +54,8 @@ contains
   </functionGlobal>
   !!]
   subroutine State_Store(logMessage)
-    !!{
-    Serialize and write the current \glc\ internal state (random number generator sequences, object data, etc.) to
-    binary files on disk, enabling later restarts from this checkpoint. Supports OpenMP thread-local and MPI rank-local
-    state files. Optionally appends a log message to a human-readable log file alongside the state file.
+    !!{RST
+    Serialize and write the current Galacticus internal state (random number generator sequences, object data, etc.) to binary files on disk, enabling later restarts from this checkpoint. Supports OpenMP thread-local and MPI rank-local state files. Optionally appends a log message to a human-readable log file alongside the state file.
     !!}
 #ifdef USEMPI
     use            :: MPI_Utilities     , only : mpiSelf
@@ -140,11 +136,8 @@ contains
   </functionGlobal>
   !!]
   subroutine State_Retrieve
-    !!{
-    Restore the \glc\ internal state from previously written checkpoint files, allowing a simulation to be restarted
-    from a saved state. Reads both the binary Fortran state file and the GSL random number generator state file. This
-    operation is performed at most once per run (subsequent calls are no-ops) and is thread-safe via OpenMP critical sections.
-    Supports OpenMP thread-local and MPI rank-local state files.
+    !!{RST
+    Restore the Galacticus internal state from previously written checkpoint files, allowing a simulation to be restarted from a saved state. Reads both the binary Fortran state file and the GSL random number generator state file. This operation is performed at most once per run (subsequent calls are no-ops) and is thread-safe via OpenMP critical sections. Supports OpenMP thread-local and MPI rank-local state files.
     !!}
     use            :: Interface_GSL     , only : gslFileOpen , gslFileClose
 #ifdef USEMPI
@@ -225,9 +218,8 @@ contains
   </functionGlobal>
   !!]
   subroutine State_Initialize(parameters_)
-    !!{
-    Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to
-    retrieve a state.
+    !!{RST
+    Initialize the state module by getting the name of the file to which states should be stored and whether or not we are to retrieve a state.
     !!}
     use :: Input_Parameters  , only : inputParameters
     use :: ISO_Varying_String, only : var_str        , operator(/=)
@@ -236,19 +228,23 @@ contains
 
     ! Get the base name of the state files.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stateFileRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>The root name of files to which the internal state is written (to permit restarts).</description>
+      <description>
+      The root name of files to which the internal state is written (to permit restarts).
+      </description>
       <source>parameters_</source>
     </inputParameter>
     !!]
     ! Get the base name of the files to retrieve from.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stateRetrieveFileRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>The root name of files to which the internal state is retrieved from (to restart).</description>
+      <description>
+      The root name of files to which the internal state is retrieved from (to restart).
+      </description>
       <source>parameters_</source>
     </inputParameter>
     !!]
@@ -267,7 +263,7 @@ contains
   </functionGlobal>
   !!]
   subroutine State_Set(stateFileRoot_)
-    !!{
+    !!{RST
     Set the state system---can be used for force storing of state on prior to calls to state store functions for debugging purposes.
     !!}
     use :: ISO_Varying_String, only : operator(/=)

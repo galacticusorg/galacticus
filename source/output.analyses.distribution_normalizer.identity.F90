@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an identity output analysis distribution normalizer class.
   !!}
 
   !![
-  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity">
-   <description>An identity (no-op) output analysis distribution normalizer class that leaves the distribution and its covariance unchanged, used as the default when no normalization is required.</description>
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerIdentity" docformat="rst">
+   <description>
+   An identity (no-op) output analysis distribution normalizer class that leaves the distribution and its covariance unchanged, used as the default when no normalization is required.
+   </description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerIdentity
-     !!{
+     !!{RST
      An identity output distribution normalizer class.
      !!}
      private
@@ -36,8 +38,8 @@
   end type outputAnalysisDistributionNormalizerIdentity
 
   interface outputAnalysisDistributionNormalizerIdentity
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionNormalizerIdentity} output analysis distribution normalizer class.
+     !!{RST
+     Constructors for the ``outputAnalysisDistributionNormalizerIdentity`` output analysis distribution normalizer class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionNormalizerIdentity
@@ -45,8 +47,8 @@
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionNormalizerIdentity} output analysis distribution normalizer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisDistributionNormalizerIdentity`` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function identityConstructorParameters
 
   subroutine identityNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !!{
+    !!{RST
     Implement a bin width output analysis distribution normalizer.
     !!}
     implicit none

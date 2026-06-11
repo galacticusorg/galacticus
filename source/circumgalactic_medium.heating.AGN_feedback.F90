@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \gls{cgm} heating class for AGN feedback.
+  !!{RST
+  Implements a :term:`CGM` heating class for AGN feedback.
   !!}
 
   use :: Black_Hole_CGM_Heating, only : blackHoleCGMHeatingClass
 
   !![
-  <circumgalacticMediumHeating name="circumgalacticMediumHeatingAGNFeedback">
+  <circumgalacticMediumHeating name="circumgalacticMediumHeatingAGNFeedback" docformat="rst">
    <description>
-    A circumgalactic medium heating class that computes heating from AGN feedback, coupling the energy output of active galactic nuclei to the hot gas halo. This class delegates to a black hole CGM heating implementation to determine the heating rate.
+   A circumgalactic medium heating class that computes heating from AGN feedback, coupling the energy output of active galactic nuclei to the hot gas halo. This class delegates to a black hole CGM heating implementation to determine the heating rate.
    </description>
   </circumgalacticMediumHeating>
   !!]
   type, extends(circumgalacticMediumHeatingClass) :: circumgalacticMediumHeatingAGNFeedback
-     !!{
-     A \gls{cgm} heating class for AGN feedback.
+     !!{RST
+     A :term:`CGM` heating class for AGN feedback.
      !!}
      private
      class(blackHoleCGMHeatingClass), pointer :: blackHoleCGMHeating_ => null()
@@ -42,8 +42,8 @@
   end type circumgalacticMediumHeatingAGNFeedback
   
   interface circumgalacticMediumHeatingAGNFeedback
-     !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
+     !!{RST
+     Constructors for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
      !!}
      module procedure agnFeedbackConstructorParameters
      module procedure agnFeedbackConstructorInternal
@@ -52,8 +52,8 @@
 contains
 
   function agnFeedbackConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +74,8 @@ contains
   end function agnFeedbackConstructorParameters
 
   function agnFeedbackConstructorInternal(blackHoleCGMHeating_) result(self)
-    !!{
-    Internal constructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
+    !!{RST
+    Internal constructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
     !!}
     implicit none
     type (circumgalacticMediumHeatingAGNFeedback)                        :: self
@@ -88,8 +88,8 @@ contains
   end function agnFeedbackConstructorInternal
 
   subroutine agnFeedbackDestructor(self)
-    !!{
-    Destructor for the \refClass{circumgalacticMediumHeatingAGNFeedback} circumgalactic medium heating class.
+    !!{RST
+    Destructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingAGNFeedback), intent(inout) :: self
@@ -101,8 +101,8 @@ contains
   end subroutine agnFeedbackDestructor
 
   double precision function agnFeedbackHeatingRate(self,node) result(rateHeating)
-    !!{
-    Compute the heating rate of the \gls{cgm} due to feedback from AGN.
+    !!{RST
+    Compute the heating rate of the :term:`CGM` due to feedback from AGN.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none

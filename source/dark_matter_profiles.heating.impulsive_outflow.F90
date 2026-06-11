@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which accounts for heating arising from impulsive outflows.
   !!}
   
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingImpulsiveOutflow">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingImpulsiveOutflow" docformat="rst">
    <description>
-    A dark matter profile heating model which accounts for heating due to impulsive outflows. The quantity
-    \begin{equation}
-     \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-    \end{equation}    
-    has been accumulated by the \refClass{nodeOperatorImpulsiveOutflowEnergy} node operator object---radially-dependent factors are then applied
-    in the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution object returned from our factory.
+   A dark matter profile heating model which accounts for heating due to impulsive outflows. The quantity
+
+   .. math::
+
+      \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+
+   has been accumulated by the ``nodeOperatorImpulsiveOutflowEnergy`` node operator object---radially-dependent factors are then applied in the ``massDistributionHeatingImpulsiveOutflow`` mass distribution object returned from our factory.
    </description>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingImpulsiveOutflow
-     !!{
+     !!{RST
      A dark matter profile heating class which accounts for heating arising from impulsive outflows.
      !!}
      private
@@ -45,8 +46,8 @@
   end type darkMatterProfileHeatingImpulsiveOutflow
 
   interface darkMatterProfileHeatingImpulsiveOutflow
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class.
+     !!{RST
+     Constructors for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -55,8 +56,8 @@
 contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,10 +66,12 @@ contains
     double precision                                                          :: impulsiveEnergyFactor
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>impulsiveEnergyFactor</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The parameter $\alpha$ appearing in the impulsive outflow heating rate.</description>
+      <description>
+      The parameter :math:`\alpha` appearing in the impulsive outflow heating rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -80,8 +83,8 @@ contains
   end function impulsiveOutflowConstructorParameters
 
   function impulsiveOutflowConstructorInternal(impulsiveEnergyFactor) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingImpulsiveOutflow} dark matter profile heating class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingImpulsiveOutflow)                :: self
@@ -98,8 +101,8 @@ contains
   end function impulsiveOutflowConstructorInternal
 
   function impulsiveOutflowGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentDarkMatterProfile
     use :: Mass_Distributions, only : massDistributionHeatingImpulsiveOutflow

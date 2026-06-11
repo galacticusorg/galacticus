@@ -17,30 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a satellite merging timescale class which applies the \cite{villalobos_improved_2013} modifier to another selected
-  satellite merging time class.
+  !!{RST
+  Implements a satellite merging timescale class which applies the :cite:t:`villalobos_improved_2013` modifier to another selected satellite merging time class.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013" docformat="rst">
    <description>
-    A satellite merging timescale class which computes merging timescales using the modifier of \cite{villalobos_improved_2013}
-    as
-    \begin{equation}
-    \tau_\mathrm{merge} = (1+z)^\alpha \tau^\prime_\mathrm{merge},
-    \end{equation}
-    where $\alpha=$\mono{[exponent]} and $\tau^\prime_\mathrm{merge}$ is the merging timescale computed by
-    another satellite merging timescale.
+   A satellite merging timescale class which computes merging timescales using the modifier of :cite:t:`villalobos_improved_2013` as
+
+   .. math::
+
+      \tau_\mathrm{merge} = (1+z)^\alpha \tau^\prime_\mathrm{merge},
+
+   where :math:`\alpha=`\ ``[exponent]`` and :math:`\tau^\prime_\mathrm{merge}` is the merging timescale computed by another satellite merging timescale.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesVillalobos2013
-     !!{
-     A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to
-     another selected satellite merging time method.
+     !!{RST
+     A class implementing calculations of satellite merging times by applying the :cite:t:`villalobos_improved_2013` modifier to another selected satellite merging time method.
      !!}
      private
      class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null()
@@ -52,8 +50,8 @@
   end type satelliteMergingTimescalesVillalobos2013
 
   interface satelliteMergingTimescalesVillalobos2013
-     !!{
-     Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     !!{RST
+     Constructors for the :cite:t:`lacey_merger_1993` merging timescale class.
      !!}
      module procedure villalobos2013ConstructorParameters
      module procedure villalobos2013ConstructorInternal
@@ -62,8 +60,8 @@
 contains
 
   function villalobos2013ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`lacey_merger_1993` merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,11 +72,15 @@ contains
     double precision                                                          :: exponent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
-      <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
+      <defaultSource>
+      :cite:p:`villalobos_improved_2013`
+      </defaultSource>
       <defaultValue>0.44d0</defaultValue>
-      <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
+      <description>
+      The exponent of :math:`1+z` appearing in the :cite:t:`villalobos_improved_2013` modifier for satellite merging timescales.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
@@ -94,8 +96,8 @@ contains
   end function villalobos2013ConstructorParameters
 
   function villalobos2013ConstructorInternal(exponent,satelliteMergingTimescales_,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \cite{lacey_merger_1993} merging timescale class.
+    !!{RST
+    Constructor for the :cite:t:`lacey_merger_1993` merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesVillalobos2013)                        :: self
@@ -110,8 +112,8 @@ contains
   end function villalobos2013ConstructorInternal
 
   subroutine villalobos2013Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMergingTimescalesVillalobos2013} satellite merging timescale class.
+    !!{RST
+    Destructor for the ``satelliteMergingTimescalesVillalobos2013`` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesVillalobos2013), intent(inout) :: self
@@ -124,8 +126,8 @@ contains
   end subroutine villalobos2013Destructor
 
   double precision function villalobos2013TimeUntilMerging(self,node,orbit)
-    !!{
-    Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`villalobos_improved_2013` method.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit

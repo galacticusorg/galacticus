@@ -1,0 +1,278 @@
+#!/usr/bin/env python3
+"""Build-time extractor: embedded RST docstrings -> Sphinx pages.
+
+Scans ``source/*.F90`` for ``!![ … !!]`` directive blocks that carry
+``docformat="rst"`` (written by :mod:`convertDocstringsToRST`) and emits a
+Sphinx documentation tree:
+
+* ``<out>/physics/<family>.rst``  — one page per ``functionClass`` family, with
+  a section per implementation class, its description, and the input parameters
+  declared in the same source file.
+* ``<out>/physics/index.rst``      — a toctree of all family pages.
+* ``<out>/glossary.rst``           — the glossary, from ``doc/Glossary.tex``.
+* ``<out>/references.rst``         — a single project-wide bibliography.
+
+Descriptions are read **straight from the raw source** (not via the directive
+parser, which left-strips each line and would destroy the indentation- and
+blank-line-sensitive RST).  No Fortran compilation is required.
+
+Usage::
+
+    scripts/doc/extractDocsRST.py <sourceDir> <outDir>
+
+Andrew Benson / Galacticus — RST documentation migration (2026).
+"""
+from __future__ import annotations
+
+import html
+import os
+import re
+import sys
+import textwrap
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from latexToRST import (                                       # noqa: E402
+    parse_glossary, glossary_display_map, latex_to_rst,
+)
+
+# ``!![ … !!]`` directive block.
+_BLOCK_RE = re.compile(r'^[ \t]*!!\[(.*?)^[ \t]*!!\]', re.DOTALL | re.MULTILINE)
+# Root (first) element opening tag of a block.
+_ROOT_RE = re.compile(r'<([A-Za-z][\w]*)((?:\s+[\w:]+="[^"]*")*)\s*/?>')
+# First <description>…</description> inside a block (the class/family/parameter
+# description — method descriptions, which come later, are not extracted here).
+_DESC_RE = re.compile(r'<description>(.*?)</description>', re.DOTALL)
+
+
+def _attr(attrs: str, name: str) -> str | None:
+    m = re.search(rf'\b{name}="([^"]*)"', attrs)
+    return m.group(1) if m else None
+
+
+def _child(block: str, tag: str) -> str | None:
+    m = re.search(rf'<{tag}>(.*?)</{tag}>', block, re.DOTALL)
+    return m.group(1).strip() if m else None
+
+
+def _desc_to_rst(raw: str | None, glsmap: dict) -> str:
+    """Dedent a raw ``<description>`` body and pass it through the converter.
+
+    The body is already RST (converted in the source).  It is XML-entity
+    escaped there (so the build's directive parser accepts it), so we unescape
+    it back to plain RST and dedent.  It is *not* re-converted from LaTeX — that
+    already happened in the source.
+    """
+    if not raw:
+        return ''
+    return textwrap.dedent(html.unescape(raw).strip('\n')).strip('\n')
+
+
+def _heading(text: str, char: str) -> str:
+    return f'{text}\n{char * max(3, len(text))}\n'
+
+
+def _lcfirst(s: str) -> str:
+    return s[:1].lower() + s[1:] if s else s
+
+
+# ---------------------------------------------------------------------------
+# Raw source scan
+# ---------------------------------------------------------------------------
+
+def scan_source(source_dir: str):
+    """Return ``(families, implementations, params_by_file)`` from raw source.
+
+    * ``families``: ``{name: {descriptiveName, description, default}}`` for every
+      ``functionClass``.
+    * ``implementations``: ``{family: [{name, description, file}, …]}`` keyed by
+      the root element name.
+    * ``params_by_file``: ``{file_base: [{name, default, description}, …]}``.
+    """
+    families: dict[str, dict] = {}
+    by_root: dict[str, list[dict]] = {}
+    params_by_file: dict[str, list[dict]] = {}
+
+    for root, _dirs, files in os.walk(source_dir):
+        for fn in sorted(files):
+            if not fn.endswith('.F90') or fn.startswith('.#'):
+                continue
+            base = os.path.splitext(fn)[0]
+            with open(os.path.join(root, fn), encoding='utf-8',
+                      errors='replace') as fh:
+                text = fh.read()
+            for bm in _BLOCK_RE.finditer(text):
+                block = bm.group(1)
+                if 'docformat="rst"' not in block:
+                    continue
+                rm = _ROOT_RE.search(block)
+                if not rm:
+                    continue
+                rtype, attrs = rm.group(1), rm.group(2)
+                desc_m = _DESC_RE.search(block)
+                desc_raw = desc_m.group(1) if desc_m else None
+
+                if rtype == 'functionClass':
+                    name = _child(block, 'name')
+                    if not name:
+                        continue
+                    families[name] = {
+                        'descriptiveName': _child(block, 'descriptiveName') or name,
+                        'description':     desc_raw,
+                        'default':         _child(block, 'default'),
+                    }
+                elif rtype == 'inputParameter':
+                    name = _child(block, 'name')
+                    if not name:
+                        continue
+                    params_by_file.setdefault(base, []).append({
+                        'name':        name,
+                        'default':     _child(block, 'defaultValue'),
+                        'description': desc_raw,
+                    })
+                else:
+                    name = _attr(attrs, 'name')
+                    if not name or desc_raw is None:
+                        continue
+                    by_root.setdefault(rtype, []).append({
+                        'name':        name,
+                        'description': desc_raw,
+                        'file':        base,
+                    })
+
+    implementations = {fam: by_root[fam] for fam in by_root if fam in families}
+    return families, implementations, params_by_file
+
+
+# ---------------------------------------------------------------------------
+# Rendering
+# ---------------------------------------------------------------------------
+
+def render_parameter(p: dict, glsmap: dict) -> str:
+    name = p.get('name', '')
+    desc = _desc_to_rst(p.get('description'), glsmap)
+    # Parameter descriptions are short; collapse to a single logical line.
+    desc = re.sub(r'\s*\n\s*', ' ', desc).strip()
+    default = p.get('default')
+    head = f'``[{name}]``'
+    if default not in (None, ''):
+        head += f' (default ``{str(default).strip()}``)'
+    return f'* {head} — {desc}' if desc else f'* {head}'
+
+
+def render_family(fam: str, families: dict, implementations: dict,
+                  params_by_file: dict, glsmap: dict) -> str:
+    directive = families[fam]
+    descriptive = directive.get('descriptiveName', fam)
+    out = [f'.. _physics-{fam}:\n', _heading(descriptive, '=')]
+
+    desc = _desc_to_rst(directive.get('description'), glsmap)
+    if desc:
+        out.append(desc + '\n')
+
+    default = directive.get('default')
+    if default:
+        target = f'{fam}{default[:1].upper()}{default[1:]}'
+        out.append(f'**Default implementation:** ``{target}``\n')
+
+    impls = sorted(implementations.get(fam, []),
+                   key=lambda d: str(d.get('name', '')).lower())
+    # (No ``.. contents::`` — the Furo theme provides a right-hand on-page nav
+    # and errors on an explicit local table of contents.)
+
+    for impl in impls:
+        name = impl['name']
+        out.append(f'.. _physics-{name}:\n')
+        out.append(_heading(f'``{name}``', '-'))
+        idesc = _desc_to_rst(impl.get('description'), glsmap)
+        if idesc:
+            out.append(idesc + '\n')
+        if default and f'{fam}{default[:1].upper()}{default[1:]}' == name:
+            out.append('**(Default implementation)**\n')
+        params = params_by_file.get(impl.get('file', ''), [])
+        if params:
+            out.append('**Parameters**\n')
+            for p in params:
+                out.append(render_parameter(p, glsmap))
+            out.append('')
+    return '\n'.join(out) + '\n'
+
+
+def render_glossary(glossary: dict, glsmap: dict) -> str:
+    # Deduplicate by display name; keep the longest description on collision.
+    by_name: dict[str, str] = {}
+    for entry in glossary.values():
+        name = entry['name']
+        desc = entry.get('description', '')
+        if name not in by_name or len(desc) > len(by_name[name]):
+            by_name[name] = desc
+
+    out = [_heading('Glossary', '='), '.. glossary::\n']
+    for name in sorted(by_name, key=str.lower):
+        desc_rst = latex_to_rst(by_name[name], glsmap).strip()
+        # Glossary definitions are single-paragraph prose; keep them tidy.
+        desc_rst = re.sub(r'\s*\n\s*', ' ', desc_rst) or '—'
+        out.append(textwrap.indent(name, '   '))
+        out.append(textwrap.indent(desc_rst, '      '))
+        out.append('')
+    return '\n'.join(out) + '\n'
+
+
+def render_physics_index(families: dict, implementations: dict) -> str:
+    fams = sorted((f for f in families if f in implementations),
+                  key=lambda f: families[f].get('descriptiveName', f).lower())
+    out = [_heading('Physics', '='),
+           'Documentation for each pluggable physics class, generated from the '
+           'source code.\n',
+           '.. toctree::\n   :maxdepth: 1\n']
+    for fam in fams:
+        out.append(f'   {fam}')
+    return '\n'.join(out) + '\n'
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print('Usage: extractDocsRST.py <sourceDir> <outDir>', file=sys.stderr)
+        return 1
+    source_dir, out_dir = sys.argv[1], sys.argv[2]
+
+    glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
+    glsmap = glossary_display_map(glossary)
+
+    families, implementations, params_by_file = scan_source(source_dir)
+
+    physics_dir = os.path.join(out_dir, 'physics')
+    os.makedirs(physics_dir, exist_ok=True)
+
+    for fam in implementations:
+        page = render_family(fam, families, implementations,
+                             params_by_file, glsmap)
+        with open(os.path.join(physics_dir, f'{fam}.rst'), 'w',
+                  encoding='utf-8') as fh:
+            fh.write(page)
+
+    with open(os.path.join(physics_dir, 'index.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_physics_index(families, implementations))
+
+    with open(os.path.join(out_dir, 'glossary.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_glossary(glossary, glsmap))
+
+    with open(os.path.join(out_dir, 'references.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(_heading('References', '=') +
+                 '\n.. bibliography::\n   :all:\n')
+
+    n_impl = sum(len(v) for v in implementations.values())
+    print(f'Wrote {len(implementations)} physics pages ({n_impl} '
+          f'implementations), glossary ({len(glossary)} entries), references.',
+          file=sys.stderr)
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a sequence output analysis property operator class.
 !!}
 
@@ -27,13 +27,15 @@ Implements a sequence output analysis property operator class.
   end type propertyOperatorList
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
-   <description>Applies a sequence of \refClass{outputAnalysisPropertyOperatorClass} objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" docformat="rst">
+   <description>
+   Applies a sequence of ``outputAnalysisPropertyOperatorClass`` objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.
+   </description>
    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
-     !!{
+     !!{RST
      A sequence output property operator class.
      !!}
      private
@@ -52,8 +54,8 @@ Implements a sequence output analysis property operator class.
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorSequence`` output analysis property operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -62,8 +64,8 @@ Implements a sequence output analysis property operator class.
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorSequence`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +95,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !!{
+    !!{RST
     Internal constructor for the sequence merger tree normalizer class.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence property operator class.
     !!}
     implicit none
@@ -135,7 +137,7 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an sequence output analysis property operator.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function sequenceOperate
 
   subroutine sequencePrepend(self,operator_)
-    !!{
+    !!{RST
     Prepend an operator to the sequence.
     !!}
     implicit none
@@ -172,7 +174,7 @@ contains
   end subroutine sequencePrepend
 
   subroutine sequenceApppend(self,operator_)
-    !!{
+    !!{RST
     Append an operator to the sequence.
     !!}
     implicit none

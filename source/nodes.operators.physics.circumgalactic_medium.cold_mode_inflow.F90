@@ -17,26 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that implements cold mode inflow of gas from the \gls{cgm}.
+  !!{RST
+  Implements a node operator class that implements cold mode inflow of gas from the :term:`CGM`.
   !!}
 
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRateClass
   use :: Cooling_Infall_Torques        , only : coolingInfallTorqueClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMColdModeInflow">
+  <nodeOperator name="nodeOperatorCGMColdModeInflow" docformat="rst">
    <description>
-    A node operator class that transfers cold-mode infalling gas from the \gls{cgm} into a galaxy component at each ODE
-    timestep, using a \refClass{coldModeInfallRateClass} to compute the mass flux and a \refClass{coolingInfallTorqueClass}
-    for the associated angular momentum. \mono{component} selects the destination (disk or spheroid); \mono{coolingFrom}
-    selects whether the angular momentum of infalling gas is computed from the \mono{currentNode} or the \mono{formationNode}.
+   A node operator class that transfers cold-mode infalling gas from the :term:`CGM` into a galaxy component at each ODE timestep, using a ``coldModeInfallRateClass`` to compute the mass flux and a ``coolingInfallTorqueClass`` for the associated angular momentum. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` selects whether the angular momentum of infalling gas is computed from the ``currentNode`` or the ``formationNode``.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMColdModeInflow
-     !!{
-     A node operator class that implements cold mode inflow of gas from the \gls{cgm}.
+     !!{RST
+     A node operator class that implements cold mode inflow of gas from the :term:`CGM`.
      !!}
      private
      class(coldModeInfallRateClass     ), pointer :: coldModeInfallRate_  => null()
@@ -49,8 +46,8 @@
   end type nodeOperatorCGMColdModeInflow
   
   interface nodeOperatorCGMColdModeInflow
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMColdModeInflow} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorCGMColdModeInflow`` node operator class.
      !!}
      module procedure cgmColdModeInflowConstructorParameters
      module procedure cgmColdModeInflowConstructorInternal
@@ -59,8 +56,8 @@
 contains
   
   function cgmColdModeInflowConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMColdModeInflow} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorCGMColdModeInflow`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -73,15 +70,19 @@ contains
     type (varying_string               )                :: component           , coolingFrom
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component to which cooling gas should be directed.</description>
+      <description>
+      The component to which cooling gas should be directed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coolingFrom</name>
       <defaultValue>var_str('currentNode')</defaultValue>
-      <description>Specifies whether the angular momentum of cooling gas should be computed from the \mono{currentNode} or the \mono{formationNode}.</description>
+      <description>
+      Specifies whether the angular momentum of cooling gas should be computed from the ``currentNode`` or the ``formationNode``.
+      </description>
       <source>parameters</source>
       <variable>coolingFrom</variable>
     </inputParameter>
@@ -98,8 +99,8 @@ contains
   end function cgmColdModeInflowConstructorParameters
 
   function cgmColdModeInflowConstructorInternal(component,coolingFrom,coldModeInfallRate_,coolingInfallTorque_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMColdModeInflow} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorCGMColdModeInflow`` node operator class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNone
     use :: Error                     , only : Error_Report
@@ -124,8 +125,8 @@ contains
   end function cgmColdModeInflowConstructorInternal
 
   subroutine cgmColdModeInflowDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMColdModeInflow} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorCGMColdModeInflow`` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMColdModeInflow), intent(inout) :: self
@@ -138,8 +139,8 @@ contains
   end subroutine cgmColdModeInflowDestructor
 
   subroutine cgmColdModeInflowDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Perform inflow of \gls{cgm} cold mode gas.
+    !!{RST
+    Perform inflow of :term:`CGM` cold mode gas.
     !!}
     use :: Abundances_Structure      , only : abundances            , operator(*)
     use :: Cooling_Options           , only : coolingFromCurrentNode, coolingFromFormationNode

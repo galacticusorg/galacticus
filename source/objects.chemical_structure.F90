@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements structures that describe chemicals.
 !!}
 
 module Chemical_Structures
-  !!{
+  !!{RST
   Implements structures that describe chemicals.
   !!}
   use :: ISO_Varying_String          , only : varying_string
@@ -33,7 +33,7 @@ module Chemical_Structures
   public :: chemicalStructure, atomicStructure,atomicBond, Chemical_Database_Get_Index
 
   type atomicStructure
-     !!{
+     !!{RST
      A type that defines an atom within a chemical.
      !!}
      character       (len=10) :: name
@@ -42,14 +42,14 @@ module Chemical_Structures
   end type atomicStructure
 
   type atomicBond
-     !!{
+     !!{RST
      A type that defines an atomic bond within a chemical.
      !!}
      integer :: atom(2)
   end type atomicBond
 
   type chemicalStructure
-     !!{
+     !!{RST
      A type that defines a chemical.
      !!}
      integer                                                      :: index
@@ -89,9 +89,8 @@ module Chemical_Structures
 contains
 
   subroutine Chemical_Structure_Initialize
-    !!{
-    Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
-    fully compatible with chemical markup language (CML), but only a limited subset of it.
+    !!{RST
+    Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not fully compatible with chemical markup language (CML), but only a limited subset of it.
     !!}
     use :: FoX_dom           , only : Node                        , destroy           , extractDataContent
     use :: Error             , only : Error_Report
@@ -175,7 +174,7 @@ contains
   end subroutine Chemical_Structure_Initialize
 
   subroutine Chemical_Structure_Export(chemical,outputFile)
-    !!{
+    !!{RST
     Export a chemical structure to a chemical markup language (CML) file.
     !!}
     use :: FoX_wxml          , only : xml_AddCharacters, xml_Close, xml_EndElement, xml_NewElement, &
@@ -251,7 +250,7 @@ contains
   end subroutine Chemical_Structure_Export
 
   integer function Chemical_Database_Get_Index(chemicalName)
-    !!{
+    !!{RST
     Find a chemical in the database and return it.
     !!}
     use :: Error             , only : Error_Report
@@ -276,7 +275,7 @@ contains
   end function Chemical_Database_Get_Index
 
   subroutine Chemical_Database_Get(chemical,chemicalName)
-    !!{
+    !!{RST
     Find a chemical in the database and return it.
     !!}
     implicit none
@@ -291,7 +290,7 @@ contains
   end subroutine Chemical_Database_Get
 
   integer function Chemical_Structure_Charge(chemical)
-    !!{
+    !!{RST
     Return the charge on a chemical.
     !!}
     implicit none
@@ -302,7 +301,7 @@ contains
   end function Chemical_Structure_Charge
 
   double precision function Chemical_Structure_Mass(chemical)
-    !!{
+    !!{RST
     Return the mass of a chemical.
     !!}
     implicit none

@@ -17,22 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a perfect hash algorithm for long integer keys.
 !!}
 
 module Hashes_Perfect
-  !!{
-  Implements a perfect hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
-  specific implementation follows the general structure of that given in a Dr. Dobbs
-  \href{https://web.archive.org/web/20250613033605/https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
+  !!{RST
+  Implements a perfect hash algorithm for long integer keys based on methods described by :cite:t:`czech_fundamental_1997`. The specific implementation follows the general structure of that given in a Dr. Dobbs `article <https://web.archive.org/web/20250613033605/https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506>`_.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: hashPerfect
 
   type hashPerfect
-     !!{
+     !!{RST
      A derived type which stores perfect long integer hashes.
      !!}
      private
@@ -61,7 +59,7 @@ module Hashes_Perfect
   end type hashPerfect
 
   type rowStructure
-     !!{
+     !!{RST
      A row structure used in building hashes
      !!}
      integer(c_size_t) :: rowNumber    !  the row number in array A().
@@ -74,7 +72,7 @@ module Hashes_Perfect
 contains
 
   subroutine Hash_Perfect_Create(hash,keys,values,keepInverseTable)
-    !!{
+    !!{RST
     Create a perfect hash for a given set of keys.
     !!}
     use :: Error            , only : Error_Report
@@ -218,7 +216,7 @@ contains
  end subroutine Hash_Perfect_Create
 
  subroutine Hash_Perfect_Destroy(hash)
-    !!{
+    !!{RST
     Destroy a perfect hash.
     !!}
     implicit none
@@ -232,7 +230,7 @@ contains
   end subroutine Hash_Perfect_Destroy
 
  function Hash_Perfect_Size(hash)
-   !!{
+   !!{RST
    Return the size of the hash table.
    !!}
    use :: Error, only : Error_Report
@@ -246,7 +244,7 @@ contains
  end function Hash_Perfect_Size
 
  function Hash_Perfect_Index(hash,key)
-   !!{
+   !!{RST
    Return the index corresponding to a hash key.
    !!}
    use :: Error       , only : Error_Report
@@ -265,7 +263,7 @@ contains
  end function Hash_Perfect_Index
 
  logical function Hash_Perfect_Is_Present(hash,key)
-   !!{
+   !!{RST
    Returns true if the hash contains the key.
    !!}
    use :: Error       , only : Error_Report
@@ -282,7 +280,7 @@ contains
  end function Hash_Perfect_Is_Present
 
  function Hash_Perfect_Value(hash,key)
-   !!{
+   !!{RST
    Returns the value for a specified key.
    !!}
    use :: Error       , only : Error_Report

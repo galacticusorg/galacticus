@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that interpolates positions of nodes using the approach of \cite{merson_lightcone_2013}.
+  !!{RST
+  Implements a node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
   !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
@@ -26,18 +26,15 @@
   use :: Kind_Numbers       , only : kind_int8
   
   !![
-  <nodeOperator name="nodeOperatorPositionInterpolated">
+  <nodeOperator name="nodeOperatorPositionInterpolated" docformat="rst">
    <description>
-    A node operator class that interpolates the 3D comoving positions of nodes between snapshots using the approach of
-    \cite{merson_lightcone_2013}, enabling construction of lightcones from discrete simulation outputs. \mono{lengthBox}
-    sets the comoving box side length; \mono{wrapPeriodic} controls periodic boundary treatment; \mono{nodeIndicesReport}
-    lists node indices for which detailed interpolation information should be reported during processing.
+   A node operator class that interpolates the 3D comoving positions of nodes between snapshots using the approach of :cite:t:`merson_lightcone_2013`, enabling construction of lightcones from discrete simulation outputs. ``lengthBox`` sets the comoving box side length; ``wrapPeriodic`` controls periodic boundary treatment; ``nodeIndicesReport`` lists node indices for which detailed interpolation information should be reported during processing.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionInterpolated
-     !!{
-     A node operator class that interpolates positions of nodes using the approach of \cite{merson_lightcone_2013}.
+     !!{RST
+     A node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
@@ -60,16 +57,16 @@
   end type nodeOperatorPositionInterpolated
   
   interface nodeOperatorPositionInterpolated
-     !!{
-     Constructors for the \refClass{nodeOperatorPositionInterpolated} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorPositionInterpolated`` node operator class.
      !!}
      module procedure positionInterpolatedConstructorParameters
      module procedure positionInterpolatedConstructorInternal
   end interface nodeOperatorPositionInterpolated
 
   type :: nodeTrace
-     !!{
-     Type used for tracing nodes through their positional history. 
+     !!{RST
+     Type used for tracing nodes through their positional history.
      !!}
      double precision                     :: time
      type            (treeNode ), pointer :: node        => null(), nodeHost => null()
@@ -85,8 +82,8 @@
 contains
   
   function positionInterpolatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorPositionInterpolated`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,24 +97,30 @@ contains
     allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
     if (parameters%isPresent('nodeIndicesReport')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>nodeIndicesReport</name>
-	 <description>A list of node indices for which reporting should be performed.</description>
+	 <description>
+	 A list of node indices for which reporting should be performed.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthBox</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The periodic length of the positions. For non-periodic positions, a value of zero should be given.</description>
+      <description>
+      The periodic length of the positions. For non-periodic positions, a value of zero should be given.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wrapPeriodic</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, interpolated positions that lie outside of the periodic box will be wrapped back into the box.</description>
+      <description>
+      If true, interpolated positions that lie outside of the periodic box will be wrapped back into the box.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -131,8 +134,8 @@ contains
   end function positionInterpolatedConstructorParameters
 
   function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionInterpolated} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorPositionInterpolated`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -153,8 +156,8 @@ contains
   end function positionInterpolatedConstructorInternal
 
   subroutine positionInterpolatedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorPositionInterpolated} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorPositionInterpolated`` node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionInterpolated), intent(inout) :: self
@@ -166,7 +169,7 @@ contains
   end subroutine positionInterpolatedDestructor
 
   subroutine positionInterpolatedDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition
@@ -182,7 +185,7 @@ contains
   end subroutine positionInterpolatedDifferentialEvolutionAnalytics
 
   subroutine positionInterpolatedDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Compute the interpolated position and velocity of the node.
     !!}
     implicit none
@@ -196,7 +199,7 @@ contains
   end subroutine positionInterpolatedDifferentialEvolutionSolveAnalytics
   
   subroutine positionInterpolatedPredeterminedSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Compute the interpolated position and velocity of the node.
     !!}
     implicit none
@@ -210,7 +213,7 @@ contains
   end subroutine positionInterpolatedPredeterminedSolveAnalytics
   
   subroutine positionInterpolatedInterpolate(self,node,time)
-    !!{
+    !!{RST
     Compute the interpolated position and velocity of the node.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
@@ -329,7 +332,7 @@ contains
   end subroutine positionInterpolatedInterpolate
 
   subroutine positionInterpolatedNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Trigger interpolation calculation at node initialization
     !!}
     use :: Error                       , only : Error_Report
@@ -807,7 +810,7 @@ contains
   contains
 
     subroutine findEvents(presentOnly)
-      !!{
+      !!{RST
       Locate events associated with this node.
       !!}
       implicit none
@@ -855,7 +858,7 @@ contains
     end subroutine findEvents
     
     function computeCoefficientsLogarithmicSpiral(trace) result(coefficientsLogarithmicSpiral)
-      !!{
+      !!{RST
       Compute coefficients of a logarithmic spiral interpolation for position and velocity.
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic
@@ -1023,7 +1026,7 @@ contains
     end function computeCoefficientsLogarithmicSpiral
     
     function computeCoefficientsCubicPolynomial(trace,useHost) result(coefficientsCubicPolynomial)
-      !!{
+      !!{RST
       Compute coefficients of a cubic polynomial interpolation for position and velocity.
       !!}
       use :: Galacticus_Nodes                , only : nodeComponentPosition, nodeComponentBasic

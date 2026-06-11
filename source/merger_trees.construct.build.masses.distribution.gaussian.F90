@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
   !!}
 
   !![
-  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionGaussian">
-   <description>A merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.</description>
+  <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionGaussian" docformat="rst">
+   <description>
+   A merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+   </description>
   </mergerTreeBuildMassDistribution>
   !!]
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionGaussian
-     !!{
+     !!{RST
      Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
      !!}
      private
@@ -37,8 +39,8 @@
   end type mergerTreeBuildMassDistributionGaussian
 
   interface mergerTreeBuildMassDistributionGaussian
-     !!{
-     Constructors for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function gaussianConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -57,14 +59,18 @@ contains
     double precision                                                         :: mean      , rootVariance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mean</name>
-      <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+      <description>
+      The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVariance</name>
-      <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+      <description>
+      The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -76,8 +82,8 @@ contains
   end function gaussianConstructorParameters
 
   function gaussianConstructorInternal(mean,rootVariance) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassDistributionGaussian} merger tree halo mass function sampling class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self
@@ -90,7 +96,7 @@ contains
   end function gaussianConstructorInternal
 
   double precision function gaussianSample(self,mass,time,massMinimum,massMaximum)
-    !!{
+    !!{RST
     Computes the halo mass function sampling rate using a volume-limited sampling.
     !!}
     implicit none

@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
-  another likelihood.
+  !!{RST
+  Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.
   !!}
 
   use, intrinsic :: ISO_C_Binding        , only : c_size_t
@@ -27,59 +26,57 @@
   use            :: Statistics_Variograms, only : variogramClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression" docformat="rst">
    <description>
-    The likelihood is computed either using another likelihood function (the ``simulator'') or via Gaussian regression emulation of
-    that simulator. The details of the emulation algorithm are specified by the following sub-parameters:
-    \begin{description}
-    \item[\mono{emulatorRebuildCount}] The number of simulator evaluations from which the emulator is built;
-    \item[\mono{polynomialOrder}] The order of the polynomial fitted to the simulator likelihoods prior to Gaussian regression;
-    \item[\mono{sigmaBuffer}] See below;
-    \item[\mono{logLikelihoodBuffer}] See below;
-    \item[\mono{logLikelihoodErrorTolerance}] See below;
-    \item[\mono{reportCount}] The number of likelihood evaluations between successive reports on the status of the emulator;
-    \item[\mono{emulateOutliers}] If true, then outlier chains are always emulated post-convergence (this is safe if such chains are not
-     used in constructing proposals for non-outlier chains);
-    \item[\mono{simulatorLikelihood}] Contains another likelihood function definition which will be used to construct the simulator.
-    \end{description}
-    
-    In detail, this likelihood function first collects \mono{emulatorRebuildCount} likelihood evaluations from the
-    simulator. It then fits a polynomial of order \mono{polynomialOrder} and of dimension equal to the dimension of
-    the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods
-    after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and
-    accumulation of new simulated states continues. Once \mono{emulatorRebuildCount} simulated states have once again
-    been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the
-    previous emulator\footnote{This would be unfortunate as the second emulator to be built would then contain information on only
-      those regions of the state space that were poorly emulated before.}, instead information from older emulators decays
-    exponentially.
-    
-    Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_\mathrm{e}$
-    and its error estimate $\sigma_{\log\mathcal{L}_\mathrm{e}}$ are computed. The emulated likelihood is then returned if:
-    \begin{equation}
-    \log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
-    \end{equation}
-    where $N=$\mono{sigmaBuffer}, $\Delta\log\mathcal{L}=$\mono{logLikelihoodBuffer}, $T$ is the
-    temperature, $\log\mathcal{L}$ is the current log-likelihood, $\log\mathcal{P}$ is the current log-prior probability, and
-    $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
-    \begin{equation}
-    \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; T \sigma_{\log\mathcal{L}},
-    \end{equation}
-    where $\sigma_{\log\mathcal{L}}=$\mono{logLikelihoodErrorTolerance}, otherwise the simulator is used to compute
-    the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even
-    accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is
-    sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
-    
-    If verbosity is set to \mono{info} or greater than a report will be issued every \mono{reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the
-    evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if
-    they lie within $3 \sigma_{\log\mathcal{L}_\mathrm{e}}$ of each other. The rate of failures (i.e. where the two differ by more
-    than this amount) is then reported.
+   The likelihood is computed either using another likelihood function (the "simulator") or via Gaussian regression emulation of that simulator. The details of the emulation algorithm are specified by the following sub-parameters:
+
+   ``emulatorRebuildCount``
+      The number of simulator evaluations from which the emulator is built;
+
+   ``polynomialOrder``
+      The order of the polynomial fitted to the simulator likelihoods prior to Gaussian regression;
+
+   ``sigmaBuffer``
+      See below;
+
+   ``logLikelihoodBuffer``
+      See below;
+
+   ``logLikelihoodErrorTolerance``
+      See below;
+
+   ``reportCount``
+      The number of likelihood evaluations between successive reports on the status of the emulator;
+
+   ``emulateOutliers``
+      If true, then outlier chains are always emulated post-convergence (this is safe if such chains are not used in constructing proposals for non-outlier chains);
+
+   ``simulatorLikelihood``
+      Contains another likelihood function definition which will be used to construct the simulator.
+
+   In detail, this likelihood function first collects ``emulatorRebuildCount`` likelihood evaluations from the simulator. It then fits a polynomial of order ``polynomialOrder`` and of dimension equal to the dimension of the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and accumulation of new simulated states continues. Once ``emulatorRebuildCount`` simulated states have once again been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the previous emulator\footnoteThis would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before., instead information from older emulators decays exponentially.
+
+   Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood :math:`\log\mathcal{L}_\mathrm{e}` and its error estimate :math:`\sigma_{\log\mathcal{L}_\mathrm{e}}` are computed. The emulated likelihood is then returned if:
+
+   .. math::
+
+      \log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
+
+   where :math:`N=`\ ``sigmaBuffer``, :math:`\Delta\log\mathcal{L}=`\ ``logLikelihoodBuffer``, :math:`T` is the temperature, :math:`\log\mathcal{L}` is the current log-likelihood, :math:`\log\mathcal{P}` is the current log-prior probability, and :math:`\log\mathcal{P}^\prime` is the proposed log-prior probability, or if
+
+   .. math::
+
+      \sigma_{\log\mathcal{L}_\mathrm{e}} &lt; T \sigma_{\log\mathcal{L}},
+
+   where :math:`\sigma_{\log\mathcal{L}}=`\ ``logLikelihoodErrorTolerance``, otherwise the simulator is used to compute the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
+
+   If verbosity is set to ``info`` or greater than a report will be issued every ``reportCount`` evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within :math:`3 \sigma_{\log\mathcal{L}_\mathrm{e}}` of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGaussianRegression
-     !!{
-     Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
-     another likelihood.
+     !!{RST
+     Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.
      !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
@@ -132,15 +129,15 @@
   !$omp threadprivate(self_)
 
   interface posteriorSampleLikelihoodGaussianRegression
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class.
      !!}
      module procedure gaussianRegressionConstructorParameters
      module procedure gaussianRegressionConstructorInternal
   end interface posteriorSampleLikelihoodGaussianRegression
 
   type :: polynomialIterator
-     !!{
+     !!{RST
      An object used for iterating over coefficients of polynomials.
      !!}
      private
@@ -175,9 +172,8 @@
 contains
 
   function gaussianRegressionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class which builds the object
-    from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -194,60 +190,78 @@ contains
     type            (varying_string                             )                :: dumpEmulatorFileRoot
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>emulatorRebuildCount</name>
-      <description>The number of steps between rebuilds of the emulator.</description>
+      <description>
+      The number of steps between rebuilds of the emulator.
+      </description>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>polynomialOrder</name>
-      <description>The order of the polynomial to fit to the likelihood surface.</description>
+      <description>
+      The order of the polynomial to fit to the likelihood surface.
+      </description>
       <defaultValue>2</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigmaBuffer</name>
-      <description>The buffer size in units of the likelihood error to use when deciding whether to emulate the likelihood.</description>
+      <description>
+      The buffer size in units of the likelihood error to use when deciding whether to emulate the likelihood.
+      </description>
       <defaultValue>3.0d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logLikelihoodBuffer</name>
-      <description>The buffer size in log-likelihood to use when deciding whether to emulate the likelihood.</description>
+      <description>
+      The buffer size in log-likelihood to use when deciding whether to emulate the likelihood.
+      </description>
       <defaultValue>10.0d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logLikelihoodErrorTolerance</name>
-      <description>The tolerance on the likelihood error to accept when deciding whether to emulate the likelihood.</description>
+      <description>
+      The tolerance on the likelihood error to accept when deciding whether to emulate the likelihood.
+      </description>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportCount</name>
-      <description>The number of steps between reports of emulator performance.</description>
+      <description>
+      The number of steps between reports of emulator performance.
+      </description>
       <defaultValue>10</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>emulateOutliers</name>
-      <description>If true, then outlier chains are always emulated once the simulation is converged.</description>
+      <description>
+      If true, then outlier chains are always emulated once the simulation is converged.
+      </description>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>assumeZeroVarianceAtZeroLag</name>
-      <description>If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.</description>
+      <description>
+      If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
+      </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (parameters%isPresent('dumpEmulatorFileRoot')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>dumpEmulatorFileRoot</name>
-	 <description>The name of a file to which emulator internal state will be dumped. (If empty, no dump occurs.)</description>
+	 <description>
+	 The name of a file to which emulator internal state will be dumped. (If empty, no dump occurs.)
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -255,9 +269,11 @@ contains
        dumpEmulatorFileRoot=var_str('')
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dummyEmulator</name>
-      <description>If true, then the emulator is constructed, and performance measured, but likelihoods are always simulated directly.</description>
+      <description>
+      If true, then the emulator is constructed, and performance measured, but likelihoods are always simulated directly.
+      </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -274,8 +290,8 @@ contains
   end function gaussianRegressionConstructorParameters
 
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,assumeZeroVarianceAtZeroLag,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_,variogram_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodGaussianRegression} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self
@@ -306,7 +322,7 @@ contains
   end function gaussianRegressionConstructorInternal
 
   subroutine gaussianRegressionDestructor(self)
-    !!{
+    !!{RST
     Destructor for Gaussian regression likelihood class.
     !!}
     implicit none
@@ -320,7 +336,7 @@ contains
   end subroutine gaussianRegressionDestructor
 
   double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for a Gaussian regression likelihood function.
     !!}
     use :: Dates_and_Times               , only : Formatted_Date_and_Time
@@ -703,10 +719,8 @@ contains
   contains
     
     subroutine evaluateSimulator(synchronizeOnly,logLikelihood_,logLikelihoodVariance_)
-      !!{
-      Call the \mono{evaluate} method of the simulator. If \mono{synchronizeOnly} is true then
-      no evaluation is actually needed, but we must still call the method to allow for possible MPI synchronization. In this case
-      call with an impossible proposed prior such that the simulator can choose to not evaluate.
+      !!{RST
+      Call the ``evaluate`` method of the simulator. If ``synchronizeOnly`` is true then no evaluation is actually needed, but we must still call the method to allow for possible MPI synchronization. In this case call with an impossible proposed prior such that the simulator can choose to not evaluate.
       !!}
       implicit none
       logical         , intent(in   ) :: synchronizeOnly
@@ -739,7 +753,7 @@ contains
   end function gaussianRegressionEvaluate
 
   double precision function gaussianRegressionSeparation(self,state1,state2)
-    !!{
+    !!{RST
     Determine the separation between two state vectors.
     !!}
     implicit none
@@ -761,7 +775,7 @@ contains
   end function gaussianRegressionSeparation
 
   subroutine gaussianRegressionFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none
@@ -792,7 +806,7 @@ contains
   end subroutine gaussianRegressionFunctionChanged
 
   logical function gaussianRegressionWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-    !!{
+    !!{RST
     Return true if the log-likelihood will be evaluated.
     !!}
     use :: Models_Likelihoods_Constants  , only : logImpossible
@@ -846,7 +860,7 @@ contains
   end function gaussianRegressionWillEvaluate
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
-    !!{
+    !!{RST
     Evaluate the model emulator.
     !!}
     use :: Linear_Algebra, only : assignment(=), vector
@@ -892,7 +906,7 @@ contains
   end subroutine gaussianRegressionEmulate
 
   subroutine gaussianRegressionRestore(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Process a previous state to restore likelihood function.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -926,8 +940,8 @@ contains
   end subroutine gaussianRegressionRestore
 
   function polynomialIteratorConstructor(order,rank) result(self)
-    !!{
-    Create a polynomial iterator for a polynomial of specified \mono{order} and \mono{rank}.
+    !!{RST
+    Create a polynomial iterator for a polynomial of specified ``order`` and ``rank``.
     !!}
     implicit none
     type   (polynomialIterator)                :: self
@@ -942,8 +956,8 @@ contains
   end function polynomialIteratorConstructor
   
   integer function polynomialCoefficientCount(n,d)
-    !!{
-    Return the number of coefficients at \mono{n}$^\mathrm{th}$ order in polynomial of dimension \mono{d}.
+    !!{RST
+    Return the number of coefficients at ``n``\ :math:`^\mathrm{th}` order in polynomial of dimension ``d``.
     !!}
     use :: Factorials, only : Factorial
     implicit none
@@ -958,7 +972,7 @@ contains
   end function polynomialCoefficientCount
 
   subroutine polynomialIteratorReset(self)
-    !!{
+    !!{RST
     Reset a polynomial iterator.
     !!}
     implicit none
@@ -972,7 +986,7 @@ contains
   end subroutine polynomialIteratorReset
 
   logical function polynomialIteratorIterate(self)
-    !!{
+    !!{RST
     Iterate over polynomial coefficients.
     !!}
     implicit none
@@ -1011,7 +1025,7 @@ contains
   end function polynomialIteratorIterate
 
   integer function polynomialIteratorIndex(self,i)
-    !!{
+    !!{RST
     Return the requested index of a polynomial iterator.
     !!}
     implicit none
@@ -1023,7 +1037,7 @@ contains
   end function polynomialIteratorIndex
 
   integer function polynomialIteratorCurrentOrder(self)
-    !!{
+    !!{RST
     Return the current order of a polynomial iterator.
     !!}
     implicit none
@@ -1034,7 +1048,7 @@ contains
   end function polynomialIteratorCurrentOrder
 
   integer function polynomialIteratorCounter(self)
-    !!{
+    !!{RST
     Return the current count of a polynomial iterator.
     !!}
     implicit none

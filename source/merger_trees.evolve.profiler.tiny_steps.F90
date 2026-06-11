@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree evolve profiler that warns about tiny steps.
   !!}
   
   !![
-  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerTinySteps">
+  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerTinySteps" docformat="rst">
    <description>
-    A merger tree evolve profiler that monitors timestep sizes during galaxy evolution and issues warnings when steps fall below a threshold, helping to diagnose stiff ODE systems or convergence problems. The warning threshold is set by \mono{[timeStepTiny]} and the minimum recorded step size is tracked via \mono{[timeStepMinimum]}.
+   A merger tree evolve profiler that monitors timestep sizes during galaxy evolution and issues warnings when steps fall below a threshold, helping to diagnose stiff ODE systems or convergence problems. The warning threshold is set by ``[timeStepTiny]`` and the minimum recorded step size is tracked via ``[timeStepMinimum]``.
    </description>
   </mergerTreeEvolveProfiler>
   !!]
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerTinySteps
-     !!{
+     !!{RST
      A merger tree evolve profiler that warns about tiny steps.
      !!}
      private
@@ -41,8 +41,8 @@
   end type mergerTreeEvolveProfilerTinySteps
 
   interface mergerTreeEvolveProfilerTinySteps
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveProfilerTinySteps} merger tree evolve profiler class.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveProfilerTinySteps`` merger tree evolve profiler class.
      !!}
      module procedure tinyStepsConstructorParameters
      module procedure tinyStepsConstructorInternal
@@ -51,8 +51,8 @@
 contains
   
   function tinyStepsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveProfilerTinySteps} merger tree evolve profiler class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveProfilerTinySteps`` merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,10 +61,12 @@ contains
     double precision                                                   :: timeStepTiny
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepTiny</name>
       <defaultValue>1.0d-9</defaultValue>
-      <description>The time step below which warnings will be issued.</description>
+      <description>
+      The time step below which warnings will be issued.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -90,7 +92,7 @@ contains
   end function tinyStepsConstructorInternal
 
   subroutine tinyStepsStepDescriptor(self,descriptor)
-    !!{
+    !!{RST
     Set the descriptor for the current step.
     !!}
     implicit none
@@ -102,7 +104,7 @@ contains
   end subroutine tinyStepsStepDescriptor
   
   subroutine tinyStepsProfile(self,node,time,timeStart,timeEnd,timestep,countEvaluations,interrupted,propertyIndex,propertyName,propertyValue,propertyRate,propertyScale,propertyError,timeCPU)
-    !!{
+    !!{RST
     Profile the differential evolution step.
     !!}
     use :: Display           , only : displayIndent, displayUnindent, displayMessage, displayMagenta, &

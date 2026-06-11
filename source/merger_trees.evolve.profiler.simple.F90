@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree evolve profiler that collects simple data.
   !!}
 
@@ -25,18 +25,11 @@
   use :: Locks , only : ompLock
   
   !![
-  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
+  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple" docformat="rst">
    <description>
-    A merger tree evolve profiler that collects simple data. Each step taken by the ODE evolver is then analyzed. First, a
-    record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size
-    (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to
-    determine step size) is determined and a record of this is kept.
-  
-    At the end of a run the accumulated data is written to the \glc\ output file, into a group named \mono{metaData/evolverProfiler}. A histogram of time step sizes is written to \mono{timeStepCount} with bins
-    specified in \mono{timeStep}---these bins can be adjusted using \mono{[timeStepMinimum]},
-    \mono{[timeStepMaximum]} and \mono{[timeStepPointsPerDecade]}. A histogram of which
-    properties limited step size is written to \mono{propertyHitCount} with the associated property names
-    written to \mono{[propertyNames]}.
+   A merger tree evolve profiler that collects simple data. Each step taken by the ODE evolver is then analyzed. First, a record of the size of the time step taken is recorded. Second, the property which is currently limiting the time step size (i.e. that which has the largest error over the step as judged using the same heuristics as the ODE solver uses to determine step size) is determined and a record of this is kept.
+
+   At the end of a run the accumulated data is written to the Galacticus output file, into a group named ``metaData/evolverProfiler``. A histogram of time step sizes is written to ``timeStepCount`` with bins specified in ``timeStep``---these bins can be adjusted using ``[timeStepMinimum]``, ``[timeStepMaximum]`` and ``[timeStepPointsPerDecade]``. A histogram of which properties limited step size is written to ``propertyHitCount`` with the associated property names written to ``[propertyNames]``.
    </description>
    <deepCopy>
     <ignore variables="deepCopiedFrom, node"/>
@@ -44,7 +37,7 @@
   </mergerTreeEvolveProfiler>
   !!]
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple
-     !!{
+     !!{RST
      A merger tree evolve profiler that collects simple data.
      !!}
      private
@@ -67,8 +60,8 @@
   end type mergerTreeEvolveProfilerSimple
 
   interface mergerTreeEvolveProfilerSimple
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveProfilerSimple`` merger tree evolve profiler class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -77,8 +70,8 @@
 contains
   
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveProfilerSimple} merger tree evolve profiler class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveProfilerSimple`` merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,22 +81,28 @@ contains
     integer                                                         :: timeStepPointsPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepMinimum</name>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The smallest timestep to use in profiling ODE solver steps.</description>
+      <description>
+      The smallest timestep to use in profiling ODE solver steps.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepMaximum</name>
       <defaultValue>1.0d+1</defaultValue>
-      <description>The largest timestep to use in profiling ODE solver steps.</description>
+      <description>
+      The largest timestep to use in profiling ODE solver steps.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepPointsPerDecade</name>
       <defaultValue>3</defaultValue>
-      <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
+      <description>
+      The number of bins per decade of timestep to use when profiling ODE solver steps.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -115,7 +114,7 @@ contains
   end function simpleConstructorParameters
 
   subroutine simpleStepDescriptor(self,descriptor)
-    !!{
+    !!{RST
     Set the descriptor for the current step.
     !!}
     implicit none
@@ -160,7 +159,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
+    !!{RST
     Output collected meta-data on tree evolution.
     !!}
     use :: Display                         , only : displayIndent , displayUnindent
@@ -249,7 +248,7 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleProfile(self,node,time,timeStart,timeEnd,timestep,countEvaluations,interrupted,propertyIndex,propertyName,propertyValue,propertyRate,propertyScale,propertyError,timeCPU)
-    !!{
+    !!{RST
     Profile the differential evolution step.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -305,7 +304,7 @@ contains
   end subroutine simpleProfile
 
   recursive subroutine simpleDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy, keeping track of the origin object.
     !!}
     use :: Error, only : Error_Report

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs tidal heating in spheroids.
   !!}
   
@@ -25,12 +25,14 @@
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !![
-  <nodeOperator name="nodeOperatorTidalHeatingSpheroids">
-   <description>Computes tidal heating of satellite galaxy spheroids by the tidal field of the host halo, injecting energy into the stellar component that causes spheroid puffing-up and can drive mass loss from tidally heated satellite galaxies.</description>
+  <nodeOperator name="nodeOperatorTidalHeatingSpheroids" docformat="rst">
+   <description>
+   Computes tidal heating of satellite galaxy spheroids by the tidal field of the host halo, injecting energy into the stellar component that causes spheroid puffing-up and can drive mass loss from tidally heated satellite galaxies.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalHeatingSpheroids
-     !!{
+     !!{RST
      A node operator class that performs tidal heating in spheroids.
      !!}
      private
@@ -42,8 +44,8 @@
   end type nodeOperatorTidalHeatingSpheroids
 
   interface nodeOperatorTidalHeatingSpheroids
-     !!{
-     Constructors for the \refClass{nodeOperatorTidalHeatingSpheroids} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
      !!}
      module procedure tidalHeatingSpheroidsConstructorParameters
      module procedure tidalHeatingSpheroidsConstructorInternal
@@ -52,8 +54,8 @@
 contains
   
   function tidalHeatingSpheroidsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTidalHeatingSpheroids} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +78,8 @@ contains
   end function tidalHeatingSpheroidsConstructorParameters
 
   function tidalHeatingSpheroidsConstructorInternal(darkMatterHaloScale_,satelliteTidalField_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTidalHeatingSpheroids} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalHeatingSpheroids)                        :: self
@@ -91,8 +93,8 @@ contains
   end function tidalHeatingSpheroidsConstructorInternal
 
   subroutine tidalHeatingSpheroidsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorTidalHeatingSpheroids} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalHeatingSpheroids), intent(inout) :: self
@@ -105,7 +107,7 @@ contains
   end subroutine tidalHeatingSpheroidsDestructor
   
   subroutine tidalHeatingSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform star formation in a spheroid.
     !!}
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSpheroid

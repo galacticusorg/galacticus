@@ -19,22 +19,22 @@
 
   !+    Contributions to this file made by:  Martin White.
 
-  !!{
-  Implements a satellite merging timescale class which uses the \cite{wetzel_what_2010} method.
+  !!{RST
+  Implements a satellite merging timescale class which uses the :cite:t:`wetzel_what_2010` method.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010" docformat="rst">
    <description>
-    A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of \cite{wetzel_what_2010}. The predicted timescale can be rescaled by the \mono{[timescaleMultiplier]} parameter.
+   A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of :cite:t:`wetzel_what_2010`. The predicted timescale can be rescaled by the ``[timescaleMultiplier]`` parameter.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
-     !!{
-     A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.
+     !!{RST
+     A class implementing the :cite:t:`wetzel_what_2010` method for satellite merging timescales.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -45,8 +45,8 @@
   end type satelliteMergingTimescalesWetzelWhite2010
 
   interface satelliteMergingTimescalesWetzelWhite2010
-     !!{
-     Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     !!{RST
+     Constructors for the :cite:t:`lacey_merger_1993` merging timescale class.
      !!}
      module procedure wetzelWhite2010ConstructorParameters
      module procedure wetzelWhite2010ConstructorInternal
@@ -55,8 +55,8 @@
 contains
 
   function wetzelWhite2010ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{wetzel_what_2010} merging timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`wetzel_what_2010` merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,10 +66,12 @@ contains
     double precision                                                           :: timescaleMultiplier
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>
-      <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+      <description>
+      A multiplier for the merging timescale in dynamical friction timescale calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -83,8 +85,8 @@ contains
   end function wetzelWhite2010ConstructorParameters
 
   function wetzelWhite2010ConstructorInternal(timescaleMultiplier,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \cite{wetzel_what_2010} merging timescale class.
+    !!{RST
+    Constructor for the :cite:t:`wetzel_what_2010` merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesWetzelWhite2010)                        :: self
@@ -98,8 +100,8 @@ contains
   end function wetzelWhite2010ConstructorInternal
 
   subroutine wetzelWhite2010Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMergingTimescalesWetzelWhite2010} satellite merging timescale class.
+    !!{RST
+    Destructor for the ``satelliteMergingTimescalesWetzelWhite2010`` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
@@ -111,8 +113,8 @@ contains
   end subroutine wetzelWhite2010Destructor
 
   double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
-    !!{
-    Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`wetzel_what_2010` method.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit

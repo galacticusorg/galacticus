@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an active model parameter class.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Statistics_Distributions, only : distributionFunction1DClass
 
   !![
-  <modelParameter name="modelParameterActive">
-   <description>An active model parameter class representing a free parameter that participates in posterior sampling, with a prior distribution, perturbation distribution, and optional mapping transformation. The parameter name is set by \mono{[name]}, with prior and perturbation distributions provided as objects, and a unary operator applied to transform the parameter value for model evaluation.</description>
+  <modelParameter name="modelParameterActive" docformat="rst">
+   <description>
+   An active model parameter class representing a free parameter that participates in posterior sampling, with a prior distribution, perturbation distribution, and optional mapping transformation. The parameter name is set by ``[name]``, with prior and perturbation distributions provided as objects, and a unary operator applied to transform the parameter value for model evaluation.
+   </description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterActive
-     !!{
+     !!{RST
      Implementation of an active model parameter class.
      !!}
      private
@@ -59,8 +61,8 @@
   end type modelParameterActive
 
   interface modelParameterActive
-     !!{
-     Constructors for the \refClass{modelParameterActive} model parameter class.
+     !!{RST
+     Constructors for the ``modelParameterActive`` model parameter class.
      !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal
@@ -69,8 +71,8 @@
 contains
 
   function activeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{modelParameterActive} model parameter class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``modelParameterActive`` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,15 +84,19 @@ contains
     logical                                             :: slow
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>name</name>
-      <description>The name of the active model parameter as it appears in the \glc\ parameter file and output metadata; used to identify and retrieve the parameter during posterior sampling runs.</description>
+      <description>
+      The name of the active model parameter as it appears in the Galacticus parameter file and output metadata; used to identify and retrieve the parameter during posterior sampling runs.
+      </description>
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>slow</name>
-      <description>If true, changes in the parameter are considered to result in slow likelihood evaluations.</description>
+      <description>
+      If true, changes in the parameter are considered to result in slow likelihood evaluations.
+      </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -109,8 +115,8 @@ contains
   end function activeConstructorParameters
 
   function activeConstructorInternal(name_,slow,prior,perturber,mapper) result(self)
-    !!{
-    Internal constructor for the \refClass{modelParameterActive} model parameter class.
+    !!{RST
+    Internal constructor for the ``modelParameterActive`` model parameter class.
     !!}
     implicit none
     type   (modelParameterActive       )                        :: self
@@ -126,8 +132,8 @@ contains
   end function activeConstructorInternal
 
   subroutine activeDestructor(self)
-    !!{
-    Destructor for \refClass{modelParameterActive} model parameter class.
+    !!{RST
+    Destructor for ``modelParameterActive`` model parameter class.
     !!}
     implicit none
     type(modelParameterActive), intent(inout) :: self
@@ -141,7 +147,7 @@ contains
   end subroutine activeDestructor
 
   function activeName(self)
-    !!{
+    !!{RST
     Return the name of this parameter.
     !!}
     implicit none
@@ -153,7 +159,7 @@ contains
   end function activeName
 
   double precision function activeLogPrior(self,x)
-    !!{
+    !!{RST
     Return the log-prior on this parameter.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -171,7 +177,7 @@ contains
   end function activeLogPrior
 
   double precision function activePriorSample(self)
-    !!{
+    !!{RST
     Sample from the of this parameter.
     !!}
     implicit none
@@ -182,7 +188,7 @@ contains
   end function activePriorSample
 
   double precision function activePriorInvert(self,f)
-    !!{
+    !!{RST
     Invert the prior, returning the parameter value given the cumulative probability.
     !!}
     implicit none
@@ -194,7 +200,7 @@ contains
   end function activePriorInvert
 
   double precision function activePriorMinimum(self)
-    !!{
+    !!{RST
     Return the minimum value for which the prior is non-zero.
     !!}
     implicit none
@@ -205,7 +211,7 @@ contains
   end function activePriorMinimum
 
   double precision function activePriorMaximum(self)
-    !!{
+    !!{RST
     Return the maximum value for which the prior is non-zero.
     !!}
     implicit none
@@ -216,7 +222,7 @@ contains
   end function activePriorMaximum
 
   double precision function activeRandomPerturbation(self)
-    !!{
+    !!{RST
     Return a random perturbation to this parameter.
     !!}
     implicit none
@@ -227,7 +233,7 @@ contains
   end function activeRandomPerturbation
 
   double precision function activeMap(self,x)
-    !!{
+    !!{RST
     Map this parameter.
     !!}
     implicit none
@@ -239,7 +245,7 @@ contains
   end function activeMap
 
   double precision function activeUnmap(self,x)
-    !!{
+    !!{RST
     Unmap this parameter.
     !!}
     implicit none
@@ -251,7 +257,7 @@ contains
   end function activeUnmap
 
   double precision function activeMapJacobian(self,x)
-    !!{
+    !!{RST
     Compute the Jacobian of the map for this parameter.
     !!}
     implicit none
@@ -263,7 +269,7 @@ contains
   end function activeMapJacobian
 
   logical function activeIsSlow(self)
-    !!{
+    !!{RST
     Return true if changes in this parameter may result in slow likelihood evaluation.
     !!}
     implicit none

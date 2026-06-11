@@ -17,18 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program to benchmark the numerical interpolation primitives provided by the
-\refClass{interpolator} and \refClass{interpolator2D} types.
+!!{RST
+Contains a program to benchmark the numerical interpolation primitives provided by the ``interpolator`` and ``interpolator2D`` types.
 
-Each scenario constructs an interpolator, builds a precomputed array of query points
-(so we measure interpolation, not RNG), and runs an inner loop of many calls inside
-each timed trial. We report time-per-call rather than time-per-trial: at typical clock
-resolutions a single \mono{\%interpolate} call is only a handful of ticks, so timing
-one call at a time is dominated by noise.
+Each scenario constructs an interpolator, builds a precomputed array of query points (so we measure interpolation, not RNG), and runs an inner loop of many calls inside each timed trial. We report time-per-call rather than time-per-trial: at typical clock resolutions a single ``%interpolate`` call is only a handful of ticks, so timing one call at a time is dominated by noise.
 
-A running checksum is accumulated across every call and printed at the end so the
-compiler cannot dead-code-eliminate the interpolation results.
+A running checksum is accumulated across every call and printed at the end so the compiler cannot dead-code-eliminate the interpolation results.
 !!}
 
 program Benchmark_Numerical_Interpolation
@@ -79,11 +73,8 @@ program Benchmark_Numerical_Interpolation
 contains
 
   subroutine buildArray(n,x,y)
-    !!{
-    Build a smooth, monotonically increasing $x$-array and a corresponding $y$-array.
-    The arrays span $x\in[0,1]$ with a deliberate non-uniform spacing so that the
-    interpolator cannot exploit uniform-grid shortcuts (and so that linear and
-    cubic splines have distinguishable behavior).
+    !!{RST
+    Build a smooth, monotonically increasing :math:`x`-array and a corresponding :math:`y`-array. The arrays span :math:`x\in[0,1]` with a deliberate non-uniform spacing so that the interpolator cannot exploit uniform-grid shortcuts (and so that linear and cubic splines have distinguishable behavior).
     !!}
     integer                                    , intent(in   ) :: n
     double precision, allocatable, dimension(:), intent(  out) :: x, y
@@ -102,12 +93,8 @@ contains
   end subroutine buildArray
 
   subroutine buildQueries(n,xMin,xMax,sequential,queries)
-    !!{
-    Build a precomputed array of query points within $[\mathrm{xMin},\mathrm{xMax}]$.
-    If \mono{sequential} is true the points walk monotonically through the range,
-    cycling back to the start (this is the case where the GSL accelerator should
-    hit its cached index). Otherwise the points are uniformly random, which forces
-    the accelerator to fall back to a binary search on every call.
+    !!{RST
+    Build a precomputed array of query points within :math:`[\mathrm{xMin},\mathrm{xMax}]`. If ``sequential`` is true the points walk monotonically through the range, cycling back to the start (this is the case where the GSL accelerator should hit its cached index). Otherwise the points are uniformly random, which forces the accelerator to fall back to a binary search on every call.
     !!}
     integer         , intent(in   )                   :: n
     double precision, intent(in   )                   :: xMin      , xMax

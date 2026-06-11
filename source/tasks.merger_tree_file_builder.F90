@@ -25,7 +25,7 @@
   use :: Merger_Tree_Data_Structure, only : enumerationPropertyTypeType, enumerationMetaDataTypeType  , enumerationMergerTreeFormatType
 
   type :: mergerTreeMetaData
-     !!{
+     !!{RST
      Type used for metadata in merger tree files.
      !!}
      type(enumerationMetaDataTypeType) :: type
@@ -33,7 +33,7 @@
   end type mergerTreeMetaData
 
   type :: propertyColumn
-     !!{
+     !!{RST
      Type used to specify which property to read from which column,
      !!}
      type   (enumerationPropertyTypeType) :: property
@@ -42,153 +42,198 @@
   end type propertyColumn
 
   !![
-  <task name="taskMergerTreeFileBuilder">
+  <task name="taskMergerTreeFileBuilder" docformat="rst">
    <description>
-    This task will build a merger tree file in the format described
-    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here} from merger tree descriptions in other
-    formats, such as ASCII output from an SQL database. An example of how the builder can be used can be found in this
-    \href{https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Building-merger-trees-from-ASCII-files}{tutorial}.
-    
-    The builder is flexible, and therefore requires many parameters to control how it processes input files, all of which are
-    described below.
-    
-    The builder reads from an ASCII file containing one halo per line. The \mono{[property]} sub-parameters allow
-    specification of which properties are present in the file, and in which column. The builder can optionally also read a file of
-    associated particle data---this can be used to assign positions to orphan halos if desired.
-    
-    The merger tree file builder can currently export in one of two formats:
-    \begin{description}
-    \item [\mono{galacticus}] merger trees are exported in \glc's native format described in detail
-      \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here};
-    \item [\mono{irate}] merger trees are exported in the \href{https://irate-format.readthedocs.io/en/stable/formatspec.html}{\mono{IRATE}} format.
-    \end{description}
-    
-    Properties to read from the file are specified through multiple \mono{property} sub-parameter sections, which take the form:
-    \begin{verbatim}
-     &lt;property>
-      &lt;name             value="propertyName"/>
-      &lt;column           value="columnNumber"/>
-      &lt;conversionFactor value="1.0e0"       />
-     &lt;/property>
-    \end{verbatim}
-    where \mono{[name]} is the property name (see below), \mono{[column]} is the column number
-    (starting from 1) from which to read the property, and the optional \mono{[conversionFactor]} specifies an
-    additional factor by which the property should be multiplied to place it into the correct internal units for \glc\footnote{The
-      units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from
-      these units to \glc's internal units is performed automatically. However, sometimes the input data may have inconsistent units
-      between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion
-      factor can be applied to bring all quantities into a consistent unit system.}.
-    
-    Recognized property names are
-    \begin{description}
-    \item [\mono{treeIndex}] A unique ID number for the tree to which this node belongs;
-    \item [\mono{nodeIndex}] An ID (unique within the tree) for this node;
-    \item [\mono{descendantIndex}] The ID of the node's descendant node;
-    \item [\mono{hostIndex}] The ID of the larger halo in which this node is hosted (equal to the node's own ID if
-    the node is self-hosting);
-    \item [\mono{redshift}] The redshift of the node;
-    \item [\mono{nodeMass}] The mass of the node;
-    \item [\mono{particleCount}] The number of particles in the node;
-    \item [\mono{positionX}] The $x$-position of the node (if present, both $y$ and $z$ components must also be
-    present);
-    \item [\mono{positionY}] The $y$-position of the node (if present, both $x$ and $z$ components must also be
-    present);
-    \item [\mono{positionZ}] The $z$-position of the node (if present, both $x$ and $y$ components must also be
-    present);
-    \item [\mono{velocityX}] The $x$-velocity of the node (if present, both $y$ and $z$ components must also be
-    present);
-    \item [\mono{velocityY}] The $y$-velocity of the node (if present, both $x$ and $z$ components must also be
-    present);
-    \item [\mono{velocityZ}] The $z$-velocity of the node (if present, both $x$ and $y$ components must also be
-    present);
-    \item [\mono{spinX}] The $x$ component of the node's spin parameter (if present, both $y$ and $z$ components must
-    also be present; cannot be present if spin magnitude is given);
-     \item [\mono{spinY}] The $y$ component of the node's spin parameter (if present, both $x$ and $z$ components
-    must also be present; cannot be present if spin magnitude is given);
-     \item [\mono{spinZ}] The $z$ component of the node's spin parameter (if present, both $x$ and $y$ components
-    must also be present; cannot be present if spin magnitude is given);
-     \item [\mono{spin}] The magnitude of the node's spin parameter (cannot be present if spin vector components are
-    given);
-     \item [\mono{angularMomentumX}] The $x$-component of the node's angular momentum (if present, both $y$ and $z$
-    components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [\mono{angularMomentumY}] The $y$-component of the node's angular momentum (if present, both $x$ and $z$
-    components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [\mono{angularMomentumZ}] The $z$-component of the node's angular momentum (if present, both $x$ and $y$
-    components must also be present; cannot be present if angular momentum magnitude is given);
-     \item [\mono{angularMomentum}] The magnitude of the node's angular momentum (cannot be present if angular
-    momentum vector components are given);
-     \item [\mono{halfMassRadius}] The half-mass radius of the node;
-     \item [\mono{mostBoundParticleIndex}] The index of the most bound particle in this node.
-    \end{description}
-    Not all properties must be specified---any required properties that are not specified will result in an error. Likewise, some
-    properties, if present, require that other properties also be present. For example, if any of the position properties is given
-    then all three positions are required.
-    
-    Properties of particles to read from the (optional) particle data file are specified through multiple \mono{particleProperty} sub-parameter sections, which take the form:
-    \begin{verbatim}
-     &lt;particleProperty>
-      &lt;name   value="propertyName"/>
-      &lt;column value="columnNumber"/>
-     &lt;/particleProperty>
-    \end{verbatim}
-    where \mono{[name]} is the particle property name (see below), \mono{[column]} is the column
-    number (starting from 1) from which to read the particle property.
-    
-    Recognized particle property names are
-    \begin{description}
-     \item [\mono{particleIndex}] A unique ID for the particle;
-     \item [\mono{redshift}] The redshift of the particle;
-     \item [\mono{nodeMass}] The mass of the particle;
-     \item [\mono{particleCount}] The number of particles in the particle;
-     \item [\mono{positionX}] The $x$-position of the particle (if present, both $y$ and $z$ components must also be present);
-     \item [\mono{positionY}] The $y$-position of the particle (if present, both $x$ and $z$ components must also be present);
-     \item [\mono{positionZ}] The $z$-position of the particle (if present, both $x$ and $y$ components must also be present);
-     \item [\mono{velocityX}] The $x$-velocity of the particle (if present, both $y$ and $z$ components must also be present);
-     \item [\mono{velocityY}] The $y$-velocity of the particle (if present, both $x$ and $z$ components must also be present);
-     \item [\mono{velocityZ}] The $z$-velocity of the particle (if present, both $x$ and $y$ components must also be present).
-    \end{description}
-    
-    The units used in the files are specified via the \mono{unitsMass}, \mono{unitsLength}, and
-    \mono{unitsVelocity} sub-parameter sections. These have the following form:
-    \begin{verbatim}
-     &lt;unitsMass>
-      &lt;name                value="Solar masses/h"/>
-      &lt;unitsInSI           value="1.99e30"       />
-      &lt;hubbleExponent      value="-1"            />
-      &lt;scaleFactorExponent value=" 0"            />
-     &lt;/unitsMass>
-    \end{verbatim}
-    where \mono{[name]} is a human-readable name for the units, \mono{[unitsInSI]} gives the units
-    in the SI system, \mono{[hubbleExponent]} specifies the power to which $h$ appears in the units and \mono{[scaleFactorExponent]} specifies the number of powers of the expansion factor by which the quantity should be
-    multiplied to place it into physical units.
-    
-    Finally, arbitrary metadata can be added to the file (which can be useful to record, for example, the origin of the data, or
-    details of the simulation, or halo finder used). Metadata is specified via \mono{metaData} sub-parameter
-    sections. These have the following form:
-    \begin{verbatim}
-     &lt;metaData>
-      &lt;name    value="simulationCode"/>
-      &lt;content value="Gadget2"       />
-      &lt;type    value="simulation"    />
-     &lt;/metaData>
-    \end{verbatim}
-    where \mono{[name]} is a name for this metadatum, \mono{[content]} is the value for the
-    metadatum (integer, floating point, and text content is allowed), and \mono{[type]} specifies the type of
-    metadatum, and must be one of:
-    \begin{description}
-     \item [\mono{generic}] Add to the generic \mono{metaData} group;
-     \item [\mono{cosmology}] Add to the \mono{cosmology} group;
-     \item [\mono{simulation}] Add to the \mono{simulation} group;
-     \item [\mono{groupFinder}] Add to the \mono{groupFinder} group;
-     \item [\mono{treeBuilder}] Add to the \mono{treeBuilder} group;
-     \item [\mono{provenance}] Add to the \mono{provenance} group.
-    \end{description}
+   This task will build a merger tree file in the format described `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format&gt;`_ from merger tree descriptions in other formats, such as ASCII output from an SQL database. An example of how the builder can be used can be found in this `tutorial &lt;https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Building-merger-trees-from-ASCII-files&gt;`_.
+
+   The builder is flexible, and therefore requires many parameters to control how it processes input files, all of which are described below.
+
+   The builder reads from an ASCII file containing one halo per line. The ``[property]`` sub-parameters allow specification of which properties are present in the file, and in which column. The builder can optionally also read a file of associated particle data---this can be used to assign positions to orphan halos if desired.
+
+   The merger tree file builder can currently export in one of two formats:
+
+   ``galacticus``
+      merger trees are exported in Galacticus's native format described in detail `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format&gt;`_;
+
+   ``irate``
+      merger trees are exported in the `IRATE &lt;https://irate-format.readthedocs.io/en/stable/formatspec.html&gt;`_ format.
+
+   Properties to read from the file are specified through multiple ``property`` sub-parameter sections, which take the form:
+
+   .. code-block:: none
+
+       &lt;property&gt;
+        &lt;name             value="propertyName"/&gt;
+        &lt;column           value="columnNumber"/&gt;
+        &lt;conversionFactor value="1.0e0"       /&gt;
+       &lt;/property&gt;
+
+   where ``[name]`` is the property name (see below), ``[column]`` is the column number (starting from 1) from which to read the property, and the optional ``[conversionFactor]`` specifies an additional factor by which the property should be multiplied to place it into the correct internal units for Galacticus\footnoteThe units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from these units to Galacticus's internal units is performed automatically. However, sometimes the input data may have inconsistent units between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion factor can be applied to bring all quantities into a consistent unit system..
+
+   Recognized property names are
+
+   ``treeIndex``
+      A unique ID number for the tree to which this node belongs;
+
+   ``nodeIndex``
+      An ID (unique within the tree) for this node;
+
+   ``descendantIndex``
+      The ID of the node's descendant node;
+
+   ``hostIndex``
+      The ID of the larger halo in which this node is hosted (equal to the node's own ID if the node is self-hosting);
+
+   ``redshift``
+      The redshift of the node;
+
+   ``nodeMass``
+      The mass of the node;
+
+   ``particleCount``
+      The number of particles in the node;
+
+   ``positionX``
+      The :math:`x`-position of the node (if present, both :math:`y` and :math:`z` components must also be present);
+
+   ``positionY``
+      The :math:`y`-position of the node (if present, both :math:`x` and :math:`z` components must also be present);
+
+   ``positionZ``
+      The :math:`z`-position of the node (if present, both :math:`x` and :math:`y` components must also be present);
+
+   ``velocityX``
+      The :math:`x`-velocity of the node (if present, both :math:`y` and :math:`z` components must also be present);
+
+   ``velocityY``
+      The :math:`y`-velocity of the node (if present, both :math:`x` and :math:`z` components must also be present);
+
+   ``velocityZ``
+      The :math:`z`-velocity of the node (if present, both :math:`x` and :math:`y` components must also be present);
+
+   ``spinX``
+      The :math:`x` component of the node's spin parameter (if present, both :math:`y` and :math:`z` components must also be present; cannot be present if spin magnitude is given);
+
+   ``spinY``
+      The :math:`y` component of the node's spin parameter (if present, both :math:`x` and :math:`z` components must also be present; cannot be present if spin magnitude is given);
+
+   ``spinZ``
+      The :math:`z` component of the node's spin parameter (if present, both :math:`x` and :math:`y` components must also be present; cannot be present if spin magnitude is given);
+
+   ``spin``
+      The magnitude of the node's spin parameter (cannot be present if spin vector components are given);
+
+   ``angularMomentumX``
+      The :math:`x`-component of the node's angular momentum (if present, both :math:`y` and :math:`z` components must also be present; cannot be present if angular momentum magnitude is given);
+
+   ``angularMomentumY``
+      The :math:`y`-component of the node's angular momentum (if present, both :math:`x` and :math:`z` components must also be present; cannot be present if angular momentum magnitude is given);
+
+   ``angularMomentumZ``
+      The :math:`z`-component of the node's angular momentum (if present, both :math:`x` and :math:`y` components must also be present; cannot be present if angular momentum magnitude is given);
+
+   ``angularMomentum``
+      The magnitude of the node's angular momentum (cannot be present if angular momentum vector components are given);
+
+   ``halfMassRadius``
+      The half-mass radius of the node;
+
+   ``mostBoundParticleIndex``
+      The index of the most bound particle in this node.
+
+   Not all properties must be specified---any required properties that are not specified will result in an error. Likewise, some properties, if present, require that other properties also be present. For example, if any of the position properties is given then all three positions are required.
+
+   Properties of particles to read from the (optional) particle data file are specified through multiple ``particleProperty`` sub-parameter sections, which take the form:
+
+   .. code-block:: none
+
+       &lt;particleProperty&gt;
+        &lt;name   value="propertyName"/&gt;
+        &lt;column value="columnNumber"/&gt;
+       &lt;/particleProperty&gt;
+
+   where ``[name]`` is the particle property name (see below), ``[column]`` is the column number (starting from 1) from which to read the particle property.
+
+   Recognized particle property names are
+
+   ``particleIndex``
+      A unique ID for the particle;
+
+   ``redshift``
+      The redshift of the particle;
+
+   ``nodeMass``
+      The mass of the particle;
+
+   ``particleCount``
+      The number of particles in the particle;
+
+   ``positionX``
+      The :math:`x`-position of the particle (if present, both :math:`y` and :math:`z` components must also be present);
+
+   ``positionY``
+      The :math:`y`-position of the particle (if present, both :math:`x` and :math:`z` components must also be present);
+
+   ``positionZ``
+      The :math:`z`-position of the particle (if present, both :math:`x` and :math:`y` components must also be present);
+
+   ``velocityX``
+      The :math:`x`-velocity of the particle (if present, both :math:`y` and :math:`z` components must also be present);
+
+   ``velocityY``
+      The :math:`y`-velocity of the particle (if present, both :math:`x` and :math:`z` components must also be present);
+
+   ``velocityZ``
+      The :math:`z`-velocity of the particle (if present, both :math:`x` and :math:`y` components must also be present).
+
+   The units used in the files are specified via the ``unitsMass``, ``unitsLength``, and ``unitsVelocity`` sub-parameter sections. These have the following form:
+
+   .. code-block:: none
+
+       &lt;unitsMass&gt;
+        &lt;name                value="Solar masses/h"/&gt;
+        &lt;unitsInSI           value="1.99e30"       /&gt;
+        &lt;hubbleExponent      value="-1"            /&gt;
+        &lt;scaleFactorExponent value=" 0"            /&gt;
+       &lt;/unitsMass&gt;
+
+   where ``[name]`` is a human-readable name for the units, ``[unitsInSI]`` gives the units in the SI system, ``[hubbleExponent]`` specifies the power to which :math:`h` appears in the units and ``[scaleFactorExponent]`` specifies the number of powers of the expansion factor by which the quantity should be multiplied to place it into physical units.
+
+   Finally, arbitrary metadata can be added to the file (which can be useful to record, for example, the origin of the data, or details of the simulation, or halo finder used). Metadata is specified via ``metaData`` sub-parameter sections. These have the following form:
+
+   .. code-block:: none
+
+       &lt;metaData&gt;
+        &lt;name    value="simulationCode"/&gt;
+        &lt;content value="Gadget2"       /&gt;
+        &lt;type    value="simulation"    /&gt;
+       &lt;/metaData&gt;
+
+   where ``[name]`` is a name for this metadatum, ``[content]`` is the value for the metadatum (integer, floating point, and text content is allowed), and ``[type]`` specifies the type of metadatum, and must be one of:
+
+   ``generic``
+      Add to the generic ``metaData`` group;
+
+   ``cosmology``
+      Add to the ``cosmology`` group;
+
+   ``simulation``
+      Add to the ``simulation`` group;
+
+   ``groupFinder``
+      Add to the ``groupFinder`` group;
+
+   ``treeBuilder``
+      Add to the ``treeBuilder`` group;
+
+   ``provenance``
+      Add to the ``provenance`` group.
    </description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]
   type, extends(taskClass) :: taskMergerTreeFileBuilder
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
@@ -227,8 +272,8 @@
   end type taskMergerTreeFileBuilder
 
   interface taskMergerTreeFileBuilder
-     !!{
-     Constructors for the \refClass{taskMergerTreeFileBuilder} task.
+     !!{RST
+     Constructors for the ``taskMergerTreeFileBuilder`` task.
      !!}
      module procedure mergerTreeFileBuilderConstructorParameters
      module procedure mergerTreeFileBuilderConstructorInternal
@@ -237,8 +282,8 @@
 contains
 
   function mergerTreeFileBuilderConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskMergerTreeFileBuilder} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskMergerTreeFileBuilder`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter                   , inputParameters
     use :: Merger_Tree_Data_Structure      , only : enumerationMergerTreeFormatEncode, enumerationMetaDataTypeEncode, enumerationPropertyTypeEncode, unitsLength, &
@@ -276,17 +321,21 @@ contains
     type            (varying_string               )                              :: columnSeparator
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>inputFileName</name>
-      <description>The name of the file from which to read merger tree data.</description>
+      <description>
+      The name of the file from which to read merger tree data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (parameters%isPresent('particlesFileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>particlesFileName</name>
-         <description>The name of the file from which to read particle data.</description>
+         <description>
+         The name of the file from which to read particle data.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -294,26 +343,34 @@ contains
        particlesFileName=''
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputFileName</name>
-      <description>The name of the file to which to write merger tree data.</description>
+      <description>
+      The name of the file to which to write merger tree data.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputFormat</name>
-      <description>The format to use for merger tree output.</description>
+      <description>
+      The format to use for merger tree output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>columnHeaders</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the file is assumed to contain a single line of column headers, which will be skipped.</description>
+      <description>
+      If true, the file is assumed to contain a single line of column headers, which will be skipped.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>columnSeparator</name>
       <defaultValue>var_str(',')</defaultValue>
-      <description>The separator for columns.</description>
+      <description>
+      The separator for columns.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -321,9 +378,11 @@ contains
     massParticle%isSet=parameters%isPresent('massParticle')
     if (massParticle%isSet) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParticle</name>
-         <description>The mass of the simulation particle.</description>
+         <description>
+         The mass of the simulation particle.
+         </description>
          <source>parameters</source>
          <variable>massParticle%value</variable>
        </inputParameter>
@@ -332,9 +391,11 @@ contains
     dummyHostId%isSet=parameters%isPresent('dummyHostId')
     if (dummyHostId%isSet) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>dummyHostId</name>
-         <description>If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have \mono{hostIndex == nodeIndex}.</description>
+         <description>
+         If present, specifies the dummy host ID for self-hosting halos. Otherwise, self-hosting halos have ``hostIndex == nodeIndex``.
+         </description>
          <source>parameters</source>
          <variable>dummyHostId%value</variable>
        </inputParameter>
@@ -343,9 +404,11 @@ contains
     haloMassesIncludeSubhalos%isSet=parameters%isPresent('haloMassesIncludeSubhalos')
     if (haloMassesIncludeSubhalos%isSet) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>haloMassesIncludeSubhalos</name>
-         <description>Specifies whether or not halo masses include the masses of their subhalos.</description>
+         <description>
+         Specifies whether or not halo masses include the masses of their subhalos.
+         </description>
          <source>parameters</source>
          <variable>haloMassesIncludeSubhalos%value</variable>
        </inputParameter>
@@ -354,9 +417,11 @@ contains
     includesHubbleFlow%isSet=parameters%isPresent('includesHubbleFlow')
     if (includesHubbleFlow%isSet) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>includesHubbleFlow</name>
-         <description>Specifies whether or not Hubble flow is included in velocities.</description>
+         <description>
+         Specifies whether or not Hubble flow is included in velocities.
+         </description>
          <source>parameters</source>
          <variable>includesHubbleFlow%value</variable>
        </inputParameter>
@@ -365,9 +430,11 @@ contains
     positionsArePeriodic%isSet=parameters%isPresent('positionsArePeriodic')
     if (positionsArePeriodic%isSet) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>positionsArePeriodic</name>
-         <description>Specifies whether or not positions are periodic.</description>
+         <description>
+         Specifies whether or not positions are periodic.
+         </description>
          <source>parameters</source>
          <variable>positionsArePeriodic%value</variable>
        </inputParameter>
@@ -385,14 +452,18 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('property',requireValue=.false.,copyInstance=i)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
-         <description>The name of the property to read.</description>
+         <description>
+         The name of the property to read.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>column</name>
-         <description>The column from which to read the property.</description>
+         <description>
+         The column from which to read the property.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -401,10 +472,12 @@ contains
        properties(i)%conversionFactor%isSet=subParameters%isPresent('conversionFactor')
        if (properties(i)%conversionFactor%isSet) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>conversionFactor</name>
             <variable>properties(i)%conversionFactor%value</variable>
-            <description>An additional conversion factor to apply to the property to get it into the correct units.</description>
+            <description>
+            An additional conversion factor to apply to the property to get it into the correct units.
+            </description>
 	    <source>subParameters</source>
 	    <type>real</type>
 	    <cardinality>1</cardinality>
@@ -419,14 +492,18 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('particleProperty',requireValue=.false.,copyInstance=i)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
-         <description>The name of the particle property to read.</description>
+         <description>
+         The name of the particle property to read.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>column</name>
-         <description>The column from which to read the particle property.</description>
+         <description>
+         The column from which to read the particle property.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -440,21 +517,27 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('metaData',requireValue=.false.,copyInstance=i)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
-         <description>The name of the metadata.</description>
+         <description>
+         The name of the metadata.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>content</name>
          <variable>metaDataContent</variable>
-         <description>The value of the metadata.</description>
+         <description>
+         The value of the metadata.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>type</name>
          <variable>metaDataType</variable>
-         <description>The metadata type.</description>
+         <description>
+         The metadata type.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -471,28 +554,36 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('unitsMass',requireValue=.false.)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>unitsInSI</name>
          <variable>unitsMassInSI</variable>
-         <description>The mass unit in the SI system.</description>
+         <description>
+         The mass unit in the SI system.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hubbleExponent</name>
          <variable>unitsMassHubbleExponent</variable>
-         <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the masses to little-$h$-free units.</description>
+         <description>
+         The exponent of the "little-:math:`h`" Hubble parameter needed to convert the masses to little-:math:`h`-free units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleFactorExponent</name>
          <variable>unitsMassScaleFactorExponent</variable>
-         <description>The exponent of the cosmological scale factor needed to convert the masses to physical units.</description>
+         <description>
+         The exponent of the cosmological scale factor needed to convert the masses to physical units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
          <variable>unitsMassName</variable>
-         <description>A human-readable name for the units of mass.</description>
+         <description>
+         A human-readable name for the units of mass.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -506,28 +597,36 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('unitsLength',requireValue=.false.)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>unitsInSI</name>
          <variable>unitsLengthInSI</variable>
-         <description>The length unit in the SI system.</description>
+         <description>
+         The length unit in the SI system.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hubbleExponent</name>
          <variable>unitsLengthHubbleExponent</variable>
-         <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the lengths to little-$h$-free units.</description>
+         <description>
+         The exponent of the "little-:math:`h`" Hubble parameter needed to convert the lengths to little-:math:`h`-free units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleFactorExponent</name>
          <variable>unitsLengthScaleFactorExponent</variable>
-         <description>The exponent of the cosmological scale factor needed to convert the lengths to physical units.</description>
+         <description>
+         The exponent of the cosmological scale factor needed to convert the lengths to physical units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
          <variable>unitsLengthName</variable>
-         <description>A human-readable name for the units of length.</description>
+         <description>
+         A human-readable name for the units of length.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -541,28 +640,36 @@ contains
        allocate(subParameters)
        subParameters=parameters%subParameters('unitsVelocity',requireValue=.false.)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>unitsInSI</name>
          <variable>unitsVelocityInSI</variable>
-         <description>The velocity unit in the SI system.</description>
+         <description>
+         The velocity unit in the SI system.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hubbleExponent</name>
          <variable>unitsVelocityHubbleExponent</variable>
-         <description>The exponent of the ``little-$h$'' Hubble parameter needed to convert the velocities to little-$h$-free units.</description>
+         <description>
+         The exponent of the "little-:math:`h`" Hubble parameter needed to convert the velocities to little-:math:`h`-free units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleFactorExponent</name>
          <variable>unitsVelocityScaleFactorExponent</variable>
-         <description>The exponent of the cosmological scale factor needed to convert the velocities to physical units.</description>
+         <description>
+         The exponent of the cosmological scale factor needed to convert the velocities to physical units.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>name</name>
          <variable>unitsVelocityName</variable>
-         <description>A human-readable name for the units of velocity.</description>
+         <description>
+         A human-readable name for the units of velocity.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -580,8 +687,8 @@ contains
   end function mergerTreeFileBuilderConstructorParameters
 
   function mergerTreeFileBuilderConstructorInternal(inputFileName,particlesFileName,outputFileName,outputFormat,columnHeaders,columnSeparator,properties,particleProperties,metaData,massParticle,dummyHostId,haloMassesIncludeSubhalos,includesHubbleFlow,positionsArePeriodic,unitsMassInSI,unitsMassHubbleExponent,unitsMassScaleFactorExponent,unitsMassName,unitsLengthInSI,unitsLengthHubbleExponent,unitsLengthScaleFactorExponent,unitsLengthName,unitsVelocityInSI,unitsVelocityHubbleExponent,unitsVelocityScaleFactorExponent,unitsVelocityName,cosmologyParameters_,cosmologicalMassVariance_,powerSpectrumPrimordial_,transferFunction_) result(self)
-    !!{
-    Constructor for the \refClass{taskMergerTreeFileBuilder} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskMergerTreeFileBuilder`` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskMergerTreeFileBuilder      )                              :: self
@@ -616,8 +723,8 @@ contains
   end function mergerTreeFileBuilderConstructorInternal
 
   subroutine mergerTreeFileBuilderDestructor(self)
-    !!{
-    Destructor for the \refClass{taskMergerTreeFileBuilder} task class.
+    !!{RST
+    Destructor for the ``taskMergerTreeFileBuilder`` task class.
     !!}
     implicit none
     type(taskMergerTreeFileBuilder), intent(inout) :: self
@@ -632,7 +739,7 @@ contains
   end subroutine mergerTreeFileBuilderDestructor
 
   subroutine mergerTreeFileBuilderPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use :: Cosmology_Parameters      , only : hubbleUnitsLittleH
@@ -736,7 +843,7 @@ contains
   end subroutine mergerTreeFileBuilderPerform
 
   logical function mergerTreeFileBuilderRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not require the main output file.
     !!}
     implicit none
@@ -748,7 +855,7 @@ contains
   end function mergerTreeFileBuilderRequiresOutputFile
 
   subroutine mergerTreeFileBuilderDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters          , only : inputParameters

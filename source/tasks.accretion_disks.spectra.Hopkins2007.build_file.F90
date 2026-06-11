@@ -18,13 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskAGNSpectraHopkins2008BuildFile">
-   <description>A task which builds and caches a tabulation of AGN accretion disk spectra using the model of \cite{hopkins_observational_2007}, computing the spectral energy distribution as a function of black hole mass and accretion rate for use in subsequent galaxy evolution calculations.</description>
+  <task name="taskAGNSpectraHopkins2008BuildFile" docformat="rst">
+   <description>
+   A task which builds and caches a tabulation of AGN accretion disk spectra using the model of :cite:t:`hopkins_observational_2007`, computing the spectral energy distribution as a function of black hole mass and accretion rate for use in subsequent galaxy evolution calculations.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskAGNSpectraHopkins2008BuildFile
-     !!{
-     Implementation of a task which builds a file containing a tabulation of AGN spectra from the model of \cite{hopkins_observational_2007}.
+     !!{RST
+     Implementation of a task which builds a file containing a tabulation of AGN spectra from the model of :cite:t:`hopkins_observational_2007`.
      !!}
      private
    contains
@@ -33,8 +35,8 @@
   end type taskAGNSpectraHopkins2008BuildFile
 
   interface taskAGNSpectraHopkins2008BuildFile
-     !!{
-     Constructors for the \refClass{taskAGNSpectraHopkins2008BuildFile} task.
+     !!{RST
+     Constructors for the ``taskAGNSpectraHopkins2008BuildFile`` task.
      !!}
      module procedure agnSpectraHopkins2008BuildFileParameters
   end interface taskAGNSpectraHopkins2008BuildFile
@@ -42,8 +44,8 @@
 contains
 
   function agnSpectraHopkins2008BuildFileParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskAGNSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskAGNSpectraHopkins2008BuildFile`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function agnSpectraHopkins2008BuildFileParameters
 
   subroutine agnSpectraHopkins2008BuildFilePerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
@@ -76,7 +78,7 @@ contains
   end subroutine agnSpectraHopkins2008BuildFilePerform
 
   logical function agnSpectraHopkins2008BuildFileRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

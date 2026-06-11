@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies dynamical friction to orbiting satellite halos.
   !!}
 
   use :: Satellite_Dynamical_Friction, only : satelliteDynamicalFrictionClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteDynamicalFriction">
-   <description>Applies the Chandrasekhar dynamical friction force to satellite halos orbiting in their host potential, decelerating satellites and driving orbital decay toward the halo center, ultimately leading to satellite merging on a dynamical friction timescale.</description>
+  <nodeOperator name="nodeOperatorSatelliteDynamicalFriction" docformat="rst">
+   <description>
+   Applies the Chandrasekhar dynamical friction force to satellite halos orbiting in their host potential, decelerating satellites and driving orbital decay toward the halo center, ultimately leading to satellite merging on a dynamical friction timescale.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDynamicalFriction
-     !!{
+     !!{RST
      A node operator class that applies dynamical friction to orbiting satellite halos.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorSatelliteDynamicalFriction
   
   interface nodeOperatorSatelliteDynamicalFriction
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
      !!}
      module procedure satelliteDynamicalFrictionConstructorParameters
      module procedure satelliteDynamicalFrictionConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function satelliteDynamicalFrictionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function satelliteDynamicalFrictionConstructorParameters
 
   function satelliteDynamicalFrictionConstructorInternal(satelliteDynamicalFriction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDynamicalFriction)                        :: self
@@ -85,8 +87,8 @@ contains
   end function satelliteDynamicalFrictionConstructorInternal
 
   subroutine satelliteDynamicalFrictionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteDynamicalFriction} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDynamicalFriction), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine satelliteDynamicalFrictionDestructor
   
   subroutine satelliteDynamicalFrictionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform deceleration of a satellite due to dynamical friction.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

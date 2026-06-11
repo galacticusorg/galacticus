@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree builder class which builds merger trees assuming smooth accretion.
   !!}
 
@@ -26,17 +26,14 @@
   use :: Merger_Trees_Build_Mass_Resolution       , only : mergerTreeMassResolutionClass
 
   !![
-  <mergerTreeBuilder name="mergerTreeBuilderSmoothAccretion">
+  <mergerTreeBuilder name="mergerTreeBuilderSmoothAccretion" docformat="rst">
    <description>
-    A merger tree builder class which builds a branchless merger tree with a smooth accretion history using the selected
-    \refPhysics{darkMatterHaloMassAccretionHistory} class. The tree has a final mass of \mono{massHalo} (in
-    units of $\mathrm{M}_\odot$) at redshift \mono{redshiftBase} and is continued back in time by decreasing the halo
-    mass by a factor \mono{massHaloDeclineFactor} at each new \gls{node} until a specified \mono{massHaloResolution} (in units of $\mathrm{M}_\odot$) is reached.
+   A merger tree builder class which builds a branchless merger tree with a smooth accretion history using the selected ``darkMatterHaloMassAccretionHistory`` class. The tree has a final mass of ``massHalo`` (in units of :math:`\mathrm{M}_\odot`) at redshift ``redshiftBase`` and is continued back in time by decreasing the halo mass by a factor ``massHaloDeclineFactor`` at each new :term:`node` until a specified ``massHaloResolution`` (in units of :math:`\mathrm{M}_\odot`) is reached.
    </description>
   </mergerTreeBuilder>
   !!]
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderSmoothAccretion
-     !!{
+     !!{RST
      A class implementing merger tree building assuming smooth accretion.
      !!}
      private
@@ -51,8 +48,8 @@
   end type mergerTreeBuilderSmoothAccretion
 
   interface mergerTreeBuilderSmoothAccretion
-     !!{
-     Constructors for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
+     !!{RST
+     Constructors for the ``mergerTreeBuilderSmoothAccretion`` merger tree builder class.
      !!}
      module procedure smoothAccretionConstructorParameters
      module procedure smoothAccretionConstructorInternal
@@ -61,8 +58,8 @@
 contains
 
   function smoothAccretionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuilderSmoothAccretion`` merger tree builder class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,18 +75,22 @@ contains
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"           name="mergerTreeMassResolution_"           source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloDeclineFactor</name>
       <defaultValue>0.9d0</defaultValue>
-      <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree.</description>
+      <description>
+      The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (parameters%isPresent('redshiftEarliest')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftEarliest</name>
-         <description>The earliest redshift to which to build a smoothly accreting merger tree.</description>
+         <description>
+         The earliest redshift to which to build a smoothly accreting merger tree.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -108,8 +109,8 @@ contains
   end function smoothAccretionConstructorParameters
 
   function smoothAccretionConstructorInternal(massHaloDeclineFactor,timeEarliest,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,mergerTreeMassResolution_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuilderSmoothAccretion`` merger tree builder class.
     !!}
     implicit none
     type            (mergerTreeBuilderSmoothAccretion       )                        :: self
@@ -130,8 +131,8 @@ contains
   end function smoothAccretionConstructorInternal
 
   subroutine smoothAccretionDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuilderSmoothAccretion} merger tree builder class.
+    !!{RST
+    Destructor for the ``mergerTreeBuilderSmoothAccretion`` merger tree builder class.
     !!}
     implicit none
     type(mergerTreeBuilderSmoothAccretion), intent(inout) :: self
@@ -145,7 +146,7 @@ contains
   end subroutine smoothAccretionDestructor
 
   subroutine smoothAccretionBuild(self,tree)
-    !!{
+    !!{RST
     Build a merger tree with a smooth mass accretion history.
     !!}
     use            :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

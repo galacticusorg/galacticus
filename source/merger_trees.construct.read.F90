@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree constructor class which constructs trees by reading their definitions from file.
   !!}
 
@@ -40,9 +40,11 @@
 
   ! Enumeration of cross-tree event types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>pushType</name>
-   <description>Enumeration of cross-tree event types used when reading merger trees: \mono{branchJump} handles nodes that switch host branches between snapshots, while \mono{subhaloPromotion} handles subhalos promoted to isolated status.</description>
+   <description>
+   Enumeration of cross-tree event types used when reading merger trees: ``branchJump`` handles nodes that switch host branches between snapshots, while ``subhaloPromotion`` handles subhalos promoted to isolated status.
+   </description>
    <entry label="branchJump"      />
    <entry label="subhaloPromotion"/>
   </enumeration>
@@ -50,9 +52,11 @@
 
   ! Enumeration of node reachability status.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>nodeReachability</name>
-   <description>Enumeration of node reachability status when traversing a merger tree read from file: \mono{unreachable} nodes cannot be reached from the root of the tree structure, while \mono{reachable} nodes can.</description>
+   <description>
+   Enumeration of node reachability status when traversing a merger tree read from file: ``unreachable`` nodes cannot be reached from the root of the tree structure, while ``reachable`` nodes can.
+   </description>
    <entry label="unreachable"/>
    <entry label="reachable"  />
   </enumeration>
@@ -60,9 +64,11 @@
 
   ! Enumeration of subhalo angular momentum methods.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>subhaloAngularMomentaMethod</name>
-   <description>Enumeration of methods for assigning angular momenta to subhalos when reading merger trees from file: \mono{scale} uses the halo spin parameter, while \mono{summation} sums contributions from child nodes.</description>
+   <description>
+   Enumeration of methods for assigning angular momenta to subhalos when reading merger trees from file: ``scale`` uses the halo spin parameter, while ``summation`` sums contributions from child nodes.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="scale"    />
    <entry label="summation"/>
@@ -70,143 +76,62 @@
   !!]
 
   !![
-  <mergerTreeConstructor name="mergerTreeConstructorRead">
+  <mergerTreeConstructor name="mergerTreeConstructorRead" docformat="rst">
    <description>
-    A merger tree constructor class from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
-    trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed
-    to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
-    \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
-    contain information on the host \gls{node}, i.e. the node within which a given node is physically located. In the following, these
-    two properties are labeled \mono{descendantNode} and \mono{hostNode}. \glc\ assumes that nodes
-    for which \mono{descendantNode}$=$\mono{hostNode} are isolated halos (i.e. they are their own
-    hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in
-    Fig.~\ref{fig:MergerTreeSimple}. The particular structure would be represented by the following list of nodes and node properties
-    (a $-1$ indicates that no descendant node exists):
-    \begin{center}
-    \begin{tabular}{rrr}
-    \hline
-    \mono{node} &amp; \mono{descendantNode} &amp; \mono{hostNode} \\
-    \hline
-    1 &amp; -1 &amp; 1 \\
-    2 &amp;  1 &amp; 2 \\
-    3 &amp;  2 &amp; 3 \\
-    4 &amp;  1 &amp; 4 \\
-    5 &amp;  4 &amp; 5 \\
-    6 &amp; -1 &amp; 1 \\
-    7 &amp;  6 &amp; 4 \\
-    8 &amp;  7 &amp; 8 \\
-    \hline
-    \end{tabular}
-    \end{center}
-    
-    \begin{figure}
-     \begin{center}
-     \includegraphics[width=160mm]{Diagrams/MergerTreeSimple.pdf}
-     \end{center}
-     \caption{An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique
-       index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the
-       \mono{descendantNode} property. Where a node is not its own host node it is placed inside its host node.}
-     \label{fig:MergerTreeSimple}
-    \end{figure}
-    
-    The following should be noted when constructing merger tree files:
-    \begin{itemize}
-    \item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along
-      a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each
-      halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
-    \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
-      nodes will be created as satellites in the merger tree and, providing the selected node components (see
-      \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.Components}{here})
-      initialize their properties appropriately, will be evolved correctly.
-    \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
-      progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
-      slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
-      not affect the evolution of the tree.
-    \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
-      the \gls{forest} will cause \glc\ to exit with an error. Setting \mono{[missingHostsAreFatal]}$=$\mono{false} will instead circumvent this issue by making any such
-      nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
-      correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
-      is not available.
-    \item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the
-      latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single
-      forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
-      allowing to nodes to move between their branches.
-    \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-      \citealt{sales_cosmic_2007}). If \mono{[allowSubhaloPromotions]}$=$\mono{true} then such
-      cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter
-      \mono{[alwaysPromoteMostMassive]}$=$\mono{true} then the most massive progenitor is treated
-      as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if \mono{[alwaysPromoteMostMassive]}$=$\mono{false} then a most massive progenitor that is a subhalo is only treated
-      as the primary progenitor \emph{if} no isolated progenitors exist (otherwise, the most massive of the isolated progenitors
-      is treated as the primary progenitor). If \mono{[allowSubhaloPromotions]}$=$\mono{false}
-      then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all
-      such cases from the tree:\\
-    
-      \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
-    
-      \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{Beginning from the earliest node in the branch that is a subhalo,
-        repeatedly step to the next descendant node;}\\
-    
-      \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{If that descendant is \emph{not} a subhalo then:}\\
-    
-      \noindent\hspace{15mm} $\rightarrow$ \parbox[t]{140mm}{If there is not currently any non-subhalo node which has the present node
-        as its descendant then current node is only descendant of a subhalo. Therefore, try to make this node a subhalo, and propose
-        the descendant of the host node of the previous node visited in the branch as the new host:}\\
-      
-      \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{If the proposed host exists:}\\
-      
-      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{If the mass of the current node is less than that of the proposed host:}\\
-      
-      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed hosts exists before the current node, repeatedly step to
-        its descendants until one is found which exists at or after the time of the current node. This is the new proposed host.}\\
-      
-      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed host is a subhalo, make it an isolated node.}\\
-      
-      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node is made a subhalo within the proposed host.}\\
-      
-      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{Otherwise:}\\
-      
-      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node remains an isolated node, while the proposed host is
-        instead made a subhalo within the current node.}\\
-      
-      \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{Otherwise:}\\
-      
-      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has
-        been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it
-        descended.}\\
-    \end{itemize}
-    
-    \textbf{Requirements for \glc\ Input Parameters:} The following requirements must be met for the input parameters to \glc\ when
-    using merger trees read from file:
-    \begin{itemize}
-    \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
-      the file, must be set identically in the \glc\ input file unless you set \mono{[mismatchIsFatal]}$=$\mono{false} in which case you'll just be warned about any mismatch;
-    \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set \mono{[allTreesExistAtFinalTime]}$=$\mono{false}.
-    \end{itemize}
-    
-    \textbf{Dark Matter Scale Radii}: \index{dark matter halo!concentration}\index{dark matter halo!scale radius} If \mono{[presetScaleRadii]}$=$\mono{true} and the \mono{halfMassRadius}
-    dataset is available within the \mono{haloTrees} group (see
-    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the half-mass radii
-    of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found
-      by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
-      (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
-    requires a dark matter profile scale component which supports setting of the scale length (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
-    
-    \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If \mono{[presetMergerTimes]}$=$\mono{true} then merger times for satellites will be computed directly
-    from the merger tree data read from file. When a subhalo has an isolated halo as a descendant it is assumed to undergo a merger
-    with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
-    times (e.g. \mono{[componentSatellite]}$=$\mono{preset}).
-    
-    \textbf{Dark Matter Halo Angular Momenta:}\index{dark matter halo!angular momentum} If \mono{[presetAngularMomenta]}$=$\mono{true} and the \mono{angularMomentum} dataset is available
-    within the \mono{haloTrees} group (see
-    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the angular momenta
-    of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+   A merger tree constructor class from data imported from a file and processed into a form suitable for Galacticus to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. Galacticus is currently designed to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which :term:`node` a given :term:`node` is physically associated with at a later time. Additionally, Galacticus expects the merger tree file to contain information on the host :term:`node`, i.e. the node within which a given node is physically located. In the following, these two properties are labeled ``descendantNode`` and ``hostNode``. Galacticus assumes that nodes for which ``descendantNode``\ :math:`=`\ ``hostNode`` are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig. . The particular structure would be represented by the following list of nodes and node properties (a :math:`-1` indicates that no descendant node exists):  \begintabularrrr \hline ``node`` &amp; ``descendantNode`` &amp; ``hostNode`` \\ \hline 1 &amp; -1 &amp; 1 \\ 2 &amp;  1 &amp; 2 \\ 3 &amp;  2 &amp; 3 \\ 4 &amp;  1 &amp; 4 \\ 5 &amp;  4 &amp; 5 \\ 6 &amp; -1 &amp; 1 \\ 7 &amp;  6 &amp; 4 \\ 8 &amp;  7 &amp; 8 \\ \hline \endtabular
+
+   An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property. Where a node is not its own host node it is placed inside its host node.
+
+   The following should be noted when constructing merger tree files:
+
+   * Note that Galacticus does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, Galacticus builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+   * It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such nodes will be created as satellites in the merger tree and, providing the selected node components (see `here &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.Components&gt;`_) initialize their properties appropriately, will be evolved correctly.
+   * It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all progenitors descend into subhalos in the isolated node. In such cases, Galacticus will create a clone of the isolated node at a very slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does not affect the evolution of the tree.
+   * \hyperdefphysicsmergerTreeConstructRead.missingHosts Normally, cases where a node's host node cannot be found in the :term:`forest` will cause Galacticus to exit with an error. Setting ``[missingHostsAreFatal]``\ :math:`=`\ ``false`` will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full :term:`forest` is not available.
+   * It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the latter case, all trees linked by jumping nodes (a so-called ":term:`forest`" of connected trees) must be stored as a single forest (with multiple root-nodes) in the merger tree file. Galacticus will process this :term:`forest` of trees simultaneously, allowing to nodes to move between their branches.
+   * It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see :cite:author:`sales_cosmic_2007` :cite:year:`sales_cosmic_2007`). If ``[allowSubhaloPromotions]``\ :math:`=`\ ``true`` then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter ``[alwaysPromoteMostMassive]``\ :math:`=`\ ``true`` then the most massive progenitor is treated as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if ``[alwaysPromoteMostMassive]``\ :math:`=`\ ``false`` then a most massive progenitor that is a subhalo is only treated as the primary progenitor *if* no isolated progenitors exist (otherwise, the most massive of the isolated progenitors is treated as the primary progenitor). If ``[allowSubhaloPromotions]``\ :math:`=`\ ``false`` then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
+
+     \noindent\hspace 5mm :math:`\rightarrow` \parbox[t]150mmFor any branch in a tree which at some point is a subhalo:\\
+
+     \noindent\hspace10mm :math:`\rightarrow` \parbox[t]145mmBeginning from the earliest node in the branch that is a subhalo, repeatedly step to the next descendant node;\\
+
+     \noindent\hspace10mm :math:`\rightarrow` \parbox[t]145mmIf that descendant is *not* a subhalo then:\\
+
+     \noindent\hspace15mm :math:`\rightarrow` \parbox[t]140mmIf there is not currently any non-subhalo node which has the present node as its descendant then current node is only descendant of a subhalo. Therefore, try to make this node a subhalo, and propose the descendant of the host node of the previous node visited in the branch as the new host:\\
+
+     \noindent\hspace20mm :math:`\rightarrow` \parbox[t]135mmIf the proposed host exists:\\
+
+     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmIf the mass of the current node is less than that of the proposed host:\\
+
+     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmIf the proposed hosts exists before the current node, repeatedly step to its descendants until one is found which exists at or after the time of the current node. This is the new proposed host.\\
+
+     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmIf the proposed host is a subhalo, make it an isolated node.\\
+
+     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmThe current node is made a subhalo within the proposed host.\\
+
+     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmOtherwise:\\
+
+     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmThe current node remains an isolated node, while the proposed host is instead made a subhalo within the current node.\\
+
+     \noindent\hspace20mm :math:`\rightarrow` \parbox[t]135mmOtherwise:\\
+
+     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmThe proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.\\
+
+   **Requirements for Galacticus Input Parameters:** The following requirements must be met for the input parameters to Galacticus when using merger trees read from file:
+
+   * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[mismatchIsFatal]``\ :math:`=`\ ``false`` in which case you'll just be warned about any mismatch;
+   * Galacticus assumes by default that all merger trees exist at the final output time---if this is not the case set ``[allTreesExistAtFinalTime]``\ :math:`=`\ ``false``.
+
+   **Dark Matter Scale Radii**:  If ``[presetScaleRadii]``\ :math:`=`\ ``true`` and the ``halfMassRadius`` dataset is available within the ``haloTrees`` group (see `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group&gt;`_) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnoteThe scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in Galacticus be the same as was used in computing the input half mass radii.. This requires a dark matter profile scale component which supports setting of the scale length (see `here &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale&gt;`_).
+
+   **Satellite Merger Times:** If ``[presetMergerTimes]``\ :math:`=`\ ``true`` then merger times for satellites will be computed directly from the merger tree data read from file. When a subhalo has an isolated halo as a descendant it is assumed to undergo a merger with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger times (e.g. ``[componentSatellite]``\ :math:`=`\ ``preset``).
+
+   **Dark Matter Halo Angular Momenta:** If ``[presetAngularMomenta]``\ :math:`=`\ ``true`` and the ``angularMomentum`` dataset is available within the ``haloTrees`` group (see `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group&gt;`_) then the angular momenta of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the angular momentum (see `here &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent&gt;`_).
    </description>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
-     !!{
+     !!{RST
      A class implementing merger tree construction by reading trees from file.
      !!}
      private
@@ -335,8 +260,8 @@
   end type mergerTreeConstructorRead
 
   interface mergerTreeConstructorRead
-     !!{
-     Constructors for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
+     !!{RST
+     Constructors for the ``mergerTreeConstructorRead`` merger tree constructor class.
      !!}
      module procedure readConstructorParameters
      module procedure readConstructorInternal
@@ -382,8 +307,8 @@
 contains
 
   function readConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeConstructorRead`` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -425,174 +350,230 @@ contains
     fileCount=parameters%count('fileNames')
     allocate(fileNames(fileCount))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNames</name>
-      <description>The name of the file(s) from which merger tree data should be read when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
+      <description>
+      The name of the file(s) from which merger tree data should be read when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forestSizeMaximum</name>
       <defaultValue>0_c_size_t</defaultValue>
-      <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.</description>
+      <description>
+      The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetMergerTimes</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether merging times for subhalos should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether merging times for subhalos should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetMergerNodes</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether the target nodes for mergers should be preset (i.e. determined from descendant nodes). If they are not, merging will be with each satellite's host node.</description>
+      <description>
+      Specifies whether the target nodes for mergers should be preset (i.e. determined from descendant nodes). If they are not, merging will be with each satellite's host node.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetSubhaloMasses</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether subhalo mass should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether subhalo mass should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subhaloAngularMomentaMethod</name>
       <defaultValue>var_str('summation')</defaultValue>
-      <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
+      <description>
+      Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetSubhaloIndices</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether subhalo indices should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether subhalo indices should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetPositions</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether node positions should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether node positions should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetScaleRadii</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether node scale radii should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether node scale radii should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleRadiiFailureIsFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)</description>
+      <description>
+      Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetScaleRadiiConcentrationMinimum</name>
       <defaultValue>3.0d0</defaultValue>
-      <description>The lowest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
+      <description>
+      The lowest concentration (:math:`c=r_\mathrm{vir}/r_\mathrm{s}`) allowed when setting scale radii, :math:`r_\mathrm{s}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetScaleRadiiConcentrationMaximum</name>
       <defaultValue>60.0d0</defaultValue>
-      <description>The largest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
+      <description>
+      The largest concentration (:math:`c=r_\mathrm{vir}/r_\mathrm{s}`) allowed when setting scale radii, :math:`r_\mathrm{s}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetScaleRadiiMinimumMass</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum halo mass for which scale radii should be preset (if \mono{[presetScaleRadii]}$=$\mono{true}).</description>
+      <description>
+      The minimum halo mass for which scale radii should be preset (if ``[presetScaleRadii]``\ :math:`=`\ ``true``).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetUnphysicalAngularMomenta</name>
       <defaultValue>.false.</defaultValue>
-      <description>When reading merger trees from file and presetting halo angular momenta, detect unphysical (&lt;=0) angular momenta and preset them using the selected halo spin method.</description>
+      <description>
+      When reading merger trees from file and presetting halo angular momenta, detect unphysical (&lt;=0) angular momenta and preset them using the selected halo spin method.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetAngularMomenta</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether node angular momenta should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether node angular momenta should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetAngularMomenta3D</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether node 3-D angular momenta vectors should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether node 3-D angular momenta vectors should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetOrbits</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether node orbits should be preset when reading merger trees from a file.</description>
+      <description>
+      Specifies whether node orbits should be preset when reading merger trees from a file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetOrbitsSetAll</name>
       <defaultValue>.true.</defaultValue>
-      <description>Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.</description>
+      <description>
+      Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetOrbitsAssertAllSet</name>
       <defaultValue>.true.</defaultValue>
-      <description>Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.</description>
+      <description>
+      Asserts that all virial orbits must be preset. If any can not be set, Galacticus will stop.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetOrbitsBoundOnly</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether only bound node orbits should be set.</description>
+      <description>
+      Specifies whether only bound node orbits should be set.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beginAt</name>
       <defaultValue>-1_kind_int8</defaultValue>
-      <description>Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)</description>
+      <description>
+      Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputTimeSnapTolerance</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The relative tolerance required to ``snap'' a node time to the closest output time.</description>
+      <description>
+      The relative tolerance required to "snap" a node time to the closest output time.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>missingHostsAreFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
+      <description>
+      Specifies whether nodes with missing host nodes should be considered to be fatal---see `here &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts&gt;`_.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treeIndexToRootNodeIndex</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether tree indices should always be set to the index of their root node.</description>
+      <description>
+      Specifies whether tree indices should always be set to the index of their root node.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowBranchJumps</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether nodes are allowed to jump between branches.</description>
+      <description>
+      Specifies whether nodes are allowed to jump between branches.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowSubhaloPromotions</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
+      <description>
+      Specifies whether subhalos are permitted to be promoted to being isolated halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alwaysPromoteMostMassive</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the most massive progenitor is always promoted to be the primary progenitor \emph{even if} it is a subhalo. Otherwise, isolated progenitors are given priority over subhalo progenitors, even if they are less massive.</description>
+      <description>
+      If true, the most massive progenitor is always promoted to be the primary progenitor *even if* it is a subhalo. Otherwise, isolated progenitors are given priority over subhalo progenitors, even if they are less massive.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     allocate(presetNamedReals   (parameters%count('presetNamedReals'   ,zeroIfNotPresent=.true.)))
     if (size(presetNamedReals   ) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>presetNamedReals</name>
-         <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
+         <description>
+         Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -600,9 +581,11 @@ contains
     allocate(presetNamedIntegers(parameters%count('presetNamedIntegers',zeroIfNotPresent=.true.)))
     if (size(presetNamedIntegers) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>presetNamedIntegers</name>
-         <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the \mono{[mergerTreeConstruct]}$=$\mono{read} tree construction method.</description>
+         <description>
+         Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -694,8 +677,8 @@ contains
   end function readConstructorParameters
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,alwaysPromoteMostMassive,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,mergerTreeSeeds_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
+    !!{RST
+    Internal constructor for the ``mergerTreeConstructorRead`` merger tree constructor class.
     !!}
     use :: Display                    , only : displayMagenta, displayReset
     use :: Error                      , only : Error_Report  , Warn
@@ -914,8 +897,8 @@ contains
   end function readConstructorInternal
 
   subroutine readDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeConstructorRead} merger tree constructor class.
+    !!{RST
+    Destructor for the ``mergerTreeConstructorRead`` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self
@@ -939,7 +922,7 @@ contains
   end subroutine readDestructor
 
   function readConstruct(self,treeNumber,finished) result(tree)
-    !!{
+    !!{RST
     Construct a merger tree by reading its definition from file.
     !!}
     use :: Array_Utilities           , only : operator(.intersection.)
@@ -1405,7 +1388,7 @@ contains
   end function readConstruct
 
   subroutine readCreateNodeIndices(self,nodes)
-    !!{
+    !!{RST
     Create a sorted list of node indices with an index into the original array.
     !!}
     use :: Error                     , only : Warn
@@ -1440,8 +1423,8 @@ contains
   end subroutine readCreateNodeIndices
 
   function readNodeLocation(self,nodeIndex)
-    !!{
-    Return the location in the original array of the given \mono{nodeIndex}.
+    !!{RST
+    Return the location in the original array of the given ``nodeIndex``.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -1460,8 +1443,8 @@ contains
   end function readNodeLocation
 
   function readDescendantNodeSortIndex(self,descendantIndex)
-    !!{
-    Return the sort index of the given \mono{descendantIndex}.
+    !!{RST
+    Return the sort index of the given ``descendantIndex``.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -1474,7 +1457,7 @@ contains
   end function readDescendantNodeSortIndex
 
   subroutine readDestroyNodeIndices(self)
-    !!{
+    !!{RST
     Destroy the sorted list of node indices.
     !!}
     implicit none
@@ -1488,7 +1471,7 @@ contains
   end subroutine readDestroyNodeIndices
 
   subroutine readBuildDescendantPointers(self,nodes)
-    !!{
+    !!{RST
     Builds pointers from each node to its descendant node.
     !!}
     use :: Display                   , only : displayMessage, verbosityLevelInfo
@@ -1539,7 +1522,7 @@ contains
   end subroutine readBuildDescendantPointers
 
   subroutine readEnforceSubhaloStatus(self,nodes)
-    !!{
+    !!{RST
     Ensure that any node which was once a subhalo remains a subhalo.
     !!}
     use :: Error                     , only : Error_Report
@@ -1613,7 +1596,7 @@ contains
   end subroutine readEnforceSubhaloStatus
 
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
-    !!{
+    !!{RST
     Scan for cases where a subhalo stops being a subhalo and so must be promoted.
     !!}
     use :: Galacticus_Nodes            , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList, &
@@ -1750,7 +1733,7 @@ contains
   end subroutine readScanForSubhaloPromotions
 
   subroutine readBuildParentPointers(nodes)
-    !!{
+    !!{RST
     Build pointers to node parents.
     !!}
     use :: Error                     , only : Error_Report
@@ -1797,7 +1780,7 @@ contains
   end subroutine readBuildParentPointers
 
   subroutine readCreateNodeArray(self,tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
-    !!{
+    !!{RST
     Create an array of standard nodes and associated structures.
     !!}
     use :: Galacticus_Nodes          , only : mergerTree         , treeNode     , treeNodeList
@@ -1855,7 +1838,7 @@ contains
   end subroutine readCreateNodeArray
 
   subroutine readBuildIsolatedParentPointers(self,tree,nodes,nodeList)
-    !!{
+    !!{RST
     Create parent pointer links between isolated nodes and assign times and masses to those nodes.
     !!}
     use :: Error                     , only : Error_Report
@@ -1960,7 +1943,7 @@ contains
   end subroutine readBuildIsolatedParentPointers
 
   subroutine readBuildChildAndSiblingLinks(nodes,nodeList,childIsSubhalo)
-    !!{
+    !!{RST
     Build child and sibling links between nodes.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
@@ -2033,7 +2016,7 @@ contains
   end subroutine readBuildChildAndSiblingLinks
 
   subroutine readAssignHostTreePointers(tree)
-    !!{
+    !!{RST
     After tree base nodes have been assigned, walk each tree and set the host tree pointer for each node.
     !!}
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
@@ -2055,7 +2038,7 @@ contains
   end subroutine readAssignHostTreePointers
 
   subroutine readAssignScaleRadii(self,nodes,nodeList)
-    !!{
+    !!{RST
     Assign scale radii to nodes.
     !!}
     use :: Display                   , only : displayIndent            , displayMessage                , displayUnindent              , displayVerbosity, &
@@ -2211,7 +2194,7 @@ contains
   end subroutine readAssignScaleRadii
 
   subroutine readAssignAngularMomenta(self,nodes,nodeList)
-    !!{
+    !!{RST
     Assign angular momenta to nodes.
     !!}
     use :: Error                     , only : Error_Report
@@ -2275,7 +2258,7 @@ contains
   contains
 
     double precision function spinNormalization()
-      !!{
+      !!{RST
       Normalization for conversion of spin to angular momentum.
       !!}
       use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -2289,7 +2272,7 @@ contains
   end subroutine readAssignAngularMomenta
 
   subroutine readAssignNamedProperties(self,nodes,nodeList)
-    !!{
+    !!{RST
     Assign named properties to nodes.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
@@ -2324,7 +2307,7 @@ contains
   end subroutine readAssignNamedProperties
 
   double precision function readRadiusHalfMassRoot(radius)
-    !!{
+    !!{RST
     Function used to find scale radius of dark matter halos given their half-mass radius.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
@@ -2346,7 +2329,7 @@ contains
   end function readRadiusHalfMassRoot
 
   subroutine readAssignIsolatedNodeIndices(nodes)
-    !!{
+    !!{RST
     Assign to each node the number of the corresponding isolated node.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -2391,7 +2374,7 @@ contains
   end subroutine readAssignIsolatedNodeIndices
 
   subroutine readScanForMergers(self,nodes,nodeList,historyCountMaximum)
-    !!{
+    !!{RST
     Scan for and record mergers between nodes.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , nodeComponentPosition, nodeComponentSatellite, treeNode, &
@@ -2652,7 +2635,8 @@ contains
   end subroutine readScanForMergers
 
   subroutine readSetOrbit(self,satelliteNode,hostNode,orbitalPartner)
-    !!{
+    !!{RST
+
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
@@ -2742,10 +2726,8 @@ contains
   end subroutine readSetOrbit
 
   logical function massIsGreater(node1,node2)
-    !!{
-    Return true if the mass of \mono{node1} is greater than that of \mono{node2}. In cases of
-    precisely equal masses the tie is broken by considering the node indices (which should never be equal). This ensures that
-    there is always a well-defined primary progenitor halo for example.
+    !!{RST
+    Return true if the mass of ``node1`` is greater than that of ``node2``. In cases of precisely equal masses the tie is broken by considering the node indices (which should never be equal). This ensures that there is always a well-defined primary progenitor halo for example.
     !!}
     implicit none
     class(nodeData), intent(in   ) :: node1, node2
@@ -2761,7 +2743,7 @@ contains
   end function massIsGreater
 
   subroutine readAssignMergers(self,nodes,nodeList)
-    !!{
+    !!{RST
     Assign pointers to merge targets.
     !!}
     use :: Error                     , only : Error_Report
@@ -2817,7 +2799,7 @@ contains
   end subroutine readAssignMergers
 
   subroutine readScanForBranchJumps(self,nodes,nodeList)
-    !!{
+    !!{RST
     Search for subhalos which move between branches/trees.
     !!}
     use :: Display                   , only : displayMessage, verbosityLevelWarn
@@ -3008,8 +2990,8 @@ contains
   end subroutine readScanForBranchJumps
 
   function readLastHostDescendant(node) result (currentHost)
-    !!{
-    Return a pointer to the last descendant that can be reached from \mono{node} when descending through hosts.
+    !!{RST
+    Return a pointer to the last descendant that can be reached from ``node`` when descending through hosts.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3024,7 +3006,7 @@ contains
   end function readLastHostDescendant
 
   subroutine readCreateBranchJumpEvent(node,jumpToHost,timeOfJump)
-    !!{
+    !!{RST
     Create a matched-pair of branch jump events in the given nodes.
     !!}
     use :: Galacticus_Nodes , only : nodeEvent       , nodeEventBranchJump, treeNode
@@ -3049,7 +3031,7 @@ contains
   end subroutine readCreateBranchJumpEvent
 
   subroutine readBuildSubhaloMassHistories(self,nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
-    !!{
+    !!{RST
     Build and attached bound mass histories to subhalos.
     !!}
     use :: Error                     , only : Error_Report
@@ -3200,7 +3182,7 @@ contains
   end subroutine readBuildSubhaloMassHistories
 
   subroutine readValidateIsolatedHalos(nodes)
-    !!{
+    !!{RST
     Ensure that nodes have valid primary progenitors.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -3255,7 +3237,7 @@ contains
   end subroutine readValidateIsolatedHalos
 
   subroutine readAssignUniqueIDsToClones(nodeList)
-    !!{
+    !!{RST
     Assign new uniqueID values to any cloned nodes inserted into the trees.
     !!}
     use :: Galacticus_Nodes, only : treeNodeList
@@ -3273,8 +3255,8 @@ contains
   end subroutine readAssignUniqueIDsToClones
 
   logical function readIsSubhaloSubhaloMerger(self,nodes,node)
-    !!{
-    Returns true if \mono{node} undergoes a subhalo-subhalo merger.
+    !!{RST
+    Returns true if ``node`` undergoes a subhalo-subhalo merger.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3309,8 +3291,8 @@ contains
 
   !$GLC function attributes unused :: readDumpTree
   subroutine readDumpTree(nodes,highlightNodes,branchRoot)
-    !!{
-    Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+    !!{RST
+    Dumps the tree structure to a file in a format suitable for processing with `dot <http://www.graphviz.org/>`_.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3399,7 +3381,7 @@ contains
   end subroutine readDumpTree
 
   subroutine readTimeUntilMergingSubresolution(self,lastSeenNode,nodes,nodeList,iNode,timeSubhaloMerges)
-    !!{
+    !!{RST
     Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
     !!}
     use :: Display                   , only : displayIndent          , displayMessage       , displayUnindent, verbosityLevelWarn
@@ -3541,7 +3523,7 @@ contains
   end subroutine readTimeUntilMergingSubresolution
 
   function readOrbitConstruct(mass1,mass2,position,velocity) result(orbit)
-    !!{
+    !!{RST
     Construct a Keplerian orbit given body masses, positions, and relative velocities.
     !!}
     use :: Kepler_Orbits           , only : keplerOrbit
@@ -3592,7 +3574,7 @@ contains
   end function readOrbitConstruct
 
   subroutine readPhaseSpacePositionRealize(self,time,position,velocity)
-    !!{
+    !!{RST
     Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow.
     !!}
     use :: Numerical_Constants_Boolean, only : booleanFalse, booleanTrue
@@ -3618,9 +3600,8 @@ contains
   end subroutine readPhaseSpacePositionRealize
 
   subroutine progenitorIteratorDescendantSet(self,constructor,node,nodes)
-    !!{
-    Initialize a progenitor iterator object by storing the index of the target \mono{node} and finding the location of the first
-    progenitor (if any).
+    !!{RST
+    Initialize a progenitor iterator object by storing the index of the target ``node`` and finding the location of the first progenitor (if any).
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3650,9 +3631,8 @@ contains
   end subroutine progenitorIteratorDescendantSet
 
   logical function progenitorIteratorNext(self,nodes)
-    !!{
-    Move to the next progenitor using a progenitor iterator object, returning true if the next progenitor exists, false if it
-    does not.
+    !!{RST
+    Move to the next progenitor using a progenitor iterator object, returning true if the next progenitor exists, false if it does not.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -3681,7 +3661,7 @@ contains
   end function progenitorIteratorNext
 
   function progenitorIteratorIndex(self,nodes)
-    !!{
+    !!{RST
     Return the node index of the current progenitor in a progenitor iterator object.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -3695,7 +3675,7 @@ contains
   end function progenitorIteratorIndex
 
   function progenitorIteratorCurrent(self,nodes)
-    !!{
+    !!{RST
     Return a pointer to the current progenitor in a progenitor iterator object.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -3709,7 +3689,7 @@ contains
   end function progenitorIteratorCurrent
 
   logical function progenitorIteratorExist(self)
-    !!{
+    !!{RST
     Return true if progenitors exist, false otherwise.
     !!}
     implicit none
@@ -3720,7 +3700,7 @@ contains
   end function progenitorIteratorExist
 
   subroutine readTimingRecord(self,label)
-    !!{
+    !!{RST
     Record timing data.
     !!}
     implicit none
@@ -3750,7 +3730,7 @@ contains
   end subroutine readTimingRecord
 
   subroutine readTimingReport(self)
-    !!{
+    !!{RST
     Report on time taken in various steps of processing merger trees read from file.
     !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent
@@ -3774,7 +3754,7 @@ contains
   end subroutine readTimingReport
 
   subroutine readRootNodeAffinitiesInitial(self,nodes)
-    !!{
+    !!{RST
     Find initial root node affinities for all nodes.
     !!}
     use :: Display                   , only : displayIndent     , displayMessage, displayUnindent, verbosityLevelInfo, &
@@ -3997,8 +3977,8 @@ contains
   end subroutine readRootNodeAffinitiesInitial
 
   logical function readIsOnPushList(self,node)
-    !!{
-    Return true if the given node is on the current ``push-to'' list of nodes for split forests.
+    !!{RST
+    Return true if the given node is on the current "push-to" list of nodes for split forests.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -4014,8 +3994,8 @@ contains
   end function readIsOnPushList
 
   logical function readIsOnPullList(self,node)
-    !!{
-    Return true if the given node is on the current ``pull-from'' list of nodes for split forests.
+    !!{RST
+    Return true if the given node is on the current "pull-from" list of nodes for split forests.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -4031,8 +4011,8 @@ contains
   end function readIsOnPullList
 
   function readPushListIndex(self,node)
-    !!{
-    Return the index of the given node in the ``push-to'' list of nodes for split forests.
+    !!{RST
+    Return the index of the given node in the "push-to" list of nodes for split forests.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -4052,8 +4032,8 @@ contains
   end function readPushListIndex
 
   function readPullListIndex(self,node,iPull)
-    !!{
-    Return the index of the given node in the ``pull-from'' list of nodes for split forests.
+    !!{RST
+    Return the index of the given node in the "pull-from" list of nodes for split forests.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -4078,8 +4058,8 @@ contains
   end function readPullListIndex
 
   function readPullListCount(self,node)
-    !!{
-    Return the number of the given node in the ``pull-from'' list of nodes for split forests.
+    !!{RST
+    Return the number of the given node in the "pull-from" list of nodes for split forests.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
@@ -4096,7 +4076,7 @@ contains
   end function readPullListCount
 
   subroutine readAssignSplitForestEvents(self,nodes,nodeList)
-    !!{
+    !!{RST
     Assign events to nodes if they jump between trees in a forest.
     !!}
     use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
@@ -4316,7 +4296,7 @@ contains
   end subroutine readAssignSplitForestEvents
 
   subroutine readInterTreeMergeTimeSet(self,nodeSatellite,nodeHost)
-    !!{
+    !!{RST
     Set the merging time for a node undergoing and inter-tree transfer.
     !!}
     use :: Error           , only : Error_Report

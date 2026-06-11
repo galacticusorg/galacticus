@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides tools for working with convex hulls of sets of points.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which provides tools for working with convex hulls of sets of 
 !: $(BUILDPATH)/qhull.o
 
 module Points_Convex_Hull
-  !!{
+  !!{RST
   Provide tools for working with convex hulls of sets of points.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_null_ptr, c_double, c_int, &
@@ -36,8 +36,8 @@ module Points_Convex_Hull
   public :: convexHull
 
   type :: qhull
-     !!{
-     Wrapper class used to manage \mono{qhull} objects.
+     !!{RST
+     Wrapper class used to manage ``qhull`` objects.
      !!}
      private
      type(c_ptr) :: qhull_=c_null_ptr
@@ -46,8 +46,8 @@ module Points_Convex_Hull
   end type qhull
   
   type :: convexHull
-     !!{
-     Type used to wrap \href{http://www.qhull.org}{qhull} convex hull objects.
+     !!{RST
+     Type used to wrap `qhull <http://www.qhull.org>`_ convex hull objects.
      !!}
      type            (qhull          ), pointer                       :: qhull_          => null()
      type            (resourceManager)                                :: qhullManager
@@ -67,7 +67,7 @@ module Points_Convex_Hull
   end type convexHull
 
   interface convexHull
-     !!{
+     !!{RST
      Interface to constructors for convex hull objects.
      !!}
      module procedure convexHullConstructor
@@ -76,7 +76,7 @@ module Points_Convex_Hull
 #ifdef QHULLAVAIL
   interface
      function convexHullConstructorC(n,points,status) bind(c,name='convexHullConstructorC')
-       !!{
+       !!{RST
        Interface to the C++ convex hull constructor.
        !!}
        import c_ptr, c_double, c_int, c_long
@@ -86,14 +86,14 @@ module Points_Convex_Hull
        integer(c_int   )                 :: status
      end function convexHullConstructorC
      subroutine convexHullDestructorC(qhull) bind(c,name='convexHullDestructorC')
-       !!{
+       !!{RST
        Interface to the C++ convex hull destructor.
        !!}
        import c_ptr
        type(c_ptr), value :: qhull
      end subroutine convexHullDestructorC
      function convexHullVolumeC(qhull) bind(c,name='convexHullVolumeC')
-       !!{
+       !!{RST
        Interface to the C++ convex hull volume function.
        !!}
        import c_ptr, c_double
@@ -101,8 +101,8 @@ module Points_Convex_Hull
        type(c_ptr   ), value :: qhull
      end function convexHullVolumeC
      function convexHullPointIsInHullC(qhull,point) bind(c,name='convexHullPointIsInHullC')
-       !!{
-       Interface to the C++ convex hull ``point is in hull'' function.
+       !!{RST
+       Interface to the C++ convex hull "point is in hull" function.
        !!}
        import c_ptr, c_double, c_bool
        logical(c_bool  )               :: convexHullPointIsInHullC
@@ -115,8 +115,8 @@ module Points_Convex_Hull
 contains
 
   function convexHullConstructor(points,allowSubsampling,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for \mono{convexHull} objects.
+    !!{RST
+    Constructor for ``convexHull`` objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding           , only : c_size_t                  , c_long                , c_int
@@ -143,8 +143,10 @@ contains
     if (size(points,dim=1) /= 3) call Error_Report('3D points are required'//{introspection:location})
     allocate(self%qhull_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_     => self%qhull_
     !$ self%qhullManager =  resourceManager(dummyPointer_)
@@ -188,8 +190,8 @@ contains
   end function convexHullConstructor
 
   subroutine qhullDestructor(self)
-    !!{
-    Destructor for \mono{qhull} objects.
+    !!{RST
+    Destructor for ``qhull`` objects.
     !!}
 #ifdef QHULLAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated
@@ -206,7 +208,7 @@ contains
   end subroutine qhullDestructor
 
   double precision function convexHullVolume(self)
-    !!{
+    !!{RST
     Return the volume of a convex hull.
     !!}
 #ifndef QHULLAVAIL
@@ -226,7 +228,7 @@ contains
   end function convexHullVolume
   
   logical function convexHullPointIsInHull(self,point)
-    !!{
+    !!{RST
     Return the volume of a convex hull.
     !!}
 #ifndef QHULLAVAIL
@@ -247,8 +249,8 @@ contains
   end function convexHullPointIsInHull
 
   subroutine convexHullAssign(to,from)
-    !!{
-    Assignment operator for \refClass{convexHull} objects.
+    !!{RST
+    Assignment operator for ``convexHull`` objects.
     !!}
     implicit none
     class(convexHull), intent(  out) :: to

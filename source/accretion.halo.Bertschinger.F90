@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of accretion from the \gls{igm} onto halos using simple truncation to
-  mimic the effects of reionization, and the Bertschinger mass to define available mass.
+  !!{RST
+  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <accretionHalo name="accretionHaloBertschinger">
-   <description>Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.</description>
+  <accretionHalo name="accretionHaloBertschinger" docformat="rst">
+   <description>
+   Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+   </description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloSimple) :: accretionHaloBertschinger
-     !!{
-     A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define
-     available mass.
+     !!{RST
+     A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer:: darkMatterProfileDMO_ => null()
@@ -42,8 +42,8 @@
   end type accretionHaloBertschinger
 
   interface accretionHaloBertschinger
-     !!{
-     Constructors for the \refClass{accretionHaloBertschinger} halo accretion class.
+     !!{RST
+     Constructors for the ``accretionHaloBertschinger`` halo accretion class.
      !!}
      module procedure bertschingerConstructorParameters
      module procedure bertschingerConstructorInternal
@@ -52,8 +52,8 @@
 contains
 
   function bertschingerConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{bertschinger} halo accretion class.
+    !!{RST
+    Default constructor for the ``bertschinger`` halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +69,8 @@ contains
   end function bertschingerConstructorParameters
 
   function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionHaloBertschinger} halo accretion class.
+    !!{RST
+    Internal constructor for the ``accretionHaloBertschinger`` halo accretion class.
     !!}
     implicit none
     type            (accretionHaloBertschinger    )                        :: self
@@ -92,8 +92,8 @@ contains
   end function bertschingerConstructorInternal
 
   subroutine bertschingerDestructor(self)
-    !!{
-    Destructor for the \refClass{accretionHaloBertschinger} halo accretion class.
+    !!{RST
+    Destructor for the ``accretionHaloBertschinger`` halo accretion class.
     !!}
     implicit none
     type(accretionHaloBertschinger), intent(inout) :: self
@@ -105,8 +105,8 @@ contains
   end subroutine bertschingerDestructor
 
   double precision function bertschingerVelocityScale(self,node) result(velocityScale)
-    !!{
-    Returns the velocity scale to use for \mono{node}. Use the maximum circular velocity.
+    !!{RST
+    Returns the velocity scale to use for ``node``. Use the maximum circular velocity.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none

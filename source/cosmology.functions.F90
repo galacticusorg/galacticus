@@ -17,29 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an object that implements cosmological functions.
 !!}
 
 module Cosmology_Functions
-  !!{
+  !!{RST
   Provides an object that implements cosmological functions.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>cosmologyFunctions</name>
    <descriptiveName>Cosmology Functions</descriptiveName>
    <description>
-    A class that provides various cosmological functions. The background cosmology describes the evolution of an isotropic,
-    homogeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is
-    used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter,
-    dark energy, etc.) at different epochs.
+   A class that provides various cosmological functions. The background cosmology describes the evolution of an isotropic, homogeneous Universe within which our calculations are carried out. For the purposes of Galacticus, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs.
    </description>
    <default>matterLambda</default>
    <method name="epochValidate" >
-    <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
+    <description>
+    Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: timeIn            </argument>
@@ -50,45 +49,59 @@ module Cosmology_Functions
     <argument>logical         , intent(  out), optional :: collapsingOut     </argument>
    </method>
    <method name="cosmicTime" >
-    <description>Return the cosmological age (in Gyr) of the universe at the given expansion factor $a$, computed by integrating the Friedmann equation from $a=0$ to the specified value.</description>
+    <description>
+    Return the cosmological age (in Gyr) of the universe at the given expansion factor :math:`a`, computed by integrating the Friedmann equation from :math:`a=0` to the specified value.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="timeBigCrunch" >
-    <description>Return the cosmological age at Big Crunch (or a negative value if no Big Crunch occurs).</description>
+    <description>
+    Return the cosmological age at Big Crunch (or a negative value if no Big Crunch occurs).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="expansionFactor" >
-    <description>Returns the expansion factor at cosmological time \mono{time}.</description>
+    <description>
+    Returns the expansion factor at cosmological time ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="expansionRate" >
-    <description>Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.</description>
+    <description>
+    Returns the cosmological expansion rate, :math:`\dot{a}/a` at expansion factor ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: expansionFactor</argument>
    </method>
    <method name="hubbleParameterEpochal" >
-    <description>Returns the Hubble parameter at the requested cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.</description>
+    <description>
+    Returns the Hubble parameter at the requested cosmological time, ``time``, or expansion factor, ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="hubbleParameterRateOfChange" >
-    <description>Returns the rate of change of the Hubble parameter at the requested cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.</description>
+    <description>
+    Returns the rate of change of the Hubble parameter at the requested cosmological time, ``time``, or expansion factor, ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time,expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="densityScalingEarlyTime" >
-    <description>Compute the scaling of density with expansion factor at early times in the universe.</description>
+    <description>
+    Compute the scaling of density with expansion factor at early times in the universe.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: dominateFactor</argument>
@@ -96,109 +109,143 @@ module Cosmology_Functions
     <argument>double precision, intent(  out), optional :: OmegaDominant</argument>
    </method>
    <method name="omegaMatterEpochal" >
-    <description>Return the matter density parameter at expansion factor \mono{expansionFactor}.</description>
+    <description>
+    Return the matter density parameter at expansion factor ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="omegaMatterRateOfChange" >
-    <description>Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.</description>
+    <description>
+    Return the rate of change of the matter density parameter at expansion factor ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="omegaDarkEnergyEpochal" >
-    <description>Return the dark energy density parameter at expansion factor \mono{expansionFactor}.</description>
+    <description>
+    Return the dark energy density parameter at expansion factor ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="equationOfStateDarkEnergy" >
-    <description>Return the equation of state paramerter, $w$, for the dark energy component.</description>
+    <description>
+    Return the equation of state paramerter, :math:`w`, for the dark energy component.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="exponentDarkEnergy" >
-    <description>Return the exponent of the dark energy density with expansion factor, i.e. $\gamma$ in $\rho_\mathrm{DE}(a) \propto a^\gamma$.</description>
+    <description>
+    Return the exponent of the dark energy density with expansion factor, i.e. :math:`\gamma` in :math:`\rho_\mathrm{DE}(a) \propto a^\gamma`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="equalityEpochMatterDarkEnergy" >
-    <description>Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).</description>
+    <description>
+    Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ), optional :: requestType</argument>
    </method>
    <method name="equalityEpochMatterCurvature" >
-    <description>Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).</description>
+    <description>
+    Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ), optional :: requestType</argument>
    </method>
    <method name="equalityEpochMatterRadiation" >
-    <description>Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).</description>
+    <description>
+    Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ), optional :: requestType</argument>
    </method>
    <method name="dominationEpochMatter" >
-    <description>Compute the epoch at which matter dominates over other forms of energy by a given factor.</description>
+    <description>
+    Compute the epoch at which matter dominates over other forms of energy by a given factor.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: dominateFactor</argument>
    </method>
    <method name="temperatureCMBEpochal" >
-    <description>Return the temperature of the cosmic microwave background at \mono{expansionFactor}.</description>
+    <description>
+    Return the temperature of the cosmic microwave background at ``expansionFactor``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time  , expansionFactor</argument>
     <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
    </method>
    <method name="distanceParticleHorizonComoving" >
-    <description>Return the comoving distance to the particle horizon at the given \mono{time}.</description>
+    <description>
+    Return the comoving distance to the particle horizon at the given ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="distanceComoving" >
-    <description>Return the comoving distance to the given cosmic \mono{time}.</description>
+    <description>
+    Return the comoving distance to the given cosmic ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="distanceLuminosity" >
-    <description>Return the luminosity distance to the given cosmic \mono{time}.</description>
+    <description>
+    Return the luminosity distance to the given cosmic ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="distanceAngular" >
-    <description>Return the angular diameter distance to the given cosmic \mono{time}.</description>
+    <description>
+    Return the angular diameter distance to the given cosmic ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: time      </argument>
     <argument>double precision, intent(in   ), optional :: timeOrigin</argument>
    </method>
    <method name="timeAtDistanceComoving" >
-    <description>Return the cosmic time corresponding to the given \mono{comovingDistance}.</description>
+    <description>
+    Return the cosmic time corresponding to the given ``comovingDistance``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: comovingDistance</argument>
    </method>
    <method name="distanceComovingConvert" >
-    <description>Convert between different measures of comoving distance (luminosity distance, distance modulus, or k-corrected distance modulus) given an input distance or redshift, returning the requested output distance measure.</description>
+    <description>
+    Convert between different measures of comoving distance (luminosity distance, distance modulus, or k-corrected distance modulus) given an input distance or redshift, returning the requested output distance measure.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   )           :: output</argument>
     <argument>double precision, intent(in   ), optional :: distanceLuminosity, distanceModulus, distanceModulusKCorrected, redshift</argument>
    </method>
    <method name="redshiftFromExpansionFactor" >
-    <description>Returns the cosmological redshift, typically $z = 1/a - 1$, corresponding to the given expansion factor $a$, where $a=1$ corresponds to the present day ($z=0$).</description>
+    <description>
+    Returns the cosmological redshift, typically :math:`z = 1/a - 1`, corresponding to the given expansion factor :math:`a`, where :math:`a=1` corresponds to the present day (:math:`z=0`).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: expansionFactor</argument>
@@ -208,7 +255,9 @@ module Cosmology_Functions
     </code>
    </method>
    <method name="expansionFactorFromRedshift" >
-    <description>Returns the cosmological expansion factor, typically $a = 1/(1+z)$, corresponding to the given redshift $z$, where $a=1$ at the present day and $a\rightarrow 0$ at the Big Bang.</description>
+    <description>
+    Returns the cosmological expansion factor, typically :math:`a = 1/(1+z)`, corresponding to the given redshift :math:`z`, where :math:`a=1` at the present day and :math:`a\rightarrow 0` at the Big Bang.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: redshift</argument>
@@ -218,7 +267,9 @@ module Cosmology_Functions
     </code>
    </method>
    <method name="comovingVolumeElementRedshift" >
-    <description>Returns the differential comoving volume element $\mathrm{d}V/\mathrm{d}z = r_\mathrm{c}^2(t) \mathrm{c} H^{-1}(t)$ (where $r_\mathrm{c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified \mono{time}.</description>
+    <description>
+    Returns the differential comoving volume element :math:`\mathrm{d}V/\mathrm{d}z = r_\mathrm{c}^2(t) \mathrm{c} H^{-1}(t)` (where :math:`r_\mathrm{c}` is the comoving distance to time :math:`t` and :math:`H(t)` is the Hubble parameter at that time) for unit solid angle at the specified ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Numerical_Constants_Physical Numerical_Constants_Prefixes</modules>
@@ -226,7 +277,9 @@ module Cosmology_Functions
     <code>cosmologyFunctionsComovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
    </method>
    <method name="comovingVolumeElementTime" >
-    <description>Returns the differential comoving volume element $\mathrm{d}V/\mathrm{d}t = r_\mathrm{c}^2(t) \mathrm{c} a(t)$ (where $r_\mathrm{c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified \mono{time}.</description>
+    <description>
+    Returns the differential comoving volume element :math:`\mathrm{d}V/\mathrm{d}t = r_\mathrm{c}^2(t) \mathrm{c} a(t)` (where :math:`r_\mathrm{c}` is the comoving distance to time :math:`t` and :math:`a(t)` is the expansion at that time) for unit solid angle at the specified ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Numerical_Constants_Astronomical Numerical_Constants_Physical</modules>
@@ -234,7 +287,9 @@ module Cosmology_Functions
     <code>cosmologyFunctionsComovingVolumeElementTime=self%distanceComoving(time)**2*(gigaYear*speedLight/megaParsec)/self%expansionfactor(time)</code>
    </method>
    <method name="epochTime" >
-    <description>Convenience function that returns the time corresponding to an epoch specified by time or expansion factor.</description>
+    <description>
+    Convenience function that returns the time corresponding to an epoch specified by time or expansion factor.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -252,7 +307,9 @@ module Cosmology_Functions
     </code>
    </method>
    <method name="matterDensityEpochal" >
-    <description>Convenience function that returns the matter density at the specified epoch.</description>
+    <description>
+    Convenience function that returns the matter density at the specified epoch.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: time           , expansionFactor</argument>
@@ -266,9 +323,11 @@ module Cosmology_Functions
 
   ! Enumeration for different cosmological densities.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>densityCosmological</name>
-   <description>Enumeration of different cosmological density references: the critical density (the density required for a spatially flat universe) and the mean matter density (the average matter density of the universe).</description>
+   <description>
+   Enumeration of different cosmological density references: the critical density (the density required for a spatially flat universe) and the mean matter density (the average matter density of the universe).
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>

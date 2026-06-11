@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a composite mass distribution class.
   !!}
   
   !![
-  <massDistribution name="massDistributionComposite">
-    <description>A mass distribution class formed by superposing multiple component mass distributions (e.g.\ dark matter halo, disk, bulge, black hole), returning the combined density, potential, and enclosed mass as the sum over all components.</description>
+  <massDistribution name="massDistributionComposite" docformat="rst">
+    <description>
+    A mass distribution class formed by superposing multiple component mass distributions (e.g.\ dark matter halo, disk, bulge, black hole), returning the combined density, potential, and enclosed mass as the sum over all components.
+    </description>
     <linkedList type="massDistributionList" variable="massDistributions" next="next" object="massDistribution_" objectType="massDistributionClass"/>
   </massDistribution>
   !!]
@@ -35,7 +37,7 @@
 
 
   type, public, extends(massDistributionClass) :: massDistributionComposite
-     !!{
+     !!{RST
      A composite mass distribution class.
      !!}
      type   (massDistributionList                   ), pointer :: massDistributions => null()
@@ -84,8 +86,8 @@
   end type massDistributionComposite
 
   interface massDistributionComposite
-     !!{
-     Constructors for the \refClass{massDistributionComposite} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionComposite`` mass distribution class.
      !!}
      module procedure compositeConstructorParameters
      module procedure compositeConstructorInternal
@@ -94,9 +96,8 @@
 contains
 
   function compositeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionComposite} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionComposite`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -126,8 +127,8 @@ contains
   end function compositeConstructorParameters
 
   function compositeConstructorInternal(massDistributions) result(self)
-    !!{
-    Internal constructor for ``composite'' mass distribution class.
+    !!{RST
+    Internal constructor for "composite" mass distribution class.
     !!}
     type(massDistributionComposite)                         :: self
     type(massDistributionList     ), pointer, intent(in   ) :: massDistributions
@@ -146,7 +147,7 @@ contains
   end function compositeConstructorInternal
 
   subroutine compositeDestructor(self)
-    !!{
+    !!{RST
     Destructor for composite mass distributions.
     !!}
     implicit none
@@ -168,7 +169,7 @@ contains
   end subroutine compositeDestructor
 
   subroutine compositeInitialize(self)
-    !!{
+    !!{RST
     Initialize a composite mass distribution.
     !!}
     use :: ISO_Varying_String, only : char
@@ -253,7 +254,7 @@ contains
   end subroutine compositeInitialize
 
   function compositeSymmetry(self) result(symmetry)
-    !!{
+    !!{RST
     Return the symmetry of a composite mass distribution.
     !!}
     implicit none
@@ -265,7 +266,7 @@ contains
   end function compositeSymmetry
 
   logical function compositeIsSphericallySymmetric(self) result(isSphericallySymmetric)
-    !!{
+    !!{RST
     Return true if the distribution is spherically symmetric.
     !!}
     implicit none
@@ -276,7 +277,7 @@ contains
   end function compositeIsSphericallySymmetric
 
   logical function compositeIsDimensionless(self)
-    !!{
+    !!{RST
     Return the dimensionless nature of a composite mass distribution.
     !!}
     implicit none
@@ -288,7 +289,7 @@ contains
   end function compositeIsDimensionless
 
   logical function compositeAssumeMonotonicDecreasingSurfaceDensity(self) result(isSphericallySymmetric)
-    !!{
+    !!{RST
     Return true if the surface density is monotonically decreasing.
     !!}
     implicit none
@@ -312,7 +313,7 @@ contains
   end function compositeAssumeMonotonicDecreasingSurfaceDensity
 
   logical function compositeMatches(self,componentType,massType)
-    !!{
+    !!{RST
     Return the total mass of a composite mass distribution.
     !!}
     implicit none
@@ -342,7 +343,7 @@ contains
   end function compositeMatches
 
   subroutine compositeDescribe(self)
-    !!{
+    !!{RST
     Display a description of a composite mass distribution.
     !!}
     use :: Display, only : displayMessage, displayIndent, displayUnindent
@@ -368,7 +369,7 @@ contains
   end subroutine compositeDescribe
   
   function compositeSubset(self,componentType,massType) result(subset)
-    !!{
+    !!{RST
     Return the subset of the composite distribution that matches.
     !!}
     implicit none
@@ -460,7 +461,7 @@ contains
   end function compositeSubset
 
   double precision function compositeMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass of a composite mass distribution.
     !!}
     implicit none
@@ -480,8 +481,8 @@ contains
   end function compositeMassTotal
 
   double precision function compositeDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a composite mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a composite mass distribution.
     !!}
     implicit none
     class(massDistributionComposite), intent(inout) :: self
@@ -501,8 +502,8 @@ contains
   end function compositeDensity
 
   double precision function compositeDensitySphericalAverage(self,radius)
-    !!{
-    Return the spherically-averaged density at the specified \mono{radius} in a composite mass distribution.
+    !!{RST
+    Return the spherically-averaged density at the specified ``radius`` in a composite mass distribution.
     !!}
     implicit none
     class           (massDistributionComposite), intent(inout) :: self
@@ -522,7 +523,7 @@ contains
   end function compositeDensitySphericalAverage
 
   double precision function compositeDensitySquareIntegral(self,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Return the integral of the square of the density within the given radial interval.
     !!}
     use :: Error, only : Error_Report
@@ -541,8 +542,8 @@ contains
   end function compositeDensitySquareIntegral
 
   double precision function compositeSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in a composite mass distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in a composite mass distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -564,8 +565,8 @@ contains
   end function compositeSurfaceDensity
 
   double precision function compositeDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a composite mass distribution.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a composite mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -605,7 +606,7 @@ contains
   end function compositeDensityGradientRadial
 
   double precision function compositeDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Return the given radial density moment in a composite mass distribution.
     !!}
     implicit none
@@ -632,7 +633,7 @@ contains
   end function compositeDensityRadialMoment
 
   double precision function compositeMassEnclosedBySphere(self,radius)
-    !!{
+    !!{RST
     Computes the mass enclosed within a sphere in a composite mass distribution.
     !!}
     implicit none
@@ -653,7 +654,7 @@ contains
   end function compositeMassEnclosedBySphere
 
   double precision function compositeMassEnclosedByCylinder(self,radius) result(mass)
-    !!{
+    !!{RST
     Computes the mass enclosed within a cylinder in a composite mass distribution.
     !!}
     implicit none
@@ -674,7 +675,7 @@ contains
   end function compositeMassEnclosedByCylinder
 
   double precision function compositeRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for composite mass distributions.
     !!}    
     implicit none
@@ -690,7 +691,7 @@ contains
   end function compositeRadiusEnclosingMass
 
   double precision function compositeRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the cylindrical radius enclosing a given mass or mass fraction for composite mass distributions.
     !!}    
     implicit none
@@ -706,7 +707,7 @@ contains
   end function compositeRadiusCylindricalEnclosingMass
 
   double precision function compositeRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for composite mass distributions.
     !!}    
     implicit none
@@ -723,7 +724,7 @@ contains
   end function compositeRadiusEnclosingDensity
   
   double precision function compositeRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given surface density for composite mass distributions.
     !!}    
     implicit none
@@ -740,7 +741,7 @@ contains
   end function compositeRadiusEnclosingSurfaceDensity
   
   double precision function compositeRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve for a composite mass distribution.
     !!}
     implicit none
@@ -762,7 +763,7 @@ contains
   end function compositeRotationCurve
 
   double precision function compositeRotationCurveGradient(self,radius)
-    !!{
+    !!{RST
     Return the gradient of the rotation curve for a composite mass distribution.
     !!}
     implicit none
@@ -783,8 +784,8 @@ contains
   end function compositeRotationCurveGradient
 
   function compositeAcceleration(self,coordinates)
-    !!{
-    Computes the gravitational acceleration at \mono{coordinates} for a composite mass distribution.
+    !!{RST
+    Computes the gravitational acceleration at ``coordinates`` for a composite mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3  ) :: compositeAcceleration
@@ -805,8 +806,8 @@ contains
   end function compositeAcceleration
 
   function compositeTidalTensor(self,coordinates)
-    !!{
-    Computes the gravitational tidal tensor at \mono{coordinates} for exponential disk mass distributions.
+    !!{RST
+    Computes the gravitational tidal tensor at ``coordinates`` for exponential disk mass distributions.
     !!}
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: compositeTidalTensor
@@ -827,7 +828,7 @@ contains
   end function compositeTidalTensor
   
   logical function compositePotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Specify whether the potential has an analytic form.
     !!}
     implicit none
@@ -838,7 +839,7 @@ contains
   end function compositePotentialIsAnalytic
 
   double precision function compositePotential(self,coordinates,status)
-    !!{
+    !!{RST
     Return the gravitational potential for a composite mass distribution.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
@@ -863,7 +864,7 @@ contains
   end function compositePotential
 
   double precision function compositePotentialDifference(self,coordinates1,coordinates2,status) result(potential)
-    !!{
+    !!{RST
     Return the gravitational potential for a composite mass distribution.
     !!}
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
@@ -888,7 +889,7 @@ contains
   end function compositePotentialDifference
 
   double precision function compositeEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
+    !!{RST
     Compute the energy of the mass distribution.
     !!}
     use :: Error, only : Error_Report
@@ -909,8 +910,8 @@ contains
   end function compositeEnergy
   
   function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
-    !!{
-    Compute the Chandrasekhar integral at the specified \mono{coordinates} in a composite mass distribution.
+    !!{RST
+    Compute the Chandrasekhar integral at the specified ``coordinates`` in a composite mass distribution.
     !!}
     implicit none
     double precision                              , dimension(3)  :: compositeChandrasekharIntegral
@@ -934,7 +935,7 @@ contains
   end function compositeChandrasekharIntegral
 
   function compositePositionSample(self,randomNumberGenerator_)
-    !!{
+    !!{RST
     Sample a position from a composite distribution.
     !!}
     implicit none

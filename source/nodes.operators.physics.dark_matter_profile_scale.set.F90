@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that sets dark matter profile scale radius.
   !!}
 
@@ -25,7 +25,7 @@
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
   
   type :: branchStack
-     !!{
+     !!{RST
      Type used to create a stack of branches being processed.
      !!}
      double precision                              :: mass              , radiusScale
@@ -35,18 +35,14 @@
   end type branchStack
   
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet">
+  <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet" docformat="rst">
    <description>
-    A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a
-    \refClass{darkMatterProfileScaleRadiusClass} object. \mono{factorReset} controls the multiplicative factor by which a
-    halo mass must grow before its scale radius is recomputed. \mono{forward} selects whether scale radii are assigned by
-    walking forward along the branch (until mass exceeds \mono{factorReset} times the previously computed value) or backward
-    (until mass falls below $1/$\mono{factorReset} of the previous value).
+   A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a ``darkMatterProfileScaleRadiusClass`` object. ``factorReset`` controls the multiplicative factor by which a halo mass must grow before its scale radius is recomputed. ``forward`` selects whether scale radii are assigned by walking forward along the branch (until mass exceeds ``factorReset`` times the previously computed value) or backward (until mass falls below :math:`1/`\ ``factorReset`` of the previous value).
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileScaleSet
-     !!{
+     !!{RST
      A node operator class that sets the dark matter profile scale radius in halos.
      !!}
      private
@@ -61,8 +57,8 @@
   end type nodeOperatorDarkMatterProfileScaleSet
   
   interface nodeOperatorDarkMatterProfileScaleSet
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class.
      !!}
      module procedure darkMatterProfileScaleSetConstructorParameters
      module procedure darkMatterProfileScaleSetConstructorInternal
@@ -71,8 +67,8 @@
 contains
   
   function darkMatterProfileScaleSetConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,16 +79,20 @@ contains
     logical                                                                :: forward
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorReset</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The factor by which a node must increase in mass before its scale radius is reset.</description>
+      <description>
+      The factor by which a node must increase in mass before its scale radius is reset.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forward</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by \mono{[factor]} that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than $1/$\mono{[factor]} of that for which the scale radius was last computed.</description>
+      <description>
+      If true, updates to the scale radius are determined by walking forward along the branch until the mass exceeds by ``[factor]`` that for which the scale radius was last computed. If false, updates are computed by walking backward along the branch until the mass is less than :math:`1/`\ ``[factor]`` of that for which the scale radius was last computed.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
@@ -106,8 +106,8 @@ contains
   end function darkMatterProfileScaleSetConstructorParameters
 
   function darkMatterProfileScaleSetConstructorInternal(factorReset,forward,darkMatterProfileScaleRadius_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,8 +123,8 @@ contains
   end function darkMatterProfileScaleSetConstructorInternal
 
   subroutine darkMatterProfileScaleSetConstructorDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileScaleSet} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleSet), intent(inout) :: self
@@ -136,7 +136,7 @@ contains
   end subroutine darkMatterProfileScaleSetConstructorDestructor
 
   subroutine darkMatterProfileScaleSetNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize dark matter profile scale radii.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -252,9 +252,8 @@ contains
   end subroutine darkMatterProfileScaleSetNodeTreeInitialize
     
   subroutine darkMatterProfileScaleSetNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    of \mono{node} to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the scale radius of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

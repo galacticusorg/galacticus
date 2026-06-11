@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.
+  !!{RST
+  An implementation of dark matter halo mass accretion histories computed using the fitting function of :cite:t:`diemer_splashback_2020`.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryDiemer2020">
-   <description>Dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.</description>
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryDiemer2020" docformat="rst">
+   <description>
+   Dark matter halo mass accretion histories computed using the fitting function of :cite:t:`diemer_splashback_2020`.
+   </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryDiemer2020
-     !!{
-     A dark matter halo mass accretion history class computed using the fitting function of \cite{diemer_splashback_2020}.
+     !!{RST
+     A dark matter halo mass accretion history class computed using the fitting function of :cite:t:`diemer_splashback_2020`.
      !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -44,8 +46,8 @@
   end type darkMatterHaloMassAccretionHistoryDiemer2020
 
   interface darkMatterHaloMassAccretionHistoryDiemer2020
-     !!{
-     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
+     !!{RST
+     Constructors for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
      !!}
      module procedure diemer2020ConstructorParameters
      module procedure diemer2020ConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function diemer2020ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,8 +83,8 @@ contains
   end function diemer2020ConstructorParameters
 
   function diemer2020ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
+    !!{RST
+    Internal constructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryDiemer2020)                        :: self
@@ -98,8 +99,8 @@ contains
   end function diemer2020ConstructorInternal
 
   subroutine diemer2020Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryDiemer2020} dark matter halo mass accretion history class.
+    !!{RST
+    Destructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self
@@ -113,8 +114,8 @@ contains
   end subroutine diemer2020Destructor
 
   double precision function diemer2020Time(self,node,mass)
-    !!{
-    Compute the time corresponding to \mono{mass} in the mass accretion history.
+    !!{RST
+    Compute the time corresponding to ``mass`` in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -129,8 +130,8 @@ contains
   end function diemer2020Time
 
   double precision function diemer2020Mass(self,node,time)
-    !!{
-    Compute the mass corresponding to \mono{time} in the mass accretion history.
+    !!{RST
+    Compute the mass corresponding to ``time`` in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -145,9 +146,8 @@ contains
   end function diemer2020Mass
 
   double precision function diemer2020MassAccretionRate(self,node,time)
-    !!{
-    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of
-    \mono{node}.
+    !!{RST
+    Compute the mass accretion rate at the given ``time`` in the mass accretion history of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

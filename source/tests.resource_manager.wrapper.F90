@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module that provides a wrapper class for testing the \mono{resourceManager} class.
+!!{RST
+Contains a module that provides a wrapper class for testing the ``resourceManager`` class.
 !!}
 
 module Test_Resource_Manager_Wrapper
-  !!{
-  Provides a wrapper class for testing the \mono{resourceManager} class.
+  !!{RST
+  Provides a wrapper class for testing the ``resourceManager`` class.
   !!}
   use :: Resource_Manager, only : resourceManager
   private
   public :: resourceHolder, countDestructions
   
   type :: sharedResource
-     !!{
+     !!{RST
      A dummy type to act as a shared resource.
      !!}
      private
@@ -38,7 +38,7 @@ module Test_Resource_Manager_Wrapper
   end type sharedResource
 
   type :: resourceHolder
-     !!{
+     !!{RST
      A dummy type to act as a class that wants to retain a shared resource.
      !!}
      type(sharedResource ), pointer :: sharedObject => null()
@@ -48,7 +48,7 @@ module Test_Resource_Manager_Wrapper
   end type resourceHolder
 
   interface resourceHolder
-     !!{
+     !!{RST
      Constructors for the dummy resource holder class.
      !!}
      module procedure resourceHolderConstructFirst
@@ -61,7 +61,7 @@ module Test_Resource_Manager_Wrapper
 contains
 
   function resourceHolderConstructFirst() result(self)
-    !!{
+    !!{RST
     First-level constructor for the dummy resource holder class.
     !!}
     use :: Display, only : displayMessage
@@ -75,7 +75,7 @@ contains
   end function resourceHolderConstructFirst
 
   function resourceHolderConstructSecond(i) result(self)
-    !!{
+    !!{RST
     Second-level constructor for the dummy resource holder class.
     !!}
     use :: Display, only : displayMessage
@@ -89,8 +89,10 @@ contains
     allocate(self%sharedObject)
     self%sharedObject=sharedResource(1)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <description>
+    ICE when passing a derived type component to a class(*) function argument.
+    </description>
     </workaround>
     !!]
     actual_      => self%sharedObject
@@ -100,7 +102,7 @@ contains
   end function resourceHolderConstructSecond
 
   subroutine resourceHolderDestruct(self)
-    !!{
+    !!{RST
     Destructor for the dummy resource holder class.
     !!}
     use :: Display, only : displayMessage

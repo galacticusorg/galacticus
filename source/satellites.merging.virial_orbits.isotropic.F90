@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of virial orbits which assumes an isotropic distribution of infall directions and tangential velocities
-  applied to another virial orbit class.
+  !!{RST
+  An implementation of virial orbits which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class.
   !!}
 
   !![
-  <virialOrbit name="virialOrbitIsotropic">
-   <description>Virial orbits which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class.</description>
+  <virialOrbit name="virialOrbitIsotropic" docformat="rst">
+   <description>
+   Virial orbits which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class.
+   </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitIsotropic
-     !!{
-     A virial orbit class which assumes an isotropic distribution of infall directions and tangential velocities applied to
-     another virial orbit class
+     !!{RST
+     A virial orbit class which assumes an isotropic distribution of infall directions and tangential velocities applied to another virial orbit class
      !!}
      private
      class(virialOrbitClass), pointer :: virialOrbit_ => null()
@@ -48,8 +48,8 @@
   end type virialOrbitIsotropic
 
   interface virialOrbitIsotropic
-     !!{
-     Constructors for the \refClass{virialOrbitIsotropic} virial orbits class.
+     !!{RST
+     Constructors for the ``virialOrbitIsotropic`` virial orbits class.
      !!}
      module procedure isotropicConstructorParameters
      module procedure isotropicConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function isotropicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitIsotropic} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialOrbitIsotropic`` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +79,8 @@ contains
   end function isotropicConstructorParameters
 
   function isotropicConstructorInternal(virialOrbit_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitIsotropic} virial orbits class.
+    !!{RST
+    Internal constructor for the ``virialOrbitIsotropic`` virial orbits class.
     !!}
     implicit none
     type (virialOrbitIsotropic)                        :: self
@@ -93,8 +93,8 @@ contains
   end function isotropicConstructorInternal
 
   subroutine isotropicDestructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitIsotropic} virial orbits class.
+    !!{RST
+    Destructor for the ``virialOrbitIsotropic`` virial orbits class.
     !!}
     implicit none
     type(virialOrbitIsotropic), intent(inout) :: self
@@ -106,7 +106,7 @@ contains
   end subroutine isotropicDestructor
 
   function isotropicOrbit(self,node,host,acceptUnboundOrbits)
-    !!{
+    !!{RST
     Return isotropic orbital parameters for a satellite.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -126,7 +126,7 @@ contains
   end function isotropicOrbit
 
   function isotropicDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the definition of virial orbits.
     !!}
     implicit none
@@ -138,7 +138,7 @@ contains
   end function isotropicDensityContrastDefinition
 
   double precision function isotropicVelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
@@ -150,7 +150,7 @@ contains
   end function isotropicVelocityTangentialMagnitudeMean
 
   function isotropicVelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -166,7 +166,7 @@ contains
   end function isotropicVelocityTangentialVectorMean
 
   double precision function isotropicAngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     implicit none
@@ -178,7 +178,7 @@ contains
   end function isotropicAngularMomentumMagnitudeMean
 
   function isotropicAngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -194,7 +194,7 @@ contains
   end function isotropicAngularMomentumVectorMean
 
   double precision function isotropicVelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the root mean squared of the total velocity.
     !!}
     implicit none
@@ -206,7 +206,7 @@ contains
   end function isotropicVelocityTotalRootMeanSquared
 
   double precision function isotropicEnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the total energy.
     !!}
     implicit none
@@ -218,7 +218,7 @@ contains
   end function isotropicEnergyMean
 
   logical function isotropicIsAngularlyResolved(self)
-    !!{
+    !!{RST
     Return true indicating that orbits are angularly-resolved.
     !!}
     implicit none

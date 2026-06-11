@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that extracts the basic mass.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassBasic">
-   <description>Extracts the ``basic'' mass of a node as defined by the basic component, representing the total dark matter halo mass including all mass associated with the node, suitable for halo mass function and clustering analyses.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassBasic" docformat="rst">
+   <description>
+   Extracts the "basic" mass of a node as defined by the basic component, representing the total dark matter halo mass including all mass associated with the node, suitable for halo mass function and clustering analyses.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBasic
-     !!{
+     !!{RST
      A property extractor output analysis class that extracts the basic mass.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an output analysis property extractor class that extracts the basic m
   end type nodePropertyExtractorMassBasic
 
   interface nodePropertyExtractorMassBasic
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBasic} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassBasic`` property extractor class.
      !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic
@@ -49,8 +51,8 @@ Implements an output analysis property extractor class that extracts the basic m
 contains
 
   function massBasicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBasic} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassBasic`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function massBasicConstructorParameters
 
   double precision function massBasicExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massBasic output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -83,7 +85,7 @@ contains
 
 
   function massBasicName(self)
-    !!{
+    !!{RST
     Return the name of the massBasic property.
     !!}
     implicit none
@@ -96,7 +98,7 @@ contains
   end function massBasicName
 
   function massBasicDescription(self)
-    !!{
+    !!{RST
     Return a description of the massBasic property.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end function massBasicDescription
 
   double precision function massBasicUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the basic mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -122,7 +124,7 @@ contains
   end function massBasicUnitsInSI
 
   function massBasicUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the basic mass property.
     !!}
     use :: Units_MetaData, only : unitType

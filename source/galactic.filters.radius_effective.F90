@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for stellar mass effective radius.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterRadiusEffective">
+  <galacticFilter name="galacticFilterRadiusEffective" docformat="rst">
    <description>
-   A galactic high-pass filter for stellar mass effective radius. Galaxies with a stellar mass effective radius greater than or
-   equal to a fixed threshold, $R_{\mathrm{eff},0}=$\mono{[radiusEffectiveThreshold]}, are passed.
+   A galactic high-pass filter for stellar mass effective radius. Galaxies with a stellar mass effective radius greater than or equal to a fixed threshold, :math:`R_{\mathrm{eff},0}=`\ ``[radiusEffectiveThreshold]``, are passed.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterRadiusEffective
-     !!{
+     !!{RST
      A galactic high-pass filter for stellar mass effective radius.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for stellar mass effective radius.
   end type galacticFilterRadiusEffective
 
   interface galacticFilterRadiusEffective
-     !!{
-     Constructors for the \refClass{galacticFilterRadiusEffective} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterRadiusEffective`` galactic filter class.
      !!}
      module procedure radiusEffectiveConstructorParameters
      module procedure radiusEffectiveConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for stellar mass effective radius.
 contains
 
   function radiusEffectiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterRadiusEffective} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterRadiusEffective`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +59,12 @@ contains
     double precision                                               :: radiusThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusThreshold</name>
       <source>parameters</source>
-      <description>The parameter $R_{\mathrm{eff},0}$ (in units of Mpc) appearing in the stellar mass effective radius threshold.</description>
+      <description>
+      The parameter :math:`R_{\mathrm{eff},0}` (in units of Mpc) appearing in the stellar mass effective radius threshold.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterRadiusEffective(radiusThreshold)
@@ -74,8 +75,8 @@ contains
   end function radiusEffectiveConstructorParameters
 
   function radiusEffectiveConstructorInternal(radiusThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterRadiusEffective} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterRadiusEffective`` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterRadiusEffective)                :: self
@@ -88,7 +89,7 @@ contains
   end function radiusEffectiveConstructorInternal
 
   logical function radiusEffectivePasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a stellar mass high-pass galactic filter.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass, massDistributionComposite

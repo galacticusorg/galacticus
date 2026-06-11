@@ -18,13 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolMangle">
-   <description>A task which downloads, compiles, and installs the \mono{mangle} angular mask software, making it available for defining and manipulating survey angular geometries used in galaxy clustering and correlation function analyses.</description>
+  <task name="taskBuildToolMangle" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the ``mangle`` angular mask software, making it available for defining and manipulating survey angular geometries used in galaxy clustering and correlation function analyses.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolMangle
-     !!{
-     Implementation of a task which builds the \mono{mangle} tool.
+     !!{RST
+     Implementation of a task which builds the ``mangle`` tool.
      !!}
      private
    contains
@@ -33,8 +35,8 @@
   end type taskBuildToolMangle
 
   interface taskBuildToolMangle
-     !!{
-     Constructors for the \refClass{taskBuildToolMangle} task.
+     !!{RST
+     Constructors for the ``taskBuildToolMangle`` task.
      !!}
      module procedure buildToolMangleParameters
   end interface taskBuildToolMangle
@@ -42,8 +44,8 @@
 contains
 
   function buildToolMangleParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolMangle} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildToolMangle`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolMangleParameters
 
   subroutine buildToolManglePerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display        , only : displayIndent      , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolManglePerform
 
   logical function buildToolMangleRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

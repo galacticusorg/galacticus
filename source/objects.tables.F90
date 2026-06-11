@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines a \mono{table} class with optimized interpolation operators.
+!!{RST
+Contains a module which defines a ``table`` class with optimized interpolation operators.
 !!}
 
 module Tables
-  !!{
-  Defines a \mono{table} class with optimized interpolation operators.
+  !!{RST
+  Defines a ``table`` class with optimized interpolation operators.
   !!}
   use :: Numerical_Interpolation, only : interpolator
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
@@ -35,9 +35,11 @@ module Tables
        &    tablesIntegrationWeightFunction, table1DMonotoneCSpline
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>tableType</name>
-   <description>Enumeration of table types.</description>
+   <description>
+   Enumeration of table types.
+   </description>
    <entry label="linearLinear1D"      />
    <entry label="logarithmicLinear1D" />
   </enumeration>
@@ -70,7 +72,7 @@ module Tables
   !!]
     
   type, abstract :: table
-     !!{
+     !!{RST
      Basic table type.
      !!}
    contains
@@ -84,8 +86,8 @@ module Tables
 
   interface
      subroutine Table_Destroy(self)
-       !!{
-       Interface to \mono{table} destructor.
+       !!{RST
+       Interface to ``table`` destructor.
        !!}
        import table
        implicit none
@@ -94,7 +96,7 @@ module Tables
   end interface
 
   type, abstract, extends(table) :: table1D
-     !!{
+     !!{RST
      Basic table type.
      !!}
      integer                                                                         :: xCount
@@ -136,8 +138,8 @@ module Tables
 
   interface
      double precision function Table1D_Interpolate(self,x,table,status)
-       !!{
-       Interface to \mono{table} interpolator.
+       !!{RST
+       Interface to ``table`` interpolator.
        !!}
        import table1D
        implicit none
@@ -149,7 +151,7 @@ module Tables
   end interface
 
   type :: table1dGenericObjects
-     !!{
+     !!{RST
      Container type for interpolators used in 1D generic tables.
      !!}
      type   (interpolator), allocatable :: interpolator_
@@ -166,12 +168,14 @@ module Tables
   end type table1dGenericObjects
   
   type, extends(table1D) :: table1DGeneric
-     !!{
+     !!{RST
      Table type supporting generic one dimensional tables.
      !!}
      !![
-     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938">
-       <description>gfortran causes a memory leak with allocatable components in nested derived-types.</description>
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938" docformat="rst">
+       <description>
+       gfortran causes a memory leak with allocatable components in nested derived-types.
+       </description>
        <note>
 	 Once fixed, the interpolators component could be allocatable and not a pointer, we could replace it with simple
 	 allocatable arrays of interpolator and logical objects and remove the table1dGenericObjects type altogether.
@@ -207,8 +211,8 @@ module Tables
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
-     !!{
-     Table type supporting one dimensional table with linear spacing in $x$.
+     !!{RST
+     Table type supporting one dimensional table with linear spacing in :math:`x`.
      !!}
      double precision :: dxPrevious    , dyPrevious   , inverseDeltaX, xPrevious, &
           &              yPrevious
@@ -229,8 +233,8 @@ module Tables
   end type table1DLinearLinear
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
-     !!{
-     Table type supporting one dimensional table with logarithmic spacing in $x$.
+     !!{RST
+     Table type supporting one dimensional table with logarithmic spacing in :math:`x`.
      !!}
      logical          :: previousSet
      double precision :: xLinearPrevious,xLogarithmicPrevious
@@ -245,8 +249,8 @@ module Tables
   end type table1DLogarithmicLinear
 
   type, extends(table1DGeneric) :: table1DNonUniformLinearLogarithmic
-     !!{
-     Table type supporting one dimensional table with non-uniform x-axis and logarithmic in $y$.
+     !!{RST
+     Table type supporting one dimensional table with non-uniform x-axis and logarithmic in :math:`y`.
      !!}
    contains
      procedure :: populate_           => Table_NonUniform_Linear_Logarithmic_1D_Populate
@@ -259,8 +263,8 @@ module Tables
   end type table1DNonUniformLinearLogarithmic
 
   type, extends(table1D) :: table1DLinearCSpline
-     !!{
-     Table type supporting one dimensional table with linear spacing in $x$ and cubic spline interpolation.
+     !!{RST
+     Table type supporting one dimensional table with linear spacing in :math:`x` and cubic spline interpolation.
      !!}
      double precision, allocatable, dimension(:,:) :: sv            , av           , bv           , cv       , &
           &                                           dv
@@ -286,8 +290,8 @@ module Tables
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
-     !!{
-     Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
+     !!{RST
+     Table type supporting one dimensional table with logarithmic spacing in :math:`x` and cubic spline interpolation.
      !!}
      logical          :: previousSet
      double precision :: xLinearPrevious, xLogarithmicPrevious
@@ -301,8 +305,8 @@ module Tables
   end type table1DLogarithmicCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLinearMonotoneCSpline
-     !!{
-     Table type supporting one dimensional table with linear spacing in $x$ and monotonic cubic spline interpolation.
+     !!{RST
+     Table type supporting one dimensional table with linear spacing in :math:`x` and monotonic cubic spline interpolation.
      !!}
    contains
      procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
@@ -315,8 +319,8 @@ module Tables
   end type table1DLinearMonotoneCSpline
 
   type, extends(table1DLinearMonotoneCSpline) :: table1DLogarithmicMonotoneCSpline
-     !!{
-     Table type supporting one dimensional table with logarithmic spacing in $x$ and monotonic cubic spline interpolation.
+     !!{RST
+     Table type supporting one dimensional table with logarithmic spacing in :math:`x` and monotonic cubic spline interpolation.
      !!}
      logical          :: previousSet
      double precision :: xLinearPrevious, xLogarithmicPrevious
@@ -330,8 +334,8 @@ module Tables
   end type table1DLogarithmicMonotoneCSpline
 
   type, extends(table1D) :: table1DMonotoneCSpline
-     !!{
-     Table type supporting one dimensional table with arbitrary spacing in $x$ and monotonic cubic spline interpolation.
+     !!{RST
+     Table type supporting one dimensional table with arbitrary spacing in :math:`x` and monotonic cubic spline interpolation.
      !!}
      double precision, allocatable, dimension(:,:) :: av            , bv           , cv
      integer                                       :: dTablePrevious, iPrevious    , tablePrevious
@@ -361,7 +365,7 @@ module Tables
   end interface
 
   type, extends(table) :: table2DLinLinLin
-     !!{
+     !!{RST
      Table type supporting generic two dimensional tables.
      !!}
      integer                                                       :: xCount       , yCount
@@ -394,7 +398,7 @@ module Tables
   end type table2DLinLinLin
 
   type, extends(table) :: table2DLogLogLin
-     !!{
+     !!{RST
      Two-dimensional table type with logarithmic spacing in x and y dimensions, and linear interpolation in z.
      !!}
      type            (enumerationExtrapolationTypeType)                                :: extrapolationTypeX  , extrapolationTypeY
@@ -449,7 +453,7 @@ module Tables
 contains
 
   subroutine Table_1D_Destroy(self)
-    !!{
+    !!{RST
     Destroy a 1-D table.
     !!}
     implicit none
@@ -461,8 +465,8 @@ contains
   end subroutine Table_1D_Destroy
 
   double precision function Table1D_X(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $x$-value for a 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a 1D table.
     !!}
     implicit none
     class  (table1D), intent(inout) :: self
@@ -476,8 +480,8 @@ contains
   end function Table1D_X
 
   function Table1D_Xs(self)
-    !!{
-    Return the $x$-values for a 1D table.
+    !!{RST
+    Return the :math:`x`-values for a 1D table.
     !!}
     implicit none
     class(table1D), intent(in   ) :: self
@@ -488,8 +492,8 @@ contains
   end function Table1D_Xs
 
   double precision function Table1D_Y(self,i,table)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 1D table.
     !!}
     implicit none
     class  (table1D), intent(in   )           :: self
@@ -506,8 +510,8 @@ contains
   end function Table1D_Y
 
   function Table1D_Ys(self)
-    !!{
-    Return the $y$-values for a 1D table.
+    !!{RST
+    Return the :math:`y`-values for a 1D table.
     !!}
     implicit none
     class(table1D), intent(in   ) :: self
@@ -518,9 +522,8 @@ contains
   end function Table1D_Ys
 
   subroutine Table_1D_Reverse(self,reversedSelf,table,precise)
-    !!{
-    Reverse a 1D table (i.e. swap $x$ and $y$ components). Optionally allows specification of
-    which $y$ table to swap with.
+    !!{RST
+    Reverse a 1D table (i.e. swap :math:`x` and :math:`y` components). Optionally allows specification of which :math:`y` table to swap with.
     !!}
     use :: Array_Utilities        , only : Array_Is_Monotonic, Array_Reverse, directionDecreasing
     use :: Error                  , only : Error_Report
@@ -568,9 +571,8 @@ contains
   end subroutine Table_1D_Reverse
 
   logical function Table1D_Is_Monotonic(self,direction,allowEqual,table)
-    !!{
-    Return true if a 1D table is monotonic. Optionally allows specification of the direction,
-    and whether or not equal elements are allowed for monotonicity.
+    !!{RST
+    Return true if a 1D table is monotonic. Optionally allows specification of the direction, and whether or not equal elements are allowed for monotonicity.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic
     implicit none
@@ -586,7 +588,7 @@ contains
   end function Table1D_Is_Monotonic
 
   integer function Table1D_Size(self)
-    !!{
+    !!{RST
     Return the size of a 1D table.
     !!}
     implicit none
@@ -597,8 +599,8 @@ contains
   end function Table1D_Size
 
   function Table1D_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for trapezoidal integration on the table between limits ``x0`` and ``x1``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -628,13 +630,15 @@ contains
   end function Table1D_Integration_Weights
   
   !![
-  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537">
-    <description>gfortran misses a defined-assignment of a component.</description>
+  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537" docformat="rst">
+    <description>
+    gfortran misses a defined-assignment of a component.
+    </description>
   </workaround>
   !!]
   subroutine Table1D_Assignment(to,from)
-    !!{
-    Assignment operator for the \mono{table1D} class.
+    !!{RST
+    Assignment operator for the ``table1D`` class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -660,8 +664,10 @@ contains
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
-	       <description>Defined assignment for components not used when those are ALLOCATABLE</description>
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
+	       <description>
+	       Defined assignment for components not used when those are ALLOCATABLE
+	       </description>
              !!]
              do i=1,size(from%interpolators)
                 if (allocated(to%interpolators(i)%interpolator_)) deallocate(to%interpolators(i)%interpolator_)
@@ -837,8 +843,8 @@ contains
   end subroutine Table1D_Assignment
 
   elemental subroutine table1dGenericObjectsDestructor(self)
-    !!{
-    Destructor for \refClass{table1dGenericObjects} objects.
+    !!{RST
+    Destructor for ``table1dGenericObjects`` objects.
     !!}
     implicit none
     type(table1dGenericObjects), intent(inout) :: self
@@ -848,8 +854,8 @@ contains
   end subroutine table1dGenericObjectsDestructor
   
   subroutine table1dGenericObjectsAssignment(to,from)
-    !!{
-    Assignment operator for \refClass{table1dGenericObjects} objects.
+    !!{RST
+    Assignment operator for ``table1dGenericObjects`` objects.
     !!}
     implicit none
     class(table1dGenericObjects), intent(inout) :: to
@@ -865,7 +871,7 @@ contains
   end subroutine table1dGenericObjectsAssignment
 
   subroutine Table_Generic_1D_Destructor(self)
-    !!{
+    !!{RST
     Destructor for 1-D generic tables.
     !!}
     implicit none
@@ -883,7 +889,7 @@ contains
   end subroutine Table_Generic_1D_Destructor
   
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType,interpolationType)
-    !!{
+    !!{RST
     Create a 1-D generic table.
     !!}
     use :: Error                  , only : Error_Report
@@ -926,7 +932,7 @@ contains
   end subroutine Table_Generic_1D_Create
 
   subroutine Table_Generic_1D_Destroy(self)
-    !!{
+    !!{RST
     Destroy a generic 1-D table.
     !!}
     implicit none
@@ -941,7 +947,7 @@ contains
   end subroutine Table_Generic_1D_Destroy
 
   subroutine Table_Generic_1D_Populate(self,y,table)
-    !!{
+    !!{RST
     Populate a 1-D generic table.
     !!}
     use :: Error, only : Error_Report
@@ -962,7 +968,7 @@ contains
   end subroutine Table_Generic_1D_Populate
 
   subroutine Table_Generic_1D_Populate_Single(self,y,i,table)
-    !!{
+    !!{RST
     Populate a single element of a 1-D generic table.
     !!}
     use :: Error, only : Error_Report
@@ -984,7 +990,7 @@ contains
   end subroutine Table_Generic_1D_Populate_Single
 
   subroutine Table_Generic_1D_Interpolator_Initialize(self,table)
-    !!{
+    !!{RST
     Initialize an interpolator.
     !!}
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
@@ -1002,7 +1008,7 @@ contains
   end subroutine Table_Generic_1D_Interpolator_Initialize
   
   double precision function Table_Generic_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform generic interpolation in a generic 1D table.
     !!}
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
@@ -1027,7 +1033,7 @@ contains
   end function Table_Generic_1D_Interpolate
   
   double precision function Table_Generic_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform generic interpolation in a generic 1D table.
     !!}
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
@@ -1052,7 +1058,7 @@ contains
   end function Table_Generic_1D_Interpolate_Gradient
 
   double precision function Table_Generic_1D_Interpolate_Second_Gradient(self,x,table)
-    !!{
+    !!{RST
     Perform generic interpolation in a generic 1D table.
     !!}
     use :: Numerical_Interpolation, only : GSL_Interp_Linear
@@ -1076,7 +1082,7 @@ contains
   end function Table_Generic_1D_Interpolate_Second_Gradient
 
   subroutine Table_Generic_1D_Interpolator_Reinitialize(self)
-    !!{
+    !!{RST
     Reinitialize the interpolator.
     !!}
     implicit none
@@ -1091,7 +1097,7 @@ contains
   end subroutine Table_Generic_1D_Interpolator_Reinitialize
 
   subroutine Table_Generic_1D_Interpolator_Deep_Copy(self)
-    !!{
+    !!{RST
     Deep copy the interpolator.
     !!}
     implicit none
@@ -1116,7 +1122,7 @@ contains
   end subroutine Table_Generic_1D_Interpolator_Deep_Copy
 
   subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
@@ -1155,7 +1161,7 @@ contains
   end subroutine Table_Linear_1D_Create
 
   subroutine Table_Linear_1D_Populate(self,y,table)
-    !!{
+    !!{RST
     Populate a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -1183,7 +1189,7 @@ contains
   end subroutine Table_Linear_1D_Populate
 
   subroutine Table_Linear_1D_Populate_Single(self,y,i,table)
-    !!{
+    !!{RST
     Populate a single element of a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -1212,7 +1218,7 @@ contains
   end subroutine Table_Linear_1D_Populate_Single
 
   double precision function Table_Linear_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     use :: Table_Labels, only : extrapolationTypeZero
@@ -1259,7 +1265,7 @@ contains
   end function Table_Linear_1D_Interpolate
 
   double precision function Table_Linear_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     use :: Table_Labels, only : extrapolationTypeZero
@@ -1303,7 +1309,7 @@ contains
   end function Table_Linear_1D_Interpolate_Gradient
 
   subroutine Table_Logarithmic_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D logarithmic table.
     !!}
     implicit none
@@ -1322,8 +1328,8 @@ contains
   end subroutine Table_Logarithmic_1D_Create
 
   double precision function Table_Logarithmic_1D_X(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicLinear), intent(inout) :: self
@@ -1334,8 +1340,8 @@ contains
   end function Table_Logarithmic_1D_X
 
   function Table_Logarithmic_1D_Xs(self)
-    !!{
-    Return the $x$-values for a 1D table.
+    !!{RST
+    Return the :math:`x`-values for a 1D table.
     !!}
     implicit none
     class           (table1DLogarithmicLinear), intent(in   )             :: self
@@ -1346,7 +1352,7 @@ contains
   end function Table_Logarithmic_1D_Xs
 
   double precision function Table_Logarithmic_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -1365,7 +1371,7 @@ contains
   end function Table_Logarithmic_1D_Interpolate
 
   double precision function Table_Logarithmic_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -1384,8 +1390,8 @@ contains
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for trapezoidal integration on the table between limits ``x0`` and ``x1``.
     !!}
     use :: Error     , only : Error_Report
     use :: Numerical_Integration, only : integrator
@@ -1443,7 +1449,7 @@ contains
   contains
 
     double precision function factor0Integrand(logx)
-      !!{
+      !!{RST
       Integrand used to evaluate integration weights over logarithmically spaced tables
       !!}
       implicit none
@@ -1456,7 +1462,7 @@ contains
     end function factor0Integrand
 
     double precision function factor1Integrand(logx)
-      !!{
+      !!{RST
       Integrand used to evaluate integration weights over logarithmically spaced tables
       !!}
       implicit none
@@ -1471,9 +1477,8 @@ contains
   end function Table_Logarithmic_Integration_Weights
 
   subroutine Table_Logarithmic_1D_Reverse(self,reversedSelf,table,precise)
-    !!{
-    Reverse a 1D logarithmic-linear table (i.e. swap $x$ and $y$ components). Optionally allows specification of
-    which $y$ table to swap with.
+    !!{RST
+    Reverse a 1D logarithmic-linear table (i.e. swap :math:`x` and :math:`y` components). Optionally allows specification of which :math:`y` table to swap with.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic, Array_Reverse, directionDecreasing
     use :: Error          , only : Error_Report
@@ -1510,7 +1515,7 @@ contains
   end subroutine Table_Logarithmic_1D_Reverse
 
   subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
@@ -1562,7 +1567,7 @@ contains
   end subroutine Table_Linear_CSpline_1D_Create
 
   subroutine Table_Linear_CSpline_1D_Destroy(self)
-    !!{
+    !!{RST
     Destroy a linear cubic-spline 1-D table.
     !!}
     implicit none
@@ -1578,7 +1583,7 @@ contains
   end subroutine Table_Linear_CSpline_1D_Destroy
 
   subroutine Table_Linear_CSpline_1D_Populate(self,y,table,computeSpline)
-    !!{
+    !!{RST
     Populate a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -1609,7 +1614,7 @@ contains
   end subroutine Table_Linear_CSpline_1D_Populate
 
   subroutine Table_Linear_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
-    !!{
+    !!{RST
     Populate a single element of a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -1641,7 +1646,7 @@ contains
   end subroutine Table_Linear_CSpline_1D_Populate_Single
 
   subroutine Table_Linear_CSpline_1D_Compute_Spline(self,table)
-    !!{
+    !!{RST
     Compute the interpolating spline factors for a 1-D linear spline.
     !!}
     implicit none
@@ -1693,7 +1698,7 @@ contains
   end subroutine Table_Linear_CSpline_1D_Compute_Spline
 
   double precision function Table_Linear_CSpline_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     implicit none
@@ -1730,7 +1735,7 @@ contains
   end function Table_Linear_CSpline_1D_Interpolate
 
   double precision function Table_Linear_CSpline_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     implicit none
@@ -1767,7 +1772,7 @@ contains
   end function Table_Linear_CSpline_1D_Interpolate_Gradient
 
   subroutine Table_Logarithmic_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D logarithmic table.
     !!}
     implicit none
@@ -1789,8 +1794,8 @@ contains
   end subroutine Table_Logarithmic_CSpline_1D_Create
 
   double precision function Table_Logarithmic_CSpline_1D_X(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicCSpline), intent(inout) :: self
@@ -1809,8 +1814,8 @@ contains
   end function Table_Logarithmic_CSpline_1D_X
 
   function Table_Logarithmic_CSpline_1D_Xs(self)
-    !!{
-    Return the $x$-values for a 1D table.
+    !!{RST
+    Return the :math:`x`-values for a 1D table.
     !!}
     implicit none
     class           (table1DLogarithmicCSpline), intent(in   )            :: self
@@ -1821,7 +1826,7 @@ contains
   end function Table_Logarithmic_CSpline_1D_Xs
 
   double precision function Table_Logarithmic_CSpline_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -1840,7 +1845,7 @@ contains
   end function Table_Logarithmic_CSpline_1D_Interpolate
 
   double precision function Table_Logarithmic_CSpline_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -1859,8 +1864,8 @@ contains
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
   function Table_Linear_CSpline_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for trapezoidal integration on the table between limits ``x0`` and ``x1``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1876,7 +1881,7 @@ contains
   end function Table_Linear_CSpline_Integration_Weights
 
   subroutine Table_Monotone_CSpline_1D_Create(self,x,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D monotone cubic spline table.
     !!}
     use :: Error            , only : Error_Report
@@ -1915,7 +1920,7 @@ contains
   end subroutine Table_Monotone_CSpline_1D_Create
 
   subroutine Table_Monotone_CSpline_1D_Destroy(self)
-    !!{
+    !!{RST
     Destroy a monotone cubic-spline 1-D table.
     !!}
     implicit none
@@ -1929,7 +1934,7 @@ contains
   end subroutine Table_Monotone_CSpline_1D_Destroy
 
   subroutine Table_Monotone_CSpline_1D_Populate(self,y,table,computeSpline)
-    !!{
+    !!{RST
     Populate a 1-D monotone cubic spline table.
     !!}
     use :: Error, only : Error_Report
@@ -1960,7 +1965,7 @@ contains
   end subroutine Table_Monotone_CSpline_1D_Populate
 
   subroutine Table_Monotone_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
-    !!{
+    !!{RST
     Populate a single element of a 1-D monotone cubic spline table.
     !!}
     use :: Error, only : Error_Report
@@ -1992,7 +1997,7 @@ contains
   end subroutine Table_Monotone_CSpline_1D_Populate_Single
 
   subroutine Table_Monotone_CSpline_1D_Compute_Spline(self,table)
-    !!{
+    !!{RST
     Compute the interpolating spline factors for a 1-D linear spline.
     !!}
     implicit none
@@ -2041,7 +2046,7 @@ contains
   end subroutine Table_Monotone_CSpline_1D_Compute_Spline
 
   double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform monotonic cubic spline interpolation in a 1D table.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -2081,7 +2086,7 @@ contains
   end function Table_Monotone_CSpline_1D_Interpolate
 
   double precision function Table_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform monotonic cubic spline interpolation in a 1D table and return the gradient.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -2121,8 +2126,8 @@ contains
   end function Table_Monotone_CSpline_1D_Interpolate_Gradient
 
   function Table_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for trapezoidal integration on the table between limits ``x0`` and ``x1``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2138,8 +2143,8 @@ contains
   end function Table_Monotone_CSpline_Integration_Weights
   
   double precision function Table1D_Find_Effective_X(self,x,status)
-    !!{
-    Return the effective value of $x$ to use in table interpolations.
+    !!{RST
+    Return the effective value of :math:`x` to use in table interpolations.
     !!}
     use :: Error       , only : Error_Report                , errorStatusOutOfRange, errorStatusSuccess
     use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix , extrapolationTypeZero, extrapolationTypeAbort
@@ -2190,7 +2195,7 @@ contains
   end function Table1D_Find_Effective_X
 
   subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate(self,y,table)
-    !!{
+    !!{RST
     Populate a 1-D linear-logarithmic table.
     !!}
     implicit none
@@ -2203,7 +2208,7 @@ contains
   end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate
 
   subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single(self,y,i,table)
-    !!{
+    !!{RST
     Populate a single element of a 1-D linear table.
     !!}
     implicit none
@@ -2217,7 +2222,7 @@ contains
   end subroutine Table_NonUniform_Linear_Logarithmic_1D_Populate_Single
 
   double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear-logarithmic 1D table.
     !!}
     implicit none
@@ -2231,7 +2236,7 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate
 
   double precision function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear-logarithmic 1D table.
     !!}
     implicit none
@@ -2245,8 +2250,8 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_1D_Interpolate_Gradient
 
   function Table_NonUniform_Linear_Logarithmic_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for integration on a linear-logarithmic table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for integration on a linear-logarithmic table between limits ``x0`` and ``x1``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2262,8 +2267,8 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
 
   double precision function Table_NonUniform_Linear_Logarithmic_1D_Y(self,i,table)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 1D table.
     !!}
     implicit none
     class  (table1DNonUniformLinearLogarithmic), intent(in   )           :: self
@@ -2280,8 +2285,8 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_1D_Y
 
   function Table_NonUniform_Linear_Logarithmic_1D_Ys(self)
-    !!{
-    Return the $y$-values for a 1D table.
+    !!{RST
+    Return the :math:`y`-values for a 1D table.
     !!}
     implicit none
     class           (table1DNonUniformLinearLogarithmic), intent(in   )                                      :: self
@@ -2292,7 +2297,7 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_1D_Ys
   
   subroutine Table_2DLogLogLin_Create(self,xMinimum,xMaximum,xCount,yMinimum,yMaximum,yCount,tableCount,extrapolationTypeX,extrapolationTypeY)
-    !!{
+    !!{RST
     Create a 2-D log-log-linear table.
     !!}
     use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
@@ -2348,8 +2353,8 @@ contains
   end subroutine Table_2DLogLogLin_Create
 
   double precision function Table_2DLogLogLin_X(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $x$-value for a 2D log-log table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
@@ -2360,8 +2365,8 @@ contains
   end function Table_2DLogLogLin_X
 
   double precision function Table_2DLogLogLin_Y(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $y$-value for a 2D log-log table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
@@ -2372,8 +2377,8 @@ contains
   end function Table_2DLogLogLin_Y
 
   double precision function Table_2DLogLogLin_Z(self,i,j,table)
-    !!{
-    Return the \mono{(i,j)}$^\mathrm{th}$ $x$-value for a 2D log-log table.
+    !!{RST
+    Return the ``(i,j)``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D log-log table.
     !!}
     implicit none
     class  (table2DLogLogLin), intent(inout)           :: self
@@ -2388,8 +2393,8 @@ contains
   end function Table_2DLogLogLin_Z
 
   function Table_2DLogLogLin_Xs(self)
-    !!{
-    Return the $x$-values for a 2D log-log table.
+    !!{RST
+    Return the :math:`x`-values for a 2D log-log table.
     !!}
     implicit none
     class(table2DLogLogLin), intent(in   )             :: self
@@ -2400,8 +2405,8 @@ contains
   end function Table_2DLogLogLin_Xs
 
   function Table_2DLogLogLin_Ys(self)
-    !!{
-    Return the $y$-values for a 2D log-log table.
+    !!{RST
+    Return the :math:`y`-values for a 2D log-log table.
     !!}
     implicit none
     class(table2DLogLogLin), intent(in   )             :: self
@@ -2412,8 +2417,8 @@ contains
   end function Table_2DLogLogLin_Ys
 
   function Table_2DLogLogLin_Zs(self,table)
-    !!{
-    Return the $y$-values for a 2D log-log table.
+    !!{RST
+    Return the :math:`y`-values for a 2D log-log table.
     !!}
     implicit none
     class           (table2DLogLogLin), intent(in   )                                    :: self
@@ -2428,7 +2433,7 @@ contains
   end function Table_2DLogLogLin_Zs
 
   subroutine Table_2DLogLogLin_Populate(self,z,table)
-    !!{
+    !!{RST
     Populate a 2-D log-log-linear table.
     !!}
     use :: Error, only : Error_Report
@@ -2456,7 +2461,7 @@ contains
   end subroutine Table_2DLogLogLin_Populate
 
   subroutine Table_2DLogLogLin_Populate_Single(self,z,i,j,table)
-    !!{
+    !!{RST
     Populate a single element of a 2-D log-log-linear table.
     !!}
     use :: Error, only : Error_Report
@@ -2482,7 +2487,7 @@ contains
   end subroutine Table_2DLogLogLin_Populate_Single
 
   integer function Table_2DLogLogLin_Size(self,dim)
-    !!{
+    !!{RST
     Return the size of a 2D log-log-linear table.
     !!}
     use :: Error, only : Error_Report
@@ -2503,7 +2508,7 @@ contains
   end function Table_2DLogLogLin_Size
 
   double precision function Table_2DLogLogLin_Interpolate(self,x,y,table)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -2530,7 +2535,7 @@ contains
   end function Table_2DLogLogLin_Interpolate
 
   double precision function Table_2DLogLogLin_Interpolate_Gradient(self,x,y,dim,table)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     use :: Error, only : Error_Report
@@ -2617,7 +2622,7 @@ contains
   end subroutine Table_2DLogLogLin_Interpolation_Factors
 
   subroutine Table_2DLogLogLin_Destroy(self)
-    !!{
+    !!{RST
     Destroy a 2D log-log-linear table.
     !!}
     implicit none
@@ -2630,7 +2635,7 @@ contains
   end subroutine Table_2DLogLogLin_Destroy
 
   logical function Table_2DLogLogLin_Is_Initialized(self)
-    !!{
+    !!{RST
     Return true if a 2D log-log-linear table has been created.
     !!}
     implicit none
@@ -2641,7 +2646,7 @@ contains
   end function Table_2DLogLogLin_Is_Initialized
 
   subroutine Table_Linear_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
@@ -2684,7 +2689,7 @@ contains
   end subroutine Table_Linear_Monotone_CSpline_1D_Create
 
   subroutine Table_Linear_Monotone_CSpline_1D_Destroy(self)
-    !!{
+    !!{RST
     Destroy a linear cubic-spline 1-D table.
     !!}
     implicit none
@@ -2698,7 +2703,7 @@ contains
   end subroutine Table_Linear_Monotone_CSpline_1D_Destroy
 
   subroutine Table_Linear_Monotone_CSpline_1D_Populate(self,y,table,computeSpline)
-    !!{
+    !!{RST
     Populate a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -2729,7 +2734,7 @@ contains
   end subroutine Table_Linear_Monotone_CSpline_1D_Populate
 
   subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single(self,y,i,table,computeSpline)
-    !!{
+    !!{RST
     Populate a single element of a 1-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -2761,7 +2766,7 @@ contains
   end subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single
 
   subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline(self,table)
-    !!{
+    !!{RST
     Compute the interpolating spline factors for a 1-D linear spline.
     !!}
     implicit none
@@ -2810,7 +2815,7 @@ contains
   end subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline
 
   double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     implicit none
@@ -2847,7 +2852,7 @@ contains
   end function Table_Linear_Monotone_CSpline_1D_Interpolate
 
   double precision function Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a linear 1D table.
     !!}
     implicit none
@@ -2884,8 +2889,8 @@ contains
   end function Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient
 
   function Table_Linear_Monotone_CSpline_Integration_Weights(self,x0,x1,integrand)
-    !!{
-    Returns a set of weights for trapezoidal integration on the table between limits \mono{x0} and \mono{x1}.
+    !!{RST
+    Returns a set of weights for trapezoidal integration on the table between limits ``x0`` and ``x1``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -2901,7 +2906,7 @@ contains
   end function Table_Linear_Monotone_CSpline_Integration_Weights
 
   subroutine Table_Logarithmic_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
-    !!{
+    !!{RST
     Create a 1-D logarithmic table.
     !!}
     implicit none
@@ -2923,8 +2928,8 @@ contains
   end subroutine Table_Logarithmic_Monotone_CSpline_1D_Create
 
   double precision function Table_Logarithmic_Monotone_CSpline_1D_X(self,i)
-    !!{
-    Return the \mono{i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a logarithmic 1D table.
     !!}
     implicit none
     class  (table1DLogarithmicMonotoneCSpline), intent(inout) :: self
@@ -2943,8 +2948,8 @@ contains
   end function Table_Logarithmic_Monotone_CSpline_1D_X
 
   function Table_Logarithmic_Monotone_CSpline_1D_Xs(self)
-    !!{
-    Return the $x$-values for a 1D table.
+    !!{RST
+    Return the :math:`x`-values for a 1D table.
     !!}
     implicit none
     class           (table1DLogarithmicMonotoneCSpline), intent(in   )            :: self
@@ -2955,7 +2960,7 @@ contains
   end function Table_Logarithmic_Monotone_CSpline_1D_Xs
 
   double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -2974,7 +2979,7 @@ contains
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate
 
   double precision function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient(self,x,table,status)
-    !!{
+    !!{RST
     Perform linear interpolation in a logarithmic 1D table.
     !!}
     implicit none
@@ -2993,7 +2998,7 @@ contains
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
 
   subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount)
-    !!{
+    !!{RST
     Create a 2-D generic table.
     !!}
     implicit none
@@ -3019,7 +3024,7 @@ contains
   end subroutine Table_2D_LinLinLin_Create
 
   subroutine Table_2D_LinLinLin_Destroy(self)
-    !!{
+    !!{RST
     Destroy a generic 2-D table.
     !!}
     implicit none
@@ -3030,7 +3035,7 @@ contains
   end subroutine Table_2D_LinLinLin_Destroy
 
   subroutine Table_2D_LinLinLin_Populate(self,z,table)
-    !!{
+    !!{RST
     Populate a 2-D linear table.
     !!}
     use :: Error, only : Error_Report
@@ -3053,7 +3058,7 @@ contains
   end subroutine Table_2D_LinLinLin_Populate
 
   subroutine Table_2D_LinLinLin_Populate_Single(self,z,i,j,table)
-    !!{
+    !!{RST
     Populate a single element of a 2-D generic table.
     !!}
     use :: Error, only : Error_Report
@@ -3077,7 +3082,7 @@ contains
   end subroutine Table_2D_LinLinLin_Populate_Single
 
   double precision function Table_2D_LinLinLin_Interpolate(self,x,y,table)
-    !!{
+    !!{RST
     Perform generic interpolation in a generic 2D table.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -3106,8 +3111,8 @@ contains
   end function Table_2D_LinLinLin_Interpolate
 
   function Table_2D_LinLinLin_Xs(self)
-    !!{
-    Return the $x$-values for a 2D table.
+    !!{RST
+    Return the :math:`x`-values for a 2D table.
     !!}
     implicit none
     class           (table2DLinLinLin), intent(in   )            :: self
@@ -3118,8 +3123,8 @@ contains
   end function Table_2D_LinLinLin_Xs
 
   function Table_2D_LinLinLin_Ys(self)
-    !!{
-    Return the $y$-values for a 2D table.
+    !!{RST
+    Return the :math:`y`-values for a 2D table.
     !!}
     implicit none
     class           (table2DLinLinLin), intent(in   )            :: self
@@ -3130,8 +3135,8 @@ contains
   end function Table_2D_LinLinLin_Ys
 
   function Table_2D_LinLinLin_Zs(self)
-    !!{
-    Return the $z$-values for a 2D table.
+    !!{RST
+    Return the :math:`z`-values for a 2D table.
     !!}
     implicit none
     class           (table2DLinLinLin), intent(in   )                                                          :: self
@@ -3142,7 +3147,7 @@ contains
   end function Table_2D_LinLinLin_Zs
 
   subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self)
-    !!{
+    !!{RST
     Reinitialize the interpolator.
     !!}
     implicit none

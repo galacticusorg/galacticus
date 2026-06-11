@@ -17,27 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor class that combines all extractors needed for building galaxy merger trees.
   !!}
 
   public :: nodePropertyExtractorGalaxyMergerTreeSet
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTree">
-   <description>An output extractor property extractor class that combines all extractors needed for building galaxy merger trees.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTree" docformat="rst">
+   <description>
+   An output extractor property extractor class that combines all extractors needed for building galaxy merger trees.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorGalaxyMergerTree
-     !!{
+     !!{RST
      An output extractor property extractor class that combines all extractors needed for building galaxy merger trees.
      !!}
      private
   end type nodePropertyExtractorGalaxyMergerTree
 
   interface nodePropertyExtractorGalaxyMergerTree
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTree} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorGalaxyMergerTree`` property extractor class.
      !!}
      module procedure galaxyMergerTreeConstructorParameters
      module procedure galaxyMergerTreeConstructorInternal
@@ -46,8 +48,8 @@
 contains
 
   function galaxyMergerTreeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergerTree} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorGalaxyMergerTree`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,8 +64,8 @@ contains
   end function galaxyMergerTreeConstructorParameters
 
   function galaxyMergerTreeConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTree} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorGalaxyMergerTree`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorGalaxyMergerTree) :: self

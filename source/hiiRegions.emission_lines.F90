@@ -19,7 +19,7 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module that provides functions for emission line calculations.
 !!}
 
@@ -36,7 +36,7 @@ module HII_Region_Emission_Lines
 contains
 
   double precision function emissionLineWavelength(lineName)
-    !!{
+    !!{RST
     Return the wavelength of a named emission line.
     !!}
     use :: Error             , only : Error_Report
@@ -60,7 +60,7 @@ contains
   end function emissionLineWavelength
 
   subroutine emissionLineDatabaseInitialize()
-    !!{
+    !!{RST
     Initialize a database of emission line properties.
     !!}
     use :: Input_Paths       , only : inputPath , pathTypeDataStatic

@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to
-  the first node with a sibling).
+  !!{RST
+  Implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneBranchTips">
-   <description>Complements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).</description>
+  <mergerTreeOperator name="mergerTreeOperatorPruneBranchTips" docformat="rst">
+   <description>
+   Complements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBranchTips
-     !!{
-     A merger tree operator class which prunes tips of branches (i.e. sections from the leaf node to the first node with a
-     sibling).
+     !!{RST
+     A merger tree operator class which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).
      !!}
      private
    contains
@@ -38,7 +38,7 @@
   end type mergerTreeOperatorPruneBranchTips
 
   interface mergerTreeOperatorPruneBranchTips
-     !!{
+     !!{RST
      Constructors for the prune-branchTips merger tree operator class.
      !!}
      module procedure pruneBranchTipsConstructorParameters
@@ -47,7 +47,7 @@
 contains
 
   function pruneBranchTipsConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-branchTips merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -62,7 +62,7 @@ contains
   end function pruneBranchTipsConstructorParameters
 
   subroutine pruneBranchTipsOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-branchTips operation on a merger tree.
     !!}
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes

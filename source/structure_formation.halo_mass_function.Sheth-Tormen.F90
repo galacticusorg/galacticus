@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
+!!{RST
+Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function class.
 !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <haloMassFunction name="haloMassFunctionShethTormen">
+  <haloMassFunction name="haloMassFunctionShethTormen" docformat="rst">
    <description>
-    The dark matter halo mass function is computed using the ellipsoidal collapse fitting function of \cite{sheth_ellipsoidal_2001}, which improves upon the Press-Schechter formalism by accounting for non-spherical collapse. The shape parameters $a$, $p$ and normalization $A$ of the fit can each be specified via input parameters.
+   The dark matter halo mass function is computed using the ellipsoidal collapse fitting function of :cite:t:`sheth_ellipsoidal_2001`, which improves upon the Press-Schechter formalism by accounting for non-spherical collapse. The shape parameters :math:`a`, :math:`p` and normalization :math:`A` of the fit can each be specified via input parameters.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionShethTormen
-     !!{
-     A halo mass function class using the fitting function of \cite{sheth_ellipsoidal_2001}.
+     !!{RST
+     A halo mass function class using the fitting function of :cite:t:`sheth_ellipsoidal_2001`.
      !!}
      private
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -54,8 +54,8 @@ Implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
   end type haloMassFunctionShethTormen
 
   interface haloMassFunctionShethTormen
-     !!{
-     Constructors for the \refClass{haloMassFunctionShethTormen} halo mass function class.
+     !!{RST
+     Constructors for the ``haloMassFunctionShethTormen`` halo mass function class.
      !!}
      module procedure shethTormenConstructorParameters
      module procedure shethTormenConstructorInternal
@@ -64,8 +64,8 @@ Implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
 contains
 
   function shethTormenConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionShethTormen} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloMassFunctionShethTormen`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,23 +82,29 @@ contains
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.707d0</defaultValue>
-      <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+      <description>
+      The parameter :math:`a` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>p</name>
       <source>parameters</source>
       <defaultValue>0.3d0</defaultValue>
-      <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+      <description>
+      The parameter :math:`p` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>0.3221836349d0</defaultValue>
-      <description>The normalization parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
+      <description>
+      The normalization parameter :math:`A` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit.
+      </description>
     </inputParameter>
     !!]
     self=haloMassFunctionShethTormen(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization)
@@ -112,8 +118,8 @@ contains
   end function shethTormenConstructorParameters
 
   function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionShethTormen} halo mass function class.
+    !!{RST
+    Internal constructor for the ``haloMassFunctionShethTormen`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionShethTormen  )                        :: self
@@ -133,8 +139,8 @@ contains
   end function shethTormenConstructorInternal
 
   subroutine shethTormenDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionShethTormen} halo mass function class.
+    !!{RST
+    Destructor for the ``haloMassFunctionShethTormen`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionShethTormen), intent(inout) :: self
@@ -148,7 +154,7 @@ contains
   end subroutine shethTormenDestructor
 
   double precision function shethTormenDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -196,8 +202,8 @@ contains
   end function shethTormenDifferential
 
   double precision function shethTormenA(self,time,mass)
-    !!{
-    Return the parameter $a$ in the \mono{shethTormen} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`a` in the ``shethTormen`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -209,8 +215,8 @@ contains
   end function shethTormenA
 
   double precision function shethTormenP(self,time,mass)
-    !!{
-    Return the parameter $p$ in the \mono{shethTormen} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`p` in the ``shethTormen`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self
@@ -222,8 +228,8 @@ contains
   end function shethTormenP
 
   double precision function shethTormenNormalization(self,time,mass)
-    !!{
-    Return the normalization, $A$, in the \mono{shethTormen} halo mass function at the given time and mass.
+    !!{RST
+    Return the normalization, :math:`A`, in the ``shethTormen`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionShethTormen), intent(inout) :: self

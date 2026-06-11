@@ -19,36 +19,26 @@
 
   !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-  !!{
+  !!{RST
   An implementation of cosmological density field mass variance computed using a filtered power spectrum.
   !!}
 
   !![
-  <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
+  <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" docformat="rst">
    <description>
-    Mass variance of cosmological density fields computed from a filtered power spectrum:
-    \begin{equation}
-     \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
-    \end{equation}
-    where $P(k)$ is the primordial power spectrum (see \refPhysics{powerSpectrumPrimordial}), $T(k)$ is the transfer function
-    (see \refPhysics{transferFunction}), and $W(k)$ is the power spectrum variance window function (see
-    \refPhysics{powerSpectrumWindowFunction}).
-  
-    The normalization of the mass variance is specified via the \mono{[sigma\_8]} parameter, which defines the
-    linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
-    normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
-    used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the \mono{[powerSpectrumWindowFunctionTopHat]} parameter.
-  
-    The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
-    spectrum window function. The fractional tolerance for this integration can be set via the \mono{[tolerance]} parameter. (The normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
-    function. For this integration the tolerance can be set via the \mono{[toleranceTopHat]} parameter.) This
-    is tabulated across the required range.
-  
-    Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$ at any required value of $M$. The
-    tabulation is always forced to be monotonically decreasing with $M$. However, the interpolation is not necessarily
-    monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
-    interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set \mono{[monotonicInterpolation]}=\mono{true}. This causes a monotonic spline interpolator to be used
-    instead which guarantees monotonicity.
+   Mass variance of cosmological density fields computed from a filtered power spectrum:
+
+   .. math::
+
+      \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
+
+   where :math:`P(k)` is the primordial power spectrum (see ``powerSpectrumPrimordial``), :math:`T(k)` is the transfer function (see ``transferFunction``), and :math:`W(k)` is the power spectrum variance window function (see ``powerSpectrumWindowFunction``).
+
+   The normalization of the mass variance is specified via the ``[sigma_8]`` parameter, which defines the linear theory root-variance of the density field in spheres of radii :math:`8h^{-1}`\ Mpc. Note that when computing the normalization of the power spectrum to match the specified value of :math:`\sigma_8` a top-hat real-space window function is used (as per the definition of :math:`\sigma_8`), unless a different window function is explicitly defined via the ``[powerSpectrumWindowFunctionTopHat]`` parameter.
+
+   The mass variance, :math:`\sigma(M)`, is found by integration over the linear theory power spectrum, with the specified power spectrum window function. The fractional tolerance for this integration can be set via the ``[tolerance]`` parameter. (The normalization of :math:`\sigma(M)` to give the desired :math:`\sigma_8` always uses a top-hat window function. For this integration the tolerance can be set via the ``[toleranceTopHat]`` parameter.) This is tabulated across the required range.
+
+   Cubic spline interpolation is then used to interpolate in this table to give :math:`\sigma(M)` at any required value of :math:`M`. The tabulation is always forced to be monotonically decreasing with :math:`M`. However, the interpolation is not necessarily monotonic---for example in cases where :math:`\sigma(M)` becomes constant or close to constant as a function of :math:`M` the interpolation can become non-monotonic over some ranges of :math:`M`. If strict monotonicity is required set ``[monotonicInterpolation]``\ =\ ``true``. This causes a monotonic spline interpolator to be used instead which guarantees monotonicity.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -66,7 +56,7 @@
   !!]
 
   type :: uniqueTable
-     !!{
+     !!{RST
      Type used to store unique values of the mass variance.
      !!}
      private
@@ -75,7 +65,7 @@
   end type uniqueTable
 
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
-     !!{
+     !!{RST
      A cosmological mass variance class computing variance from a filtered power spectrum.
      !!}
      private
@@ -133,8 +123,8 @@
   end type cosmologicalMassVarianceFilteredPower
 
   interface cosmologicalMassVarianceFilteredPower
-     !!{
-     Constructors for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class.
+     !!{RST
+     Constructors for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -167,8 +157,8 @@
 contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -215,81 +205,105 @@ contains
        !![
        <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
        <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>wavenumberReference</name>
          <source>parameters</source>
-         <description>The reference wavenumber at which the amplitude of the power spectrum is matched to that in the reference model.</description>
+         <description>
+         The reference wavenumber at which the amplitude of the power spectrum is matched to that in the reference model.
+         </description>
        </inputParameter>
        !!]
     else if (parameters%isPresent('amplitudeScalar')) then
        if (parameters%isPresent('sigma_8')) call Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>amplitudeScalar</name>
          <source>parameters</source>
-         <description>The amplitude of the primordial scalar power spectrum, $A_\mathrm{s}$, such that $P_\chi(k) = A_\mathrm{s} (k/k_\mathrm{s0})^{n_\mathrm{s}-1}$ with $k_\mathrm{s0}=0.05$~Mpc$^{-1}$.</description>
+         <description>
+         The amplitude of the primordial scalar power spectrum, :math:`A_\mathrm{s}`, such that :math:`P_\chi(k) = A_\mathrm{s} (k/k_\mathrm{s0})^{n_\mathrm{s}-1}` with :math:`k_\mathrm{s0}=0.05` Mpc\ :math:`^{-1}`.
+         </description>
        </inputParameter>
        !!]
     else       
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>sigma_8</name>
          <source>parameters</source>
          <variable>sigma8Value</variable>
          <defaultValue>0.8111d0</defaultValue>
-         <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-         <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
+         <defaultSource>
+         (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+         </defaultSource>
+         <description>
+         The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8 Mpc/h.
+         </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceTopHat</name>
       <source>parameters</source>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.</description>
+      <description>
+      The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerance</name>
       <source>parameters</source>
       <defaultValue>4.0d-6</defaultValue>
-      <description>The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.</description>
+      <description>
+      The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonMonotonicIsFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true any non-monotonicity in the tabulated $\sigma(M)$ is treated as a fatal error. Otherwise a only a warning is issued.</description>
+      <description>
+      If true any non-monotonicity in the tabulated :math:`\sigma(M)` is treated as a fatal error. Otherwise a only a warning is issued.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>integrationFailureIsFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true any failed integrals when evaluating $\sigma(M)$ are treated as fatal errors. Otherwise a only a warning is issued.</description>
+      <description>
+      If true any failed integrals when evaluating :math:`\sigma(M)` are treated as fatal errors. Otherwise a only a warning is issued.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>monotonicInterpolation</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
+      <description>
+      If true use a monotonic cubic spline interpolator to interpolate in the :math:`\sigma(M)` table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is :math:`\sigma(M)` must be strictly monotonic but becomes a very weak function of :math:`M` at low masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVarianceLogarithmicGradientTolerance</name>
       <source>parameters</source>
       <defaultValue>1.0d-12</defaultValue>
-      <description>The tolerance in $\mathrm{d}\log\sigma/\mathrm{d}\log M$ to allow before reporting errors when monotonic interpolation is used..</description>
+      <description>
+      The tolerance in :math:`\mathrm{d}\log\sigma/\mathrm{d}\log M` to allow before reporting errors when monotonic interpolation is used..
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateAtParticleHorizon</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
+      <description>
+      If true then integration over the power spectrum is truncated at a wavenumber :math:`k=1/H_\mathrm{p}(t_0)`, where :math:`H_\mathrm{p}(t_0)` is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to :math:`k=0`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>storeTabulations</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true then tabulated $\sigma(M)$ results are stored to file for future re-use.</description>
+      <description>
+      If true then tabulated :math:`\sigma(M)` results are stored to file for future re-use.
+      </description>
     </inputParameter>
     <conditionalCall>
      <call>
@@ -343,8 +357,8 @@ contains
   end function filteredPowerConstructorParameters
 
   function filteredPowerConstructorInternal(sigma8,amplitudeScalar,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,integrationFailureIsFatal,monotonicInterpolation,rootVarianceLogarithmicGradientTolerance,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
-    !!{
-    Internal constructor for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class.
+    !!{RST
+    Internal constructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
     !!}
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
     use :: Error                          , only : Error_Report
@@ -442,8 +456,8 @@ contains
   end function filteredPowerConstructorInternal
 
   subroutine filteredPowerDestructor(self)
-    !!{
-    Destructor for the \refClass{cosmologicalMassVarianceFilteredPower} cosmological mass variance class.
+    !!{RST
+    Destructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -473,7 +487,7 @@ contains
   end subroutine filteredPowerDestructor
 
   double precision function filteredPowerPowerNormalization(self)
-    !!{
+    !!{RST
     Return the normalization of the power spectrum.
     !!}
     implicit none
@@ -485,8 +499,8 @@ contains
   end function filteredPowerPowerNormalization
 
   double precision function filteredPowerSigma8(self)
-    !!{
-    Return the value of $\sigma_8$.
+    !!{RST
+    Return the value of :math:`\sigma_8`.
     !!}
     implicit none
     class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -496,8 +510,8 @@ contains
   end function filteredPowerSigma8
 
   double precision function filteredPowerRootVariance(self,mass,time)
-    !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -518,9 +532,8 @@ contains
   end function filteredPowerRootVariance
 
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -532,9 +545,8 @@ contains
   end function filteredPowerRootVarianceLogarithmicGradient
 
   double precision function filteredPowerRootVarianceLogarithmicGradientTime(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -565,9 +577,8 @@ contains
   end function filteredPowerRootVarianceLogarithmicGradientTime
 
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    !!{
-    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     use :: Display                 , only : displayGreen, displayReset
     use :: Error                   , only : Error_Report
@@ -700,8 +711,8 @@ contains
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
   double precision function filteredPowerMass(self,rootVariance,time)
-    !!{
-    Return the mass corresponding to the given \mono{} root-variance of the cosmological density field.
+    !!{RST
+    Return the mass corresponding to the given ```` root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -771,7 +782,7 @@ contains
   end function filteredPowerMass
 
   subroutine filteredPowerRetabulate(self,mass,time)
-    !!{
+    !!{RST
     Tabulate the cosmological mass variance.
     !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
@@ -1049,8 +1060,8 @@ contains
   contains
 
     double precision function rootVariance(time_,useTopHat)
-      !!{
-      Compute the root-variance of mass in spheres enclosing the given \mono{mass} from the power spectrum.
+      !!{RST
+      Compute the root-variance of mass in spheres enclosing the given ``mass`` from the power spectrum.
       !!}
       use, intrinsic :: ISO_C_Binding           , only : c_size_t
       use            :: Display                 , only : displayIndent     , displayUnindent              , displayMessage, verbosityLevelStandard, &
@@ -1298,7 +1309,7 @@ contains
     end function rootVariance
 
     double precision function varianceIntegrand(wavenumber)
-      !!{
+      !!{RST
       Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       !!}
       implicit none
@@ -1315,9 +1326,8 @@ contains
     end function varianceIntegrand
 
     double precision function varianceIntegrandLogarithmic(wavenumberLogarithmic)
-      !!{
-      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version
-      integrates with respect to $\log(k)$.
+      !!{RST
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version integrates with respect to :math:`\log(k)`.
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumberLogarithmic
@@ -1336,7 +1346,7 @@ contains
     end function varianceIntegrandLogarithmic
 
     double precision function varianceIntegrandTopHat(wavenumber)
-      !!{
+      !!{RST
       Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       !!}
       implicit none
@@ -1353,7 +1363,7 @@ contains
     end function varianceIntegrandTopHat
 
     double precision function varianceIntegrandTopHatLogarithmic(wavenumberLogarithmic)
-      !!{
+      !!{RST
       Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       !!}
       implicit none
@@ -1375,7 +1385,7 @@ contains
   end subroutine filteredPowerRetabulate
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
-    !!{
+    !!{RST
     Compute interpolants in time.
     !!}
     use :: Error, only : Error_Report
@@ -1399,7 +1409,7 @@ contains
   end subroutine filteredPowerInterpolantsTime
 
   logical function filteredPowerGrowthIsMassDependent(self)
-    !!{
+    !!{RST
     Return true if the growth rate of the variance is mass-dependent.
     !!}
     implicit none
@@ -1410,7 +1420,7 @@ contains
   end function filteredPowerGrowthIsMassDependent
 
   subroutine filteredPowerFileRead(self)
-    !!{
+    !!{RST
     Read tabulated data on mass variance from file.
     !!}
     use :: Display       , only : displayMessage           , verbosityLevelWorking
@@ -1532,7 +1542,7 @@ contains
   end subroutine filteredPowerFileRead
 
   subroutine filteredPowerFileWrite(self)
-    !!{
+    !!{RST
     Write tabulated data on mass variance to file.
     !!}
     use :: Display    , only : displayMessage, verbosityLevelWorking
@@ -1636,7 +1646,7 @@ contains
   end subroutine filteredPowerFileWrite
 
   logical function filteredPowerRemakeTable(self,mass,time)
-    !!{
+    !!{RST
     Determine if the table should be remade.
     !!}
     implicit none
@@ -1668,7 +1678,7 @@ contains
   end function filteredPowerRemakeTable
 
   subroutine filteredPowerDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -1685,9 +1695,8 @@ contains
   end subroutine filteredPowerDescriptor
 
   subroutine filteredPowerDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
-    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage
-    only (i.e. we exclude the window function).
+    !!{RST
+    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage only (i.e. we exclude the window function).
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

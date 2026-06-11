@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a pruning-by-mass operator on merger trees.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneByMass">
+  <mergerTreeOperator name="mergerTreeOperatorPruneByMass" docformat="rst">
    <description>
-    A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass
-    limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set
-    \mono{[massThreshold]} to the desired mass threshold below which nodes will be pruned.
+   A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set ``[massThreshold]`` to the desired mass threshold below which nodes will be pruned.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByMass
-     !!{
+     !!{RST
      A pruning-by-mass merger tree operator class.
      !!}
      private
@@ -42,7 +40,7 @@ Implements a pruning-by-mass operator on merger trees.
   end type mergerTreeOperatorPruneByMass
 
   interface mergerTreeOperatorPruneByMass
-     !!{
+     !!{RST
      Constructors for the pruning-by-mass merger tree operator class.
      !!}
      module procedure pruneByMassConstructorParameters
@@ -52,7 +50,7 @@ Implements a pruning-by-mass operator on merger trees.
 contains
 
   function pruneByMassConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -63,17 +61,21 @@ contains
     logical                                                        :: preservePrimaryProgenitor
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Threshold mass below which merger tree branches should be pruned.</description>
+      <description>
+      Threshold mass below which merger tree branches should be pruned.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>preservePrimaryProgenitor</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
+      <description>
+      If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorPruneByMass(massThreshold,preservePrimaryProgenitor)
@@ -84,7 +86,7 @@ contains
   end function pruneByMassConstructorParameters
 
   function pruneByMassConstructorInternal(massThreshold,preservePrimaryProgenitor) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-by-mass merger tree operator class.
     !!}
     implicit none
@@ -99,7 +101,7 @@ contains
   end function pruneByMassConstructorInternal
 
   subroutine pruneByMassOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-by-mass operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode

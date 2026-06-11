@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
   !!}
 
@@ -30,13 +30,15 @@
   use :: Posterior_Sampling_Stopping_Criteria, only : posteriorSampleStoppingCriterionClass
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
-   <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
+  <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm" docformat="rst">
+   <description>
+   A posterior sampling simulation class which implements the particle swarm algorithm.
+   </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
-     !!{
+     !!{RST
      Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
      !!}
      private
@@ -70,8 +72,8 @@
   end type posteriorSampleSimulationParticleSwarm
 
   interface posteriorSampleSimulationParticleSwarm
-     !!{
-     Constructors for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling simulation class.
+     !!{RST
+     Constructors for the ``posteriorSampleSimulationParticleSwarm`` posterior sampling simulation class.
      !!}
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal
@@ -80,9 +82,8 @@
 contains
 
   function particleSwarmConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleSimulationParticleSwarm} posterior sampling simulation class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleSimulationParticleSwarm`` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report
@@ -113,81 +114,107 @@ contains
     logical                                                                                       :: resume                           , appendLogs
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stepsMaximum</name>
       <defaultValue>huge(0)</defaultValue>
-      <description>The maximum number of steps to take.</description>
+      <description>
+      The maximum number of steps to take.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFlushCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between flushing the log file.</description>
+      <description>
+      The number of steps between flushing the log file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between issuing reports.</description>
+      <description>
+      The number of steps between issuing reports.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>interactionRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Root file name for interaction files, or `\mono{none}' if interaction is not required.</description>
+      <description>
+      Root file name for interaction files, or `\ ``none``' if interaction is not required.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>Root file name for log files.</description>
+      <description>
+      Root file name for log files.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFilePreviousRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Root file name for log files from which to resume.</description>
+      <description>
+      Root file name for log files from which to resume.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resume</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, resume from a previous set of log files.</description>
+      <description>
+      If true, resume from a previous set of log files.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendLogs</name>
-      <description>If true, do not overwrite existing log files, but instead append to them.</description>
+      <description>
+      If true, do not overwrite existing log files, but instead append to them.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>inertiaWeight</name>
       <defaultValue>0.72d0</defaultValue>
-      <description>The inertia weight $w$ controlling how much of the particle's current velocity is retained at each step; values less than 1 provide damping that aids convergence.</description>
+      <description>
+      The inertia weight :math:`w` controlling how much of the particle's current velocity is retained at each step; values less than 1 provide damping that aids convergence.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accelerationCoefficientPersonal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>The personal (cognitive) acceleration coefficient $c_1$ scaling the attraction of each particle toward its own historical best-known position.</description>
+      <description>
+      The personal (cognitive) acceleration coefficient :math:`c_1` scaling the attraction of each particle toward its own historical best-known position.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accelerationCoefficientGlobal</name>
       <defaultValue>1.193d0</defaultValue>
-      <description>The global (social) acceleration coefficient $c_2$ scaling the attraction of each particle toward the swarm's global best-known position.</description>
+      <description>
+      The global (social) acceleration coefficient :math:`c_2` scaling the attraction of each particle toward the swarm's global best-known position.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCoefficient</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>The maximum velocity coefficient $v_\mathrm{max}$ expressed as a fraction of the parameter space range, limiting the step size of particle velocities during ongoing swarm iterations.</description>
+      <description>
+      The maximum velocity coefficient :math:`v_\mathrm{max}` expressed as a fraction of the parameter space range, limiting the step size of particle velocities during ongoing swarm iterations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCoefficientInitial</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The initial velocity coefficient used to scale particle velocities at the start of the swarm simulation, before the main velocity update rule applies.</description>
+      <description>
+      The initial velocity coefficient used to scale particle velocities at the start of the swarm simulation, before the main velocity update rule applies.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
@@ -273,8 +300,8 @@ contains
   end function particleSwarmConstructorParameters
 
   function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,interactionRoot,resume,appendLogs,logFilePreviousRoot) result(self)
-    !!{
-    Internal constructor for the ``particleSwarm'' simulation class.
+    !!{RST
+    Internal constructor for the "particleSwarm" simulation class.
     !!}
     implicit none
     type            (posteriorSampleSimulationParticleSwarm)                                      :: self
@@ -321,7 +348,7 @@ contains
   end function particleSwarmConstructorInternal
 
   subroutine particleSwarmDestructor(self)
-    !!{
+    !!{RST
     Destroy a differential evolution simulation object.
     !!}
     implicit none
@@ -356,7 +383,7 @@ contains
   end subroutine particleSwarmDestructor
 
   subroutine particleSwarmSimulate(self)
-    !!{
+    !!{RST
     Perform a particle swarm simulation.
     !!}
     use :: Display                     , only : displayIndent  , displayMagenta, displayMessage, displayReset, &
@@ -644,7 +671,7 @@ contains
   end subroutine particleSwarmSimulate
 
   subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
-    !!{
+    !!{RST
     Return the log of the posterior for the current state.
     !!}
     use            :: Display                     , only : displayIndent             , displayMessage, displayUnindent
@@ -823,7 +850,7 @@ contains
   end subroutine particleSwarmPosterior
 
   subroutine particleSwarmDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters, only : inputParameters

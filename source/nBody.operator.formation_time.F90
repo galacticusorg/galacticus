@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements an N-body data operator which computes progenitor halo order statistics.
 !!}
 
@@ -25,12 +25,14 @@ Contains a module which implements an N-body data operator which computes progen
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorTimeFormation">
-   <description>An N-body data operator which computes progenitor halo order statistics.</description>
+  <nbodyOperator name="nbodyOperatorTimeFormation" docformat="rst">
+   <description>
+   An N-body data operator which computes progenitor halo order statistics.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeFormation
-     !!{
+     !!{RST
      An N-body data operator which computes progenitor halo order statistics.
      !!}
      private
@@ -49,8 +51,8 @@ Contains a module which implements an N-body data operator which computes progen
   end type nbodyOperatorTimeFormation
 
   interface nbodyOperatorTimeFormation
-     !!{
-     Constructors for the ``timeFormation'' N-body operator class.
+     !!{RST
+     Constructors for the "timeFormation" N-body operator class.
      !!}
      module procedure timeFormationConstructorParameters
      module procedure timeFormationConstructorInternal
@@ -59,8 +61,8 @@ Contains a module which implements an N-body data operator which computes progen
 contains
 
   function timeFormationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the ``timeFormation'' N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "timeFormation" N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,60 +78,82 @@ contains
          &                                                         description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>The minimum parent mass to consider.</description>
+      <description>
+      The minimum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>The maximum parent mass to consider.</description>
+      <description>
+      The maximum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of parent mass.</description>
+      <description>
+      The number of bins per decade of parent mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftFormationMinimum</name>
       <source>parameters</source>
-      <description>The minimum formation redshift to consider.</description>
+      <description>
+      The minimum formation redshift to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftFormationMaximum</name>
       <source>parameters</source>
-      <description>The maximum formation redshift to consider.</description>
+      <description>
+      The maximum formation redshift to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftFormationCountPerUnit</name>
       <source>parameters</source>
-      <description>The number of bins per unit of formation redshift.</description>
+      <description>
+      The number of bins per unit of formation redshift.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotParents</name>
       <source>parameters</source>
-      <description>The snapshot at which to select parent halos.</description>
+      <description>
+      The snapshot at which to select parent halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionFormation</name>
       <source>parameters</source>
-      <description>The mass fraction used to define the formation epoch.</description>
+      <description>
+      The mass fraction used to define the formation epoch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>
+      A description of this mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -142,8 +166,8 @@ contains
   end function timeFormationConstructorParameters
 
   function timeFormationConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,redshiftFormationMinimum,redshiftFormationMaximum,redshiftFormationCountPerUnit,snapshotParents,fractionFormation,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the ``timeFormation'' N-body operator class.
+    !!{RST
+    Internal constructor for the "timeFormation" N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorTimeFormation)                        :: self
@@ -163,8 +187,8 @@ contains
   end function timeFormationConstructorInternal
   
   subroutine timeFormationDestructor(self)
-    !!{
-    Destructor for the ``timeFormation'' N-body operator class.
+    !!{RST
+    Destructor for the "timeFormation" N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeFormation), intent(inout) :: self
@@ -176,7 +200,7 @@ contains
   end subroutine timeFormationDestructor
 
   subroutine timeFormationOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Arrays_Search     , only : searchArray            , searchIndexed

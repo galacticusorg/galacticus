@@ -17,30 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A primordial power spectrum class which provides a power-law power spectrum.
   !!}
 
   !![
-  <powerSpectrumPrimordial name="powerSpectrumPrimordialPowerLaw">
+  <powerSpectrumPrimordial name="powerSpectrumPrimordialPowerLaw" docformat="rst">
    <description>
-    Implements a power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the
-    form:
-    \begin{equation}
-     P(k) \propto k^{n_\mathrm{eff}(k)},
-    \end{equation}
-    where
-    \begin{equation}
-     n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2} \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
-    \end{equation}
-    where $n_\mathrm{s}=$\mono{[index]} is the power spectrum index at wavenumber
-    $k_\mathrm{ref}=$\mono{[wavenumberReference]}, $\d n / \d \ln k=$\mono{[running]}, and $\d^2 n / \d \ln k^2=$\mono{[runningRunning]}
-    describes the running of this index with wavenumber.
+   Implements a power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the form:
+
+   .. math::
+
+      P(k) \propto k^{n_\mathrm{eff}(k)},
+
+   where
+
+   .. math::
+
+      n_\mathrm{eff}(k) = n_\mathrm{s} + {1\over 2}{\d n \over \d \ln k} \ln \left( {k \over k_\mathrm{ref}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2} \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
+
+   where :math:`n_\mathrm{s}=`\ ``[index]`` is the power spectrum index at wavenumber :math:`k_\mathrm{ref}=`\ ``[wavenumberReference]``, :math:`\d n / \d \ln k=`\ ``[running]``, and :math:`\d^2 n / \d \ln k^2=`\ ``[runningRunning]`` describes the running of this index with wavenumber.
    </description>
   </powerSpectrumPrimordial>
   !!]
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPowerLaw
-     !!{
+     !!{RST
      A power-law primordial power spectrum class.
      !!}
      private
@@ -53,8 +54,8 @@
   end type powerSpectrumPrimordialPowerLaw
 
   interface powerSpectrumPrimordialPowerLaw
-     !!{
-     Constructors for the \refClass{powerSpectrumPrimordialPowerLaw} primordial power spectrum class.
+     !!{RST
+     Constructors for the ``powerSpectrumPrimordialPowerLaw`` primordial power spectrum class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -63,8 +64,8 @@
 contains
 
   function powerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumPrimordialPowerLaw} primordial power spectrum class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumPrimordialPowerLaw`` primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,37 +76,49 @@ contains
     logical                                                          :: runningSmallScalesOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>index</name>
       <variable>index_</variable>
       <source>parameters</source>
       <defaultValue>0.9649d0</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The index of the power-law primordial power spectrum.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The index of the power-law primordial power spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>running</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The running, $\d n_\mathrm{s} / \d \ln k$, of the power spectrum index.</description>
+      <description>
+      The running, :math:`\d n_\mathrm{s} / \d \ln k`, of the power spectrum index.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>runningRunning</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The running-of-the-running, $\d^2 n_\mathrm{s} / \d \ln k^2$, of the power spectrum index.</description>
+      <description>
+      The running-of-the-running, :math:`\d^2 n_\mathrm{s} / \d \ln k^2`, of the power spectrum index.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberReference</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to \mono{[index]}.</description>
+      <description>
+      When a running power spectrum index is used, this is the wavenumber, :math:`k_\mathrm{ref}`, at which the index is equal to ``[index]``.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>runningSmallScalesOnly</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If \mono{true} then the index runs only for $k > k_\mathrm{ref}$, for smaller $k$ the index is constant.</description>
+      <description>
+      If ``true`` then the index runs only for :math:`k &gt; k_\mathrm{ref}`, for smaller :math:`k` the index is constant.
+      </description>
     </inputParameter>
     !!]
     self=powerSpectrumPrimordialPowerLaw(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly)
@@ -116,8 +129,8 @@ contains
   end function powerLawConstructorParameters
 
   function powerLawConstructorInternal(index_,running,runningRunning,wavenumberReference,runningSmallScalesOnly) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumPrimordialPowerLaw} primordial power spectrum class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumPrimordialPowerLaw`` primordial power spectrum class.
     !!}
     use :: Error  , only : Warn
     use :: Display, only : displayBlue, displayYellow, displayGreen, displayReset
@@ -149,8 +162,8 @@ contains
   end function powerLawConstructorInternal
 
   double precision function powerLawPower(self,wavenumber)
-    !!{
-    Return the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
@@ -182,8 +195,8 @@ contains
   end function powerLawPower
 
   double precision function powerLawLogarithmicDerivative(self,wavenumber)
-    !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the logarithmic derivative of the primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPowerLaw), intent(inout) :: self

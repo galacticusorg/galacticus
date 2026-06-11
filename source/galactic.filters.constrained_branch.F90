@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only constrained branch halos.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterConstrainedBranch">
-   <description>Passes only nodes that lie on constrained branches of a merger tree, i.e., branches whose merger history was constructed to match some applied constraint rather than generated stochastically, enabling targeted analysis of constrained vs. unconstrained halo populations.</description>
+  <galacticFilter name="galacticFilterConstrainedBranch" docformat="rst">
+   <description>
+   Passes only nodes that lie on constrained branches of a merger tree, i.e., branches whose merger history was constructed to match some applied constraint rather than generated stochastically, enabling targeted analysis of constrained vs. unconstrained halo populations.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterConstrainedBranch
-     !!{
+     !!{RST
      A galactic filter class which passes only constrained branch halos.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a filter which passes only constrained branch halos.
   end type galacticFilterConstrainedBranch
 
   interface galacticFilterConstrainedBranch
-     !!{
-     Constructors for the \refClass{galacticFilterConstrainedBranch} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterConstrainedBranch`` galactic filter class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -47,8 +49,8 @@ Implements a filter which passes only constrained branch halos.
 contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterConstrainedBranch} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterConstrainedBranch`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function constrainedBranchConstructorParameters
 
   function constrainedBranchConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterConstrainedBranch} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterConstrainedBranch`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterConstrainedBranch) :: self
@@ -78,7 +80,7 @@ contains
   end function constrainedBranchConstructorInternal
 
   logical function constrainedBranchPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only constrained branch halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

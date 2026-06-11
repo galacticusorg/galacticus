@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
 
@@ -30,17 +30,15 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   use :: Statistics_Distributions, only : distributionFunction1DNormal
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW">
+  <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionSolitonNFW} objects to implement the \gls{fdm}
-    profile. The core-halo mass relation and core radius are computed following \cite{chan_diversity_2022}, while the core
-    density normalization follows \cite{schive_understanding_2014}.
+   A dark matter profile DMO class which builds ``massDistributionSolitonNFW`` objects to implement the :term:`FDM` profile. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSolitonNFW
-     !!{
-     A dark matter halo profile class implementing \gls{fdm} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :term:`FDM` dark matter halos.
      !!}
      private
      double precision                                        :: massParticle
@@ -75,8 +73,8 @@
   end type darkMatterProfileDMOSolitonNFW
 
   interface darkMatterProfileDMOSolitonNFW
-     !!{
-     Constructors for the \mono{solitonNFW} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``solitonNFW`` dark matter halo profile class.
      !!}
      module procedure solitonNFWConstructorParameters
      module procedure solitonNFWConstructorInternal
@@ -90,8 +88,8 @@
 contains
 
   function solitonNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOSolitonNFW`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,23 +104,29 @@ contains
          &                                                             scatterFractional
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterFractional</name>
       <defaultValue>0.5d0</defaultValue>
       <source>parameters</source>
-      <description>The fractional scatter in the solitonic core-halo mass relation (default corresponds to a 50\% fractional scatter).</description>
+      <description>
+      The fractional scatter in the solitonic core-halo mass relation (default corresponds to a 50% fractional scatter).
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="darkMatterParticle"    name="darkMatterParticle_"    source="parameters"/>
@@ -143,8 +147,8 @@ contains
   end function solitonNFWConstructorParameters
 
   function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterFractional) result(self)
-    !!{
-    Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFW} dark matter halo profile class.
+    !!{RST
+    Generic constructor for the ``darkMatterProfileDMOSolitonNFW`` dark matter halo profile class.
     !!}
     use :: Error                         , only : Component_List                   , Error_Report
     use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter
@@ -192,7 +196,7 @@ contains
   end function solitonNFWConstructorInternal
 
   subroutine solitonNFWAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -204,8 +208,8 @@ contains
   end subroutine solitonNFWAutoHook
 
   subroutine solitonNFWDestructor(self)
-    !!{
-    Destructor for the \mono{solitonNFW} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``solitonNFW`` dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -223,7 +227,7 @@ contains
   end subroutine solitonNFWDestructor
 
   subroutine solitonNFWCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -245,8 +249,8 @@ contains
   end subroutine solitonNFWCalculationReset
 
   function solitonNFWGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the soliton plus NFW fuzzy dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the soliton plus NFW fuzzy dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass
@@ -482,7 +486,7 @@ contains
   end subroutine solitonNFWComputeProperties
 
   double precision function radiusTransitionRoot(radius) result(f)
-    !!{
+    !!{RST
     Root function used in seeking the transition radius in fuzzy dark matter profiles.
     !!}
     implicit none

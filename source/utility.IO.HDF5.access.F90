@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides an OpenMP lock to serialize access to the HDF5 library, which is not fully thread-safe in all
-configurations.
+!!{RST
+Contains a module which provides an OpenMP lock to serialize access to the HDF5 library, which is not fully thread-safe in all configurations.
 !!}
 
 module HDF5_Access
-  !!{
-  Provides an OpenMP lock to serialize access to the HDF5 library, preventing race conditions when multiple threads attempt
-  concurrent HDF5 operations.
+  !!{RST
+  Provides an OpenMP lock to serialize access to the HDF5 library, preventing race conditions when multiple threads attempt concurrent HDF5 operations.
   !!}
   use :: Locks, only : mutex
   implicit none

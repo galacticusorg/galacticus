@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node operator class that shifts preset named properties at node promotion.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorPresetNamedShift">
-   <description>Propagates preset named node properties from a progenitor to its promoted descendant, ensuring user-defined named scalar or array properties set from external data are correctly inherited when nodes are promoted in the merger tree.</description>
+  <nodeOperator name="nodeOperatorPresetNamedShift" docformat="rst">
+   <description>
+   Propagates preset named node properties from a progenitor to its promoted descendant, ensuring user-defined named scalar or array properties set from external data are correctly inherited when nodes are promoted in the merger tree.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPresetNamedShift
-     !!{
+     !!{RST
      A node operator class that shifts preset named properties at node promotion.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a node operator class that shifts preset named properties at node pro
   end type nodeOperatorPresetNamedShift
 
   interface nodeOperatorPresetNamedShift
-     !!{
-     Constructors for the \refClass{nodeOperatorPresetNamedShift} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorPresetNamedShift`` node operator class.
      !!}
      module procedure presetNamedShiftConstructorParameters
      module procedure presetNamedShiftConstructorInternal
@@ -48,8 +50,8 @@ Implements a node operator class that shifts preset named properties at node pro
 contains
 
   function presetNamedShiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPresetNamedShift} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorPresetNamedShift`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function presetNamedShiftConstructorParameters
 
   function presetNamedShiftConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorPresetNamedShift} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorPresetNamedShift`` node operator class.
     !!}
     implicit none
     type(nodeOperatorPresetNamedShift) :: self
@@ -75,7 +77,7 @@ contains
   end function presetNamedShiftConstructorInternal
 
   subroutine presetNamedShiftNodePromote(self,node)
-    !!{
+    !!{RST
     Act on node promotion.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic

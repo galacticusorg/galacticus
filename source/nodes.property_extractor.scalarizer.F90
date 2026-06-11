@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that scalarizes one element from an array node property extractor.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorScalarizer">
-   <description>A property extractor that wraps an array or tuple \refClass{nodePropertyExtractorClass} and returns a single scalar value by selecting one entry from the array. The \mono{element} parameter specifies which element index to extract; for tuple extractors an additional \mono{item} parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorScalarizer" docformat="rst">
+   <description>
+   A property extractor that wraps an array or tuple ``nodePropertyExtractorClass`` and returns a single scalar value by selecting one entry from the array. The ``element`` parameter specifies which element index to extract; for tuple extractors an additional ``item`` parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorScalarizer
-     !!{
+     !!{RST
      A property extractor output analysis class that scalarizes one element from an array node property extractor.
      !!}
      private
@@ -43,8 +45,8 @@ Implements an output analysis property extractor class that scalarizes one eleme
   end type nodePropertyExtractorScalarizer
 
   interface nodePropertyExtractorScalarizer
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorScalarizer`` property extractor class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -53,8 +55,8 @@ Implements an output analysis property extractor class that scalarizes one eleme
 contains
 
   function scalarizerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorScalarizer`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,18 +67,22 @@ contains
 
     !![
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>element</name>
-      <description>The element to scalarize from the array.</description>
+      <description>
+      The element to scalarize from the array.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorArray)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>item</name>
-	 <description>The item to scalarize from the array.</description>
+	 <description>
+	 The item to scalarize from the array.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -92,8 +98,8 @@ contains
   end function scalarizerConstructorParameters
 
   function scalarizerConstructorInternal(item,element,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorScalarizer`` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -116,8 +122,8 @@ contains
   end function scalarizerConstructorInternal
 
   subroutine scalarizerDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorScalarizer} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorScalarizer`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorScalarizer), intent(inout) :: self
@@ -129,7 +135,7 @@ contains
   end subroutine scalarizerDestructor
 
   double precision function scalarizerExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a scalarizer output analysis.
     !!}
     use :: Error           , only : Error_Report
@@ -162,7 +168,7 @@ contains
   end function scalarizerExtract
 
   function scalarizerName(self)
-    !!{
+    !!{RST
     Return the name of the scalarizer property.
     !!}
     use :: Error, only : Error_Report
@@ -185,7 +191,7 @@ contains
    end function scalarizerName
 
   function scalarizerDescription(self)
-    !!{
+    !!{RST
     Return a description of the scalarizer property.
     !!}
     use :: Error, only : Error_Report
@@ -208,7 +214,7 @@ contains
   end function scalarizerDescription
 
   double precision function scalarizerUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the scalarizer property in the SI system.
     !!}
     use :: Error, only : Error_Report
@@ -231,7 +237,7 @@ contains
   end function scalarizerUnitsInSI
 
   function scalarizerUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the scalarizer property.
     !!}
     use :: Units_MetaData, only : unitType

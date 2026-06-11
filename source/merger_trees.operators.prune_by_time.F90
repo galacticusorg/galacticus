@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which prunes branches to end at a fixed time.
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
-   <description>Provides a merger tree operator which prunes merger tree branches by truncating them at a fixed cosmic time, removing nodes earlier than the specified epoch from the tree. The truncation epoch is set by \mono{[redshift]}, with optional mass-based selection via \mono{[massMinimum]} and \mono{[massMaximum]} to restrict pruning to a specific halo mass range.</description>
+  <mergerTreeOperator name="mergerTreeOperatorPruneByTime" docformat="rst">
+   <description>
+   Provides a merger tree operator which prunes merger tree branches by truncating them at a fixed cosmic time, removing nodes earlier than the specified epoch from the tree. The truncation epoch is set by ``[redshift]``, with optional mass-based selection via ``[massMinimum]`` and ``[massMaximum]`` to restrict pruning to a specific halo mass range.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime
-     !!{
+     !!{RST
      A merger tree operator class which prunes branches to end at a fixed time.
      !!}
      private
@@ -40,7 +42,7 @@
   end type mergerTreeOperatorPruneByTime
 
   interface mergerTreeOperatorPruneByTime
-     !!{
+     !!{RST
      Constructors for the prune-by-time merger tree operator class.
      !!}
      module procedure pruneByTimeConstructorParameters
@@ -50,7 +52,7 @@
 contains
 
   function pruneByTimeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-by-time merger tree operator class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
@@ -62,23 +64,29 @@ contains
          &                                                            timeEarliest       , redshiftEarliest
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftEarliest</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Redshift at which to truncate merger tree branches.</description>
+      <description>
+      Redshift at which to truncate merger tree branches.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Minimum mass for which to consider merger tree branches for truncation.</description>
+      <description>
+      Minimum mass for which to consider merger tree branches for truncation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>Maximum mass for which to consider merger tree branches for truncation.</description>
+      <description>
+      Maximum mass for which to consider merger tree branches for truncation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -96,7 +104,7 @@ contains
   end function pruneByTimeConstructorParameters
 
   function pruneByTimeConstructorInternal(timeEarliest,massMinimum,massMaximum,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-by-time merger tree operator class.
     !!}
     implicit none
@@ -113,8 +121,8 @@ contains
   end function pruneByTimeConstructorInternal
 
   subroutine pruneByTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOperatorPruneByTime} merger tree operator class.
+    !!{RST
+    Destructor for the ``mergerTreeOperatorPruneByTime`` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByTime), intent(inout) :: self
@@ -126,7 +134,7 @@ contains
   end subroutine pruneByTimeDestructor
 
   subroutine pruneByTimeOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-by-time operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode

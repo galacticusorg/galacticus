@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.
+!!{RST
+Implements the survey geometry of the SDSS sample used by :cite:t:`hearin_dark_2013`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryHearin2014SDSS">
-   <description>Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.</description>
+  <surveyGeometry name="surveyGeometryHearin2014SDSS" docformat="rst">
+   <description>
+   Implements the survey geometry of the SDSS sample used by :cite:t:`hearin_dark_2013`.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
@@ -40,8 +42,8 @@ Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013
   end type surveyGeometryHearin2014SDSS
 
   interface surveyGeometryHearin2014SDSS
-     !!{
-     Constructors for the \cite{hearin_dark_2013} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`hearin_dark_2013` survey geometry class.
      !!}
      module procedure hearin2014SDSSConstructorParameters
      module procedure hearin2014SDSSConstructorInternal
@@ -54,8 +56,8 @@ Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013
 contains
 
   function hearin2014SDSSConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \cite{hearin_dark_2013} conditional mass function class.
+    !!{RST
+    Default constructor for the :cite:t:`hearin_dark_2013` conditional mass function class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +79,8 @@ contains
   end function hearin2014SDSSConstructorParameters
 
   function hearin2014SDSSConstructorInternal(cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \cite{hearin_dark_2013} conditional mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`hearin_dark_2013` conditional mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
@@ -107,8 +109,8 @@ contains
   end function hearin2014SDSSConstructorInternal
 
   subroutine hearin2014SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryHearin2014SDSS} survey geometry class.
+    !!{RST
+    Destructor for the ``surveyGeometryHearin2014SDSS`` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryHearin2014SDSS), intent(inout) :: self
@@ -120,7 +122,7 @@ contains
   end subroutine hearin2014SDSSDestructor
 
   double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -135,7 +137,7 @@ contains
   end function hearin2014SDSSDistanceMinimum
 
   double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none

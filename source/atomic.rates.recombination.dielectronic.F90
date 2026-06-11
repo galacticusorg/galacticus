@@ -19,29 +19,28 @@
 
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!!{
+!!{RST
 Contains a module that implements a dielectronic recombination rate class.
 !!}
 
 module Atomic_Rates_Recombination_Dielectronic
-  !!{
+  !!{RST
   Implements a dielectronic recombination rates class.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>atomicRecombinationRateDielectronic</name>
    <descriptiveName>Atomic Dielectronic Recombination Rates</descriptiveName>
-   <description>Class providing dielectronic recombination rate coefficients (in cm$^3$ s$^{-1}$) for ions of given
-    atomic number and electron number at a specified electron temperature. Dielectronic recombination proceeds via
-    simultaneous capture of a free electron and excitation of a bound electron, followed by radiative stabilization;
-    it dominates over radiative recombination at temperatures above $\sim 10^5$ K for many ions and is therefore a
-    critical process in the ionization balance and cooling of hot collisionally ionized gas in the \gls{igm} and
-    \gls{cgm}.</description>
+   <description>
+   Class providing dielectronic recombination rate coefficients (in cm\ :math:`^3` s\ :math:`^{-1}`) for ions of given atomic number and electron number at a specified electron temperature. Dielectronic recombination proceeds via simultaneous capture of a free electron and excitation of a bound electron, followed by radiative stabilization; it dominates over radiative recombination at temperatures above :math:`\sim 10^5` K for many ions and is therefore a critical process in the ionization balance and cooling of hot collisionally ionized gas in the :term:`IGM` and :term:`CGM`.
+   </description>
    <default>arnaud1985</default>
    <method name="rate" >
-    <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given \mono{atomicNumber} and \mono{electronNumber} at the given \mono{temperature} (in Kelvin).</description>
+    <description>
+    Return the dielectroninc recombination rate (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the ion of given ``atomicNumber`` and ``electronNumber`` at the given ``temperature`` (in Kelvin).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>

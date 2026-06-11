@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an output analysis distribution operator class to account for errors on N-body measurements of halo spin.
   !!}
 
   use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSpinNBodyErrors">
-   <description>An output analysis distribution operator that convolves a halo spin distribution with the measurement errors arising from finite N-body particle sampling, modeling the scatter in spin parameter estimates from N-body simulations; \mono{errorTolerant} controls behavior when integration tolerance failures occur.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSpinNBodyErrors" docformat="rst">
+   <description>
+   An output analysis distribution operator that convolves a halo spin distribution with the measurement errors arising from finite N-body particle sampling, modeling the scatter in spin parameter estimates from N-body simulations; ``errorTolerant`` controls behavior when integration tolerance failures occur.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSpinNBodyErrors
-     !!{
+     !!{RST
      An output distribution operator class to account for errors on N-body measurements of halo spin.
      !!}
      private
@@ -42,8 +44,8 @@
   end type outputAnalysisDistributionOperatorSpinNBodyErrors
 
   interface outputAnalysisDistributionOperatorSpinNBodyErrors
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorSpinNBodyErrors} output analysis distribution operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
      !!}
      module procedure spinNBodyErrorsConstructorParameters
      module procedure spinNBodyErrorsConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function spinNBodyErrorsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorSpinNBodyErrors} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,11 +65,13 @@ contains
     class  (haloSpinDistributionClass                        ), pointer       :: haloSpinDistribution_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorTolerant</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, integration tolerance failures are tolerated (a warning is issued but calculations will continue).</description>
+      <description>
+      If true, integration tolerance failures are tolerated (a warning is issued but calculations will continue).
+      </description>
     </inputParameter>
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     !!]
@@ -80,8 +84,8 @@ contains
   end function spinNBodyErrorsConstructorParameters
 
   function spinNBodyErrorsConstructorInternal(errorTolerant,haloSpinDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorSpinNBodyErrors} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
     !!}
     use :: Error                  , only : Error_Report
     use :: Halo_Spin_Distributions, only : haloSpinDistributionClass, haloSpinDistributionNbodyErrors
@@ -105,8 +109,8 @@ contains
   end function spinNBodyErrorsConstructorInternal
 
   subroutine spinNBodyErrorsDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorSpinNBodyErrors} output analysis distribution operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout) :: self
@@ -118,7 +122,7 @@ contains
   end subroutine spinNBodyErrorsDestructor
 
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
     !!}
     use :: Error                  , only : Error_Report                    , Warn                           , errorStatusSuccess
@@ -176,7 +180,7 @@ contains
   contains
 
     double precision function spinDistributionIntegrate(spinMeasured)
-      !!{
+      !!{RST
       Integrand function used to find cumulative spin distribution over a bin.
       !!}
       use :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
@@ -196,7 +200,7 @@ contains
   end function spinNBodyErrorsOperateScalar
 
   function spinNBodyErrorsOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
     !!}
     use :: Error, only : Error_Report

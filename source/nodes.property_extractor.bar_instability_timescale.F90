@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a property extractor class for bar instability timescales.
 !!}
 
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTimescaleBarInstability">
-   <description>Extracts the bar instability timescale for disk galaxies, which governs how quickly a stellar bar can form via gravitational instability in the disk component. Used to diagnose the onset of secular evolution and the transfer of angular momentum from disk to spheroid.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTimescaleBarInstability" docformat="rst">
+   <description>
+   Extracts the bar instability timescale for disk galaxies, which governs how quickly a stellar bar can form via gravitational instability in the disk component. Used to diagnose the onset of secular evolution and the transfer of angular momentum from disk to spheroid.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTimescaleBarInstability
-     !!{
+     !!{RST
      A property extractor class for bar instability timescales.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a property extractor class for bar instability timescales.
   end type nodePropertyExtractorTimescaleBarInstability
 
   interface nodePropertyExtractorTimescaleBarInstability
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
      !!}
      module procedure timescaleBarInstabilityConstructorParameters
      module procedure timescaleBarInstabilityConstructorInternal
@@ -54,8 +56,8 @@ Implements a property extractor class for bar instability timescales.
 contains
 
   function timescaleBarInstabilityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function timescaleBarInstabilityConstructorParameters
 
   function timescaleBarInstabilityConstructorInternal(galacticDynamicsBarInstability_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimescaleBarInstability)                        :: self
@@ -89,8 +91,8 @@ contains
   end function timescaleBarInstabilityConstructorInternal
 
   subroutine timescaleBarInstabilityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorTimescaleBarInstability} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTimescaleBarInstability), intent(inout) :: self
@@ -102,7 +104,7 @@ contains
   end subroutine timescaleBarInstabilityDestructor
 
   double precision function timescaleBarInstabilityExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement extraction of the bar instability timescale.
     !!}
     implicit none
@@ -118,7 +120,7 @@ contains
   end function timescaleBarInstabilityExtract
 
   function timescaleBarInstabilityName(self)
-    !!{
+    !!{RST
     Return the name of the bar instability timescale property.
     !!}
     implicit none
@@ -131,7 +133,7 @@ contains
   end function timescaleBarInstabilityName
 
   function timescaleBarInstabilityDescription(self)
-    !!{
+    !!{RST
     Return a description of the bar instability timescale property.
     !!}
     implicit none
@@ -144,7 +146,7 @@ contains
   end function timescaleBarInstabilityDescription
 
   double precision function timescaleBarInstabilityUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the bar instability timescale property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -157,7 +159,7 @@ contains
   end function timescaleBarInstabilityUnitsInSI
 
   function timescaleBarInstabilityUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the timescaleBarInstability property.
     !!}
     use :: Units_MetaData, only : unitType

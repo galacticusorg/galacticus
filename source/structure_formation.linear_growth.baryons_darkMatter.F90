@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
-  of radiation perturbations.
+  !!{RST
+  An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
@@ -29,8 +28,10 @@
   use :: Tables                    , only : table2DLogLogLin
 
   !![
-  <linearGrowth name="linearGrowthBaryonsDarkMatter">
-   <description>Linear growth of cosmological density perturbations in models containing both baryons and collisionless dark matter, computed by numerically integrating the coupled growth equations. Radiation perturbation growth is neglected. The integration is initialized at the redshift \mono{[redshiftInitial]} and can use CAMB to set transfer function wavenumber sampling.</description>
+  <linearGrowth name="linearGrowthBaryonsDarkMatter" docformat="rst">
+   <description>
+   Linear growth of cosmological density perturbations in models containing both baryons and collisionless dark matter, computed by numerically integrating the coupled growth equations. Radiation perturbation growth is neglected. The integration is initialized at the redshift ``[redshiftInitial]`` and can use CAMB to set transfer function wavenumber sampling.
+   </description>
    <deepCopy>
     <functionClass variables="linearGrowthCollisionlessMatter_"/>
    </deepCopy>
@@ -40,9 +41,8 @@
   </linearGrowth>
   !!]
   type, extends(linearGrowthClass) :: linearGrowthBaryonsDarkMatter
-     !!{
-     A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth
-     of radiation perturbations.
+     !!{RST
+     A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth of radiation perturbations.
      !!}
      private
      logical                                                    :: tableInitialized                 =  .false., darkMatterOnlyInitialConditions
@@ -79,8 +79,8 @@
   end type linearGrowthBaryonsDarkMatter
 
   interface linearGrowthBaryonsDarkMatter
-     !!{
-     Constructors for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
+     !!{RST
+     Constructors for the ``linearGrowthBaryonsDarkMatter`` linear growth class.
      !!}
      module procedure baryonsDarkMatterConstructorParameters
      module procedure baryonsDarkMatterConstructorInternal
@@ -109,8 +109,8 @@
 contains
 
   function baryonsDarkMatterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``linearGrowthBaryonsDarkMatter`` linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -124,29 +124,37 @@ contains
     logical                                                        :: darkMatterOnlyInitialConditions
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInitial</name>
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
-      <description>The initial redshift from which integration of linear growth should be begin.</description>
+      <description>
+      The initial redshift from which integration of linear growth should be begin.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInitialDelta</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
+      <description>
+      The initial step in redshift used to estimate growth rates of perturbations using finite differencing.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cambCountPerDecade</name>
       <source>parameters</source>
       <defaultValue>0</defaultValue>
-      <description>The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.</description>
+      <description>
+      The number of points per decade of wavenumber to compute in the CAMB transfer function. A value of 0 allows CAMB to choose what it considers to be optimal spacing of wavenumbers.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkMatterOnlyInitialConditions</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, set the initial conditions for baryonic modes using the dark matter mode initial conditions.</description>
+      <description>
+      If true, set the initial conditions for baryonic modes using the dark matter mode initial conditions.
+      </description>
     </inputParameter>
     <objectBuilder    class="cosmologyParameters"      name="cosmologyParameters_"                  source="parameters"                                                     />
     <objectBuilder    class="cosmologyFunctions"       name="cosmologyFunctions_"                   source="parameters"                                                     />
@@ -173,8 +181,8 @@ contains
   end function baryonsDarkMatterConstructorParameters
 
   function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cambCountPerDecade,darkMatterOnlyInitialConditions,cosmologyParameters_,cosmologyParametersInitialConditions_,cosmologyFunctions_,intergalacticMediumState_) result(self)
-    !!{
-    Internal constructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
+    !!{RST
+    Internal constructor for the ``linearGrowthBaryonsDarkMatter`` linear growth class.
     !!}
     use :: File_Utilities, only : Directory_Make, File_Path
     use :: Error         , only : Error_Report
@@ -230,8 +238,8 @@ contains
   end function baryonsDarkMatterConstructorInternal
 
   subroutine baryonsDarkMatterDestructor(self)
-    !!{
-    Destructor for the \refClass{linearGrowthBaryonsDarkMatter} linear growth class.
+    !!{RST
+    Destructor for the ``linearGrowthBaryonsDarkMatter`` linear growth class.
     !!}
     implicit none
     type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
@@ -248,9 +256,8 @@ contains
   end subroutine baryonsDarkMatterDestructor
 
   subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
-    !!{
-    Returns the linear growth factor $D(a)$ for expansion factor \mono{aExpansion}, normalized such that
-    $D(1)=1$ for a baryons plus dark matter plus cosmological constant cosmology.
+    !!{RST
+    Returns the linear growth factor :math:`D(a)` for expansion factor ``aExpansion``, normalized such that :math:`D(1)=1` for a baryons plus dark matter plus cosmological constant cosmology.
     !!}
     use    :: File_Utilities       , only : File_Lock                       , File_Unlock
     use    :: Error                , only : Error_Report
@@ -412,7 +419,7 @@ contains
   contains
 
     integer function growthFactorODEs(time,values,derivatives)
-      !!{
+      !!{RST
       System of differential equations to solve for the growth factor.
       !!}
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
@@ -497,7 +504,7 @@ contains
   end subroutine baryonsDarkMatterRetabulate
 
   double precision function baryonsDarkMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
-    !!{
+    !!{RST
     Return the linear growth factor at the given epoch.
     !!}
     implicit none
@@ -536,7 +543,7 @@ contains
   end function baryonsDarkMatterValue
 
   double precision function baryonsDarkMatterLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     !!}
     implicit none
@@ -567,7 +574,7 @@ contains
   end function baryonsDarkMatterLogarithmicDerivativeExpansionFactor
 
   double precision function baryonsDarkMatterLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     !!}
     implicit none
@@ -598,7 +605,7 @@ contains
   end function baryonsDarkMatterLogarithmicDerivativeWavenumber
 
   logical function baryonsDarkMatterIsWavenumberDependent(self,component)
-    !!{
+    !!{RST
     Return true indicating that the growth function is wavenumber-dependent.
     !!}
     implicit none
@@ -611,7 +618,7 @@ contains
   end function baryonsDarkMatterIsWavenumberDependent
 
   logical function baryonsDarkMatterRemakeTable(self,time)
-    !!{
+    !!{RST
     Determine if the table should be remade.
     !!}
     implicit none
@@ -627,7 +634,7 @@ contains
   end function baryonsDarkMatterRemakeTable
 
   subroutine baryonsDarkMatterFileRead(self)
-    !!{
+    !!{RST
     Read tabulated data on linear growth factor from file.
     !!}
     use :: Display       , only : displayMessage        , verbosityLevelWorking
@@ -669,7 +676,7 @@ contains
   end subroutine baryonsDarkMatterFileRead
 
   subroutine baryonsDarkMatterFileWrite(self)
-    !!{
+    !!{RST
     Write tabulated data on linear growth factor to file.
     !!}
     use :: Display    , only : displayMessage, verbosityLevelWorking

@@ -17,35 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is estimated from the ram
-  pressure acceleration.
+  !!{RST
+  Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is estimated from the ram pressure acceleration.
   !!}
 
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !![
-  <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
+  <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration" docformat="rst">
    <description>
-    A hot halo ram pressure timescale class which computes the ram pressure stripping timescale from the acceleration imparted
-    by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
-    \begin{equation}
-     a_\mathrm{ram pressure} = P_\mathrm{ram pressure}/\Sigma,
-    \end{equation}
-    where $P_\mathrm{ram pressure}$ is the ram pressure force per unit area, and $\Sigma$ is the surface density of gas. The
-    associated timescale to accelerate gas over a distance $r_\mathrm{outer}$ (the current outer radius of the hot halo) is
-    then:
-    \begin{equation}
-     \tau_\mathrm{ram pressure} = \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{ram pressure}}.
-    \end{equation}
+   A hot halo ram pressure timescale class which computes the ram pressure stripping timescale from the acceleration imparted by the ram pressure force. Following :cite:t:`roediger_ram_2007` this is approximated as:
+
+   .. math::
+
+      a_\mathrm{ram pressure} = P_\mathrm{ram pressure}/\Sigma,
+
+   where :math:`P_\mathrm{ram pressure}` is the ram pressure force per unit area, and :math:`\Sigma` is the surface density of gas. The associated timescale to accelerate gas over a distance :math:`r_\mathrm{outer}` (the current outer radius of the hot halo) is then:
+
+   .. math::
+
+      \tau_\mathrm{ram pressure} = \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{ram pressure}}.
    </description>
   </hotHaloRamPressureTimescale>
   !!]
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleRamPressureAcceleration
-     !!{
-     Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure
-     acceleration.
+     !!{RST
+     Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.
      !!}
      private
      class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
@@ -56,8 +54,8 @@
   end type hotHaloRamPressureTimescaleRamPressureAcceleration
 
   interface hotHaloRamPressureTimescaleRamPressureAcceleration
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureTimescaleRamPressureAcceleration} hot halo ram pressure timescale class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
      !!}
      module procedure ramPressureAccelerationConstructorParameters
      module procedure ramPressureAccelerationConstructorInternal
@@ -66,8 +64,8 @@
 contains
 
   function ramPressureAccelerationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureTimescaleRamPressureAcceleration} hot halo ram pressure timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,8 +88,8 @@ contains
   end function ramPressureAccelerationConstructorParameters
 
   function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloRamPressureForce_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureTimescaleRamPressureAcceleration} hot halo ram pressure timescale class.
+    !!{RST
+    Internal constructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                        :: self
@@ -105,8 +103,8 @@ contains
   end function ramPressureAccelerationConstructorInternal
 
   subroutine ramPressureAccelerationDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloRamPressureTimescaleRamPressureAcceleration} hot halo ram pressure timescale class.
+    !!{RST
+    Destructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
     !!}
     implicit none
     type(hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
@@ -119,12 +117,8 @@ contains
   end subroutine ramPressureAccelerationDestructor
 
   double precision function ramPressureAccelerationTimescale(self,node)
-    !!{
-    Computes the hot halo ram pressure stripping timescale, based on the acceleration due to ram pressure forces. This
-    timescale is approximated as \citep{roediger_ram_2007} $\tau \approx \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{
-    ram}}$, where $r_\mathrm{outer}$ is the current outer radius of the hot halo, $\Sigma_\mathrm{outer}$ is the surface density at
-    that radius, and $P_\mathrm{ram}$ is the ram pressure force (per unit area). The surface density is approximated as
-    $\Sigma_\mathrm{outer} \approx r_\mathrm{outer} \rho_\mathrm{outer}$, where $\rho_\mathrm{outer}$ is the density at the outer radius.
+    !!{RST
+    Computes the hot halo ram pressure stripping timescale, based on the acceleration due to ram pressure forces. This timescale is approximated as :cite:p:`roediger_ram_2007` :math:`\tau \approx \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{ ram}}`, where :math:`r_\mathrm{outer}` is the current outer radius of the hot halo, :math:`\Sigma_\mathrm{outer}` is the surface density at that radius, and :math:`P_\mathrm{ram}` is the ram pressure force (per unit area). The surface density is approximated as :math:`\Sigma_\mathrm{outer} \approx r_\mathrm{outer} \rho_\mathrm{outer}`, where :math:`\rho_\mathrm{outer}` is the density at the outer radius.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentHotHalo , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec

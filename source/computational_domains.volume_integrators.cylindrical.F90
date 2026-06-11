@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCylindrical">
-   <description>Computes volume integrals over cylindrical grid cells, accounting for the annular geometry of each cell. The radial and vertical extents of the domain are specified by \mono{[rBoundaries]} and \mono{[zBoundaries]}, with cell volumes computed from the cylindrical shell geometry.</description>
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCylindrical" docformat="rst">
+   <description>
+   Computes volume integrals over cylindrical grid cells, accounting for the annular geometry of each cell. The radial and vertical extents of the domain are specified by ``[rBoundaries]`` and ``[zBoundaries]``, with cell volumes computed from the cylindrical shell geometry.
+   </description>
   </computationalDomainVolumeIntegrator>
   !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorCylindrical
-     !!{
+     !!{RST
      Implementation of a computational domain for cylindrical cells.
      !!}
      private
@@ -36,8 +38,8 @@
   end type computationalDomainVolumeIntegratorCylindrical
 
   interface computationalDomainVolumeIntegratorCylindrical
-     !!{
-     Constructors for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain.
+     !!{RST
+     Constructors for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -46,9 +48,8 @@
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain volume integrator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,16 +59,20 @@ contains
     double precision                                                , dimension(2,2) :: boundaries
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rBoundaries</name>
       <defaultValue>[0.0d0,1.0d0]</defaultValue>
-      <description>A two-element array $[r_\mathrm{min}, r_\mathrm{max}]$ specifying the radial extent of the cylindrical integration domain.</description>
+      <description>
+      A two-element array :math:`[r_\mathrm{min}, r_\mathrm{max}]` specifying the radial extent of the cylindrical integration domain.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the vertical extent of the cylindrical integration domain along the symmetry axis.</description>
+      <description>
+      A two-element array :math:`[z_\mathrm{min}, z_\mathrm{max}]` specifying the vertical extent of the cylindrical integration domain along the symmetry axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -81,8 +86,8 @@ contains
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(boundaries) result(self)
-    !!{
-    Internal constructor for the \refClass{computationalDomainVolumeIntegratorCylindrical} computational domain volume integrator class.
+    !!{RST
+    Internal constructor for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -102,7 +107,7 @@ contains
   end function cylindricalConstructorInternal
 
   double precision function cylindricalVolume(self)
-    !!{
+    !!{RST
     Return the volume of the computational domain cell.
     !!}
     implicit none
@@ -113,7 +118,7 @@ contains
   end function cylindricalVolume
 
   double precision function cylindricalIntegrate(self,integrand)
-    !!{
+    !!{RST
     Integrate over the computational domain cell.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -137,8 +142,8 @@ contains
   contains
     
     double precision function cylindricalIntegrandR(r)
-      !!{
-      $r$-integrand over cylindrical computational domain cells.
+      !!{RST
+      :math:`r`-integrand over cylindrical computational domain cells.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -153,8 +158,8 @@ contains
     end function cylindricalIntegrandR
 
     double precision function cylindricalIntegrandPhi(phi)
-      !!{
-      $\phi$-integrand over cylindrical computational domain cells.
+      !!{RST
+      :math:`\phi`-integrand over cylindrical computational domain cells.
       !!}
       implicit none
       double precision            , intent(in   ) :: phi
@@ -173,8 +178,8 @@ contains
     end function cylindricalIntegrandPhi
 
     double precision function cylindricalIntegrandZ(z)
-      !!{
-      $z$-integrand over cylindrical computational domain cells.
+      !!{RST
+      :math:`z`-integrand over cylindrical computational domain cells.
       !!}
       implicit none
       double precision, intent(in   ) :: z

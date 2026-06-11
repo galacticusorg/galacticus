@@ -19,19 +19,19 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !!{
+  !!{RST
   Implements a black hole binary separation growth class in which the separation does not grow.
   !!}
 
   !![
-  <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero">
+  <blackHoleBinarySeparationGrowthRate name="blackHoleBinarySeparationGrowthRateZero" docformat="rst">
    <description>
-    A black hole binary separation growth class in which the separation does not grow.
+   A black hole binary separation growth class in which the separation does not grow.
    </description>
   </blackHoleBinarySeparationGrowthRate>
   !!]
   type, extends(blackHoleBinarySeparationGrowthRateClass) :: blackHoleBinarySeparationGrowthRateZero
-     !!{
+     !!{RST
      A black hole binary separation growth class in which the separation does not grow.
      !!}
      private
@@ -40,8 +40,8 @@
   end type blackHoleBinarySeparationGrowthRateZero
 
   interface blackHoleBinarySeparationGrowthRateZero
-     !!{
-     Constructors for the \refClass{blackHoleBinarySeparationGrowthRateZero} black hole binary separation growth rate class.
+     !!{RST
+     Constructors for the ``blackHoleBinarySeparationGrowthRateZero`` black hole binary separation growth rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinarySeparationGrowthRateZero
@@ -49,9 +49,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleBinarySeparationGrowthRateZero} black hole binary separation growth rate class which takes a parameter
-    set as input.
+    !!{RST
+    Constructor for the ``blackHoleBinarySeparationGrowthRateZero`` black hole binary separation growth rate class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +65,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroGrowthRate(self,blackHole)
-    !!{
+    !!{RST
     Returns a separation growth rate for a binary black hole that is always zero.
     !!}
     implicit none

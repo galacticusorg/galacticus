@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer which generates random points.
 !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyImporter name="nbodyImporterRandom">
-   <description>An N-body data importer which generates uniformly distributed random points within a user-specified cuboid volume, useful for testing operators or constructing random reference catalogs. The number of points is set by \mono{[countPoints]}, with the spatial extent of the cuboid controlled by \mono{[xRange]}, \mono{[yRange]}, and \mono{[zRange]}.</description>
+  <nbodyImporter name="nbodyImporterRandom" docformat="rst">
+   <description>
+   An N-body data importer which generates uniformly distributed random points within a user-specified cuboid volume, useful for testing operators or constructing random reference catalogs. The number of points is set by ``[countPoints]``, with the spatial extent of the cuboid controlled by ``[xRange]``, ``[yRange]``, and ``[zRange]``.
+   </description>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRandom
-     !!{
+     !!{RST
      An importer which generates random points.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data importer which generates random points.
   end type nbodyImporterRandom
 
   interface nbodyImporterRandom
-     !!{
-     Constructors for the \refClass{nbodyImporterRandom} N-body importer class.
+     !!{RST
+     Constructors for the ``nbodyImporterRandom`` N-body importer class.
      !!}
      module procedure randomConstructorParameters
      module procedure randomConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data importer which generates random points.
 contains
   
   function randomConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterRandom} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyImporterRandom`` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,25 +69,33 @@ contains
     integer         (c_size_t                  )                :: countPoints
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countPoints</name>
       <source>parameters</source>
-      <description>The number of random points to generate.</description>
+      <description>
+      The number of random points to generate.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xRange</name>
       <source>parameters</source>
-      <description>The range within which to generate points in the $x$-direction.</description>
+      <description>
+      The range within which to generate points in the :math:`x`-direction.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yRange</name>
       <source>parameters</source>
-      <description>The range within which to generate points in the $y$-direction.</description>
+      <description>
+      The range within which to generate points in the :math:`y`-direction.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zRange</name>
       <source>parameters</source>
-      <description>The range within which to generate points in the $z$-direction.</description>
+      <description>
+      The range within which to generate points in the :math:`z`-direction.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -98,8 +108,8 @@ contains
   end function randomConstructorParameters
 
   function randomConstructorInternal(countPoints,xRange,yRange,zRange,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterRandom} N-body importer class.
+    !!{RST
+    Internal constructor for the ``nbodyImporterRandom`` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterRandom       )                              :: self
@@ -115,8 +125,8 @@ contains
   end function randomConstructorInternal
 
   subroutine randomDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterRandom} N-body importer class.
+    !!{RST
+    Destructor for the ``nbodyImporterRandom`` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterRandom), intent(inout) :: self
@@ -128,7 +138,7 @@ contains
   end subroutine randomDestructor
 
   subroutine randomImport(self,simulations)
-    !!{
+    !!{RST
     Import data from a Random file.
     !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
@@ -171,7 +181,7 @@ contains
   end subroutine randomImport
 
   logical function randomIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
   !!}
 
@@ -25,7 +25,7 @@
   use :: Resource_Manager, only : resourceManager
 
   type :: parameterList
-     !!{
+     !!{RST
      Type used to maintain a list of pointers to parameters to be modified.
      !!}
      type   (inputParameter), pointer :: parameter_   => null()
@@ -35,7 +35,7 @@
   end type parameterList
 
   type :: inputParametersWrapper
-     !!{
+     !!{RST
      Wrapper class for managing shared input parameters.
      !!}
      type(inputParameters), pointer :: parametersModel => null()
@@ -44,12 +44,14 @@
   end type inputParametersWrapper
   
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodBaseParameters" abstract="yes">
-   <description>A posterior sampling likelihood class which allows arbitrary modification of a base parameter object.</description>
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodBaseParameters" abstract="yes" docformat="rst">
+   <description>
+   A posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
+   </description>
   </posteriorSampleLikelihood>
   !!]
   type, abstract, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodBaseParameters
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
      !!}
      private
@@ -73,8 +75,8 @@
 contains
 
   subroutine inputParametersWrapperDestructor(self)
-    !!{
-    Destroy a \mono{inputParametersWrapper} object.
+    !!{RST
+    Destroy a ``inputParametersWrapper`` object.
     !!}
     implicit none
     type(inputParametersWrapper), intent(inout) :: self
@@ -88,7 +90,7 @@ contains
   end subroutine inputParametersWrapperDestructor
 
   subroutine baseParametersInitialize(self,modelParametersActive_,modelParametersInactive_)
-    !!{
+    !!{RST
     Initialize pointers into the base parameters object.
     !!}
     use :: Error             , only : Error_Report

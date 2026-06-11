@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only nodes that lie within a survey geometry.
 !!}
 
@@ -25,9 +25,11 @@ Implements a filter which passes only nodes that lie within a survey geometry.
   use :: Node_Property_Extractors, only : nodePropertyExtractorPositionOrbital
   
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>positionType</name>
-   <description>Enumeration of node position types used when testing membership within a survey geometry: \mono{position} uses the intrinsic node position, while \mono{orbital} uses the node's orbital position.</description>
+   <description>
+   Enumeration of node position types used when testing membership within a survey geometry: ``position`` uses the intrinsic node position, while ``orbital`` uses the node's orbital position.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="position"/>
@@ -36,12 +38,14 @@ Implements a filter which passes only nodes that lie within a survey geometry.
   !!]
 
   !![
-  <galacticFilter name="galacticFilterSurveyGeometry">
-   <description>A galactic filter that passes only nodes whose sky position and distance fall within the footprint of a specified survey geometry object. The \mono{[positionType]} parameter selects whether the node's intrinsic or orbital position is used when evaluating inclusion within the survey volume.</description>
+  <galacticFilter name="galacticFilterSurveyGeometry" docformat="rst">
+   <description>
+   A galactic filter that passes only nodes whose sky position and distance fall within the footprint of a specified survey geometry object. The ``[positionType]`` parameter selects whether the node's intrinsic or orbital position is used when evaluating inclusion within the survey volume.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterSurveyGeometry
-     !!{
+     !!{RST
      A galactic filter class which passes only nodes that lie within a survey geometry.
      !!}
      private
@@ -54,8 +58,8 @@ Implements a filter which passes only nodes that lie within a survey geometry.
   end type galacticFilterSurveyGeometry
 
   interface galacticFilterSurveyGeometry
-     !!{
-     Constructors for the \refClass{galacticFilterSurveyGeometry} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterSurveyGeometry`` galactic filter class.
      !!}
      module procedure surveyGeometryConstructorParameters
      module procedure surveyGeometryConstructorInternal
@@ -64,8 +68,8 @@ Implements a filter which passes only nodes that lie within a survey geometry.
 contains
 
   function surveyGeometryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterSurveyGeometry} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterSurveyGeometry`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Geometry_Surveys, only : surveyGeometry, surveyGeometryClass
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,11 +80,13 @@ contains
     type (varying_string              )                :: positionType
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>positionType</name>
       <source>parameters</source>
       <defaultValue>var_str('position')</defaultValue>
-      <description>The type of position to use in survey geometry filters.</description>
+      <description>
+      The type of position to use in survey geometry filters.
+      </description>
     </inputParameter>
     <objectBuilder class="surveyGeometry" name="surveyGeometry_" source="parameters"/>
     !!]
@@ -93,8 +99,8 @@ contains
   end function surveyGeometryConstructorParameters
 
   function surveyGeometryConstructorInternal(positionType,surveyGeometry_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterSurveyGeometry} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterSurveyGeometry`` galactic filter class.
     !!}
     implicit none
     type (galacticFilterSurveyGeometry)                        :: self
@@ -109,8 +115,8 @@ contains
   end function surveyGeometryConstructorInternal
 
   subroutine surveyGeometryDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterSurveyGeometry} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterSurveyGeometry`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterSurveyGeometry), intent(inout) :: self
@@ -122,7 +128,7 @@ contains
   end subroutine surveyGeometryDestructor
 
   logical function surveyGeometryPasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only nodes with a survey geometry.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid

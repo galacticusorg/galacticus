@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements sorting sequences.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements sorting sequences.
 !; gsl
 
 module Sorting
-  !!{
+  !!{RST
   Implements sorting.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_ptr, c_funptr, c_size_t, c_int
@@ -45,7 +45,7 @@ module Sorting
   !!]
 
   interface sort
-     !!{
+     !!{RST
      Generic interface to in-place sort functions.
      !!}
      module procedure sort{Type¦label}
@@ -53,14 +53,14 @@ module Sorting
   end interface sort
     
   interface sortIndex
-     !!{
+     !!{RST
      Generic interface to sort functions that return the sort index.
      !!}
      module procedure sortIndex{Type¦label}
   end interface sortIndex
     
   interface sortByIndex
-     !!{
+     !!{RST
      Generic interface to in-place sort functions using a supplied index.
      !!}
      module procedure sortByIndex{Type¦label}
@@ -68,7 +68,7 @@ module Sorting
 
   interface
      subroutine gsl_heapsort(array,count_,size_,compare) bind(c,name='gsl_heapsort')
-       !!{
+       !!{RST
        Template for the GSL heapsort function.
        !!}
        import
@@ -78,7 +78,7 @@ module Sorting
      end subroutine gsl_heapsort
 
      function gsl_heapsort_index(order,array,count_,size_,compare) bind(c,name='gsl_heapsort_index')
-       !!{
+       !!{RST
        Template for the GSL heapsort index function.
        !!}
        import
@@ -90,7 +90,7 @@ module Sorting
      end function gsl_heapsort_index
 
      function gsl_sort_smallest(dest,k,src,stride,n) bind(c,name='gsl_sort_smallest')
-       !!{
+       !!{RST
        Template for the GSL sort smallest function.
        !!}
        import
@@ -102,7 +102,7 @@ module Sorting
      end function gsl_sort_smallest
 
      function gsl_sort_largest(dest,k,src,stride,n) bind(c,name='gsl_sort_largest')
-       !!{
+       !!{RST
        Template for the GSL sort largest function.
        !!}
        import
@@ -114,7 +114,7 @@ module Sorting
      end function gsl_sort_largest
 
      function gsl_sort_smallest_index(p,k,src,stride,n) bind(c,name='gsl_sort_smallest_index')
-       !!{
+       !!{RST
        Template for the GSL sort smallest index function.
        !!}
        import
@@ -126,7 +126,7 @@ module Sorting
      end function gsl_sort_smallest_index
 
      function gsl_sort_largest_index(p,k,src,stride,n) bind(c,name='gsl_sort_largest_index')
-       !!{
+       !!{RST
        Template for the GSL sort largest index function.
        !!}
        import
@@ -141,8 +141,8 @@ module Sorting
 contains
 
   subroutine sort{Type¦label}(array)
-    !!{
-    Given an unsorted \mono{array}, sorts it in place.
+    !!{RST
+    Given an unsorted ``array``, sorts it in place.
     !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
@@ -154,8 +154,8 @@ contains
   end subroutine sort{Type¦label}
   
   subroutine sortBoth{Type¦label}(array,array2)
-    !!{
-    Given an unsorted double precision \mono{array}, sorts it in place while also rearranging \mono{array2} in the same way.
+    !!{RST
+    Given an unsorted double precision ``array``, sorts it in place while also rearranging ``array2`` in the same way.
     !!}
     implicit none
     {Type¦intrinsic}                , dimension(:                        ), intent(inout) :: array, array2
@@ -176,8 +176,8 @@ contains
   end subroutine sortBoth{Type¦label}
 
   function sortIndex{Type¦label}(array) result(order)
-    !!{
-    Given an unsorted \mono{array}, return the sort index.
+    !!{RST
+    Given an unsorted ``array``, return the sort index.
     !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
@@ -192,8 +192,8 @@ contains
   end function sortIndex{Type¦label}
 
   subroutine sortByIndex{Type¦label}(array,index)
-    !!{
-    Given an \mono{array}, sort it in place using the supplied index.
+    !!{RST
+    Given an ``array``, sort it in place using the supplied index.
     !!}
     implicit none
     {Type¦intrinsic}               , dimension(:          ), intent(inout) :: array
@@ -209,7 +209,7 @@ contains
   end subroutine sortByIndex{Type¦label}
 
   function compare{Type¦label}(x,y) bind(c)
-    !!{
+    !!{RST
     Comparison function for sorting.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_f_pointer, c_int, c_ptr
@@ -231,8 +231,8 @@ contains
   end function compare{Type¦label}
 
   function sortSmallest(array,k,mask) result(arraySort)
-    !!{
-    Given an \mono{array}, find the k smallest elements.
+    !!{RST
+    Given an ``array``, find the k smallest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -259,8 +259,8 @@ contains
   end function sortSmallest
 
   function sortLargest(array,k,mask) result(arraySort)
-    !!{
-    Given an \mono{array}, find the k largest elements.
+    !!{RST
+    Given an ``array``, find the k largest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -287,8 +287,8 @@ contains
   end function sortLargest
 
   function sortSmallestIndex(array,k,mask) result(index)
-    !!{
-    Given an \mono{array}, find the indices of k smallest elements.
+    !!{RST
+    Given an ``array``, find the indices of k smallest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none
@@ -316,8 +316,8 @@ contains
   end function sortSmallestIndex
 
   function sortLargestIndex(array,k,mask) result(index)
-    !!{
-     Given an \mono{array}, find the indices of k largest elements.
+    !!{RST
+    Given an ``array``, find the indices of k largest elements.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_loc
     implicit none

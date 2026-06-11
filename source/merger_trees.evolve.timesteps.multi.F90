@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for applying multiple different timestepping criteria.
   !!}
 
@@ -27,8 +27,10 @@
   end type multiMergerTreeEvolveTimestepList
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
-   <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti" docformat="rst">
+   <description>
+   A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
+   </description>
    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
    <deepCopy>
      <ignore  variables="mergerTreeEvolveTimestep_"/>
@@ -39,7 +41,7 @@
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
      !!}
      private
@@ -52,8 +54,8 @@
   end type mergerTreeEvolveTimestepMulti
 
   interface mergerTreeEvolveTimestepMulti
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepMulti} mergerTreeEvolveTimestep.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveTimestepMulti`` mergerTreeEvolveTimestep.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -62,8 +64,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,8 +95,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(mergerTreeEvolveTimesteps) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class.
+    !!{RST
+    Internal constructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
@@ -113,8 +115,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepMulti} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
@@ -135,7 +137,7 @@ contains
   end subroutine multiDestructor
 
   double precision function multiTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
+    !!{RST
     Perform all mergerTreeEvolveTimesteps.
     !!}
     implicit none
@@ -184,7 +186,7 @@ contains
   end function multiTimeEvolveTo
 
   logical function multiRefuseToEvolve(self,node)
-    !!{
+    !!{RST
     Refuse to evolve if the timestep is too small.
     !!}
     implicit none

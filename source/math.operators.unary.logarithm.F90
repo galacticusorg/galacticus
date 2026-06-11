@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a logarithm unary operator.
   !!}
 
   !![
-  <operatorUnary name="operatorUnaryLogarithm">
-   <description>A unary operator implementing the natural logarithm $f(x) = \ln(x)$; applying this operator transforms a positive scalar to log-space, and its inverse is the exponential $f^{-1}(f) = \exp(f)$.</description>
+  <operatorUnary name="operatorUnaryLogarithm" docformat="rst">
+   <description>
+   A unary operator implementing the natural logarithm :math:`f(x) = \ln(x)`; applying this operator transforms a positive scalar to log-space, and its inverse is the exponential :math:`f^{-1}(f) = \exp(f)`.
+   </description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryLogarithm
-     !!{
+     !!{RST
      Implementation of a logarithm unary operator.
      !!}
      private
@@ -38,8 +40,8 @@
   end type operatorUnaryLogarithm
 
   interface operatorUnaryLogarithm
-     !!{
-     Constructors for the \refClass{operatorUnaryLogarithm} 1D distribution function class.
+     !!{RST
+     Constructors for the ``operatorUnaryLogarithm`` 1D distribution function class.
      !!}
      module procedure logarithmConstructorParameters
   end interface operatorUnaryLogarithm
@@ -50,9 +52,8 @@
 contains
 
   function logarithmConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{operatorUnaryLogarithm} 1D distribution function class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``operatorUnaryLogarithm`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +68,7 @@ contains
   end function logarithmConstructorParameters
 
   double precision function logarithmOperate(self,x)
-    !!{
+    !!{RST
     Apply a logarithm operation.
     !!}
     implicit none
@@ -80,7 +81,7 @@ contains
   end function logarithmOperate
 
   double precision function logarithmUnoperate(self,f)
-    !!{
+    !!{RST
     Unapply a logarithm operation.
     !!}
     implicit none
@@ -97,7 +98,7 @@ contains
   end function logarithmUnoperate
 
   double precision function logarithmJacobian(self,x)
-    !!{
+    !!{RST
     Compute the Jacobian of a logarithm operation.
     !!}
     implicit none

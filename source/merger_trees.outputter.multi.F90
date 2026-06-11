@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger trees outputter class which combines multiple other outputters.
   !!}
 
@@ -27,13 +27,15 @@
   end type multiOutputterList
 
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterMulti">
-   <description>A merger tree outputter which combines multiple other outputters.</description>
+  <mergerTreeOutputter name="mergerTreeOutputterMulti" docformat="rst">
+   <description>
+   A merger tree outputter which combines multiple other outputters.
+   </description>
    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
-     !!{
+     !!{RST
      Implementation of a merger tree outputter which combines multiple other outputters.
      !!}
      private
@@ -47,8 +49,8 @@
   end type mergerTreeOutputterMulti
 
   interface mergerTreeOutputterMulti
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterMulti} merger tree outputter.
+     !!{RST
+     Constructors for the ``mergerTreeOutputterMulti`` merger tree outputter.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -57,8 +59,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterMulti} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeOutputterMulti`` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,8 +90,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(outputters) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOutputterMulti} merger tree outputter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOutputterMulti`` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti)                        :: self
@@ -108,8 +110,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOutputterMulti} merger tree outputter class.
+    !!{RST
+    Destructor for the ``mergerTreeOutputterMulti`` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti), intent(inout) :: self
@@ -130,7 +132,7 @@ contains
   end subroutine multiDestructor
 
   subroutine multiOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
+    !!{RST
     Output from all outputters.
     !!}
     implicit none
@@ -150,7 +152,7 @@ contains
   end subroutine multiOutputTree
 
   subroutine multiOutputNode(self,node,indexOutput,outputType)
-    !!{
+    !!{RST
     Output from all outputters.
     !!}
     implicit none
@@ -169,7 +171,7 @@ contains
   end subroutine multiOutputNode
 
   subroutine multiFinalize(self)
-    !!{
+    !!{RST
     Finalize all outputters.
     !!}
     implicit none
@@ -185,7 +187,7 @@ contains
   end subroutine multiFinalize
 
   subroutine multiReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the outputter.
     !!}
     use :: Error, only : Error_Report

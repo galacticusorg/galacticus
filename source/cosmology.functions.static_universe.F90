@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of the cosmological functions class for static universes. Intended for testing purposes.
   !!}
 
   !![
-  <cosmologyFunctions name="cosmologyFunctionsStaticUniverse">
+  <cosmologyFunctions name="cosmologyFunctionsStaticUniverse" docformat="rst">
    <description>
-    A cosmology functions class for static universes. Intended for testing purposes. Time is arbitrary (as there is no Big
-    Bang), and expansion factor is fixed at $1$. Attempts to compute time from expansion factor will cause fatal
-    errors. Expansion rates and the Hubble constant are set to zero. </description>
+   A cosmology functions class for static universes. Intended for testing purposes. Time is arbitrary (as there is no Big Bang), and expansion factor is fixed at :math:`1`. Attempts to compute time from expansion factor will cause fatal errors. Expansion rates and the Hubble constant are set to zero.
+   </description>
   </cosmologyFunctions>
   !!]
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsStaticUniverse
-     !!{
+     !!{RST
      A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      !!}
      private
@@ -66,7 +65,7 @@
   end type cosmologyFunctionsStaticUniverse
 
   interface cosmologyFunctionsStaticUniverse
-     !!{
+     !!{RST
      Constructors for the matter plus cosmological constant cosmological functions class.
      !!}
      module procedure staticUniverseConstructorParameters
@@ -76,7 +75,7 @@
 contains
 
   function staticUniverseConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,7 +96,7 @@ contains
   end function staticUniverseConstructorParameters
 
   function staticUniverseConstructorInternal(cosmologyParameters_) result(self)
-    !!{
+    !!{RST
     Constructor for the matter plus cosmological constant cosmological functions class.
     !!}
     implicit none
@@ -111,7 +110,7 @@ contains
   end function staticUniverseConstructorInternal
 
   subroutine staticUniverseDestructor(self)
-    !!{
+    !!{RST
     Default constructor for the matter plus cosmological constant cosmological functions class.
     !!}
     implicit none
@@ -124,9 +123,8 @@ contains
   end subroutine staticUniverseDestructor
 
   subroutine staticUniverseEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
-    !!{
-    Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
-    collapsing status.
+    !!{RST
+    Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and collapsing status.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -166,7 +164,7 @@ contains
   end subroutine staticUniverseEpochValidate
 
   double precision function staticUniverseCosmicTime(self,expansionFactor,collapsingPhase)
-    !!{
+    !!{RST
     Return the cosmological time at a given expansion factor.
     !!}
     use :: Error, only : Error_Report
@@ -182,9 +180,8 @@ contains
   end function staticUniverseCosmicTime
 
   double precision function staticUniverseTimeBigCrunch(self)
-    !!{
-    Return the time of the Big Crunch in a static cosmology. Since no Big Crunch occurs we return a negative value to indicate
-    that.
+    !!{RST
+    Return the time of the Big Crunch in a static cosmology. Since no Big Crunch occurs we return a negative value to indicate that.
     !!}
     implicit none
     class(cosmologyFunctionsStaticUniverse), intent(inout) :: self
@@ -195,8 +192,8 @@ contains
   end function staticUniverseTimeBigCrunch
 
   double precision function staticUniverseExpansionFactor(self,time)
-    !!{
-    Returns the expansion factor at cosmological time \mono{time}.
+    !!{RST
+    Returns the expansion factor at cosmological time ``time``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
@@ -208,8 +205,8 @@ contains
   end function staticUniverseExpansionFactor
 
   double precision function staticUniverseExpansionRate(self,expansionFactor)
-    !!{
-    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Returns the cosmological expansion rate, :math:`\dot{a}/a` at expansion factor ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout) :: self
@@ -221,8 +218,8 @@ contains
   end function staticUniverseExpansionRate
 
   double precision function staticUniverseHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the Hubble parameter at the request cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -235,8 +232,8 @@ contains
   end function staticUniverseHubbleParameterEpochal
 
   double precision function staticUniverseHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the rate of change of the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the rate of change of the Hubble parameter at the request cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -249,8 +246,8 @@ contains
   end function staticUniverseHubbleParameterRateOfChange
 
   double precision function staticUniverseOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the matter density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the matter density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -265,8 +262,8 @@ contains
   end function staticUniverseOmegaMatterEpochal
 
   double precision function staticUniverseMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the matter density at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the matter density at expansion factor ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -279,8 +276,8 @@ contains
   end function staticUniverseMatterDensityEpochal
 
   double precision function staticUniverseOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the rate of change of the matter density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -295,8 +292,8 @@ contains
   end function staticUniverseOmegaMatterRateOfChange
 
   double precision function staticUniverseOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the dark energy density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -311,8 +308,8 @@ contains
   end function staticUniverseOmegaDarkEnergyEpochal
 
   double precision function staticUniverseTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the temperature of the CMB at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the temperature of the CMB at expansion factor ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
@@ -353,7 +350,7 @@ contains
   end function staticUniverseDominationEpochMatter
 
   double precision function staticUniverseEqualityEpochMatterDarkEnergy(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Error, only : Error_Report
@@ -368,7 +365,7 @@ contains
   end function staticUniverseEqualityEpochMatterDarkEnergy
 
   double precision function staticUniverseEqualityEpochMatterCurvature(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Error, only : Error_Report
@@ -383,7 +380,7 @@ contains
   end function staticUniverseEqualityEpochMatterCurvature
 
   double precision function staticUniverseEqualityEpochMatterRadiation(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Error, only : Error_Report
@@ -398,8 +395,8 @@ contains
   end function staticUniverseEqualityEpochMatterRadiation
 
   double precision function staticUniverseTimeAtDistanceComoving(self,comovingDistance)
-    !!{
-    Returns the cosmological time corresponding to given \mono{comovingDistance}.
+    !!{RST
+    Returns the cosmological time corresponding to given ``comovingDistance``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -413,8 +410,8 @@ contains
   end function staticUniverseTimeAtDistanceComoving
 
   double precision function staticUniverseDistanceComoving(self,time)
-    !!{
-    Returns the comoving distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the comoving distance to cosmological time ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -428,8 +425,8 @@ contains
   end function staticUniverseDistanceComoving
 
   double precision function staticUniverseDistanceLuminosity(self,time)
-    !!{
-    Returns the luminosity distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the luminosity distance to cosmological time ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -442,8 +439,8 @@ contains
   end function staticUniverseDistanceLuminosity
 
   double precision function staticUniverseDistanceAngular(self,time,timeOrigin)
-    !!{
-    Returns the angular diameter distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the angular diameter distance to cosmological time ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -461,7 +458,7 @@ contains
   end function staticUniverseDistanceAngular
 
   double precision function staticUniverseDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !!{
+    !!{RST
     Convert between different measures of distance.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -503,7 +500,7 @@ contains
   end function staticUniverseDistanceComovingConvert
 
   double precision function staticUniverseEquationOfStateDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy equation of state.
     !!}
     implicit none
@@ -516,7 +513,7 @@ contains
   end function staticUniverseEquationOfStateDarkEnergy
 
   double precision function staticUniverseExponentDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy equation of state.
     !!}
     implicit none

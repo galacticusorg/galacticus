@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a dark matter halo mass function class which averages another (presumably environment-dependent) mass function over
-environment.
+!!{RST
+Implements a dark matter halo mass function class which averages another (presumably environment-dependent) mass function over environment.
 !!}
 
   use :: Cosmological_Density_Field, only : haloEnvironmentClass
 
   !![
-  <haloMassFunction name="haloMassFunctionEnvironmentAveraged">
+  <haloMassFunction name="haloMassFunctionEnvironmentAveraged" docformat="rst">
    <description>
-    The dark matter halo mass function is computed by averaging another, environment-dependent mass function over the probability distribution of large-scale environments, marginalizating over the local density field. This allows environment-dependent mass functions to be used in a mean cosmological context, with optional accounting for unoccupied volume via \mono{[includeUnoccupiedVolume]}.
+   The dark matter halo mass function is computed by averaging another, environment-dependent mass function over the probability distribution of large-scale environments, marginalizating over the local density field. This allows environment-dependent mass functions to be used in a mean cosmological context, with optional accounting for unoccupied volume via ``[includeUnoccupiedVolume]``.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
-     !!{
+     !!{RST
      A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
      !!}
      private
@@ -46,8 +45,8 @@ environment.
   end type haloMassFunctionEnvironmentAveraged
 
   interface haloMassFunctionEnvironmentAveraged
-     !!{
-     Constructors for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
+     !!{RST
+     Constructors for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
      !!}
      module procedure environmentAveragedConstructorParameters
      module procedure environmentAveragedConstructorInternal
@@ -56,9 +55,8 @@ environment.
 contains
 
   function environmentAveragedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,14 +68,12 @@ contains
     logical                                                     :: includeUnoccupiedVolume
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnoccupiedVolume</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
       <description>
-	If true, account for any volume which is not included in the environment (e.g. regions which have collapsed on the scale
-	of the environment in a peak-background split environment), when averaging over environment. Otherwise, ignore this
-	unoccupied volume.
+      If true, account for any volume which is not included in the environment (e.g. regions which have collapsed on the scale of the environment in a peak-background split environment), when averaging over environment. Otherwise, ignore this unoccupied volume.
       </description>
     </inputParameter>
     <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
@@ -97,8 +93,8 @@ contains
   end function environmentAveragedConstructorParameters
 
   function environmentAveragedConstructorInternal(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
+    !!{RST
+    Internal constructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
     !!}
     implicit none
     type   (haloMassFunctionEnvironmentAveraged)                        :: self
@@ -115,8 +111,8 @@ contains
   end function environmentAveragedConstructorInternal
 
   subroutine environmentAveragedDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionEnvironmentAveraged} halo mass function class.
+    !!{RST
+    Destructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionEnvironmentAveraged), intent(inout) :: self
@@ -131,7 +127,7 @@ contains
   end subroutine environmentAveragedDestructor
 
   recursive double precision function environmentAveragedDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Galacticus_Nodes     , only : mergerTree         , nodeComponentBasic           , treeNode
@@ -232,7 +228,7 @@ contains
   contains
 
     double precision function environmentAveragedRoot(environmentOverdensity)
-      !!{
+      !!{RST
       Root function used in determining the range of overdensity over which to integrate.
       !!}
       implicit none
@@ -243,7 +239,7 @@ contains
     end function environmentAveragedRoot
 
     double precision function environmentAveragedIntegrand(environmentOverdensity)
-      !!{
+      !!{RST
       Integrand function used in averaging the dark matter halo mass function over environment.
       !!}
       implicit none

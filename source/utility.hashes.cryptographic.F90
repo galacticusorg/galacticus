@@ -27,7 +27,7 @@ module Hashes_Cryptographic
 
   interface
      subroutine md5Hash(textLength,input,result) bind(c,name='md5Hash')
-       !!{
+       !!{RST
        Template for a C function that returns the MD5 hash of the input.
        !!}
        import

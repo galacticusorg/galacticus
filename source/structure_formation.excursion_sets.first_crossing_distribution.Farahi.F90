@@ -19,8 +19,8 @@
 
 !+    Contributions to this file made by: Arya Farahi, Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-!!{
-Implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
+!!{RST
+Implements a excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -29,146 +29,165 @@ Implements a excursion set first crossing statistics class using the algorithm o
   use :: Numerical_Interpolation   , only : interpolator
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi" docformat="rst">
    <description>
-    An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}. For trajectories originating
-    from a point $(S_1,\delta_1)$, the distribution of first crossings of a barrier $B(S)$, $f(S)$, is obtained by finding the
-    solution to the integral equation:    
-    \begin{equation}
-      1 =  \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
-     \label{eq:OldExcursionMethod}
-    \end{equation}
-    where $P(\delta,S) \mathrm{d} \delta$ is the probability for a trajectory to lie between $\delta$ and $\delta + \mathrm{d}
-    \delta$ at variance $S$, having originated from the point $(S_1,\delta_1)$ having not crossed the barrier at any smaller
-    $\tilde{S} &lt; S$. In the absence of a barrier, $P(\delta,S)$ would be equal to $P_0(\delta,S)$. However, since some
-    trajectories will have crossed the barrier at $\tilde{S} &lt; S$ we must subtract off their contribution to
-    $P_0(\delta,S)$. Writing the distribution of $\delta$ at $S$ for trajectories originating at some $(\tilde{\delta},\tilde{S})$
-    as $P^\prime(\delta|S,\tilde{\delta},\tilde{S})$, we can therefore write
-    \begin{equation}
+   An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`. For trajectories originating from a point :math:`(S_1,\delta_1)`, the distribution of first crossings of a barrier :math:`B(S)`, :math:`f(S)`, is obtained by finding the solution to the integral equation:
+
+   .. math::
+
+       1 =  \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
+      \label{eq:OldExcursionMethod}
+
+   where :math:`P(\delta,S) \mathrm{d} \delta` is the probability for a trajectory to lie between :math:`\delta` and :math:`\delta + \mathrm{d} \delta` at variance :math:`S`, having originated from the point :math:`(S_1,\delta_1)` having not crossed the barrier at any smaller :math:`\tilde{S} &lt; S`. In the absence of a barrier, :math:`P(\delta,S)` would be equal to :math:`P_0(\delta,S)`. However, since some trajectories will have crossed the barrier at :math:`\tilde{S} &lt; S` we must subtract off their contribution to :math:`P_0(\delta,S)`. Writing the distribution of :math:`\delta` at :math:`S` for trajectories originating at some :math:`(\tilde{\delta},\tilde{S})` as :math:`P^\prime(\delta|S,\tilde{\delta},\tilde{S})`, we can therefore write
+
+   .. math::
+
       P(\delta,S) = P_0(\delta,S) - \int_{0}^{S} f(\tilde{S}) P^\prime(\delta|S,\tilde{\delta},\tilde{S}) \mathrm{d}\tilde{S},
-    \end{equation}
 
-    For an interesting class of cases, both $P_0(\delta,S)$ and $P^\prime(\delta|S,\tilde{\delta},\tilde{S})$ are normal
-    distributions, and we can write
-    \begin{equation}
-     P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left\{-{\Delta \delta^2 [\delta,\delta_1,S,S_1] \over 2 \Delta S [S,S_1]}\right\},
-    \end{equation}
-    and
-    \begin{equation}
-     P^\prime(\delta|S,\tilde{\delta},\tilde{S}) = \frac{1}{\sqrt{2 \pi \Delta S[S,\tilde{S}]}} \exp\left\{-{\Delta \delta^2 [\delta,\tilde{\delta},S,\tilde{S}] \over 2 \Delta S [S,\tilde{S}]}\right\},
-    \end{equation}
-    where we refer to $\Delta \delta[\delta,\tilde{\delta},S,\tilde{S}]$ as the ``effective offset'', and to $\Delta
-    S[S,\tilde{S}] = \mathrm{Var}(S) - \mathrm{Cov}(S,\tilde{S})$ as the ``residual variance''. Note that $\mathrm{Cov}(S,S_1) =
-    0$ (since all trajectories pass through $\delta_1$ at $S_1$), and so $\Delta S[S,S_1] = \mathrm{Var}(S)$.
+   For an interesting class of cases, both :math:`P_0(\delta,S)` and :math:`P^\prime(\delta|S,\tilde{\delta},\tilde{S})` are normal distributions, and we can write
 
-    For a standard Weiner process (such as applies to the standard case considered in excursion set theory, namely uncorrelated
-    and unconstrained steps), we have trivially that
-    \begin{equation}
-     \Delta \delta[\delta,\tilde{\delta},S,\tilde{S}] = \delta - \tilde{\delta},
-    \end{equation}
-    and
-    \begin{equation}
-     \Delta S[S,\tilde{S}] = S - \tilde{S},
-    \end{equation}
-    since the Weiner process is invariant under translations of the starting point.
+   .. math::
 
-    Using the above results, we can rewrite eqn.~(\ref{eq:OldExcursionMethod}):
-    \begin{equation}
+      P_0(\delta,S) = \frac{1}{\sqrt{2 \pi S}} \exp\left\{-{\Delta \delta^2 [\delta,\delta_1,S,S_1] \over 2 \Delta S [S,S_1]}\right\},
+
+   and
+
+   .. math::
+
+      P^\prime(\delta|S,\tilde{\delta},\tilde{S}) = \frac{1}{\sqrt{2 \pi \Delta S[S,\tilde{S}]}} \exp\left\{-{\Delta \delta^2 [\delta,\tilde{\delta},S,\tilde{S}] \over 2 \Delta S [S,\tilde{S}]}\right\},
+
+   where we refer to :math:`\Delta \delta[\delta,\tilde{\delta},S,\tilde{S}]` as the "effective offset", and to :math:`\Delta S[S,\tilde{S}] = \mathrm{Var}(S) - \mathrm{Cov}(S,\tilde{S})` as the "residual variance". Note that :math:`\mathrm{Cov}(S,S_1) = 0` (since all trajectories pass through :math:`\delta_1` at :math:`S_1`), and so :math:`\Delta S[S,S_1] = \mathrm{Var}(S)`.
+
+   For a standard Weiner process (such as applies to the standard case considered in excursion set theory, namely uncorrelated and unconstrained steps), we have trivially that
+
+   .. math::
+
+      \Delta \delta[\delta,\tilde{\delta},S,\tilde{S}] = \delta - \tilde{\delta},
+
+   and
+
+   .. math::
+
+      \Delta S[S,\tilde{S}] = S - \tilde{S},
+
+   since the Weiner process is invariant under translations of the starting point.
+
+   Using the above results, we can rewrite eqn. ():
+
+   .. math::
+
       1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} \left[ P_0(\delta,S) - \int_{0}^{S} f(\tilde{S})
       P^\prime(\delta|S,\tilde{\delta},\tilde{S}) \mathrm{d} \delta \right] ,
-    \end{equation}
-    in general and, for the case of a Gaussian distribution:
-    \begin{equation}
+
+   in general and, for the case of a Gaussian distribution:
+
+   .. math::
+
       1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} \left[ \frac{1}{\sqrt{2 \pi \Delta S[S,S_1]}}
       \exp\left(-\frac{\Delta \delta^2[\delta,\delta_1,S,S_1]}{2 \Delta S[S,S_1]}\right) - \int_{0}^{S} f(\tilde{S}) \frac{1}{\sqrt{2 \pi \Delta S [S,\tilde{S}]}}
       \exp\left(-\frac{\Delta \delta^2[\delta,B(\tilde{S}),S,\tilde{S}]}{2 \Delta S [S,\tilde{S}]}\right)\mathrm{d}\tilde{S} \right] \mathrm{d} \delta .
-    \end{equation}
-    The integral over $\mathrm{d}\delta$ can be carried out analytically to give:
-    \begin{equation}
-     1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S}+ \hbox{erf}\left\{\frac{\Delta \delta [B(S),\delta_1,S,S_1]}{\sqrt{2\Delta S[S,S_1]}}\right\} - \int_{0}^{S} f(\tilde{S})
-     \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S [S,\tilde{S}]}}\right\} \mathrm{d}S^{\prime\prime}.
-    \label{eq:NewExcursionMethod}
-    \end{equation}
-    We now discretize eqn.~(\ref{eq:NewExcursionMethod}). Specifically, we divide the $S$ space into $N$ intervals defined by
-    the points:
-    \begin{equation}
-     S_i = \left\{ \begin{array}{ll}
-                    0 &amp; \hbox{if } i=0 \\
-                    \sum_{j=0}^{i-1} \Delta S_j &amp; \hbox{if } i &gt; 1.
-                   \end{array}
-           \right.
-    \end{equation}
-    Note that $f(0)=0$ by definition, so $f(S_0)=0$ always. We choose $\Delta S_i = S_\mathrm{max}/N$ (i.e. uniform spacing in
-    $S$) when computing first crossing distributions, and $\Delta S_i \propto S_i$ (i.e. uniform spacing in $\log(S)$) when
-    computing first crossing rates.
-    
-    Discretizing the integrals in eqn.~(\ref{eq:NewExcursionMethod}) gives:
-    \begin{equation} \label{eq:Des1}
-     \int_0^{S_i} f(\tilde{S})\d \tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j
-    \end{equation}
-    and:
-    \begin{equation} \label{eq:Des2}
-     \int_{0}^{S_i} f(\tilde{S}) \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S[S,\tilde{S}]}}\right\} \d \tilde{S} =
-     \sum_{j=0}^{i-1} \frac{1}{2} \left(f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j), S_i, S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
-     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
-    \end{equation}
-    We can now rewrite eqn.~(\ref{eq:NewExcursionMethod}) in discretized form:
-    \begin{equation} \label{eq:DesFinal1}
-     1 = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j + \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} -
-     \frac{1}{2} \sum_{j=0}^{i-1} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
-     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
-    \end{equation}
-    Solving eqn.~(\ref{eq:DesFinal1}) for $f(S_i)$:
-    \begin{eqnarray} \label{eq:DesFinal11}
-     \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i), S_i, S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} \right) \Delta S_{i-1}
-     f(S_i) &amp;=&amp; 1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j - \frac{f(S_{i-1})}{2} \Delta S_{i-1} -
-     \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} \nonumber\\
-    &amp; &amp; + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
-    f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
-     &amp; &amp; + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta S_{i-1}.
-    \end{eqnarray}
-    For all barriers that we consider:
-    \begin{equation} 
-    \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i),S_i,S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} = 0.
-    \end{equation}
-    We can then simplify eqn.~(\ref{eq:DesFinal11}):
-    \begin{eqnarray} \label{eq:DesFinal2}
-       f(S_i) &amp;=&amp; {2 \over \Delta S_{i-1}}\left[1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j -
-       \frac{f(S_{i-1})}{2} \Delta S_{i-1} - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S [S_i,S_1] }}\right\} \right.  \nonumber\\
-    &amp; &amp; + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
-    f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S [S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
-     &amp; &amp; \left. + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta
-     S_{i-1}\right].
-    \end{eqnarray}
-    Consolidating terms in the summations:
-    \begin{equation} \label{eq:DesFinal2a}
-       f(S_i) = {2 \over \Delta S_{i-1}}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S[S_i,S_1]}}\right\} - \sum_{j=0}^{i-1}
-       \left( 1-\hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} \right) f(S_j) {\Delta S_{j-1} + \Delta S_j
-       \over 2} \right].
-    \end{equation}
-    In the case of constant $\Delta S_j(=\Delta S)$ this can be simplified further:
-    \begin{equation} \label{eq:DesFinal3}
-       f(S_i) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S [S_i,S_1]}}\right\}\right] - 2 \sum_{j=0}^{i-1}
-       \left(1- \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} \right) f(S_j).
-    \end{equation}
-    
-    In either case (i.e. eqns.~\ref{eq:DesFinal2a} and \ref{eq:DesFinal3}) solution proceeds recursively: $f(S_0)=0$ by
-    definition, $f(S_1)$ depends only on the known barrier and $f(S_0)$, $f(S_i)$ depends only on the known barrier and
-    $f(S_{&lt;i})$.
-    
-    The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the
-    progenitor in the $(\delta,S)$ plane, plus a small shift in time. The non-crossing rate, $g(S_\mathrm{max})$, defined as the
-    rate at which trajectories reach the maximum possible variance, $S_\mathrm{max}$, without ever crossing the barrier---is
-    computed directly by integrating over the first crossing rate distribution, i.e. $g(S_\mathrm{max}) = 1
-    -\int_0^{S_\mathrm{max}} f(\tilde{S}) \mathrm{d}\tilde{S}$. Note that since the numerical integration occurs only up to a
-    finite maximum $S_\mathrm{max}$, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality
-    they should have zero non-crossing rate. As such, use of this method for such barriers is not recommended.
+
+   The integral over :math:`\mathrm{d}\delta` can be carried out analytically to give:
+
+   .. math::
+
+       1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S}+ \hbox{erf}\left\{\frac{\Delta \delta [B(S),\delta_1,S,S_1]}{\sqrt{2\Delta S[S,S_1]}}\right\} - \int_{0}^{S} f(\tilde{S})
+       \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S [S,\tilde{S}]}}\right\} \mathrm{d}S^{\prime\prime}.
+      \label{eq:NewExcursionMethod}
+
+   We now discretize eqn. (). Specifically, we divide the :math:`S` space into :math:`N` intervals defined by the points:
+
+   .. math::
+
+      S_i = \left\{ \begin{array}{ll}
+                     0 &amp; \hbox{if } i=0 \\
+                     \sum_{j=0}^{i-1} \Delta S_j &amp; \hbox{if } i &gt; 1.
+                    \end{array}
+            \right.
+
+   Note that :math:`f(0)=0` by definition, so :math:`f(S_0)=0` always. We choose :math:`\Delta S_i = S_\mathrm{max}/N` (i.e. uniform spacing in :math:`S`) when computing first crossing distributions, and :math:`\Delta S_i \propto S_i` (i.e. uniform spacing in :math:`\log(S)`) when computing first crossing rates.
+
+   Discretizing the integrals in eqn. () gives:
+
+   .. math::
+
+      \label{eq:Des1}
+      \int_0^{S_i} f(\tilde{S})\d \tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j
+
+   and:
+
+   .. math::
+
+      \label{eq:Des2}
+      \int_{0}^{S_i} f(\tilde{S}) \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S[S,\tilde{S}]}}\right\} \d \tilde{S} =
+      \sum_{j=0}^{i-1} \frac{1}{2} \left(f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j), S_i, S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
+      \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
+
+   We can now rewrite eqn. () in discretized form:
+
+   .. math::
+
+      \label{eq:DesFinal1}
+      1 = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j + \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} -
+      \frac{1}{2} \sum_{j=0}^{i-1} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
+      \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
+
+   Solving eqn. () for :math:`f(S_i)`:
+
+   .. math::
+
+      \label{eq:DesFinal11}
+       \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i), S_i, S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} \right) \Delta S_{i-1}
+       f(S_i) &amp; = 1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j - \frac{f(S_{i-1})}{2} \Delta S_{i-1} -
+       \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} \nonumber \\
+      &amp;  + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
+      f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
+      &amp;  + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta S_{i-1}.
+
+   For all barriers that we consider:
+
+   .. math::
+
+      \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i),S_i,S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} = 0.
+
+   We can then simplify eqn. ():
+
+   .. math::
+
+      \label{eq:DesFinal2}
+         f(S_i) &amp; = {2 \over \Delta S_{i-1}}\left[1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j -
+         \frac{f(S_{i-1})}{2} \Delta S_{i-1} - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S [S_i,S_1] }}\right\} \right.  \nonumber \\
+      &amp;  + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
+      f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S [S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
+      &amp;  \left. + \frac{1}{2} f(S_{i-1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{i-1}),S_i,S_{i-1}]}{\sqrt{2 \Delta S [S_i,S_{i-1}]}}\right\} \Delta
+       S_{i-1}\right].
+
+   Consolidating terms in the summations:
+
+   .. math::
+
+      \label{eq:DesFinal2a}
+        f(S_i) = {2 \over \Delta S_{i-1}}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S[S_i,S_1]}}\right\} - \sum_{j=0}^{i-1}
+        \left( 1-\hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} \right) f(S_j) {\Delta S_{j-1} + \Delta S_j
+        \over 2} \right].
+
+   In the case of constant :math:`\Delta S_j(=\Delta S)` this can be simplified further:
+
+   .. math::
+
+      \label{eq:DesFinal3}
+        f(S_i) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S [S_i,S_1]}}\right\}\right] - 2 \sum_{j=0}^{i-1}
+        \left(1- \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} \right) f(S_j).
+
+   In either case (i.e. eqns.  and ) solution proceeds recursively: :math:`f(S_0)=0` by definition, :math:`f(S_1)` depends only on the known barrier and :math:`f(S_0)`, :math:`f(S_i)` depends only on the known barrier and :math:`f(S_{&lt;i})`.
+
+   The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the progenitor in the :math:`(\delta,S)` plane, plus a small shift in time. The non-crossing rate, :math:`g(S_\mathrm{max})`, defined as the rate at which trajectories reach the maximum possible variance, :math:`S_\mathrm{max}`, without ever crossing the barrier---is computed directly by integrating over the first crossing rate distribution, i.e. :math:`g(S_\mathrm{max}) = 1 -\int_0^{S_\mathrm{max}} f(\tilde{S}) \mathrm{d}\tilde{S}`. Note that since the numerical integration occurs only up to a finite maximum :math:`S_\mathrm{max}`, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality they should have zero non-crossing rate. As such, use of this method for such barriers is not recommended.
    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi
-     !!{
-     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
+     !!{RST
+     An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_              => null()
@@ -241,7 +260,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
   end type excursionSetFirstCrossingFarahi
 
   interface excursionSetFirstCrossingFarahi
-     !!{
+     !!{RST
      Constructors for the Farahi excursion set barrier class.
      !!}
      module procedure farahiConstructorParameters
@@ -254,7 +273,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
 contains
 
   function farahiConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the Farahi excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -272,53 +291,69 @@ contains
     logical                                                          :: varianceIsUnlimited
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <defaultValue>var_str('none')</defaultValue>
       <source>parameters</source>
-      <description>The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``\mono{none}'' tables will not be stored.</description>
+      <description>
+      The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to "``none``" tables will not be stored.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionalTimeStep</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
-      <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
+      <description>
+      The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceNumberPerUnitProbability</name>
       <defaultValue>1000</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per unit variance for first crossing probabilities.</description>
+      <description>
+      The number of points to tabulate per unit variance for first crossing probabilities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceNumberPerUnit</name>
       <defaultValue>40</defaultValue>
       <source>parameters</source>
-      <description>The number of tabulation points per unit of $\sigma^2$ used when building the rate look-up table for the Farahi excursion-set first-crossing distribution; higher values improve interpolation accuracy at the cost of memory and initialization time.</description>
+      <description>
+      The number of tabulation points per unit of :math:`\sigma^2` used when building the rate look-up table for the Farahi excursion-set first-crossing distribution; higher values improve interpolation accuracy at the cost of memory and initialization time.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceNumberPerDecade</name>
       <defaultValue>400</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per decade of progenitor variance for first crossing rates.</description>
+      <description>
+      The number of points to tabulate per decade of progenitor variance for first crossing rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceNumberPerDecadeNonCrossing</name>
       <defaultValue>40</defaultValue>
       <source>parameters</source>
-      <description>The number of points to tabulate per decade of progenitor variance for non-crossing rates.</description>
+      <description>
+      The number of points to tabulate per decade of progenitor variance for non-crossing rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeNumberPerDecade</name>
       <defaultValue>10</defaultValue>
       <source>parameters</source>
-      <description>The number of tabulation points per decade of cosmic time used when building the first-crossing rate look-up table as a function of time; higher values improve temporal interpolation accuracy for rapidly evolving cosmologies.</description>
+      <description>
+      The number of tabulation points per decade of cosmic time used when building the first-crossing rate look-up table as a function of time; higher values improve temporal interpolation accuracy for rapidly evolving cosmologies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceIsUnlimited</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, the variance is assumed to have no upper limit (e.g. as in the case of \gls{cdm}). This allows the tabulated solutions to be extended arbitrarily. Otherwise, tables are extended to encompass just the range of variance requested.</description>
+      <description>
+      If true, the variance is assumed to have no upper limit (e.g. as in the case of :term:`CDM`). This allows the tabulated solutions to be extended arbitrarily. Otherwise, tables are extended to encompass just the range of variance requested.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
@@ -335,7 +370,7 @@ contains
   end function farahiConstructorParameters
 
   function farahiConstructorInternal(fractionalTimeStep,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,varianceNumberPerDecadeNonCrossing,timeNumberPerDecade,varianceIsUnlimited,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the Farahi excursion set class first crossing class.
     !!}
     implicit none
@@ -389,7 +424,7 @@ contains
   end subroutine farahiFileNameInitialize
 
   subroutine farahiDestructor(self)
-    !!{
+    !!{RST
     Destructor for the Farahi excursion set first crossing class.
     !!}
     implicit none
@@ -404,7 +439,7 @@ contains
   end subroutine farahiDestructor
 
   double precision function farahiProbability(self,variance,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
@@ -680,7 +715,7 @@ contains
   end function farahiProbability
 
   double precision function farahiRate(self,variance,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     implicit none
@@ -711,7 +746,7 @@ contains
   end function farahiRate
 
   double precision function farahiRateInterpolate(self,variance,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Interpolate in the tabulated excursion set barrier crossing rate.
     !!}
     implicit none
@@ -773,7 +808,7 @@ contains
   end function farahiRateInterpolate
 
   double precision function farahiRateNonCrossing(self,variance,massMinimum,time,node)
-    !!{
+    !!{RST
     Return the rate for excursion set non-crossing.
     !!}
     implicit none
@@ -797,7 +832,7 @@ contains
   end function farahiRateNonCrossing
 
   double precision function farahiRateNonCrossingInterpolate(self,variance,massMinimum,time,node)
-    !!{
+    !!{RST
     Interpolate the rate for excursion set non-crossing.
     !!}
     use :: Numerical_Comparison, only : Values_Differ
@@ -849,7 +884,7 @@ contains
   end function farahiRateNonCrossingInterpolate
 
   subroutine farahiRateTabulate(self,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Tabulate the excursion set crossing rate.
     !!}
     use :: Display         , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
@@ -1288,7 +1323,7 @@ contains
   end subroutine farahiRateTabulate
 
   subroutine farahiFileRead(self)
-    !!{
+    !!{RST
     Read tabulated data on excursion set first crossing probabilities from file.
     !!}
     use :: Display           , only : displayIndent       , displayMessage  , displayUnindent, verbosityLevelWorking
@@ -1454,7 +1489,7 @@ contains
   end subroutine farahiFileRead
 
   subroutine farahiFileWrite(self)
-    !!{
+    !!{RST
     Write tabulated data on excursion set first crossing probabilities to file.
     !!}
     use :: HDF5_Access       , only : hdf5Access
@@ -1536,19 +1571,14 @@ contains
   end subroutine farahiFileWrite
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
-    !!{
-    Builds a numerical range between \mono{rangeMinimum} and \mono{rangeMaximum} using
-    \mono{rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
-    point controlled by \mono{exponent}. Specifically, suppose we have $N=$\mono{rangeNumber}
-    points in the range, from $S_\mathrm{min}=$\mono{rangeMinimum} to $S_\mathrm{max}=$\mono{rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
-    \begin{equation}
-     f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
-    \end{equation}
-    and solve for $S_i$ to find the $i^\mathrm{th}$ range value. If $n_i=0$ then this will give $S_i$ linearly spaced between
-    $S_\mathrm{min}$ and $S_\mathrm{max}$, while if $n_i=-1$ this will give $S_i$ logarithmically spaced between
-    $S_\mathrm{min}$ and $S_\mathrm{max}$. Therefore, if we make $n_i$ vary from $-1$ to $0$ at $i$ ranges from $1$ to $N$ we
-    will get a smooth transition from logarithmic to linear spacing. We choose to use $n_i=-1+f_i^\alpha$ where
-    $\alpha=$\mono{exponent} is a supplied argument.
+    !!{RST
+    Builds a numerical range between ``rangeMinimum`` and ``rangeMaximum`` using ``rangeNumber`` points with spacing that varies from logarithmic to linear spacing with the transition point controlled by ``exponent``. Specifically, suppose we have :math:`N=`\ ``rangeNumber`` points in the range, from :math:`S_\mathrm{min}=`\ ``rangeMinimum`` to :math:`S_\mathrm{max}=`\ ``rangeMaximum``. We define :math:`f_i=(i-1)/(N-1)` where :math:`i` runs from :math:`1` to :math:`N`. We then define:
+
+    .. math::
+
+       f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
+
+    and solve for :math:`S_i` to find the :math:`i^\mathrm{th}` range value. If :math:`n_i=0` then this will give :math:`S_i` linearly spaced between :math:`S_\mathrm{min}` and :math:`S_\mathrm{max}`, while if :math:`n_i=-1` this will give :math:`S_i` logarithmically spaced between :math:`S_\mathrm{min}` and :math:`S_\mathrm{max}`. Therefore, if we make :math:`n_i` vary from :math:`-1` to :math:`0` at :math:`i` ranges from :math:`1` to :math:`N` we will get a smooth transition from logarithmic to linear spacing. We choose to use :math:`n_i=-1+f_i^\alpha` where :math:`\alpha=`\ ``exponent`` is a supplied argument.
     !!}
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)          :: self
@@ -1573,7 +1603,7 @@ contains
   end function farahiVarianceRange
 
   double precision function farahiVarianceLimit(self,varianceProgenitor)
-    !!{
+    !!{RST
     Return the maximum variance to which to tabulate.
     !!}
     implicit none
@@ -1589,7 +1619,7 @@ contains
   end function farahiVarianceLimit
 
   function farahiVarianceResidual(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,cosmologicalMassVariance_) result(varianceResidual)
-    !!{
+    !!{RST
     Return the residual variance between two points for a standard Weiner process.
     !!}
     use :: Kind_Numbers, only : kind_quad
@@ -1638,7 +1668,7 @@ contains
   end function farahiVarianceResidual
 
   function farahiOffsetEffective(self,time,varianceCurrent,varianceProgenitor,varianceIntermediate,deltaCurrent,deltaProgenitor,deltaIntermediate,cosmologicalMassVariance_) result(offsetEffective)
-    !!{
+    !!{RST
     Return the residual variance between two points for a standard Weiner process.
     !!}
     use :: Kind_Numbers, only : kind_quad

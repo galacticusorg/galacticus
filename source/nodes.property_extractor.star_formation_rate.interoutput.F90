@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput">
+  <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput" docformat="rst">
    <description>
-    A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the
-    \refClass{nodeOperatorStarFormationRateInterOutput} node operator class to compute those rates.
+   A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the ``nodeOperatorStarFormationRateInterOutput`` node operator class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorStarFormationRateInterOutput
-     !!{
+     !!{RST
      A property extractor which extracts mean star formation rates between successive outputs.
      !!}
      private
@@ -42,8 +41,8 @@
   end type nodePropertyExtractorStarFormationRateInterOutput
 
   interface nodePropertyExtractorStarFormationRateInterOutput
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -52,8 +51,8 @@
 contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,8 +67,8 @@ contains
   end function starFormationRateInterOutputConstructorParameters
 
   function starFormationRateInterOutputConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self
@@ -83,8 +82,8 @@ contains
   end function starFormationRateInterOutputConstructorInternal
 
   integer function starFormationRateInterOutputElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{starFormationRateInterOutput} property extractors.
+    !!{RST
+    Return the number of elements in the ``starFormationRateInterOutput`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout) :: self
@@ -96,7 +95,7 @@ contains
   end function starFormationRateInterOutputElementCount
 
   function starFormationRateInterOutputExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a starFormationRateInterOutput output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
@@ -148,8 +147,8 @@ contains
   end function starFormationRateInterOutputExtract
 
   subroutine starFormationRateInterOutputNames(self,time,names)
-    !!{
-    Return the names of the \mono{starFormationRateInterOutput} properties.
+    !!{RST
+    Return the names of the ``starFormationRateInterOutput`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                            :: self
@@ -165,8 +164,8 @@ contains
   end subroutine starFormationRateInterOutputNames
 
   subroutine starFormationRateInterOutputDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{starFormationRateInterOutput} properties.
+    !!{RST
+    Return the descriptions of the ``starFormationRateInterOutput`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                             :: self
@@ -182,8 +181,8 @@ contains
   end subroutine starFormationRateInterOutputDescriptions
 
   function starFormationRateInterOutputUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{starFormationRateInterOutput} properties in the SI system.
+    !!{RST
+    Return the units of the ``starFormationRateInterOutput`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
@@ -199,7 +198,7 @@ contains
   end function starFormationRateInterOutputUnitsInSI
 
   function starFormationRateInterOutputUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the starFormationRateInterOutput properties.
     !!}
     use :: Units_MetaData, only : unitType

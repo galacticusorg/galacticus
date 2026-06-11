@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a radiation field class which sums over other radiation fields.
 !!}
 
@@ -27,13 +27,15 @@ Implements a radiation field class which sums over other radiation fields.
   end type radiationFieldList
 
   !![
-  <radiationField name="radiationFieldSummation">
-   <description>A radiation field class that computes the total flux as the sum of contributions from a list of constituent \refClass{radiationFieldClass} objects, enabling composite radiation backgrounds to be assembled from individual components.</description>
+  <radiationField name="radiationFieldSummation" docformat="rst">
+   <description>
+   A radiation field class that computes the total flux as the sum of contributions from a list of constituent ``radiationFieldClass`` objects, enabling composite radiation backgrounds to be assembled from individual components.
+   </description>
    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation
-     !!{
+     !!{RST
      A summation radiation field class.
      !!}
      private
@@ -53,8 +55,8 @@ Implements a radiation field class which sums over other radiation fields.
   end type radiationFieldSummation
 
   interface radiationFieldSummation
-     !!{
-     Constructors for the \refClass{radiationFieldSummation} radiation field class.
+     !!{RST
+     Constructors for the ``radiationFieldSummation`` radiation field class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -63,8 +65,8 @@ Implements a radiation field class which sums over other radiation fields.
 contains
 
   function summationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{radiationFieldSummation} radiation field class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``radiationFieldSummation`` radiation field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +96,7 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(radiationFields) result (self)
-    !!{
+    !!{RST
     Internal constructor for the summation radiation field class.
     !!}
     implicit none
@@ -114,7 +116,7 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
+    !!{RST
     Destructor for the summation radiation field class.
     !!}
     implicit none
@@ -136,7 +138,7 @@ contains
   end subroutine summationDestructor
 
   double precision function summationFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Implement a summation radiation field.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function summationFlux
 
   double precision function summationTime(self)
-    !!{
+    !!{RST
     Return the time for which this radiation field is set.
     !!}
     use :: Error, only : Error_Report
@@ -178,7 +180,7 @@ contains
   end function summationTime
 
   subroutine summationTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time (and temperature) of the cosmic microwave background radiation field.
     !!}
     implicit none
@@ -195,7 +197,7 @@ contains
   end subroutine summationTimeSet
 
   logical function summationTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return true as this radiation field depends on time only.
     !!}
     implicit none
@@ -215,8 +217,8 @@ contains
   end function summationTimeDependentOnly
 
   function summationList(self)
-    !!{
-    Return a list of all components for the \mono{summation} radiation field class.
+    !!{RST
+    Return a list of all components for the ``summation`` radiation field class.
     !!}
     implicit none
     class(radiationFieldSummation), intent(inout) :: self

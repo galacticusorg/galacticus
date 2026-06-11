@@ -19,7 +19,7 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-!!{
+!!{RST
 Implements a merger tree branching probability class using a generalized Press-Schechter approach.
 !!}
 
@@ -31,35 +31,35 @@ Implements a merger tree branching probability class using a generalized Press-S
   use :: Numerical_Integration          , only : integrator
 
   !![
-  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
+  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr" docformat="rst">
    <description>
-    A merger tree branching probability class using a generalized Press-Schechter approach. Branching probabilities are
-    computed from solutions to the excursion set barrier first crossing rate problem. Specifically, the branching probability
-    per unit time is:
-    \begin{equation}
-     {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
-     {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
-    \end{equation}
-    where $\omega = \delta_\mathrm{c,0}/D(t)$. The rate of accretion of mass in halos below the resolution limit of the merger
-    tree is
-    \begin{equation}
-     {\d R \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d
-     M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
-    \end{equation}
-    In the above, $G[\omega,\sigma(M),\sigma(M^\prime)]$ is a modification to the merger rate as computed by the selected
-    \refClass{mergerTreeBranchingProbabilityModifierClass}. If \mono{[smoothAccretion]}$=$\mono{true}
-    then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
-    \begin{equation}
-     {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
-     \stackrel{\sim}{f} \over \d t},
-    \end{equation}
-    where $\sigma_\mathrm{max}$ is the peak value of $\sigma(M)$ (for the lowest mass halos) and $\d \stackrel{\sim}{f}/\d t$
-    is the rate at which excursion set trajectories \emph{fail} to cross the barrier on any mass scale.
+   A merger tree branching probability class using a generalized Press-Schechter approach. Branching probabilities are computed from solutions to the excursion set barrier first crossing rate problem. Specifically, the branching probability per unit time is:
+
+   .. math::
+
+      {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+      {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime,
+
+   where :math:`\omega = \delta_\mathrm{c,0}/D(t)`. The rate of accretion of mass in halos below the resolution limit of the merger tree is
+
+   .. math::
+
+      {\d R \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d
+      M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+
+   In the above, :math:`G[\omega,\sigma(M),\sigma(M^\prime)]` is a modification to the merger rate as computed by the selected ``mergerTreeBranchingProbabilityModifierClass``. If ``[smoothAccretion]``\ :math:`=`\ ``true`` then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+
+   .. math::
+
+      {\d R_\mathrm{s} \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} G[\omega,\sigma_\mathrm{max},\sigma(M^\prime)] {\d
+      \stackrel{\sim}{f} \over \d t},
+
+   where :math:`\sigma_\mathrm{max}` is the peak value of :math:`\sigma(M)` (for the lowest mass halos) and :math:`\d \stackrel{\sim}{f}/\d t` is the rate at which excursion set trajectories *fail* to cross the barrier on any mass scale.
    </description>
   </mergerTreeBranchingProbability>
   !!]
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
-     !!{
+     !!{RST
      A merger tree branching probability class using a generalized Press-Schechter approach.
      !!}
      private
@@ -116,8 +116,8 @@ Implements a merger tree branching probability class using a generalized Press-S
   end type mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
 
   interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityGnrlzdPrssSchchtr} merger tree branching probability class.
+     !!{RST
+     Constructors for the ``mergerTreeBranchingProbabilityGnrlzdPrssSchchtr`` merger tree branching probability class.
      !!}
      module procedure generalizedPressSchechterConstructorParameters
      module procedure generalizedPressSchechterConstructorInternal
@@ -137,9 +137,8 @@ Implements a merger tree branching probability class using a generalized Press-S
 contains
 
   function generalizedPressSchechterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBranchingProbabilityGnrlzdPrssSchchtr} merger tree branching probability class which reads parameters from a
-    provided parameter list.
+    !!{RST
+    Constructor for the ``mergerTreeBranchingProbabilityGnrlzdPrssSchchtr`` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self
@@ -154,37 +153,43 @@ contains
          &                                                                              distributionFunctionNormalize
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>deltaStepMaximum</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+      <description>
+      Limits the step in :math:`\delta_\mathrm{crit}` when constructing merger trees using the generalized Press-Schechter branching algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>1.0d6</defaultValue>
-      <description>The minimum mass to use in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+      <description>
+      The minimum mass to use in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>smoothAccretion</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not to include smooth accretion in subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+      <description>
+      Specifies whether or not to include smooth accretion in subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionFunctionLowerHalfOnly</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, only the lower half ($M &lt; M_0/2$) of the branching rate distribution function is used, as per the algorithm of \cite{cole_hierarchical_2000}.</description>
+      <description>
+      If true, only the lower half (:math:`M &lt; M_0/2`) of the branching rate distribution function is used, as per the algorithm of :cite:t:`cole_hierarchical_2000`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionFunctionNormalize</name>
       <defaultValue>.true.</defaultValue>
       <description>
-	If using the full range ($M &lt; M_0$) of the branching rate distribution, if this parameter is \mono{true} then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary
-	split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be
-	\mono{true} in which case this normalization by a factor 2 is \emph{not} applied.
+      If using the full range (:math:`M &lt; M_0`) of the branching rate distribution, if this parameter is ``true`` then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be ``true`` in which case this normalization by a factor 2 is *not* applied.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -207,8 +212,8 @@ contains
   end function generalizedPressSchechterConstructorParameters
 
   function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,distributionFunctionLowerHalfOnly,distributionFunctionNormalize,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
-    !!{
-    Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    !!{RST
+    Internal constructor for the :cite:t:`cole_hierarchical_2000` merger tree building class.
     !!}
     use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
@@ -265,8 +270,8 @@ contains
   end subroutine generalizedPressSchechterDestructor
 
   subroutine generalizedPressSchechterExcursionSetTest(self,node)
-    !!{
-    Make a call to excursion set routines with the maximum $\sigma$ that we will use to ensure that they can handle it.
+    !!{RST
+    Make a call to excursion set routines with the maximum :math:`\sigma` that we will use to ensure that they can handle it.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
@@ -287,9 +292,8 @@ contains
   end subroutine generalizedPressSchechterExcursionSetTest
 
   double precision function generalizedPressSchechterMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
-    !!{
-    Determine the mass of one of the halos to which the given halo branches, given the branching probability, \mono{probabilityFraction}. Typically, \mono{probabilityFraction} is found by multiplying \mono{Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
-    branches. This routine then finds the progenitor mass corresponding to this value.
+    !!{RST
+    Determine the mass of one of the halos to which the given halo branches, given the branching probability, ``probabilityFraction``. Typically, ``probabilityFraction`` is found by multiplying ``Generalized_Press_Schechter_Branching_Probability()`` by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass corresponding to this value.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
     use :: Error             , only : Error_Report
@@ -367,7 +371,7 @@ contains
   end function generalizedPressSchechterMassBranch
 
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
-    !!{
+    !!{RST
     Root function used in solving for the branch mass.
     !!}
     implicit none
@@ -383,9 +387,8 @@ contains
   end function generalizedPressSchechterMassBranchRoot
 
   double precision function generalizedPressSchechterRate(self,mass,deltaCritical,time,massBranch,node)
-    !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
-    \mono{deltaCritical} will undergo a branching to progenitors with mass \mono{massBranch}.
+    !!{RST
+    Return the rate per unit mass and per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass ``massBranch``.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
@@ -413,8 +416,8 @@ contains
   end function generalizedPressSchechterRate
 
   double precision function generalizedPressSchechterStepMaximum(self,haloMass,deltaCritical,time,massResolution)
-    !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} should be allowed to take.
+    !!{RST
+    Return the maximum allowed step in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` should be allowed to take.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
@@ -427,9 +430,8 @@ contains
   end function generalizedPressSchechterStepMaximum
 
   double precision function generalizedPressSchechterProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
-    !!{
-    Return bounds on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
-    \mono{massResolution}.
+    !!{RST
+    Return bounds on the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout)         :: self
@@ -444,9 +446,8 @@ contains
   end function generalizedPressSchechterProbabilityBound
 
   double precision function generalizedPressSchechterProbability(self,haloMass,deltaCritical,time,massResolution,node)
-    !!{
-    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at
-    time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than \mono{massResolution}.
+    !!{RST
+    Return the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
@@ -482,9 +483,8 @@ contains
   end function generalizedPressSchechterProbability
 
   double precision function generalizedPressSchechterFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
-    !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below \mono{massResolution}, per unit
-    change in $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time \mono{deltaCritical}. The integral is computed numerically.
+    !!{RST
+    Return the fraction of mass accreted in subresolution halos, i.e. those below ``massResolution``, per unit change in :math:`\delta_\mathrm{crit}` for a halo of mass ``haloMass`` at time ``deltaCritical``. The integral is computed numerically.
     !!}
     use :: Display           , only : displayMagenta, displayReset
     use :: Error             , only : Warn          , errorStatusSuccess
@@ -553,7 +553,7 @@ contains
   end function generalizedPressSchechterFractionSubresolution
 
   double precision function generalizedPressSchechterProbabilityIntegrand(childHaloMass)
-    !!{
+    !!{RST
     Integrand for the branching probability.
     !!}
     implicit none
@@ -566,7 +566,7 @@ contains
   end function generalizedPressSchechterProbabilityIntegrand
 
   double precision function generalizedPressSchechterFractionSubresolutionIntegrand(childHaloMass)
-    !!{
+    !!{RST
     Integrand for the subresolution fraction.
     !!}
     implicit none
@@ -585,7 +585,7 @@ contains
   end function generalizedPressSchechterFractionSubresolutionIntegrand
 
   double precision function generalizedPressSchechterProgenitorMassFunction(childHaloMass,childSigma,childAlpha,node)
-    !!{
+    !!{RST
     Progenitor mass function from Press-Schechter.
     !!}
     implicit none
@@ -597,14 +597,14 @@ contains
   end function generalizedPressSchechterProgenitorMassFunction
 
   double precision function generalizedPressSchechterMergingRate(childHaloMass,childSigma,childAlpha,node)
-    !!{
-    Computes the merging rate of dark matter halos in the generalized Press-Schechter algorithm. This ``merging rate'' is specifically defined as
-    \begin{equation}
-    {\mathrm{d}^2 f \over \mathrm{d} \ln M_\mathrm{child} \mathrm{d} \delta_\mathrm{c}} = 2 \sigma^2(M_\mathrm{child}) \left.{\mathrm{d} \ln \sigma \over \mathrm{d} \ln M}\right|_{M=M_\mathrm{child}} {\mathrm{d}t\over \mathrm{d}\delta_\mathrm{c}} {\mathrm{d}f_{12}\over \mathrm{d}t},
-    \end{equation}
-    where $\mathrm{d} f_{12}/\mathrm{d}t$ is the excursion set barrier crossing probability per unit time for the effective barrier
-    $B^\prime(S_\mathrm{child}|S_\mathrm{parent},t)\equiv B(S_\mathrm{child},t-\delta t)-B(S_\mathrm{parent},t)$ in the limit $\delta t
-    \rightarrow 0$.
+    !!{RST
+    Computes the merging rate of dark matter halos in the generalized Press-Schechter algorithm. This "merging rate" is specifically defined as
+
+    .. math::
+
+       {\mathrm{d}^2 f \over \mathrm{d} \ln M_\mathrm{child} \mathrm{d} \delta_\mathrm{c}} = 2 \sigma^2(M_\mathrm{child}) \left.{\mathrm{d} \ln \sigma \over \mathrm{d} \ln M}\right|_{M=M_\mathrm{child}} {\mathrm{d}t\over \mathrm{d}\delta_\mathrm{c}} {\mathrm{d}f_{12}\over \mathrm{d}t},
+
+    where :math:`\mathrm{d} f_{12}/\mathrm{d}t` is the excursion set barrier crossing probability per unit time for the effective barrier :math:`B^\prime(S_\mathrm{child}|S_\mathrm{parent},t)\equiv B(S_\mathrm{child},t-\delta t)-B(S_\mathrm{parent},t)` in the limit :math:`\delta t \rightarrow 0`.
     !!}
     implicit none
     double precision          , intent(in   ) :: childAlpha       , childSigma        , &
@@ -650,7 +650,7 @@ contains
   end function generalizedPressSchechterMergingRate
 
   subroutine generalizedPressSchechterComputeCommonFactors(self,node,haloMass,deltaCritical,time)
-    !!{
+    !!{RST
     Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
     !!}
     implicit none

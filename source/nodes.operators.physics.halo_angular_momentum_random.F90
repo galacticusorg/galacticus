@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that initializes halo angular momenta using spins drawn at random from a distribution.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
 
   !![
-  <nodeOperator name="nodeOperatorHaloAngularMomentumRandom">
-   <description>A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a \refClass{haloSpinDistributionClass} (e.g.\ a log-normal distribution). \mono{factorReset} specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.</description>
+  <nodeOperator name="nodeOperatorHaloAngularMomentumRandom" docformat="rst">
+   <description>
+   A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a ``haloSpinDistributionClass`` (e.g.\ a log-normal distribution). ``factorReset`` specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumRandom
-     !!{
+     !!{RST
      A node operator class that initializes halo spins to random values drawn from a distribution.
      !!}
      private
@@ -43,8 +45,8 @@
   end type nodeOperatorHaloAngularMomentumRandom
   
   interface nodeOperatorHaloAngularMomentumRandom
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
      !!}
      module procedure haloAngularMomentumRandomConstructorParameters
      module procedure haloAngularMomentumRandomConstructorInternal
@@ -53,8 +55,8 @@
 contains
   
   function haloAngularMomentumRandomConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,10 +67,12 @@ contains
     double precision                                                       :: factorReset
      
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorReset</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
+      <description>
+      The factor by which a node must increase in mass before its spin parameter is reset.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
@@ -84,8 +88,8 @@ contains
   end function haloAngularMomentumRandomConstructorParameters
 
   function haloAngularMomentumRandomConstructorInternal(factorReset,haloSpinDistribution_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandom)                        :: self
@@ -100,8 +104,8 @@ contains
   end function haloAngularMomentumRandomConstructorInternal
 
   subroutine haloAngularMomentumRandomDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorHaloAngularMomentumRandom} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandom), intent(inout) :: self
@@ -114,7 +118,7 @@ contains
   end subroutine haloAngularMomentumRandomDestructor
 
   subroutine haloAngularMomentumRandomNodeInitialize(self,node)
-    !!{
+    !!{RST
     Assign a randomly-drawn spin to a node.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale

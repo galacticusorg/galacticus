@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of cosmological density field mass variance which scales that of another class.
   !!}
 
   !![
-  <cosmologicalMassVariance name="cosmologicalMassVarianceScaled">
+  <cosmologicalMassVariance name="cosmologicalMassVarianceScaled" docformat="rst">
    <description>
-    The mass variance of cosmological density fields is computed by scaling that from another class by a factor of \mono{[scale]}.
+   The mass variance of cosmological density fields is computed by scaling that from another class by a factor of ``[scale]``.
    </description>
   </cosmologicalMassVariance>
   !!]
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceScaled
-     !!{
+     !!{RST
      A cosmological mass variance class that scales the variance from another class.
      !!}
      private
@@ -48,8 +48,8 @@
   end type cosmologicalMassVarianceScaled
 
   interface cosmologicalMassVarianceScaled
-     !!{
-     Constructors for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
+     !!{RST
+     Constructors for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function scaledConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -71,11 +71,13 @@ contains
 
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The multiplicative factor applied to the rms mass variance $\sigma(M,t)$ returned by the wrapped \refClass{cosmologicalMassVarianceClass} object, allowing renormalization of the power spectrum amplitude.</description>
+      <description>
+      The multiplicative factor applied to the rms mass variance :math:`\sigma(M,t)` returned by the wrapped ``cosmologicalMassVarianceClass`` object, allowing renormalization of the power spectrum amplitude.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
@@ -87,8 +89,8 @@ contains
   end function scaledConstructorParameters
 
   function scaledConstructorInternal(scale,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
+    !!{RST
+    Internal constructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceScaled)                        :: self
@@ -103,8 +105,8 @@ contains
   end function scaledConstructorInternal
 
   subroutine scaledDestructor(self)
-    !!{
-    Destructor for the \refClass{cosmologicalMassVarianceScaled} cosmological mass variance class.
+    !!{RST
+    Destructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -116,7 +118,7 @@ contains
   end subroutine scaledDestructor
 
   double precision function scaledPowerNormalization(self)
-    !!{
+    !!{RST
     Return the normalization of the power spectrum.
     !!}
     implicit none
@@ -127,8 +129,8 @@ contains
   end function scaledPowerNormalization
 
   double precision function scaledSigma8(self)
-    !!{
-    Return the value of $\sigma_8$.
+    !!{RST
+    Return the value of :math:`\sigma_8`.
     !!}
     implicit none
     class(cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -138,8 +140,8 @@ contains
   end function scaledSigma8
 
   double precision function scaledRootVariance(self,mass,time)
-    !!{
-    Return the root-variance of the cosmological density field in a spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -151,9 +153,8 @@ contains
   end function scaledRootVariance
 
   double precision function scaledRootVarianceLogarithmicGradient(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -164,9 +165,8 @@ contains
   end function scaledRootVarianceLogarithmicGradient
 
   double precision function scaledRootVarianceLogarithmicGradientTime(self,mass,time)
-    !!{
-    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    region containing the given \mono{mass} on average.
+    !!{RST
+    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -177,9 +177,8 @@ contains
   end function scaledRootVarianceLogarithmicGradientTime
 
   subroutine scaledRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    !!{
-    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    spherical region containing the given \mono{mass} on average.
+    !!{RST
+    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical region containing the given ``mass`` on average.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -193,8 +192,8 @@ contains
   end subroutine scaledRootVarianceAndLogarithmicGradient
 
   double precision function scaledMass(self,rootVariance,time)
-    !!{
-    Return the mass corresponding to the given \mono{} root-variance of the cosmological density field.
+    !!{RST
+    Return the mass corresponding to the given ```` root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
@@ -205,7 +204,7 @@ contains
   end function scaledMass
 
   logical function scaledGrowthIsMassDependent(self)
-    !!{
+    !!{RST
     Return true if the growth rate of the variance is mass-dependent.
     !!}
     implicit none

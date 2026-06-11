@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers orphanizing of satellites that reach the end of their history.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteOrphanize">
-   <description>Converts satellite nodes into orphan galaxies when they reach the end of their tracked merger tree history, detaching them from their host halo and allowing them to persist as unresolved substructure.</description>
+  <nodeOperator name="nodeOperatorSatelliteOrphanize" docformat="rst">
+   <description>
+   Converts satellite nodes into orphan galaxies when they reach the end of their tracked merger tree history, detaching them from their host halo and allowing them to persist as unresolved substructure.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrphanize
-     !!{
+     !!{RST
      A node operator class that triggers orphanizing of satellites that reach the end of their history.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodeOperatorSatelliteOrphanize
   
   interface nodeOperatorSatelliteOrphanize
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteOrphanize} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorSatelliteOrphanize`` node operator class.
      !!}
      module procedure satelliteOrphanizeConstructorParameters
   end interface nodeOperatorSatelliteOrphanize
@@ -47,8 +49,8 @@
 contains
 
   function satelliteOrphanizeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteOrphanize} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorSatelliteOrphanize`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +65,7 @@ contains
   end function satelliteOrphanizeConstructorParameters
   
   subroutine satelliteOrphanizeAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent, openMPThreadBindingAtLevel
@@ -77,8 +79,8 @@ contains
   end subroutine satelliteOrphanizeAutoHook
 
   subroutine satelliteOrphanizeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteOrphanize} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorSatelliteOrphanize`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent
     implicit none
@@ -91,7 +93,7 @@ contains
   end subroutine satelliteOrphanizeDestructor
 
   subroutine satelliteOrphanizeDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Trigger orphanization of a satellite.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, &
@@ -138,7 +140,7 @@ contains
   end subroutine satelliteOrphanizeDifferentialEvolution
 
   subroutine orphanizePerform(node,timeEnd)
-    !!{
+    !!{RST
     Perform the orphanization the satellite.
     !!}
     use :: Display           , only : displayMessage    , displayVerbosity      , verbosityLevelInfo
@@ -201,7 +203,7 @@ contains
   end subroutine orphanizePerform
 
   subroutine satelliteHostChange(self,node)
-    !!{
+    !!{RST
     Handle cases where a satellite switches host node.
     !!}
     use :: Error             , only : Error_Report
@@ -263,9 +265,8 @@ contains
   end subroutine satelliteHostChange
 
   subroutine branchJumpPostProcess(self,node)
-    !!{    
-    For inter-tree node transfers and branch jumps, ensure that any orphaned mergees of the transferred node are transferred over
-    to the new branch.
+    !!{RST
+    For inter-tree node transfers and branch jumps, ensure that any orphaned mergees of the transferred node are transferred over to the new branch.
     !!}
     use :: Error             , only : Error_Report
     use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo

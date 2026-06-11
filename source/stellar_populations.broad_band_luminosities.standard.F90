@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard stellar populations broad band luminosities class.
   !!}
   
@@ -27,7 +27,7 @@
   use            :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorClass
 
   type luminosityTable
-     !!{
+     !!{RST
      Structure for holding tables of simple stellar population luminosities.
      !!}
      integer                                                       :: agesCount           , metallicitiesCount
@@ -39,12 +39,14 @@
   end type luminosityTable
 
   !![
-  <stellarPopulationBroadBandLuminosities name="stellarPopulationBroadBandLuminositiesStandard">
-   <description>The standard stellar populations broad band luminosities class.</description>
+  <stellarPopulationBroadBandLuminosities name="stellarPopulationBroadBandLuminositiesStandard" docformat="rst">
+   <description>
+   The standard stellar populations broad band luminosities class.
+   </description>
   </stellarPopulationBroadBandLuminosities>
   !!]
   type, extends(stellarPopulationBroadBandLuminositiesClass) :: stellarPopulationBroadBandLuminositiesStandard
-     !!{
+     !!{RST
      The standard stellar population broad band luminosities class.
      !!}
      private
@@ -66,8 +68,8 @@
   end type stellarPopulationBroadBandLuminositiesStandard
 
   interface stellarPopulationBroadBandLuminositiesStandard
-     !!{
-     Constructors for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class.
+     !!{RST
+     Constructors for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -86,9 +88,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class which takes a parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
@@ -101,34 +102,44 @@ contains
     type            (varying_string                                )                :: storeDirectory
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>integrationToleranceRelative</name>
       <defaultValue>4.0d-3</defaultValue>
-      <description>The relative tolerance used when integrating the flux of stellar populations through filters.</description>
+      <description>
+      The relative tolerance used when integrating the flux of stellar populations through filters.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>integrationToleranceDegrade</name>
       <defaultValue>.false.</defaultValue>
-      <description>If \mono{true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
+      <description>
+      If ``true``, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>storeToFile</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
+      <description>
+      Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>storeDirectory</name>
       <defaultValue>inputPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
-      <description>Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
+      <description>
+      Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>maximumAgeExceededIsFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not exceeding the maximum available age of the stellar population is fatal.</description>
+      <description>
+      Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -140,8 +151,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(integrationToleranceRelative,integrationToleranceDegrade,maximumAgeExceededIsFatal,storeToFile,storeDirectory) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationBroadBandLuminositiesStandard} stellar population broad band luminosities class.
+    !!{RST
+    Internal constructor for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class.
     !!}
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self
@@ -157,8 +168,8 @@ contains
   end function standardConstructorInternal
 
   function standardLuminosities(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,age,redshift)
-    !!{
-    Returns the luminosity for a $1 \mathrm{M}_\odot$ simple \mono{stellarPopulation\_} of given \mono{abundances} and \mono{age} and observed through the filter specified by \mono{filterIndex}.
+    !!{RST
+    Returns the luminosity for a :math:`1 \mathrm{M}_\odot` simple ``stellarPopulation_`` of given ``abundances`` and ``age`` and observed through the filter specified by ``filterIndex``.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use            :: Error               , only : Error_Report
@@ -233,9 +244,8 @@ contains
   end function standardLuminosities
 
   subroutine standardLuminosityTracks(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,abundancesStellar,redshift,ages,luminosities)
-    !!{
-    Returns the luminosity for a $1 \mathrm{M}_\odot$ simple stellar population of given \mono{abundances} drawn from
-    the given \mono{stellarPopulation} and observed through the filter specified by \mono{filterIndex}, for all available ages.
+    !!{RST
+    Returns the luminosity for a :math:`1 \mathrm{M}_\odot` simple stellar population of given ``abundances`` drawn from the given ``stellarPopulation`` and observed through the filter specified by ``filterIndex``, for all available ages.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, logMetallicityZero, metallicityTypeLogarithmicByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -288,7 +298,7 @@ contains
   end subroutine standardLuminosityTracks
 
   subroutine standardTabulate(self,luminosityIndex,filterIndex,stellarPopulationSpectraPostprocessor_,stellarPopulation_,redshift)
-    !!{
+    !!{RST
     Tabulate stellar population luminosity in the given filters.
     !!}
     use            :: Abundances_Structure            , only : logMetallicityZero          , metallicityTypeLogarithmicByMassSolar
@@ -348,9 +358,9 @@ contains
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
 	       <description>
-		 Defined assignment for components not used when those are ALLOCATABLE.
+	       Defined assignment for components not used when those are ALLOCATABLE.
 	       </description>
 	     !!]
              do iLuminosity=1,size(luminosityTablesTemporary)
@@ -645,7 +655,7 @@ contains
   contains
 
     double precision function integrandFilteredLuminosity(wavelength)
-      !!{
+      !!{RST
       Integrand for the luminosity through a given filter.
       !!}
       implicit none
@@ -668,7 +678,7 @@ contains
     end function integrandFilteredLuminosity
 
     double precision function integrandFilteredLuminosityAB(wavelength)
-      !!{
+      !!{RST
       Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
       !!}
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that solves for chemical evolution in the \gls{cgm}.
+  !!{RST
+  Implements a node operator class that solves for chemical evolution in the :term:`CGM`.
   !!}
 
   use :: Atomic_Cross_Sections_Ionization_Photo, only : atomicCrossSectionIonizationPhotoClass
@@ -32,38 +32,37 @@
   use :: Numerical_Constants_Units             , only : metersToAngstroms                     , electronVolt
 
   !![
-  <nodeOperator name="nodeOperatorCGMChemistry">
+  <nodeOperator name="nodeOperatorCGMChemistry" docformat="rst">
     <description>
-      A node operator class solves for chemical evolution in the \gls{cgm}. Chemical abundances are evolved according to a
-      \refClass{chemicalReactionRateClass} object, with the option of the ionization state of atomic hydrogen being set to
-      equilibrium values. This can be advantageous as the timescales for the reactions controlling the ionization state of atomic
-      hydrogen can become extremely small, resulting in extremely slow evolution of the ODE system.
+    A node operator class solves for chemical evolution in the :term:`CGM`. Chemical abundances are evolved according to a ``chemicalReactionRateClass`` object, with the option of the ionization state of atomic hydrogen being set to equilibrium values. This can be advantageous as the timescales for the reactions controlling the ionization state of atomic hydrogen can become extremely small, resulting in extremely slow evolution of the ODE system.
 
-      The parameter \mono{fractionTimescaleEquilibrium} controls when the equilibrium assumption should be made. Specifically, equilibrium is assume if:
-      \begin{equation}
-      \tau_\mathrm{H} &lt; f_\mathrm{dyn} \tau_\mathrm{dyn},
-      \end{equation}
-      where $f_\mathrm{dyn}=$\mono{[fractionTimescaleEquilibrium]}, $\tau_\mathrm{dyn}$ is the dynamical time in
-      the halo, and
-      \begin{equation}
-      \tau_\mathrm{H} = \mathrm{min}\left(\tau_\alpha,\tau_\beta,\tau_\Gamma\right),
-      \end{equation}
-      where $\tau_\alpha=1/\alpha n$, $\tau_\beta=1/\beta n$,$\tau_\Gamma=1/\Gamma$, $n$ is the number density of hydrogen, and
-      $\alpha$, $\beta$, and $\Gamma$ are the collisional ionization, radiative recombination, and photoionization rate
-      coefficients for hydrogen respectively.
+    The parameter ``fractionTimescaleEquilibrium`` controls when the equilibrium assumption should be made. Specifically, equilibrium is assume if:
 
-      If the system is judged to be in equilibrium then the neutral fraction of hydrogen is computed as:
-      \begin{equation}
-      x_\mathrm{H} = \frac{ \tau_\Gamma^{-1} + \tau_\alpha^{-1} +2 \tau_\beta^{-1} - \sqrt{ \tau_\Gamma^{-2} +2 \tau_\alpha^{-1} \tau_\Gamma^{-1}  + \tau_\alpha^{-2}  + 4 \tau_\beta^{-1} \tau_\Gamma^{-1} } }{ 2 \tau_\alpha^{-1} + \tau_\beta^{-1} }.
-      \end{equation}
-      The abundances of H, H$^+$, and e$^-$ are then fixed according to this fraction, and reaction rates for them are set to
-      zero.
+    .. math::
+
+       \tau_\mathrm{H} &lt; f_\mathrm{dyn} \tau_\mathrm{dyn},
+
+    where :math:`f_\mathrm{dyn}=`\ ``[fractionTimescaleEquilibrium]``, :math:`\tau_\mathrm{dyn}` is the dynamical time in the halo, and
+
+    .. math::
+
+       \tau_\mathrm{H} = \mathrm{min}\left(\tau_\alpha,\tau_\beta,\tau_\Gamma\right),
+
+    where :math:`\tau_\alpha=1/\alpha n`, :math:`\tau_\beta=1/\beta n`,\ :math:`\tau_\Gamma=1/\Gamma`, :math:`n` is the number density of hydrogen, and :math:`\alpha`, :math:`\beta`, and :math:`\Gamma` are the collisional ionization, radiative recombination, and photoionization rate coefficients for hydrogen respectively.
+
+    If the system is judged to be in equilibrium then the neutral fraction of hydrogen is computed as:
+
+    .. math::
+
+       x_\mathrm{H} = \frac{ \tau_\Gamma^{-1} + \tau_\alpha^{-1} +2 \tau_\beta^{-1} - \sqrt{ \tau_\Gamma^{-2} +2 \tau_\alpha^{-1} \tau_\Gamma^{-1}  + \tau_\alpha^{-2}  + 4 \tau_\beta^{-1} \tau_\Gamma^{-1} } }{ 2 \tau_\alpha^{-1} + \tau_\beta^{-1} }.
+
+    The abundances of H, H\ :math:`^+`, and e\ :math:`^-` are then fixed according to this fraction, and reaction rates for them are set to zero.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMChemistry
-     !!{
-     A node operator class that solves for chemical evolution in the \gls{cgm}.
+     !!{RST
+     A node operator class that solves for chemical evolution in the :term:`CGM`.
      !!}
      private
      logical                                                                              :: chemicalsPresent                            , assumeEquilibrium
@@ -94,8 +93,8 @@
   end type nodeOperatorCGMChemistry
 
   interface nodeOperatorCGMChemistry
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMChemistry} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorCGMChemistry`` node operator class.
      !!}
      module procedure cgmChemistryConstructorParameters
      module procedure cgmChemistryConstructorInternal
@@ -121,8 +120,8 @@
 contains
 
   function cgmChemistryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMChemistry} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorCGMChemistry`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Radiation_Fields, only : radiationFieldNull
@@ -139,10 +138,12 @@ contains
     double precision                                                        :: fractionTimescaleEquilibrium
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionTimescaleEquilibrium</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The fraction of the halo dynamical time which, if atomic chemistry timescales are smaller than, switch to an equilibrium calculation of atomic abundances.</description>
+      <description>
+      The fraction of the halo dynamical time which, if atomic chemistry timescales are smaller than, switch to an equilibrium calculation of atomic abundances.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="chemicalReactionRate"              name="chemicalReactionRate_"              source="parameters"/>
@@ -181,8 +182,8 @@ contains
   end function cgmChemistryConstructorParameters
 
   function cgmChemistryConstructorInternal(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMChemistry} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorCGMChemistry`` node operator class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index, Chemicals_Property_Count
     implicit none
@@ -216,8 +217,8 @@ contains
   end function cgmChemistryConstructorInternal
   
   subroutine cgmChemistryDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMChemistry} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorCGMChemistry`` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMChemistry), intent(inout) :: self
@@ -235,7 +236,7 @@ contains
   end subroutine cgmChemistryDestructor
 
   subroutine cgmChemistryDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances 
@@ -258,8 +259,8 @@ contains
   end subroutine cgmChemistryDifferentialEvolutionAnalytics
 
   subroutine cgmChemistryDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
-    Evolve \gls{cgm} chemistry.
+    !!{RST
+    Evolve :term:`CGM` chemistry.
     !!}
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo
     use :: Chemical_Abundances_Structure, only : chemicalAbundances 
@@ -313,7 +314,7 @@ contains
   end subroutine cgmChemistryDifferentialEvolutionSolveAnalytics
 
   subroutine cgmChemistryDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform differential evolution.
     !!}
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances 
@@ -395,7 +396,7 @@ contains
   end subroutine cgmChemistryDifferentialEvolution
 
   subroutine cgmChemistryComputeState(self,node,temperature,chemicalDensities,massToDensityConversion)
-    !!{
+    !!{RST
     Compute the state of the chemical system.
     !!}
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances 
@@ -452,7 +453,7 @@ contains
   end subroutine cgmChemistryComputeState
 
   subroutine cgmChemistryAtomicEquilibrium(self,node,timescaleCollisionalIonization,timescaleRadiativeRecombination,timescalePhotoionization)
-    !!{
+    !!{RST
     Determine if equilibrium should be assumed for atomic abundances.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -499,9 +500,8 @@ contains
   end subroutine cgmChemistryAtomicEquilibrium
 
   double precision function crossSectionPhotoionization(wavelength)
-    !!{
-    Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
-    \cite{abel_modeling_1997}.
+    !!{RST
+    Compute the cross-section (in units of cm\ :math:`^{2}`) for the reaction :math:`\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}` as given by :cite:t:`abel_modeling_1997`.
     !!}
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
     use :: Tables                    , only : table1DLogarithmicLinear

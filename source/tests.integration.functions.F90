@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of integrands for unit tests.
 !!}
 
 module Test_Integration_Functions
-  !!{
+  !!{RST
   Contains integrands for unit tests.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Test_Integration_Functions
 contains
 
   double precision function Integrand1(x)
-    !!{
+    !!{RST
     Integral for unit testing.
     !!}
     implicit none
@@ -43,7 +43,7 @@ contains
   end function Integrand1
 
   double precision function Integrand2(x)
-    !!{
+    !!{RST
     Integral for unit testing.
     !!}
     implicit none
@@ -54,7 +54,7 @@ contains
   end function Integrand2
 
   double precision function Integrand3(x)
-    !!{
+    !!{RST
     Integral for unit testing.
     !!}
     implicit none
@@ -65,7 +65,7 @@ contains
   end function Integrand3
 
   double precision function Integrand4(x)
-    !!{
+    !!{RST
     Integral for unit testing.
     !!}
     use :: Numerical_Integration, only : integrator

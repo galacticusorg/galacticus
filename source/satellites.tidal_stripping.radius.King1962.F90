@@ -19,8 +19,8 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
 
-  !!{
-  Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+  !!{RST
+  Implementation of a satellite tidal radius class which follows the method of :cite:t:`king_structure_1962`.
   !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -29,22 +29,21 @@
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
   
   !![
-  <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusKing1962">
+  <satelliteTidalStrippingRadius name="satelliteTidalStrippingRadiusKing1962" docformat="rst">
    <description>
-    A satellite tidal radius class which uses the method of \cite{king_structure_1962}:
-    \begin{equation}
-    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
-    \end{equation}
-    where $\omega$ is the orbital angular velocity of the satellite, $\Phi(r)$ is the gravitational potential due to the host,
-    and $\gamma_\mathrm{c}=$\mono{[efficiencyCentrifugal]} is the a model parameter that controls the efficiency of
-    centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is
-    made for the baryonic components.
+   A satellite tidal radius class which uses the method of :cite:t:`king_structure_1962`:
+
+   .. math::
+
+      r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c} \omega^2-d^2\Phi/dr^2}\right)^{1/3},
+
+   where :math:`\omega` is the orbital angular velocity of the satellite, :math:`\Phi(r)` is the gravitational potential due to the host, and :math:`\gamma_\mathrm{c}=`\ ``[efficiencyCentrifugal]`` is the a model parameter that controls the efficiency of centrifugal force. The calculation is based on the dark matter only density profile of the satellite---no accounting is made for the baryonic components.
    </description>
   </satelliteTidalStrippingRadius>
   !!]
   type, extends(satelliteTidalStrippingRadiusClass) :: satelliteTidalStrippingRadiusKing1962
-     !!{
-     Implementation of a satellite tidal radius class which follows the method of \cite{king_structure_1962}.
+     !!{RST
+     Implementation of a satellite tidal radius class which follows the method of :cite:t:`king_structure_1962`.
      !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_  => null()
@@ -59,8 +58,8 @@
   end type satelliteTidalStrippingRadiusKing1962
 
   interface satelliteTidalStrippingRadiusKing1962
-     !!{
-     Constructors for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
+     !!{RST
+     Constructors for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
      !!}
      module procedure king1962ConstructorParameters
      module procedure king1962ConstructorInternal
@@ -69,8 +68,8 @@
 contains
 
   function king1962ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,16 +82,20 @@ contains
     logical                                                                :: applyPreInfall
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyCentrifugal</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>Efficiency of the centrifugal force. For zero value, the centrifugal force is neglected in computing the tidal radius.</description>
+      <description>
+      Efficiency of the centrifugal force. For zero value, the centrifugal force is neglected in computing the tidal radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>applyPreInfall</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tidal radii are computed pre-infall, allowing tidal stripping to begin acting on satellites before they formally enter the host virial radius.</description>
+      <description>
+      If true, tidal radii are computed pre-infall, allowing tidal stripping to begin acting on satellites before they formally enter the host virial radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -110,8 +113,8 @@ contains
   end function king1962ConstructorParameters
 
   function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,satelliteTidalField_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
+    !!{RST
+    Internal constructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
@@ -134,8 +137,8 @@ contains
   end function king1962ConstructorInternal
 
   subroutine king1962Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteTidalStrippingRadiusKing1962} satellite tidal stripping class.
+    !!{RST
+    Destructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self
@@ -149,8 +152,8 @@ contains
   end subroutine king1962Destructor
 
   double precision function king1962Radius(self,node)
-    !!{
-    Return the tidal radius using the formulation of \cite{king_structure_1962}.
+    !!{RST
+    Return the tidal radius using the formulation of :cite:t:`king_structure_1962`.
     !!}
     use :: Galactic_Structure_Options      , only : massTypeDark
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentBasic            , treeNode

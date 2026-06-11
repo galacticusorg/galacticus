@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of stateful types.
 !!}
 
 module Stateful_Types
-  !!{
+  !!{RST
   Contains stateful types.
   !!}
   implicit none

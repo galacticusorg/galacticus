@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations of black hole binary mergers.
 !!}
 
 module Black_Hole_Binary_Mergers
-  !!{
+  !!{RST
   Implements a class for calculations of black hole binary mergers.
   !!}
   implicit none
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleBinaryMerger</name>
    <descriptiveName>Black Hole Binaries Merger</descriptiveName>
-   <description>Class providing models of black hole binary mergers---the outcome (final mass and spin) of
-    the coalescence of two black holes of given masses and spins. When two galaxies merge their central black
-    holes eventually form a bound binary and spiral together via dynamical friction, eventually merging through
-    gravitational wave emission. The merger product mass and spin determine the subsequent evolution of the
-    remnant black hole, including its subsequent accretion and feedback. Implementations are typically based
-    on numerical relativity fitting formulae.</description>
+   <description>
+   Class providing models of black hole binary mergers---the outcome (final mass and spin) of the coalescence of two black holes of given masses and spins. When two galaxies merge their central black holes eventually form a bound binary and spiral together via dynamical friction, eventually merging through gravitational wave emission. The merger product mass and spin determine the subsequent evolution of the remnant black hole, including its subsequent accretion and feedback. Implementations are typically based on numerical relativity fitting formulae.
+   </description>
    <default>rezzolla2008</default>
    <method name="merge" >
-    <description>The properties of the black hole resulting from a binary merger.</description>
+    <description>
+    The properties of the black hole resulting from a binary merger.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massBlackHoleA    , massBlackHoleB, spinBlackHoleA    , spinBlackHoleB</argument>

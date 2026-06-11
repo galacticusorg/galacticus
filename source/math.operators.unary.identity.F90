@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an identity unary operator.
   !!}
 
   !![
-  <operatorUnary name="operatorUnaryIdentity">
-   <description>A unary operator implementing the identity transformation $f(x) = x$; applying this operator leaves the value unchanged, and its inverse is also the identity.</description>
+  <operatorUnary name="operatorUnaryIdentity" docformat="rst">
+   <description>
+   A unary operator implementing the identity transformation :math:`f(x) = x`; applying this operator leaves the value unchanged, and its inverse is also the identity.
+   </description>
   </operatorUnary>
   !!]
   type, extends(operatorUnaryClass) :: operatorUnaryIdentity
-     !!{
+     !!{RST
      Implementation of an identity unary operator.
      !!}
      private
@@ -38,8 +40,8 @@
   end type operatorUnaryIdentity
 
   interface operatorUnaryIdentity
-     !!{
-     Constructors for the \refClass{operatorUnaryIdentity} 1D distribution function class.
+     !!{RST
+     Constructors for the ``operatorUnaryIdentity`` 1D distribution function class.
      !!}
      module procedure identityConstructorParameters
   end interface operatorUnaryIdentity
@@ -47,9 +49,8 @@
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{operatorUnaryIdentity} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``operatorUnaryIdentity`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +65,7 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,x)
-    !!{
+    !!{RST
     Apply an identity operation.
     !!}
     implicit none
@@ -77,7 +78,7 @@ contains
   end function identityOperate
 
   double precision function identityUnoperate(self,f)
-    !!{
+    !!{RST
     Unapply an identity operation.
     !!}
     implicit none
@@ -90,7 +91,7 @@ contains
   end function identityUnoperate
 
   double precision function identityJacobian(self,x)
-    !!{
+    !!{RST
     Compute the Jacobian of an identity operation.
     !!}
     implicit none

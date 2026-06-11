@@ -17,24 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor which reports if a node is drawn from the constrained branching rate solution.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorConstrainedStatus">
+  <nodePropertyExtractor name="nodePropertyExtractorConstrainedStatus" docformat="rst">
    <description>
-    A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-    extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
-    branching rate solution and a value of 0 indicating that it does not.
+   A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be extracted as ``nodeIsConstrained``, with a value of 1 indicating that the node follows the constrained branching rate solution and a value of 0 indicating that it does not.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorConstrainedStatus
-     !!{
-     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be
-     extracted as \mono{nodeIsConstrained}, with a value of 1 indicating that the node follows the constrained
-     branching rate solution and a value of 0 indicating that it does not.
+     !!{RST
+     A node property extractor class which extracts the constrained excursion set solution status of each node. The status will be extracted as ``nodeIsConstrained``, with a value of 1 indicating that the node follows the constrained branching rate solution and a value of 0 indicating that it does not.
      !!}
      private
      integer :: isConstrainedID
@@ -45,8 +41,8 @@
   end type nodePropertyExtractorConstrainedStatus
 
   interface nodePropertyExtractorConstrainedStatus
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorConstrainedStatus`` property extractor class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal
@@ -55,8 +51,8 @@
 contains
 
   function constrainedStatusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorConstrainedStatus`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +67,8 @@ contains
   end function constrainedStatusConstructorParameters
 
   function constrainedStatusConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorConstrainedStatus} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorConstrainedStatus`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConstrainedStatus) :: self
@@ -86,8 +82,8 @@ contains
   end function constrainedStatusConstructorInternal
 
   function constrainedStatusExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{constrainedStatus} node property extractor.
+    !!{RST
+    Implement a ``constrainedStatus`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -112,7 +108,7 @@ contains
   end function constrainedStatusExtract
 
   function constrainedStatusName(self)
-    !!{
+    !!{RST
     Return the name of the constrainedStatus property.
     !!}
     implicit none
@@ -125,7 +121,7 @@ contains
   end function constrainedStatusName
   
   function constrainedStatusDescription(self)
-    !!{
+    !!{RST
     Return a description of the constrainedStatus property.
     !!}
     implicit none

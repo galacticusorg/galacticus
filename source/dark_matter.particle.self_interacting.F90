@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a selfInteracting dark matter particle class.
 !!}
 
   !![
-  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter">
-   <description>Provides a self-interacting dark matter particle candidate in which dark matter undergoes elastic scattering, modifying halo density profiles on small scales. The elastic self-interaction cross section per unit mass in units of cm$^2$~g$^{-1}$ is set by \mono{[crossSectionSelfInteraction]}.</description>
+  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter" docformat="rst">
+   <description>
+   Provides a self-interacting dark matter particle candidate in which dark matter undergoes elastic scattering, modifying halo density profiles on small scales. The elastic self-interaction cross section per unit mass in units of cm\ :math:`^2` g\ :math:`^{-1}` is set by ``[crossSectionSelfInteraction]``.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleSelfInteractingDarkMatter
-     !!{
+     !!{RST
      A selfInteracting dark matter particle class.
      !!}
      private
@@ -47,8 +49,8 @@ Implements a selfInteracting dark matter particle class.
   end type darkMatterParticleSelfInteractingDarkMatter
 
   interface darkMatterParticleSelfInteractingDarkMatter
-     !!{
-     Constructors for the \refClass{darkMatterParticleSelfInteractingDarkMatter} dark matter particle class.
+     !!{RST
+     Constructors for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
      !!}
      module procedure selfInteractingDMConstructorParameters
      module procedure selfInteractingDMConstructorInternal
@@ -57,8 +59,8 @@ Implements a selfInteracting dark matter particle class.
 contains
 
   function selfInteractingDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterParticleSelfInteractingDarkMatter} dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,10 +70,12 @@ contains
     double precision                                                             :: crossSectionSelfInteraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>crossSectionSelfInteraction</name>
       <source>parameters</source>
-      <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
+      <description>
+      The self-interaction cross section in units of cm\ :math:`^2` g\ :math:`^{-1}`.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
@@ -84,8 +88,8 @@ contains
   end function selfInteractingDMConstructorParameters
 
   function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterParticleSelfInteractingDarkMatter} dark matter particle class.
+    !!{RST
+    Internal constructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self
@@ -100,8 +104,8 @@ contains
   end function selfInteractingDMConstructorInternal
 
   subroutine selfInteractingDMDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterParticleSelfInteractingDarkMatter} dark matter particle class.
+    !!{RST
+    Destructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
@@ -113,7 +117,7 @@ contains
   end subroutine selfInteractingDMDestructor
 
   double precision function selfInteractingDMMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a self-interacting dark matter particle.
     !!}
     implicit none
@@ -124,8 +128,8 @@ contains
   end function selfInteractingDMMass
 
   double precision function selfInteractingDMCrossSectionSelfInteraction(self)
-    !!{
-    Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
@@ -135,9 +139,8 @@ contains
   end function selfInteractingDMCrossSectionSelfInteraction
 
   double precision function selfInteractingDMCrossSectionSelfInteractionDifferential(self,theta)
-    !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
-    ster$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self

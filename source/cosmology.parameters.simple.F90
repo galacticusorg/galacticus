@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A simple implementation of the cosmological parameters class.
   !!}
 
   !![
-  <cosmologyParameters name="cosmologyParametersSimple">
-   <description>Provides basic cosmological parameters including the matter density $\Omega_\mathrm{M}$, baryon density $\Omega_\mathrm{b}$, dark energy density $\Omega_\Lambda$, \gls{cmb} temperature $T_\mathrm{CMB}$, and Hubble constant $H_0$, all specified as input parameters. Also computes derived quantities including the curvature density $\Omega_\mathrm{K}$, radiation density $\Omega_\mathrm{r}$, and critical density $\rho_\mathrm{crit}$.</description>
+  <cosmologyParameters name="cosmologyParametersSimple" docformat="rst">
+   <description>
+   Provides basic cosmological parameters including the matter density :math:`\Omega_\mathrm{M}`, baryon density :math:`\Omega_\mathrm{b}`, dark energy density :math:`\Omega_\Lambda`, :term:`CMB` temperature :math:`T_\mathrm{CMB}`, and Hubble constant :math:`H_0`, all specified as input parameters. Also computes derived quantities including the curvature density :math:`\Omega_\mathrm{K}`, radiation density :math:`\Omega_\mathrm{r}`, and critical density :math:`\rho_\mathrm{crit}`.
+   </description>
   </cosmologyParameters>
   !!]
   type, extends(cosmologyParametersClass) :: cosmologyParametersSimple
-     !!{
+     !!{RST
      A simple cosmological parameters class.
      !!}
      private
@@ -45,7 +47,7 @@
   end type cosmologyParametersSimple
 
   interface cosmologyParametersSimple
-     !!{
+     !!{RST
      Constructors for the simple cosmological parameters class.
      !!}
      module procedure simpleConstructorParameters
@@ -55,7 +57,7 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the simple cosmological parameters class which takes a parameter set as input.
     !!}
     use :: Display, only : displayMagenta, displayReset
@@ -68,40 +70,60 @@ contains
          &                                                        temperatureCMB
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>OmegaMatter</name>
       <source>parameters</source>
       <defaultValue>0.3153d0</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The density of matter in the Universe in units of the critical density.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The density of matter in the Universe in units of the critical density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>OmegaBaryon</name>
       <source>parameters</source>
       <defaultValue>0.04930d0</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The density of baryons in the Universe in units of the critical density.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The density of baryons in the Universe in units of the critical density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>OmegaDarkEnergy</name>
       <source>parameters</source>
       <defaultValue>0.6847d0</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The density of dark energy in the Universe in units of the critical density.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The density of dark energy in the Universe in units of the critical density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureCMB</name>
       <source>parameters</source>
       <defaultValue>2.72548d0</defaultValue>
-      <defaultSource>\citep{fixsen_temperature_2009}</defaultSource>
-      <description>The present day temperature of the \gls{cmb} in units of Kelvin.</description>
+      <defaultSource>
+      :cite:p:`fixsen_temperature_2009`
+      </defaultSource>
+      <description>
+      The present day temperature of the :term:`CMB` in units of Kelvin.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>HubbleConstant</name>
       <source>parameters</source>
       <defaultValue>67.36d0</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The present day value of the Hubble parameter in units of km/s/Mpc.
+      </description>
     </inputParameter>
     !!]
     ! Validate the input.
@@ -115,7 +137,7 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant) result(self)
-    !!{
+    !!{RST
     Internal constructor for the simple cosmological parameters class.
     !!}
     implicit none
@@ -133,7 +155,7 @@ contains
   end function simpleConstructorInternal
 
   double precision function simpleOmegaMatter(self)
-    !!{
+    !!{RST
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
     implicit none
@@ -144,7 +166,7 @@ contains
   end function simpleOmegaMatter
 
   double precision function simpleOmegaBaryon(self)
-    !!{
+    !!{RST
     Return the cosmological baryon density in units of the critical density at the present day.
     !!}
     implicit none
@@ -155,7 +177,7 @@ contains
   end function simpleOmegaBaryon
 
   double precision function simpleOmegaDarkEnergy(self)
-    !!{
+    !!{RST
     Return the cosmological dark energy density in units of the critical density at the present day.
     !!}
     implicit none
@@ -166,7 +188,7 @@ contains
   end function simpleOmegaDarkEnergy
 
   double precision function simpleOmegaRadiation(self)
-    !!{
+    !!{RST
     Return the cosmological radiation density in units of the critical density at the present day.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar        , megaParsec
@@ -184,7 +206,7 @@ contains
   end function simpleOmegaRadiation
 
   double precision function simpleOmegaCurvature(self)
-    !!{
+    !!{RST
     Return the cosmological curvature density in units of the critical density at the present day.
     !!}
     implicit none
@@ -197,8 +219,8 @@ contains
   end function simpleOmegaCurvature
 
   double precision function simpleTemperatureCMB(self)
-    !!{
-    Return the present day temperature of the \gls{cmb}.
+    !!{RST
+    Return the present day temperature of the :term:`CMB`.
     !!}
     implicit none
     class(cosmologyParametersSimple), intent(inout) :: self
@@ -208,7 +230,7 @@ contains
   end function simpleTemperatureCMB
 
   double precision function simpleHubbleConstant(self,units)
-    !!{
+    !!{RST
     Return the present day value of the Hubble constant.
     !!}
     use :: Error                           , only : Error_Report
@@ -241,8 +263,8 @@ contains
   end function simpleHubbleConstant
 
   double precision function simpleDensityCritical(self)
-    !!{
-    Return the present day critical density of the Universe in units of $\mathrm{M}_\odot$/Mpc$^3$.
+    !!{RST
+    Return the present day critical density of the Universe in units of :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

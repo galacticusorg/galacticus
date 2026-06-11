@@ -17,24 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar winds class based on \cite{leitherer_deposition_1992}.
+  !!{RST
+  Implements a stellar winds class based on :cite:t:`leitherer_deposition_1992`.
   !!}
 
   use :: Numerical_Constants_Astronomical, only : metallicitySolar
   use :: Stellar_Astrophysics_Tracks     , only : stellarTracksClass
 
   !![
-  <stellarWinds name="stellarWindsLeitherer1992">
+  <stellarWinds name="stellarWindsLeitherer1992" docformat="rst">
    <description>
-    A stellar winds class using the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input
-    from the luminosity and effective temperature of a star.
+   A stellar winds class using the fitting formulae of :cite:t:`leitherer_deposition_1992` to compute stellar wind energy input from the luminosity and effective temperature of a star.
    </description>
   </stellarWinds>
   !!]
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
-     !!{
-     A stellar winds class based on \cite{leitherer_deposition_1992}.
+     !!{RST
+     A stellar winds class based on :cite:t:`leitherer_deposition_1992`.
      !!}
      private
      class(stellarTracksClass), pointer :: stellarTracks_ => null()
@@ -45,8 +44,8 @@
   end type stellarWindsLeitherer1992
 
   interface stellarWindsLeitherer1992
-     !!{
-     Constructors for the \refClass{stellarWindsLeitherer1992} stellar winds class.
+     !!{RST
+     Constructors for the ``stellarWindsLeitherer1992`` stellar winds class.
      !!}
      module procedure leitherer1992ConstructorParameters
      module procedure leitherer1992ConstructorInternal
@@ -58,8 +57,8 @@
 contains
 
   function leitherer1992ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarWindsLeitherer1992} stellar winds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``stellarWindsLeitherer1992`` stellar winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +78,8 @@ contains
   end function leitherer1992ConstructorParameters
 
   function leitherer1992ConstructorInternal(stellarTracks_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarWindsLeitherer1992} stellar winds class.
+    !!{RST
+    Internal constructor for the ``stellarWindsLeitherer1992`` stellar winds class.
     !!}
     implicit none
     type (stellarWindsLeitherer1992)                        :: self
@@ -93,8 +92,8 @@ contains
   end function leitherer1992ConstructorInternal
 
   subroutine leitherer1992Destructor(self)
-    !!{
-    Destructor for the \refClass{stellarWindsLeitherer1992} stellar winds class.
+    !!{RST
+    Destructor for the ``stellarWindsLeitherer1992`` stellar winds class.
     !!}
     implicit none
     type(stellarWindsLeitherer1992), intent(inout) :: self
@@ -106,8 +105,8 @@ contains
   end subroutine leitherer1992Destructor
 
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
-    !!{
-    Compute the mass loss rate (in $\mathrm{M}_\odot$/Gyr) from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
+    !!{RST
+    Compute the mass loss rate (in :math:`\mathrm{M}_\odot`/Gyr) from a star of given ``initialMass``, ``age`` and ``metallicity`` using the fitting formula of :cite:t:`leitherer_deposition_1992`.
     !!}
     implicit none
     class           (stellarWindsLeitherer1992), intent(inout) :: self
@@ -140,9 +139,8 @@ contains
   end function leitherer1992RateMassLoss
 
   double precision function leitherer1992VelocityTerminal(self,initialMass,age,metallicity)
-    !!{
-    Compute the terminal velocity (in km/s) from a star of given \mono{initialMass}, \mono{age} and \mono{metallicity} using
-    the fitting formula of \cite{leitherer_deposition_1992}.
+    !!{RST
+    Compute the terminal velocity (in km/s) from a star of given ``initialMass``, ``age`` and ``metallicity`` using the fitting formula of :cite:t:`leitherer_deposition_1992`.
     !!}
     implicit none
      class           (stellarWindsLeitherer1992), intent(inout) :: self

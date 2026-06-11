@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a peak-background split density 1D distribution function.
   !!}
 
   use :: Tables, only : table1D, table1DLinearLinear
 
   !![
-  <distributionFunction1D name="distributionFunction1DPeakBackground">
-   <description>A 1D peak-background split distribution function class that describes the distribution of density fluctuations in the peak-background split formalism, parameterized by the background variance and collapse threshold, used for modeling conditional halo mass functions and large-scale bias.</description>
+  <distributionFunction1D name="distributionFunction1DPeakBackground" docformat="rst">
+   <description>
+   A 1D peak-background split distribution function class that describes the distribution of density fluctuations in the peak-background split formalism, parameterized by the background variance and collapse threshold, used for modeling conditional halo mass functions and large-scale bias.
+   </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DPeakBackground
-     !!{
+     !!{RST
      Implementation of a peakBackground 1D distribution function.
      !!}
      private
@@ -47,8 +49,8 @@
   end type distributionFunction1DPeakBackground
 
   interface distributionFunction1DPeakBackground
-     !!{
-     Constructors for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
+     !!{RST
+     Constructors for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
      !!}
      module procedure peakBackgroundConstructorParameters
      module procedure peakBackgroundConstructorInternal
@@ -57,9 +59,8 @@
 contains
 
   function peakBackgroundConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,14 +70,18 @@ contains
     double precision                                                      :: varianceBackground    , thresholdCollapse
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceBackground</name>
-      <description>The variance $\sigma_\mathrm{bg}^2$ of the background density field on large scales in the peak-background split formalism, which sets the width of the environmental distribution and controls the large-scale clustering bias.</description>
+      <description>
+      The variance :math:`\sigma_\mathrm{bg}^2` of the background density field on large scales in the peak-background split formalism, which sets the width of the environmental distribution and controls the large-scale clustering bias.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdCollapse</name>
-      <description>The linear overdensity threshold $\delta_\mathrm{c}$ above which density perturbations collapse to form halos in the peak-background split formalism; sets the minimum background density for halo formation.</description>
+      <description>
+      The linear overdensity threshold :math:`\delta_\mathrm{c}` above which density perturbations collapse to form halos in the peak-background split formalism; sets the minimum background density for halo formation.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -90,8 +95,8 @@ contains
   end function peakBackgroundConstructorParameters
 
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
+    !!{RST
+    Constructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
@@ -132,7 +137,7 @@ contains
   contains
 
     double precision function cdfIntegrand(x)
-      !!{
+      !!{RST
       The integrand for the cumulative distribution function.
       !!}
       implicit none
@@ -145,8 +150,8 @@ contains
   end function peakBackgroundConstructorInternal
 
   subroutine peakBackgroundDestructor(self)
-    !!{
-    Destructor for the \refClass{distributionFunction1DPeakBackground} 1D distribution function class.
+    !!{RST
+    Destructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
     !!}
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self
@@ -160,7 +165,7 @@ contains
   end subroutine peakBackgroundDestructor
 
   double precision function peakBackgroundMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value of a peak-background split distribution.
     !!}
     use :: Error, only : Error_Report
@@ -174,7 +179,7 @@ contains
   end function peakBackgroundMinimum
 
   double precision function peakBackgroundMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value of a peak-background split distribution.
     !!}
     use :: Error, only : Error_Report
@@ -188,7 +193,7 @@ contains
   end function peakBackgroundMaximum
 
   double precision function peakBackgroundDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a normal distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -228,7 +233,7 @@ contains
   end function peakBackgroundDensity
 
   double precision function peakBackgroundCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a normal distribution.
     !!}
     implicit none
@@ -246,7 +251,7 @@ contains
   end function peakBackgroundCumulative
 
   double precision function peakBackgroundInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a normal distribution.
     !!}
     use :: Error, only : Error_Report

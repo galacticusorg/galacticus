@@ -17,23 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body data operator which filters particles to select those within a sphere such that the
-contamination by particles of non-preferred type is below a specified level.
+!!{RST
+Implements an N-body data operator which filters particles to select those within a sphere such that the contamination by particles of non-preferred type is below a specified level.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorFilterUncontaminatedSphere">
+  <nbodyOperator name="nbodyOperatorFilterUncontaminatedSphere" docformat="rst">
     <description>
-      An N-body data operator which filters particles to select those within a sphere such that the contamination by particles of
-      non-preferred type is below a specified level.
+    An N-body data operator which filters particles to select those within a sphere such that the contamination by particles of non-preferred type is below a specified level.
     </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterUncontaminatedSphere
-     !!{
-     An N-body data operator which filters particles to select those within a sphere such that the contamination by particles of
-     non-preferred type is below a specified level.
+     !!{RST
+     An N-body data operator which filters particles to select those within a sphere such that the contamination by particles of non-preferred type is below a specified level.
      !!}
      private
      double precision, dimension(3) :: point
@@ -45,8 +42,8 @@ contamination by particles of non-preferred type is below a specified level.
   end type nbodyOperatorFilterUncontaminatedSphere
 
   interface nbodyOperatorFilterUncontaminatedSphere
-     !!{
-     Constructors for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class.
      !!}
      module procedure filterUncontaminatedSphereConstructorParameters
      module procedure filterUncontaminatedSphereConstructorInternal
@@ -55,8 +52,8 @@ contamination by particles of non-preferred type is below a specified level.
 contains
 
   function filterUncontaminatedSphereConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,25 +65,33 @@ contains
     logical                                                                  :: massWeighted
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>point</name>
       <source>parameters</source>
-      <description>The point at which to center the filtered sphere.</description>
+      <description>
+      The point at which to center the filtered sphere.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionContamination</name>
       <source>parameters</source>
-      <description>The contamination fraction allowed within the sphere.</description>
+      <description>
+      The contamination fraction allowed within the sphere.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>particleType</name>
       <source>parameters</source>
-      <description>The preferred particle type for filtering.</description>
+      <description>
+      The preferred particle type for filtering.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massWeighted</name>
       <source>parameters</source>
-      <description>If true, contamination is weighted by particle mass, otherwise it is unweighted (i.e. depends on the number of particles only).</description>
+      <description>
+      If true, contamination is weighted by particle mass, otherwise it is unweighted (i.e. depends on the number of particles only).
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorFilterUncontaminatedSphere(point,fractionContamination,particleType,massWeighted)
@@ -97,8 +102,8 @@ contains
   end function filterUncontaminatedSphereConstructorParameters
 
   function filterUncontaminatedSphereConstructorInternal(point,fractionContamination,particleType,massWeighted) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFilterUncontaminatedSphere} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorFilterUncontaminatedSphere)                              :: self
@@ -114,7 +119,7 @@ contains
   end function filterUncontaminatedSphereConstructorInternal
 
   subroutine filterUncontaminatedSphereOperate(self,simulations)
-    !!{
+    !!{RST
     Filter particles outside of an uncontaminated region.
     !!}
     use :: Sorting, only : sortIndex

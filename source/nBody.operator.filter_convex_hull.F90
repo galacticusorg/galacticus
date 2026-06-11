@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which filters particles outside of a convex hull.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorFilterConvexHull">
-   <description>An N-body data operator which retains only particles whose positions fall inside the convex hull of another simulation dataset, enabling filtering to an irregular survey geometry or simulation subvolume boundary. The convex hull is taken from the simulation identified by the \mono{[simulationIndex]} parameter.</description>
+  <nbodyOperator name="nbodyOperatorFilterConvexHull" docformat="rst">
+   <description>
+   An N-body data operator which retains only particles whose positions fall inside the convex hull of another simulation dataset, enabling filtering to an irregular survey geometry or simulation subvolume boundary. The convex hull is taken from the simulation identified by the ``[simulationIndex]`` parameter.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterConvexHull
-     !!{
+     !!{RST
      An N-body data operator which filters particles outside of a convex hull.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which filters particles outside of a convex h
   end type nbodyOperatorFilterConvexHull
 
   interface nbodyOperatorFilterConvexHull
-     !!{
-     Constructors for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFilterConvexHull`` N-body operator class.
      !!}
      module procedure filterConvexHullConstructorParameters
      module procedure filterConvexHullConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which filters particles outside of a convex h
 contains
 
   function filterConvexHullConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFilterConvexHull`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     integer                                               :: hullFromSimulation
    
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>hullFromSimulation</name>
       <source>parameters</source>
-      <description>The index of the simulation from which to take the convex hull.</description>
+      <description>
+      The index of the simulation from which to take the convex hull.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorFilterConvexHull(hullFromSimulation)
@@ -71,8 +75,8 @@ contains
   end function filterConvexHullConstructorParameters
 
   function filterConvexHullConstructorInternal(hullFromSimulation) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFilterConvexHull} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFilterConvexHull`` N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +90,7 @@ contains
   end function filterConvexHullConstructorInternal
 
   subroutine filterConvexHullOperate(self,simulations)
-    !!{
+    !!{RST
     Filter particles outside of a convex hull.
     !!}
     use :: Display           , only : displayIndent , displayMessage     , displayUnindent, verbosityLevelStandard, &

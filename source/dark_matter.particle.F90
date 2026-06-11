@@ -17,27 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements dark matter particle physics.
 !!}
 
 module Dark_Matter_Particles
-  !!{
+  !!{RST
   Provides a class that implements dark matter particle physics.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterParticle</name>
    <descriptiveName>Dark Matter Particle</descriptiveName>
-   <description>Class providing the physical properties of the dark matter particle, primarily its mass (in keV). The
-    particle mass is relevant for warm dark matter (WDM) models for example, where free-streaming suppresses the power spectrum on
-    small scales. Different implementations specify different dark matter candidates such as cold dark matter (CDM),
-    WDM, sterile neutrinos, or axion-like particles.</description>
+   <description>
+   Class providing the physical properties of the dark matter particle, primarily its mass (in keV). The particle mass is relevant for warm dark matter (WDM) models for example, where free-streaming suppresses the power spectrum on small scales. Different implementations specify different dark matter candidates such as cold dark matter (CDM), WDM, sterile neutrinos, or axion-like particles.
+   </description>
    <default>CDM</default>
    <method name="mass" >
-    <description>Return the mass of the dark matter particle in units of keV.</description>
+    <description>
+    Return the mass of the dark matter particle in units of keV.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>

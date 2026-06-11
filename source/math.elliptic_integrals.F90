@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements exponential integrals.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements exponential integrals.
 !; gsl
 
 module Elliptic_Integrals
-  !!{
+  !!{RST
   Implements exponential integrals.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
@@ -36,8 +36,8 @@ module Elliptic_Integrals
 
   interface
      function gsl_sf_ellint_Kcomp(k,mode) bind(c,name='gsl_sf_ellint_Kcomp')
-       !!{
-       Template for the GSL $K(k)$ elliptic integral function
+       !!{RST
+       Template for the GSL :math:`K(k)` elliptic integral function
        !!}
        import c_double, c_int
        real   (c_double)        :: gsl_sf_ellint_Kcomp
@@ -45,8 +45,8 @@ module Elliptic_Integrals
        integer(c_int   ), value :: mode
      end function gsl_sf_ellint_Kcomp
      function gsl_sf_ellint_Ecomp(k,mode) bind(c,name='gsl_sf_ellint_Ecomp')
-       !!{
-       Template for the GSL $E(k)$ elliptic integral function
+       !!{RST
+       Template for the GSL :math:`E(k)` elliptic integral function
        !!}
        import c_double, c_int
        real   (c_double)        :: gsl_sf_ellint_Ecomp
@@ -54,8 +54,8 @@ module Elliptic_Integrals
        integer(c_int   ), value :: mode
      end function gsl_sf_ellint_Ecomp
      function gsl_sf_ellint_Pcomp(k,n,mode) bind(c,name='gsl_sf_ellint_Pcomp')
-       !!{
-       Template for the GSL $\Pi(k,n)$ elliptic integral function
+       !!{RST
+       Template for the GSL :math:`\Pi(k,n)` elliptic integral function
        !!}
        import c_double, c_int
        real   (c_double)        :: gsl_sf_ellint_Pcomp
@@ -63,8 +63,8 @@ module Elliptic_Integrals
        integer(c_int   ), value :: mode
      end function gsl_sf_ellint_Pcomp
      function gsl_sf_ellint_E(phi,k,mode) bind(c,name='gsl_sf_ellint_E')
-       !!{
-       Template for the GSL $E(\phi,k)$ incomplete elliptic integral function
+       !!{RST
+       Template for the GSL :math:`E(\phi,k)` incomplete elliptic integral function
        !!}
        import c_double, c_int
        real   (c_double)        :: gsl_sf_ellint_E
@@ -72,8 +72,8 @@ module Elliptic_Integrals
        integer(c_int   ), value :: mode
      end function gsl_sf_ellint_E
      function gsl_sf_ellint_F(phi,k,mode) bind(c,name='gsl_sf_ellint_F')
-       !!{
-       Template for the GSL $F(\phi,k)$ incomplete elliptic integral function
+       !!{RST
+       Template for the GSL :math:`F(\phi,k)` incomplete elliptic integral function
        !!}
        import c_double, c_int
        real   (c_double)        :: gsl_sf_ellint_F
@@ -85,10 +85,8 @@ module Elliptic_Integrals
 contains
 
   double precision function Elliptic_Integral_K(m)
-    !!{
-    Evaluate the $K(m)$ elliptical integral. Note that we use the \cite{abramowitz_handbook_1970} notation here, while GSL uses
-    the \cite{carlson_computing_1979} notation. The conversion from $m$ to $k=\sqrt{m}$ is performed in the call to the GSL
-    function.
+    !!{RST
+    Evaluate the :math:`K(m)` elliptical integral. Note that we use the :cite:t:`abramowitz_handbook_1970` notation here, while GSL uses the :cite:t:`carlson_computing_1979` notation. The conversion from :math:`m` to :math:`k=\sqrt{m}` is performed in the call to the GSL function.
     !!}
     use :: Interface_GSL, only : GSL_Prec_Double
     implicit none
@@ -99,10 +97,8 @@ contains
   end function Elliptic_Integral_K
 
   double precision function Elliptic_Integral_E(m)
-    !!{
-    Evaluate the $E(m)$ elliptical integral. Note that we use the \cite{abramowitz_handbook_1970} notation here, while GSL uses
-    the \cite{carlson_computing_1979} notation. The conversion from $m$ to $k=\sqrt{m}$ is performed in the call to the GSL
-    function.
+    !!{RST
+    Evaluate the :math:`E(m)` elliptical integral. Note that we use the :cite:t:`abramowitz_handbook_1970` notation here, while GSL uses the :cite:t:`carlson_computing_1979` notation. The conversion from :math:`m` to :math:`k=\sqrt{m}` is performed in the call to the GSL function.
     !!}
     use :: Interface_GSL, only : GSL_Prec_Double
     implicit none
@@ -113,10 +109,8 @@ contains
   end function Elliptic_Integral_E
 
   double precision function Elliptic_Integral_Pi(m,n)
-    !!{
-    Evaluate the $\Pi(m,n)$ elliptical integral. Note that we use the \cite{abramowitz_handbook_1970} notation here, while GSL
-    uses the \cite{carlson_computing_1979} notation. The conversion from $m$ to $k=\sqrt{m}$ and $n \rightarrow -n$ is
-    performed in the call to the GSL function.
+    !!{RST
+    Evaluate the :math:`\Pi(m,n)` elliptical integral. Note that we use the :cite:t:`abramowitz_handbook_1970` notation here, while GSL uses the :cite:t:`carlson_computing_1979` notation. The conversion from :math:`m` to :math:`k=\sqrt{m}` and :math:`n \rightarrow -n` is performed in the call to the GSL function.
     !!}
     use :: Interface_GSL, only : GSL_Prec_Double
     implicit none
@@ -127,10 +121,8 @@ contains
   end function Elliptic_Integral_Pi
 
   double precision function Incomplete_Elliptic_Integral_E(phi,m)
-    !!{
-    Evaluate the $E(\phi,m)$ elliptical integral. Note that we use the \cite{abramowitz_handbook_1970} notation here, while GSL uses
-    the \cite{carlson_computing_1979} notation. The conversion from $m$ to $k=\sqrt{m}$ is performed in the call to the GSL
-    function.
+    !!{RST
+    Evaluate the :math:`E(\phi,m)` elliptical integral. Note that we use the :cite:t:`abramowitz_handbook_1970` notation here, while GSL uses the :cite:t:`carlson_computing_1979` notation. The conversion from :math:`m` to :math:`k=\sqrt{m}` is performed in the call to the GSL function.
     !!}
     use :: Interface_GSL, only : GSL_Prec_Double
     implicit none
@@ -141,10 +133,8 @@ contains
   end function Incomplete_Elliptic_Integral_E
 
   double precision function Incomplete_Elliptic_Integral_F(phi,m)
-    !!{
-    Evaluate the $F(\phi,m)$ elliptical integral. Note that we use the \cite{abramowitz_handbook_1970} notation here, while GSL uses
-    the \cite{carlson_computing_1979} notation. The conversion from $m$ to $k=\sqrt{m}$ is performed in the call to the GSL
-    function.
+    !!{RST
+    Evaluate the :math:`F(\phi,m)` elliptical integral. Note that we use the :cite:t:`abramowitz_handbook_1970` notation here, while GSL uses the :cite:t:`carlson_computing_1979` notation. The conversion from :math:`m` to :math:`k=\sqrt{m}` is performed in the call to the GSL function.
     !!}
     use :: Interface_GSL, only : GSL_Prec_Double
     implicit none

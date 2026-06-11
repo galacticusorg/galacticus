@@ -17,28 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{baugh_can_2005} timescale for star formation.
+  !!{RST
+  Implementation of the :cite:t:`baugh_can_2005` timescale for star formation.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <starFormationTimescale name="starFormationTimescaleBaugh2005">
+  <starFormationTimescale name="starFormationTimescaleBaugh2005" docformat="rst">
    <description>
-    A star formation timescale class which adopts the star formation rate given by a modified version of the
-    \cite{baugh_can_2005} prescription:
-    \begin{equation}
-    \tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta
-    \end{equation}
-    where $\tau_0=$\mono{[timescale]}, $\alpha=$\mono{[exponentVelocity]},
-    $\beta=$\mono{[exponentExpansionFactor]}, and $V_0=$\mono{[velocityNormalization]}.
+   A star formation timescale class which adopts the star formation rate given by a modified version of the :cite:t:`baugh_can_2005` prescription:
+
+   .. math::
+
+      \tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta
+
+   where :math:`\tau_0=`\ ``[timescale]``, :math:`\alpha=`\ ``[exponentVelocity]``, :math:`\beta=`\ ``[exponentExpansionFactor]``, and :math:`V_0=`\ ``[velocityNormalization]``.
    </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleBaugh2005
-     !!{
-     Implementation of the \cite{baugh_can_2005} timescale for star formation.
+     !!{RST
+     Implementation of the :cite:t:`baugh_can_2005` timescale for star formation.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_    => null()
@@ -50,8 +50,8 @@
   end type starFormationTimescaleBaugh2005
 
   interface starFormationTimescaleBaugh2005
-     !!{
-     Constructors for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
+     !!{RST
+     Constructors for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
      !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
@@ -60,9 +60,8 @@
 contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,28 +72,36 @@ contains
          &                                                              exponentExpansionFactor, velocityNormalization
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>8.0d0</defaultValue>
-      <description>The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.</description>
+      <description>
+      The timescale (in Gyr) for star formation in the :cite:t:`baugh_can_2005` prescription.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <defaultValue>-3.0d0</defaultValue>
-      <description>The exponent for velocity in the \cite{baugh_can_2005} prescription for star formation.</description>
+      <description>
+      The exponent for velocity in the :cite:t:`baugh_can_2005` prescription for star formation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentExpansionFactor</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation.</description>
+      <description>
+      The exponent for expansion factor in the :cite:t:`baugh_can_2005` prescription for star formation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityNormalization</name>
       <defaultValue>200.0d0</defaultValue>
-      <description>The normalization velocity $V_0$ (in km/s) appearing in the \cite{baugh_can_2005} star formation timescale relation $\tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta$.</description>
+      <description>
+      The normalization velocity :math:`V_0` (in km/s) appearing in the :cite:t:`baugh_can_2005` star formation timescale relation :math:`\tau_\star = \tau_0 (V_\mathrm{disk}/V_0)^\alpha a^\beta`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -108,8 +115,8 @@ contains
   end function baugh2005ConstructorParameters
 
   function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,velocityNormalization,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
+    !!{RST
+    Internal constructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleBaugh2005)                        :: self
@@ -125,8 +132,8 @@ contains
   end function baugh2005ConstructorInternal
 
   subroutine baugh2005Destructor(self)
-    !!{
-    Destructor for the \refClass{starFormationTimescaleBaugh2005} timescale for star formation class.
+    !!{RST
+    Destructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
     !!}
     implicit none
     type(starFormationTimescaleBaugh2005), intent(inout) :: self
@@ -138,8 +145,8 @@ contains
   end subroutine baugh2005Destructor
 
   double precision function baugh2005Timescale(self,component)
-    !!{
-    Returns the timescale (in Gyr) for star formation in the given \mono{component} in the \mono{baugh2005} timescale model.
+    !!{RST
+    Returns the timescale (in Gyr) for star formation in the given ``component`` in the ``baugh2005`` timescale model.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponent, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only nodes that are roots of their merger tree.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterRootNode">
-   <description>Passes only root nodes (the final descendant at the present day, with no further descendants), selecting the base of each merger tree that represents the surviving halo at the final output time, for present-epoch galaxy property analyses.</description>
+  <galacticFilter name="galacticFilterRootNode" docformat="rst">
+   <description>
+   Passes only root nodes (the final descendant at the present day, with no further descendants), selecting the base of each merger tree that represents the surviving halo at the final output time, for present-epoch galaxy property analyses.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterRootNode
-     !!{
+     !!{RST
      A galactic filter class which passes only nodes which are roots of their merger tree.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a filter which passes only nodes that are roots of their merger tree.
   end type galacticFilterRootNode
 
   interface galacticFilterRootNode
-     !!{
-     Constructors for the \refClass{galacticFilterRootNode} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterRootNode`` galactic filter class.
      !!}
      module procedure rootNodeConstructorParameters
   end interface galacticFilterRootNode
@@ -45,8 +47,8 @@ Implements a filter which passes only nodes that are roots of their merger tree.
 contains
 
   function rootNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterRootNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterRootNode`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function rootNodeConstructorParameters
 
   logical function rootNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only main branch halos.
     !!}
     implicit none

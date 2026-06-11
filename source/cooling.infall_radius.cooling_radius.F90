@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
   !!}
 
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !![
-  <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
+  <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" docformat="rst">
    <description>
-    A cooling infall radius class that assumes that the infall radius equals the cooling radius (see
-    \refPhysics{coolingRadius}).
+   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see ``coolingRadius``).
    </description>
   </coolingInfallRadius>
   !!]
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
-     !!{
+     !!{RST
      Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
      !!}
      private
@@ -44,7 +43,7 @@
   end type coolingInfallRadiusCoolingRadius
 
   interface coolingInfallRadiusCoolingRadius
-     !!{
+     !!{RST
      Constructors for the cooling radius infall radii class.
      !!}
      module procedure coolingRadiusConstructorParameters
@@ -54,7 +53,7 @@
 contains
 
   function coolingRadiusConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cooling radius infall radii class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -75,7 +74,7 @@ contains
   end function coolingRadiusConstructorParameters
 
   function coolingRadiusConstructorInternal(coolingRadius_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the cooling radius infall radii class.
     !!}
     implicit none
@@ -89,7 +88,7 @@ contains
   end function coolingRadiusConstructorInternal
 
   subroutine coolingRadiusDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cooling radius infall radii class.
     !!}
     implicit none
@@ -102,8 +101,8 @@ contains
   end subroutine coolingRadiusDestructor
 
   double precision function coolingRadiusRadius(self,node)
-    !!{
-    Return the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!{RST
+    Return the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
@@ -114,8 +113,8 @@ contains
   end function coolingRadiusRadius
 
   double precision function coolingRadiusRadiusIncreaseRate(self,node)
-    !!{
-    Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!{RST
+    Return the growth rate of the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class(coolingInfallRadiusCoolingRadius), intent(inout) :: self

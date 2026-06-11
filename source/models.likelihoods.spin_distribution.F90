@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for halo spin distributions.
   !!}
 
@@ -29,9 +29,11 @@
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>spinDistributionType</name>
-   <description>Used to specify the type of intrinsic spin distribution.</description>
+   <description>
+   Used to specify the type of intrinsic spin distribution.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="logNormal"/>
    <entry label="bett2007" />
@@ -39,13 +41,15 @@
   !!]
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
-   <description>A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by \mono{[fileName]}, with redshift, mass limits, and N-body particle count constraints specified by \mono{[redshift]}, \mono{[massMinimum]}, and \mono{[countMinimum]}.</description>
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution" docformat="rst">
+   <description>
+   A posterior sampling likelihood class which evaluates the likelihood of modeled dark matter halo spin parameter distributions against N-body simulation measurements, accounting for halo mass function weighting and N-body mass errors. The target spin distribution file is set by ``[fileName]``, with redshift, mass limits, and N-body particle count constraints specified by ``[redshift]``, ``[massMinimum]``, and ``[countMinimum]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for fitting dark matter halo spin distributions.
      !!}
      private
@@ -70,8 +74,8 @@
   end type posteriorSampleLikelihoodSpinDistribution
 
   interface posteriorSampleLikelihoodSpinDistribution
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -80,9 +84,8 @@
 contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,47 +103,65 @@ contains
     integer                                                                    :: particleCountMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file containing the target spin distribution.</description>
+      <description>
+      The name of the file containing the target spin distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionType</name>
-      <description>The name of the spin distribution to use.</description>
+      <description>
+      The name of the spin distribution to use.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
-      <description>The redshift at which to compute the spin distribution.</description>
+      <description>
+      The redshift at which to compute the spin distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
-      <description>The mass of a particle in the N-body simulation.</description>
+      <description>
+      The mass of a particle in the N-body simulation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMinimum</name>
-      <description>The minimum halo mass over which to integrate.</description>
+      <description>
+      The minimum halo mass over which to integrate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>particleCountMinimum</name>
-      <description>The minimum particle count used in N-body halos.</description>
+      <description>
+      The minimum particle count used in N-body halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyEstimateParticleCountMaximum</name>
-      <description>The maximum number of N-body particles used in estimating halo energies.</description>
+      <description>
+      The maximum number of N-body particles used in estimating halo energies.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logNormalRange</name>
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
-      <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
+      <defaultSource>
+      A large range which will include (almost) the entirety of the distribution.
+      </defaultSource>
+      <description>
+      The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range :math:`(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R`, where :math:`\lambda_\mathrm{m}` is the measured spin, and :math:`R=`\ ``[logNormalRange]``
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
@@ -161,8 +182,8 @@ contains
   end function spinDistributionConstructorParameters
 
   function spinDistributionConstructorInternal(fileName,distributionType,redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
@@ -218,8 +239,8 @@ contains
   end function spinDistributionConstructorInternal
 
   subroutine spinDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodSpinDistribution} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self
@@ -235,7 +256,7 @@ contains
   end subroutine spinDistributionDestructor
 
   double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the halo spin distribution likelihood function.
     !!}
     use :: Error                         , only : Error_Report
@@ -363,7 +384,7 @@ contains
   contains
 
     double precision function spinDistributionIntegrate(spinPrime)
-      !!{
+      !!{RST
       Integrand function used to find cumulative spin distribution over a bin.
       !!}
       use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -378,7 +399,7 @@ contains
   end function spinDistributionEvaluate
 
   subroutine spinDistributionFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

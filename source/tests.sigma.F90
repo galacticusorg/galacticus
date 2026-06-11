@@ -18,8 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Sigma
-  !!{
-  Tests calculations of the mass variance, $\sigma(M)$.
+  !!{RST
+  Tests calculations of the mass variance, :math:`\sigma(M)`.
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

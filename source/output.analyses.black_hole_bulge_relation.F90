@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a black hole-bulge mass relation analysis class.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
-   <description>Computes the relation between supermassive black hole mass and host spheroid (bulge) stellar mass for comparison with observational data, with configurable random and systematic error polynomial coefficients for both black hole and bulge masses.</description>
+  <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation" docformat="rst">
+   <description>
+   Computes the relation between supermassive black hole mass and host spheroid (bulge) stellar mass for comparison with observational data, with configurable random and systematic error polynomial coefficients for both black hole and bulge masses.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleBulgeRelation
-     !!{
+     !!{RST
      A black hole-bulge mass relation output analysis class.
      !!}
      private
@@ -39,8 +41,8 @@
   end type outputAnalysisBlackHoleBulgeRelation
 
   interface outputAnalysisBlackHoleBulgeRelation
-     !!{
-     Constructors for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisBlackHoleBulgeRelation`` output analysis class.
      !!}
      module procedure blackHoleBulgeRelationConstructorParameters
      module procedure blackHoleBulgeRelationConstructorInternal
@@ -49,8 +51,8 @@
 contains
 
   function blackHoleBulgeRelationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisBlackHoleBulgeRelation`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
@@ -67,33 +69,41 @@ contains
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.09d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.09d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.09d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
@@ -109,8 +119,8 @@ contains
   end function blackHoleBulgeRelationConstructorParameters
 
   function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisBlackHoleBulgeRelation`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -354,8 +364,8 @@ contains
   end function blackHoleBulgeRelationConstructorInternal
 
   subroutine blackHoleBulgeRelationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisBlackHoleBulgeRelation} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisBlackHoleBulgeRelation`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisBlackHoleBulgeRelation), intent(inout) :: self

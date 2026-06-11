@@ -17,22 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
-satellite node passes.
+!!{RST
+Implements a galactic filter which applies another filter to satellite nodes of the given node and returns true if *any* satellite node passes.
 !!}
   
   !![
-  <galacticFilter name="galacticFilterAnySatelliteNode">
+  <galacticFilter name="galacticFilterAnySatelliteNode" docformat="rst">
    <description>
-    Applies a filter to satellite nodes of the given node and returns true if \emph{any} satellite node passes.
+   Applies a filter to satellite nodes of the given node and returns true if *any* satellite node passes.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAnySatelliteNode
-     !!{
-     A galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
-     satellite node passes.
+     !!{RST
+     A galactic filter which applies another filter to satellite nodes of the given node and returns true if *any* satellite node passes.
      !!}
      private
      class(galacticFilterClass), pointer :: galacticFilter_ => null()
@@ -42,8 +40,8 @@ satellite node passes.
   end type galacticFilterAnySatelliteNode
 
   interface galacticFilterAnySatelliteNode
-     !!{
-     Constructors for the \refClass{galacticFilterAnySatelliteNode} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterAnySatelliteNode`` galactic filter class.
      !!}
      module procedure anySatelliteNodeConstructorParameters
      module procedure anySatelliteNodeConstructorInternal
@@ -52,8 +50,8 @@ satellite node passes.
 contains
 
   function anySatelliteNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterAnySatelliteNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterAnySatelliteNode`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,8 +71,8 @@ contains
   end function anySatelliteNodeConstructorParameters
   
   function anySatelliteNodeConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterAnySatelliteNode} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterAnySatelliteNode`` galactic filter class.
     !!}
     implicit none
     type (galacticFilterAnySatelliteNode)                        :: self
@@ -87,8 +85,8 @@ contains
   end function anySatelliteNodeConstructorInternal
   
   subroutine anySatelliteNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterAnySatelliteNode} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterAnySatelliteNode`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAnySatelliteNode), intent(inout) :: self
@@ -100,7 +98,7 @@ contains
   end subroutine anySatelliteNodeDestructor
   
   logical function anySatelliteNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on satellite node properties which passes if any satellite is passed.
     !!}
     implicit none

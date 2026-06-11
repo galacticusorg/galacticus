@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass function output analysis class.
 !!}
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS">
-   <description>Computes the SDSS galaxy luminosity function in one of five photometric bands (u, g, r, i, or z) for comparison with the \cite{montero-dorta_sdss_2009} measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS" docformat="rst">
+   <description>
+   Computes the SDSS galaxy luminosity function in one of five photometric bands (u, g, r, i, or z) for comparison with the :cite:t:`montero-dorta_sdss_2009` measurements, with magnitude random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunction) :: outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
-     !!{
-     An SDSS luminosity function output analysis class for the \cite{montero-dorta_sdss_2009} analysis.
+     !!{RST
+     An SDSS luminosity function output analysis class for the :cite:t:`montero-dorta_sdss_2009` analysis.
      !!}
      private
      class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
@@ -41,8 +43,8 @@ Implements a stellar mass function output analysis class.
   end type outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
 
   interface outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLuminosityFunctionMonteroDorta2009SDSS`` output analysis class.
      !!}
      module procedure luminosityFunctionMonteroDorta2009SDSSConstructorParameters
      module procedure luminosityFunctionMonteroDorta2009SDSSConstructorInternal
@@ -51,8 +53,8 @@ Implements a stellar mass function output analysis class.
 contains
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionMonteroDorta2009SDSS`` output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensing, gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter      , inputParameters
@@ -81,69 +83,93 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>band</name>
       <source>parameters</source>
-      <description>The band (u, g, r, i, or z) for which the luminosity function should be computed.</description>
+      <description>
+      The band (u, g, r, i, or z) for which the luminosity function should be computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
-      <description>The minimum random error for SDSS absolute magnitudes.</description>
+      <defaultSource>
+      Computed from the quoted 95% (S/N\ :math:`\approx`\ 1.64) depth of :math:`r=22.2` (`http://classic.sdss.org/dr7/ &lt;http://classic.sdss.org/dr7/&gt;`_), and assuming that most galaxies are at the limiting magnitude of :math:`17.77` for this sample using :math:`\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]`.
+      </defaultSource>
+      <description>
+      The minimum random error for SDSS absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.01d0</defaultValue>
-      <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
-      <description>The minimum random error for SDSS absolute magnitudes.</description>
+      <defaultSource>
+      Computed from the quoted 95% (S/N\ :math:`\approx`\ 1.64) depth of :math:`r=22.2` (`http://classic.sdss.org/dr7/ &lt;http://classic.sdss.org/dr7/&gt;`_), and assuming that most galaxies are at the limiting magnitude of :math:`17.77` for this sample using :math:`\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]`.
+      </defaultSource>
+      <description>
+      The minimum random error for SDSS absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.01d0]</defaultValue>
-      <defaultSource>Computed from the quoted 95\% (S/N$\approx$1.64) depth of $r=22.2$ (\href{http://classic.sdss.org/dr7/}{http://classic.sdss.org/dr7/}), and assuming that most galaxies are at the limiting magnitude of $17.77$ for this sample using $\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]$.</defaultSource>
-      <description>The coefficients of the random error polynomial for SDSS absolute magnitudes.</description>
+      <defaultSource>
+      Computed from the quoted 95% (S/N\ :math:`\approx`\ 1.64) depth of :math:`r=22.2` (`http://classic.sdss.org/dr7/ &lt;http://classic.sdss.org/dr7/&gt;`_), and assuming that most galaxies are at the limiting magnitude of :math:`17.77` for this sample using :math:`\sigma_M=2.5 \log_{10}[1+1/\left\{\hbox{S/N}_\mathrm{lim} 10^{-0.4(m-m_\mathrm{lim})}\right\}]`.
+      </defaultSource>
+      <description>
+      The coefficients of the random error polynomial for SDSS absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS absolute magnitudes.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS absolute magnitudes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing SDSS luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing SDSS luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing SDSS luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -161,8 +187,8 @@ contains
   end function luminosityFunctionMonteroDorta2009SDSSConstructorParameters
 
   function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunctionMonteroDorta2009SDSS`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -330,8 +356,8 @@ contains
   end function luminosityFunctionMonteroDorta2009SDSSConstructorInternal
 
   subroutine luminosityFunctionMonteroDorta2009SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunctionMonteroDorta2009SDSS} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLuminosityFunctionMonteroDorta2009SDSS`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionMonteroDorta2009SDSS), intent(inout) :: self

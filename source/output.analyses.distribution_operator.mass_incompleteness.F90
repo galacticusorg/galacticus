@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the effects of incompleteness as a function of mass on the distribution.
   !!}
 
   use :: Mass_Function_Incompletenesses, only : massFunctionIncompletenessClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassIncompleteness">
-   <description>An output analysis distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassIncompleteness" docformat="rst">
+   <description>
+   An output analysis distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorMassIncompleteness
-     !!{
+     !!{RST
      An output distribution operator class which implements the effects of incompleteness as a function of mass on the distribution.
      !!}
      private
@@ -41,8 +43,8 @@
   end type outputAnalysisDistributionOperatorMassIncompleteness
 
   interface outputAnalysisDistributionOperatorMassIncompleteness
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
      !!}
      module procedure massIncompletenessConstructorParameters
      module procedure massIncompletenessConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function massIncompletenessConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function massIncompletenessConstructorParameters
 
   function massIncompletenessConstructorInternal(massFunctionIncompleteness_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorMassIncompleteness)                        :: self
@@ -86,8 +88,8 @@ contains
   end function massIncompletenessConstructorInternal
 
   subroutine massIncompletenessDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorMassIncompleteness} output analysis distribution operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorMassIncompleteness), intent(inout) :: self
@@ -99,7 +101,7 @@ contains
   end subroutine massIncompletenessDestructor
 
   function massIncompletenessOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a mass incompleteness output analysis distribution operator.
     !!}
     use :: Error                  , only : Error_Report
@@ -134,7 +136,7 @@ contains
   end function massIncompletenessOperateScalar
 
   function massIncompletenessOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a mass incompleteness output analysis distribution operator.
     !!}
     use :: Error                  , only : Error_Report

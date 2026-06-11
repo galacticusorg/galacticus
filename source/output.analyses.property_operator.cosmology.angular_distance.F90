@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cosmological angular distance corrector analysis property operator class.
 !!}
 
@@ -25,20 +25,14 @@ Implements a cosmological angular distance corrector analysis property operator 
   use :: Output_Times       , only : outputTimesClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc" docformat="rst">
    <description>
-   An output analysis property operator class which corrects properties for the difference in cosmological angular diameter
-   distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have
-   been analyzed assuming some specific set of cosmological parameters which will differ from that in the current
-   model. Therefore, the size of a galaxy must be adjusted to match what would be inferred if they were assessed using the same
-   cosmological parameters as were used for the observational data. Typically, this will mean that sizes are scaled in proportion
-   to $D^\prime_\mathrm{A}(z)/D_\mathrm{A}(z)$, where $D_\mathrm{A}(z)$ and $D^\prime_\mathrm{A}(z)$ are the luminosity distances
-   to redshift $z$ in the true and assumed cosmologies respectively.
-  </description>
+   An output analysis property operator class which corrects properties for the difference in cosmological angular diameter distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the size of a galaxy must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that sizes are scaled in proportion to :math:`D^\prime_\mathrm{A}(z)/D_\mathrm{A}(z)`, where :math:`D_\mathrm{A}(z)` and :math:`D^\prime_\mathrm{A}(z)` are the luminosity distances to redshift :math:`z` in the true and assumed cosmologies respectively.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
-     !!{
+     !!{RST
      A cosmological angular distance corrector analysis property operator class.
      !!}
      private
@@ -51,8 +45,8 @@ Implements a cosmological angular distance corrector analysis property operator 
   end type outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
 
   interface outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
      !!}
      module procedure csmlgyAngularDistanceConstructorParameters
      module procedure csmlgyAngularDistanceConstructorInternal
@@ -61,8 +55,8 @@ Implements a cosmological angular distance corrector analysis property operator 
 contains
 
   function csmlgyAngularDistanceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,8 +85,8 @@ contains
   end function csmlgyAngularDistanceConstructorParameters
 
   function csmlgyAngularDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -144,8 +138,8 @@ contains
   end function csmlgyAngularDistanceConstructorInternal
 
   subroutine csmlgyAngularDistanceDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyAnglrDstnc} output analysis property operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self
@@ -160,7 +154,7 @@ contains
   end subroutine csmlgyAngularDistanceDestructor
 
   double precision function csmlgyAngularDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an csmlgyAngularDistance output analysis property operator.
     !!}
     use :: Error, only : Error_Report

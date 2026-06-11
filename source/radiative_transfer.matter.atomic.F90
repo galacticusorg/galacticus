@@ -29,12 +29,14 @@
   use :: Root_Finder                                 , only : rootFinder
 
   !![
-  <radiativeTransferMatter name="radiativeTransferMatterAtomic">
-   <description>A radiative transfer matter class for atomic gas, computing photoionization, collisional ionization, recombination, and thermal equilibrium for hydrogen and helium. The abundance pattern and metallicity are set via the \mono{[abundancePattern]} and \mono{[metallicity]} parameters, and the temperature floor is controlled by \mono{[temperatureMinimum]}.</description>
+  <radiativeTransferMatter name="radiativeTransferMatterAtomic" docformat="rst">
+   <description>
+   A radiative transfer matter class for atomic gas, computing photoionization, collisional ionization, recombination, and thermal equilibrium for hydrogen and helium. The abundance pattern and metallicity are set via the ``[abundancePattern]`` and ``[metallicity]`` parameters, and the temperature floor is controlled by ``[temperatureMinimum]``.
+   </description>
   </radiativeTransferMatter>
   !!]
   type, extends(radiativeTransferMatterClass) :: radiativeTransferMatterAtomic
-     !!{
+     !!{RST
      Implementation of a radiative transfer matter class for atomic matter.
      !!}
      private
@@ -92,15 +94,15 @@
   end type radiativeTransferMatterAtomic
   
   interface radiativeTransferMatterAtomic
-     !!{
-     Constructors for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
+     !!{RST
+     Constructors for the ``radiativeTransferMatterAtomic`` radiative transfer matter class.
      !!}
      module procedure atomicConstructorParameters
      module procedure atomicConstructorInternal
   end interface radiativeTransferMatterAtomic
 
   type, public :: element
-     !!{
+     !!{RST
      Type used to store elemental states.
      !!}
      double precision                              :: densityNumber
@@ -112,7 +114,7 @@
   end type element
   
   type, extends(radiativeTransferPropertiesMatter), public :: radiativeTransferPropertiesMatterAtomic
-     !!{
+     !!{RST
      Radiative transfer matter properties class for atomic matter.
      !!}
      integer                                              :: iterationCount
@@ -136,8 +138,8 @@
 contains
 
   function atomicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``radiativeTransferMatterAtomic`` radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: ISO_Varying_String              , only : var_str
@@ -162,28 +164,36 @@ contains
     logical                                                                                    :: outputRates                             , outputAbsorptionCoefficients
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>iterationAverageCount</name>
       <defaultValue>5</defaultValue>
-      <description>The number of iterations over which to average the photoionization rate.</description>
+      <description>
+      The number of iterations over which to average the photoionization rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureMinimum</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The minimum temperature that matter is allowed to reach in the case of zero photoheating.</description>
+      <description>
+      The minimum temperature that matter is allowed to reach in the case of zero photoheating.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>abundancePattern</name>
       <defaultValue>var_str('solar')</defaultValue>
-      <description>The elemental abundance pattern (e.g.\ \mono{solar}) used to set the relative number densities of the tracked species relative to hydrogen when computing photoionization and cooling rates.</description>
+      <description>
+      The elemental abundance pattern (e.g.\ ``solar``) used to set the relative number densities of the tracked species relative to hydrogen when computing photoionization and cooling rates.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>metallicity</name>
       <defaultValue>metallicitySolar</defaultValue>
-      <description>The gas metallicity (in units of $Z_\odot$) used to scale the heavy-element abundances relative to the solar pattern when computing photoionization equilibrium and cooling.</description>
+      <description>
+      The gas metallicity (in units of :math:`Z_\odot`) used to scale the heavy-element abundances relative to the solar pattern when computing photoionization equilibrium and cooling.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -193,28 +203,36 @@ contains
        allocate(elements(1                           ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>elements</name>
       <defaultValue>['H']</defaultValue>
-      <description>The list of chemical element symbols (e.g.\ \mono{H}, \mono{He}) whose photoionization equilibrium is tracked; defaults to hydrogen only if not specified.</description>
+      <description>
+      The list of chemical element symbols (e.g.\ ``H``, ``He``) whose photoionization equilibrium is tracked; defaults to hydrogen only if not specified.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputRates</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, write the per-cell photoionization and photoheating rates for each tracked element to the output HDF5 file in addition to the standard ionization-fraction and temperature outputs.</description>
+      <description>
+      If true, write the per-cell photoionization and photoheating rates for each tracked element to the output HDF5 file in addition to the standard ionization-fraction and temperature outputs.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputAbsorptionCoefficients</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).</description>
+      <description>
+      If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergencePercentile</name>
       <defaultValue>0.90d0</defaultValue>
-      <description>The percentile of the per-cell convergence measure distribution used to assess global convergence; e.g.\ 0.90 means convergence is declared when 90\% of cells satisfy the convergence tolerance.</description>
+      <description>
+      The percentile of the per-cell convergence measure distribution used to assess global convergence; e.g.\ 0.90 means convergence is declared when 90% of cells satisfy the convergence tolerance.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
@@ -244,8 +262,8 @@ contains
   end function atomicConstructorParameters
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferMatterAtomic`` radiative transfer matter class.
     !!}
     use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
@@ -353,8 +371,8 @@ contains
   end function atomicConstructorInternal
 
   subroutine atomicDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferMatterAtomic} radiative transfer matter class.
+    !!{RST
+    Destructor for the ``radiativeTransferMatterAtomic`` radiative transfer matter class.
     !!}
     implicit none
     type(radiativeTransferMatterAtomic), intent(inout) :: self
@@ -374,7 +392,7 @@ contains
   end subroutine atomicDestructor
 
   subroutine atomicPropertyClass(self,properties)
-    !!{
+    !!{RST
     Return the property class to use for the computational domain.
     !!}
     implicit none
@@ -387,7 +405,7 @@ contains
   end subroutine atomicPropertyClass
   
   subroutine atomicPopulateDomain(self,properties,integrator,onProcess)
-    !!{
+    !!{RST
     Populate a computational domain cell with atomic matter.
     !!}
     use :: Error, only : Error_Report
@@ -440,7 +458,7 @@ contains
   contains
 
     double precision function atomicDensityIntegrand(coordinates)
-      !!{
+      !!{RST
       Integrand of atomic matter density.
       !!}
       use :: Coordinates, only : coordinate
@@ -455,7 +473,7 @@ contains
 
 #ifdef USEMPI
   subroutine atomicBroadcastDomain(self,sendFromProcess,properties)
-    !!{
+    !!{RST
     Broadcast populated computational domain properties to other MPI processes.
     !!}
     use :: Error        , only : Error_Report
@@ -477,7 +495,7 @@ contains
 #endif
   
   subroutine atomicReset(self,properties)
-    !!{
+    !!{RST
     Reset a computational domain cell prior to a new iteration.
     !!}
     use :: Error, only : Error_Report
@@ -503,7 +521,7 @@ contains
   end subroutine atomicReset
 
   double precision function atomicAbsorptionCoefficient(self,properties,photonPacket)
-    !!{
+    !!{RST
     Return the absorption coefficient for the given photon packet and matter properties.
     !!}
     implicit none
@@ -523,7 +541,7 @@ contains
   end function atomicAbsorptionCoefficient
 
   double precision function atomicCrossSectionPhotoionization(self,elementIndex,ionizationState,wavelength)
-    !!{
+    !!{RST
     Compute the photoionization cross section for the given element and ionization state.
     !!}
     implicit none
@@ -575,7 +593,7 @@ contains
   end function atomicCrossSectionPhotoionization
   
   double precision function atomicAbsorptionCoefficientSpecies(self,elementIndex,ionizationState,wavelength,properties)
-    !!{
+    !!{RST
     Compute the absorption coefficient for the given species and wavelength.
     !!}
     use :: Error                           , only : Error_Report
@@ -607,7 +625,7 @@ contains
   end function atomicAbsorptionCoefficientSpecies
   
   subroutine atomicAccumulatePhotonPacket(self,properties,photonPacket,absorptionCoefficient,lengthTraversed)
-    !!{
+    !!{RST
     Accumulate a photon packet.
     !!}
     use :: Error                           , only : Error_Report
@@ -667,7 +685,7 @@ contains
   end subroutine atomicAccumulatePhotonPacket
 
   logical function atomicInteractWithPhotonPacket(self,properties,photonPacket)
-    !!{
+    !!{RST
     Interact with a photon packet. In this case the photon packet is always absorbed.
     !!}
     implicit none
@@ -682,7 +700,7 @@ contains
 
 #ifdef USEMPI
   subroutine atomicAccumulationReduction(self,properties)
-    !!{
+    !!{RST
     Perform reduction of accumulated properties across MPI processes.
     !!}
     use :: Error        , only : Error_Report
@@ -706,7 +724,7 @@ contains
 #endif
 
   double precision function atomicStateThermalBalance(temperature)
-    !!{
+    !!{RST
     Root function used in finding the equilibrium temperature for thermal balance.
     !!}
     use :: Numerical_Constants_Math    , only : Pi
@@ -777,7 +795,7 @@ contains
   end function atomicStateThermalBalance
   
   subroutine atomicStateSolve(self,properties,status)
-    !!{
+    !!{RST
     Solve for the state of the matter.
     !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA, recombinationCaseB
@@ -1149,7 +1167,7 @@ contains
     
 #ifdef RADTRANSDEBUG
     subroutine debugAbort()
-      !!{
+      !!{RST
       Perform debug reporting and then exit.
       !!}
       implicit none
@@ -1160,7 +1178,7 @@ contains
     end subroutine debugAbort
     
     subroutine debugReport()
-      !!{
+      !!{RST
       Report debugging information.
       !!}
       use, intrinsic :: ISO_Fortran_Env, only : output_unit
@@ -1224,7 +1242,7 @@ contains
   end subroutine atomicStateSolve
   
   subroutine atomicHistoryUpdate(self,properties)
-    !!{
+    !!{RST
     Update the ionization state history in a properties object.
     !!}
     use :: Error, only : Error_Report
@@ -1255,7 +1273,7 @@ contains
   
 #ifdef USEMPI
   subroutine atomicBroadcastState(self,sendFromProcess,properties)
-    !!{
+    !!{RST
     Broadcast computational domain state to other MPI processes.
     !!}
     use :: Error        , only : Error_Report
@@ -1284,7 +1302,7 @@ contains
 #endif
   
   double precision function atomicConvergenceMeasure(self,properties)
-    !!{
+    !!{RST
     Return a convergence measure for the atomic matter.
     !!}
     use :: Arrays_Search   , only : searchArray
@@ -1342,7 +1360,7 @@ contains
   end function atomicConvergenceMeasure
   
   double precision function atomicOutputProperty(self,properties,output)
-    !!{
+    !!{RST
     Return a scalar property to be output.
     !!}
     use :: Error                     , only : Error_Report
@@ -1408,7 +1426,7 @@ contains
   end function atomicOutputProperty
   
   function atomicCountOutputs(self)
-    !!{
+    !!{RST
     Return the number of scalar properties to output.
     !!}
     implicit none
@@ -1421,7 +1439,7 @@ contains
   end function atomicCountOutputs
 
   function atomicOutputName(self,output)
-    !!{
+    !!{RST
     Return the name of the scalar property to be output.
     !!}
     use :: Error                   , only : Error_Report
@@ -1482,7 +1500,7 @@ contains
   end function atomicOutputName
 
   double precision function atomicRecombinationRateHydrogen(self,properties)
-    !!{
+    !!{RST
     Return the total recombination rate for the atomic matter.
     !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseB

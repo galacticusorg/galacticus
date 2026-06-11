@@ -19,22 +19,20 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   Implementation of a heated soliton+NFW mass distribution class.
   !!}
   
   !![
-  <massDistribution name="massDistributionSolitonNFWHeated">
+  <massDistribution name="massDistributionSolitonNFWHeated" docformat="rst">
     <description>
-      A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
-      radii, transitioning to a heated \gls{nfw} profile at larger radii.
+    A mass distribution class for fuzzy dark matter halos :cite:p:`schive_understanding_2014` consisting of soliton core for small radii, transitioning to a heated :term:`NFW` profile at larger radii.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSolitonNFWHeated
-     !!{
-     A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
-     radii, transitioning to a heated \gls{nfw} profile at larger radii.
+     !!{RST
+     A mass distribution class for fuzzy dark matter halos :cite:p:`schive_understanding_2014` consisting of soliton core for small radii, transitioning to a heated :term:`NFW` profile at larger radii.
      !!}
      private
      double precision                                 :: densitySolitonCentral             , radiusCore            , &
@@ -53,8 +51,8 @@
   end type massDistributionSolitonNFWHeated
   
   interface massDistributionSolitonNFWHeated
-     !!{
-     Constructors for the \refClass{massDistributionSolitonNFWHeated} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSolitonNFWHeated`` mass distribution class.
      !!}
      module procedure massDistributionSolitonNFWHeatedConstructorParameters
      module procedure massDistributionSolitonNFWHeatedConstructorInternal
@@ -63,9 +61,8 @@
 contains
   
   function massDistributionSolitonNFWHeatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSolitonNFWHeated} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSolitonNFWHeated`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -79,43 +76,57 @@ contains
     type            (varying_string                  )                :: componentType          , massType
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusCore</name>
-      <description>The soliton core radius (in Mpc) that characterizes the size of the central quantum pressure-supported core of the fuzzy dark matter halo; density is approximately constant within this radius.</description>
+      <description>
+      The soliton core radius (in Mpc) that characterizes the size of the central quantum pressure-supported core of the fuzzy dark matter halo; density is approximately constant within this radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSoliton</name>
-      <description>The outer radius (in Mpc) of the soliton region, beyond which the profile transitions from the soliton core to the heated NFW outer envelope.</description>
+      <description>
+      The outer radius (in Mpc) of the soliton region, beyond which the profile transitions from the soliton core to the heated NFW outer envelope.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densitySolitonCentral</name>
-      <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the normalization of the soliton density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_\mathrm{c})^2]^{-8}$.</description>
+      <description>
+      The central density (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the solitonic core at :math:`r=0`, which sets the normalization of the soliton density profile :math:`\rho(r) = \rho_\mathrm{c} [1+(r/r_\mathrm{c})^2]^{-8}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the heated soliton-NFW composite profile.</description>
+      <description>
+      The relative tolerance used in numerical ODE solutions for the gravitational potential of the heated soliton-NFW composite profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the NFW profile is considered to be dimensionless.</description>
+      <description>
+      If true the NFW profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistributionHeated_"        source="parameters"/>
@@ -134,8 +145,8 @@ contains
   end function massDistributionSolitonNFWHeatedConstructorParameters
 
   function massDistributionSolitonNFWHeatedConstructorInternal(radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,massDistributionHeated_,componentType,massType) result(self)
-    !!{
-    Internal constructor for the \refClass{massDistributionSolitonNFWHeated} mass distribution class.
+    !!{RST
+    Internal constructor for the ``massDistributionSolitonNFWHeated`` mass distribution class.
     !!}
      use :: Error                     , only : Error_Report
      use :: Galactic_Structure_Options, only : componentTypeDarkHalo
@@ -213,8 +224,8 @@ contains
   end function massDistributionSolitonNFWHeatedConstructorInternal
 
   subroutine solitonNFWHeatedDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSolitonNFWHeated} mass distribution class.
+    !!{RST
+    Destructor for the ``massDistributionSolitonNFWHeated`` mass distribution class.
     !!}
     implicit none
     type(massDistributionSolitonNFWHeated), intent(inout) :: self
@@ -227,8 +238,8 @@ contains
   end subroutine solitonNFWHeatedDestructor
 
   double precision function solitonNFWHeatedDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a solitonNFWHeated mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a solitonNFWHeated mass distribution.
     !!}
     implicit none
     class(massDistributionSolitonNFWHeated), intent(inout) :: self
@@ -243,8 +254,8 @@ contains
   end function solitonNFWHeatedDensity
 
   double precision function solitonNFWHeatedDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in a soliton+heated NFW mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a soliton+heated NFW mass distribution.
     !!}
     implicit none
     class  (massDistributionSolitonNFWHeated), intent(inout), target   :: self
@@ -264,8 +275,8 @@ contains
   end function solitonNFWHeatedDensityGradientRadial
 
   double precision function solitonNFWHeatedMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for soliton+heated NFW mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for soliton+heated NFW mass distributions.
     !!}
     implicit none
     class           (massDistributionSolitonNFWHeated), intent(inout), target :: self
@@ -282,7 +293,7 @@ contains
   end function solitonNFWHeatedMassEnclosedBySphere
   
   double precision function solitonNFWHeatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for soliton+heated NFW mass distributions.
     !!}    
     implicit none
@@ -302,7 +313,7 @@ contains
   end function solitonNFWHeatedRadiusEnclosingMass
   
   double precision function solitonNFWHeatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for soliton+heated NFW mass distributions.
     !!}
     implicit none
@@ -319,7 +330,7 @@ contains
   end function solitonNFWHeatedRadiusEnclosingDensity
 
   double precision function solitonNFWHeatedDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Returns a radial density moment for the solitonNFWHeated mass distribution.
     !!}
     use :: Error, only : Error_Report

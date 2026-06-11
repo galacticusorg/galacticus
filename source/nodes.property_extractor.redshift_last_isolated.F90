@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a property extractor class that extracts the redshift at which a \gls{node} was last isolated.
+!!{RST
+Implements a property extractor class that extracts the redshift at which a :term:`node` was last isolated.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated">
-   <description>Extracts the cosmological redshift at which a node was last an isolated (field) halo before becoming a satellite, providing a proxy for the epoch of environmental quenching onset, output as ``\mono{redshiftLastIsolated}''.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRedshiftLastIsolated" docformat="rst">
+   <description>
+   Extracts the cosmological redshift at which a node was last an isolated (field) halo before becoming a satellite, providing a proxy for the epoch of environmental quenching onset, output as "``redshiftLastIsolated``".
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshiftLastIsolated
-     !!{
+     !!{RST
      A redshiftLastIsolated property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a property extractor class that extracts the redshift at which a \gls
   end type nodePropertyExtractorRedshiftLastIsolated
 
   interface nodePropertyExtractorRedshiftLastIsolated
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal
@@ -54,8 +56,8 @@ Implements a property extractor class that extracts the redshift at which a \gls
 contains
 
   function redshiftLastIsolatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function redshiftLastIsolatedConstructorParameters
 
   function redshiftLastIsolatedConstructorInternal(cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshiftLastIsolated)                        :: self
@@ -89,8 +91,8 @@ contains
   end function redshiftLastIsolatedConstructorInternal
 
   subroutine redshiftLastIsolatedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRedshiftLastIsolated} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self
@@ -102,7 +104,7 @@ contains
   end subroutine redshiftLastIsolatedDestructor
 
   double precision function redshiftLastIsolatedExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -123,7 +125,7 @@ contains
   end function redshiftLastIsolatedExtract
 
   function redshiftLastIsolatedName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -136,7 +138,7 @@ contains
   end function redshiftLastIsolatedName
 
   function redshiftLastIsolatedDescription(self)
-    !!{
+    !!{RST
     Return a description of the redshiftLastIsolated property.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end function redshiftLastIsolatedDescription
 
   double precision function redshiftLastIsolatedUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function redshiftLastIsolatedUnitsInSI
 
   function redshiftLastIsolatedUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the redshiftLastIsolated property.
     !!}
     use :: Units_MetaData, only : unitType

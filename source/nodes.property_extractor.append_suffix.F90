@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor that appends a suffix to property names.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorAppendSuffix">
-   <description>A wrapper property extractor that delegates extraction to one or more child \refClass{nodePropertyExtractorClass} objects and appends a user-specified \mono{suffix} string to all output dataset names. This is useful for disambiguating otherwise identically named properties when, for example, the same extractor is used with different parameter settings, different galaxy components, or at different epochs, and the outputs need to coexist in the same output file.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorAppendSuffix" docformat="rst">
+   <description>
+   A wrapper property extractor that delegates extraction to one or more child ``nodePropertyExtractorClass`` objects and appends a user-specified ``suffix`` string to all output dataset names. This is useful for disambiguating otherwise identically named properties when, for example, the same extractor is used with different parameter settings, different galaxy components, or at different epochs, and the outputs need to coexist in the same output file.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorAppendSuffix
-     !!{
+     !!{RST
      A node property extractor that appends a suffix to property names.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorAppendSuffix
 
   interface nodePropertyExtractorAppendSuffix
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorAppendSuffix`` property extractor class.
      !!}
      module procedure appendSuffixConstructorParameters
      module procedure appendSuffixConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function appendSuffixConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorAppendSuffix`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
 
     self%nodePropertyExtractorMulti=nodePropertyExtractorMulti(parameters)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>suffix</name>
       <variable>self%suffix</variable>
-      <description>The suffix to append to parameter names.</description>
+      <description>
+      The suffix to append to parameter names.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
@@ -69,8 +73,8 @@ contains
   end function appendSuffixConstructorParameters
 
   function appendSuffixConstructorInternal(suffix,extractors) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAppendSuffix} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorAppendSuffix`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAppendSuffix)                :: self
@@ -85,7 +89,7 @@ contains
   end function appendSuffixConstructorInternal
 
   subroutine appendSuffixNames(self,elementType,time,names)
-    !!{
+    !!{RST
     Return the names of the suffixed properties.
     !!}
     implicit none

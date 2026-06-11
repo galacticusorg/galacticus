@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the time of first infall for a node.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorTimeFirstInfall">
+  <nodeOperator name="nodeOperatorTimeFirstInfall" docformat="rst">
     <description>
-      A node operator class that tracks the time of first infall for a node. Intended to be paired with the
-      \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class to extract these times for output.
+    A node operator class that tracks the time of first infall for a node. Intended to be paired with the ``nodePropertyExtractorTimeFirstInfall`` property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTimeFirstInfall
-     !!{
+     !!{RST
      A node operator class that tracks the time of first infall for a node.
      !!}
      private
@@ -40,8 +39,8 @@
   end type nodeOperatorTimeFirstInfall
   
   interface nodeOperatorTimeFirstInfall
-     !!{
-     Constructors for the \refClass{nodeOperatorTimeFirstInfall} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorTimeFirstInfall`` node operator class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -50,8 +49,8 @@
 contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTimeFirstInfall} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorTimeFirstInfall`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +65,8 @@ contains
   end function timeFirstInfallConstructorParameters
 
   function timeFirstInfallConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTimeFirstInfall} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorTimeFirstInfall`` node operator class.
     !!}
     implicit none
     type(nodeOperatorTimeFirstInfall) :: self
@@ -79,7 +78,7 @@ contains
   end function timeFirstInfallConstructorInternal
   
   subroutine timeFirstInfallNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the time of first infall for this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

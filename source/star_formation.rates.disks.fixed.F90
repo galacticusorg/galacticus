@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a star formation rate in galactic disks which assumes a constant star formation rate.
   !!}
 
   !![
-  <starFormationRateDisks name="starFormationRateDisksFixed">
-   <description>A star formation rate class for galactic disks that returns a constant, user-specified rate regardless of the disk's gas content, mass, or dynamical properties. The fixed rate of star formation is set by the \mono{[starFormationRate]} parameter in units of $\mathrm{M}_\odot \hbox{Gyr}^{-1}$.</description>
+  <starFormationRateDisks name="starFormationRateDisksFixed" docformat="rst">
+   <description>
+   A star formation rate class for galactic disks that returns a constant, user-specified rate regardless of the disk's gas content, mass, or dynamical properties. The fixed rate of star formation is set by the ``[starFormationRate]`` parameter in units of :math:`\mathrm{M}_\odot \hbox{Gyr}^{-1}`.
+   </description>
   </starFormationRateDisks>
   !!]
   type, extends(starFormationRateDisksClass) :: starFormationRateDisksFixed
-     !!{
+     !!{RST
      Implementation of a rate for star formation in galactic disks which assumes a constant star formation rate.
      !!}
      private
@@ -37,8 +39,8 @@
   end type starFormationRateDisksFixed
 
   interface starFormationRateDisksFixed
-     !!{
-     Constructors for the \refClass{starFormationRateDisksFixed} star formation rate in disks class.
+     !!{RST
+     Constructors for the ``starFormationRateDisksFixed`` star formation rate in disks class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationRateDisksFixed} star formation rate in disks class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``starFormationRateDisksFixed`` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,10 +59,12 @@ contains
     double precision                                             :: rateStarFormation
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateStarFormation</name>
       <defaultValue>1.0d9</defaultValue>
-      <description>The rate of star formation in units of $\mathrm{M}_\odot \hbox{Gyr}^{-1}$.</description>
+      <description>
+      The rate of star formation in units of :math:`\mathrm{M}_\odot \hbox{Gyr}^{-1}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -73,8 +76,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(rateStarFormation) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationRateDisksFixed} star formation rate in disks class.
+    !!{RST
+    Internal constructor for the ``starFormationRateDisksFixed`` star formation rate in disks class.
     !!}
     implicit none
     type            (starFormationRateDisksFixed)                :: self
@@ -87,8 +90,8 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedRate(self,node)
-    !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \mono{node}.
+    !!{RST
+    Returns the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the galactic disk of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
     implicit none

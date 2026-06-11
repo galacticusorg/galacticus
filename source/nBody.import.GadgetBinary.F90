@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer for Gadget binary files.
 !!}
 
@@ -25,13 +25,15 @@ Implements an N-body data importer for Gadget binary files.
   use :: ISO_Varying_String  , only : varying_string
 
   !![
-  <nbodyImporter name="nbodyImporterGadgetBinary">
-   <description>An importer for N-body simulation data in Gadget binary format, reading particle positions, velocities, and masses for a specified particle type. The input file is set by \mono{[fileName]}, with physical unit conversions specified by \mono{[unitMassInSI]}, \mono{[unitLengthInSI]}, and \mono{[unitVelocityInSI]}, and the particle type selected by \mono{[particleType]}.</description>
+  <nbodyImporter name="nbodyImporterGadgetBinary" docformat="rst">
+   <description>
+   An importer for N-body simulation data in Gadget binary format, reading particle positions, velocities, and masses for a specified particle type. The input file is set by ``[fileName]``, with physical unit conversions specified by ``[unitMassInSI]``, ``[unitLengthInSI]``, and ``[unitVelocityInSI]``, and the particle type selected by ``[particleType]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary
-     !!{
+     !!{RST
      An importer for Gadget HDF5 files.
      !!}
      private
@@ -48,8 +50,8 @@ Implements an N-body data importer for Gadget binary files.
   end type nbodyImporterGadgetBinary
 
   interface nbodyImporterGadgetBinary
-     !!{
-     Constructors for the \refClass{nbodyImporterGadgetBinary} N-body importer class.
+     !!{RST
+     Constructors for the ``nbodyImporterGadgetBinary`` N-body importer class.
      !!}
      module procedure gadgetBinaryConstructorParameters
      module procedure gadgetBinaryConstructorInternal
@@ -58,8 +60,8 @@ Implements an N-body data importer for Gadget binary files.
 contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterGadgetBinary} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyImporterGadgetBinary`` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,52 +75,70 @@ contains
     logical                                                    :: isCosmological      , setParticleType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to read.</description>
+      <description>
+      The name of the file to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label for the simulation</description>
+      <description>
+      A label for the simulation
+      </description>
       <defaultValue>var_str('primary')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>particleType</name>
       <source>parameters</source>
-      <description>The particle type to read from the Gadget binary file.</description>
+      <description>
+      The particle type to read from the Gadget binary file.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSoftening</name>
       <source>parameters</source>
-      <description>The softening length.</description>
+      <description>
+      The softening length.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitMassInSI</name>
       <source>parameters</source>
-      <description>The mass unit expressed in the SI system.</description>
+      <description>
+      The mass unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitLengthInSI</name>
       <source>parameters</source>
-      <description>The length unit expressed in the SI system.</description>
+      <description>
+      The length unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitVelocityInSI</name>
       <source>parameters</source>
-      <description>The velocity unit expressed in the SI system.</description>
+      <description>
+      The velocity unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>isCosmological</name>
       <source>parameters</source>
-      <description>Set to true if this is a cosmological simulation, false otherwise.</description>
+      <description>
+      Set to true if this is a cosmological simulation, false otherwise.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>setParticleType</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, particle type values will be set.</description>
+      <description>
+      If true, particle type values will be set.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -131,8 +151,8 @@ contains
   end function gadgetBinaryConstructorParameters
 
   function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,setParticleType,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterGadgetBinary} N-body importer class.
+    !!{RST
+    Internal constructor for the ``nbodyImporterGadgetBinary`` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetBinary)                        :: self
@@ -150,7 +170,7 @@ contains
   end function gadgetBinaryConstructorInternal
 
   subroutine gadgetBinaryDestructor(self)
-    !!{
+    !!{RST
     Destructor for the Gadget binary N-body importer class.
     !!}
     implicit none
@@ -163,7 +183,7 @@ contains
   end subroutine gadgetBinaryDestructor
 
   subroutine gadgetBinaryImport(self,simulations)
-    !!{
+    !!{RST
     Import data from a Gadget HDF5 file.
     !!}
     use, intrinsic :: ISO_Fortran_Env                 , only : int32
@@ -401,7 +421,7 @@ contains
   end subroutine gadgetBinaryImport
 
   logical function gadgetBinaryIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

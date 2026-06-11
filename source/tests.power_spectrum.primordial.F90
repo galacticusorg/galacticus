@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program that tests primordial power spectrum calculations.
 !!}
 
 program Tests_Power_Spectrum_Primordial
-  !!{
+  !!{RST
   Tests primordial power spectrum calculations.
   !!}
   use :: Display                 , only : displayVerbositySet                     , verbosityLevelStandard

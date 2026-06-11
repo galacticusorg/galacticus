@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
   !!}
 
@@ -32,27 +32,30 @@
   use :: Posterior_Sampling_Stopping_Criteria       , only : posteriorSampleStoppingCriterionClass
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
+  <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution" docformat="rst">
    <description>
-    This class uses the differential evolution algorithm of \cite{terr_braak_markov_2006}. Multiple, parallel chains are run and
-    proposals are constructed by selecting two chains at random, taking a fraction, $\gamma$, of the vector connecting the two chain
-    states and adding this to the state of the current chain. The details of the algorithm are controlled by the following parameters:
-    \begin{description}
-    \item[\mono{[stepsMaximum]}] The maximum number of steps to take.
-    \item[\mono{[acceptanceAverageCount]}] The number of steps over which to average the acceptance rate.
-    \item[\mono{[stateSwapCount]}] The number of steps after which to set $\gamma=1$ to allow chains to swap states.
-    \item[\mono{[logFileRoot]}] The full path and root name of a file to log results to. The actual file name will
-      have the rank of the \gls{mpi} process appended to it.
-    \item[\mono{[sampleOutliers]}] If set to \mono{false} then proposals for non-outlier chains
-      post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outlier chains
-      post-convergence are constructed from all other chains.
-    \end{description}
+   This class uses the differential evolution algorithm of :cite:t:`terr_braak_markov_2006`. Multiple, parallel chains are run and proposals are constructed by selecting two chains at random, taking a fraction, :math:`\gamma`, of the vector connecting the two chain states and adding this to the state of the current chain. The details of the algorithm are controlled by the following parameters:
+
+   ``[stepsMaximum]``
+      The maximum number of steps to take.
+
+   ``[acceptanceAverageCount]``
+      The number of steps over which to average the acceptance rate.
+
+   ``[stateSwapCount]``
+      The number of steps after which to set :math:`\gamma=1` to allow chains to swap states.
+
+   ``[logFileRoot]``
+      The full path and root name of a file to log results to. The actual file name will have the rank of the :term:`MPI` process appended to it.
+
+   ``[sampleOutliers]``
+      If set to ``false`` then proposals for non-outlier chains post-convergence are constructed only from other non-outlier chains. Otherwise, proposals for non-outlier chains post-convergence are constructed from all other chains.
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
-     !!{
+     !!{RST
      Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
      !!}
      private
@@ -101,8 +104,8 @@
   end type posteriorSampleSimulationDifferentialEvolution
 
   interface posteriorSampleSimulationDifferentialEvolution
-     !!{
-     Constructors for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling simulation class.
+     !!{RST
+     Constructors for the ``posteriorSampleSimulationDifferentialEvolution`` posterior sampling simulation class.
      !!}
      module procedure differentialEvolutionConstructorParameters
      module procedure differentialEvolutionConstructorInternal
@@ -111,9 +114,8 @@
 contains
 
   function differentialEvolutionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleSimulationDifferentialEvolution} posterior sampling simulation class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleSimulationDifferentialEvolution`` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report
@@ -146,80 +148,106 @@ contains
          &                                                                                  loadBalance                             , ignoreChainNumberAdvice
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stepsMaximum</name>
       <defaultValue>huge(0)</defaultValue>
-      <description>The maximum number of steps to take.</description>
+      <description>
+      The maximum number of steps to take.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptanceAverageCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps over which to average the acceptance rate.</description>
+      <description>
+      The number of steps over which to average the acceptance rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stateSwapCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between state swap steps.</description>
+      <description>
+      The number of steps between state swap steps.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>slowStepCount</name>
       <defaultValue>1</defaultValue>
-      <description>The number of steps between slow parameter update steps.</description>
+      <description>
+      The number of steps between slow parameter update steps.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>recomputeCount</name>
       <defaultValue>-1</defaultValue>
-      <description>The number of steps between forced recomputations of the likelihood.</description>
+      <description>
+      The number of steps between forced recomputations of the likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFlushCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between flushing the log file.</description>
+      <description>
+      The number of steps between flushing the log file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between issuing reports.</description>
+      <description>
+      The number of steps between issuing reports.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sampleOutliers</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, sample from outlier states.</description>
+      <description>
+      If true, sample from outlier states.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>interactionRoot</name>
       <defaultValue>var_str('none')</defaultValue>
-      <description>Root file name for interaction files, or `\mono{none}' if interaction is not required.</description>
+      <description>
+      Root file name for interaction files, or `\ ``none``' if interaction is not required.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>Root file name for log files.</description>
+      <description>
+      Root file name for log files.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendLogs</name>
-      <description>If true, do not overwrite existing log files, but instead append to them.</description>
+      <description>
+      If true, do not overwrite existing log files, but instead append to them.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>loadBalance</name>
-      <description>If true, attempt to balance the workload across different compute nodes.</description>
+      <description>
+      If true, attempt to balance the workload across different compute nodes.
+      </description>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ignoreChainNumberAdvice</name>
-      <description>If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.</description>
+      <description>
+      If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -310,8 +338,8 @@ contains
   end function differentialEvolutionConstructorParameters
   
   function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
-    !!{
-    Internal constructor for the ``differentialEvolution'' simulation class.
+    !!{RST
+    Internal constructor for the "differentialEvolution" simulation class.
     !!}
     use :: Model_Parameters, only : modelParameterActive
     implicit none
@@ -365,7 +393,7 @@ contains
   end function differentialEvolutionConstructorInternal
 
   subroutine differentialEvolutionDestructor(self)
-    !!{
+    !!{RST
     Destroy a differential evolution simulation object.
     !!}
     implicit none
@@ -402,7 +430,7 @@ contains
   end subroutine differentialEvolutionDestructor
 
   subroutine differentialEvolutionSimulate(self)
-    !!{
+    !!{RST
     Perform a differential evolution simulation.
     !!}
     use :: Display                     , only : displayIndent             , displayMessage , displayUnindent, displayMagenta, &
@@ -631,7 +659,7 @@ contains
   end subroutine differentialEvolutionSimulate
 
   subroutine differentialEvolutionUpdate(self,stateVector)
-    !!{
+    !!{RST
     Update the differential evolution simulator state.
     !!}
     use :: MPI_Utilities, only : mpiSelf
@@ -650,7 +678,7 @@ contains
   end subroutine differentialEvolutionUpdate
 
   integer function differentialEvolutionChainSelect(self,blockedChains)
-    !!{
+    !!{RST
     Select a chain at random, optionally excluding blocked chains.
     !!}
     use :: MPI_Utilities, only : mpiSelf
@@ -683,7 +711,7 @@ contains
   end function differentialEvolutionChainSelect
 
   logical function differentialEvolutionLogging(self)
-    !!{
+    !!{RST
     Specifies whether or not the current state should be logged to file during differential evolution.
     !!}
     implicit none
@@ -695,7 +723,7 @@ contains
   end function differentialEvolutionLogging
 
   subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
-    !!{
+    !!{RST
     Return the log of the posterior for the current state.
     !!}
     use            :: Display         , only : displayIndent             , displayMessage, displayUnindent
@@ -875,8 +903,8 @@ contains
   end subroutine differentialEvolutionPosterior
 
   function differentialEvolutionStepSize(self,forceAcceptance) result(stepSize)
-    !!{
-    Return the step size parameter, $\gamma$, for a differential evolution step.
+    !!{RST
+    Return the step size parameter, :math:`\gamma`, for a differential evolution step.
     !!}
     implicit none
     class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                  :: self
@@ -911,7 +939,7 @@ contains
   end function differentialEvolutionStepSize
 
   logical function differentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
-    !!{
+    !!{RST
     Return whether or not to accept a proposal.
     !!}
     implicit none
@@ -930,7 +958,7 @@ contains
   end function differentialEvolutionAcceptProposal
 
   double precision function differentialEvolutionTemperature(self)
-    !!{
+    !!{RST
     Return the temperature.
     !!}
     implicit none
@@ -942,7 +970,7 @@ contains
   end function differentialEvolutionTemperature
 
   subroutine differentialEvolutionDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters, only : inputParameters

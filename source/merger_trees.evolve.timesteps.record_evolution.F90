@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the
-main branch galaxy.
+!!{RST
+Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.
 !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctions, cosmologyFunctionsClass
@@ -27,30 +26,25 @@ main branch galaxy.
   use :: Output_Times           , only : outputTimes       , outputTimesClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution" docformat="rst">
    <description>
-    A merger tree evolution timestepping class which enforces that
-    \begin{equation}
-     \Delta t \le t_{\mathrm{record},i} - t
-    \end{equation}
-    where $t$ is the current time, $t_{\mathrm{record},i}$ is the $i^\mathrm{th}$ time at which the evolution of main branch galaxies
-    is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{record},i} &gt; t$. If there is no $i$ for which
-    $t_{\mathrm{record},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the
-    properties of the galaxy will be recorded at the end of the timestep.
-  
-    Timesteps are logarithmically spaced in cosmic time between \mono{[timeBegin]} and \newline \mono{[timeEnd]}, with the total number of timesteps specified by \mono{[countSteps]}.
-  
-    This recorded evolution will be written to the group \mono{mainProgenitorEvolution} in the \glc\ output
-    file. Within that group two datasets, \mono{time} and \mono{expansionFactor}, give the
-    times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, \mono{stellarMass&lt;N&gt;} and \mono{totalMass&lt;N&gt;} (where \mono{&lt;N&gt;} is the merger tree index), give
-    the stellar and total baryonic mass of the main branch progenitor at each timestep.
+   A merger tree evolution timestepping class which enforces that
+
+   .. math::
+
+      \Delta t \le t_{\mathrm{record},i} - t
+
+   where :math:`t` is the current time, :math:`t_{\mathrm{record},i}` is the :math:`i^\mathrm{th}` time at which the evolution of main branch galaxies is to be output and :math:`i` is chosen to be the smallest :math:`i` such that :math:`t_{\mathrm{record},i} &gt; t`. If there is no :math:`i` for which :math:`t_{\mathrm{record},i} &gt; t` this criterion is not applied. If this criterion is the limiting criterion for :math:`\Delta t` then the properties of the galaxy will be recorded at the end of the timestep.
+
+   Timesteps are logarithmically spaced in cosmic time between ``[timeBegin]`` and \newline ``[timeEnd]``, with the total number of timesteps specified by ``[countSteps]``.
+
+   This recorded evolution will be written to the group ``mainProgenitorEvolution`` in the Galacticus output file. Within that group two datasets, ``time`` and ``expansionFactor``, give the times and expansion factors at which evolution was recorded. Then for each merger tree two datasets, ``stellarMass&lt;N&gt;`` and ``totalMass&lt;N&gt;`` (where ``&lt;N&gt;`` is the merger tree index), give the stellar and total baryonic mass of the main branch progenitor at each timestep.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution
-     !!{
-     Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
-     evolution of the main branch galaxy.
+     !!{RST
+     Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_    => null()
@@ -74,8 +68,8 @@ main branch galaxy.
   end type mergerTreeEvolveTimestepRecordEvolution
 
   interface mergerTreeEvolveTimestepRecordEvolution
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
      !!}
      module procedure recordEvolutionConstructorParameters
      module procedure recordEvolutionConstructorInternal
@@ -84,8 +78,8 @@ main branch galaxy.
 contains
 
   function recordEvolutionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,22 +97,28 @@ contains
     !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeBegin</name>
       <defaultValue>0.05d0*ageUniverse</defaultValue>
-      <description>The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+      <description>
+      The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeEnd</name>
       <defaultValue>ageUniverse</defaultValue>
-      <description>The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+      <description>
+      The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countSteps</name>
       <defaultValue>100</defaultValue>
-      <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.</description>
+      <description>
+      The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -132,8 +132,8 @@ contains
   end function recordEvolutionConstructorParameters
 
   function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
+    !!{RST
+    Internal constructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -163,7 +163,7 @@ contains
   end function recordEvolutionConstructorInternal
 
   subroutine recordEvolutionAutoHook(self)
-    !!{
+    !!{RST
     Create a hook to the merger tree extra output event to allow us to write out our data.
     !!}
     use :: Events_Hooks, only : mergerTreeExtraOutputEvent, openMPThreadBindingAtLevel
@@ -175,8 +175,8 @@ contains
   end subroutine recordEvolutionAutoHook
 
   subroutine recordEvolutionDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepRecordEvolution} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : mergerTreeExtraOutputEvent
     implicit none
@@ -191,7 +191,7 @@ contains
   end subroutine recordEvolutionDestructor
 
   double precision function recordEvolutionTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
+    !!{RST
     Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     !!}
     use            :: Evolve_To_Time_Reports , only : Evolve_To_Time_Report
@@ -234,7 +234,7 @@ contains
   end function recordEvolutionTimeEvolveTo
 
   subroutine recordEvolutionStore(self,tree,node,deadlockStatus)
-    !!{
+    !!{RST
     Store properties of the main progenitor galaxy.
     !!}
     use            :: Galactic_Structure_Options, only : massTypeGalactic     , massTypeStellar
@@ -277,7 +277,7 @@ contains
   end subroutine recordEvolutionStore
 
   subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
-    !!{
+    !!{RST
     Store main branch evolution to the output file.
     !!}
     use            :: Error                           , only : Error_Report
@@ -328,7 +328,7 @@ contains
   end subroutine recordEvolutionOutput
 
   subroutine recordEvolutionReset(self)
-    !!{
+    !!{RST
     Resets recorded datasets to zero.
     !!}
     implicit none

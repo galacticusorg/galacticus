@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that updates positions of nodes in discrete steps.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorPositionDiscrete">
-   <description>Updates node positions in discrete steps at the end of each differential evolution timestep, rather than via continuous interpolation, providing a simplified positional evolution scheme for nodes in the merger tree.</description>
+  <nodeOperator name="nodeOperatorPositionDiscrete" docformat="rst">
+   <description>
+   Updates node positions in discrete steps at the end of each differential evolution timestep, rather than via continuous interpolation, providing a simplified positional evolution scheme for nodes in the merger tree.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionDiscrete
-     !!{
+     !!{RST
      A node operator class that interpolates positions of nodes in discrete steps.
      !!}
      private
@@ -36,8 +38,8 @@
   end type nodeOperatorPositionDiscrete
   
   interface nodeOperatorPositionDiscrete
-     !!{
-     Constructors for the \refClass{nodeOperatorPositionDiscrete} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorPositionDiscrete`` node operator class.
      !!}
      module procedure positionDiscreteConstructorParameters
   end interface nodeOperatorPositionDiscrete
@@ -45,8 +47,8 @@
 contains
   
   function positionDiscreteConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionDiscrete} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorPositionDiscrete`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function positionDiscreteConstructorParameters
 
   subroutine positionDiscreteDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition
@@ -78,7 +80,7 @@ contains
   end subroutine positionDiscreteDifferentialEvolutionAnalytics
 
   subroutine positionDiscreteDifferentialEvolutionStepFinalState(self,node)
-    !!{
+    !!{RST
     Compute the discrete position and velocity of the node.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
 
@@ -25,12 +25,14 @@
   use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
-   <description>Computes the stellar mass--halo mass relation (mean or scatter) for one of three COSMOS redshift intervals from \cite{leauthaud_new_2011}, with optional single-bin likelihood and likelihood normalization, and systematic error polynomial coefficients for both stellar and halo masses.</description>
+  <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012" docformat="rst">
+   <description>
+   Computes the stellar mass--halo mass relation (mean or scatter) for one of three COSMOS redshift intervals from :cite:t:`leauthaud_new_2011`, with optional single-bin likelihood and likelihood normalization, and systematic error polynomial coefficients for both stellar and halo masses.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelationLeauthaud2012
-     !!{
+     !!{RST
      A stellar vs halo mass relation output analysis class.
      !!}
      private
@@ -56,8 +58,8 @@
   end type outputAnalysisStellarVsHaloMassRelationLeauthaud2012
 
   interface outputAnalysisStellarVsHaloMassRelationLeauthaud2012
-     !!{
-     Constructors for the \refClass{outputAnalysisStellarVsHaloMassRelationLeauthaud2012} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class.
      !!}
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorInternal
@@ -66,8 +68,8 @@
 contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStellarVsHaloMassRelationLeauthaud2012} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -100,49 +102,61 @@ contains
     if (parameters%isPresent('likelihoodBins')) then
        allocate(likelihoodBins(parameters%count('likelihoodBins')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>likelihoodBins</name>
 	 <source>parameters</source>
-	 <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
+	 <description>
+	 If :math:`&gt;0` then use only the mass bin given by this value in the likelihood calculation.
+	 </description>
        </inputParameter>
        !!]
     else
        allocate(likelihoodBins(               0                  ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInterval</name>
       <source>parameters</source>
       <variable>redshiftInterval</variable>
-      <description>The redshift interval (1, 2, or 3) to use.</description>
+      <description>
+      The redshift interval (1, 2, or 3) to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <variable>likelihoodNormalize</variable>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true, then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>computeScatter</name>
       <source>parameters</source>
       <variable>computeScatter</variable>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.</description>
+      <description>
+      If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for stellar mass in the stellar vs halo mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for stellar mass in the stellar vs halo mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorMassHaloPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorMassHaloPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for halo mass in the stellar vs halo mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for halo mass in the stellar vs halo mass relation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -164,8 +178,8 @@ contains
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStellarVsHaloMassRelationLeauthaud2012} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
@@ -596,7 +610,7 @@ contains
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Analyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a stellarVsHaloMassRelationLeauthaud2012 output analysis.
     !!}
     implicit none
@@ -609,8 +623,8 @@ contains
   end subroutine stellarVsHaloMassRelationLeauthaud2012Analyze
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStellarVsHaloMassRelationLeauthaud2012} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self
@@ -627,8 +641,8 @@ contains
   end subroutine stellarVsHaloMassRelationLeauthaud2012Destructor
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Reduce(self,reduced)
-    !!{
-    Implement reduction for the \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis class.
+    !!{RST
+    Implement reduction for the ``stellarVsHaloMassRelationLeauthaud2012`` output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -645,8 +659,8 @@ contains
   end subroutine stellarVsHaloMassRelationLeauthaud2012Reduce
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Finalize(self,groupName)
-    !!{
-    Implement a \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis finalization.
+    !!{RST
+    Implement a ``stellarVsHaloMassRelationLeauthaud2012`` output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -674,8 +688,8 @@ contains
   end subroutine stellarVsHaloMassRelationLeauthaud2012Finalize
 
   double precision function stellarVsHaloMassRelationLeauthaud2012LogLikelihood(self) result(logLikelihood)
-    !!{
-    Return the log-likelihood of a \mono{stellarVsHaloMassRelationLeauthaud2012} output analysis.
+    !!{RST
+    Return the log-likelihood of a ``stellarVsHaloMassRelationLeauthaud2012`` output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

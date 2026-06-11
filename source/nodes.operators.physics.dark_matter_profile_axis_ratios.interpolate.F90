@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that causes halo axis ratios to be interpolated linearly between child and parent nodes.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorHaloAxisRatiosInterpolate">
+  <nodeOperator name="nodeOperatorHaloAxisRatiosInterpolate" docformat="rst">
    <description>
-    A node operator class that causes halo axis ratios be interpolated linearly between child and parent nodes. For primary
-    progenitor nodes then $\dot{\mathbf{a}} = (\mathbf{a}_{i+1}-\mathbf{a}_i)/(t_{i+1}-t_i)$, where $\mathbf{a}_i$ is the axis
-    ratio tuple of the node in the initialized tree, $\mathbf{a}_{i+1}$ is the axis ratio tuple of its parent node, and $t_i$ and
-    $t_{i+1}$ are the corresponding times.
+   A node operator class that causes halo axis ratios be interpolated linearly between child and parent nodes. For primary progenitor nodes then :math:`\dot{\mathbf{a}} = (\mathbf{a}_{i+1}-\mathbf{a}_i)/(t_{i+1}-t_i)`, where :math:`\mathbf{a}_i` is the axis ratio tuple of the node in the initialized tree, :math:`\mathbf{a}_{i+1}` is the axis ratio tuple of its parent node, and :math:`t_i` and :math:`t_{i+1}` are the corresponding times.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAxisRatiosInterpolate
-     !!{
+     !!{RST
      A node operator class that causes halo axis ratios to be interpolated linearly between child and parent nodes.
      !!}
      private
@@ -45,8 +42,8 @@
   end type nodeOperatorHaloAxisRatiosInterpolate
   
   interface nodeOperatorHaloAxisRatiosInterpolate
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class.
      !!}
      module procedure haloAxisRatiosInterpolateConstructorParameters
      module procedure haloAxisRatiosInterpolateConstructorInternal
@@ -55,8 +52,8 @@
 contains
   
   function haloAxisRatiosInterpolateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +68,8 @@ contains
   end function haloAxisRatiosInterpolateConstructorParameters
 
   function haloAxisRatiosInterpolateConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHaloAxisRatiosInterpolate} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosInterpolate) :: self
@@ -84,7 +81,7 @@ contains
   end function haloAxisRatiosInterpolateConstructorInternal
 
   subroutine haloAxisRatiosInterpolateNodeInitialize(self,node)
-    !!{
+    !!{RST
     Compute the rate of growth of halo axis ratios assuming a constant growth rate.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -129,7 +126,7 @@ contains
   end subroutine haloAxisRatiosInterpolateNodeInitialize
   
   subroutine haloAxisRatiosInterpolateDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
@@ -145,7 +142,7 @@ contains
   end subroutine haloAxisRatiosInterpolateDifferentialEvolutionAnalytics
 
   subroutine haloAxisRatiosInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Evolve halo angular momentum at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -173,9 +170,8 @@ contains
   end subroutine haloAxisRatiosInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine haloAxisRatiosInterpolateNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the axis ratios of \mono{node}
-    to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the axis ratios of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none

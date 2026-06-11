@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements Gaussian distributions.
 !!}
 
 module Math_Distributions_Gaussian
-  !!{
+  !!{RST
   Implements Gaussian distributions.
   !!}
   private
@@ -31,8 +31,8 @@ module Math_Distributions_Gaussian
 contains
 
   double precision function Gaussian_Distribution(x,sigma)
-    !!{
-    Computes the Gaussian distribution with dispersion \mono{sigma} at argument \mono{x}.
+    !!{RST
+    Computes the Gaussian distribution with dispersion ``sigma`` at argument ``x``.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

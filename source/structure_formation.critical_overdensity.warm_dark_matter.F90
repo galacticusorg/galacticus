@@ -17,40 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
+!!{RST
+Implements a critical overdensity for collapse the :term:`WDM` modifier of :cite:t:`barkana_constraints_2001`.
 !!}
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <criticalOverdensity name="criticalOverdensityBarkana2001WDM">
+  <criticalOverdensity name="criticalOverdensityBarkana2001WDM" docformat="rst">
    <description>
-    A critical overdensity for collapse class based on the \gls{wdm} modifier of \cite{barkana_constraints_2001} applied to
-    some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
-    \begin{equation}
-     \exp\left[ \left({M_\mathrm{J} \over 8 M}\right)^{1.40}+\left({M_\mathrm{J} \over 8 M}\right)^{0.45} \right],
-    \end{equation}
-    where $M$ is the mass in question, $M_\mathrm{J}$ is the effective Jeans mass of the warm dark matter as defined by
-    \citeauthor{barkana_constraints_2001}~[\citeyear{barkana_constraints_2001}; their eqn.~10]:
-    \begin{equation}
-    M_\mathrm{J} = 3.06 \times 10^8 \left( {1+z_\mathrm{eq} \over 3000}\right)^{1.5} \left({\Omega_\mathrm{M} h_0^2 \over
-    0.15}\right)^{1/2} \left({g_\mathrm{X} \over 1.5} \right)^{-1} \left({m_\mathrm{X}/1.0\hbox{keV}}\right)^{-4},
-    \end{equation}
-    the redshift of matter-radiation equality is given by
-    \begin{equation}
-    z_\mathrm{eq} = 3600 \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)-1,
-    \end{equation}
-    and $g_\mathrm{X}$ and $m_\mathrm{X}$ are the effective number of degrees of freedom and the mass of the warm dark matter
-    particle respectively. This fitting function has been found the fit the numerical results of
-    \cite{barkana_constraints_2001} well.
+   A critical overdensity for collapse class based on the :term:`WDM` modifier of :cite:t:`barkana_constraints_2001` applied to some other, :term:`CDM` critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
+
+   .. math::
+
+      \exp\left[ \left({M_\mathrm{J} \over 8 M}\right)^{1.40}+\left({M_\mathrm{J} \over 8 M}\right)^{0.45} \right],
+
+   where :math:`M` is the mass in question, :math:`M_\mathrm{J}` is the effective Jeans mass of the warm dark matter as defined by :cite:author:`barkana_constraints_2001` [:cite:year:`barkana_constraints_2001`; their eqn. 10]:
+
+   .. math::
+
+      M_\mathrm{J} = 3.06 \times 10^8 \left( {1+z_\mathrm{eq} \over 3000}\right)^{1.5} \left({\Omega_\mathrm{M} h_0^2 \over
+      0.15}\right)^{1/2} \left({g_\mathrm{X} \over 1.5} \right)^{-1} \left({m_\mathrm{X}/1.0\hbox{keV}}\right)^{-4},
+
+   the redshift of matter-radiation equality is given by
+
+   .. math::
+
+      z_\mathrm{eq} = 3600 \left({\Omega_\mathrm{M} h_0^2 \over 0.15}\right)-1,
+
+   and :math:`g_\mathrm{X}` and :math:`m_\mathrm{X}` are the effective number of degrees of freedom and the mass of the warm dark matter particle respectively. This fitting function has been found the fit the numerical results of :cite:t:`barkana_constraints_2001` well.
    </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM
-     !!{
-     A critical overdensity for collapse class which modifies another transfer function using the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
+     !!{RST
+     A critical overdensity for collapse class which modifies another transfer function using the :term:`WDM` modifier of :cite:t:`barkana_constraints_2001`.
      !!}
      private
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM => null()
@@ -72,8 +74,8 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
   end type criticalOverdensityBarkana2001WDM
 
   interface criticalOverdensityBarkana2001WDM
-     !!{
-     Constructors for the \refClass{criticalOverdensityBarkana2001WDM} critical overdensity for collapse class.
+     !!{RST
+     Constructors for the ``criticalOverdensityBarkana2001WDM`` critical overdensity for collapse class.
      !!}
      module procedure barkana2001WDMConstructorParameters
      module procedure barkana2001WDMConstructorInternal
@@ -91,8 +93,8 @@ Implements a critical overdensity for collapse the \gls{wdm} modifier of \cite{b
 contains
 
   function barkana2001WDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensityBarkana2001WDM} critical overdensity for collapse class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``criticalOverdensityBarkana2001WDM`` critical overdensity for collapse class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,11 +109,13 @@ contains
     logical                                                            :: useFittingFunction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFittingFunction</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether the warm dark matter critical overdensity mass scaling should be computed from a fitting function or from tabulated data.</description>
+      <description>
+      Specifies whether the warm dark matter critical overdensity mass scaling should be computed from a fitting function or from tabulated data.
+      </description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensityCDM"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -135,8 +139,8 @@ contains
   end function barkana2001WDMConstructorParameters
 
   function barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,linearGrowth_,useFittingFunction) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensityBarkana2001WDM} critical overdensity for collapse class.
+    !!{RST
+    Internal constructor for the ``criticalOverdensityBarkana2001WDM`` critical overdensity for collapse class.
     !!}
     use :: Cosmology_Parameters   , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles  , only : darkMatterParticleWDMThermal
@@ -207,7 +211,7 @@ contains
   end function barkana2001WDMConstructorInternal
 
   subroutine barkana2001WDMDestructor(self)
-    !!{
+    !!{RST
     Destructor for the barkana2001WDM critical overdensity for collapse class.
     !!}
     implicit none
@@ -225,10 +229,8 @@ contains
   end subroutine barkana2001WDMDestructor
 
   double precision function barkana2001WDMValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
-    Returns a mass scaling for critical overdensities based on the results of \cite{barkana_constraints_2001}. This method
-    assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
-    scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
+    !!{RST
+    Returns a mass scaling for critical overdensities based on the results of :cite:t:`barkana_constraints_2001`. This method assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call :math:`B_0`) scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn. (10).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -306,7 +308,7 @@ contains
   end function barkana2001WDMValue
 
   double precision function barkana2001WDMGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -324,7 +326,7 @@ contains
   end function barkana2001WDMGradientTime
 
   double precision function barkana2001WDMGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     use :: Error, only : Error_Report
@@ -433,7 +435,7 @@ contains
   end function barkana2001WDMGradientMass
 
   logical function barkana2001WDMIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -445,7 +447,7 @@ contains
   end function barkana2001WDMIsMassDependent
 
   logical function barkana2001WDMIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -457,7 +459,7 @@ contains
   end function barkana2001WDMIsNodeDependent
 
   logical function barkana2001WDMIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

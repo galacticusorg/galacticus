@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a spectrum postprocessor that keeps only populations in a specified age window.
   !!}
   
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorAgeWindow" docformat="rst">
    <description>
-    A stellar population postprocessor class which keeps only emission from populations with ages between \mono{[ageMinimum]} and \mono{[ageMaximum]}.
+   A stellar population postprocessor class which keeps only emission from populations with ages between ``[ageMinimum]`` and ``[ageMaximum]``.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorAgeWindow
-     !!{
+     !!{RST
      An age window spectrum postprocessor.
      !!}
      private
@@ -40,7 +40,7 @@
   end type stellarPopulationSpectraPostprocessorAgeWindow
 
   interface stellarPopulationSpectraPostprocessorAgeWindow
-     !!{
+     !!{RST
      Constructors for the ageWindow spectrum postprocessor class.
      !!}
      module procedure ageWindowConstructorParameters
@@ -50,7 +50,7 @@
 contains
 
   function ageWindowConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Default constructor for the ageWindow spectrum postprocessor class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -60,16 +60,20 @@ contains
     double precision                                                                :: ageMinimum, ageMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ageMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum stellar population age (in Gyr) to retain in the age-window postprocessor; populations younger than this threshold contribute zero luminosity, effectively excluding very young stars from the integrated spectrum.</description>
+      <description>
+      The minimum stellar population age (in Gyr) to retain in the age-window postprocessor; populations younger than this threshold contribute zero luminosity, effectively excluding very young stars from the integrated spectrum.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ageMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum stellar population age (in Gyr) to retain in the age-window postprocessor; populations older than this threshold contribute zero luminosity, effectively excluding old stellar populations from the integrated spectrum.</description>
+      <description>
+      The maximum stellar population age (in Gyr) to retain in the age-window postprocessor; populations older than this threshold contribute zero luminosity, effectively excluding old stellar populations from the integrated spectrum.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -78,8 +82,8 @@ contains
   end function ageWindowConstructorParameters
 
   function ageWindowConstructorInternal(ageMinimum,ageMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorAgeWindow} stellar population spectra postprocessor class.
+    !!{RST
+    Internal constructor for the ``stellarPopulationSpectraPostprocessorAgeWindow`` stellar population spectra postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self
@@ -92,7 +96,7 @@ contains
   end function ageWindowConstructorInternal
 
   double precision function ageWindowMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Perform a ageWindow postprocessing on a spectrum.
     !!}
     implicit none
@@ -114,7 +118,7 @@ contains
   end function ageWindowMultiplier
 
   logical function ageWindowIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

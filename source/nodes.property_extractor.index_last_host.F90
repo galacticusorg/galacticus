@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node property extractor for the index of the last host node.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIndexLastHost">
-   <description>Extracts the stored index of the last host halo node, i.e., the host halo at the time a subhalo most recently became a satellite. Useful for tracking satellite infall histories and computing the elapsed time since infall into the current host environment.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIndexLastHost" docformat="rst">
+   <description>
+   Extracts the stored index of the last host halo node, i.e., the host halo at the time a subhalo most recently became a satellite. Useful for tracking satellite infall histories and computing the elapsed time since infall into the current host environment.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndexLastHost
-     !!{
+     !!{RST
      A last host node index property extractor.
      !!}
      private
@@ -39,8 +41,8 @@ Implements a node property extractor for the index of the last host node.
   end type nodePropertyExtractorIndexLastHost
 
   interface nodePropertyExtractorIndexLastHost
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorIndexLastHost`` property extractor class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -49,8 +51,8 @@ Implements a node property extractor for the index of the last host node.
 contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorIndexLastHost`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function indexLastHostConstructorParameters
 
   function indexLastHostConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndexLastHost} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorIndexLastHost`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexLastHost) :: self
@@ -78,8 +80,8 @@ contains
   end function indexLastHostConstructorInternal
 
   function indexLastHostExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{indexLastHost} node property extractor.
+    !!{RST
+    Implement a ``indexLastHost`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -97,7 +99,7 @@ contains
   end function indexLastHostExtract
 
   function indexLastHostName(self)
-    !!{
+    !!{RST
     Return the name of the branch tip index property.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function indexLastHostName
 
   function indexLastHostDescription(self)
-    !!{
+    !!{RST
     Return a description of the branch tip index property.
     !!}
     implicit none

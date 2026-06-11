@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
+  !!{RST
+  An implementation of dark matter halo virial density contrasts based on the percolation analysis of :cite:t:`more_overdensity_2011`.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
@@ -27,15 +27,9 @@
   use :: Resource_Manager   , only : resourceManager
 
   !![
-  <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes">
+  <virialDensityContrast name="virialDensityContrastPercolation" recursive="yes" docformat="rst">
    <description>
-    A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}. The
-    virial density contrast is computed to be consistent with a given friends-of-friends algorithm linking length using the
-    percolation-theory-motivated calibration of \cite{more_overdensity_2011}. Specifically, the friends-of-friends algorithm is
-    assumed to link together particles forming an isodensity surface of density $\rho = \bar{\rho} n_\mathrm{c}/b^3$, where
-    $\bar{\rho}$ is the mean density of the universe, $n_\mathrm{c}=0.652960$ is a critical density for percolation as given by
-    \cite{more_overdensity_2011}, and $b$ is the linking length. Given this bounding density, the virial density contrast is
-    found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
+   A dark matter halo virial density contrast class based on the percolation analysis of :cite:t:`more_overdensity_2011`. The virial density contrast is computed to be consistent with a given friends-of-friends algorithm linking length using the percolation-theory-motivated calibration of :cite:t:`more_overdensity_2011`. Specifically, the friends-of-friends algorithm is assumed to link together particles forming an isodensity surface of density :math:`\rho = \bar{\rho} n_\mathrm{c}/b^3`, where :math:`\bar{\rho}` is the mean density of the universe, :math:`n_\mathrm{c}=0.652960` is a critical density for percolation as given by :cite:t:`more_overdensity_2011`, and :math:`b` is the linking length. Given this bounding density, the virial density contrast is found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
    </description>
    <deepCopy>
     <ignore   variables="recursiveSelf"/>
@@ -46,8 +40,8 @@
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastPercolation
-     !!{
-     A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
+     !!{RST
+     A dark matter halo virial density contrast class based on the percolation analysis of :cite:t:`more_overdensity_2011`.
      !!}
      private
      double precision                                            :: linkingLength
@@ -85,8 +79,8 @@
   end type virialDensityContrastPercolation
 
   interface virialDensityContrastPercolation
-     !!{
-     Constructors for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
      !!}
      module procedure percolationConstructorParameters
      module procedure percolationConstructorInternal
@@ -104,8 +98,8 @@
 contains
 
   recursive function percolationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!{RST
+    Constructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Functions_Global   , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
@@ -118,11 +112,13 @@ contains
     double precision                                                  :: linkingLength
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>linkingLength</name>
      <source>parameters</source>
      <defaultValue>0.2d0</defaultValue>
-     <description>The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of \cite{more_overdensity_2011}.</description>
+     <description>
+     The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of :cite:t:`more_overdensity_2011`.
+     </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -137,8 +133,8 @@ contains
   end function percolationConstructorParameters
 
   recursive function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
@@ -176,8 +172,8 @@ contains
   end function percolationConstructorInternal
 
   subroutine percolationDestructor(self)
-    !!{
-    Destructor for the \refClass{virialDensityContrastPercolation} dark matter halo virial density contrast class.
+    !!{RST
+    Destructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -191,8 +187,8 @@ contains
   end subroutine percolationDestructor
 
   subroutine percolationTabulate(self,mass,time)
-    !!{
-    Tabulate virial density contrast as a function of mass and time for the \mono{percolation} density contrast class.
+    !!{RST
+    Tabulate virial density contrast as a function of mass and time for the ``percolation`` density contrast class.
     !!}
     use :: Display         , only : displayCounter                             , displayCounterClear, displayIndent, displayUnindent, &
           &                         verbosityLevelWorking
@@ -281,8 +277,8 @@ contains
   end subroutine percolationTabulate
 
   double precision function percolationDensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
+    !!{RST
+    Return the virial density contrast at the given epoch, based on the percolation algorithm of :cite:t:`more_overdensity_2011`.
     !!}
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
@@ -311,9 +307,8 @@ contains
   end function percolationDensityContrast
 
   double precision function percolationDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the rate of change of the virial density contrast at the given epoch, based on the percolation algorithm of
-    \cite{more_overdensity_2011}.
+    !!{RST
+    Return the rate of change of the virial density contrast at the given epoch, based on the percolation algorithm of :cite:t:`more_overdensity_2011`.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -337,8 +332,8 @@ contains
   end function percolationDensityContrastRateOfChange
 
   logical function percolationIsMassDepdendent(self)
-    !!{
-    Specify that the \mono{percolation} virial density contrast class is mass-dependent.
+    !!{RST
+    Specify that the ``percolation`` virial density contrast class is mass-dependent.
     !!}
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
@@ -349,7 +344,7 @@ contains
   end function percolationIsMassDepdendent
 
   subroutine percolationDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy reset of the object.
     !!}
     use :: Functions_Global, only : percolationObjectsDeepCopyReset_
@@ -364,7 +359,7 @@ contains
   end subroutine percolationDeepCopyReset
 
   subroutine percolationDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep copy reset of the object.
     !!}
     use :: Functions_Global, only : percolationObjectsDeepCopyFinalize_
@@ -378,7 +373,7 @@ contains
   end subroutine percolationDeepCopyFinalize
 
   subroutine percolationDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of the object.
     !!}
     use :: Functions_Global  , only : percolationObjectsDeepCopy_
@@ -449,7 +444,7 @@ contains
   end subroutine percolationDeepCopy
 
   subroutine percolationDeepCopyAssign(self,destination)
-    !!{
+    !!{RST
     Perform pointer assignment during a deep copy of the object.
     !!}
     implicit none
@@ -464,7 +459,7 @@ contains
   end subroutine percolationDeepCopyAssign
 
   subroutine percolationFindParent(self)
-    !!{
+    !!{RST
     Find the deep-copied parent of a recursive child.
     !!}
     use :: Error, only : Error_Report
@@ -483,7 +478,7 @@ contains
   end subroutine percolationFindParent
 
   subroutine percolationCopyTable(self)
-    !!{
+    !!{RST
     Copy the table from a recursive child's parent.
     !!}
     use :: Error, only : Error_Report
@@ -510,7 +505,7 @@ contains
   end subroutine percolationCopyTable
 
   subroutine percolationStoreTable(self)
-    !!{
+    !!{RST
     Store the table to file.
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
@@ -545,7 +540,7 @@ contains
   end subroutine percolationStoreTable
 
   subroutine percolationRestoreTable(self)
-    !!{
+    !!{RST
     Attempt to restore a table from file.
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock     , File_Unlock, lockDescriptor

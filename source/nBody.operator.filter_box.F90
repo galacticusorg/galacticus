@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which filters particles outside a cuboid region.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorFilterBox">
-   <description>An N-body data operator which retains only particles whose positions fall within a specified axis-aligned cuboid region, enabling spatially localized analysis of simulation volumes. The lower and upper boundaries of the cuboid are specified as three-element coordinate arrays via \mono{[cornerLower]} and \mono{[cornerUpper]}.</description>
+  <nbodyOperator name="nbodyOperatorFilterBox" docformat="rst">
+   <description>
+   An N-body data operator which retains only particles whose positions fall within a specified axis-aligned cuboid region, enabling spatially localized analysis of simulation volumes. The lower and upper boundaries of the cuboid are specified as three-element coordinate arrays via ``[cornerLower]`` and ``[cornerUpper]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterBox
-     !!{
+     !!{RST
      An N-body data operator which filters particles outside a cuboid region.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which filters particles outside a cuboid regi
   end type nbodyOperatorFilterBox
 
   interface nbodyOperatorFilterBox
-     !!{
-     Constructors for the \refClass{nbodyOperatorFilterBox} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorFilterBox`` N-body operator class.
      !!}
      module procedure filterBoxConstructorParameters
      module procedure filterBoxConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which filters particles outside a cuboid regi
 contains
 
   function filterBoxConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorFilterBox} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorFilterBox`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,15 +59,19 @@ contains
     double precision                        , dimension(3)  :: boundLow  , boundHigh
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>boundLow</name>
       <source>parameters</source>
-      <description>The lower boundary of the cuboid region.</description>
+      <description>
+      The lower boundary of the cuboid region.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>boundHigh</name>
       <source>parameters</source>
-      <description>The upper boundary of the cuboid region.</description>
+      <description>
+      The upper boundary of the cuboid region.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorFilterBox(boundLow,boundHigh)
@@ -76,8 +82,8 @@ contains
   end function filterBoxConstructorParameters
 
   function filterBoxConstructorInternal(boundLow,boundHigh) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorFilterBox} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorFilterBox`` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -93,7 +99,7 @@ contains
   end function filterBoxConstructorInternal
 
   subroutine filterBoxOperate(self,simulations)
-    !!{
+    !!{RST
     Filter particles outside of a cuboid region.
     !!}
     use :: Display, only : displayIndent, displayMessage  , displayUnindent, verbosityLevelStandard

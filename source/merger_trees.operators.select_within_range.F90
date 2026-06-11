@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a select-within-range operator on the base nodes of merger trees.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorSelectWithinRange">
-   <description>Provides a merger tree operator which selects only those trees whose base node mass falls within a specified range, discarding trees outside the bounds. The minimum and maximum accepted base node masses are set by \mono{[massMinimum]} and \mono{[massMaximum]}, enabling mass-limited ensemble selection for statistical analyses.</description>
+  <mergerTreeOperator name="mergerTreeOperatorSelectWithinRange" docformat="rst">
+   <description>
+   Provides a merger tree operator which selects only those trees whose base node mass falls within a specified range, discarding trees outside the bounds. The minimum and maximum accepted base node masses are set by ``[massMinimum]`` and ``[massMaximum]``, enabling mass-limited ensemble selection for statistical analyses.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSelectWithinRange
-     !!{
+     !!{RST
      A select-within-range merger tree operator class.
      !!}
      private
@@ -37,7 +39,7 @@ Implements a select-within-range operator on the base nodes of merger trees.
   end type mergerTreeOperatorSelectWithinRange
 
   interface mergerTreeOperatorSelectWithinRange
-     !!{
+     !!{RST
      Constructors for the select-within-range merger tree operator class.
      !!}
      module procedure selectWithinRangeConstructorParameters
@@ -47,7 +49,7 @@ Implements a select-within-range operator on the base nodes of merger trees.
 contains
 
   function selectWithinRangeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the select-within-range merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -57,17 +59,21 @@ contains
     double precision                                                     :: baseMassMinimum, baseMassMaximum
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>baseMassMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Base node mass below which trees should be ignored.</description>
+      <description>
+      Base node mass below which trees should be ignored.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>baseMassMaximum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Base node mass above which trees should be ignored.</description>
+      <description>
+      Base node mass above which trees should be ignored.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorSelectWithinRange(baseMassMinimum,baseMassMaximum)
@@ -78,7 +84,7 @@ contains
   end function selectWithinRangeConstructorParameters
 
   function selectWithinRangeConstructorInternal(baseMassMinimum,baseMassMaximum) result(self)
-    !!{
+    !!{RST
     Internal constructor for the select-within-range merger tree operator class.
     !!}
     implicit none
@@ -92,7 +98,7 @@ contains
   end function selectWithinRangeConstructorInternal
 
   subroutine selectWithinRangeOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a select-within-range operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, treeNode

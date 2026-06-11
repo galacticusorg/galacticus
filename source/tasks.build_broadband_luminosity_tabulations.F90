@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a class which implements a task to pre-build tabulations needed for broadband luminosity calculations.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Stellar_Populations                       , only : stellarPopulationClass
 
   !![
-  <task name="taskBuildBroadbandLuminosityTabulations">
-   <description>A task which pre-builds and caches tabulations of stellar population broadband luminosities by evaluating the luminosity for a reference stellar population at solar metallicity. This pre-computation allows rapid lookup of broadband luminosities in photometric bands during galaxy evolution.</description>
+  <task name="taskBuildBroadbandLuminosityTabulations" docformat="rst">
+   <description>
+   A task which pre-builds and caches tabulations of stellar population broadband luminosities by evaluating the luminosity for a reference stellar population at solar metallicity. This pre-computation allows rapid lookup of broadband luminosities in photometric bands during galaxy evolution.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildBroadbandLuminosityTabulations
-     !!{
+     !!{RST
      Implementation of a task which pre-builds tabulations needed for broadband luminosity calculations.
      !!}
      private
@@ -44,8 +46,8 @@
   end type taskBuildBroadbandLuminosityTabulations
 
   interface taskBuildBroadbandLuminosityTabulations
-     !!{
-     Constructors for the \refClass{taskBuildBroadbandLuminosityTabulations} task.
+     !!{RST
+     Constructors for the ``taskBuildBroadbandLuminosityTabulations`` task.
      !!}
      module procedure buildBroadbandLuminosityTabulationsParameters
      module procedure buildBroadbandLuminosityTabulationsInternal
@@ -54,8 +56,8 @@
 contains
 
   function buildBroadbandLuminosityTabulationsParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildBroadbandLuminosityTabulations`` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -89,8 +91,8 @@ contains
   end function buildBroadbandLuminosityTabulationsParameters
 
   function buildBroadbandLuminosityTabulationsInternal(stellarPopulationBroadBandLuminosities_,stellarPopulation_) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``taskBuildBroadbandLuminosityTabulations`` task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskBuildBroadbandLuminosityTabulations    )                        :: self
@@ -104,8 +106,8 @@ contains
   end function buildBroadbandLuminosityTabulationsInternal
 
   subroutine buildBroadbandLuminosityTabulationsDestructor(self)
-    !!{
-    Destructor for the \refClass{taskBuildBroadbandLuminosityTabulations} task class.
+    !!{RST
+    Destructor for the ``taskBuildBroadbandLuminosityTabulations`` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -120,7 +122,7 @@ contains
   end subroutine buildBroadbandLuminosityTabulationsDestructor
 
   subroutine buildBroadbandLuminosityTabulationsPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display                       , only : displayIndent      , displayUnindent
@@ -153,7 +155,7 @@ contains
   end subroutine buildBroadbandLuminosityTabulationsPerform
   
   logical function buildBroadbandLuminosityTabulationsRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

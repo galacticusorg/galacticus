@@ -19,25 +19,20 @@
 
 !+    Contributions to this file made by: Xiaolong Du
   
-!!{
-Implements a merger tree build controller class which builds trees containing only the main branch and
-progenitors of the node on the main branch above a certain mass fraction.
+!!{RST
+Implements a merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the main branch above a certain mass fraction.
 !!}
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerMainBranch">
+  <mergerTreeBuildController name="mergerTreeBuildControllerMainBranch" docformat="rst">
     <description>
-      A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the
-      main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass
-      below a certain mass fraction relative to the main branch node, the branch will not grow any further.
+    A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass below a certain mass fraction relative to the main branch node, the branch will not grow any further.
     </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerMainBranch
-     !!{     
-     A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the
-     main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass
-     below a certain mass fraction relative to the main branch node, the branch will not grow any further.
+     !!{RST
+     A merger tree build controller class which builds trees containing only the main branch and progenitors of the node on the main branch above a certain mass fraction. Specifically, if a progenitor node of the node on the main branch has a mass below a certain mass fraction relative to the main branch node, the branch will not grow any further.
      !!}
      private
      class           (mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
@@ -50,8 +45,8 @@ progenitors of the node on the main branch above a certain mass fraction.
   end type mergerTreeBuildControllerMainBranch
 
   interface mergerTreeBuildControllerMainBranch
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
      !!}
      module procedure mainBranchConstructorParameters
      module procedure mainBranchConstructorInternal
@@ -60,8 +55,8 @@ progenitors of the node on the main branch above a certain mass fraction.
 contains
 
   function mainBranchConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,12 +66,12 @@ contains
     double precision                                                     :: massFraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFraction</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
       <description>
-	Mass fraction relative to the descendant node on the main branch below which the progenitor branch does not grow any further.
+      Mass fraction relative to the descendant node on the main branch below which the progenitor branch does not grow any further.
       </description>
     </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
@@ -90,8 +85,8 @@ contains
   end function mainBranchConstructorParameters
 
   function mainBranchConstructorInternal(massFraction,mergerTreeBranchingProbability_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
     !!}
     implicit none
     type            (mergerTreeBuildControllerMainBranch)                        :: self
@@ -105,8 +100,8 @@ contains
   end function mainBranchConstructorInternal
 
   subroutine mainBranchDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerMainBranch} merger tree build controller class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMainBranch), intent(inout) :: self
@@ -118,9 +113,8 @@ contains
   end subroutine mainBranchDestructor
 
   logical function mainBranchControl(self,node,treeWalker_) result(control)
-    !!{
-    Skip side branches of a tree under construction if the mass of the node is below a certain fraction relative to its descendant
-    on the main branch.
+    !!{RST
+    Skip side branches of a tree under construction if the mass of the node is below a certain fraction relative to its descendant on the main branch.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -148,7 +142,7 @@ contains
   end function mainBranchControl
 
   double precision function massDescendantOnMainBranch(node) result(mass)
-    !!{
+    !!{RST
     Find the mass of the descendant node on the main branch.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -167,7 +161,7 @@ contains
   end function massDescendantOnMainBranch
 
   function mainBranchBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -181,7 +175,7 @@ contains
   end function mainBranchBranchingProbabilityObject
 
   subroutine mainBranchNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

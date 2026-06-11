@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree outputter class that outputs $k$-space density profiles as needed for halo model calculations.
+  !!{RST
+  Implements a merger tree outputter class that outputs :math:`k`-space density profiles as needed for halo model calculations.
   !!}
   
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -28,35 +28,26 @@
   use :: IO_HDF5                 , only : hdf5Object
 
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles">
+  <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles" docformat="rst">
    <description>
-    A merger tree outputter class which outputs $k$-space density profiles as needed for halo model calculations. A
-    ``\mono{haloModel}'' group is created in the \glc\ output file. This group contains the following:
-  
-    \begin{description}
-  
-     \item [\mono{wavenumber}] A dataset giving the wavenumbers (in units of Mpc$^{-1}$) at which all output
-     power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the \mono{[haloModelWavenumberMinimum]} and \mono{[haloModelWavenumberMaximum]} parameters respectively, while the
-     number of points to tabulate in each decade of wavenumber is determined by the \mono{[haloModelWavenumberPointsPerDecade]} parameter.
-  
-     \item [\mono{powerSpectrum}] A dataset giving the linear theory power spectrum (in units of Mpc$^3$
-     normalized to $z=0$ at each wavenumber specified in the \mono{wavenumber} dataset.
-  
-     \item [\mono{Output\{i\}/mergerTree\{j\}/fourierProfile\{k\}}] A dataset giving the Fourier transform of
-     the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index
-     \mono{k} in merger tree with index \mono{j} at output number \mono{i}. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the \mono{wavenumber} group. Note that wavenumbers are assumed to be comoving.
-  
-    \end{description}
-  
-    Finally, each numbered output group is given two additional attributes, \mono{linearGrowthFactor} and
-    \mono{linearGrowthFactorLogDerivative} which give the growth factor, $D$, and its logarithmic derivative,
-    $\d \ln D / \d \ln a$ at the output time.
+   A merger tree outputter class which outputs :math:`k`-space density profiles as needed for halo model calculations. A "``haloModel``" group is created in the Galacticus output file. This group contains the following:
+
+   ``wavenumber``
+      A dataset giving the wavenumbers (in units of Mpc\ :math:`^{-1}`) at which all output power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the ``[haloModelWavenumberMinimum]`` and ``[haloModelWavenumberMaximum]`` parameters respectively, while the number of points to tabulate in each decade of wavenumber is determined by the ``[haloModelWavenumberPointsPerDecade]`` parameter.
+
+   ``powerSpectrum``
+      A dataset giving the linear theory power spectrum (in units of Mpc\ :math:`^3` normalized to :math:`z=0` at each wavenumber specified in the ``wavenumber`` dataset.
+
+   ``Output{i}/mergerTree{j}/fourierProfile{k}``
+      A dataset giving the Fourier transform of the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index ``k`` in merger tree with index ``j`` at output number ``i``. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the ``wavenumber`` group. Note that wavenumbers are assumed to be comoving.
+
+   Finally, each numbered output group is given two additional attributes, ``linearGrowthFactor`` and ``linearGrowthFactorLogDerivative`` which give the growth factor, :math:`D`, and its logarithmic derivative, :math:`\d \ln D / \d \ln a` at the output time.
    </description>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterHaloFourierProfiles
-     !!{
-     Implementation of a merger tree outputter class that outputs $k$-space density profiles as needed for halo model calculations.
+     !!{RST
+     Implementation of a merger tree outputter class that outputs :math:`k`-space density profiles as needed for halo model calculations.
      !!}
      private
      class           (cosmologyFunctionsClass  ), pointer                   :: cosmologyFunctions_       => null()
@@ -74,8 +65,8 @@
   end type mergerTreeOutputterHaloFourierProfiles
 
   interface mergerTreeOutputterHaloFourierProfiles
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter.
+     !!{RST
+     Constructors for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter.
      !!}
      module procedure haloFourierProfilesConstructorParameters
      module procedure haloFourierProfilesConstructorInternal
@@ -84,8 +75,8 @@
 contains
   
   function haloFourierProfilesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,22 +90,28 @@ contains
     integer                                                                 :: wavenumberPointsPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberPointsPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.</description>
+      <description>
+      The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
+      <description>
+      The minimum wavenumber (in Mpc\ :math:`{^-1}`) at which to tabulate power spectra for the halo model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMaximum</name>
       <defaultValue>1.0d4</defaultValue>
-      <description>The maximum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
+      <description>
+      The maximum wavenumber (in Mpc\ :math:`{^-1}`) at which to tabulate power spectra for the halo model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="galacticFilter"       name="galacticFilter_"       source="parameters"/>
@@ -134,8 +131,8 @@ contains
   end function haloFourierProfilesConstructorParameters
 
   function haloFourierProfilesConstructorInternal(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -158,8 +155,8 @@ contains
   end function haloFourierProfilesConstructorInternal
 
   subroutine haloFourierProfilesDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOutputterHaloFourierProfiles} merger tree outputter class.
+    !!{RST
+    Destructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
@@ -174,8 +171,8 @@ contains
   end subroutine haloFourierProfilesDestructor
   
   subroutine haloFourierProfilesOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
-    Write properties of nodes in \mono{tree} to the \glc\ output file.
+    !!{RST
+    Write properties of nodes in ``tree`` to the Galacticus output file.
     !!}
     use    :: Output_HDF5                     , only : outputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
@@ -243,7 +240,7 @@ contains
   end subroutine haloFourierProfilesOutputTree
 
   subroutine haloFourierProfilesOutputNode(self,node,indexOutput, outputType)
-    !!{
+    !!{RST
     Perform no output.
     !!}
     use :: Error, only : Error_Report

@@ -19,17 +19,19 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for the soliton-NFW Heated mass distribution.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionSolitonNFWHeated">
-   <description>A kinematic distribution class for a composite soliton-NFW mass distribution subject to heating, as occurs in fuzzy dark matter halos with a quantum-pressure-supported solitonic core embedded in an NFW envelope. The 1D velocity dispersion is computed by solving the isotropic Jeans equation for the heated composite profile.</description>
+  <kinematicsDistribution name="kinematicsDistributionSolitonNFWHeated" docformat="rst">
+   <description>
+   A kinematic distribution class for a composite soliton-NFW mass distribution subject to heating, as occurs in fuzzy dark matter halos with a quantum-pressure-supported solitonic core embedded in an NFW envelope. The 1D velocity dispersion is computed by solving the isotropic Jeans equation for the heated composite profile.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionSolitonNFWHeated
-     !!{
+     !!{RST
      A kinematics distribution for the soliton-NFW heated mass distribution.
      !!}
    contains
@@ -37,8 +39,8 @@
   end type kinematicsDistributionSolitonNFWHeated
 
   interface kinematicsDistributionSolitonNFWHeated
-     !!{
-     Constructors for the \refClass{kinematicsDistributionSolitonNFWHeated} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionSolitonNFWHeated`` kinematic distribution class.
      !!}
      module procedure solitonNFWHeatedKinematicsConstructorParameters
      module procedure solitonNFWHeatedKinematicsConstructorInternal
@@ -48,9 +50,8 @@
 contains
 
   function solitonNFWHeatedKinematicsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionSolitonNFWHeated} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionSolitonNFWHeated`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,17 +60,21 @@ contains
     double precision                                                        :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     !!]
     self=kinematicsDistributionSolitonNFWHeated(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
@@ -80,8 +85,8 @@ contains
   end function solitonNFWHeatedKinematicsConstructorParameters
 
   function solitonNFWHeatedKinematicsConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionSolitonNFWHeated} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionSolitonNFWHeated`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSolitonNFWHeated)                          :: self
@@ -93,8 +98,8 @@ contains
   end function solitonNFWHeatedKinematicsConstructorInternal
   
   function solitonNFWHeatedKinematicsConstructorDecorated(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionSolitonNFWHeated} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionSolitonNFWHeated`` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionSolitonNFWHeated)                :: self
@@ -106,7 +111,7 @@ contains
   end function solitonNFWHeatedKinematicsConstructorDecorated
   
   logical function solitonNFWHeatedKinematicsIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the soliton-NFW Heated distribution represents collisionless particles.
     !!}
     implicit none
@@ -118,8 +123,8 @@ contains
   end function solitonNFWHeatedKinematicsIsCollisional
 
   double precision function solitonNFWHeatedKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in a soliton-NFW Heated kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in a soliton-NFW Heated kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

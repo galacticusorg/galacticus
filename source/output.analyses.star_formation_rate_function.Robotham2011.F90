@@ -19,19 +19,21 @@
 
 !+    Contributions to this file made by Sachi Weerasooriya
 
-  !!{
-  Implements an output analysis class for the \cite{robotham_galaxy_2011} star formation rate function.
+  !!{RST
+  Implements an output analysis class for the :cite:t:`robotham_galaxy_2011` star formation rate function.
   !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisStarFormationRateFunctionRobotham2011">
-   <description>Computes the galaxy star formation rate function for comparison with the \cite{robotham_galaxy_2011} measurements, with star formation rate random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisStarFormationRateFunctionRobotham2011" docformat="rst">
+   <description>
+   Computes the galaxy star formation rate function for comparison with the :cite:t:`robotham_galaxy_2011` measurements, with star formation rate random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormationRateFunction) :: outputAnalysisStarFormationRateFunctionRobotham2011
-     !!{
-     A \cite{robotham_galaxy_2011} stellar mass function output analysis class.
+     !!{RST
+     A :cite:t:`robotham_galaxy_2011` stellar mass function output analysis class.
      !!}
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
@@ -43,8 +45,8 @@
   end type outputAnalysisStarFormationRateFunctionRobotham2011
 
   interface outputAnalysisStarFormationRateFunctionRobotham2011
-     !!{
-     Constructors for the \refClass{outputAnalysisStarFormationRateFunctionRobotham2011} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class.
      !!}
      module procedure starFormationRateFunctionRobotham2011ConstructorParameters
      module procedure starFormationRateFunctionRobotham2011ConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function starFormationRateFunctionRobotham2011ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormationRateFunctionRobotham2011} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,61 +86,77 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.126d0</defaultValue>
-      <description>The minimum random error for \cite{robotham_galaxy_2011} star formation rates.</description>
+      <description>
+      The minimum random error for :cite:t:`robotham_galaxy_2011` star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.126d0</defaultValue>
-      <description>The minimum random error for \cite{robotham_galaxy_2011} star formation rates.</description>
+      <description>
+      The minimum random error for :cite:t:`robotham_galaxy_2011` star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.126d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for \cite{robotham_galaxy_2011} star formation rates.</description>
+      <description>
+      The coefficients of the random error polynomial for :cite:t:`robotham_galaxy_2011` star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for \cite{robotham_galaxy_2011} star formation rates.</description>
+      <description>
+      The coefficients of the systematic error polynomial for :cite:t:`robotham_galaxy_2011` star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing :cite:t:`robotham_galaxy_2011` star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing :cite:t:`robotham_galaxy_2011` star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing \cite{robotham_galaxy_2011} star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing :cite:t:`robotham_galaxy_2011` star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
@@ -162,8 +180,8 @@ contains
   end function starFormationRateFunctionRobotham2011ConstructorParameters
 
   function starFormationRateFunctionRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormationRateFunctionRobotham2011} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -317,8 +335,8 @@ contains
   end function starFormationRateFunctionRobotham2011ConstructorInternal
 
   subroutine starFormationRateFunctionRobotham2011Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStarFormationRateFunctionRobotham2011} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormationRateFunctionRobotham2011), intent(inout) :: self

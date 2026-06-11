@@ -36,20 +36,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the accretion disk spectra class using the model of \cite{hopkins_observational_2007}.
+  !!{RST
+  An implementation of the accretion disk spectra class using the model of :cite:t:`hopkins_observational_2007`.
   !!}
 
   use :: File_Utilities, only : lockDescriptor
 
   !![
-  <accretionDiskSpectra name="accretionDiskSpectraHopkins2007">
-   <description>Accretion disk spectra using the model of \cite{hopkins_observational_2007}.</description>
+  <accretionDiskSpectra name="accretionDiskSpectraHopkins2007" docformat="rst">
+   <description>
+   Accretion disk spectra using the model of :cite:t:`hopkins_observational_2007`.
+   </description>
   </accretionDiskSpectra>
   !!]
   type, extends(accretionDiskSpectraFile) :: accretionDiskSpectraHopkins2007
-     !!{
-     An accretion disk spectra class which uses the algorithm of \cite{hopkins_observational_2007}.
+     !!{RST
+     An accretion disk spectra class which uses the algorithm of :cite:t:`hopkins_observational_2007`.
      !!}
      private
      type(lockDescriptor) :: fileLock
@@ -63,8 +65,8 @@
   end type accretionDiskSpectraHopkins2007
 
   interface accretionDiskSpectraHopkins2007
-     !!{
-     Constructors for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
+     !!{RST
+     Constructors for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
      !!}
      module procedure hopkins2007ConstructorParameters
      module procedure hopkins2007ConstructorInternal
@@ -73,8 +75,8 @@
 contains
 
   function hopkins2007ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
+    !!{RST
+    Constructor for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,8 +99,8 @@ contains
   end function hopkins2007ConstructorParameters
 
   function hopkins2007ConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Constructor for the \refClass{accretionDiskSpectraHopkins2007} accretion disk spectra class.
+    !!{RST
+    Constructor for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
     !!}
     use :: File_Utilities, only : File_Lock, File_Unlock       , Directory_Make
     use :: Input_Paths   , only : inputPath, pathTypeDataStatic, pathTypeDataDynamic
@@ -126,8 +128,8 @@ contains
   end function hopkins2007ConstructorInternal
 
   subroutine hopkins2007BuildFile(self)
-    !!{
-    Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
+    !!{RST
+    Build a file containing a tabulation of the :cite:t:`hopkins_observational_2007` model AGN spectra.
     !!}
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use            :: Display                         , only : displayCounter         , displayCounterClear , displayIndent     , displayUnindent, &

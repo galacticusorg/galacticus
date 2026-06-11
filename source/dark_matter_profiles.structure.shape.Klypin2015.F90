@@ -17,16 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile shapes  using the \cite{klypin_multidark_2014} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile shapes  using the :cite:t:`klypin_multidark_2014` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>klypin2015Sample</name>
-   <description>Enumeration of sample types for the \mono{klypin2015} dark matter profile shape parameter class.</description>
+   <description>
+   Enumeration of sample types for the ``klypin2015`` dark matter profile shape parameter class.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="all"    />
@@ -35,13 +37,15 @@
   !!]
 
   !![
-  <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015">
-   <description>Dark matter halo shape parameters are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+  <darkMatterProfileShape name="darkMatterProfileShapeKlypin2015" docformat="rst">
+   <description>
+   Dark matter halo shape parameters are computed using the algorithm of :cite:t:`klypin_multidark_2014`.
+   </description>
   </darkMatterProfileShape>
   !!]
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeKlypin2015
-     !!{
-     A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!{RST
+     A dark matter halo profile shape parameter class implementing the algorithm of :cite:t:`klypin_multidark_2014`.
      !!}
      private
      class(criticalOverdensityClass       ), pointer :: criticalOverdensity_      => null()
@@ -53,8 +57,8 @@
   end type darkMatterProfileShapeKlypin2015
 
   interface darkMatterProfileShapeKlypin2015
-     !!{
-     Constructors for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape class.
+     !!{RST
+     Constructors for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -63,9 +67,8 @@
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{klypin2015} dark matter halo profile
-    shape class.
+    !!{RST
+    Default constructor for the ``klypin2015`` dark matter halo profile shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,10 +79,12 @@ contains
     type (varying_string                  )                :: sample
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sample</name>
       <defaultValue>var_str('all')</defaultValue>
-      <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
+      <description>
+      The sample to use for the halo shape parameter algorithm of :cite:t:`klypin_multidark_2014`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -95,9 +100,8 @@ contains
   end function klypin2015ConstructorParameters
 
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile
-    shape class.
+    !!{RST
+    Constructor for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -114,8 +118,8 @@ contains
   end function klypin2015ConstructorInternal
 
   subroutine klypin2015Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileShapeKlypin2015} dark matter halo profile shape class.
+    !!{RST
+    Destructor for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeKlypin2015), intent(inout) :: self
@@ -128,9 +132,8 @@ contains
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Shape(self,node)
-    !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of \mono{node} using the
-    \cite{klypin_multidark_2014} algorithm.
+    !!{RST
+    Return the Einasto profile shape parameter of the dark matter halo profile of ``node`` using the :cite:t:`klypin_multidark_2014` algorithm.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node operator class that records the index of the branch tip for each node.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorUniqueIDBranchTip">
-   <description>Records the unique global ID of the branch tip (earliest progenitor) in each node's metadata, providing a persistent cross-snapshot identifier for each branch origin usable for cross-matching nodes across different tree realizations.</description>
+  <nodeOperator name="nodeOperatorUniqueIDBranchTip" docformat="rst">
+   <description>
+   Records the unique global ID of the branch tip (earliest progenitor) in each node's metadata, providing a persistent cross-snapshot identifier for each branch origin usable for cross-matching nodes across different tree realizations.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorUniqueIDBranchTip
-     !!{
+     !!{RST
      A node operator class that records the index of the branch tip for each node.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a node operator class that records the index of the branch tip for ea
   end type nodeOperatorUniqueIDBranchTip
 
   interface nodeOperatorUniqueIDBranchTip
-     !!{
-     Constructors for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorUniqueIDBranchTip`` node operator class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -47,8 +49,8 @@ Implements a node operator class that records the index of the branch tip for ea
 contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorUniqueIDBranchTip`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function uniqueIDBranchTipConstructorParameters
 
   function uniqueIDBranchTipConstructorInternal() result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorUniqueIDBranchTip} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorUniqueIDBranchTip`` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorUniqueIDBranchTip) :: self
@@ -76,7 +78,7 @@ contains
   end function uniqueIDBranchTipConstructorInternal
 
   subroutine uniqueIDBranchTipNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize node branch tip indices.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

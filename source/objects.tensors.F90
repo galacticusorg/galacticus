@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module which defines the structure used for describing tensors.
 !!}
 
 module Tensors
-  !!{
+  !!{RST
   Defines the structure used for describing tensors.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -51,13 +51,13 @@ module Tensors
   end interface max
 
   type :: tensor
-     !!{
+     !!{RST
      A generic tensor type.
      !!}
   end type tensor
 
   type, extends(tensor) :: tensorRank2Dimension3Symmetric
-     !!{
+     !!{RST
      A rank 2, three dimensional, symmetric tensor.
      !!}
      private
@@ -138,14 +138,14 @@ module Tensors
   ! Interfaces to type-bound functions.
   interface
      module function tensorRank2Dimension3SymmetricNull() result(self)
-       !!{
-       Constructor for \mono{tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+       !!{RST
+       Constructor for ``tensorRank2Dimension3Symmetric`` objects which sets all components to zero.
        !!}
        type(tensorRank2Dimension3Symmetric) :: self
      end function tensorRank2Dimension3SymmetricNull
      module function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
-       !!{
-       Constructor for \mono{tensorRank2Dimension3Symmetric} objects.
+       !!{RST
+       Constructor for ``tensorRank2Dimension3Symmetric`` objects.
        !!}
        type            (tensorRank2Dimension3Symmetric)                :: self
        double precision                                , intent(in   ) :: x00 , x01, &
@@ -153,201 +153,200 @@ module Tensors
             &                                                             x12 , x22
      end function tensorRank2Dimension3SymmetricInternal
      module subroutine Tensor_R2_D3_Sym_Destroy(self)
-       !!{
-       Destroy a \mono{tensorRank2Dimension3Symmetric} symmetric object.
+       !!{RST
+       Destroy a ``tensorRank2Dimension3Symmetric`` symmetric object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
      end subroutine Tensor_R2_D3_Sym_Destroy
      module subroutine Tensor_R2_D3_Sym_Builder(self,tensorDefinition)
-       !!{
-       Build a \mono{tensorRank2Dimension3Symmetric} object from the given XML \mono{tensorDefinition}.
+       !!{RST
+       Build a ``tensorRank2Dimension3Symmetric`` object from the given XML ``tensorDefinition``.
        !!}
        implicit none
        class(tensorRank2Dimension3Symmetric), intent(inout)              :: self
        type (node                          ), intent(in   ), pointer     :: tensorDefinition
      end subroutine Tensor_R2_D3_Sym_Builder
      module subroutine Tensor_R2_D3_Sym_Dump(self,verbosityLevel)
-       !!{
-       Reset a \mono{tensorRank2Dimension3Symmetric} symmetric object.
+       !!{RST
+       Reset a ``tensorRank2Dimension3Symmetric`` symmetric object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
        type (enumerationVerbosityLevelType ), intent(in   ) :: verbosityLevel
      end subroutine Tensor_R2_D3_Sym_Dump
      module subroutine Tensor_R2_D3_Sym_Dump_Raw(self,fileHandle)
-       !!{
-       Dump a \mono{tensorRank2Dimension3Symmetric} object to binary.
+       !!{RST
+       Dump a ``tensorRank2Dimension3Symmetric`` object to binary.
        !!}
        class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
        integer                                , intent(in   ) :: fileHandle
      end subroutine Tensor_R2_D3_Sym_Dump_Raw
      module subroutine Tensor_R2_D3_Sym_Read_Raw(self,fileHandle)
-       !!{
-       Read a \mono{tensorRank2Dimension3Symmetric} object from binary.
+       !!{RST
+       Read a ``tensorRank2Dimension3Symmetric`` object from binary.
        !!}
        class  (tensorRank2Dimension3Symmetric), intent(inout) :: self
        integer                                , intent(in   ) :: fileHandle
      end subroutine Tensor_R2_D3_Sym_Read_Raw
      module subroutine Tensor_R2_D3_Sym_Reset(self)
-       !!{
-       Reset a \mono{tensorRank2Dimension3Symmetric} object.
+       !!{RST
+       Reset a ``tensorRank2Dimension3Symmetric`` object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
      end subroutine Tensor_R2_D3_Sym_Reset
      module subroutine Tensor_R2_D3_Sym_Set_To_Unity(self)
-       !!{
-       Set a \mono{tensorRank2Dimension3Symmetric} object to unity.
+       !!{RST
+       Set a ``tensorRank2Dimension3Symmetric`` object to unity.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
      end subroutine Tensor_R2_D3_Sym_Set_To_Unity
      module subroutine Tensor_R2_D3_Sym_Set_To_Identity(self)
-       !!{
-       Set a \mono{tensorRank2Dimension3Symmetric} object to the identity matrix.
+       !!{RST
+       Set a ``tensorRank2Dimension3Symmetric`` object to the identity matrix.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
      end subroutine Tensor_R2_D3_Sym_Set_To_Identity
      module double precision function Tensor_R2_D3_Sym_Element(self,i,j)
-       !!{
-       Return the enumeration element of a \mono{tensorRank2Dimension3Symmetric} object.
+       !!{RST
+       Return the enumeration element of a ``tensorRank2Dimension3Symmetric`` object.
        !!}
        class  (tensorRank2Dimension3Symmetric), intent(in) :: self
        integer                                , intent(in) :: i   , j
      end function Tensor_R2_D3_Sym_Element
      module logical function Tensor_R2_D3_Sym_Is_Zero(self)
-       !!{
-       Test whether a \mono{tensorRank2Dimension3Symmetric} object is zero.
+       !!{RST
+       Test whether a ``tensorRank2Dimension3Symmetric`` object is zero.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in) :: self
      end function Tensor_R2_D3_Sym_Is_Zero
      module function Tensor_R2_D3_Sym_Add(tensor1,tensor2)
-       !!{
-       Add two \mono{tensorRank2Dimension3Symmetric} objects.
+       !!{RST
+       Add two ``tensorRank2Dimension3Symmetric`` objects.
        !!}
        type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Add
        class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
        class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
      end function Tensor_R2_D3_Sym_Add
      module subroutine Tensor_R2_D3_Sym_Increment(self,increment)
-       !!{
-       Increment a \mono{tensorRank2Dimension3Symmetric} object.
+       !!{RST
+       Increment a ``tensorRank2Dimension3Symmetric`` object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout) :: self
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: increment
      end subroutine Tensor_R2_D3_Sym_Increment
      module function Tensor_R2_D3_Sym_Subtract(tensor1,tensor2)
-       !!{
-       Subtract two \mono{tensorRank2Dimension3Symmetric} objects.
+       !!{RST
+       Subtract two ``tensorRank2Dimension3Symmetric`` objects.
        !!}
        type (tensorRank2Dimension3Symmetric)                       :: Tensor_R2_D3_Sym_Subtract
        class(tensorRank2Dimension3Symmetric), intent(in)           :: tensor1
        class(tensorRank2Dimension3Symmetric), intent(in), optional :: tensor2
      end function Tensor_R2_D3_Sym_Subtract
      module function Tensor_R2_D3_Sym_Scalar_Multiply(tensor1,multiplier)
-       !!{
-       Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
+       !!{RST
+       Multiply a ``tensorRank2Dimension3Symmetric`` object by a scalar.
        !!}
        type            (tensorRank2Dimension3Symmetric)             :: Tensor_R2_D3_Sym_Scalar_Multiply
        class           (tensorRank2Dimension3Symmetric), intent(in) :: tensor1
        double precision                                , intent(in) :: multiplier
      end function Tensor_R2_D3_Sym_Scalar_Multiply
      module function Tensor_R2_D3_Sym_Scalar_Multiply_Switched(multiplier,tensor1)
-       !!{
-       Multiply a scalar by a \mono{tensorRank2Dimension3Symmetric} object.
+       !!{RST
+       Multiply a scalar by a ``tensorRank2Dimension3Symmetric`` object.
        !!}
        type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Multiply_Switched
        type            (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
        double precision                                , intent(in   ) :: multiplier
      end function Tensor_R2_D3_Sym_Scalar_Multiply_Switched
      module function Tensor_R2_D3_Sym_Max(tensor1,tensor2)
-       !!{
-       Return an element-by-element \mono{max()} on two \mono{tensorRank2Dimension3Symmetric} objects.
+       !!{RST
+       Return an element-by-element ``max()`` on two ``tensorRank2Dimension3Symmetric`` objects.
        !!}
        type(tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Max
        type(tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1,tensor2
      end function Tensor_R2_D3_Sym_Max
      module function Tensor_R2_D3_Sym_Scalar_Divide(tensor1,divisor)
-       !!{
-       Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
+       !!{RST
+       Multiply a ``tensorRank2Dimension3Symmetric`` object by a scalar.
        !!}
        type            (tensorRank2Dimension3Symmetric)                :: Tensor_R2_D3_Sym_Scalar_Divide
        class           (tensorRank2Dimension3Symmetric), intent(in   ) :: tensor1
        double precision                                , intent(in   ) :: divisor
      end function Tensor_R2_D3_Sym_Scalar_Divide
      module double precision function Tensor_R2_D3_Sym_Vector_Project(self,vector)
-       !!{
-       Find the magnitude of the projection of a \mono{tensorRank2Dimension3Symmetric}/vector dot product onto
-       the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+       !!{RST
+       Find the magnitude of the projection of a ``tensorRank2Dimension3Symmetric``/vector dot product onto the same vector, :math:`\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}`.
        !!}
        class           (tensorRank2Dimension3Symmetric), intent(in   )               :: self
        double precision                                , intent(in   ), dimension(3) :: vector
      end function Tensor_R2_D3_Sym_Vector_Project
      module double precision function Tensor_R2_D3_Sym_Double_Contract(self,tensor1)
-       !!{
-       Find the double contraction of two \mono{tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+       !!{RST
+       Find the double contraction of two ``tensorRank2Dimension3Symmetric`` objects, :math:`\mathbf{A}:\mathbf{B}`.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: self,tensor1
      end function Tensor_R2_D3_Sym_Double_Contract
      module double precision function Tensor_R2_D3_Sym_Contract(self)
-       !!{
-       Return the contraction (trace) of a \mono{tensorRank2Dimension3Symmetric}.
+       !!{RST
+       Return the contraction (trace) of a ``tensorRank2Dimension3Symmetric``.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in   ) :: self
      end function Tensor_R2_D3_Sym_Contract
      module integer function Tensor_R2_D3_Sym_Property_Count()
-       !!{
+       !!{RST
        Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
        !!}
      end function Tensor_R2_D3_Sym_Property_Count
      module subroutine Tensor_R2_D3_Sym_Deserialize(self,tensorArray)
-       !!{
-       Pack an array into a \mono{tensorRank2Dimension3Symmetric} symmetric structure.
+       !!{RST
+       Pack an array into a ``tensorRank2Dimension3Symmetric`` symmetric structure.
        !!}
        class           (tensorRank2Dimension3Symmetric), intent(inout)               :: self
        double precision                                , intent(in   ), dimension(6) :: tensorArray
      end subroutine Tensor_R2_D3_Sym_Deserialize
      module subroutine Tensor_R2_D3_Sym_Serialize(self,tensorArray)
-       !!{
-       Pack a \mono{tensorRank2Dimension3Symmetric} into an array.
+       !!{RST
+       Pack a ``tensorRank2Dimension3Symmetric`` into an array.
        !!}
        double precision                                , intent(  out), dimension(:) :: tensorArray(6)
        class           (tensorRank2Dimension3Symmetric), intent(in   )               :: self
      end subroutine Tensor_R2_D3_Sym_Serialize
      module subroutine Tensor_R2_D3_Sym_From_Matrix(self,matrix)
-       !!{
-       Construct a \mono{tensorRank2Dimension3Symmetric} object from a matrix.
+       !!{RST
+       Construct a ``tensorRank2Dimension3Symmetric`` object from a matrix.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout)                 :: self
        double precision                     , intent(in   ), dimension(3,3) :: matrix
      end subroutine Tensor_R2_D3_Sym_From_Matrix
      module function Tensor_R2_D3_Sym_To_Matrix(self)
-       !!{
-       Construct a matrix from a \mono{tensorRank2Dimension3Symmetric}.
+       !!{RST
+       Construct a matrix from a ``tensorRank2Dimension3Symmetric``.
        !!}
        double precision                     , dimension(3,3) :: Tensor_R2_D3_Sym_To_Matrix
        class(tensorRank2Dimension3Symmetric), intent(in   )  :: self
      end function Tensor_R2_D3_Sym_To_Matrix
      module subroutine Tensor_R2_D3_Sym_Assign_To(tensor,matrix)
-       !!{
-       Assign a matrix to a \mono{tensorRank2Dimension3Symmetric} object.
+       !!{RST
+       Assign a matrix to a ``tensorRank2Dimension3Symmetric`` object.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(inout)                 :: tensor
        double precision                     , intent(in   ), dimension(3,3) :: matrix
      end subroutine Tensor_R2_D3_Sym_Assign_To
      module subroutine Tensor_R2_D3_Sym_Assign_From(matrix,tensor)
-       !!{
-       Assign a \mono{tensorRank2Dimension3Symmetric} to a matrix.
+       !!{RST
+       Assign a ``tensorRank2Dimension3Symmetric`` to a matrix.
        !!}
        double precision                     , intent(  out), dimension(3,3) :: matrix
        class(tensorRank2Dimension3Symmetric), intent(in   )                 :: tensor
      end subroutine Tensor_R2_D3_Sym_Assign_From
      module logical function Tensor_R2_D3_Sym_Matrix_Equality(self,matrix)
-       !!{
+       !!{RST
        Return true if the supplied tensor and matrix are equal.
        !!}
        class(tensorRank2Dimension3Symmetric), intent(in   )                 :: self
        double precision                     , intent(in   ), dimension(3,3) :: matrix
      end function Tensor_R2_D3_Sym_Matrix_Equality
      module function Tensor_R2_D3_Sym_Non_Static_Size_Of(self)
-       !!{
+       !!{RST
        Return the size of any non-static components of the object.
        !!}
        integer(c_size_t                      )                :: Tensor_R2_D3_Sym_Non_Static_Size_Of

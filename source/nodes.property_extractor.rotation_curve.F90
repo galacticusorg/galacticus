@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the rotation curve at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
+  <nodePropertyExtractor name="nodePropertyExtractorRotationCurve" docformat="rst">
    <description>
-    A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
-    are specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
-    entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-    specifier}.
+   A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output are specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid `radius specifier &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers&gt;`_.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorRotationCurve
-     !!{
+     !!{RST
      A property extractor class for the rotation curve at a set of radii.
      !!}
      private
@@ -61,8 +57,8 @@
   end type nodePropertyExtractorRotationCurve
 
   interface nodePropertyExtractorRotationCurve
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorRotationCurve`` property extractor class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -71,8 +67,8 @@
 contains
 
   function rotationCurveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorRotationCurve`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,15 +80,19 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the rotation curve.</description>
+      <description>
+      A list of radius specifiers at which to output the rotation curve.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which rotation curve data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which rotation curve data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -106,8 +106,8 @@ contains
   end function rotationCurveConstructorParameters
 
   function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorRotationCurve`` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -140,8 +140,8 @@ contains
   end function rotationCurveConstructorInternal
 
   subroutine rotationCurveDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRotationCurve} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorRotationCurve`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRotationCurve), intent(inout) :: self
@@ -153,8 +153,8 @@ contains
   end subroutine rotationCurveDestructor
 
   integer function rotationCurveElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{rotationCurve} property extractors.
+    !!{RST
+    Return the number of elements in the ``rotationCurve`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
@@ -166,8 +166,8 @@ contains
   end function rotationCurveElementCount
 
   function rotationCurveSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{rotationCurve} property extractors.
+    !!{RST
+    Return the number of array elements in the ``rotationCurve`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                          )                :: rotationCurveSize
@@ -180,8 +180,8 @@ contains
   end function rotationCurveSize
 
   function rotationCurveExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{rotationCurve} property extractor.
+    !!{RST
+    Implement a ``rotationCurve`` property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic                  , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius      , radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction, &
@@ -288,8 +288,8 @@ contains
   end function rotationCurveExtract
 
   subroutine rotationCurveNames(self,names,time)
-    !!{
-    Return the names of the \mono{rotationCurve} properties.
+    !!{RST
+    Return the names of the ``rotationCurve`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -305,8 +305,8 @@ contains
   end subroutine rotationCurveNames
 
   subroutine rotationCurveDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{rotationCurve} property.
+    !!{RST
+    Return descriptions of the ``rotationCurve`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
@@ -322,8 +322,8 @@ contains
   end subroutine rotationCurveDescriptions
 
   subroutine rotationCurveColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{rotationCurve} property.
+    !!{RST
+    Return column descriptions of the ``rotationCurve`` property.
     !!}
     use            :: Units_MetaData, only : unitType
     use, intrinsic :: ISO_C_Binding , only : c_int
@@ -345,8 +345,8 @@ contains
   end subroutine rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{rotationCurve} properties in the SI system.
+    !!{RST
+    Return the units of the ``rotationCurve`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -364,7 +364,7 @@ contains
   end function rotationCurveUnitsInSI
 
   function rotationCurveUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the rotationCurve properties.
     !!}
     use :: Units_MetaData, only : unitType

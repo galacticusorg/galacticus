@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a dark matter halo mass function class which modifies another mass function by multiplying it
-by a constant factor.
+!!{RST
+Contains a module which implements a dark matter halo mass function class which modifies another mass function by multiplying it by a constant factor.
 !!}
 
    use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <haloMassFunction name="haloMassFunctionMultiplier">
+  <haloMassFunction name="haloMassFunctionMultiplier" docformat="rst">
    <description>
-    The halo mass function is computed by multiplying another halo mass function by a constant factor.
+   The halo mass function is computed by multiplying another halo mass function by a constant factor.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionMultiplier
-     !!{
+     !!{RST
      A halo mass function class that modifies another mass function by multiplying it by a constant factor.
      !!}
      private
@@ -46,8 +45,8 @@ by a constant factor.
   end type haloMassFunctionMultiplier
 
   interface haloMassFunctionMultiplier
-     !!{
-     Constructors for the \mono{multiplier} halo mass function class.
+     !!{RST
+     Constructors for the ``multiplier`` halo mass function class.
      !!}
      module procedure multiplierConstructorParameters
      module procedure multiplierConstructorInternal
@@ -56,8 +55,8 @@ by a constant factor.
 contains
 
   function multiplierConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{multiplier} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``multiplier`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,15 +68,19 @@ contains
     double precision                                            :: multiplier          , exponentRedshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>multiplier</name>
       <source>parameters</source>
-      <description>The factor by which to multiply the halo mass function.</description>
+      <description>
+      The factor by which to multiply the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
-      <description>The exponent of $(1+z)$ in the multiplier of the halo mass function.</description>
+      <description>
+      The exponent of :math:`(1+z)` in the multiplier of the halo mass function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -94,8 +97,8 @@ contains
   end function multiplierConstructorParameters
 
   function multiplierConstructorInternal(multiplier,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \mono{multiplier} halo mass function class.
+    !!{RST
+    Internal constructor for the ``multiplier`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionMultiplier)                        :: self
@@ -111,8 +114,8 @@ contains
   end function multiplierConstructorInternal
 
   subroutine multiplierDestructor(self)
-    !!{
-    Destructor for the \mono{multiplier} halo mass function class.
+    !!{RST
+    Destructor for the ``multiplier`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionMultiplier), intent(inout) :: self
@@ -126,7 +129,7 @@ contains
   end subroutine multiplierDestructor
 
   double precision function multiplierDifferential(self,time,mass,node) result(massFunction)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
@@ -147,7 +150,7 @@ contains
   end function multiplierDifferential
 
   double precision function multiplierIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
-    !!{
+    !!{RST
     Return the integrated halo mass function at the given time and mass.
     !!}
     implicit none

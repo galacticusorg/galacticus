@@ -17,24 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
+  !!{RST
+  Implementation of halo bias using the algorithm of :cite:t:`tinker_large_2010`.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Virial_Density_Contrast   , only : virialDensityContrastClass
 
   !![
-  <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
+  <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" docformat="rst">
    <description>
-    A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}. The bias is computed at the
-    appropriate virial overdensity (see \refPhysics{virialDensityContrast}).
+   A dark matter halo mass bias class utilizing the algorithm of :cite:t:`tinker_large_2010`. The bias is computed at the appropriate virial overdensity (see ``virialDensityContrast``).
    </description>
   </darkMatterHaloBias>
   !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
-     !!{
-     Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
+     !!{RST
+     Implementation of a dark matter halo mass utilizing the algorithm of :cite:t:`tinker_large_2010`.
      !!}
      private
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -49,8 +48,8 @@
   end type darkMatterHaloBiasTinker2010
 
   interface darkMatterHaloBiasTinker2010
-     !!{
-     Constructors for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
+     !!{RST
+     Constructors for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
      !!}
      module procedure tinker2010ConstructorParameters
      module procedure tinker2010ConstructorInternal
@@ -59,8 +58,8 @@
 contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,8 +85,8 @@ contains
   end function tinker2010ConstructorParameters
 
   function tinker2010ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
+    !!{RST
+    Internal constructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2010 )                        :: self
@@ -104,8 +103,8 @@ contains
   end function tinker2010ConstructorInternal
 
   subroutine tinker2010Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloBiasTinker2010} dark matter halo bias class.
+    !!{RST
+    Destructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2010), intent(inout) :: self
@@ -119,7 +118,7 @@ contains
   end subroutine tinker2010Destructor
 
   double precision function tinker2010BiasByMass(self,mass,time,radius)
-    !!{
+    !!{RST
     Returns the bias of a dark matter halo given the mass and time.
     !!}
     implicit none

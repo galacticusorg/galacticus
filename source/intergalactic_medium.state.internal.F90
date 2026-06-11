@@ -19,20 +19,22 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-  !!{
-  An implementation of the \gls{igm} state class for an internal model of instantaneous and full reionization.
+  !!{RST
+  An implementation of the :term:`IGM` state class for an internal model of instantaneous and full reionization.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateInternal">
-   <description>The state of the intergalactic medium is solved for internally.</description>
+  <intergalacticMediumState name="intergalacticMediumStateInternal" docformat="rst">
+   <description>
+   The state of the intergalactic medium is solved for internally.
+   </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
-     !!{
-     An \gls{igm} state class for an internally consistent model.
+     !!{RST
+     An :term:`IGM` state class for an internally consistent model.
      !!}
      double precision              , allocatable, dimension(:  ) :: time            , temperatureIGM  , &
           &                                                         massFiltering   , densityHydrogen1, &
@@ -50,8 +52,8 @@
   end type intergalacticMediumStateInternal
 
   interface intergalacticMediumStateInternal
-     !!{
-     Constructors for the internal \gls{igm} state class.
+     !!{RST
+     Constructors for the internal :term:`IGM` state class.
      !!}
      module procedure internalConstructorParameters
      module procedure internalConstructorInternal
@@ -60,8 +62,8 @@
 contains
 
   function internalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateInternal} \gls{igm} state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateInternal`` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,8 +86,8 @@ contains
   end function internalConstructorParameters
 
   function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{intergalacticMediumStateInternal} \gls{igm} state class.
+    !!{RST
+    Internal constructor for the ``intergalacticMediumStateInternal`` :term:`IGM` state class.
     !!}
     implicit none
     type (intergalacticMediumStateInternal)                        :: self
@@ -115,7 +117,7 @@ contains
   end function internalConstructorInternal
 
   subroutine internalAutoHook(self)
-    !!{
+    !!{RST
     Hook into the internal intergalactic medium state evolver to receive updates.
     !!}
     use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEventGlobal
@@ -127,8 +129,8 @@ contains
   end subroutine internalAutoHook
 
   subroutine internalDestructor(self)
-    !!{
-    Destructor for the internal \gls{igm} state class.
+    !!{RST
+    Destructor for the internal :term:`IGM` state class.
     !!}
     use :: Events_Hooks, only : intergalacticMediumStateEvolveUpdateEventGlobal
     implicit none
@@ -143,8 +145,8 @@ contains
   end subroutine internalDestructor
 
   double precision function internalElectronFraction(self,time)
-    !!{
-    Return the electron fraction of the \gls{igm} in the internal model.
+    !!{RST
+    Return the electron fraction of the :term:`IGM` in the internal model.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -187,8 +189,8 @@ contains
   end function internalElectronFraction
 
   double precision function internalNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction of the \gls{igm} in the internal model.
+    !!{RST
+    Return the neutral hydrogen fraction of the :term:`IGM` in the internal model.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -224,8 +226,8 @@ contains
   end function internalNeutralHydrogenFraction
 
   double precision function internalNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction of the \gls{igm} in the internal model.
+    !!{RST
+    Return the neutral helium fraction of the :term:`IGM` in the internal model.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -261,8 +263,8 @@ contains
   end function internalNeutralHeliumFraction
 
   double precision function internalSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the singly ionized helium fraction of the \gls{igm} in the internal model.
+    !!{RST
+    Return the singly ionized helium fraction of the :term:`IGM` in the internal model.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -298,8 +300,8 @@ contains
   end function internalSinglyIonizedHeliumFraction
 
   double precision function internalTemperature(self,time)
-    !!{
-    Return the temperature of the \gls{igm} in the internal model.
+    !!{RST
+    Return the temperature of the :term:`IGM` in the internal model.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -328,8 +330,8 @@ contains
   end function internalTemperature
 
   subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
-    !!{
-    Set state in the internal \gls{igm} state class.
+    !!{RST
+    Set state in the internal :term:`IGM` state class.
     !!}
     use :: Error, only : Error_Report
     implicit none

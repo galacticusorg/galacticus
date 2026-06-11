@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a cooling radius class for isothermal halos, assuming collisional ionization equilibrium such that cooling
-  time scales as inverse density.
+  !!{RST
+  Implementation of a cooling radius class for isothermal halos, assuming collisional ionization equilibrium such that cooling time scales as inverse density.
   !!}
 
   use :: Cooling_Times          , only : coolingTimeClass
@@ -29,22 +28,27 @@
   use :: Kind_Numbers           , only : kind_int8
 
   !![
-  <coolingRadius name="coolingRadiusIsothermal">
+  <coolingRadius name="coolingRadiusIsothermal" docformat="rst">
    <description>
-    A cooling radius class that computes the cooling radius by assuming an isothermal density profile, and a cooling rate
-    proportional to density squared. This implies a cooling time:
-    \begin{equation}
-     t_\mathrm{cool} \equiv {E\over\dot{E}} \propto \rho(r)^{-1}.
-    \end{equation}
-    The cooling radius is then derived using
-    \begin{equation}
-     \rho(r_\mathrm{cool}) \propto t_\mathrm{available}^{-1}
-    \end{equation}
-    which implies
-    \begin{equation}
-     r_\mathrm{cool} = r_\mathrm{virial} \left( { t_\mathrm{available} \over t_\mathrm{cool,virial}} \right)^{1/2},
-    \end{equation}
-    where $t_\mathrm{cool,virial}$ is the cooling time at the virial radius.
+   A cooling radius class that computes the cooling radius by assuming an isothermal density profile, and a cooling rate proportional to density squared. This implies a cooling time:
+
+   .. math::
+
+      t_\mathrm{cool} \equiv {E\over\dot{E}} \propto \rho(r)^{-1}.
+
+   The cooling radius is then derived using
+
+   .. math::
+
+      \rho(r_\mathrm{cool}) \propto t_\mathrm{available}^{-1}
+
+   which implies
+
+   .. math::
+
+      r_\mathrm{cool} = r_\mathrm{virial} \left( { t_\mathrm{available} \over t_\mathrm{cool,virial}} \right)^{1/2},
+
+   where :math:`t_\mathrm{cool,virial}` is the cooling time at the virial radius.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -55,9 +59,8 @@
   </coolingRadius>
   !!]
   type, extends(coolingRadiusClass) :: coolingRadiusIsothermal
-     !!{
-     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
-     for cooling equals the cooling time.
+     !!{RST
+     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
@@ -84,7 +87,7 @@
   end type coolingRadiusIsothermal
 
   interface coolingRadiusIsothermal
-     !!{
+     !!{RST
      Constructors for the isothermal cooling radius class.
      !!}
      module procedure isothermalConstructorParameters
@@ -94,7 +97,7 @@
 contains
 
   function isothermalConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the isothermal cooling radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -124,7 +127,7 @@ contains
   end function isothermalConstructorParameters
 
   function isothermalConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the isothermal cooling radius class.
     !!}
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
@@ -181,7 +184,7 @@ contains
   end function isothermalConstructorInternal
 
   subroutine isothermalAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -193,7 +196,7 @@ contains
   end subroutine isothermalAutoHook
 
   subroutine isothermalDestructor(self)
-    !!{
+    !!{RST
     Destructor for the isothermal cooling radius class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
@@ -212,7 +215,7 @@ contains
   end subroutine isothermalDestructor
 
   subroutine isothermalCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the cooling radius calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -229,7 +232,7 @@ contains
   end subroutine isothermalCalculationReset
 
   double precision function isothermalRadiusGrowthRate(self,node)
-    !!{
+    !!{RST
     Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     implicit none
@@ -265,7 +268,7 @@ contains
   end function isothermalRadiusGrowthRate
 
   double precision function isothermalRadius(self,node)
-    !!{
+    !!{RST
     Return the cooling radius in the isothermal model.
     !!}
     use :: Abundances_Structure             , only : abundances

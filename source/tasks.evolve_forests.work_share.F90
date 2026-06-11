@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing work sharing strategies for the evolve forests task.
 !!}
 
 module Task_Evolve_Forests_Work_Shares
-  !!{
+  !!{RST
   Provides a class implementing work sharing strategies that assign merger tree forests to MPI processes and OpenMP threads for parallel execution in the evolve forests task.
   !!}
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
@@ -30,24 +30,25 @@ module Task_Evolve_Forests_Work_Shares
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>evolveForestsWorkShare</name>
    <descriptiveName>Evolve Forests Work Share</descriptiveName>
-   <description>Class providing work sharing strategies for the evolve forests task---the algorithm that
-    assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution.
-    Implementations return the index of the next forest to be processed by the calling worker, a
-    unique worker identifier, and the total worker count. Strategies include first-come-first-served
-    (FCFS) dynamic scheduling and static pre-assignment, with load balancing optionally guided by
-    tree processing time estimates from \refClass{metaTreeProcessingTimeClass}.</description>
+   <description>
+   Class providing work sharing strategies for the evolve forests task---the algorithm that assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution. Implementations return the index of the next forest to be processed by the calling worker, a unique worker identifier, and the total worker count. Strategies include first-come-first-served (FCFS) dynamic scheduling and static pre-assignment, with load balancing optionally guided by tree processing time estimates from ``metaTreeProcessingTimeClass``.
+   </description>
    <default>FCFS</default>
    <method name="forestNumber" >
-    <description>Return the number of the forest to process.</description>
+    <description>
+    Return the number of the forest to process.
+    </description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
    </method>
    <method name="workerID" >
-    <description>Return a unique worker ID.</description>
+    <description>
+    Return a unique worker ID.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
@@ -58,7 +59,9 @@ module Task_Evolve_Forests_Work_Shares
     </code>
    </method>
    <method name="workerCount" >
-    <description>Return the count of workers.</description>
+    <description>
+    Return the count of workers.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
@@ -74,7 +77,7 @@ module Task_Evolve_Forests_Work_Shares
 contains
 
   subroutine evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
-    !!{
+    !!{RST
     Constructs an ID for this worker which is unique across all MPI and OpenMP threads.
     !!}
 #ifdef USEMPI

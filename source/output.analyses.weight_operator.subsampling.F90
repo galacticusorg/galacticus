@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a subsampling weight operator class.
 !!}
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSubsampling">
-   <description>Applies a subsampling weight to each node, upweighting the nodes to preserve correct number statistics after
-   merger tree branches have been subsampled.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSubsampling" docformat="rst">
+   <description>
+   Applies a subsampling weight to each node, upweighting the nodes to preserve correct number statistics after merger tree branches have been subsampled.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSubsampling
-     !!{
+     !!{RST
      A subsampling weight operator class.
      !!}
      private
@@ -37,8 +38,8 @@ Implements a subsampling weight operator class.
   end type outputAnalysisWeightOperatorSubsampling
 
   interface outputAnalysisWeightOperatorSubsampling
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis weight operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisWeightOperatorSubsampling`` output analysis weight operator class.
      !!}
      module procedure subsamplingConstructorParameters
   end interface outputAnalysisWeightOperatorSubsampling
@@ -46,8 +47,8 @@ Implements a subsampling weight operator class.
 contains
 
   function subsamplingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorSubsampling} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisWeightOperatorSubsampling`` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +63,7 @@ contains
   end function subsamplingConstructorParameters
 
   double precision function subsamplingOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an subsampling output analysis weight operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

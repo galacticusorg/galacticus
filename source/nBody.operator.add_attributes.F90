@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which adds attributes to the data.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorAddAttributes">
-   <description>An N-body data operator which attaches named scalar attributes to the simulation dataset, enabling metadata such as simulation parameters or analysis flags to be stored alongside particle data. Attribute names and corresponding values are specified as arrays via the \mono{[names]} and \mono{[values]} parameters.</description>
+  <nbodyOperator name="nbodyOperatorAddAttributes" docformat="rst">
+   <description>
+   An N-body data operator which attaches named scalar attributes to the simulation dataset, enabling metadata such as simulation parameters or analysis flags to be stored alongside particle data. Attribute names and corresponding values are specified as arrays via the ``[names]`` and ``[values]`` parameters.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorAddAttributes
-     !!{
+     !!{RST
      An N-body data operator which adds attributes.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which adds attributes to the data.
   end type nbodyOperatorAddAttributes
 
   interface nbodyOperatorAddAttributes
-     !!{
-     Constructors for the \refClass{nbodyOperatorAddAttributes} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorAddAttributes`` N-body operator class.
      !!}
      module procedure addAttributesConstructorParameters
      module procedure addAttributesConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which adds attributes to the data.
 contains
 
   function addAttributesConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorAddAttributes} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorAddAttributes`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -59,15 +61,19 @@ contains
     allocate(names (parameters%count('names' )))
     allocate(values(parameters%count('values')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>names</name>
       <source>parameters</source>
-      <description>A list of attribute names.</description>
+      <description>
+      A list of attribute names.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>values</name>
       <source>parameters</source>
-      <description>A list of attribute values.</description>
+      <description>
+      A list of attribute values.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorAddAttributes(names,values)
@@ -78,8 +84,8 @@ contains
   end function addAttributesConstructorParameters
 
   function addAttributesConstructorInternal(names,values) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorAddAttributes} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorAddAttributes`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self
@@ -92,7 +98,7 @@ contains
   end function addAttributesConstructorInternal
 
   subroutine addAttributesOperate(self,simulations)
-    !!{
+    !!{RST
     Add attributes to the simulations.
     !!}
     use :: Display        , only : displayIndent    , displayUnindent           , verbosityLevelStandard

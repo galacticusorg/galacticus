@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body data operator which sets the box size of the data set.
   !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorSetBoxSize">
-   <description>An N-body data operator which assigns or overrides the periodic simulation box size for an N-body data set. This is useful when the box size metadata is absent or incorrect in the original data. The \mono{boxSize} parameter specifies the side length to apply.</description>
+  <nbodyOperator name="nbodyOperatorSetBoxSize" docformat="rst">
+   <description>
+   An N-body data operator which assigns or overrides the periodic simulation box size for an N-body data set. This is useful when the box size metadata is absent or incorrect in the original data. The ``boxSize`` parameter specifies the side length to apply.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSetBoxSize
-     !!{
+     !!{RST
      An N-body data operator which shifts sets the box size of the data set.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nbodyOperatorSetBoxSize
 
   interface nbodyOperatorSetBoxSize
-     !!{
-     Constructors for the \refClass{nbodyOperatorSetBoxSize} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSetBoxSize`` N-body operator class.
      !!}
      module procedure setBoxSizeConstructorParameters
      module procedure setBoxSizeConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function setBoxSizeConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSetBoxSize} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSetBoxSize`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,10 +59,12 @@ contains
     double precision                                        :: boxSize
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>boxSize</name>
       <source>parameters</source>
-      <description>The side length of the periodic simulation box to assign to the dataset, in the same units as particle positions.</description>
+      <description>
+      The side length of the periodic simulation box to assign to the dataset, in the same units as particle positions.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorSetBoxSize(boxSize)
@@ -71,8 +75,8 @@ contains
   end function setBoxSizeConstructorParameters
 
   function setBoxSizeConstructorInternal(boxSize) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSetBoxSize} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSetBoxSize`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSetBoxSize)                :: self
@@ -85,7 +89,7 @@ contains
   end function setBoxSizeConstructorInternal
 
   subroutine setBoxSizeOperate(self,simulations)
-    !!{
+    !!{RST
     Set the box size for the data set.
     !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard

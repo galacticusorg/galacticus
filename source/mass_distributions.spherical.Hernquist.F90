@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a \cite{hernquist_analytical_1990} mass distribution class.
+  !!{RST
+  Implementation of a :cite:t:`hernquist_analytical_1990` mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionHernquist">
-   <description>A \cite{hernquist_analytical_1990} mass distribution class.</description>
+  <massDistribution name="massDistributionHernquist" docformat="rst">
+   <description>
+   A :cite:t:`hernquist_analytical_1990` mass distribution class.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionHernquist
-     !!{
-     The Hernquist \citep{hernquist_analytical_1990} mass distribution.
+     !!{RST
+     The Hernquist :cite:p:`hernquist_analytical_1990` mass distribution.
      !!}
      private
      double precision :: densityNormalization, mass, &
@@ -46,8 +48,8 @@
   end type massDistributionHernquist
 
   interface massDistributionHernquist
-     !!{
-     Constructors for the \refClass{massDistributionHernquist} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionHernquist`` mass distribution class.
      !!}
      module procedure hernquistConstructorParameters
      module procedure hernquistConstructorInternal
@@ -56,9 +58,8 @@
 contains
 
   function hernquistConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHernquist} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHernquist`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -73,40 +74,52 @@ contains
     type            (varying_string           )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>0.5d0/Pi</defaultValue>
-      <description>The density normalization of the Hernquist profile.</description>
+      <description>
+      The density normalization of the Hernquist profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleLength</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the Hernquist profile.</description>
+      <description>
+      The scale radius of the Hernquist profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the Hernquist profile, used to set the density normalization when \mono{densityNormalization} is not supplied directly.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the Hernquist profile, used to set the density normalization when ``densityNormalization`` is not supplied directly.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the Hernquist profile is considered to be dimensionless.</description>
+      <description>
+      If true the Hernquist profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -122,8 +135,8 @@ contains
   end function hernquistConstructorParameters
 
   function hernquistConstructorInternal(densityNormalization,mass,scaleLength,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``hernquist'' mass distribution class.
+    !!{RST
+    Internal constructor for "hernquist" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
@@ -179,7 +192,7 @@ contains
   end function hernquistConstructorInternal
 
   double precision function hernquistMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in an Hernquist mass distribution.
     !!}
     implicit none
@@ -190,8 +203,8 @@ contains
   end function hernquistMassTotal
 
   double precision function hernquistDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a Hernquist mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a Hernquist mass distribution.
     !!}
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
@@ -208,7 +221,7 @@ contains
   end function hernquistDensity
 
   double precision function hernquistDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     implicit none
@@ -237,7 +250,7 @@ contains
   end function hernquistDensityGradientRadial
   
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Returns a radial density moment for the Hernquist mass distribution.
     !!}
     use :: Error                   , only : Error_Report
@@ -280,8 +293,8 @@ contains
   end function hernquistDensityRadialMoment
 
   double precision function hernquistMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for Hernquist mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for Hernquist mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -301,8 +314,8 @@ contains
   end function hernquistMassEnclosedBySphere
 
   double precision function hernquistMassEnclosedByCylinder(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a cylinder of given \mono{radius} for Hernquist mass distributions.
+    !!{RST
+    Computes the mass enclosed within a cylinder of given ``radius`` for Hernquist mass distributions.
     !!}
     implicit none
     class           (massDistributionHernquist), intent(inout), target :: self
@@ -349,7 +362,7 @@ contains
   end function hernquistMassEnclosedByCylinder
 
   logical function hernquistPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -360,8 +373,8 @@ contains
   end function hernquistPotentialIsAnalytic
 
   double precision function hernquistPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a Hernquist mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a Hernquist mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
@@ -383,7 +396,7 @@ contains
   end function hernquistPotential
 
   double precision function hernquistRadiusHalfMass(self)
-    !!{
+    !!{RST
     Return the half-mass radius of a Hernquist mass distribution.
     !!}
     implicit none

@@ -19,20 +19,20 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
   
-  !!{
-  An  intergalactic medium state decorator class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
+  !!{RST
+  An  intergalactic medium state decorator class which provides a fit to the metallicity evolution of the :term:`IGM` reported by :cite:t:`ucci_astraeus_2023`.
   !!}
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateMetallicityAstraeusV">
+  <intergalacticMediumState name="intergalacticMediumStateMetallicityAstraeusV" docformat="rst">
    <description>
-    An \gls{igm} state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
+   An :term:`IGM` state class which provides a fit to the metallicity evolution of the :term:`IGM` reported by :cite:t:`ucci_astraeus_2023`.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityAstraeusV
-     !!{
-     An \gls{igm} state class which provides a fit to the metallicity evolution of the \gls{igm} reported by \cite{ucci_astraeus_2023}.
+     !!{RST
+     An :term:`IGM` state class which provides a fit to the metallicity evolution of the :term:`IGM` reported by :cite:t:`ucci_astraeus_2023`.
      !!}
      private
      class(intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -47,8 +47,8 @@
   end type intergalacticMediumStateMetallicityAstraeusV
 
   interface intergalacticMediumStateMetallicityAstraeusV
-     !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class.
+     !!{RST
+     Constructors for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class.
      !!}
      module procedure metallicityAstraeusVIGMConstructorParameters
      module procedure metallicityAstraeusVIGMConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function metallicityAstraeusVIGMConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,8 +82,8 @@ contains
   end function metallicityAstraeusVIGMConstructorParameters
 
   function metallicityAstraeusVIGMConstructorInternal(cosmologyFunctions_,intergalacticMediumState_) result(self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityAstraeusV} \gls{igm} state class.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class.
     !!}
     implicit none
     type (intergalacticMediumStateMetallicityAstraeusV)                        :: self
@@ -97,8 +97,8 @@ contains
   end function metallicityAstraeusVIGMConstructorInternal
 
   subroutine metallicityAstraeusVDestructor(self)
-    !!{
-    Destructor for the metallicityAstraeusV \gls{igm} state class.
+    !!{RST
+    Destructor for the metallicityAstraeusV :term:`IGM` state class.
     !!}
     implicit none
     type(intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -111,8 +111,8 @@ contains
   end subroutine metallicityAstraeusVDestructor
 
   double precision function metallicityAstraeusVElectronFraction(self,time)
-    !!{
-    Return the electron fraction of the \gls{igm}.
+    !!{RST
+    Return the electron fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -123,8 +123,8 @@ contains
   end function metallicityAstraeusVElectronFraction
 
   double precision function metallicityAstraeusVNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral hydrogen fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -135,8 +135,8 @@ contains
   end function metallicityAstraeusVNeutralHydrogenFraction
 
   double precision function metallicityAstraeusVNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -147,8 +147,8 @@ contains
   end function metallicityAstraeusVNeutralHeliumFraction
 
   double precision function metallicityAstraeusVSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the singly-ionized helium fraction of the \gls{igm}.
+    !!{RST
+    Return the singly-ionized helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -159,8 +159,8 @@ contains
   end function metallicityAstraeusVSinglyIonizedHeliumFraction
 
   double precision function metallicityAstraeusVTemperature(self,time)
-    !!{
-    Return the temperature of the \gls{igm}.
+    !!{RST
+    Return the temperature of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityAstraeusV), intent(inout) :: self
@@ -171,8 +171,8 @@ contains
   end function metallicityAstraeusVTemperature
 
   double precision function metallicityAstraeusVMetallicity(self,time)
-    !!{
-    Return the metallicity of the \gls{igm}.
+    !!{RST
+    Return the metallicity of the :term:`IGM`.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none

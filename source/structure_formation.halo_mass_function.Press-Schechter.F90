@@ -17,27 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a \cite{press_formation_1974} dark matter halo mass function class.
+!!{RST
+Implements a :cite:t:`press_formation_1974` dark matter halo mass function class.
 !!}
   use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
   use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
 
   !![
-  <haloMassFunction name="haloMassFunctionPressSchechter">
+  <haloMassFunction name="haloMassFunctionPressSchechter" docformat="rst">
    <description>
-    A dark matter halo mass function class using the function given by \cite{press_formation_1974}. Specifically,
-    \begin{equation}
-    n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
-    \end{equation}
-    where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution
-    for variance $S(M)=\sigma^2(M)$, computed using the selected \refClass{excursionSetFirstCrossingClass}.
+   A dark matter halo mass function class using the function given by :cite:t:`press_formation_1974`. Specifically,
+
+   .. math::
+
+      n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
+
+   where :math:`\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M` and :math:`f[S]` is the excursion set barrier first crossing distribution for variance :math:`S(M)=\sigma^2(M)`, computed using the selected ``excursionSetFirstCrossingClass``.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
-     !!{
-     A halo mass function class using the model of \cite{press_formation_1974}.
+     !!{RST
+     A halo mass function class using the model of :cite:t:`press_formation_1974`.
      !!}
      private
      class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
@@ -48,8 +49,8 @@ Implements a \cite{press_formation_1974} dark matter halo mass function class.
   end type haloMassFunctionPressSchechter
 
   interface haloMassFunctionPressSchechter
-     !!{
-     Constructors for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
+     !!{RST
+     Constructors for the ``haloMassFunctionPressSchechter`` halo mass function class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -58,8 +59,8 @@ Implements a \cite{press_formation_1974} dark matter halo mass function class.
 contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``haloMassFunctionPressSchechter`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +86,8 @@ contains
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
+    !!{RST
+    Internal constructor for the ``haloMassFunctionPressSchechter`` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
@@ -101,8 +102,8 @@ contains
   end function pressSchechterConstructorInternal
 
   subroutine pressSchechterDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionPressSchechter} halo mass function class.
+    !!{RST
+    Destructor for the ``haloMassFunctionPressSchechter`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionPressSchechter), intent(inout) :: self
@@ -116,7 +117,7 @@ contains
   end subroutine pressSchechterDestructor
 
   double precision function pressSchechterDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Error, only : Error_Report

@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling stopping class which stops after a given number of correlation lengths.
   !!}
 
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
   !![
-  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
+  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength" docformat="rst">
    <description>
-    This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the \mono{[stopAfterCount]} parameter) have accrued post-convergence.
+   This type will cause the simulation to stop when at least a number of correlation lengths (as specified in the ``[stopAfterCount]`` parameter) have accrued post-convergence.
    </description>
   </posteriorSampleStoppingCriterion>
   !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.
      !!}
      private
@@ -43,8 +43,8 @@
   end type posteriorSampleStoppingCriterionCorrelationLength
 
   interface posteriorSampleStoppingCriterionCorrelationLength
-     !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
+     !!{RST
+     Constructors for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
      !!}
      module procedure correlationLengthConstructorParameters
      module procedure correlationLengthConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function correlationLengthConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,9 +64,11 @@ contains
     integer                                                                   :: stopAfterCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stopAfterCount</name>
-      <description>The number of correlation lengths to continue after convergence before stopping.</description>
+      <description>
+      The number of correlation lengths to continue after convergence before stopping.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
@@ -80,8 +82,8 @@ contains
   end function correlationLengthConstructorParameters
 
   function correlationLengthConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
-    !!{
-    Internal constructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
+    !!{RST
+    Internal constructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                        :: self
@@ -95,8 +97,8 @@ contains
   end function correlationLengthConstructorInternal
 
   subroutine correlationLengthDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleStoppingCriterionCorrelationLength} posterior sampling stopping class.
+    !!{RST
+    Destructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self
@@ -108,7 +110,7 @@ contains
   end subroutine correlationLengthDestructor
 
   logical function correlationLengthStop(self,simulationState)
-    !!{
+    !!{RST
     Returns true if the posterior sampling should stop.
     !!}
     use :: Error                   , only : Error_Report

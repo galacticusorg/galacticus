@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements linear algebra calculations.
 !!}
 
 module Linear_Algebra
-  !!{
+  !!{RST
   Implements linear algebra calculations.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_double, c_size_t, c_int, &
@@ -35,7 +35,7 @@ module Linear_Algebra
        &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
 
   type :: vectorWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL vectors.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -44,7 +44,7 @@ module Linear_Algebra
   end type vectorWrapper
   
   type, public :: vector
-     !!{
+     !!{RST
      Vector class.
      !!}
      private
@@ -78,7 +78,7 @@ module Linear_Algebra
   end type vector
 
   interface vector
-     !!{
+     !!{RST
      Interface to vector constructors.
      !!}
      module procedure vectorConstructor
@@ -87,7 +87,7 @@ module Linear_Algebra
   end interface vector
   
   type :: matrixWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL matrices.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -96,7 +96,7 @@ module Linear_Algebra
   end type matrixWrapper
   
   type, public :: matrix
-     !!{
+     !!{RST
      Matrix class.
      !!}
      private
@@ -143,7 +143,7 @@ module Linear_Algebra
   end type matrix
 
   interface matrix
-     !!{
+     !!{RST
      Interface to matrix constructors.
      !!}
      module procedure matrixConstructor
@@ -153,7 +153,7 @@ module Linear_Algebra
   end interface matrix
   
   type :: permutationWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL permutations.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -162,7 +162,7 @@ module Linear_Algebra
   end type permutationWrapper
   
   type, public, extends(matrix) :: matrixLU
-     !!{
+     !!{RST
      Matrix class for LU matrices.
      !!}
      private
@@ -179,7 +179,7 @@ module Linear_Algebra
   end type matrixLU
 
   interface matrixLU
-     !!{
+     !!{RST
      Interface to LU matrix constructors.
      !!}
      module procedure matrixLUConstructor
@@ -202,7 +202,7 @@ module Linear_Algebra
   
   interface
      function gsl_vector_alloc(n) bind(c,name='gsl_vector_alloc')
-       !!{
+       !!{RST
        Template for the GSL vector alloc function.
        !!}
        import c_ptr, c_size_t
@@ -211,7 +211,7 @@ module Linear_Algebra
      end function gsl_vector_alloc
 
      subroutine gsl_vector_free(v) bind(c,name='gsl_vector_free')
-       !!{
+       !!{RST
        Template for the GSL vector free function.
        !!}
        import c_ptr, c_size_t
@@ -219,7 +219,7 @@ module Linear_Algebra
      end subroutine gsl_vector_free
 
      subroutine gsl_vector_set(v,i,x) bind(c,name='gsl_vector_set')
-       !!{
+       !!{RST
        Template for the GSL vector set function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -229,7 +229,7 @@ module Linear_Algebra
      end subroutine gsl_vector_set
 
      subroutine gsl_vector_set_zero(v) bind(c,name='gsl_vector_set_zero')
-       !!{
+       !!{RST
        Template for the GSL vector set zero function.
        !!}
        import c_ptr
@@ -237,7 +237,7 @@ module Linear_Algebra
      end subroutine gsl_vector_set_zero
 
      function gsl_vector_get(v,i) bind(c,name='gsl_vector_get')
-       !!{
+       !!{RST
        Template for the GSL vector set function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -247,7 +247,7 @@ module Linear_Algebra
      end function gsl_vector_get
      
      function gsl_vector_memcpy(dest,src) bind(c,name='gsl_vector_memcpy')
-       !!{
+       !!{RST
        Template for the GSL vector copy function.
        !!}
        import c_ptr, c_int
@@ -256,7 +256,7 @@ module Linear_Algebra
      end function gsl_vector_memcpy
 
      function gsl_vector_add(a,b) bind(c,name='gsl_vector_add')
-       !!{
+       !!{RST
        Template for the GSL vector addition function.
        !!}
        import c_ptr, c_int
@@ -265,7 +265,7 @@ module Linear_Algebra
      end function gsl_vector_add
 
      function gsl_vector_sub(a,b) bind(c,name='gsl_vector_sub')
-       !!{
+       !!{RST
        Template for the GSL vector subtract function.
        !!}
        import c_ptr, c_int
@@ -274,7 +274,7 @@ module Linear_Algebra
      end function gsl_vector_sub
 
      function gsl_matrix_alloc(n1,n2) bind(c,name='gsl_matrix_alloc')
-       !!{
+       !!{RST
        Template for the GSL matrix alloc function.
        !!}
        import c_ptr, c_size_t
@@ -283,7 +283,7 @@ module Linear_Algebra
      end function gsl_matrix_alloc
 
      subroutine gsl_matrix_free(m) bind(c,name='gsl_matrix_free')
-       !!{
+       !!{RST
        Template for the GSL matrix free function.
        !!}
        import c_ptr, c_size_t
@@ -291,7 +291,7 @@ module Linear_Algebra
      end subroutine gsl_matrix_free
 
      subroutine gsl_matrix_set(m,i,j,x) bind(c,name='gsl_matrix_set')
-       !!{
+       !!{RST
        Template for the GSL matrix set function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -301,7 +301,7 @@ module Linear_Algebra
      end subroutine gsl_matrix_set
      
      subroutine gsl_matrix_set_zero(m) bind(c,name='gsl_matrix_set_zero')
-       !!{
+       !!{RST
        Template for the GSL matrix set zero function.
        !!}
        import c_ptr
@@ -309,7 +309,7 @@ module Linear_Algebra
      end subroutine gsl_matrix_set_zero
 
      function gsl_matrix_get(m,i,j) bind(c,name='gsl_matrix_get')
-       !!{
+       !!{RST
        Template for the GSL matrix set function.
        !!}
        import c_ptr, c_size_t, c_double
@@ -319,7 +319,7 @@ module Linear_Algebra
      end function gsl_matrix_get
      
      function gsl_matrix_memcpy(dest,src) bind(c,name='gsl_matrix_memcpy')
-       !!{
+       !!{RST
        Template for the GSL matrix copy function.
        !!}
        import c_ptr, c_int
@@ -328,7 +328,7 @@ module Linear_Algebra
      end function gsl_matrix_memcpy
 
      function gsl_matrix_transpose_memcpy(dest,src) bind(c,name='gsl_matrix_transpose_memcpy')
-       !!{
+       !!{RST
        Template for the GSL matrix transpose function.
        !!}
        import c_ptr, c_int
@@ -337,7 +337,7 @@ module Linear_Algebra
      end function gsl_matrix_transpose_memcpy
 
      function gsl_permutation_alloc(n) bind(c,name='gsl_permutation_alloc')
-       !!{
+       !!{RST
        Template for the GSL permutation alloc function.
        !!}
        import c_ptr, c_size_t
@@ -346,7 +346,7 @@ module Linear_Algebra
      end function gsl_permutation_alloc
 
      subroutine gsl_permutation_free(p) bind(c,name='gsl_permutation_free')
-       !!{
+       !!{RST
        Template for the GSL permutation free function.
        !!}
        import c_ptr, c_size_t
@@ -354,7 +354,7 @@ module Linear_Algebra
      end subroutine gsl_permutation_free
 
      function gsl_matrix_scale(a,x) bind(c,name='gsl_matrix_scale')
-       !!{
+       !!{RST
        Template for the GSL matrix scale function.
        !!}
        import c_ptr, c_int, c_double
@@ -364,7 +364,7 @@ module Linear_Algebra
      end function gsl_matrix_scale
 
      function gsl_matrix_add(a,b) bind(c,name='gsl_matrix_add')
-       !!{
+       !!{RST
        Template for the GSL matrix addition function.
        !!}
        import c_ptr, c_int
@@ -373,7 +373,7 @@ module Linear_Algebra
      end function gsl_matrix_add
 
      function gsl_linalg_LU_decomp(A,p,signum) bind(c,name='gsl_linalg_LU_decomp')
-       !!{
+       !!{RST
        Template for the GSL LU decomposition function.
        !!}
        import c_ptr, c_int
@@ -383,7 +383,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_decomp
 
      function gsl_linalg_LU_solve(LU,p,b,x) bind(c,name='gsl_linalg_LU_solve')
-       !!{
+       !!{RST
        Template for the GSL LU decomposition function.
        !!}
        import c_ptr, c_int
@@ -393,7 +393,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_solve
 
      function gsl_linalg_LU_det(LU,signum) bind(c,name='gsl_linalg_LU_det')
-       !!{
+       !!{RST
        Template for the GSL LU determinant function.
        !!}
        import c_ptr, c_double, c_int
@@ -403,7 +403,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_det
 
      function gsl_linalg_LU_invert(LU,p,inverse) bind(c,name='gsl_linalg_LU_invert')
-       !!{
+       !!{RST
        Template for the GSL LU invert function.
        !!}
        import c_ptr, c_int
@@ -413,7 +413,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_invert
 
      function gsl_linalg_LU_lndet(LU) bind(c,name='gsl_linalg_LU_lndet')
-       !!{
+       !!{RST
        Template for the GSL LU logarithmic determinant function.
        !!}
        import c_ptr, c_double
@@ -422,7 +422,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_lndet
 
      function gsl_linalg_LU_sgndet(LU,signum) bind(c,name='gsl_linalg_LU_sgndet')
-       !!{
+       !!{RST
        Template for the GSL LU determinant sign function.
        !!}
        import c_ptr, c_int
@@ -432,7 +432,7 @@ module Linear_Algebra
      end function gsl_linalg_LU_sgndet
 
      function gsl_linalg_cholesky_decomp(A) bind(c,name='gsl_linalg_cholesky_decomp')
-       !!{
+       !!{RST
        Template for the GSL Cholesky decomposition function.
        !!}
        import c_ptr, c_int
@@ -441,7 +441,7 @@ module Linear_Algebra
      end function gsl_linalg_cholesky_decomp
 
      function gsl_eigen_symmv_alloc(n) bind(c,name='gsl_eigen_symmv_alloc')
-       !!{
+       !!{RST
        Template for the GSL symmetric eigenvalues workspace alloc function.
        !!}
        import c_ptr, c_size_t
@@ -450,7 +450,7 @@ module Linear_Algebra
      end function gsl_eigen_symmv_alloc
 
      subroutine gsl_eigen_symmv_free(w) bind(c,name='gsl_eigen_symmv_free')
-       !!{
+       !!{RST
        Template for the GSL symmetric eigenvalues workspace free function.
        !!}
        import c_ptr
@@ -458,7 +458,7 @@ module Linear_Algebra
      end subroutine gsl_eigen_symmv_free
 
      function gsl_eigen_symmv(A,eval,evec,w) bind(c,name='gsl_eigen_symmv')
-       !!{
+       !!{RST
        Template for the GSL symmetric eigenvalue system function.
        !!}
        import c_ptr, c_int
@@ -468,7 +468,7 @@ module Linear_Algebra
      end function gsl_eigen_symmv
 
      function gsl_blas_ddot(x,y,res) bind(c,name='gsl_blas_ddot')
-       !!{
+       !!{RST
        Template for the GSL BLAS vector dot product function.
        !!}
        import c_ptr, c_double ,c_int
@@ -478,7 +478,7 @@ module Linear_Algebra
      end function gsl_blas_ddot
      
      function gsl_blas_dgemv(TransA,alpha,A,x,beta,y) bind(c,name='gsl_blas_dgemv')
-       !!{
+       !!{RST
        Template for the GSL BLAS matrix-vector multiply-add function.
        !!}
        import c_ptr, c_double, c_int
@@ -491,7 +491,7 @@ module Linear_Algebra
      end function gsl_blas_dgemv
 
      function gsl_blas_dgemm(TransA,TransB,alpha,A,B,beta,C) bind(c,name='gsl_blas_dgemm')
-       !!{
+       !!{RST
        Template for the GSL BLAS matrix-vector multiply-add function.
        !!}
        import c_ptr, c_double, c_int
@@ -516,8 +516,8 @@ contains
   !! Vector functions.
 
   function vectorConstructor(array) result(self)
-    !!{
-    Constructor for \mono{vector} class which builds the vector from an array.
+    !!{RST
+    Constructor for ``vector`` class which builds the vector from an array.
     !!}
     implicit none
     type            (vector  )                              :: self
@@ -529,8 +529,10 @@ contains
     self%size_      =size(array,kind=c_size_t)
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%vector_
     self%vectorManager =  resourceManager(dummyPointer_)
@@ -544,8 +546,8 @@ contains
   end function vectorConstructor
 
   function vectorZeroConstructor(n) result(self)
-    !!{
-    Constructor for \mono{vector} class which builds the vector and initializes all elements to zero.
+    !!{RST
+    Constructor for ``vector`` class which builds the vector and initializes all elements to zero.
     !!}
     implicit none
     type   (vector  )                :: self
@@ -556,8 +558,10 @@ contains
     self%size_      =n
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%vector_
     self%vectorManager =  resourceManager(dummyPointer_)
@@ -569,8 +573,8 @@ contains
   end function vectorZeroConstructor
 
   function vectorCopyConstructor(source) result(self)
-    !!{
-    Constructor for the \mono{vector} class which builds the vector by copying a \mono{source} vector.
+    !!{RST
+    Constructor for the ``vector`` class which builds the vector by copying a ``source`` vector.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -586,8 +590,10 @@ contains
     status          =gsl_vector_memcpy(self%vector_%gsl,source%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%vector_
     self%vectorManager =  resourceManager(dummyPointer_)
@@ -598,8 +604,8 @@ contains
   end function vectorCopyConstructor
   
   subroutine vectorAssignmentConstructor(self,array)
-    !!{
-    Constructor for \mono{vector} class which overloads the assignment operator.
+    !!{RST
+    Constructor for ``vector`` class which overloads the assignment operator.
     !!}
     implicit none
     type            (vector), intent(  out)               :: self
@@ -610,8 +616,8 @@ contains
   end subroutine vectorAssignmentConstructor
   
   subroutine vectorUnassignment(array,self)
-    !!{
-    Assign elements of a \mono{vector} class to an array
+    !!{RST
+    Assign elements of a ``vector`` class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:) :: array
@@ -625,7 +631,7 @@ contains
   end subroutine vectorUnassignment
 
   subroutine vectorAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of vectors.
     !!}
     implicit none
@@ -639,7 +645,7 @@ contains
   end subroutine vectorAssign
 
   function vectorAdd(vector1,vector2)
-    !!{
+    !!{RST
     Add one vector to another.
     !!}
     use :: Error        , only : Error_Report
@@ -656,7 +662,7 @@ contains
   end function vectorAdd
 
   function vectorSubtract(vector1,vector2)
-    !!{
+    !!{RST
     Subtract one vector from another.
     !!}
     use :: Error        , only : Error_Report
@@ -673,7 +679,7 @@ contains
   end function vectorSubtract
 
   double precision function vectorMagnitude(vector_)
-    !!{
+    !!{RST
     Compute the magnitude of a vector.
     !!}
     implicit none
@@ -684,7 +690,7 @@ contains
   end function vectorMagnitude
   
   double precision function vectorDotProduct(vector1,vector2)
-    !!{
+    !!{RST
     Compute the dot product of two vectors.
     !!}
     use :: Error        , only : Error_Report
@@ -699,7 +705,7 @@ contains
   end function vectorDotProduct
   
   function vectorCrossProduct(vector1,vector2)
-    !!{
+    !!{RST
     Compute the cross product of two vectors.
     !!}
     use :: Error, only : Error_Report
@@ -723,7 +729,7 @@ contains
   end function vectorCrossProduct
 
   function vectorGSLObject(self)
-    !!{
+    !!{RST
     Return a C pointer to the GSL vector object.
     !!}
     implicit none
@@ -737,8 +743,8 @@ contains
   !! Matrix functions.
 
   function matrixConstructor(array) result(self)
-    !!{
-    Constructor for \mono{matrix} class which builds the matrix from an array.
+    !!{RST
+    Constructor for ``matrix`` class which builds the matrix from an array.
     !!}
     implicit none
     type            (matrix  )                                :: self
@@ -753,8 +759,10 @@ contains
     self%nonZeroRowColumnsChecked    =.false.
     self%hasZeroRowColumns           =.false.
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%matrix_
     self%matrixManager =  resourceManager(dummyPointer_)
@@ -770,8 +778,8 @@ contains
   end function matrixConstructor
 
   function matrixZeroConstructor(n1,n2) result(self)
-    !!{
-    Constructor for \mono{matrix} class which builds the matrix and initializes all elements to zero.
+    !!{RST
+    Constructor for ``matrix`` class which builds the matrix and initializes all elements to zero.
     !!}
     implicit none
     type   (matrix  )                :: self
@@ -785,8 +793,10 @@ contains
     self%hasZeroRowColumns          =.false.
     self%matrix_                 %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%matrix_
     self%matrixManager =  resourceManager(dummyPointer_)
@@ -798,8 +808,8 @@ contains
   end function matrixZeroConstructor
 
   function matrixCopyConstructor(source) result(self)
-    !!{
-    Constructor for the \mono{matrix} class which builds the matrix by copying a \mono{source} matrix.
+    !!{RST
+    Constructor for the ``matrix`` class which builds the matrix by copying a ``source`` matrix.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -818,8 +828,10 @@ contains
     status                           =gsl_matrix_memcpy(self%matrix_%gsl   ,source%matrix_%gsl   )
     if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_      => self%matrix_
     self%matrixManager =  resourceManager(dummyPointer_)
@@ -830,8 +842,8 @@ contains
   end function matrixCopyConstructor
 
   subroutine matrixAssignmentConstructor(self,array)
-    !!{
-    Constructor for \mono{matrix} class which overloads the assignment operator.
+    !!{RST
+    Constructor for ``matrix`` class which overloads the assignment operator.
     !!}
     implicit none
     type            (matrix), intent(  out)                 :: self
@@ -842,9 +854,8 @@ contains
   end subroutine matrixAssignmentConstructor
   
   function matrixDiagonalConstructor(array) result(self)
-    !!{
-    Constructor for \mono{matrix} class which builds the matrix and initializes the diagonal elements to the
-    given array (and all other elements to zero).
+    !!{RST
+    Constructor for ``matrix`` class which builds the matrix and initializes the diagonal elements to the given array (and all other elements to zero).
     !!}
     implicit none
     type            (matrix  )                              :: self
@@ -865,8 +876,8 @@ contains
   end function matrixDiagonalConstructor
 
   subroutine matrixUnassignment(array,self)
-    !!{
-    Assign elements of a \mono{matrix} class to an array
+    !!{RST
+    Assign elements of a ``matrix`` class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:,:) :: array
@@ -882,7 +893,7 @@ contains
   end subroutine matrixUnassignment
 
   subroutine matrixAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of matrices.
     !!}
     implicit none
@@ -910,7 +921,7 @@ contains
   end subroutine matrixAssign
 
   function matrixMatrixProduct(matrix1,matrix2)
-    !!{
+    !!{RST
     Multiply a matrix by a matrix, returning a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -928,7 +939,7 @@ contains
   end function matrixMatrixProduct
   
   function matrixMatrixAdd(matrix1,matrix2)
-    !!{
+    !!{RST
     Sum two matrices, returning a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -946,7 +957,7 @@ contains
   end function matrixMatrixAdd
   
   double precision function matrixDeterminant(self)
-    !!{
+    !!{RST
     Compute the determinant of a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -968,7 +979,7 @@ contains
   end function matrixDeterminant
 
   double precision function matrixLogarithmicDeterminant(self)
-    !!{
+    !!{RST
     Compute the logarithmic determinant of a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -990,7 +1001,7 @@ contains
   end function matrixLogarithmicDeterminant
 
   integer function matrixSignDeterminant(self)
-    !!{
+    !!{RST
     Compute the sign of the determinant of a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -1012,7 +1023,7 @@ contains
   end function matrixSignDeterminant
 
   function matrixTranspose(self)
-    !!{
+    !!{RST
     Transpose a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -1029,7 +1040,7 @@ contains
   end function matrixTranspose
 
   function matrixInverse(self)
-    !!{
+    !!{RST
     Compute the inverse of a matrix.
     !!}
     use :: Error        , only : Error_Report
@@ -1056,7 +1067,7 @@ contains
   !! Scalar-matrix functions.
   
   function matrixScalarMultiply(matrix_,scalar_)
-    !!{
+    !!{RST
     Multiply a matrix by a scalar, returning a scalar.
     !!}
     use :: Error        , only : Error_Report
@@ -1076,7 +1087,7 @@ contains
   !! Vector-matrix functions.
   
   function matrixVectorMultiply(matrix_,vector_)
-    !!{
+    !!{RST
     Multiply a matrix by a vector, returning a vector.
     !!}
     use :: Error        , only : Error_Report
@@ -1096,8 +1107,8 @@ contains
   end function matrixVectorMultiply
 
   function matrixLinearSystemSolve(self,y)
-    !!{
-    Solve the linear system $y = A \cdot x$.
+    !!{RST
+    Solve the linear system :math:`y = A \cdot x`.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -1112,8 +1123,10 @@ contains
        allocate(self%LUdecomposition)
        allocate(self%LUpermutation  )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_               => self%LUpermutation
        self%LUpermutationManager   =  resourceManager(dummyPointer_)
@@ -1134,10 +1147,8 @@ contains
   end function matrixLinearSystemSolve
 
   double precision function matrixCovarianceProduct(self,y,status)
-    !!{
-    Compute the quantity $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices. Instead of
-    directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
-    $y = C x$ for $x$, and then evaluate $y x$.
+    !!{RST
+    Compute the quantity :math:`y C^{-1} y^\mathrm{T}` as appears in likelihood functions utilizing covariance matrices. Instead of directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system :math:`y = C x` for :math:`x`, and then evaluate :math:`y x`.
     !!}
     use :: Interface_GSL, only : GSL_Success , GSL_ESing
     use :: Error        , only : Error_Report
@@ -1194,7 +1205,7 @@ contains
   end function matrixCovarianceProduct
   
   subroutine matrixEigensystem(self,eigenVectors,eigenValues)
-    !!{
+    !!{RST
     Find eigenvectors and eigenvalues of a real symmetric matrix.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -1218,7 +1229,7 @@ contains
   end subroutine matrixEigensystem
 
   subroutine matrixCholeskyDecomposition(self)
-    !!{
+    !!{RST
     Find the Cholesky decomposition of a matrix.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -1237,8 +1248,8 @@ contains
   !! Matrix functions.
   
   function matrixLUConstructor(matrix_) result(self)
-    !!{
-    Constructor for \mono{matrixLU} class which builds the matrix from an array.
+    !!{RST
+    Constructor for ``matrixLU`` class which builds the matrix from an array.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -1255,8 +1266,10 @@ contains
     status               =GSL_LinAlg_LU_Decomp (self%matrix_%gsl   ,self%permutation_%gsl,self%decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_           => self%permutation_
     self%permutationManager =  resourceManager(dummyPointer_)
@@ -1267,8 +1280,8 @@ contains
   end function matrixLUConstructor
 
   function matrixLUSquareSystemSolve(self,y)
-    !!{
-    Solve the square linear system $y = A \cdot x$.
+    !!{RST
+    Solve the square linear system :math:`y = A \cdot x`.
     !!}
     use :: Error        , only : Error_Report
     use :: Interface_GSL, only : GSL_Success
@@ -1285,8 +1298,8 @@ contains
   end function matrixLUSquareSystemSolve
 
   subroutine matrixLUUnassignment(array,self)
-    !!{
-    Assign elements of a \mono{matrixLU} class to an array
+    !!{RST
+    Assign elements of a ``matrixLU`` class to an array
     !!}
     implicit none
     double precision          , intent(  out), dimension(:,:) :: array
@@ -1304,10 +1317,8 @@ contains
   !! Geometrical transformations.
 
   function matrixRotationRandom(randomNumberGenerator_)
-    !!{
-    Generate a random 3-D rotation matrix. ``Random'' here means that the distribution is invariant when composed with an
-    arbitrary rotation (see \href{https://en.wikipedia.org/wiki/Rotation_matrix\#Uniform_random_rotation_matrices}{here} for
-    further details).
+    !!{RST
+    Generate a random 3-D rotation matrix. "Random" here means that the distribution is invariant when composed with an arbitrary rotation (see `here <https://en.wikipedia.org/wiki/Rotation_matrix\#Uniform_random_rotation_matrices>`_ for further details).
     !!}
     use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
     use :: Numerical_Constants_Math, only : Pi
@@ -1344,10 +1355,8 @@ contains
   end function matrixRotationRandom
   
   function matrixRotation(points,pointsRotated)
-    !!{
-    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
-    corresponding rotation matrix. The distances between the points must be the same---currently this is not checked. The
-    method used is that of \cite{andrei2016}
+    !!{RST
+    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the corresponding rotation matrix. The distances between the points must be the same---currently this is not checked. The method used is that of :cite:t:`andrei2016`
     !!}
     implicit none
     type            (matrix)                                :: matrixRotation
@@ -1370,11 +1379,8 @@ contains
   end function matrixRotation
 
   function matrixRotationPlusTranslation(points,pointsRotated,translation) result(matrixRotation)
-    !!{
-    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the
-    corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must
-    be the same---currently this is not checked. The method used is that of \cite[][their ``More information, easier
-    computation'' solution]{robjohn2012}
+    !!{RST
+    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must be the same---currently this is not checked. The method used is that of :cite:t:`robjohn2012`
     !!}
     implicit none
     type            (matrix)                                :: matrixRotation
@@ -1409,8 +1415,8 @@ contains
   end function matrixRotationPlusTranslation
 
   subroutine vectorWrapperDestructor(self)
-    !!{
-    Destructor for \mono{vectorWrapper} class.
+    !!{RST
+    Destructor for ``vectorWrapper`` class.
     !!}
     implicit none
     type(vectorWrapper), intent(inout) :: self
@@ -1420,8 +1426,8 @@ contains
   end subroutine vectorWrapperDestructor
   
   subroutine matrixWrapperDestructor(self)
-    !!{
-    Destructor for \mono{matrixWrapper} class.
+    !!{RST
+    Destructor for ``matrixWrapper`` class.
     !!}
     implicit none
     type(matrixWrapper), intent(inout) :: self
@@ -1431,8 +1437,8 @@ contains
   end subroutine matrixWrapperDestructor
   
   subroutine permutationWrapperDestructor(self)
-    !!{
-    Destructor for \mono{permutationWrapper} class.
+    !!{RST
+    Destructor for ``permutationWrapper`` class.
     !!}
     implicit none
     type(permutationWrapper), intent(inout) :: self

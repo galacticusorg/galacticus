@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer which imports using multiple other importers.
 !!}
   
   !![
-  <nbodyImporter name="nbodyImporterMultiple">
-    <description>An N-body data importer which sequentially invokes multiple child \refClass{nbodyImporterClass} objects and concatenates their results into a single simulation array, enabling data to be loaded from several independent sources in one pass.</description>
+  <nbodyImporter name="nbodyImporterMultiple" docformat="rst">
+    <description>
+    An N-body data importer which sequentially invokes multiple child ``nbodyImporterClass`` objects and concatenates their results into a single simulation array, enabling data to be loaded from several independent sources in one pass.
+    </description>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMultiple
-     !!{
+     !!{RST
      An importer which imports using multiple other importers.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an N-body data importer which imports using multiple other importers.
   end type nbodyImporterMultiple
 
   interface nbodyImporterMultiple
-     !!{
-     Constructors for the \refClass{nbodyImporterMultiple} N-body importer class.
+     !!{RST
+     Constructors for the ``nbodyImporterMultiple`` N-body importer class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -51,8 +53,8 @@ Implements an N-body data importer which imports using multiple other importers.
 contains
 
   function multipleConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterMultiple} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyImporterMultiple`` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,8 +88,8 @@ contains
   end function multipleConstructorParameters
 
   function multipleConstructorInternal(importers) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterMultiple} N-body importer class.
+    !!{RST
+    Internal constructor for the ``nbodyImporterMultiple`` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple)                        :: self
@@ -110,8 +112,8 @@ contains
   end function multipleConstructorInternal
 
   subroutine multipleDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterMultiple} N-body importer class.
+    !!{RST
+    Destructor for the ``nbodyImporterMultiple`` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple), intent(inout) :: self
@@ -132,7 +134,7 @@ contains
   end subroutine multipleDestructor
 
   subroutine multipleImport(self,simulations)
-    !!{
+    !!{RST
     Import data using multiple importers.
     !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
@@ -184,7 +186,7 @@ contains
   end subroutine multipleImport
 
   logical function multipleIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cosmic time output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTimeFirstInfall">
-   <description>Extracts the cosmic time at which a satellite node first crossed the virial radius of its host halo (first infall), a key epoch for quantifying how long satellites have been processed by environmental effects such as ram pressure stripping and tidal forces.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTimeFirstInfall" docformat="rst">
+   <description>
+   Extracts the cosmic time at which a satellite node first crossed the virial radius of its host halo (first infall), a key epoch for quantifying how long satellites have been processed by environmental effects such as ram pressure stripping and tidal forces.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTimeFirstInfall
-     !!{
+     !!{RST
      A time of first infall property extractor output analysis class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a cosmic time output analysis property extractor class.
   end type nodePropertyExtractorTimeFirstInfall
 
   interface nodePropertyExtractorTimeFirstInfall
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -51,8 +53,8 @@ Implements a cosmic time output analysis property extractor class.
 contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,8 +69,8 @@ contains
   end function timeFirstInfallConstructorParameters
 
   function timeFirstInfallConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTimeFirstInfall} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimeFirstInfall) :: self
@@ -80,7 +82,7 @@ contains
   end function timeFirstInfallConstructorInternal
 
   double precision function timeFirstInfallExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a time of first infall property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -97,7 +99,7 @@ contains
   end function timeFirstInfallExtract
 
   function timeFirstInfallName(self)
-    !!{
+    !!{RST
     Return the name of the time of first infall property.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function timeFirstInfallName
 
   function timeFirstInfallDescription(self)
-    !!{
+    !!{RST
     Return a description of the time of first infall property.
     !!}
     implicit none
@@ -123,7 +125,7 @@ contains
   end function timeFirstInfallDescription
 
   double precision function timeFirstInfallUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the time of first infall property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -136,7 +138,7 @@ contains
   end function timeFirstInfallUnitsInSI
 
   function timeFirstInfallUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the timeFirstInfall property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -107,6 +107,11 @@ def process_directive(stripped_directive, line_number):
             print(str(exc))
             status = 1
 
+    # Descriptions marked docformat="rst" are reStructuredText (rendered on
+    # ReadTheDocs); they are not LaTeX, so skip the LaTeX compile / spell-check.
+    if root_el.get('docformat') == 'rst':
+        return
+
     # Check the 'description' attribute/child for LaTeX validity.
     description = root_el.get('description')
     if description is None:
@@ -127,6 +132,7 @@ def process_directive(stripped_directive, line_number):
 in_directive  = False
 in_xml        = False
 in_latex      = False
+in_rst_latex  = False
 in_comment    = False
 line_number   = 0
 directive_root        = None
@@ -147,7 +153,9 @@ with open(file_name, 'r', errors='replace') as code:
             in_comment = False
 
         # ── LaTeX block accumulation / processing ────────────────────────────
-        if in_latex:
+        # `!!{RST` blocks hold reStructuredText (rendered on ReadTheDocs); they
+        # are accumulated but neither compiled as LaTeX nor LaTeX-spell-checked.
+        if in_latex and not in_rst_latex:
             raw_latex = (raw_latex or '') + line
         if raw_latex is not None and not in_latex:
             log = test_latex(raw_latex)
@@ -157,6 +165,8 @@ with open(file_name, 'r', errors='replace') as code:
                 status = 1
             warnings += latex_spellcheck.spell_check(raw_latex, 'latex', file_name)
             raw_latex = None
+        if in_rst_latex and not in_latex:
+            in_rst_latex = False
 
         # ── Comment block accumulation / processing ──────────────────────────
         if in_comment:
@@ -212,6 +222,8 @@ with open(file_name, 'r', errors='replace') as code:
             in_xml = True
         if re.match(r'^\s*!!\{', line):
             in_latex = True
+            if re.match(r'^\s*!!\{RST', line):
+                in_rst_latex = True
         if re.match(r'^\s*!\s', line):
             in_comment  = True
             raw_comment = (raw_comment or '') + line

@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that keeps the ``\gls{dmou}'' fixed between node promotion events.
+  !!{RST
+  Implements a node operator class that keeps the ":term:`dark matter-only universe`" fixed between node promotion events.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorDMOUninterpolated">
-   <description>Keeps the dark matter only uninterpolated (\gls{dmou}) mass fixed at its current value between node promotion events, preventing interpolation-induced drift and ensuring mass consistency during tree evolution.</description>
+  <nodeOperator name="nodeOperatorDMOUninterpolated" docformat="rst">
+   <description>
+   Keeps the dark matter only uninterpolated (:term:`dark matter-only universe`) mass fixed at its current value between node promotion events, preventing interpolation-induced drift and ensuring mass consistency during tree evolution.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDMOUninterpolated
-     !!{
-     A node operator class that keeps the ``\gls{dmou}'' fixed between node promotion events.
+     !!{RST
+     A node operator class that keeps the ":term:`dark matter-only universe`" fixed between node promotion events.
      !!}
      private
    contains
@@ -36,8 +38,8 @@
   end type nodeOperatorDMOUninterpolated
   
   interface nodeOperatorDMOUninterpolated
-     !!{
-     Constructors for the \refClass{nodeOperatorDMOUninterpolated} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorDMOUninterpolated`` node operator class.
      !!}
      module procedure dmoUninterpolatedConstructorParameters
   end interface nodeOperatorDMOUninterpolated
@@ -45,8 +47,8 @@
 contains
   
   function dmoUninterpolatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDMOUninterpolated} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDMOUninterpolated`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,8 +63,8 @@ contains
   end function dmoUninterpolatedConstructorParameters
 
   subroutine dmoUninterpolatedNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a radiative transfer outputter class which combines multiple other outputters.
   !!}
 
@@ -27,13 +27,15 @@
   end type multiOutputterList
 
   !![
-  <radiativeTransferOutputter name="radiativeTransferOutputterMulti">
-   <description>A radiative transfer outputter class which combines multiple other outputters.</description>
+  <radiativeTransferOutputter name="radiativeTransferOutputterMulti" docformat="rst">
+   <description>
+   A radiative transfer outputter class which combines multiple other outputters.
+   </description>
    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti
-     !!{
+     !!{RST
      Implementation of a radiative transfer outputter class which combines multiple other outputters.
      !!}
      private
@@ -48,8 +50,8 @@
   end type radiativeTransferOutputterMulti
 
   interface radiativeTransferOutputterMulti
-     !!{
-     Constructors for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
+     !!{RST
+     Constructors for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,8 +91,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(outputters) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti)                        :: self
@@ -109,8 +111,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferOutputterMulti} radiative transfer outputter class.
+    !!{RST
+    Destructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti), intent(inout) :: self
@@ -131,7 +133,7 @@ contains
   end subroutine multiDestructor
 
   subroutine multiReset(self)
-    !!{
+    !!{RST
     Reset all outputters.
     !!}
     implicit none
@@ -147,7 +149,7 @@ contains
   end subroutine multiReset
 
   subroutine multiSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !!{
+    !!{RST
     Compute and output all source properties.
     !!}
     implicit none
@@ -165,7 +167,7 @@ contains
   end subroutine multiSourceProperties
 
   subroutine multiPhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     implicit none
@@ -182,7 +184,7 @@ contains
   end subroutine multiPhotonPacketEscapes
 
   subroutine multiFinalize(self)
-    !!{
+    !!{RST
     Finalize the results.
     !!}
     implicit none
@@ -198,7 +200,7 @@ contains
   end subroutine multiFinalize
   
   subroutine multiOutput(self,outputGroup)
-    !!{
+    !!{RST
     Output the results.
     !!}
     implicit none

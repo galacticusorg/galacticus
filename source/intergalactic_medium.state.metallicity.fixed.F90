@@ -19,20 +19,20 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
   
-  !!{
-  An intergalactic medium state decorator class which provides a fixed metallicity for the \gls{igm}.
+  !!{RST
+  An intergalactic medium state decorator class which provides a fixed metallicity for the :term:`IGM`.
   !!}
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateMetallicityFixed">
+  <intergalacticMediumState name="intergalacticMediumStateMetallicityFixed" docformat="rst">
    <description>
-    An intergalactic medium state decorator class that overrides the metallicity of an underlying \gls{igm} state object with a single constant value given by \mono{[metallicity]}, while passing all other state properties through unchanged. This enables simple models where the \gls{igm} metallicity is assumed to be uniform and time-independent.
+   An intergalactic medium state decorator class that overrides the metallicity of an underlying :term:`IGM` state object with a single constant value given by ``[metallicity]``, while passing all other state properties through unchanged. This enables simple models where the :term:`IGM` metallicity is assumed to be uniform and time-independent.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityFixed
-     !!{
-     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
+     !!{RST
+     An :term:`IGM` state class which provides a fixed metallicity for the :term:`IGM`, given by ``[metallicity]``.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -48,8 +48,8 @@
   end type intergalacticMediumStateMetallicityFixed
 
   interface intergalacticMediumStateMetallicityFixed
-     !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class.
+     !!{RST
+     Constructors for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class.
      !!}
      module procedure metallicityFixedIGMConstructorParameters
      module procedure metallicityFixedIGMConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function metallicityFixedIGMConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -71,10 +71,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>metallicity</name>
       <source>parameters</source>
-      <description>The metallicity (relative to Solar) of the \gls{igm}.</description>
+      <description>
+      The metallicity (relative to Solar) of the :term:`IGM`.
+      </description>
     </inputParameter>
     <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
     !!]
@@ -91,8 +93,8 @@ contains
   end function metallicityFixedIGMConstructorParameters
 
   function metallicityFixedIGMConstructorInternal(metallicity,intergalacticMediumState_) result(self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityFixed} \gls{igm} state class.
+    !!{RST
+    Constructor for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityFixed)                        :: self
@@ -107,8 +109,8 @@ contains
   end function metallicityFixedIGMConstructorInternal
 
   subroutine metallicityFixedDestructor(self)
-    !!{
-    Destructor for the metallicityFixed \gls{igm} state class.
+    !!{RST
+    Destructor for the metallicityFixed :term:`IGM` state class.
     !!}
     implicit none
     type(intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -120,8 +122,8 @@ contains
   end subroutine metallicityFixedDestructor
 
   double precision function metallicityFixedElectronFraction(self,time)
-    !!{
-    Return the electron fraction of the \gls{igm}.
+    !!{RST
+    Return the electron fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -132,8 +134,8 @@ contains
   end function metallicityFixedElectronFraction
 
   double precision function metallicityFixedNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral hydrogen fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -144,8 +146,8 @@ contains
   end function metallicityFixedNeutralHydrogenFraction
 
   double precision function metallicityFixedNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -156,8 +158,8 @@ contains
   end function metallicityFixedNeutralHeliumFraction
 
   double precision function metallicityFixedSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the singly-ionized helium fraction of the \gls{igm}.
+    !!{RST
+    Return the singly-ionized helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -168,8 +170,8 @@ contains
   end function metallicityFixedSinglyIonizedHeliumFraction
 
   double precision function metallicityFixedTemperature(self,time)
-    !!{
-    Return the temperature of the \gls{igm}.
+    !!{RST
+    Return the temperature of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self
@@ -180,8 +182,8 @@ contains
   end function metallicityFixedTemperature
 
   double precision function metallicityFixedMetallicity(self,time)
-    !!{
-    Return the metallicity of the \gls{igm}.
+    !!{RST
+    Return the metallicity of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityFixed), intent(inout) :: self

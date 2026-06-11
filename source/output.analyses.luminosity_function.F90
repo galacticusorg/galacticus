@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a luminosity function output analysis class.
 !!}
 
@@ -25,12 +25,14 @@ Implements a luminosity function output analysis class.
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunction">
-   <description>Computes the galaxy luminosity function as a number density per magnitude bin, with user-specified absolute magnitude bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunction" docformat="rst">
+   <description>
+   Computes the galaxy luminosity function as a number density per magnitude bin, with user-specified absolute magnitude bin centers, ``label``, ``comment``, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunction
-     !!{
+     !!{RST
      A luminosity function output analysis class.
      !!}
      private
@@ -42,8 +44,8 @@ Implements a luminosity function output analysis class.
   end type outputAnalysisLuminosityFunction
 
   interface outputAnalysisLuminosityFunction
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunction} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisLuminosityFunction`` output analysis class.
      !!}
      module procedure luminosityFunctionConstructorParameters
      module procedure luminosityFunctionConstructorInternal
@@ -53,8 +55,8 @@ Implements a luminosity function output analysis class.
 contains
 
   function luminosityFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,65 +83,83 @@ contains
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(magnitudesAbsolute(parameters%count('magnitudesAbsolute')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the luminosity function.</description>
+      <description>
+      A label for the luminosity function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the luminosity function.</description>
+      <description>
+      A descriptive comment for the luminosity function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>magnitudesAbsolute</name>
       <source>parameters</source>
       <variable>magnitudesAbsolute</variable>
-      <description>The absolute magnitudes corresponding to bin centers.</description>
+      <description>
+      The absolute magnitudes corresponding to bin centers.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('targetLabel')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCovarianceTarget</name>
             <source>parameters</source>
             <variable>functionCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -181,8 +201,8 @@ contains
   end function luminosityFunctionConstructorParameters
 
   function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunction} output analysis class which reads bin information from a standard format file.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -238,8 +258,8 @@ contains
   end function luminosityFunctionConstructorFile
 
   function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -413,8 +433,8 @@ contains
   end function luminosityFunctionConstructorInternal
 
   subroutine luminosityFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunction} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisLuminosityFunction`` output analysis class.
     !!}
     type(outputAnalysisLuminosityFunction), intent(inout) :: self
 

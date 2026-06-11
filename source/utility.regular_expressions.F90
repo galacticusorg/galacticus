@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements regular expressions by wrapping the GNU C Library implementations.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements regular expressions by wrapping the GNU C Lib
 !: $(BUILDPATH)/regular_expressions.o
 
 module Regular_Expressions
-  !!{
+  !!{RST
   Implements regular expressions by wrapping the GNU C Library implementations.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_char         , c_int, c_ptr, c_null_ptr
@@ -35,7 +35,7 @@ module Regular_Expressions
   public :: regEx
 
   type :: regExWrapper
-     !!{
+     !!{RST
      Wrapper class for managing C reg-ex objects.
      !!}
      type(c_ptr) :: r=c_null_ptr
@@ -44,7 +44,7 @@ module Regular_Expressions
   end type regExWrapper
 
   type :: regEx
-     !!{
+     !!{RST
      A regular expression object.
      !!}
      type(resourceManager)          :: regExManager
@@ -59,7 +59,7 @@ module Regular_Expressions
   end type regEx
 
   interface regEx
-     !!{
+     !!{RST
      Constructor for regular expression object.
      !!}
      module procedure Regular_Expression_Constructor
@@ -67,7 +67,7 @@ module Regular_Expressions
 
   interface
      function Regular_Expression_Construct_C(pattern) bind(c,name='Regular_Expression_Construct_C')
-       !!{
+       !!{RST
        Template for a C function that initializes a regular expression.
        !!}
        import
@@ -78,7 +78,7 @@ module Regular_Expressions
 
   interface
      subroutine Regular_Expression_Destruct_C(r) bind(c,name='Regular_Expression_Destruct_C')
-       !!{
+       !!{RST
        Template for a C function that destroys a regular expression.
        !!}
        import
@@ -88,7 +88,7 @@ module Regular_Expressions
 
   interface
      function Regular_Expression_Match_C(r,string) bind(c,name='Regular_Expression_Match_C')
-       !!{
+       !!{RST
        Template for a C function that checks for a match with a regular expression.
        !!}
        import
@@ -101,8 +101,8 @@ module Regular_Expressions
 contains
 
   function Regular_Expression_Constructor(regularExpression) result(self)
-    !!{
-    Constructor for \mono{regEx} objects.
+    !!{RST
+    Constructor for ``regEx`` objects.
     !!}
     implicit none
     type     (regEx)                :: self
@@ -112,8 +112,10 @@ contains
     allocate(self%r)
     self%r%r=Regular_Expression_Construct_C(trim(regularExpression)//char(0))
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_     => self%r
     self%regExManager =  resourceManager(dummyPointer_)
@@ -124,8 +126,8 @@ contains
   end function Regular_Expression_Constructor
 
   subroutine regExWrapperDestructor(self)
-    !!{
-    Destroy a \mono{regExWrapper} object.
+    !!{RST
+    Destroy a ``regExWrapper`` object.
     !!}
     implicit none
     type(regExWrapper), intent(inout) :: self
@@ -135,8 +137,8 @@ contains
   end subroutine regExWrapperDestructor
 
   logical function Regular_Expression_Match(self,string)
-    !!{
-    Returns true if a \mono{regEx} object matches the supplied \mono{string}.
+    !!{RST
+    Returns true if a ``regEx`` object matches the supplied ``string``.
     !!}
     implicit none
     class    (regEx)                :: self

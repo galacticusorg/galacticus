@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a satellite merging timescale class in which merging timescales are always zero.
   !!}
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesZero">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesZero" docformat="rst">
    <description>
-    A satellite merging timescale class which always gives a zero timescale for merging.
+   A satellite merging timescale class which always gives a zero timescale for merging.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesZero
-     !!{
+     !!{RST
      A class implementing satellite merging timescales that are always zero.
      !!}
      private
@@ -38,8 +38,8 @@
   end type satelliteMergingTimescalesZero
 
   interface satelliteMergingTimescalesZero
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesZero} satellite merging timescale class.
+     !!{RST
+     Constructors for the ``satelliteMergingTimescalesZero`` satellite merging timescale class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteMergingTimescalesZero
@@ -47,9 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{zero} satellite merging timescale class which builds the object from a
-    parameter set.
+    !!{RST
+    A constructor for the ``zero`` satellite merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroTimeUntilMerging(self,node,orbit)
-    !!{
+    !!{RST
     Return a zero timescale for satellite merging.
     !!}
     implicit none

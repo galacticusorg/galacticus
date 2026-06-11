@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a negative exponential density 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DNegativeExponential">
-   <description>A 1D negative (or decaying) exponential distribution function class, implementing $p(x) \propto e^{-\lambda x}$ for $x \ge 0$, parameterized by the rate $\lambda > 0$ (the inverse of the mean $1/\lambda$).</description>
+  <distributionFunction1D name="distributionFunction1DNegativeExponential" docformat="rst">
+   <description>
+   A 1D negative (or decaying) exponential distribution function class, implementing :math:`p(x) \propto e^{-\lambda x}` for :math:`x \ge 0`, parameterized by the rate :math:`\lambda &gt; 0` (the inverse of the mean :math:`1/\lambda`).
+   </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNegativeExponential
-     !!{
+     !!{RST
      Implementation of a negative exponential 1D distribution function.
      !!}
      private
@@ -39,8 +41,8 @@
   end type distributionFunction1DNegativeExponential
 
   interface distributionFunction1DNegativeExponential
-     !!{
-     Constructors for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class.
+     !!{RST
+     Constructors for the ``distributionFunction1DNegativeExponential`` 1D distribution function class.
      !!}
      module procedure negativeExponentialConstructorParameters
      module procedure negativeExponentialConstructorInternal
@@ -49,9 +51,8 @@
 contains
 
   function negativeExponentialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the ``distributionFunction1DNegativeExponential`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,9 +62,11 @@ contains
     double precision                                                           :: rate
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rate</name>
-      <description>The rate parameter $\lambda > 0$ of the negative exponential distribution, equal to the inverse of the mean $1/\lambda$; larger values give a more steeply decaying distribution concentrated near zero.</description>
+      <description>
+      The rate parameter :math:`\lambda &gt; 0` of the negative exponential distribution, equal to the inverse of the mean :math:`1/\lambda`; larger values give a more steeply decaying distribution concentrated near zero.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -77,8 +80,8 @@ contains
   end function negativeExponentialConstructorParameters
 
   function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNegativeExponential} 1D distribution function class.
+    !!{RST
+    Constructor for the ``distributionFunction1DNegativeExponential`` 1D distribution function class.
     !!}
     type            (distributionFunction1DNegativeExponential)                                  :: self
     double precision                                           , intent(in   )                   :: rate
@@ -91,7 +94,7 @@ contains
   end function negativeExponentialConstructorInternal
 
   double precision function negativeExponentialDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a negative exponential distribution.
     !!}
     implicit none
@@ -107,7 +110,7 @@ contains
   end function negativeExponentialDensity
 
   double precision function negativeExponentialCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a negative exponential distribution.
     !!}
     implicit none
@@ -123,7 +126,7 @@ contains
   end function negativeExponentialCumulative
 
   double precision function negativeExponentialInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a negative exponential distribution.
     !!}
     use :: Error, only : Error_Report

@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an output analysis class that evaluates model likelihood given the galaxy mass-size relations of \cite{shen_size_2003}.
+  !!{RST
+  Implements an output analysis class that evaluates model likelihood given the galaxy mass-size relations of :cite:t:`shen_size_2003`.
   !!}
 
   !$ use :: Locks              , only : ompLock
   use    :: Cosmology_Functions, only : cosmologyFunctionsClass
   
   !![
-  <outputAnalysis name="outputAnalysisMassSizeRelationShen2003">
-    <description>An output analysis class that evaluates model likelihood given the galaxy mass-size relations of \cite{shen_size_2003}.</description>
+  <outputAnalysis name="outputAnalysisMassSizeRelationShen2003" docformat="rst">
+    <description>
+    An output analysis class that evaluates model likelihood given the galaxy mass-size relations of :cite:t:`shen_size_2003`.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMassSizeRelationShen2003
-     !!{
-     An output analysis class that evaluates model likelihood given the galaxy mass-size relations of \cite{shen_size_2003}.
+     !!{RST
+     An output analysis class that evaluates model likelihood given the galaxy mass-size relations of :cite:t:`shen_size_2003`.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -54,8 +56,8 @@
   end type outputAnalysisMassSizeRelationShen2003
 
   interface outputAnalysisMassSizeRelationShen2003
-     !!{
-     Constructors for the \refClass{outputAnalysisMassSizeRelationShen2003} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class.
      !!}
      module procedure massSizeRelationShen2003ConstructorParameters
      module procedure massSizeRelationShen2003ConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function massSizeRelationShen2003ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassSizeRelationShen2003} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function massSizeRelationShen2003ConstructorParameters
   
   function massSizeRelationShen2003ConstructorInternal(cosmologyFunctions_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassSizeRelationShen2003} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class for internal use.
     !!}
     implicit none
     type (outputAnalysisMassSizeRelationShen2003)                        :: self
@@ -106,8 +108,8 @@ contains
   end function massSizeRelationShen2003ConstructorInternal
 
   subroutine massSizeRelationShen2003Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassSizeRelationShen2003} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassSizeRelationShen2003), intent(inout) :: self
@@ -119,7 +121,7 @@ contains
   end subroutine massSizeRelationShen2003Destructor
 
   subroutine massSizeRelationShen2003Analyze(self,node,iOutput)
-    !!{
+    !!{RST
     Analyze the maximum velocity tidal track.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic
@@ -207,7 +209,7 @@ contains
   end subroutine massSizeRelationShen2003Analyze
 
   subroutine massSizeRelationShen2003Reduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the mass-size output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -227,7 +229,7 @@ contains
   end subroutine massSizeRelationShen2003Reduce
 
   subroutine massSizeRelationShen2003FinalizeAnalysis(self)
-    !!{
+    !!{RST
     Compute final likelihood.
     !!}
 #ifdef USEMPI
@@ -247,7 +249,7 @@ contains
   end subroutine massSizeRelationShen2003FinalizeAnalysis
 
   subroutine massSizeRelationShen2003Finalize(self,groupName)
-    !!{
+    !!{RST
     Output results of the mass-size relation output analysis.
     !!}
     use :: Output_HDF5  , only : outputFile
@@ -278,7 +280,7 @@ contains
   end subroutine massSizeRelationShen2003Finalize
   
   double precision function massSizeRelationShen2003LogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of the mass-size output analysis.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module implementing a scalar angular momentum component for dark matter halos.
 !!}
 
 module Node_Component_Halo_Angular_Momentum_Scalar
-  !!{
+  !!{RST
   Implement a scalar spin component for tree nodes.
   !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -65,7 +65,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the halo scalar angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -85,7 +85,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the halo scalar angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -103,7 +103,7 @@ contains
   <scaleSetTask function="Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set(node)
-    !!{
+    !!{RST
     Set scales for properties in the scalar implementation of the spin component.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -130,7 +130,7 @@ contains
   <stateStoreTask function="Node_Component_Halo_Angular_Momentum_Scalar_State_Store"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -151,7 +151,7 @@ contains
   <stateRetrieveTask function="Node_Component_Halo_Angular_Momentum_Scalar_State_Restore"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

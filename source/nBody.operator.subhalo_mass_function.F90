@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes subhalo mass functions.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes subhalo mass functions.
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorSubhaloMassFunction">
-   <description>An N-body data operator which computes subhalo mass functions.</description>
+  <nbodyOperator name="nbodyOperatorSubhaloMassFunction" docformat="rst">
+   <description>
+   An N-body data operator which computes subhalo mass functions.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSubhaloMassFunction
-     !!{
+     !!{RST
      An N-body data operator which computes subhalo mass functions.
      !!}
      private
@@ -46,8 +48,8 @@ Implements an N-body data operator which computes subhalo mass functions.
   end type nbodyOperatorSubhaloMassFunction
 
   interface nbodyOperatorSubhaloMassFunction
-     !!{
-     Constructors for the \refClass{nbodyOperatorSubhaloMassFunction} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
      !!}
      module procedure subhaloMassFunctionConstructorParameters
      module procedure subhaloMassFunctionConstructorInternal
@@ -56,8 +58,8 @@ Implements an N-body data operator which computes subhalo mass functions.
 contains
 
   function subhaloMassFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSubhaloMassFunction} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,40 +73,54 @@ contains
          &                                                               description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHost</name>
       <source>parameters</source>
-      <description>The mass of the host halo.</description>
+      <description>
+      The mass of the host halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass ratio to consider.</description>
+      <description>
+      The minimum mass ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass ratio to consider.</description>
+      <description>
+      The maximum mass ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass ratio.</description>
+      <description>
+      The number of bins per decade of mass ratio.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this subhalo mass function.</description>
+      <description>
+      A description of this subhalo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -117,8 +133,8 @@ contains
   end function subhaloMassFunctionConstructorParameters
 
   function subhaloMassFunctionConstructorInternal(massHost,massRatioMinimum,massRatioMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSubhaloMassFunction} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloMassFunction)                        :: self
@@ -136,8 +152,8 @@ contains
   end function subhaloMassFunctionConstructorInternal
   
   subroutine subhaloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSubhaloMassFunction} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloMassFunction), intent(inout) :: self
@@ -149,7 +165,7 @@ contains
   end subroutine subhaloMassFunctionDestructor
 
   subroutine subhaloMassFunctionOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time

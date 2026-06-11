@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of critical overdensity for collapse based on spherical collapse in a
-  matter plus cosmological constant universe.
+  !!{RST
+  An implementation of critical overdensity for collapse based on spherical collapse in a matter plus cosmological constant universe.
   !!}
 
   use :: Dark_Matter_Particles     , only : darkMatterParticleClass
@@ -27,12 +26,14 @@
   use :: Tables                    , only : table1D
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt">
-   <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt" docformat="rst">
+   <description>
+   Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, :cite:author:`percival_cosmological_2005` :cite:year:`percival_cosmological_2005`).
+   </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
-     !!{
+     !!{RST
      A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      !!}
      private
@@ -60,8 +61,8 @@
   end type criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
-     !!{
-     Constructors for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+     !!{RST
+     Constructors for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -70,9 +71,8 @@
 contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class
-    which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,17 +86,21 @@ contains
     logical                                                                                       :: tableStore
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A multiplicative normalization factor applied to the spherical collapse critical overdensity $\delta_\mathrm{c}$ returned by this class, allowing calibration against simulations or fitting functions.</description>
+      <description>
+      A multiplicative normalization factor applied to the spherical collapse critical overdensity :math:`\delta_\mathrm{c}` returned by this class, allowing calibration against simulations or fitting functions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.</description>
+      <description>
+      If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.
+      </description>
     </inputParameter>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -105,10 +109,12 @@ contains
     !!]
     if (parameters%isPresent('countTimeCollapsePerUnit')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>countTimeCollapsePerUnit</name>
 	 <source>parameters</source>
-	 <description>The number of points per unit $w(t)=\delta_\mathrm{c}(t)/D(t)$ at which to tabulate the time of collapse.</description>
+	 <description>
+	 The number of points per unit :math:`w(t)=\delta_\mathrm{c}(t)/D(t)` at which to tabulate the time of collapse.
+	 </description>
        </inputParameter>
        !!]
     end if
@@ -127,8 +133,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization,countTimeCollapsePerUnit) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity class.
+    !!{RST
+    Internal constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -165,8 +171,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
-    !!{
-    Destructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt} critical overdensity for collapse class.
+    !!{RST
+    Destructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
@@ -186,7 +192,7 @@ contains
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate(self,time)
-    !!{
+    !!{RST
     Recompute the look-up tables for critical overdensity for collapse.
     !!}
     implicit none
@@ -210,7 +216,7 @@ contains
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     use :: Error, only : Error_Report
@@ -234,9 +240,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntValue
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
-    Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
-    cosmological constant universe.
+    !!{RST
+    Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
@@ -258,7 +263,7 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientTime
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -274,7 +279,7 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass
 
   logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -286,7 +291,7 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsMassDependent
 
   logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -298,7 +303,7 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntIsNodeDependent
 
   logical function sphericalCollapseClsnlssMttrCsmlgclCnstntIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

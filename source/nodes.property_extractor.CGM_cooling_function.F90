@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the CGM cooling function at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
@@ -26,15 +26,10 @@
   use :: Cooling_Functions                   , only : coolingFunctionClass
   use :: Radiation_Fields                    , only : radiationFieldCosmicMicrowaveBackground
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction">
-   <description>A property extractor that returns the radiative cooling function
-    $\Lambda(T,n_\mathrm{H},Z)$ (in erg~cm$^3$~s$^{-1}$) of the circumgalactic medium at a
-    user-specified set of radii in the hot halo, evaluated using the supplied
-    \refClass{coolingFunctionClass} object with local density, temperature, and metallicity. The
-    \mono{radiusSpecifiers} parameter defines the radii; \mono{includeRadii} and
-    \mono{includeDensity} optionally add the radius (Mpc) and hydrogen number density
-    (cm$^{-3}$) columns to the output. The \mono{label} suffix distinguishes multiple instances
-    of this extractor.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction" docformat="rst">
+   <description>
+   A property extractor that returns the radiative cooling function :math:`\Lambda(T,n_\mathrm{H},Z)` (in erg cm\ :math:`^3` s\ :math:`^{-1}`) of the circumgalactic medium at a user-specified set of radii in the hot halo, evaluated using the supplied ``coolingFunctionClass`` object with local density, temperature, and metallicity. The ``radiusSpecifiers`` parameter defines the radii; ``includeRadii`` and ``includeDensity`` optionally add the radius (Mpc) and hydrogen number density (cm\ :math:`^{-3}`) columns to the output. The ``label`` suffix distinguishes multiple instances of this extractor.
+   </description>
    <deepCopy>
     <functionClass variables="radiation"/>
    </deepCopy>
@@ -44,7 +39,7 @@
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorCGMCoolingFunction
-     !!{
+     !!{RST
      A property extractor class for the CGM cooling function at a set of radii.
      !!}
      private
@@ -76,8 +71,8 @@
   end type nodePropertyExtractorCGMCoolingFunction
 
   interface nodePropertyExtractorCGMCoolingFunction
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
      !!}
      module procedure cgmCoolingFunctionConstructorParameters
      module procedure cgmCoolingFunctionConstructorInternal
@@ -86,8 +81,8 @@
 contains
 
   function cgmCoolingFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,27 +97,35 @@ contains
     
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the CGM cooling function.</description>
+      <description>
+      A list of radius specifiers at which to output the CGM cooling function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which density data are output should also be included in the output.</description>
+      <description>
+      Specifies whether or not the radii at which density data are output should also be included in the output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeDensity</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the total hydrogen densities ($n_\mathrm{H}$) at each radius should be included in the output.</description>
+      <description>
+      Specifies whether or not the total hydrogen densities (:math:`n_\mathrm{H}`) at each radius should be included in the output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <defaultValue>var_str('')</defaultValue>
-      <description>A label to distinguish this cooling function from others.</description>
+      <description>
+      A label to distinguish this cooling function from others.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -140,8 +143,8 @@ contains
   end function cgmCoolingFunctionConstructorParameters
 
   function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
     !!}
     use :: Abundances_Structure                , only : Abundances_Property_Count
     use :: Chemical_Abundances_Structure       , only : Chemicals_Property_Count
@@ -195,8 +198,8 @@ contains
   end function cgmCoolingFunctionConstructorInternal
 
   subroutine cgmCoolingFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorCGMCoolingFunction} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorCGMCoolingFunction), intent(inout) :: self
@@ -211,8 +214,8 @@ contains
   end subroutine cgmCoolingFunctionDestructor
 
   integer function cgmCoolingFunctionElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{cgmCoolingFunction} property extractors.
+    !!{RST
+    Return the number of elements in the ``cgmCoolingFunction`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout) :: self
@@ -224,8 +227,8 @@ contains
   end function cgmCoolingFunctionElementCount
 
   function cgmCoolingFunctionSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{cgmCoolingFunction} property extractors.
+    !!{RST
+    Return the number of array elements in the ``cgmCoolingFunction`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                               )                :: cgmCoolingFunctionSize
@@ -238,8 +241,8 @@ contains
   end function cgmCoolingFunctionSize
 
   function cgmCoolingFunctionExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{cgmCoolingFunction} property extractor.
+    !!{RST
+    Implement a ``cgmCoolingFunction`` property extractor.
     !!}
     use :: Abundances_Structure                , only : abundances
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
@@ -407,8 +410,8 @@ contains
   end function cgmCoolingFunctionExtract
 
   subroutine cgmCoolingFunctionNames(self,names,time)
-    !!{
-    Return the names of the \mono{cgmCoolingFunction} properties.
+    !!{RST
+    Return the names of the ``cgmCoolingFunction`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                             :: self
@@ -424,8 +427,8 @@ contains
   end subroutine cgmCoolingFunctionNames
 
   subroutine cgmCoolingFunctionDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{cgmCoolingFunction} property.
+    !!{RST
+    Return descriptions of the ``cgmCoolingFunction`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout)                             :: self
@@ -443,8 +446,8 @@ contains
   end subroutine cgmCoolingFunctionDescriptions
 
   subroutine cgmCoolingFunctionColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{cgmCoolingFunction} property.
+    !!{RST
+    Return column descriptions of the ``cgmCoolingFunction`` property.
     !!}
     use            :: Units_MetaData, only : unitType
     use, intrinsic :: ISO_C_Binding , only : c_int
@@ -466,8 +469,8 @@ contains
   end subroutine cgmCoolingFunctionColumnDescriptions
 
   function cgmCoolingFunctionUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{cgmCoolingFunction} properties in the SI system.
+    !!{RST
+    Return the units of the ``cgmCoolingFunction`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi
@@ -488,7 +491,7 @@ contains
   end function cgmCoolingFunctionUnitsInSI
 
   function cGMCoolingFunctionUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the cGMCoolingFunction properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec

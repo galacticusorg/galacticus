@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator class which records and outputs tree processing time information.
   !!}
 
@@ -25,20 +25,23 @@
   use            :: Kind_Numbers , only : kind_int8
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer">
+  <mergerTreeOperator name="mergerTreeOperatorTreeProcessingTimer" docformat="rst">
    <description>
-    A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded
-    and output to the \mono{metaData/treeTiming} group. Three datasets are written to this group:
-    \begin{description}
-     \item[\mono{treeMasses}] Gives the base node masses of the recorded trees (in units of $\mathrm{M}_\odot$);
-     \item[\mono{treeConstructTimes}] Gives the time (in seconds) taken to construct each merger tree;
-     \item[\mono{treeEvolveTimes}] Gives the time (in seconds) taken to evolve each merger tree.
-    \end{description}
+   A merger tree operator class which records and outputs tree processing time information. Tree timing data to be recorded and output to the ``metaData/treeTiming`` group. Three datasets are written to this group:
+
+   ``treeMasses``
+      Gives the base node masses of the recorded trees (in units of :math:`\mathrm{M}_\odot`);
+
+   ``treeConstructTimes``
+      Gives the time (in seconds) taken to construct each merger tree;
+
+   ``treeEvolveTimes``
+      Gives the time (in seconds) taken to evolve each merger tree.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorTreeProcessingTimer
-     !!{
+     !!{RST
      A merger tree operator class which records and outputs tree processing time information.
      !!}
      private
@@ -63,8 +66,8 @@
   end type mergerTreeOperatorTreeProcessingTimer
 
   interface mergerTreeOperatorTreeProcessingTimer
-     !!{
-     Constructors for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
+     !!{RST
+     Constructors for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
      !!}
      module procedure treeProcessingTimerConstructorParameters
      module procedure treeProcessingTimerConstructorInternal
@@ -76,9 +79,8 @@
 contains
 
   function treeProcessingTimerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,10 +89,12 @@ contains
     logical                                                       :: collectMemoryUsageData
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>collectMemoryUsageData</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not to collect and output data on the memory used while processing trees.</description>
+      <description>
+      Specifies whether or not to collect and output data on the memory used while processing trees.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -102,8 +106,8 @@ contains
   end function treeProcessingTimerConstructorParameters
 
   function treeProcessingTimerConstructorInternal(collectMemoryUsageData) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorTreeProcessingTimer)                :: self
@@ -117,7 +121,7 @@ contains
   end function treeProcessingTimerConstructorInternal
 
   subroutine treeProcessingTimerAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : postEvolveEvent, openMPThreadBindingAtLevel
@@ -129,8 +133,8 @@ contains
   end subroutine treeProcessingTimerAutoHook
 
   subroutine treeProcessingTimerDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOperatorTreeProcessingTimer} merger tree operator class.
+    !!{RST
+    Destructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
     !!}
     use :: Events_Hooks, only : postEvolveEvent
     implicit none
@@ -142,7 +146,7 @@ contains
   end subroutine treeProcessingTimerDestructor
 
   subroutine treeProcessingTimerOperatePreConstruction(self)
-    !!{
+    !!{RST
     Record the CPU time prior to construction of a tree.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_WTime, OMP_In_Parallel
@@ -164,8 +168,8 @@ contains
   end subroutine treeProcessingTimerOperatePreConstruction
 
   subroutine treeProcessingTimerOperatePreEvolution(self,tree)
-    !!{
-    Record the CPU time prior to evolving \mono{tree}.
+    !!{RST
+    Record the CPU time prior to evolving ``tree``.
     !!}
     use    :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
@@ -201,7 +205,7 @@ contains
   end subroutine treeProcessingTimerOperatePreEvolution
   
   subroutine treeProcessingTimerOperatePostEvolution(self)
-    !!{
+    !!{RST
     Record the CPU time after evolving a tree.
     !!}
     !$ use :: OMP_Lib          , only : OMP_Get_WTime, OMP_In_Parallel
@@ -270,7 +274,7 @@ contains
   end subroutine treeProcessingTimerOperatePostEvolution
   
   subroutine treeProcessingTimerPostEvolve(self,node)
-    !!{
+    !!{RST
     Record memory usage.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree              , treeNode
@@ -302,7 +306,7 @@ contains
   end subroutine treeProcessingTimerPostEvolve
 
   subroutine treeProcessingTimerFinalize(self)
-    !!{
+    !!{RST
     Outputs collected meta-data on tree processing times.
     !!}
     use :: Output_HDF5                     , only : outputFile

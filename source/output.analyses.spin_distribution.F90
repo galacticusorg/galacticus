@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a spin parameter distribution output analysis class.
   !!}
   
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
   !![
-  <outputAnalysis name="outputAnalysisSpinDistribution">
-   <description>Computes the dark matter halo spin parameter distribution within a specified mass range and redshift, accounting for N-body measurement errors via log-normal convolution with truncation range \mono{logNormalRange}; reads bin configuration from file and supports optional target dataset for likelihood evaluation.</description>
+  <outputAnalysis name="outputAnalysisSpinDistribution" docformat="rst">
+   <description>
+   Computes the dark matter halo spin parameter distribution within a specified mass range and redshift, accounting for N-body measurement errors via log-normal convolution with truncation range ``logNormalRange``; reads bin configuration from file and supports optional target dataset for likelihood evaluation.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisSpinDistribution
-     !!{
+     !!{RST
      A spinDistribution output analysis class.
      !!}
      private
@@ -57,8 +59,8 @@
   end type outputAnalysisSpinDistribution
 
   interface outputAnalysisSpinDistribution
-     !!{
-     Constructors for the \refClass{outputAnalysisSpinDistribution} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisSpinDistribution`` output analysis class.
      !!}
      module procedure spinDistributionConstructorParameters
        module procedure spinDistributionConstructorFile
@@ -68,8 +70,8 @@
 contains
 
   function spinDistributionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSpinDistribution} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisSpinDistribution`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,18 +100,24 @@ contains
          &                                                                              label                        , comment
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorTolerant</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>Error tolerance for the N-body spin distribution operator.</description>
+      <description>
+      Error tolerance for the N-body spin distribution operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logNormalRange</name>
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
-      <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
+      <defaultSource>
+      Approximately the range expected for the :cite:t:`bett_spin_2007` "QE" cut.
+      </defaultSource>
+      <description>
+      The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range :math:`(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R`, where :math:`\lambda_\mathrm{m}` is the measured spin, and :math:`R=`\ ``[logNormalRange]``
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="outputTimes"                  name="outputTimes_"                     source="parameters"                                                />
@@ -123,110 +131,146 @@ contains
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read spin distribution function parameters.</description>
+         <description>
+         The name of the file from which to read spin distribution function parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisSpinDistribution(char(fileName),label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the spin distribution function.</description>
+         <description>
+         A label for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the spin distribution function.</description>
+         <description>
+         A descriptive comment for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshift</name>
          <source>parameters</source>
-         <description>The redshift at which to compute the spin distribution function.</description>
+         <description>
+         The redshift at which to compute the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <source>parameters</source>
-         <description>Minimum halo mass for the spin distribution function.</description>
+         <description>
+         Minimum halo mass for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <source>parameters</source>
-         <description>Maximum halo mass for the spin distribution function.</description>
+         <description>
+         Maximum halo mass for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>spinMinimum</name>
          <source>parameters</source>
-         <description>Minimum spin for the spin distribution function.</description>
+         <description>
+         Minimum spin for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>spinMaximum</name>
          <source>parameters</source>
-         <description>Maximum spin for the spin distribution function.</description>
+         <description>
+         Maximum spin for the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countSpinsPerDecade</name>
          <source>parameters</source>
-         <description>Number of spins per decade at which to compute the spin distribution function.</description>
+         <description>
+         Number of spins per decade at which to compute the spin distribution function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>timeRecent</name>
          <source>parameters</source>
-         <description>Halos which experienced a major node merger within a time $\Delta t=$\mono{[timeRecent]} of the analysis time will be excluded from the analysis.</description>
+         <description>
+         Halos which experienced a major node merger within a time :math:`\Delta t=`\ ``[timeRecent]`` of the analysis time will be excluded from the analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>particleCountMinimum</name>
          <source>parameters</source>
-         <description>The minimum particle count to assume when computing N-body errors on spins.</description>
+         <description>
+         The minimum particle count to assume when computing N-body errors on spins.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParticle</name>
          <source>parameters</source>
-         <description>The mass of the particle used in the N-body simulation from which spins were measured.</description>
+         <description>
+         The mass of the particle used in the N-body simulation from which spins were measured.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>energyEstimateParticleCountMaximum</name>
          <source>parameters</source>
-         <description>The maximum number of particles used in estimating halo energies when measuring spins from the N-body simulation.</description>
+         <description>
+         The maximum number of particles used in estimating halo energies when measuring spins from the N-body simulation.
+         </description>
        </inputParameter>       
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
 	  !!]
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
              !![
-	     <inputParameter>
+	     <inputParameter docformat="rst">
                <name>functionValueTarget</name>
 	       <source>parameters</source>
-	       <description>The target function for likelihood calculations.</description>
+	       <description>
+	       The target function for likelihood calculations.
+	       </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionCovarianceTarget</name>
 	       <source>parameters</source>
 	       <variable>functionCovarianceTarget1D</variable>
-	       <description>The target function covariance for likelihood calculations.</description>
+	       <description>
+	       The target function covariance for likelihood calculations.
+	       </description>
              </inputParameter>
              !!]
              if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -295,8 +339,8 @@ contains
   end function spinDistributionConstructorParameters
 
   function spinDistributionConstructorFile(fileName,label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSpinDistribution} output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the ``outputAnalysisSpinDistribution`` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object
@@ -360,8 +404,8 @@ contains
   end function spinDistributionConstructorFile
 
   function spinDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,spinMinimum,spinMaximum,countSpins,timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisSpinDistribution} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisSpinDistribution`` output analysis class.
     !!}
     use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
     use :: Galactic_Filters                        , only : filterList                                       , galacticFilterAll                           , galacticFilterHaloIsolated                    , galacticFilterHaloMassRange                 , &
@@ -618,7 +662,7 @@ contains
   end function spinDistributionConstructorInternal
 
   double precision function spinDistributionLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of the spin distribution function.
     !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
@@ -681,8 +725,8 @@ contains
   end function spinDistributionLogLikelihood
 
   subroutine spinDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSpinDistribution} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisSpinDistribution`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSpinDistribution), intent(inout) :: self

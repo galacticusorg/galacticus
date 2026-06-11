@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassHostMaximum">
+  <nodePropertyExtractor name="nodePropertyExtractorMassHostMaximum" docformat="rst">
    <description>
-     A node property extractor which extracts the mass of the most massive node in which a node has been hosted. Requires the
-     \refClass{nodeOperatorMassHostMaximum} node operator to be used to track the maximum host mass.
+   A node property extractor which extracts the mass of the most massive node in which a node has been hosted. Requires the ``nodeOperatorMassHostMaximum`` node operator to be used to track the maximum host mass.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHostMaximum
-     !!{
+     !!{RST
      A property extractor which extracts the mass of the most massive node in which a node has been hosted.
      !!}
      private
@@ -40,8 +39,8 @@
   end type nodePropertyExtractorMassHostMaximum
 
   interface nodePropertyExtractorMassHostMaximum
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHostMaximum} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMassHostMaximum`` property extractor class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -50,8 +49,8 @@
 contains
 
   function massHostMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassHostMaximum} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMassHostMaximum`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,8 +65,8 @@ contains
   end function massHostMaximumConstructorParameters
 
   function massHostMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassHostMaximum} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMassHostMaximum`` property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -80,7 +79,7 @@ contains
   end function massHostMaximumConstructorInternal
 
   double precision function massHostMaximumExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massHostMaximum output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -97,8 +96,8 @@ contains
   end function massHostMaximumExtract
 
   function massHostMaximumName(self)
-    !!{
-    Return the names of the \mono{massHostMaximum} properties.
+    !!{RST
+    Return the names of the ``massHostMaximum`` properties.
     !!}
     implicit none
     type (varying_string                      )                :: massHostMaximumName
@@ -110,8 +109,8 @@ contains
   end function massHostMaximumName
 
   function massHostMaximumDescription(self)
-    !!{
-    Return the descriptions of the \mono{massHostMaximum} properties.
+    !!{RST
+    Return the descriptions of the ``massHostMaximum`` properties.
     !!}
     implicit none
     type (varying_string                      )                :: massHostMaximumDescription
@@ -123,7 +122,7 @@ contains
   end function massHostMaximumDescription
 
   double precision function massHostMaximumUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the maximum host mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -136,7 +135,7 @@ contains
   end function massHostMaximumUnitsInSI
 
   function massHostMaximumUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the maximum host mass property.
     !!}
     use :: Units_MetaData, only : unitType

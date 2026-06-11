@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \gls{cgm} heating class with zero heating.
+  !!{RST
+  Implements a :term:`CGM` heating class with zero heating.
   !!}
 
   !![
-  <circumgalacticMediumHeating name="circumgalacticMediumHeatingZero">
+  <circumgalacticMediumHeating name="circumgalacticMediumHeatingZero" docformat="rst">
    <description>
-    A null implementation of the circumgalactic medium heating class that returns zero heating rate at all times. Useful for disabling \gls{cgm} heating while testing other physical processes or for models in which feedback heating of the hot gas halo is neglected.
+   A null implementation of the circumgalactic medium heating class that returns zero heating rate at all times. Useful for disabling :term:`CGM` heating while testing other physical processes or for models in which feedback heating of the hot gas halo is neglected.
    </description>
   </circumgalacticMediumHeating>
   !!]
   type, extends(circumgalacticMediumHeatingClass) :: circumgalacticMediumHeatingZero
-     !!{
-     A \gls{cgm} heating class with zero heating.
+     !!{RST
+     A :term:`CGM` heating class with zero heating.
      !!}
      private
    contains
@@ -38,8 +38,8 @@
   end type circumgalacticMediumHeatingZero
   
   interface circumgalacticMediumHeatingZero
-     !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingZero} circumgalactic medium heating class.
+     !!{RST
+     Constructors for the ``circumgalacticMediumHeatingZero`` circumgalactic medium heating class.
      !!}
      module procedure zeroConstructorParameters
   end interface circumgalacticMediumHeatingZero
@@ -47,8 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingZero} circumgalactic medium heating class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``circumgalacticMediumHeatingZero`` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +63,8 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroHeatingRate(self,node) result(rateHeating)
-    !!{
-    Compute the heating rate of the \gls{cgm}, assumed to be always zero.
+    !!{RST
+    Compute the heating rate of the :term:`CGM`, assumed to be always zero.
     !!}
     implicit none
     class(circumgalacticMediumHeatingZero), intent(inout) :: self

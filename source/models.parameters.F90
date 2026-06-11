@@ -17,79 +17,96 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class of parameter mapping functions.
 !!}
 
 module Model_Parameters
-  !!{
+  !!{RST
   Implements a class of unary operators.
   !!}
   private
   public :: modelParameterList, modelParameterListLogPrior
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>modelParameter</name>
    <descriptiveName>Model Parameters</descriptiveName>
-   <description>Class providing model parameters for Bayesian inference---the individual free parameters of a
-    \glc\ model that are explored during parameter estimation (e.g.\ via MCMC). Each parameter has a name,
-    a prior distribution (with \mono{logPrior}, \mono{priorSample}, \mono{priorInvert}, \mono{priorMinimum},
-    and \mono{priorMaximum} methods), and a bijective mapping to an unconstrained real line for efficient
-    sampling (via \mono{map}/\mono{unmap}). Implementations include active parameters that vary during
-    inference, and fixed parameters held at constant values.</description>
+   <description>
+   Class providing model parameters for Bayesian inference---the individual free parameters of a Galacticus model that are explored during parameter estimation (e.g.\ via MCMC). Each parameter has a name, a prior distribution (with ``logPrior``, ``priorSample``, ``priorInvert``, ``priorMinimum``, and ``priorMaximum`` methods), and a bijective mapping to an unconstrained real line for efficient sampling (via ``map``/``unmap``). Implementations include active parameters that vary during inference, and fixed parameters held at constant values.
+   </description>
    <default>active</default>
    <method name="name">
-     <description>Return the name of this parameter as it appears in the \glc\ parameter file and in output metadata, used to identify the parameter when applying posterior sampler updates.</description>
+     <description>
+     Return the name of this parameter as it appears in the Galacticus parameter file and in output metadata, used to identify the parameter when applying posterior sampler updates.
+     </description>
      <type>type(varying_string)</type>
      <pass>yes</pass>
    </method>
    <method name="logPrior">
-     <description>Return the natural logarithm of the prior probability density evaluated at the physical parameter value \mono{x}, used in computing the log-posterior during Bayesian inference.</description>
+     <description>
+     Return the natural logarithm of the prior probability density evaluated at the physical parameter value ``x``, used in computing the log-posterior during Bayesian inference.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="priorSample">
-     <description>Draw a random sample from the prior distribution for this parameter, returning a physical parameter value; used to initialize the posterior sampler or generate prior predictive samples.</description>
+     <description>
+     Draw a random sample from the prior distribution for this parameter, returning a physical parameter value; used to initialize the posterior sampler or generate prior predictive samples.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
    </method>
    <method name="priorInvert">
-     <description>Invert the prior, returning the parameter value given the cumulative probability.</description>
+     <description>
+     Invert the prior, returning the parameter value given the cumulative probability.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
    </method>
    <method name="priorMinimum">
-     <description>Return the minimum non-zero value of the prior for this parameter.</description>
+     <description>
+     Return the minimum non-zero value of the prior for this parameter.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
    </method>
    <method name="priorMaximum">
-     <description>Return the maximum non-zero value of the prior for this parameter.</description>
+     <description>
+     Return the maximum non-zero value of the prior for this parameter.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
    </method>
    <method name="randomPerturbation">
-     <description>Return a random perturbation for this parameter.</description>
+     <description>
+     Return a random perturbation for this parameter.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
    </method>
    <method name="map">
-     <description>Apply the bijective mapping to transform the physical parameter value \mono{x} onto the unconstrained real line used by the posterior sampler (e.g.\ logarithm for positive-definite parameters).</description>
+     <description>
+     Apply the bijective mapping to transform the physical parameter value ``x`` onto the unconstrained real line used by the posterior sampler (e.g.\ logarithm for positive-definite parameters).
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="unmap">
-     <description>Apply the inverse bijective mapping to transform the sampler's unconstrained variable \mono{x} back to the physical parameter value used to evaluate the model.</description>
+     <description>
+     Apply the inverse bijective mapping to transform the sampler's unconstrained variable ``x`` back to the physical parameter value used to evaluate the model.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="mapJacobian">
-     <description>Compute the Jacobian of the map at the given parameter value.</description>
+     <description>
+     Compute the Jacobian of the map at the given parameter value.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
@@ -98,7 +115,7 @@ module Model_Parameters
   !!]
 
   type :: modelParameterList
-     !!{
+     !!{RST
      Class used to construct lists of model parameters.
      !!}
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
@@ -116,7 +133,7 @@ module Model_Parameters
 contains
 
   double precision function modelParameterListLogPrior(modelParameterList_,posteriorSampleState_)
-    !!{
+    !!{RST
     Compute the log-prior of a list of parameters.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -150,7 +167,7 @@ contains
   end function modelParameterListLogPrior
 
   subroutine modelParameterListDestructor(self)
-    !!{
+    !!{RST
     Destructor for elements of model parameter lists.
     !!}
     implicit none
@@ -163,8 +180,8 @@ contains
   end subroutine modelParameterListDestructor
 
   recursive subroutine modelParameterListAssign(self,from)
-    !!{
-    Perform assignment for the \refClass{modelParameterList} class.
+    !!{RST
+    Perform assignment for the ``modelParameterList`` class.
     !!}
     implicit none
     class(modelParameterList), intent(  out) :: self

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a star forming main sequence output analysis class.
   !!}
 
@@ -28,13 +28,15 @@
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <outputAnalysis name="outputAnalysisStarFormingMainSequence">
-   <description>Computes the mean specific star formation rate as a function of stellar mass along the star-forming main sequence, reading bin configuration from file with user-specified stellar mass range and bin count, and comparing against an optional target dataset for likelihood evaluation.</description>
+  <outputAnalysis name="outputAnalysisStarFormingMainSequence" docformat="rst">
+   <description>
+   Computes the mean specific star formation rate as a function of stellar mass along the star-forming main sequence, reading bin configuration from file with user-specified stellar mass range and bin count, and comparing against an optional target dataset for likelihood evaluation.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisStarFormingMainSequence
-     !!{
+     !!{RST
      A star forming main sequence output analysis class.
      !!}
      private
@@ -49,8 +51,8 @@
   end type outputAnalysisStarFormingMainSequence
 
   interface outputAnalysisStarFormingMainSequence
-     !!{
-     Constructors for the \refClass{outputAnalysisStarFormingMainSequence} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisStarFormingMainSequence`` output analysis class.
      !!}
      module procedure starFormingMainSequenceConstructorParameters
      module procedure starFormingMainSequenceConstructorFile
@@ -60,8 +62,8 @@
 contains
 
   function starFormingMainSequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormingMainSequence} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class which takes a parameter set as input.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -104,75 +106,97 @@ contains
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read star forming main sequence function parameters.</description>
+         <description>
+         The name of the file from which to read star forming main sequence function parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisStarFormingMainSequence(char(fileName),label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_, starFormationRateNuclearStarClusters_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the star forming main sequence function.</description>
+         <description>
+         A label for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the star forming main sequence function.</description>
+         <description>
+         A descriptive comment for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMinimum</name>
          <source>parameters</source>
-         <description>Minimum stellar mass for the star forming main sequence function.</description>
+         <description>
+         Minimum stellar mass for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massMaximum</name>
          <source>parameters</source>
-         <description>Maximum stellar mass for the star forming main sequence function.</description>
+         <description>
+         Maximum stellar mass for the star forming main sequence function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMassesPerDecade</name>
          <source>parameters</source>
-         <description>Number of masses per decade at which to compute the star forming main sequence function.</description>
+         <description>
+         Number of masses per decade at which to compute the star forming main sequence function.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
 	  !!]
        end if
        if (parameters%isPresent('meanValueTarget')) then
           if (parameters%isPresent('meanCovarianceTarget')) then
              !![
-	     <inputParameter>
+	     <inputParameter docformat="rst">
                <name>meanValueTarget</name>
 	       <source>parameters</source>
-	       <description>The target function for likelihood calculations.</description>
+	       <description>
+	       The target function for likelihood calculations.
+	       </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>meanCovarianceTarget</name>
 	       <source>parameters</source>
 	       <variable>meanCovarianceTarget1D</variable>
-	       <description>The target function covariance for likelihood calculations.</description>
+	       <description>
+	       The target function covariance for likelihood calculations.
+	       </description>
              </inputParameter>
              !!]
              if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
@@ -237,8 +261,8 @@ contains
   end function starFormingMainSequenceConstructorParameters
 
   function starFormingMainSequenceConstructorFile(fileName,label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormingMainSequence} output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class which reads all required properties from file.
     !!}
     use :: IO_HDF5    , only : hdf5Object
     use :: HDF5_Access, only : hdf5Access
@@ -294,8 +318,8 @@ contains
   end function starFormingMainSequenceConstructorFile
 
   function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisStarFormingMainSequence} output analysis class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Galactic_Filters                      , only : galacticFilterClass

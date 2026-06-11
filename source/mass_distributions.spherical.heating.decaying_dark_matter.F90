@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a decaying dark matter mass distribution heating class.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingDecayingDarkMatter">
+  <massDistributionHeating name="massDistributionHeatingDecayingDarkMatter" docformat="rst">
     <description>
-      Implements heating from decays and response to mass loss. The mass loss heating is parameterized as:
-      \begin{equation}
-      \epsilon(r) = \gamma \frac{\mathrm{G}\Delta M(r)}{r},
-      \end{equation}
-      where $\gamma=$\mono{[gamma]} sets the magnitude of the heating.
+    Implements heating from decays and response to mass loss. The mass loss heating is parameterized as:
+
+    .. math::
+
+       \epsilon(r) = \gamma \frac{\mathrm{G}\Delta M(r)}{r},
+
+    where :math:`\gamma=`\ ``[gamma]`` sets the magnitude of the heating.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingDecayingDarkMatter
-     !!{
+     !!{RST
      Implementation of a decaying dark matter mass distribution heating class.
      !!}
      private
@@ -65,8 +67,8 @@
   end type massDistributionHeatingDecayingDarkMatter
 
   interface massDistributionHeatingDecayingDarkMatter
-     !!{
-     Constructors for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class.
+     !!{RST
+     Constructors for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -75,9 +77,8 @@
 contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,26 +90,34 @@ contains
     logical                                                                    :: includeKickHeating
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEscape</name>
       <source>parameters</source>
-      <description>The radius beyond which a particle is assumed to have escaped the potential.</description>
+      <description>
+      The radius beyond which a particle is assumed to have escaped the potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>time</name>
       <source>parameters</source>
-      <description>The time at which decays should be evaluated.</description>
+      <description>
+      The time at which decays should be evaluated.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
-      <description>Parameter controlling the magnitude of heating due to mass loss.</description>
+      <description>
+      Parameter controlling the magnitude of heating due to mass loss.
+      </description>
       <defaultValue>0.5d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeKickHeating</name>
       <source>parameters</source>
-      <description>Parameter controlling whether heating due to velocity kicks is to be included.</description>
+      <description>
+      Parameter controlling whether heating due to velocity kicks is to be included.
+      </description>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
@@ -122,8 +131,8 @@ contains
   end function decayingDarkMatterConstructorParameters
   
   function decayingDarkMatterConstructorInternal(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingDecayingDarkMatter} heating class.
+    !!{RST
+    Constructor for the ``massDistributionHeatingDecayingDarkMatter`` heating class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     use :: Error                , only : Error_Report
@@ -158,8 +167,8 @@ contains
   end function decayingDarkMatterConstructorInternal
 
   subroutine decayingDarkMatterDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionHeatingDecayingDarkMatter} mass distribution heating class.
+    !!{RST
+    Destructor for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self
@@ -171,7 +180,7 @@ contains
   end subroutine decayingDarkMatterDestructor
 
   subroutine decayingDarkMatterComputeFactors(self,radius,massDistribution_,gradientRequired)
-    !!{
+    !!{RST
     Compute various factors for specific energy of heating.
     !!}
     use :: Coordinates                     , only : coordinateSpherical               , assignment(=)
@@ -356,7 +365,7 @@ contains
   end subroutine decayingDarkMatterComputeFactors
 
   double precision function decayingDarkMatterSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
+    !!{RST
     Compute the specific energy in a decaying dark matter-heated mass distribution.
     !!}
     implicit none
@@ -370,7 +379,7 @@ contains
   end function decayingDarkMatterSpecificEnergy
 
   double precision function decayingDarkMatterSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
@@ -385,7 +394,7 @@ contains
   end function decayingDarkMatterSpecificEnergyGradient
 
   logical function decayingDarkMatterSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

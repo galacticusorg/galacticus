@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a filtered node operator class.
   !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
   !![
-  <nodeOperator name="nodeOperatorFiltered">
-   <description>A node operator class that applies a collection of child \refClass{nodeOperatorClass} objects only to nodes that pass a \refClass{galacticFilterClass} test, enabling conditional application of physical processes based on node properties.</description>
+  <nodeOperator name="nodeOperatorFiltered" docformat="rst">
+   <description>
+   A node operator class that applies a collection of child ``nodeOperatorClass`` objects only to nodes that pass a ``galacticFilterClass`` test, enabling conditional application of physical processes based on node properties.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorMulti) :: nodeOperatorFiltered
-     !!{
+     !!{RST
      A filtered node operator class, which applies multiple node operators but only if the node passes the provided filter.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorFiltered
 
   interface nodeOperatorFiltered
-     !!{
-     Constructors for the \refClass{nodeOperatorFiltered} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorFiltered`` node operator class.
      !!}
      module procedure filteredConstructorParameters
      module procedure filteredConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function filteredConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorFiltered} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorFiltered`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Error           , only : Error_Report
@@ -70,8 +72,8 @@ contains
   end function filteredConstructorParameters
 
   function filteredConstructorInternal(processes,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorFiltered} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorFiltered`` node operator class.
     !!}
     implicit none
     type (nodeOperatorFiltered)                        :: self
@@ -86,8 +88,8 @@ contains
   end function filteredConstructorInternal
 
   subroutine filteredDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorFiltered} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorFiltered`` node operator class.
     !!}
     implicit none
     type(nodeOperatorFiltered), intent(inout) :: self
@@ -99,8 +101,8 @@ contains
   end subroutine filteredDestructor
 
   logical function filteredIsActive(self,node) result(isActive)
-    !!{
-    Return true if the operators are active for the given \mono{node}.
+    !!{RST
+    Return true if the operators are active for the given ``node``.
     !!}
     implicit none
     class(nodeOperatorFiltered), intent(inout) :: self

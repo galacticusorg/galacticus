@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`cardelli_relationship_1989`.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`cardelli_relationship_1989`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCardelli1989
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`cardelli_relationship_1989`.
      !!}
      private
      double precision :: Rv
@@ -45,8 +47,8 @@
   end type stellarSpectraDustAttenuationCardelli1989
 
   interface stellarSpectraDustAttenuationCardelli1989
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class.
      !!}
      module procedure cardelli1989ConstructorParameters
      module procedure cardelli1989ConstructorInternal
@@ -55,9 +57,8 @@
 contains
 
   function cardelli1989ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,10 +67,12 @@ contains
     double precision                                                           :: Rv
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>Rv</name>
       <defaultValue>3.1d0</defaultValue>
-      <description>The ratio of total to selective extinction $R_\mathrm{V} = A_\mathrm{V}/E(B-V)$ in the \cite{cardelli_relationship_1989} dust attenuation law; the standard Milky Way value is $R_\mathrm{V} = 3.1$, with smaller values corresponding to greyer extinction curves.</description>
+      <description>
+      The ratio of total to selective extinction :math:`R_\mathrm{V} = A_\mathrm{V}/E(B-V)` in the :cite:t:`cardelli_relationship_1989` dust attenuation law; the standard Milky Way value is :math:`R_\mathrm{V} = 3.1`, with smaller values corresponding to greyer extinction curves.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -81,8 +84,8 @@ contains
   end function cardelli1989ConstructorParameters
 
   function cardelli1989ConstructorInternal(Rv) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationCardelli1989} stellar spectra dust attenuation class.
+    !!{RST
+    Constructor for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self
@@ -95,8 +98,8 @@ contains
   end function cardelli1989ConstructorInternal
 
   double precision function cardelli1989Attenuation(self,wavelength,age,vBandAttenuation)
-    !!{
-    Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
+    !!{RST
+    Return attenuation of stellar spectra according to the model of :cite:t:`cardelli_relationship_1989`.
     !!}
     use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none
@@ -112,8 +115,8 @@ contains
   end function cardelli1989Attenuation
 
   double precision function cardelli1989A(self,x)
-    !!{
-    Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!{RST
+    Return fitting function :math:`a(x)` for the dust attenuation model of :cite:t:`cardelli_relationship_1989`.
     !!}
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
@@ -150,8 +153,8 @@ contains
   end function cardelli1989A
 
   double precision function cardelli1989B(self,x)
-    !!{
-    Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!{RST
+    Return fitting function :math:`a(x)` for the dust attenuation model of :cite:t:`cardelli_relationship_1989`.
     !!}
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self

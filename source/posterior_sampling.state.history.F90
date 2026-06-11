@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling state class which stores history.
   !!}
 
   !![
-  <posteriorSampleState name="posteriorSampleStateHistory">
+  <posteriorSampleState name="posteriorSampleStateHistory" docformat="rst">
    <description>
-    An extension of the \mono{simple} state, this class also records the mean and variance of each parameter over the
-    history of the simulation.
+   An extension of the ``simple`` state, this class also records the mean and variance of each parameter over the history of the simulation.
    </description>
   </posteriorSampleState>
   !!]
   type, extends(posteriorSampleStateSimple) :: posteriorSampleStateHistory
-     !!{
+     !!{RST
      Implementation of a posterior sampling state class which stores history.
      !!}
      private
@@ -45,8 +44,8 @@
   end type posteriorSampleStateHistory
 
   interface posteriorSampleStateHistory
-     !!{
-     Constructors for the \refClass{posteriorSampleStateHistory} posterior sampling state class.
+     !!{RST
+     Constructors for the ``posteriorSampleStateHistory`` posterior sampling state class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -55,9 +54,8 @@
 contains
 
   function historyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateHistory} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleStateHistory`` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,9 +64,11 @@ contains
     integer                                             :: acceptedStateCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptedStateCount</name>
-      <description>The number of states to use in acceptance rate statistics.</description>
+      <description>
+      The number of states to use in acceptance rate statistics.
+      </description>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -81,9 +81,8 @@ contains
   end function historyConstructorParameters
 
   function historyConstructorInternal(acceptedStateCount) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateHistory} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleStateHistory`` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
@@ -101,7 +100,7 @@ contains
   end function historyConstructorInternal
 
   subroutine historyParameterCountSet(self,parameterCount)
-    !!{
+    !!{RST
     Set the number of parameters in this state.
     !!}
     implicit none
@@ -116,7 +115,7 @@ contains
   end subroutine historyParameterCountSet
 
   subroutine historyUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !!{
+    !!{RST
     Update the current state.
     !!}
     implicit none
@@ -135,7 +134,7 @@ contains
   end subroutine historyUpdate
 
   function historyMean(self)
-    !!{
+    !!{RST
     Return the mean over state history.
     !!}
     use :: Error, only : Error_Report
@@ -148,7 +147,7 @@ contains
   end function historyMean
 
   function historyVariance(self)
-    !!{
+    !!{RST
     Return the mean over state history.
     !!}
     use :: Error, only : Error_Report
@@ -161,7 +160,7 @@ contains
   end function historyVariance
 
   subroutine historyReset(self)
-    !!{
+    !!{RST
     Reset the state object.
     !!}
     implicit none
@@ -174,7 +173,7 @@ contains
   end subroutine historyReset
 
   subroutine historyRestore(self,stateVector,first)
-    !!{
+    !!{RST
     Restore the state object from file.
     !!}
     implicit none

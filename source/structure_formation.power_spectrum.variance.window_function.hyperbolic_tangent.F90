@@ -19,24 +19,26 @@
 
 !+    Contributions to this file made by: Xiaolong Du
 
-  !!{
+  !!{RST
   Implements a hyperbolic tangent power spectrum window function class.
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionHyperbolicTangent">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionHyperbolicTangent" docformat="rst">
    <description>
-    A hyperbolic tangent window function for filtering of power spectra. The window function is given by:
-    \begin{equation}
-     W(k) = \tanh \left[ \frac{1}{(k R/c)^{\beta}} \right],
-    \end{equation}
-    where $R$ is related to $M$ via the standard relation $M = \frac{4\pi}{3}\bar\rho_m R^3$.
+   A hyperbolic tangent window function for filtering of power spectra. The window function is given by:
+
+   .. math::
+
+      W(k) = \tanh \left[ \frac{1}{(k R/c)^{\beta}} \right],
+
+   where :math:`R` is related to :math:`M` via the standard relation :math:`M = \frac{4\pi}{3}\bar\rho_m R^3`.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionHyperbolicTangent
-     !!{
+     !!{RST
      A hyperbolic tangent power spectrum window function class.
      !!}
      private
@@ -49,8 +51,8 @@
   end type powerSpectrumWindowFunctionHyperbolicTangent
 
   interface powerSpectrumWindowFunctionHyperbolicTangent
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
+     !!{RST
+     Constructors for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
      !!}
      module procedure hyperbolicTangentConstructorParameters
      module procedure hyperbolicTangentConstructorInternal
@@ -59,8 +61,8 @@
 contains
 
   function hyperbolicTangentConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,17 +72,21 @@ contains
     double precision                                                              :: c                   , beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <source>parameters</source>
       <defaultValue>1.85d0</defaultValue>
-      <description>The parameter $c$ in the hyperbolic tangent power spectrum window function.</description>
+      <description>
+      The parameter :math:`c` in the hyperbolic tangent power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>4.41d0</defaultValue>
-      <description>The parameter $\beta$ in the tangent power power spectrum window function.</description>
+      <description>
+      The parameter :math:`\beta` in the tangent power power spectrum window function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -93,8 +99,8 @@ contains
   end function hyperbolicTangentConstructorParameters
 
   function hyperbolicTangentConstructorInternal(cosmologyParameters_,c,beta) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -109,8 +115,8 @@ contains
   end function hyperbolicTangentConstructorInternal
 
   subroutine hyperbolicTangentDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionHyperbolicTangent} power spectrum window function class.
+    !!{RST
+    Destructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self
@@ -122,7 +128,7 @@ contains
   end subroutine hyperbolicTangentDestructor
 
   double precision function hyperbolicTangentValue(self,wavenumber,smoothingMass,time)
-    !!{
+    !!{RST
     Hyperbolic tangent window function used in computing the variance of the power spectrum.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -157,7 +163,7 @@ contains
   end function hyperbolicTangentValue
 
   double precision function hyperbolicTangentWavenumberMaximum(self,smoothingMass)
-    !!{
+    !!{RST
     Sets maximum wavenumber to effectively infinity (really large number).
     !!}
     implicit none

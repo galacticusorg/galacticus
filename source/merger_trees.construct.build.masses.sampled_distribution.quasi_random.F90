@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which samples masses from a distribution using quasi-random sampling.
   !!}
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom">
-   <description>A merger tree masses class which samples masses from a distribution using quasi-random sampling.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom" docformat="rst">
+   <description>
+   A merger tree masses class which samples masses from a distribution using quasi-random sampling.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionQuasiRandom
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which samples masses from a distribution with pseudo-random sampling.
      !!}
      private
@@ -44,9 +46,8 @@
 contains
 
   function sampledDistributionQuasiRandomConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,22 +58,28 @@ contains
          &                                                                                 treesPerDecade
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massTreeMinimum</name>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <description>
+      The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of :math:`M_\odot`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massTreeMaximum</name>
       <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <description>
+      The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of :math:`M_\odot`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treesPerDecade</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
+      <description>
+      The number of merger trees masses to sample per decade of base halo mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
@@ -86,8 +93,8 @@ contains
   end function sampledDistributionQuasiRandomConstructorParameters
 
   function sampledDistributionQuasiRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -115,8 +122,8 @@ contains
   end function sampledDistributionQuasiRandomConstructorInternal
 
   subroutine sampledDistributionQuasiRandomDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassesSampledDistributionQuasiRandom} merger tree masses class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout) :: self
@@ -128,7 +135,7 @@ contains
   end subroutine sampledDistributionQuasiRandomDestructor
 
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
-    !!{
+    !!{RST
     Generate a quasiRandom sample of points from the merger tree mass distribution.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t

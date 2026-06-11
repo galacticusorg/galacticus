@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a finite resolution NFW spherical mass distribution.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <massDistribution name="massDistributionSphericalFiniteResolutionNFW">
+  <massDistribution name="massDistributionSphericalFiniteResolutionNFW" docformat="rst">
    <description>
-    A mass distribution class which applies a finite resolution to an NFW density profile, typically to mimic the effects
-    of finite resolution in an N-body simulation. Specifically, the density profile is given by
-    \begin{equation}
-    \rho(r) = \rho_\mathrm{NFW}(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
-    \end{equation}
-    where $\Delta x$ is the larger of the resolution length, \mono{[lengthResolution]}, and the radius in the
-    original profile enclosing the mass resolution, \mono{[massResolution]}.
+   A mass distribution class which applies a finite resolution to an NFW density profile, typically to mimic the effects of finite resolution in an N-body simulation. Specifically, the density profile is given by
+
+   .. math::
+
+      \rho(r) = \rho_\mathrm{NFW}(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
+
+   where :math:`\Delta x` is the larger of the resolution length, ``[lengthResolution]``, and the radius in the original profile enclosing the mass resolution, ``[massResolution]``.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSpherical) :: massDistributionSphericalFiniteResolutionNFW
-     !!{
+     !!{RST
      Implementation of a finite resolution spherical mass distribution.
      !!}
      private
@@ -102,8 +102,8 @@
   end type massDistributionSphericalFiniteResolutionNFW
 
   interface massDistributionSphericalFiniteResolutionNFW
-     !!{
-     Constructors for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class.
+     !!{RST
+     Constructors for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionNFWConstructorParameters
      module procedure sphericalFiniteResolutionNFWConstructorInternal
@@ -164,9 +164,8 @@
 contains
 
   function sphericalFiniteResolutionNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -178,36 +177,48 @@ contains
     type            (varying_string                              )                :: componentType   , massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthResolution</name>
       <source>parameters</source>
-      <description>The spatial resolution length scale (in Mpc) of the N-body simulation being modeled; sets the minimum effective radius below which the NFW density profile is softened.</description>
+      <description>
+      The spatial resolution length scale (in Mpc) of the N-body simulation being modeled; sets the minimum effective radius below which the NFW density profile is softened.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusScale</name>
       <source>parameters</source>
-      <description>The NFW scale radius (in Mpc) at which the density profile transitions from the inner $\rho \propto r^{-1}$ slope to the outer $\rho \propto r^{-3}$ slope.</description>
+      <description>
+      The NFW scale radius (in Mpc) at which the density profile transitions from the inner :math:`\rho \propto r^{-1}` slope to the outer :math:`\rho \propto r^{-3}` slope.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirial</name>
       <source>parameters</source>
-      <description>The virial radius (in Mpc) of the halo, defining the outer boundary of the NFW profile at which the mean enclosed density equals the virial overdensity threshold.</description>
+      <description>
+      The virial radius (in Mpc) of the halo, defining the outer boundary of the NFW profile at which the mean enclosed density equals the virial overdensity threshold.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <source>parameters</source>
-      <description>The total mass (in $\mathrm{M}_\odot$) enclosed within the virial radius, used together with \mono{radiusScale} and \mono{radiusVirial} to normalize the NFW density profile.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) enclosed within the virial radius, used together with ``radiusScale`` and ``radiusVirial`` to normalize the NFW density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -219,8 +230,8 @@ contains
   end function sphericalFiniteResolutionNFWConstructorParameters
   
   function sphericalFiniteResolutionNFWConstructorInternal(lengthResolution,radiusScale,radiusVirial,mass,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalFiniteResolutionNFW} mass distribution class.
+    !!{RST
+    Constructor for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -258,8 +269,8 @@ contains
   end function sphericalFiniteResolutionNFWConstructorInternal
 
   double precision function sphericalFiniteResolutionNFWDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -276,8 +287,8 @@ contains
   end function sphericalFiniteResolutionNFWDensity
 
   double precision function sphericalFiniteResolutionNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a finiteResolution spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a finiteResolution spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout), target   :: self
@@ -301,13 +312,14 @@ contains
   end function sphericalFiniteResolutionNFWDensityGradientRadial
 
   double precision function sphericalFiniteResolutionNFWMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Returns the enclosed mass (in $\mathrm{M}_\odot$) at the given \mono{radius} (given in units of Mpc). The analytic
-    solution (computed using Mathematica) is
-    \begin{equation}
-    M(x) = 4 \pi \rho_0 r_\mathrm{s}^3 \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
-    \end{equation}
-    where $x=r/r_\mathrm{s}$, $X = \Delta x/r_\mathrm{s}$, and $r_\mathrm{s}$ is the NFW scale length.
+    !!{RST
+    Returns the enclosed mass (in :math:`\mathrm{M}_\odot`) at the given ``radius`` (given in units of Mpc). The analytic solution (computed using Mathematica) is
+
+    .. math::
+
+       M(x) = 4 \pi \rho_0 r_\mathrm{s}^3 \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
+
+    where :math:`x=r/r_\mathrm{s}`, :math:`X = \Delta x/r_\mathrm{s}`, and :math:`r_\mathrm{s}` is the NFW scale length.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -324,12 +336,14 @@ contains
   end function sphericalFiniteResolutionNFWMassEnclosedBySphere
 
   double precision function sphericalFiniteResolutionNFWMassEnclosedScaleFree(self,radiusScaleFree,lengthResolutionScaleFree) result(mass)
-    !!{
+    !!{RST
     Returns the scale-free enclosed mass at the given scale-free radius. The analytic solution (computed using Mathematica) is
-    \begin{equation}
-    M(x) = 4 \pi \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
-    \end{equation}
-    where $x=r/r_\mathrm{s}$, $X = \Delta x/r_\mathrm{s}$, and $r_\mathrm{s}$ is the NFW scale length.
+
+    .. math::
+
+       M(x) = 4 \pi \left[ -\frac{\sqrt{x^2+X^2}}{(1+x) \left(1+X^2\right)}+\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)+\frac{\left(1+2X^2\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{1+X^2} \sqrt{x^2+X^2}}\right)}{\left(1+X^2\right)^{3/2}} -\frac{\left(1 + 2 X^2\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{1 + X^2}}\right)}{\left(1+ X^2\right)^{3/2}}+\frac{\sqrt{X^2}}{1 + X^2} \right],
+
+    where :math:`x=r/r_\mathrm{s}`, :math:`X = \Delta x/r_\mathrm{s}`, and :math:`r_\mathrm{s}` is the NFW scale length.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -446,7 +460,7 @@ contains
   end function sphericalFiniteResolutionNFWMassEnclosedScaleFree
   
   logical function sphericalFiniteResolutionNFWPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -457,19 +471,20 @@ contains
   end function sphericalFiniteResolutionNFWPotentialIsAnalytic
 
   double precision function sphericalFiniteResolutionNFWPotential(self,coordinates,status) result(potential)
-    !!{
-    Returns the potential (in (km/s)$^2$) in the dark matter profile of \mono{node} at the given \mono{radius} (given in units of Mpc). The analytic solution (computed using Mathematica) is
-    \begin{eqnarray}
-    \Phi(x) &=& -\frac{\mathrm{G} M}{r_\mathrm{s}}  \nonumber \\
-            & & \left\{ +\frac{\sqrt{x^2+X^2}}{x \left(X^2+1\right)} \right. \nonumber \\
-            & & -\frac{X^2 \log \left(\sqrt{X^2+1} \sqrt{x^2+X^2}-x+X^2\right)}{\left(X^2+1\right)^{3/2}} \nonumber \\
-            & & -\frac{\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)}{x} \nonumber \\
-            & & -\frac{\left(2 X^2+1\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{X^2+1} \sqrt{x^2+X^2}}\right)}{x \left(X^2+1\right)^{3/2}} \nonumber \\
-            & & -\frac{\sqrt{X^2}}{x \left(X^2+1\right)}+\frac{X^2 \log (x+1)}{\left(X^2+1\right)^{3/2}} \nonumber \\
-            & & +\frac{\left(2 X^2+1\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{X^2+1}}\right)}{x \left(X^2+1\right)^{3/2}} \nonumber \\
-            & & \left. +\frac{ \left(\sqrt{X^2+1}-X^2 \log \left(\sqrt{X^2+1}-1\right)\right)}{\left(X^2+1\right)^{3/2}} \right\} \nonumber \\
-            & & /\left[\log (1+c)-\frac{c}{1+c}\right]
-    \end{eqnarray}
+    !!{RST
+    Returns the potential (in (km/s)\ :math:`^2`) in the dark matter profile of ``node`` at the given ``radius`` (given in units of Mpc). The analytic solution (computed using Mathematica) is
+
+    .. math::
+
+       \Phi(x) &=& -\frac{\mathrm{G} M}{r_\mathrm{s}}  \nonumber \\
+       & & \left\{ +\frac{\sqrt{x^2+X^2}}{x \left(X^2+1\right)} \right. \nonumber \\
+       & & -\frac{X^2 \log \left(\sqrt{X^2+1} \sqrt{x^2+X^2}-x+X^2\right)}{\left(X^2+1\right)^{3/2}} \nonumber \\
+       & & -\frac{\tanh ^{-1}\left(\frac{x}{\sqrt{x^2+X^2}}\right)}{x} \nonumber \\
+       & & -\frac{\left(2 X^2+1\right) \tanh ^{-1}\left(\frac{X^2-x}{\sqrt{X^2+1} \sqrt{x^2+X^2}}\right)}{x \left(X^2+1\right)^{3/2}} \nonumber \\
+       & & -\frac{\sqrt{X^2}}{x \left(X^2+1\right)}+\frac{X^2 \log (x+1)}{\left(X^2+1\right)^{3/2}} \nonumber \\
+       & & +\frac{\left(2 X^2+1\right) \tanh ^{-1}\left(\sqrt{\frac{X^2}{X^2+1}}\right)}{x \left(X^2+1\right)^{3/2}} \nonumber \\
+       & & \left. +\frac{ \left(\sqrt{X^2+1}-X^2 \log \left(\sqrt{X^2+1}-1\right)\right)}{\left(X^2+1\right)^{3/2}} \right\} \nonumber \\
+       & & /\left[\log (1+c)-\frac{c}{1+c}\right]
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -593,7 +608,7 @@ contains
   end function sphericalFiniteResolutionNFWPotential
   
   double precision function sphericalFiniteResolutionNFWRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for finite-resolution NFW distributions.
     !!}    
     use :: Error, only : Error_Report
@@ -638,7 +653,7 @@ contains
   end function sphericalFiniteResolutionNFWRadiusEnclosingMass
   
   subroutine sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate(self,mass,lengthResolution)
-    !!{
+    !!{RST
     Tabulates the radius enclosing a given mass for finite resolution NFW mass profiles.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -731,7 +746,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWRadiusEnclosingMassTabulate
 
   double precision function rootMass(radius)
-    !!{
+    !!{RST
     Root function used in finding the radius enclosing a given mean mass.
     !!}
     implicit none
@@ -743,7 +758,7 @@ contains
   end function rootMass
 
   subroutine sphericalFiniteResolutionNFWStoreMassTable(self)
-    !!{
+    !!{RST
     Store the tabulated radius-enclosing-mass data to file.
     !!}
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
@@ -778,7 +793,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWStoreMassTable
 
   subroutine sphericalFiniteResolutionNFWRestoreMassTable(self)
-    !!{
+    !!{RST
     Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
@@ -831,7 +846,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWRestoreMassTable
 
   double precision function sphericalFiniteResolutionNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for finite-resolution NFW mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
@@ -886,7 +901,7 @@ contains
   end function sphericalFiniteResolutionNFWRadiusEnclosingDensity
   
   subroutine sphericalFiniteResolutionNFWRadiusEnclosingDensityTabulate(self,density,lengthResolution)
-    !!{
+    !!{RST
     Tabulates the radius enclosing a given density for finite resolution NFW density profiles.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -978,7 +993,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWRadiusEnclosingDensityTabulate
 
   double precision function rootDensity(radius)
-    !!{
+    !!{RST
     Root function used in finding the radius enclosing a given mean density.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -995,7 +1010,7 @@ contains
   end function rootDensity
 
   subroutine sphericalFiniteResolutionNFWStoreDensityTable(self)
-    !!{
+    !!{RST
     Store the tabulated radius-enclosing-density data to file.
     !!}
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
@@ -1030,7 +1045,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWStoreDensityTable
 
   subroutine sphericalFiniteResolutionNFWRestoreDensityTable(self)
-    !!{
+    !!{RST
     Restore the tabulated radius-enclosing-density data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
@@ -1083,8 +1098,8 @@ contains
   end subroutine sphericalFiniteResolutionNFWRestoreDensityTable
 
   double precision function sphericalFiniteResolutionNFWEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the energy within a given \mono{radius} in a finite-resolution NFW mass distribution.
+    !!{RST
+    Compute the energy within a given ``radius`` in a finite-resolution NFW mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -1117,7 +1132,7 @@ contains
   end function sphericalFiniteResolutionNFWEnergy
   
   subroutine sphericalFiniteResolutionNFWEnergyTabulate(self,lengthResolution,radiusOuter)
-    !!{
+    !!{RST
     Tabulates the energy for finite resolution NFW mass profiles.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -1215,7 +1230,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWEnergyTabulate
 
   double precision function integrandEnergyPotential(radius)
-    !!{
+    !!{RST
     Integrand for potential energy of the halo.
     !!}
     implicit none
@@ -1233,7 +1248,7 @@ contains
   end function integrandEnergyPotential
   
   double precision function integrandEnergyKinetic(radius)
-    !!{
+    !!{RST
     Integrand for kinetic energy of the halo.
     !!}
     implicit none
@@ -1250,8 +1265,8 @@ contains
   end function integrandEnergyKinetic
   
   double precision function integrandPseudoPressure(radius)
-    !!{
-    Integrand for pseudo-pressure ($\rho(r) \sigma^2(r)$) of the halo.
+    !!{RST
+    Integrand for pseudo-pressure (:math:`\rho(r) \sigma^2(r)`) of the halo.
     !!}
     implicit none
     double precision, intent(in   ) :: radius
@@ -1267,8 +1282,8 @@ contains
   end function integrandPseudoPressure
 
   double precision function sphericalFiniteResolutionNFWDensityScaleFree(self,radius,radiusCore) result(densityScaleFree)
-    !!{
-    Returns the scale-free density in the dark matter profile at the given \mono{radius}.
+    !!{RST
+    Returns the scale-free density in the dark matter profile at the given ``radius``.
     !!}
     implicit none
     class           (massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
@@ -1280,7 +1295,7 @@ contains
   end function sphericalFiniteResolutionNFWDensityScaleFree
     
   subroutine sphericalFiniteResolutionNFWStoreEnergyTable(self)
-    !!{
+    !!{RST
     Store the tabulated energy data to file.
     !!}
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
@@ -1315,7 +1330,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWStoreEnergyTable
 
   subroutine sphericalFiniteResolutionNFWRestoreEnergyTable(self)
-    !!{
+    !!{RST
     Restore the tabulated radius-enclosing-mass data from file, returning true if successful.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
@@ -1368,7 +1383,7 @@ contains
   end subroutine sphericalFiniteResolutionNFWRestoreEnergyTable
 
   function finiteResolutionNFWSuffix(self) result(suffix)
-    !!{
+    !!{RST
     Return a suffix for tabulated file names.
     !!}
     use :: String_Handling, only : String_C_To_Fortran

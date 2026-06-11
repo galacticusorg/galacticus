@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body data operator which shifts values of a property by an integer amount.
   !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorShiftProperty">
-   <description>An N-body data operator which shifts values of a property by an integer amount.</description>
+  <nbodyOperator name="nbodyOperatorShiftProperty" docformat="rst">
+   <description>
+   An N-body data operator which shifts values of a property by an integer amount.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorShiftProperty
-     !!{
+     !!{RST
      An N-body data operator which shifts values of a property by an integer amount.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nbodyOperatorShiftProperty
 
   interface nbodyOperatorShiftProperty
-     !!{
-     Constructors for the \refClass{nbodyOperatorShiftProperty} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorShiftProperty`` N-body operator class.
      !!}
      module procedure shiftPropertyConstructorParameters
      module procedure shiftPropertyConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function shiftPropertyConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorShiftProperty} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorShiftProperty`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,15 +61,19 @@ contains
     type   (varying_string            )                :: propertyName
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyName</name>
       <source>parameters</source>
-      <description>The name of the integer particle property whose values will be shifted by adding the constant \mono{shiftBy}.</description>
+      <description>
+      The name of the integer particle property whose values will be shifted by adding the constant ``shiftBy``.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>shiftBy</name>
       <source>parameters</source>
-      <description>The integer constant added to every value of the named property, enabling renumbering or offset corrections for IDs and indices.</description>
+      <description>
+      The integer constant added to every value of the named property, enabling renumbering or offset corrections for IDs and indices.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorShiftProperty(propertyName,shiftBy)
@@ -78,8 +84,8 @@ contains
   end function shiftPropertyConstructorParameters
 
   function shiftPropertyConstructorInternal(propertyName,shiftBy) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorShiftProperty} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorShiftProperty`` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorShiftProperty)                   :: self
@@ -93,8 +99,8 @@ contains
   end function shiftPropertyConstructorInternal
 
   subroutine shiftPropertyOperate(self,simulations)
-    !!{
-    Select particles matching a list of integer properties. 
+    !!{RST
+    Select particles matching a list of integer properties.
     !!}
     use :: Error  , only : Error_Report
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard

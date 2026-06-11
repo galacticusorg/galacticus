@@ -19,20 +19,19 @@
 
 !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
-  !!{
+  !!{RST
   An implementation of multiple dark matter halo profiles which allow different profiles for the host and the satellite.
   !!}
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
+  <darkMatterProfileDMO name="darkMatterProfileDMOMultiple" docformat="rst">
    <description>
-    A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
-    to any other \mono{darkMatterProfileDMO} available.
+   A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately to any other ``darkMatterProfileDMO`` available.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOMultiple
-     !!{
+     !!{RST
      A dark matter halo profile class implementing multiple dark matter halos which allow different profiles for the host and the satellite.
      !!}
      private
@@ -43,8 +42,8 @@
   end type darkMatterProfileDMOMultiple
 
   interface darkMatterProfileDMOMultiple
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function multipleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class which takes a parameter set as input.
     !!}
     implicit none
     type   (darkMatterProfileDMOMultiple)                :: self
@@ -75,8 +74,8 @@ contains
   end function multipleConstructorParameters
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self
@@ -89,8 +88,8 @@ contains
   end function multipleConstructorInternal
 
   subroutine multipleDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOMultiple} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOMultiple), intent(inout) :: self
@@ -103,8 +102,8 @@ contains
   end subroutine multipleDestructor
 
   function multipleGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistribution_

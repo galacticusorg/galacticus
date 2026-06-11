@@ -17,25 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
 
   !![
-  <hotHaloRamPressureForce name="hotHaloRamPressureForceOrbitalPosition">
+  <hotHaloRamPressureForce name="hotHaloRamPressureForceOrbitalPosition" docformat="rst">
    <description>
-    A hot halo ram pressure force class which computes the force based on the current orbital position within the host
-    halo. Specifically, the ram pressure force is    
-    \begin{equation}
-    \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r) v^2(r),
-    \end{equation}
-    where $\rho_\mathrm{hot, host}(r)$ is the hot halo density profile of the node's host halo, $v(r)$ is the orbital velocity
-    of the node in that host, and $r$ is the instantaneous radius of the node's orbit.
+   A hot halo ram pressure force class which computes the force based on the current orbital position within the host halo. Specifically, the ram pressure force is
+
+   .. math::
+
+      \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r) v^2(r),
+
+   where :math:`\rho_\mathrm{hot, host}(r)` is the hot halo density profile of the node's host halo, :math:`v(r)` is the orbital velocity of the node in that host, and :math:`r` is the instantaneous radius of the node's orbit.
    </description>
   </hotHaloRamPressureForce>
   !!]
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceOrbitalPosition
-     !!{
+     !!{RST
      Implementation of a hot halo ram pressure force class based on orbital position within the host halo.
      !!}
      private
@@ -44,8 +44,8 @@
   end type hotHaloRamPressureForceOrbitalPosition
 
   interface hotHaloRamPressureForceOrbitalPosition
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class.
      !!}
      module procedure orbitalPositionConstructorParameters
      module procedure orbitalPositionConstructorInternal
@@ -54,8 +54,8 @@
 contains
 
   function orbitalPositionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,8 +70,8 @@ contains
   end function orbitalPositionConstructorParameters
 
   function orbitalPositionConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureForceOrbitalPosition} hot halo ram pressure force class.
+    !!{RST
+    Internal constructor for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report             , Component_List
@@ -101,7 +101,7 @@ contains
   end function orbitalPositionConstructorInternal
 
   double precision function orbitalPositionForce(self,node)
-    !!{
+    !!{RST
     Return a ram pressure force due to the hot halo based on orbital position within the host halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentSatellite

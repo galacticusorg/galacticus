@@ -17,28 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a model of ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
+  !!{RST
+  Implements a model of ram pressure stripping of hot halos based on the methods of :cite:t:`font_colours_2008`.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
+  <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008" docformat="rst">
    <description>
-    A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}. Specifically, the ram pressure
-    force is
-    \begin{equation}
-    \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r_\mathrm{peri}) v^2(r_\mathrm{peri}),
-    \end{equation}
-    where $\rho_\mathrm{hot, host}(r)$ is the hot halo density profile of the node's host halo, $v(r)$ is the orbital velocity
-    of the node in that host, and $r_\mathrm{peri}$ is the pericentric radius of the node's orbit.
+   A hot halo ram pressure force class which follows the model of :cite:t:`font_colours_2008`. Specifically, the ram pressure force is
+
+   .. math::
+
+      \mathcal{F}_\mathrm{ram, hot, host} = \rho_\mathrm{hot, host}(r_\mathrm{peri}) v^2(r_\mathrm{peri}),
+
+   where :math:`\rho_\mathrm{hot, host}(r)` is the hot halo density profile of the node's host halo, :math:`v(r)` is the orbital velocity of the node in that host, and :math:`r_\mathrm{peri}` is the pericentric radius of the node's orbit.
    </description>
   </hotHaloRamPressureForce>
   !!]
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
-     !!{
-     Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.
+     !!{RST
+     Implementation of a hot halo ram pressure force class which follows the model of :cite:t:`font_colours_2008`.
      !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -48,8 +48,8 @@
   end type hotHaloRamPressureForceFont2008
 
   interface hotHaloRamPressureForceFont2008
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
      !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function font2008ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +79,8 @@ contains
   end function font2008ConstructorParameters
 
   function font2008ConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
+    !!{RST
+    Internal constructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
     !!}
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
@@ -93,8 +93,8 @@ contains
   end function font2008ConstructorInternal
 
   subroutine font2008Destructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloRamPressureForceFont2008} hot halo ram pressure force class.
+    !!{RST
+    Destructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
     !!}
     implicit none
     type(hotHaloRamPressureForceFont2008), intent(inout) :: self
@@ -106,8 +106,8 @@ contains
   end subroutine font2008Destructor
 
   double precision function font2008Force(self,node)
-    !!{
-    Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
+    !!{RST
+    Return a ram pressure force due to the hot halo using the model of :cite:t:`font_colours_2008`.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits             , only : keplerOrbit

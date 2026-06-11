@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which deletes named properties from the simulation.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorDeleteProperties">
-   <description>An N-body data operator which removes one or more named properties from the N-body simulation dataset, reducing memory usage or eliminating unwanted quantities before further processing. The list of properties to be deleted is specified as an array of names via the \mono{[names]} parameter.</description>
+  <nbodyOperator name="nbodyOperatorDeleteProperties" docformat="rst">
+   <description>
+   An N-body data operator which removes one or more named properties from the N-body simulation dataset, reducing memory usage or eliminating unwanted quantities before further processing. The list of properties to be deleted is specified as an array of names via the ``[names]`` parameter.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDeleteProperties
-     !!{
+     !!{RST
      An N-body data operator which deletes named properties from the simulation.
      !!}
      private
@@ -37,8 +39,8 @@ Implements an N-body data operator which deletes named properties from the simul
   end type nbodyOperatorDeleteProperties
 
   interface nbodyOperatorDeleteProperties
-     !!{
-     Constructors for the \refClass{nbodyOperatorDeleteProperties} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorDeleteProperties`` N-body operator class.
      !!}
      module procedure deletePropertiesConstructorParameters
      module procedure deletePropertiesConstructorInternal
@@ -47,8 +49,8 @@ Implements an N-body data operator which deletes named properties from the simul
 contains
 
   function deletePropertiesConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorDeleteProperties} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorDeleteProperties`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,10 +60,12 @@ contains
 
     allocate(propertyNames(parameters%count('propertyNames',zeroIfNotPresent=.true.)))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyNames</name>
       <source>parameters</source>
-      <description>A list of named properties to be deleted from the simulation.</description>
+      <description>
+      A list of named properties to be deleted from the simulation.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorDeleteProperties(propertyNames)
@@ -72,8 +76,8 @@ contains
   end function deletePropertiesConstructorParameters
 
   function deletePropertiesConstructorInternal(propertyNames) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorDeleteProperties} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorDeleteProperties`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self
@@ -86,7 +90,7 @@ contains
   end function deletePropertiesConstructorInternal
 
   subroutine deletePropertiesOperate(self,simulations)
-    !!{
+    !!{RST
     Identify and flag particles which have been always isolated.
     !!}
     use :: Display, only : displayIndent, displayMessage, displayUnindent, verbosityLevelStandard

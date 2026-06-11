@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which accounts for heating from decaying dark matter.
   !!}
   
@@ -25,15 +25,14 @@
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingDecayingDarkMatter">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingDecayingDarkMatter" docformat="rst">
    <description>
-    A dark matter profile heating class that constructs \refClass{massDistributionHeatingDecayingDarkMatter} objects to compute heating due to
-    decaying dark matter.
+   A dark matter profile heating class that constructs ``massDistributionHeatingDecayingDarkMatter`` objects to compute heating due to decaying dark matter.
    </description>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingDecayingDarkMatter
-     !!{
+     !!{RST
      A dark matter profile heating class which accounts for heating due to decaying dark matter.
      !!}
      private
@@ -47,8 +46,8 @@
   end type darkMatterProfileHeatingDecayingDarkMatter
 
   interface darkMatterProfileHeatingDecayingDarkMatter
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class.
+     !!{RST
+     Constructors for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -57,8 +56,8 @@
 contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,16 +69,20 @@ contains
     logical                                                                     :: includeKickHeating
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
-      <description>Parameter controlling the magnitude of heating due to mass loss.</description>
+      <description>
+      Parameter controlling the magnitude of heating due to mass loss.
+      </description>
       <defaultValue>0.5d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeKickHeating</name>
       <source>parameters</source>
-      <description>Parameter controlling whether heating due to velocity kicks is to be included.</description>
+      <description>
+      Parameter controlling whether heating due to velocity kicks is to be included.
+      </description>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
@@ -93,8 +96,8 @@ contains
   end function decayingDarkMatterConstructorParameters
 
   function decayingDarkMatterConstructorInternal(gamma,includeKickHeating,darkMatterParticle_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
     !!}
     implicit none
     type (darkMatterProfileHeatingDecayingDarkMatter)                        :: self
@@ -110,8 +113,8 @@ contains
   end function decayingDarkMatterConstructorInternal
 
   subroutine decayingDarkMatterDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileHeatingDecayingDarkMatter} dark matter profile heating class.
+    !!{RST
+    Destructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingDecayingDarkMatter), intent(inout) :: self
@@ -124,8 +127,8 @@ contains
   end subroutine decayingDarkMatterDestructor
 
   function decayingDarkMatterGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionHeatingDecayingDarkMatter

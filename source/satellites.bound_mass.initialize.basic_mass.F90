@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a satellite bound mass initializor class that sets the initial bound mass to the basic node mass.
   !!}
 
   !![
-  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorBasicMass">
+  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorBasicMass" docformat="rst">
    <description>
-    A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the basic node mass,
-    i.e.\ the total mass of the halo at the time it becomes a satellite.
+   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the basic node mass, i.e.\ the total mass of the halo at the time it becomes a satellite.
    </description>
   </satelliteMassBoundInitializor>
   !!]
   type, extends(satelliteMassBoundInitializorClass) :: satelliteMassBoundInitializorBasicMass
-     !!{
+     !!{RST
      Implementation of a satellite bound mass initializor class that sets the initial bound mass to the basic node mass.
      !!}
      private
@@ -39,8 +38,8 @@
   end type satelliteMassBoundInitializorBasicMass
 
   interface satelliteMassBoundInitializorBasicMass
-     !!{
-     Constructors for the \refClass{satelliteMassBoundInitializorBasicMass} satellite bound mass initializor class.
+     !!{RST
+     Constructors for the ``satelliteMassBoundInitializorBasicMass`` satellite bound mass initializor class.
      !!}
      module procedure basicMassConstructorParameters
   end interface satelliteMassBoundInitializorBasicMass
@@ -48,9 +47,8 @@
 contains
 
   function basicMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteMassBoundInitializorBasicMass} satellite bound mass initializor class which builds the
-    object from a parameter set.
+    !!{RST
+    Constructor for the ``satelliteMassBoundInitializorBasicMass`` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +63,7 @@ contains
   end function basicMassConstructorParameters
 
   double precision function basicMassMassBound(self,node) result(massBound)
-    !!{
+    !!{RST
     Returns the initial bound mass of a satellite halo set equal to the node basic mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

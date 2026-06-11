@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard class for evolving merger trees.
   !!}
 
@@ -40,80 +40,64 @@
   end type deadlockList
 
   !![
-  <mergerTreeEvolver name="mergerTreeEvolverStandard">
+  <mergerTreeEvolver name="mergerTreeEvolverStandard" docformat="rst">
    <description>
-    The standard merger tree evolver. Each merger tree forest is evolved by repeatedly walking the
-    trees and evolving each node forward in time by some timestep $\Delta t$. Nodes are evolved
-    individually such that nodes in different branches of a tree may have reached different cosmic
-    times at any given point in the execution of \glc. Each node is evolved over the interval
-    $\Delta t$ using an adaptive \gls{ode} solver, which adjusts the smaller timesteps, $\delta
-    t$, taken in evolving the system of \glspl{ode} to maintain a specified precision.
-    
-    The choice of $\Delta t$ then depends on other considerations. For example, a node should not
-    be evolved beyond the time at which it is due to merge with another galaxy. Also, we typically
-    don't want satellite nodes to evolve too far ahead of their host node, such that any
-    interactions between satellite and host occur (near) synchronously.
-    
-    The following timestep criteria ensure that tree evolution occurs in a way which correctly
-    preserves tree structure and ordering of interactions between \glspl{node}. All criteria are
-    considered and the largest $\Delta t$ consistent with all criteria is selected.
-    
-    \begin{description}
-     \item[Branch segment criterion] For \glspl{node} which are the \gls{primary progenitor} of
-     their \gls{parent}, the ``branch segment'' criterion asserts that
-      \begin{equation}
-       \Delta t \le t_\mathrm{parent} - t
-      \end{equation}
-     where $t$ is current time in the \gls{node} and $t_\mathrm{parent}$ is the time of the
-     \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve
-     beyond the time at which their \gls{parent} (which they will replace) exists.  If this
-     criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to
-     replace its \gls{parent} at the end of the timestep.
-    
-     \item[Parent criterion] For \glspl{node} which are satellites in a hosting \gls{node} the
-     ``\gls{parent}'' timestep criterion asserts that
-      \begin{eqnarray}
-       \Delta t &amp;\le&amp; t_\mathrm{host}, \\
-       \Delta t &amp;\le&amp; \epsilon_\mathrm{host} (a/\dot{a}),
-      \end{eqnarray}
-     where $t_\mathrm{host}=$\mono{[timestepHostAbsolute]},
-     $\epsilon_\mathrm{host}=$\mono{[timestepHostRelative]}, and $a$ is expansion
-     factor. These criteria are intended to prevent a satellite for evolving too far ahead of the
-     host node before the host is allowed to ``catch up''.
-    
-     \item[Satellite criterion] For \glspl{node} which host satellite \glspl{node}, the
-     ``satellite'' criterion asserts that
-      \begin{equation}
-       \Delta t \le \hbox{min}(t_\mathrm{satellite}) - t,
-      \end{equation}
-     where $t$ is the time of the host \gls{node} and $t_\mathrm{satellite}$ are the times of all
-     satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any
-     satellites.
-    
-     \item[Sibling criterion] For \glspl{node} which are \glspl{primary progenitor}, the
-     ``sibling'' criterion asserts that
-      \begin{equation}
-       \Delta t \le \hbox{min}(t_\mathrm{sibling}) - t,
-      \end{equation}
-     where $t$ is the time of the host \gls{node} and $t_\mathrm{sibling}$ are the times of all
-     siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its
-     \gls{parent} (and being promoted to replace it) before all of its siblings have reach the
-     \gls{parent} and have become satellites within it.
-    
-     \item[Mergee criterion] For \glspl{node} with \gls{mergee} \glspl{node}, the ``\gls{mergee}''
-     criterion asserts that
-      \begin{equation}
-       \Delta t \le \hbox{min}(t_\mathrm{merge}) - t,
-      \end{equation}
-     where $t$ is the time of the host \gls{node} and $t_\mathrm{merge}$ are the times at which
-     the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the
-     time at which a merger event takes place.
-    \end{description}
-    </description>
+   The standard merger tree evolver. Each merger tree forest is evolved by repeatedly walking the trees and evolving each node forward in time by some timestep :math:`\Delta t`. Nodes are evolved individually such that nodes in different branches of a tree may have reached different cosmic times at any given point in the execution of Galacticus. Each node is evolved over the interval :math:`\Delta t` using an adaptive :term:`ODE` solver, which adjusts the smaller timesteps, :math:`\delta t`, taken in evolving the system of :term:`ODE` to maintain a specified precision.
+
+   The choice of :math:`\Delta t` then depends on other considerations. For example, a node should not be evolved beyond the time at which it is due to merge with another galaxy. Also, we typically don't want satellite nodes to evolve too far ahead of their host node, such that any interactions between satellite and host occur (near) synchronously.
+
+   The following timestep criteria ensure that tree evolution occurs in a way which correctly preserves tree structure and ordering of interactions between :term:`node`. All criteria are considered and the largest :math:`\Delta t` consistent with all criteria is selected.
+
+   Branch segment criterion
+      For :term:`node` which are the :term:`primary progenitor` of their :term:`parent`, the "branch segment" criterion asserts that
+
+      .. math::
+
+         \Delta t \le t_\mathrm{parent} - t
+
+      where :math:`t` is current time in the :term:`node` and :math:`t_\mathrm{parent}` is the time of the :term:`parent` :term:`node`. This ensures that :term:`primary progenitor` :term:`node` to not evolve beyond the time at which their :term:`parent` (which they will replace) exists.  If this criterion is the limiting criteria for :math:`\Delta t` then the :term:`node` will be promoted to replace its :term:`parent` at the end of the timestep.
+
+   Parent criterion
+      For :term:`node` which are satellites in a hosting :term:`node` the ":term:`parent`" timestep criterion asserts that
+
+      .. math::
+
+         \Delta t &amp; \le t_\mathrm{host}, \\
+         \Delta t &amp; \le \epsilon_\mathrm{host} (a/\dot{a}),
+
+      where :math:`t_\mathrm{host}=`\ ``[timestepHostAbsolute]``, :math:`\epsilon_\mathrm{host}=`\ ``[timestepHostRelative]``, and :math:`a` is expansion factor. These criteria are intended to prevent a satellite for evolving too far ahead of the host node before the host is allowed to "catch up".
+
+   Satellite criterion
+      For :term:`node` which host satellite :term:`node`, the "satellite" criterion asserts that
+
+      .. math::
+
+         \Delta t \le \hbox{min}(t_\mathrm{satellite}) - t,
+
+      where :math:`t` is the time of the host :term:`node` and :math:`t_\mathrm{satellite}` are the times of all satellite :term:`node` in the host. This criterion prevents a host from evolving ahead of any satellites.
+
+   Sibling criterion
+      For :term:`node` which are :term:`primary progenitor`, the "sibling" criterion asserts that
+
+      .. math::
+
+         \Delta t \le \hbox{min}(t_\mathrm{sibling}) - t,
+
+      where :math:`t` is the time of the host :term:`node` and :math:`t_\mathrm{sibling}` are the times of all siblings of the :term:`node`. This criterion prevents a :term:`node` from reaching its :term:`parent` (and being promoted to replace it) before all of its siblings have reach the :term:`parent` and have become satellites within it.
+
+   Mergee criterion
+      For :term:`node` with :term:`mergee` :term:`node`, the ":term:`mergee`" criterion asserts that
+
+      .. math::
+
+         \Delta t \le \hbox{min}(t_\mathrm{merge}) - t,
+
+      where :math:`t` is the time of the host :term:`node` and :math:`t_\mathrm{merge}` are the times at which the :term:`mergee` will merge. This criterion prevents a :term:`node` from evolving past the time at which a merger event takes place.
+   </description>
   </mergerTreeEvolver>
   !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
-     !!{
+     !!{RST
      Implementation of the standard merger tree evolver.
      !!}
      private
@@ -150,8 +134,8 @@
   end type mergerTreeEvolverStandard
 
   interface mergerTreeEvolverStandard
-     !!{
-     Constructors for the \refClass{mergerTreeEvolverStandard} merger tree evolver.
+     !!{RST
+     Constructors for the ``mergerTreeEvolverStandard`` merger tree evolver.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -160,8 +144,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeEvolverStandard`` merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -180,47 +164,60 @@ contains
          &                                                            fractionTimestepSatelliteMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allTreesExistAtFinalTime</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
-         then trees which finish before a given output time will be ignored.</description>
+      <description>
+      Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false, then trees which finish before a given output time will be ignored.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dumpTreeStructure</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.</description>
+      <description>
+      Specifies whether merger tree structure should be dumped to a `dot &lt;http://www.graphviz.org/&gt;`_ file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timestepHostRelative</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The maximum allowed relative timestep for node evolution relative to the time of the host halo.</description>
+      <description>
+      The maximum allowed relative timestep for node evolution relative to the time of the host halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timestepHostAbsolute</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.</description>
+      <description>
+      The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionTimestepSatelliteMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum fraction of the timestep imposed by the ``satellite in host'' criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+      <description>
+      The minimum fraction of the timestep imposed by the "satellite in host" criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>backtrackToSatellites</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.</description>
+      <description>
+      If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>profileSteps</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not to profile the ODE evolver.</description>
+      <description>
+      Specifies whether or not to profile the ODE evolver.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -246,8 +243,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class.
+    !!{RST
+    Internal constructor for the ``mergerTreeEvolverStandard`` merger tree evolver class.
     !!}
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
@@ -273,8 +270,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolverStandard} merger tree evolver class.
+    !!{RST
+    Destructor for the ``mergerTreeEvolverStandard`` merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverStandard), intent(inout) :: self
@@ -292,7 +289,7 @@ contains
   end subroutine standardDestructor
 
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
-    !!{
+    !!{RST
     Evolves all properties of a merger tree to the specified time.
     !!}
     use    :: Display                            , only : displayIndent                , displayMessage                    , displayUnindent              , displayVerbosity           , &
@@ -639,7 +636,7 @@ contains
   end subroutine standardEvolve
 
   subroutine standardInitializeTree(self,tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
-    !!{
+    !!{RST
     Initialize trees prior to evolution.
     !!}
     use    :: Display            , only : displayBlue             , displayYellow , displayGreen                , displayBold                       , &
@@ -748,8 +745,8 @@ contains
   end subroutine standardInitializeTree
   
   logical function standardNodeIsEvolvable(self,node,timeEnd,finalTimeInTree)
-    !!{
-    Return true if the given \mono{node} is evolvable.
+    !!{RST
+    Return true if the given ``node`` is evolvable.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, nodeEvent
     implicit none
@@ -815,8 +812,8 @@ contains
   end function standardNodeIsEvolvable
   
   recursive function standardTimeEvolveTo(self,node,timeEnd,cosmologyFunctions_,mergerTreeEvolveTimestep_,mergerTreeNodeEvolver_,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
-    !!{
-    Determine the time to which \mono{node} should be evolved.
+    !!{RST
+    Determine the time to which ``node`` should be evolved.
     !!}
     use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
@@ -1097,7 +1094,7 @@ contains
   end function standardTimeEvolveTo
 
   subroutine standardDeadlockAddNode(self,node,treeIndex,nodeLock,lockType)
-    !!{
+    !!{RST
     Add a node to the deadlocked nodes list.
     !!}
     implicit none
@@ -1128,8 +1125,8 @@ contains
   end subroutine standardDeadlockAddNode
 
   subroutine standardDeadlockOutputTree(self,timeEnd)
-    !!{
-    Output the deadlocked nodes in \mono{dot} format.
+    !!{RST
+    Output the deadlocked nodes in ``dot`` format.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: String_Handling , only : operator(//)
@@ -1246,8 +1243,8 @@ contains
   end subroutine standardDeadlockOutputTree
 
   subroutine standardNodeEventsPerform(self,tree,node,statusDeadlock)
-    !!{
-    Perform any events associated with \mono{node}.
+    !!{RST
+    Perform any events associated with ``node``.
     !!}
     use :: Galacticus_Nodes                   , only : mergerTree                   , nodeComponentBasic, nodeEvent, treeNode
     use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType
@@ -1309,8 +1306,8 @@ contains
   end subroutine standardNodeEventsPerform
 
   subroutine standardTreeEventsPerform(tree,statusDeadlock)
-    !!{
-    Perform any events associated with \mono{tree}.
+    !!{RST
+    Perform any events associated with ``tree``.
     !!}
     use :: Galacticus_Nodes                   , only : mergerTree                   , treeEvent
     use :: Merger_Trees_Evolve_Deadlock_Status, only : enumerationDeadlockStatusType

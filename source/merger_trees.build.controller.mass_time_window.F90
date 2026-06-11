@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which follows branches only if they lie within a window of time and mass.
 !!}
 
@@ -25,12 +25,14 @@ Implements a merger tree build controller class which follows branches only if t
   use :: Cosmological_Density_Field, only : criticalOverdensityClass
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerMassTimeWindow">
-   <description>A merger tree build controller class which follows branches only if they lie within a window of time and mass.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerMassTimeWindow" docformat="rst">
+   <description>
+   A merger tree build controller class which follows branches only if they lie within a window of time and mass.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerMassTimeWindow
-     !!{     
+     !!{RST
      A merger tree build controller class which follows branches only if they lie within a window of time and mass.
      !!}
      private
@@ -53,8 +55,8 @@ Implements a merger tree build controller class which follows branches only if t
   end type mergerTreeBuildControllerMassTimeWindow
 
   interface mergerTreeBuildControllerMassTimeWindow
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class.
+     !!{RST
+     Constructors for the ``mergerTreeBuildControllerMassTimeWindow`` merger tree build controller class.
      !!}
      module procedure massTimeWindowConstructorParameters
      module procedure massTimeWindowConstructorInternal
@@ -63,8 +65,8 @@ Implements a merger tree build controller class which follows branches only if t
 contains
 
   function massTimeWindowConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildControllerMassTimeWindow`` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error, only : Error_Report
@@ -77,10 +79,12 @@ contains
     double precision :: timeMinimum, redshiftMaximum, massMinimum
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to which branches should be followed.</description>
+      <description>
+      The minimum mass to which branches should be followed.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
@@ -89,18 +93,22 @@ contains
     if (parameters%isPresent('timeMinimum')) then
        if (parameters%isPresent('redshiftMaximum')) call Error_Report('specify only one of [timeMinimum] and [redshiftMaximum]'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>timeMinimum</name>
 	 <source>parameters</source>
-	 <description>The minimum time to which branches should be followed.</description>
+	 <description>
+	 The minimum time to which branches should be followed.
+	 </description>
        </inputParameter>
        !!]
     else if (parameters%isPresent('redshiftMaximum')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>redshiftMaximum</name>
 	 <source>parameters</source>
-	 <description>The maximum redshift to which branches should be followed.</description>
+	 <description>
+	 The maximum redshift to which branches should be followed.
+	 </description>
        </inputParameter>
        !!]
        timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
@@ -118,8 +126,8 @@ contains
   end function massTimeWindowConstructorParameters
 
   function massTimeWindowConstructorInternal(timeMinimum_,massMinimum,cosmologyFunctions_,mergerTreeBranchingProbability_,criticalOverdensity_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class .
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildControllerMassTimeWindow`` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerMassTimeWindow  )                        :: self
@@ -136,8 +144,8 @@ contains
   end function massTimeWindowConstructorInternal
 
   subroutine massTimeWindowDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerMassTimeWindow} merger tree build controller class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildControllerMassTimeWindow`` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMassTimeWindow), intent(inout) :: self
@@ -151,7 +159,7 @@ contains
   end subroutine massTimeWindowDestructor
 
   logical function massTimeWindowControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Skip side branches of a tree under construction.
     !!}
     implicit none
@@ -172,7 +180,7 @@ contains
   end function massTimeWindowControl
 
   logical function massTimeWindowPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Return true if the given node lies within the allowed window.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
@@ -191,7 +199,7 @@ contains
   end function massTimeWindowPasses
 
   function massTimeWindowBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -205,7 +213,7 @@ contains
   end function massTimeWindowBranchingProbabilityObject
 
   subroutine massTimeWindowNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

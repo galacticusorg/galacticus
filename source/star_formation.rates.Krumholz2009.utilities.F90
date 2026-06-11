@@ -19,15 +19,13 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{  
-  Contains a module that implements various useful utility functions for calculations for the \cite{krumholz_star_2009}
-  star formation surface density rate law.
+  !!{RST
+  Contains a module that implements various useful utility functions for calculations for the :cite:t:`krumholz_star_2009` star formation surface density rate law.
   !!}
 
 module Star_Formation_Rate_Krumholz2009_Utilities
-  !!{  
-  Implements various useful utility functions for calculations for the \cite{krumholz_star_2009} star formation surface
-  density rate law.
+  !!{RST
+  Implements various useful utility functions for calculations for the :cite:t:`krumholz_star_2009` star formation surface density rate law.
   !!}
   implicit none
   private
@@ -36,9 +34,8 @@ module Star_Formation_Rate_Krumholz2009_Utilities
 contains
 
   double precision function krumholz2009MolecularFractionSlow(s) result(fraction)
-    !!{
-    Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
-    hydrogen fraction.
+    !!{RST
+    Slow (but more accurate at low molecular fraction) fitting function from :cite:t:`krumholz_star_2009` for the molecular hydrogen fraction.
     !!}
     implicit none
     double precision, intent(in   ) :: s

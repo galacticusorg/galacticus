@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a conversion of ISM mass to HI mass analysis property operator class.
 !!}
 
   use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
-   <description>Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a \refClass{outputAnalysisMolecularRatioClass} object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass" docformat="rst">
+   <description>
+   Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a ``outputAnalysisMolecularRatioClass`` object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass
-     !!{
+     !!{RST
      A conversion of ISM mass to HI mass property operator class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
   end type outputAnalysisPropertyOperatorHIMass
 
   interface outputAnalysisPropertyOperatorHIMass
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
+     !!{RST
+     Constructors for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
      !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
@@ -50,8 +52,8 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 contains
 
   function hiMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function hiMassConstructorParameters
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
+    !!{RST
+    Internal constructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
@@ -86,8 +88,8 @@ contains
   end function hiMassConstructorInternal
 
   subroutine hiMassDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisPropertyOperatorHIMass} output analysis property operator class.
+    !!{RST
+    Destructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
@@ -99,7 +101,7 @@ contains
   end subroutine hiMassDestructor
 
   double precision function hiMassOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an hiMass output analysis property operator.
     !!}
     use            :: Error        , only : Error_Report

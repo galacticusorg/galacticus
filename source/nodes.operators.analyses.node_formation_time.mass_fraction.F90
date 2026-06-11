@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that computes the formation time for each node based on a mass fraction definition.
   !!}
 
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
 
   !![
-  <nodeOperator name="nodeOperatorNodeFormationTimeMassFraction">
-   <description>A node operator class that records the halo formation time as the epoch when the main-branch progenitor first assembled a fraction \mono{fractionMassFormation} (default 0.5) of the final halo mass, using the mass accretion history from \refClass{darkMatterHaloMassAccretionHistoryClass}. \mono{assumeMonotonicGrowth} enables a faster algorithm that assumes monotonic mass growth along each branch.</description>
+  <nodeOperator name="nodeOperatorNodeFormationTimeMassFraction" docformat="rst">
+   <description>
+   A node operator class that records the halo formation time as the epoch when the main-branch progenitor first assembled a fraction ``fractionMassFormation`` (default 0.5) of the final halo mass, using the mass accretion history from ``darkMatterHaloMassAccretionHistoryClass``. ``assumeMonotonicGrowth`` enables a faster algorithm that assumes monotonic mass growth along each branch.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeMassFraction
-     !!{
+     !!{RST
      A node operator class that computes the formation time for each node based on a mass fraction definition.
      !!}
      private
@@ -44,8 +46,8 @@
   end type nodeOperatorNodeFormationTimeMassFraction
   
   interface nodeOperatorNodeFormationTimeMassFraction
-     !!{
-     Constructors for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
      !!}
      module procedure nodeFormationTimeMassFractionConstructorParameters
      module procedure nodeFormationTimeMassFractionConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function nodeFormationTimeMassFractionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,16 +68,20 @@ contains
     double precision                                                           :: fractionMassFormation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionMassFormation</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
+      <description>
+      The mass fraction in the main branch progenitor used to define the formation time of each halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>assumeMonotonicGrowth</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true assume that halo mass growth is monotonic along each branch when computing node formation times.</description>
+      <description>
+      If true assume that halo mass growth is monotonic along each branch when computing node formation times.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
@@ -89,8 +95,8 @@ contains
   end function nodeFormationTimeMassFractionConstructorParameters
 
   function nodeFormationTimeMassFractionConstructorInternal(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeFormationTimeMassFraction)                        :: self
@@ -108,8 +114,8 @@ contains
   end function nodeFormationTimeMassFractionConstructorInternal
 
   subroutine nodeFormationTimeMassFractionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorNodeFormationTimeMassFraction} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeFormationTimeMassFraction), intent(inout) :: self
@@ -121,7 +127,7 @@ contains
   end subroutine nodeFormationTimeMassFractionDestructor
 
   subroutine nodeFormationTimeMassFractionNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize node formation times.
     !!}
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
@@ -164,7 +170,7 @@ contains
   end subroutine nodeFormationTimeMassFractionNodeTreeInitialize
  
   subroutine nodeFormationTimeMassFractionNodePromote(self,node)
-    !!{
+    !!{RST
     Promote node major merger times.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

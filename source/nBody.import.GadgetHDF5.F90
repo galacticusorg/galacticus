@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer for Gadget HDF5 files.
 !!}
 
@@ -25,13 +25,15 @@ Implements an N-body data importer for Gadget HDF5 files.
   use :: IO_HDF5             , only : hdf5Object
 
   !![
-  <nbodyImporter name="nbodyImporterGadgetHDF5">
-   <description>An importer for N-body simulation data in Gadget HDF5 format, reading particle positions, velocities, and masses for a selected particle type from a structured HDF5 file. The input file is set by \mono{[fileName]}, with physical unit conversions via \mono{[unitMassInSI]}, \mono{[unitLengthInSI]}, and \mono{[unitVelocityInSI]}, and particle type by \mono{[particleType]}.</description>
+  <nbodyImporter name="nbodyImporterGadgetHDF5" docformat="rst">
+   <description>
+   An importer for N-body simulation data in Gadget HDF5 format, reading particle positions, velocities, and masses for a selected particle type from a structured HDF5 file. The input file is set by ``[fileName]``, with physical unit conversions via ``[unitMassInSI]``, ``[unitLengthInSI]``, and ``[unitVelocityInSI]``, and particle type by ``[particleType]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetHDF5
-     !!{
+     !!{RST
      An importer for Gadget HDF5 files.
      !!}
      private
@@ -49,8 +51,8 @@ Implements an N-body data importer for Gadget HDF5 files.
   end type nbodyImporterGadgetHDF5
 
   interface nbodyImporterGadgetHDF5
-     !!{
-     Constructors for the \refClass{nbodyImporterGadgetHDF5} N-body importer class.
+     !!{RST
+     Constructors for the ``nbodyImporterGadgetHDF5`` N-body importer class.
      !!}
      module procedure gadgetHDF5ConstructorParameters
      module procedure gadgetHDF5ConstructorInternal
@@ -59,8 +61,8 @@ Implements an N-body data importer for Gadget HDF5 files.
 contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterGadgetHDF5} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyImporterGadgetHDF5`` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,46 +76,62 @@ contains
     logical                                                   :: isCosmological
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to read.</description>
+      <description>
+      The name of the file to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label for the simulation</description>
+      <description>
+      A label for the simulation
+      </description>
       <defaultValue>var_str('primary')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>particleType</name>
       <source>parameters</source>
-      <description>The particle type to read from the Gadget HDF5 file.</description>
+      <description>
+      The particle type to read from the Gadget HDF5 file.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSoftening</name>
       <source>parameters</source>
-      <description>The softening length.</description>
+      <description>
+      The softening length.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitMassInSI</name>
       <source>parameters</source>
-      <description>The mass unit expressed in the SI system.</description>
+      <description>
+      The mass unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitLengthInSI</name>
       <source>parameters</source>
-      <description>The length unit expressed in the SI system.</description>
+      <description>
+      The length unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unitVelocityInSI</name>
       <source>parameters</source>
-      <description>The velocity unit expressed in the SI system.</description>
+      <description>
+      The velocity unit expressed in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>isCosmological</name>
       <source>parameters</source>
-      <description>Set to true if this is a cosmological simulation, false otherwise.</description>
+      <description>
+      Set to true if this is a cosmological simulation, false otherwise.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -126,8 +144,8 @@ contains
   end function gadgetHDF5ConstructorParameters
 
   function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterGadgetHDF5} N-body importer class.
+    !!{RST
+    Internal constructor for the ``nbodyImporterGadgetHDF5`` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetHDF5 )                        :: self
@@ -145,7 +163,7 @@ contains
   end function gadgetHDF5ConstructorInternal
 
   subroutine gadgetHDF5Destructor(self)
-    !!{
+    !!{RST
     Destructor for Gadget HDF5 importer class.
     !!}
     implicit none
@@ -158,7 +176,7 @@ contains
   end subroutine gadgetHDF5Destructor
 
   subroutine gadgetHDF5Import(self,simulations)
-    !!{
+    !!{RST
     Import data from a Gadget HDF5 file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
@@ -272,7 +290,7 @@ contains
   end subroutine gadgetHDF5Import
 
   logical function gadgetHDF5IsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

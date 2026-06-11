@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that sets dark matter profile shape parameter.
   !!}
 
   use :: Dark_Matter_Profiles_Shape, only : darkMatterProfileShapeClass
   
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileShapeSet">
-   <description>Sets the dark matter profile shape parameter for each halo using a \refClass{darkMatterProfileShapeClass} object, updating this parameter at tree initialization and node promotion events.</description>
+  <nodeOperator name="nodeOperatorDarkMatterProfileShapeSet" docformat="rst">
+   <description>
+   Sets the dark matter profile shape parameter for each halo using a ``darkMatterProfileShapeClass`` object, updating this parameter at tree initialization and node promotion events.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileShapeSet
-     !!{
+     !!{RST
      A node operator class that set the dark matter profile shape parameter.
      !!}
      private
@@ -41,8 +43,8 @@
   end type nodeOperatorDarkMatterProfileShapeSet
   
   interface nodeOperatorDarkMatterProfileShapeSet
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class.
      !!}
      module procedure darkMatterProfileShapeSetConstructorParameters
      module procedure darkMatterProfileShapeSetConstructorInternal
@@ -51,8 +53,8 @@
 contains
   
   function darkMatterProfileShapeSetConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function darkMatterProfileShapeSetConstructorParameters
 
   function darkMatterProfileShapeSetConstructorInternal(darkMatterProfileShape_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeSet)                        :: self
@@ -86,8 +88,8 @@ contains
   end function darkMatterProfileShapeSetConstructorInternal
 
   subroutine darkMatterProfileShapeSetConstructorDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeSet} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeSet), intent(inout) :: self
@@ -99,7 +101,7 @@ contains
   end subroutine darkMatterProfileShapeSetConstructorDestructor
 
   subroutine darkMatterProfileShapeSetNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize dark matter profile shape parameters.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
@@ -114,9 +116,8 @@ contains
   end subroutine darkMatterProfileShapeSetNodeTreeInitialize
     
   subroutine darkMatterProfileShapeSetNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the shape
-    parameter of \mono{node} to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the shape parameter of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree filter class which is the ``any'' combination of a set of other filters.
+!!{RST
+Implements a merger tree filter class which is the "any" combination of a set of other filters.
 !!}
 
   !![
-  <mergerTreeFilter name="mergerTreeFilterAny">
-   <description>A merger tree filter class which is the \mono{any} combination of a set of other filters.</description>
+  <mergerTreeFilter name="mergerTreeFilterAny" docformat="rst">
+   <description>
+   A merger tree filter class which is the ``any`` combination of a set of other filters.
+   </description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAny
-     !!{
-     A merger tree filter class which is the \mono{any} combination of a set of other filters.
+     !!{RST
+     A merger tree filter class which is the ``any`` combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -39,7 +41,7 @@ Implements a merger tree filter class which is the ``any'' combination of a set 
   end type mergerTreeFilterAny
 
   interface mergerTreeFilterAny
-     !!{
+     !!{RST
      Constructors for the any merger tree filter class.
      !!}
      module procedure anyConstructorParameters
@@ -49,8 +51,8 @@ Implements a merger tree filter class which is the ``any'' combination of a set 
 contains
 
   function anyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterAny} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeFilterAny`` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,8 +82,8 @@ contains
   end function anyConstructorParameters
 
   function anyConstructorInternal(filters) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeFilterAny} merger tree filter class.
+    !!{RST
+    Internal constructor for the ``mergerTreeFilterAny`` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAny)                        :: self
@@ -100,8 +102,8 @@ contains
   end function anyConstructorInternal
 
   subroutine anyDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeFilterAny} merger tree filter class.
+    !!{RST
+    Destructor for the ``mergerTreeFilterAny`` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAny), intent(inout) :: self
@@ -122,8 +124,8 @@ contains
   end subroutine anyDestructor
 
   logical function anyPasses(self,tree)
-    !!{
-    Apply a set of filters to a \mono{tree} combined with \mono{any} operations.
+    !!{RST
+    Apply a set of filters to a ``tree`` combined with ``any`` operations.
     !!}
     implicit none
     class(mergerTreeFilterAny), intent(inout) :: self

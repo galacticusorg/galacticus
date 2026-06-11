@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of tidal fields acting on satellites.
 !!}
 
 module Satellites_Tidal_Fields
-  !!{
+  !!{RST
   Implements calculations of tidal fields acting on satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,18 +30,17 @@ module Satellites_Tidal_Fields
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteTidalField</name>
    <descriptiveName>Satellite Tidal Fields</descriptiveName>
-   <description>Class providing models of tidal fields experienced by satellite halos---the second-order spatial
-    derivatives of the gravitational potential that characterize the differential force stretching or compressing
-    the satellite. The key quantity returned is the radial component $\Phi_\mathrm{rr}$ of the tidal tensor
-    $\Phi_\mathrm{ab} = \partial^2\Phi/\partial x_a \partial x_b$, evaluated at the satellite's orbital position.
-    This tidal field drives tidal heating and mass loss, and is used by tidal stripping rate calculations to
-    determine how rapidly material is removed from the satellite.</description>
+   <description>
+   Class providing models of tidal fields experienced by satellite halos---the second-order spatial derivatives of the gravitational potential that characterize the differential force stretching or compressing the satellite. The key quantity returned is the radial component :math:`\Phi_\mathrm{rr}` of the tidal tensor :math:`\Phi_\mathrm{ab} = \partial^2\Phi/\partial x_a \partial x_b`, evaluated at the satellite's orbital position. This tidal field drives tidal heating and mass loss, and is used by tidal stripping rate calculations to determine how rapidly material is removed from the satellite.
+   </description>
    <default>standard</default>
    <method name="tidalTensor" >
-    <description>Returns the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <description>
+    Returns the tidal tensor, :math:`\Phi_\mathrm{ab}`.
+    </description>
     <type>type(tensorRank2Dimension3Symmetric)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>
@@ -49,7 +48,9 @@ module Satellites_Tidal_Fields
     <argument>logical          , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration</argument>
    </method>
    <method name="tidalTensorRadial" >
-    <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <description>
+    Returns the radial component, :math:`\Phi_\mathrm{rr}`, of the tidal tensor, :math:`\Phi_\mathrm{ab}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>
@@ -57,7 +58,9 @@ module Satellites_Tidal_Fields
     <argument>logical          , intent(in   ), optional         :: atPericenter, includeCentrifugalAcceleration</argument>
    </method>
    <method name="tidalTensorDominant" >
-    <description>Returns the dominant eigenvalue of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <description>
+    Returns the dominant eigenvalue of the tidal tensor, :math:`\Phi_\mathrm{ab}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)                   :: node                                        </argument>

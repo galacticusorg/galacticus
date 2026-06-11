@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an inactive model parameter class.
   !!}
 
   !![
-  <modelParameter name="modelParameterInactive">
-   <description>An inactive model parameter class representing a fixed parameter that does not participate in posterior sampling and has no prior distribution or perturbation applied during inference. The parameter name is set by \mono{[name]}, making it available as a named parameter in the model parameter set without affecting the sampling space.</description>
+  <modelParameter name="modelParameterInactive" docformat="rst">
+   <description>
+   An inactive model parameter class representing a fixed parameter that does not participate in posterior sampling and has no prior distribution or perturbation applied during inference. The parameter name is set by ``[name]``, making it available as a named parameter in the model parameter set without affecting the sampling space.
+   </description>
   </modelParameter>
   !!]
   type, extends(modelParameterClass) :: modelParameterInactive
-     !!{
+     !!{RST
      Implementation of an inactive model parameter class.
      !!}
      private
@@ -46,8 +48,8 @@
   end type modelParameterInactive
 
   interface modelParameterInactive
-     !!{
-     Constructors for the \refClass{modelParameterInactive} model parameter class.
+     !!{RST
+     Constructors for the ``modelParameterInactive`` model parameter class.
      !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal
@@ -56,8 +58,8 @@
 contains
 
   function inactiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{modelParameterInactive} model parameter class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``modelParameterInactive`` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,9 +68,11 @@ contains
     type (varying_string       )                :: name
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>name</name>
-      <description>The name of the inactive model parameter as it appears in the \glc\ parameter file; held at a fixed value during posterior sampling without contributing to the sampler's free parameter space.</description>
+      <description>
+      The name of the inactive model parameter as it appears in the Galacticus parameter file; held at a fixed value during posterior sampling without contributing to the sampler's free parameter space.
+      </description>
       <defaultValue>var_str('')</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -81,8 +85,8 @@ contains
   end function inactiveConstructorParameters
 
   function inactiveConstructorInternal(name_) result(self)
-    !!{
-    Internal constructor for the \refClass{modelParameterInactive} model parameter class.
+    !!{RST
+    Internal constructor for the ``modelParameterInactive`` model parameter class.
     !!}
     implicit none
     type (modelParameterInactive)                :: self
@@ -95,7 +99,7 @@ contains
   end function inactiveConstructorInternal
 
   function inactiveName(self)
-    !!{
+    !!{RST
     Return the name of this parameter.
     !!}
     implicit none
@@ -107,7 +111,7 @@ contains
   end function inactiveName
 
   double precision function inactiveLogPrior(self,x)
-    !!{
+    !!{RST
     Return the log-prior on this parameter.
     !!}
     use :: Error, only : Error_Report
@@ -122,7 +126,7 @@ contains
   end function inactiveLogPrior
 
   double precision function inactivePriorSample(self)
-    !!{
+    !!{RST
     Sample from the of this parameter.
     !!}
     use :: Error, only : Error_Report
@@ -136,7 +140,7 @@ contains
   end function inactivePriorSample
 
   double precision function inactivePriorInvert(self,f)
-    !!{
+    !!{RST
     Invert the prior, returning the parameter value given the cumulative probability.
     !!}
     use :: Error, only : Error_Report
@@ -151,7 +155,7 @@ contains
   end function inactivePriorInvert
 
   double precision function inactivePriorMinimum(self)
-    !!{
+    !!{RST
     Return the minimum value for which the prior is non-zero.
     !!}
     use :: Error, only : Error_Report
@@ -165,7 +169,7 @@ contains
   end function inactivePriorMinimum
 
   double precision function inactivePriorMaximum(self)
-    !!{
+    !!{RST
     Return the maximum value for which the prior is non-zero.
     !!}
     use :: Error, only : Error_Report
@@ -179,7 +183,7 @@ contains
   end function inactivePriorMaximum
 
   double precision function inactiveRandomPerturbation(self)
-    !!{
+    !!{RST
     Return a random perturbation to this parameter.
     !!}
     use :: Error, only : Error_Report
@@ -193,7 +197,7 @@ contains
   end function inactiveRandomPerturbation
 
   double precision function inactiveMap(self,x)
-    !!{
+    !!{RST
     Map this parameter.
     !!}
     use :: Error, only : Error_Report
@@ -208,7 +212,7 @@ contains
   end function inactiveMap
 
   double precision function inactiveUnmap(self,x)
-    !!{
+    !!{RST
     Unmap this parameter.
     !!}
     use :: Error, only : Error_Report
@@ -223,7 +227,7 @@ contains
   end function inactiveUnmap
 
   double precision function inactiveMapJacobian(self,x)
-    !!{
+    !!{RST
     Compute the Jacobian of the map for this parameter.
     !!}
     use :: Error, only : Error_Report

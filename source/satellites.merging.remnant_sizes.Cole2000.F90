@@ -17,59 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+  !!{RST
+  Implements a merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
   !!}
 
   use :: Kind_Numbers                           , only : kind_int8
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !![
-  <mergerRemnantSize name="mergerRemnantSizeCole2000">
+  <mergerRemnantSize name="mergerRemnantSizeCole2000" docformat="rst">
    <description>
-    A merger remnant size class which uses uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant
-    spheroid sizes. Specifically
-    \begin{equation}
-    \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
-    \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
-    \frac{M_1 M_2}{r_1+r_2},
-    \end{equation}
-    where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid
-    \gls{component} of the remnant\footnote{Depending on the merging rules (see \protect\refPhysics{mergerMassMovements}) not
-    all mass may be placed into the spheroid \gls{component} of the remnant.} and $r_1$ and $r_2$ are the half mass radii of
-    those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and
-    spheroid half-mass radii of each galaxy, with weights equal to the masses of each \gls{component} (disk and spheroid) which
-    will become part of the spheroid \gls{component} of the remnant.}, $r_\mathrm{new}$ is the half mass radius of the
-    spheroidal \gls{component} of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a
-    Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a
-    value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=$\mono{energyOrbital}
-    depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
-    mass galaxies in circular orbits about their center of mass.
-    
-    A subtlety arises because the above expression accounts for only the baryonic mass of material which becomes part of the
-    spheroid \gls{component} of the remnant. In reality, there are additional terms in the energy equation due to the
-    interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not
-    become part of the spheroid \gls{component} of the remnant. To account for this additional matter, an effective boost
-    factor, $f_\mathrm{boost}$, to the specific angular momentum of each \gls{component} of each merging galaxy is computed:
-    \begin{equation}
-     f_\mathrm{boost} = {j \over \sqrt{\mathrm{G} M r_{1/2}}},
-    \end{equation}
-    where $j$ is the specific angular momentum of the component, $M$ is its total baryonic mass and $r_\mathrm{1/2}$ is its
-    half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of
-    the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
-    \begin{equation}
-     j_\mathrm{new} = \langle f_\mathrm{boost} \rangle r_\mathrm{new} V_\mathrm{new},
-    \end{equation}
-    where
-    \begin{equation}
-     V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
-    \end{equation}
+   A merger remnant size class which uses uses the algorithm of :cite:t:`cole_hierarchical_2000` to compute merger remnant spheroid sizes. Specifically
+
+   .. math::
+
+      \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+      \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+      \frac{M_1 M_2}{r_1+r_2},
+
+   where :math:`M_1` and :math:`M_2` are the baryonic masses of the components of the merging galaxies that will end up in the spheroid :term:`component` of the remnant\footnoteDepending on the merging rules (see ``mergerMassMovements``) not all mass may be placed into the spheroid :term:`component` of the remnant. and :math:`r_1` and :math:`r_2` are the half mass radii of those same components of the merging galaxies\footnoteIn practice, Galacticus computes a weighted average of the disk and spheroid half-mass radii of each galaxy, with weights equal to the masses of each :term:`component` (disk and spheroid) which will become part of the spheroid :term:`component` of the remnant., :math:`r_\mathrm{new}` is the half mass radius of the spheroidal :term:`component` of the remnant galaxy and :math:`c` is a constant which depends on the distribution of the mass. For a Hernquist spheroid :math:`c=0.40` can be found by numerical integration while for a exponential disk :math:`c=0.49`. For simplicity a value of :math:`c=0.5` is adopted for all components. The parameter :math:`f_\mathrm{orbit}=`\ ``energyOrbital`` depends on the orbital parameters of the galaxy pair. For example, a value of :math:`f_\mathrm{orbit} = 1` corresponds to point mass galaxies in circular orbits about their center of mass.
+
+   A subtlety arises because the above expression accounts for only the baryonic mass of material which becomes part of the spheroid :term:`component` of the remnant. In reality, there are additional terms in the energy equation due to the interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not become part of the spheroid :term:`component` of the remnant. To account for this additional matter, an effective boost factor, :math:`f_\mathrm{boost}`, to the specific angular momentum of each :term:`component` of each merging galaxy is computed:
+
+   .. math::
+
+      f_\mathrm{boost} = {j \over \sqrt{\mathrm{G} M r_{1/2}}},
+
+   where :math:`j` is the specific angular momentum of the component, :math:`M` is its total baryonic mass and :math:`r_\mathrm{1/2}` is its half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
+
+   .. math::
+
+      j_\mathrm{new} = \langle f_\mathrm{boost} \rangle r_\mathrm{new} V_\mathrm{new},
+
+   where
+
+   .. math::
+
+      V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
    </description>
   </mergerRemnantSize>
   !!]
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
-     !!{
-     A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+     !!{RST
+     A merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
      !!}
      private
      class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
@@ -85,8 +75,8 @@
   end type mergerRemnantSizeCole2000
 
   interface mergerRemnantSizeCole2000
-     !!{
-     Constructors for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
+     !!{RST
+     Constructors for the ``mergerRemnantSizeCole2000`` merger remnant size class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -95,8 +85,8 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``mergerRemnantSizeCole2000`` merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,16 +97,20 @@ contains
     logical                                                          :: ignoreUnphysicalConditions
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyOrbital</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
+      <description>
+      The orbital energy used in the "cole2000" merger remnant sizes calculation in units of the characteristic orbital energy.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ignoreUnphysicalConditions</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, ignore unphysical conditions (e.g. negative masses) and leave the size unchanged.</description>
+      <description>
+      If true, ignore unphysical conditions (e.g. negative masses) and leave the size unchanged.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
@@ -130,8 +124,8 @@ contains
   end function cole2000ConstructorParameters
 
   function cole2000ConstructorInternal(energyOrbital,ignoreUnphysicalConditions,mergerProgenitorProperties_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
+    !!{RST
+    Internal constructor for the ``mergerRemnantSizeCole2000`` merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCole2000      )                        :: self
@@ -150,7 +144,7 @@ contains
   end function cole2000ConstructorInternal
 
   subroutine cole2000AutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
@@ -163,8 +157,8 @@ contains
   end subroutine cole2000AutoHook
 
   subroutine cole2000Destructor(self)
-    !!{
-    Destructor for the \refClass{mergerRemnantSizeCole2000} merger remnant size class.
+    !!{RST
+    Destructor for the ``mergerRemnantSizeCole2000`` merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
@@ -179,7 +173,7 @@ contains
   end subroutine cole2000Destructor
 
   subroutine cole2000CalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Error       , only : Error_Report
@@ -201,7 +195,7 @@ contains
   end subroutine cole2000CalculationReset
 
   subroutine cole2000GetHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the get function.
     !!}
     use :: Error, only : Error_Report
@@ -221,8 +215,8 @@ contains
   end subroutine cole2000GetHook
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
-    !!{
-    Compute the size of the merger remnant for \mono{node} using the \cite{cole_hierarchical_2000} algorithm.
+    !!{RST
+    Compute the size of the merger remnant for ``node`` using the :cite:t:`cole_hierarchical_2000` algorithm.
     !!}
     use :: Display                         , only : displayMessage                , verbosityLevelSilent
     use :: Galactic_Structure_Options      , only : massTypeDark

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for collisionless mass distributions using tabulated solutions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionCollisionlessTabulated">
-   <description>A kinematic distribution base class for collisionless mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation and caching the results in tabulated form. Numerical convergence is governed by \mono{[toleranceRelativeVelocityDispersion]} and \mono{[toleranceRelativeVelocityDispersionMaximum]}.</description>
+  <kinematicsDistribution name="kinematicsDistributionCollisionlessTabulated" docformat="rst">
+   <description>
+   A kinematic distribution base class for collisionless mass distributions that computes the 1D velocity dispersion by numerically solving the isotropic Jeans equation and caching the results in tabulated form. Numerical convergence is governed by ``[toleranceRelativeVelocityDispersion]`` and ``[toleranceRelativeVelocityDispersionMaximum]``.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionCollisionlessTabulated
-     !!{
+     !!{RST
      A kinematics distribution for collisionless distributions using tabulated solutions.
      !!}
    contains
@@ -36,8 +38,8 @@
   end type kinematicsDistributionCollisionlessTabulated
 
   interface kinematicsDistributionCollisionlessTabulated
-     !!{
-     Constructors for the \refClass{kinematicsDistributionCollisionlessTabulated} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
      !!}
      module procedure collisionlessTabulatedConstructorParameters
      module procedure collisionlessTabulatedConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function collisionlessTabulatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionCollisionlessTabulated} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,17 +59,21 @@ contains
     double precision                                                              :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     !!]
     self=kinematicsDistributionCollisionlessTabulated(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
@@ -79,8 +84,8 @@ contains
   end function collisionlessTabulatedConstructorParameters
 
   function collisionlessTabulatedConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCollisionlessTabulated} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCollisionlessTabulated)                          :: self
@@ -93,8 +98,8 @@ contains
   end function collisionlessTabulatedConstructorInternal
   
   function collisionlessTabulatedConstructorDecorated(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCollisionlessTabulated} kinematic distribution class.
+    !!{RST
+    Internal constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCollisionlessTabulated)                :: self
@@ -106,7 +111,7 @@ contains
   end function collisionlessTabulatedConstructorDecorated
   
   logical function collisionlessTabulatedIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the tabulated collisionless kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -118,8 +123,8 @@ contains
   end function collisionlessTabulatedIsCollisional
 
   double precision function collisionlessTabulatedVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in a tabulated collisionless kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in a tabulated collisionless kinematic distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none

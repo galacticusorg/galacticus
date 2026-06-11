@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a spectrum postprocessor that applies the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
+  !!{RST
+  An implementation of a spectrum postprocessor that applies the :cite:t:`madau_radiative_1995` calculation of the attenuation of spectra by the intergalactic medium.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMadau1995">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMadau1995" docformat="rst">
    <description>
-    A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
-    of \cite{madau_radiative_1995}.
+   A stellar population postprocessor class that postprocesses spectra through absorption by the :term:`IGM` using the results of :cite:t:`madau_radiative_1995`.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
-     !!{
-     A spectrum postprocessor implementing the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
+     !!{RST
+     A spectrum postprocessor implementing the :cite:t:`madau_radiative_1995` calculation of the attenuation of spectra by the intergalactic medium.
      !!}
      private
    contains
@@ -39,8 +38,8 @@
   end type stellarPopulationSpectraPostprocessorMadau1995
 
   interface stellarPopulationSpectraPostprocessorMadau1995
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class.
+     !!{RST
+     Constructors for the ``stellarPopulationSpectraPostprocessorMadau1995`` stellar population spectra postprocessor class.
      !!}
      module procedure madau1995ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMadau1995
@@ -48,9 +47,8 @@
 contains
 
   function madau1995ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorMadau1995} stellar population spectra postprocessor class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the ``stellarPopulationSpectraPostprocessorMadau1995`` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +63,7 @@ contains
   end function madau1995ConstructorParameters
 
   double precision function madau1995Multiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Suppress the Lyman continuum in a spectrum.
     !!}
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic

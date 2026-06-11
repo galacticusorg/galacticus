@@ -19,18 +19,20 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !!{
-  Implementation of a kinematic distribution class for \cite{zhao_analytical_1996} mass distributions.
+  !!{RST
+  Implementation of a kinematic distribution class for :cite:t:`zhao_analytical_1996` mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionZhao1996">
-   <description>A kinematic distribution class for \cite{zhao_analytical_1996} mass distributions.</description>
+  <kinematicsDistribution name="kinematicsDistributionZhao1996" docformat="rst">
+   <description>
+   A kinematic distribution class for :cite:t:`zhao_analytical_1996` mass distributions.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionZhao1996
-     !!{
-     A kinematics distribution for \cite{zhao_analytical_1996} distributions.
+     !!{RST
+     A kinematics distribution for :cite:t:`zhao_analytical_1996` distributions.
      !!}
    contains
      procedure :: isCollisional        => zhao1996IsCollisional
@@ -38,8 +40,8 @@
   end type kinematicsDistributionZhao1996
 
   interface kinematicsDistributionZhao1996
-     !!{
-     Constructors for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class.
+     !!{RST
+     Constructors for the ``kinematicsDistributionZhao1996`` kinematic distribution class.
      !!}
      module procedure zhao1996ConstructorParameters
   end interface kinematicsDistributionZhao1996
@@ -47,9 +49,8 @@
 contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionZhao1996} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``kinematicsDistributionZhao1996`` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +65,7 @@ contains
   end function zhao1996ConstructorParameters
   
   logical function zhao1996IsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the zhao1996 kinematic distribution represents collisionless particles.
     !!}
     implicit none
@@ -75,8 +76,8 @@ contains
   end function zhao1996IsCollisional
 
   double precision function zhao1996VelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an Zhao1996 kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an Zhao1996 kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Dilogarithms                    , only : Dilogarithm

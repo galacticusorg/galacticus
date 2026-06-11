@@ -17,29 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing the virial density contrast for halos.
 !!}
 
 module Virial_Density_Contrast
-  !!{
+  !!{RST
   Provides a class implementing the virial density contrast for halos.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>virialDensityContrast</name>
    <descriptiveName>Virial Density Contrasts</descriptiveName>
    <description>
-    Class providing dark matter halo virial mean density contrasts, $\Delta_\mathrm{vir}$. The virial radius of a halo is defined
-    as the radius within which the mean enclosed density equals $\Delta_\mathrm{vir}$ times the background matter density (or
-    critical density, depending on convention). Different cosmologies and spherical-collapse approximations lead to different
-    values of $\Delta_\mathrm{vir}(z)$.
+   Class providing dark matter halo virial mean density contrasts, :math:`\Delta_\mathrm{vir}`. The virial radius of a halo is defined as the radius within which the mean enclosed density equals :math:`\Delta_\mathrm{vir}` times the background matter density (or critical density, depending on convention). Different cosmologies and spherical-collapse approximations lead to different values of :math:`\Delta_\mathrm{vir}(z)`.
    </description>
    <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
    <method name="densityContrast" >
-    <description>Returns the virial density contrast at the given epoch.</description>
+    <description>
+    Returns the virial density contrast at the given epoch.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass</argument>
@@ -47,7 +46,9 @@ module Virial_Density_Contrast
     <argument>logical         , intent(in   ), optional :: collapsing</argument>
    </method>
    <method name="densityContrastRateOfChange" >
-    <description>Returns the rate of change of virial density contrast at the given epoch.</description>
+    <description>
+    Returns the rate of change of virial density contrast at the given epoch.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass</argument>
@@ -55,7 +56,9 @@ module Virial_Density_Contrast
     <argument>logical         , intent(in   ), optional :: collapsing</argument>
    </method>
    <method name="turnAroundOverVirialRadii" >
-    <description>Returns the ratio of turnaround and virial radii at the given epoch.</description>
+    <description>
+    Returns the ratio of turnaround and virial radii at the given epoch.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -69,7 +72,9 @@ module Virial_Density_Contrast
     </code>
    </method>
    <method name="isMassDependent" >
-    <description>Returns true if the virial density contrast is mass-dependent.</description>
+    <description>
+    Returns true if the virial density contrast is mass-dependent.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>

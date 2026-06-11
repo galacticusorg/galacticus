@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a galactic filter which applies another filter to all descendant nodes of the given node and
-  passes if any descendant passes.
+  !!{RST
+  Implements a galactic filter which applies another filter to all descendant nodes of the given node and passes if any descendant passes.
   !!}
   
   !![
-  <galacticFilter name="galacticFilterAnyDescendantNode">
-   <description>Applies a \refClass{galacticFilterClass} to all descendant nodes of a given node and passes if any descendant satisfies the filter, enabling selection of nodes based on the properties of their descendants in the merger tree.</description>
+  <galacticFilter name="galacticFilterAnyDescendantNode" docformat="rst">
+   <description>
+   Applies a ``galacticFilterClass`` to all descendant nodes of a given node and passes if any descendant satisfies the filter, enabling selection of nodes based on the properties of their descendants in the merger tree.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAnyDescendantNode
-     !!{
+     !!{RST
      A galactic filter which applies another filter to all descendant nodes of the given node and passes if any descendant passes.
      !!}
      private
@@ -40,8 +41,8 @@
   end type galacticFilterAnyDescendantNode
 
   interface galacticFilterAnyDescendantNode
-     !!{
-     Constructors for the \refClass{galacticFilterAnyDescendantNode} galactic filter class.
+     !!{RST
+     Constructors for the ``galacticFilterAnyDescendantNode`` galactic filter class.
      !!}
      module procedure anyDescendantNodeConstructorParameters
      module procedure anyDescendantNodeConstructorInternal
@@ -50,8 +51,8 @@
 contains
 
   function anyDescendantNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterAnyDescendantNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``galacticFilterAnyDescendantNode`` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,16 +62,20 @@ contains
     logical                                                 :: allowSelf      , branchOnly
          
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowSelf</name>
       <source>parameters</source>
-      <description>If true, the node itself is considered as a descendant, otherwise the node itself is excluded from the descendant node search.</description>
+      <description>
+      If true, the node itself is considered as a descendant, otherwise the node itself is excluded from the descendant node search.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>branchOnly</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, follow descendants only to the end of the branch. Otherwise, follow them to the end of the entire merger tree.</description>
+      <description>
+      If true, follow descendants only to the end of the branch. Otherwise, follow them to the end of the entire merger tree.
+      </description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
@@ -83,8 +88,8 @@ contains
   end function anyDescendantNodeConstructorParameters
   
   function anyDescendantNodeConstructorInternal(allowSelf,branchOnly,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterAnyDescendantNode} galactic filter class.
+    !!{RST
+    Internal constructor for the ``galacticFilterAnyDescendantNode`` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterAnyDescendantNode)                        :: self
@@ -98,8 +103,8 @@ contains
   end function anyDescendantNodeConstructorInternal
   
   subroutine anyDescendantNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterAnyDescendantNode} galactic filter class.
+    !!{RST
+    Destructor for the ``galacticFilterAnyDescendantNode`` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAnyDescendantNode), intent(inout) :: self
@@ -111,7 +116,7 @@ contains
   end subroutine anyDescendantNodeDestructor
   
   logical function anyDescendantNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on descendant node properties.
     !!}
     implicit none

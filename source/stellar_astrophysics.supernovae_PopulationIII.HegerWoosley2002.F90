@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
+  !!{RST
+  Implements a Population III supernovae class based on :cite:t:`heger_nucleosynthetic_2002`.
   !!}
   
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -26,16 +26,15 @@
   use            :: Stellar_Astrophysics   , only : stellarAstrophysics, stellarAstrophysicsClass
 
   !![
-  <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
+  <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002" docformat="rst">
    <description>
-    A Population III supernovae class that computes the energies of pair instability supernovae from the results of
-    \cite{heger_nucleosynthetic_2002}.
+   A Population III supernovae class that computes the energies of pair instability supernovae from the results of :cite:t:`heger_nucleosynthetic_2002`.
    </description>
   </supernovaePopulationIII>
   !!]
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
-     !!{
-     A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
+     !!{RST
+     A Population III supernovae class based on :cite:t:`heger_nucleosynthetic_2002`
      !!}
      private
      class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
@@ -48,8 +47,8 @@
   end type supernovaePopulationIIIHegerWoosley2002
 
   interface supernovaePopulationIIIHegerWoosley2002
-     !!{
-     Constructors for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
+     !!{RST
+     Constructors for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
      !!}
      module procedure hegerWoosley2002ConstructorParameters
      module procedure hegerWoosley2002ConstructorInternal
@@ -58,8 +57,8 @@
 contains
 
   function hegerWoosley2002ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +78,8 @@ contains
   end function hegerWoosley2002ConstructorParameters
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
-    !!{
-    Internal constructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
+    !!{RST
+    Internal constructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
     !!}
     use :: FoX_dom                         , only : destroy       , node
     use :: Error                           , only : Error_Report
@@ -123,8 +122,8 @@ contains
   end function hegerWoosley2002ConstructorInternal
 
   subroutine hegerWoosley2002Destructor(self)
-    !!{
-    Destructor for the \refClass{supernovaePopulationIIIHegerWoosley2002} Population III supernovae class.
+    !!{RST
+    Destructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
     !!}
     implicit none
     type(supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self
@@ -136,9 +135,8 @@ contains
   end subroutine hegerWoosley2002Destructor
 
   double precision function hegerWoosley2002EnergyCumulative(self,initialMass,age,metallicity)
-    !!{
-    Compute the cumulative energy input from Population III star pair instability supernovae using the results of
-    \cite{heger_nucleosynthetic_2002}.
+    !!{RST
+    Compute the cumulative energy input from Population III star pair instability supernovae using the results of :cite:t:`heger_nucleosynthetic_2002`.
     !!}
     implicit none
     class           (supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self

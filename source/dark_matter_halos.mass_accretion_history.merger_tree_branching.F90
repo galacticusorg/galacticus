@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo mass accretion histories computed from merger tree branching rates.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Merger_Tree_Branching     , only : mergerTreeBranchingProbabilityClass
 
   !![
-  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryMergerTreeBranching">
-   <description>Dark matter halo mass accretion histories computed from merger tree branching rates.</description>
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryMergerTreeBranching" docformat="rst">
+   <description>
+   Dark matter halo mass accretion histories computed from merger tree branching rates.
+   </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryMergerTreeBranching
-     !!{
+     !!{RST
      A dark matter halo mass accretion history class computed from merger tree branching rates.
      !!}
      private
@@ -44,8 +46,8 @@
   end type darkMatterHaloMassAccretionHistoryMergerTreeBranching
 
   interface darkMatterHaloMassAccretionHistoryMergerTreeBranching
-     !!{
-     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
+     !!{RST
+     Constructors for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
      !!}
      module procedure mergerTreeBranchingConstructorParameters
      module procedure mergerTreeBranchingConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function mergerTreeBranchingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,8 +83,8 @@ contains
   end function mergerTreeBranchingConstructorParameters
 
   function mergerTreeBranchingConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
+    !!{RST
+    Internal constructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                        :: self
@@ -98,8 +99,8 @@ contains
   end function mergerTreeBranchingConstructorInternal
 
   subroutine mergerTreeBranchingDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryMergerTreeBranching} dark matter halo mass accretion history class.
+    !!{RST
+    Destructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self
@@ -113,8 +114,8 @@ contains
   end subroutine mergerTreeBranchingDestructor
 
   double precision function mergerTreeBranchingTime(self,node,mass)
-    !!{
-    Compute the time corresponding to \mono{mass} in the mass accretion history.
+    !!{RST
+    Compute the time corresponding to ``mass`` in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -129,8 +130,8 @@ contains
   end function mergerTreeBranchingTime
 
   double precision function mergerTreeBranchingMass(self,node,time)
-    !!{
-    Compute the mass corresponding to \mono{time} in the mass accretion history.
+    !!{RST
+    Compute the mass corresponding to ``time`` in the mass accretion history.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -145,9 +146,8 @@ contains
   end function mergerTreeBranchingMass
 
   double precision function mergerTreeBranchingMassAccretionRate(self,node,time)
-    !!{
-    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of
-    \mono{node}.
+    !!{RST
+    Compute the mass accretion rate at the given ``time`` in the mass accretion history of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

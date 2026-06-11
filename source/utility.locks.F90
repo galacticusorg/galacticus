@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a module which implements advanced locks.
   !!}
 
@@ -28,7 +28,7 @@
 ! just trigger a `stop`.
   
 module Locks
-  !!{
+  !!{RST
   Provides advanced locks.
   !!}
   use   , intrinsic :: ISO_C_Binding   , only : c_size_t       , c_int, c_ptr, c_null_ptr
@@ -40,7 +40,7 @@ module Locks
        &    mutex
 
   type :: ompLockClass
-     !!{
+     !!{RST
      An OpenMP lock type that does no locking. Useful when a function expects a lock, but we actually do not need to lock.
      !!}
      private
@@ -60,7 +60,7 @@ module Locks
   end type ompLockClass
 
   type, extends(ompLockClass) :: ompLock
-     !!{
+     !!{RST
      OpenMP lock type which allows querying based on thread number.
      !!}
      private
@@ -85,14 +85,14 @@ module Locks
   end type ompLock
 
   interface ompLock
-     !!{
+     !!{RST
      Interface to constructors for OpenMP locks.
      !!}
      module procedure :: ompLockConstructor
   end interface ompLock
 
   type :: ompReadWriteLock
-     !!{
+     !!{RST
      OpenMP lock type which supports read/write locking.
      !!}
      private
@@ -124,14 +124,14 @@ module Locks
   end type ompReadWriteLock
 
   interface ompReadWriteLock
-     !!{
+     !!{RST
      Interface to constructors for OpenMP read/write locks.
      !!}
      module procedure :: ompReadWriteLockConstructor
   end interface ompReadWriteLock
 
   type :: ompIncrementalLock
-     !!{
+     !!{RST
      OpenMP lock type which requires (and forces) locking to proceed in order.
      !!}
      private
@@ -157,7 +157,7 @@ module Locks
   end type ompIncrementalLock
 
   interface ompIncrementalLock
-     !!{
+     !!{RST
      Interface to constructors for OpenMP incremental locks.
      !!}
      module procedure :: ompIncrementalLockConstructor
@@ -165,8 +165,8 @@ module Locks
 
   interface
      function mutex_init(mutex,recursive) bind(c,name='mutex_init')
-       !!{
-       Interface to the \mono{mutex\_init} function.
+       !!{RST
+       Interface to the ``mutex_init`` function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_init
@@ -175,8 +175,8 @@ module Locks
      end function mutex_init
      
      function mutex_destroy(mutex) bind(c,name='mutex_destroy')
-       !!{
-       Interface to the \mono{mutex\_destroy} function.
+       !!{RST
+       Interface to the ``mutex_destroy`` function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_destroy
@@ -184,8 +184,8 @@ module Locks
      end function mutex_destroy
     
      function mutex_loc(mutex) bind(c,name='mutex_loc')
-       !!{
-       Interface to the \mono{mutex\_loc} function.
+       !!{RST
+       Interface to the ``mutex_loc`` function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: mutex_loc
@@ -193,8 +193,8 @@ module Locks
      end function mutex_loc
     
      function pthread_mutex_lock(mutex) bind(c,name='pthread_mutex_lock')
-       !!{
-       Interface to the \mono{pthread\_mutex\_lock} function.
+       !!{RST
+       Interface to the ``pthread_mutex_lock`` function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_lock
@@ -202,8 +202,8 @@ module Locks
      end function pthread_mutex_lock
 
      function pthread_mutex_unlock(mutex) bind(c,name='pthread_mutex_unlock')
-       !!{
-       Interface to the \mono{pthread\_mutex\_unlock} function.
+       !!{RST
+       Interface to the ``pthread_mutex_unlock`` function.
        !!}
        import c_int, c_ptr
        integer(c_int)        :: pthread_mutex_unlock
@@ -212,8 +212,8 @@ module Locks
   end interface
 
   type :: mutex
-     !!{
-     Type implementing \mono{pthread} mutexes.
+     !!{RST
+     Type implementing ``pthread`` mutexes.
      !!}
      type   (c_ptr), pointer :: mutex          => null()
      integer       , pointer :: referenceCount => null()
@@ -233,8 +233,8 @@ module Locks
   end type mutex
 
   interface mutex
-     !!{
-     Constructors for the \refClass{mutex} class.
+     !!{RST
+     Constructors for the ``mutex`` class.
      !!}
      module procedure mutexConstructor
   end interface mutex
@@ -242,7 +242,7 @@ module Locks
 contains
 
   subroutine ompLockClassInitialize(self)
-    !!{
+    !!{RST
     (Re)initialize an OpenMP null lock object.
     !!}
     implicit none
@@ -253,7 +253,7 @@ contains
   end subroutine ompLockClassInitialize
 
   subroutine ompLockClassSet(self)
-    !!{
+    !!{RST
     Get a lock on an OpenMP null lock objects.
     !!}
     implicit none
@@ -264,7 +264,7 @@ contains
   end subroutine ompLockClassSet
 
   logical function ompLockClassSetNonBlocking(self) result(success)
-    !!{
+    !!{RST
     Get a lock on an OpenMP null lock objects.
     !!}
     implicit none
@@ -276,7 +276,7 @@ contains
   end function ompLockClassSetNonBlocking
 
   subroutine ompLockClassUnset(self)
-    !!{
+    !!{RST
     Release a lock on an OpenMP null lock objects.
     !!}
     implicit none
@@ -287,7 +287,7 @@ contains
   end subroutine ompLockClassUnset
   
   function ompLockConstructor() result (self)
-    !!{
+    !!{RST
     Constructor for OpenMP lock objects.
     !!}
     implicit none
@@ -296,8 +296,10 @@ contains
 
     !$ allocate(self%lock)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_    => self%lock
     !$ self%lockManager =  resourceManager(dummyPointer_)
@@ -309,7 +311,7 @@ contains
   end function ompLockConstructor
 
   subroutine ompLockDestructor(self)
-    !!{
+    !!{RST
     Destructor for OpenMP lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
@@ -324,7 +326,7 @@ contains
   end subroutine ompLockDestructor
 
   subroutine ompLockInitialize(self)
-    !!{
+    !!{RST
     (Re)initialize an OpenMP lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
@@ -338,7 +340,7 @@ contains
   end subroutine ompLockInitialize
 
   subroutine ompLockSet(self)
-    !!{
+    !!{RST
     Get a lock on an OpenMP lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Set_Lock
@@ -357,7 +359,7 @@ contains
   end subroutine ompLockSet
 
   logical function ompLockSetNonBlocking(self) result(success)
-    !!{
+    !!{RST
     Attempt to get a lock on an OpenMP lock object, returning false if this fails without blocking.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Test_Lock
@@ -376,7 +378,7 @@ contains
   end function ompLockSetNonBlocking
 
   subroutine ompLockUnset(self)
-    !!{
+    !!{RST
     Release a lock on an OpenMP lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock
@@ -389,7 +391,7 @@ contains
   end subroutine ompLockUnset
 
   logical function ompLockOwnedByThread(self)
-    !!{
+    !!{RST
     Return true if the lock is owned by the current thread.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
@@ -402,8 +404,8 @@ contains
   end function ompLockOwnedByThread
 
   subroutine ompLockAssign(to,from)
-    !!{
-    Assignment operator for the \mono{ompLock} class.
+    !!{RST
+    Assignment operator for the ``ompLock`` class.
     !!}
     implicit none
     class(ompLock), intent(  out) :: to
@@ -416,7 +418,7 @@ contains
   end subroutine ompLockAssign
   
   function ompReadWriteLockConstructor() result (self)
-    !!{
+    !!{RST
     Constructor for OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : omp_get_max_threads
@@ -429,8 +431,10 @@ contains
     !$ allocate(self%locks(0:omp_get_max_threads()-1))
     !$ allocate(self%owns (0:omp_get_max_threads()-1))
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_    => self%lock
     !$ self%lockManager =  resourceManager(dummyPointer_,threadSafe=.true.)
@@ -442,7 +446,7 @@ contains
   end function ompReadWriteLockConstructor
 
   subroutine ompReadWriteLockDestructor(self)
-    !!{
+    !!{RST
     Destructor for OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
@@ -465,8 +469,8 @@ contains
   end subroutine ompReadWriteLockDestructor
 
   subroutine ompReadWriteLockAssign(to,from)
-    !!{
-    Assignment operator for the \mono{ompReadWriteLock} class.
+    !!{RST
+    Assignment operator for the ``ompReadWriteLock`` class.
     !!}
     implicit none
     class(ompReadWriteLock), intent(  out) :: to
@@ -484,7 +488,7 @@ contains
   end subroutine ompReadWriteLockAssign
   
   subroutine ompReadWriteLockInitialize(self)
-    !!{
+    !!{RST
     (Re)initialize an OpenMP read/write lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
@@ -501,7 +505,7 @@ contains
   end subroutine ompReadWriteLockInitialize
 
   subroutine ompReadWriteLockSetRead(self)
-    !!{
+    !!{RST
     Get a read lock on an OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock, omp_get_thread_num
@@ -514,7 +518,7 @@ contains
   end subroutine ompReadWriteLockSetRead
 
   subroutine ompReadWriteLockUnsetRead(self)
-    !!{
+    !!{RST
     Release a read lock on an OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock, omp_get_thread_num
@@ -527,7 +531,7 @@ contains
   end subroutine ompReadWriteLockUnsetRead
 
   subroutine ompReadWriteLockSetWrite(self,haveReadLock)
-    !!{
+    !!{RST
     Get a write lock on an OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock, omp_get_thread_num
@@ -551,7 +555,7 @@ contains
   end subroutine ompReadWriteLockSetWrite
 
   subroutine ompReadWriteLockUnsetWrite(self,haveReadLock)
-    !!{
+    !!{RST
     Release a write lock on an OpenMP read/write lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock, omp_get_thread_num
@@ -573,7 +577,7 @@ contains
   end subroutine ompReadWriteLockUnsetWrite
 
   logical function ompReadWriteLockOwned(self)
-    !!{
+    !!{RST
     Return true if the current thread owns this lock.
     !!}
     !$ use :: OMP_Lib, only : omp_get_thread_num
@@ -586,7 +590,7 @@ contains
   end function ompReadWriteLockOwned
   
   function ompIncrementalLockConstructor() result (self)
-    !!{
+    !!{RST
     Constructor for OpenMP incremental lock objects.
     !!}
     implicit none
@@ -595,8 +599,10 @@ contains
 
     !$ allocate(self%lock)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     !$ dummyPointer_    => self%lock
     !$ self%lockManager =  resourceManager(dummyPointer_)
@@ -608,7 +614,7 @@ contains
   end function ompIncrementalLockConstructor
 
   subroutine ompIncrementalLockDestructor(self)
-    !!{
+    !!{RST
     Destructor for OpenMP incremental lock objects.
     !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
@@ -623,8 +629,8 @@ contains
   end subroutine ompIncrementalLockDestructor
 
   subroutine ompIncrementalLockAssign(to,from)
-    !!{
-    Assignment operator for the \mono{ompIncrementalLock} class.
+    !!{RST
+    Assignment operator for the ``ompIncrementalLock`` class.
     !!}
     implicit none
     class(ompIncrementalLock), intent(  out) :: to
@@ -637,7 +643,7 @@ contains
   end subroutine ompIncrementalLockAssign
   
   subroutine ompIncrementalLockInitialize(self)
-    !!{
+    !!{RST
     (Re)initialize an OpenMP incremental lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
@@ -651,7 +657,7 @@ contains
   end subroutine ompIncrementalLockInitialize
 
   subroutine ompIncrementalLockSet(self,lockValue)
-    !!{
+    !!{RST
     Get a lock on an OpenMP incremental lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock
@@ -670,7 +676,7 @@ contains
   end subroutine ompIncrementalLockSet
 
   subroutine ompIncrementalLockUnset(self)
-    !!{
+    !!{RST
     Release a lock on an OpenMP incremental lock object.
     !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock
@@ -682,8 +688,8 @@ contains
   end subroutine ompIncrementalLockUnset
 
   function mutexConstructor(recursiveLock) result(self)
-    !!{
-    Construct a \refClass{mutex} object.
+    !!{RST
+    Construct a ``mutex`` object.
     !!}
     implicit none
     type   (mutex)                          :: self
@@ -701,8 +707,8 @@ contains
   end function mutexConstructor
 
   subroutine mutexDestructor(self)
-    !!{
-    Destroy a \refClass{mutex} object.
+    !!{RST
+    Destroy a ``mutex`` object.
     !!}
     implicit none
     type   (mutex), intent(inout) :: self
@@ -722,8 +728,8 @@ contains
   end subroutine mutexDestructor
 
   subroutine mutexAssign(self,from)
-    !!{
-    Assign a \refClass{mutex} object.
+    !!{RST
+    Assign a ``mutex`` object.
     !!}
     implicit none
     class(mutex), intent(  out) :: self
@@ -737,7 +743,7 @@ contains
   end subroutine mutexAssign
 
   subroutine mutexSet(self)
-    !!{
+    !!{RST
     Set a mutex lock.
     !!}
     implicit none
@@ -750,7 +756,7 @@ contains
   end subroutine mutexSet
   
   subroutine mutexUnset(self)
-    !!{
+    !!{RST
     Unset a mutex lock.
     !!}
     implicit none

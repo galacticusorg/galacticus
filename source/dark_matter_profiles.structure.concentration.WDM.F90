@@ -19,31 +19,28 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
-  An implementation of warm dark matter halo profile concentrations using the
-  \cite{schneider_non-linear_2012} modifier.
+  !!{RST
+  An implementation of warm dark matter halo profile concentrations using the :cite:t:`schneider_non-linear_2012` modifier.
   !!}
 
   use :: Transfer_Functions, only : transferFunctionClass
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDM">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDM" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed by applying the correction factor of
-    \cite{schneider_non-linear_2012}:
-    \begin{equation}
-    c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}}\right]^{-\gamma_2},
-    \end{equation}
-    where $\gamma_1=15$, $\gamma_2=0.3$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer
-    function is suppressed below the CDM transfer function by a factor of 2, and $M_\mathrm{halo}$ is the mass of the dark
-    matter halo, to a CDM concentration algorithm as specified by \mono{[cdmConcentration]}.
+   A dark matter profile concentration class in which the concentration is computed by applying the correction factor of :cite:t:`schneider_non-linear_2012`:
+
+   .. math::
+
+      c_\mathrm{WDM} = c_\mathrm{CDM} \left[ 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}}\right]^{-\gamma_2},
+
+   where :math:`\gamma_1=15`, :math:`\gamma_2=0.3`, :math:`M_\mathrm{1/2}` is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, and :math:`M_\mathrm{halo}` is the mass of the dark matter halo, to a CDM concentration algorithm as specified by ``[cdmConcentration]``.
    </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationWDM
-     !!{
-     A dark matter halo profile concentration class implementing the modifier of
-     \cite{schneider_non-linear_2012}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the modifier of :cite:t:`schneider_non-linear_2012`.
      !!}
      private
      class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration  => null()
@@ -56,9 +53,8 @@
   end type darkMatterProfileConcentrationWDM
 
   interface darkMatterProfileConcentrationWDM
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationWDM} dark matter halo profile concentration
-     class.
+     !!{RST
+     Constructors for the ``darkMatterProfileConcentrationWDM`` dark matter halo profile concentration class.
      !!}
      module procedure wdmConstructorParameters
      module procedure wdmConstructorInternal
@@ -67,8 +63,8 @@
 contains
 
   function wdmConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{wdm} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``wdm`` dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,8 +87,8 @@ contains
   end function wdmConstructorParameters
 
   function wdmConstructorInternal(cdmConcentration,transferFunction_) result(self)
-    !!{
-    Internal constructor for the \gls{wdm} dark matter halo concentration class.
+    !!{RST
+    Internal constructor for the :term:`WDM` dark matter halo concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDM  )                        :: self
@@ -106,8 +102,8 @@ contains
   end function wdmConstructorInternal
 
   subroutine wdmDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationWDM} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the ``darkMatterProfileConcentrationWDM`` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDM), intent(inout) :: self
@@ -120,9 +116,8 @@ contains
   end subroutine wdmDestructor
 
   double precision function wdmConcentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the warm dark matter modifier of :cite:t:`schneider_non-linear_2012`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -145,9 +140,8 @@ contains
   end function wdmConcentration
 
   function wdmDensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of
-    concentration in the warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the warm dark matter modifier of :cite:t:`schneider_non-linear_2012`.
     !!}
     implicit none
     class(virialDensityContrastClass       ), pointer       :: wdmDensityContrastDefinition
@@ -158,9 +152,8 @@ contains
   end function wdmDensityContrastDefinition
 
   function wdmDarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the warm dark matter modifier of :cite:t:`schneider_non-linear_2012`.
     !!}
     implicit none
     class(darkMatterProfileDMOClass        ), pointer       :: wdmDarkMatterProfileDefinition

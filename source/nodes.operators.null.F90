@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null node operator class.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorNull">
-   <description>A null (no-op) node operator class that performs no operations on nodes, serving as a default or placeholder when no physical processes need to be applied by a node operator.</description>
+  <nodeOperator name="nodeOperatorNull" docformat="rst">
+   <description>
+   A null (no-op) node operator class that performs no operations on nodes, serving as a default or placeholder when no physical processes need to be applied by a node operator.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNull
-     !!{
+     !!{RST
      A null node operator class.
      !!}
      private
@@ -35,8 +37,8 @@ Implements a null node operator class.
   end type nodeOperatorNull
 
   interface nodeOperatorNull
-     !!{
-     Constructors for the \refClass{nodeOperatorNull} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorNull`` node operator class.
      !!}
      module procedure nullConstructorParameters
   end interface nodeOperatorNull
@@ -44,8 +46,8 @@ Implements a null node operator class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNull} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorNull`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements timers.
 !!}
 
 module Timers
-  !!{
+  !!{RST
   Implements timers.
   !!}
   implicit none
@@ -30,7 +30,7 @@ module Timers
   public :: timer
 
   type :: timer
-     !!{
+     !!{RST
      Type used to perform timing.
      !!}
      double precision :: timeStart, timeStop
@@ -50,8 +50,8 @@ module Timers
   end type timer
 
   interface timer
-     !!{
-     Constructors for the \mono{timer} class.
+     !!{RST
+     Constructors for the ``timer`` class.
      !!}
      module procedure timerConstructorInternal
   end interface timer
@@ -59,8 +59,8 @@ module Timers
 contains
 
   function timerConstructorInternal() result(self)
-    !!{
-    Constructor for the \mono{timer} class.
+    !!{RST
+    Constructor for the ``timer`` class.
     !!}
     type(timer) :: self
 
@@ -70,7 +70,7 @@ contains
   end function timerConstructorInternal
 
   subroutine timerStart(self)
-    !!{
+    !!{RST
     Start the timer.
     !!}
     use :: OMP_Lib, only : OMP_Get_wTime
@@ -82,7 +82,7 @@ contains
   end subroutine timerStart
   
   subroutine timerStop(self)
-    !!{
+    !!{RST
     Stop the timer.
     !!}
     use :: OMP_Lib, only : OMP_Get_wTime
@@ -94,7 +94,7 @@ contains
   end subroutine timerStop
 
   double precision function timerReport(self)
-    !!{
+    !!{RST
     Report the time recorded by the time as a double precision value.
     !!}
     implicit none
@@ -106,7 +106,7 @@ contains
   end function timerReport
   
   function timerReportText(self)
-    !!{
+    !!{RST
     Report the time recorded by the time as a text value.
     !!}
     use :: Numerical_Constants_Prefixes, only : siFormat

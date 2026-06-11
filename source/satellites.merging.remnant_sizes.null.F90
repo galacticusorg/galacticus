@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger remnant size class which takes no action.
   !!}
 
   !![
-  <mergerRemnantSize name="mergerRemnantSizeNull">
+  <mergerRemnantSize name="mergerRemnantSizeNull" docformat="rst">
    <description>
-    A merger remnant size class which does nothing at all. It is useful, for example, when running \glc\ to study dark matter
-    only (i.e. when no galaxy properties are computed).
+   A merger remnant size class which does nothing at all. It is useful, for example, when running Galacticus to study dark matter only (i.e. when no galaxy properties are computed).
    </description>
   </mergerRemnantSize>
   !!]
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeNull
-     !!{
+     !!{RST
      A merger remnant size class which uses takes no action.
      !!}
      private
@@ -39,8 +38,8 @@
   end type mergerRemnantSizeNull
 
   interface mergerRemnantSizeNull
-     !!{
-     Constructors for the \refClass{mergerRemnantSizeNull} merger remnant size class.
+     !!{RST
+     Constructors for the ``mergerRemnantSizeNull`` merger remnant size class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerRemnantSizeNull
@@ -48,8 +47,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerRemnantSizeNull} merger remnant size class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``mergerRemnantSizeNull`` merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +63,8 @@ contains
   end function nullConstructorParameters
 
   subroutine nullGet(self,node,radius,velocityCircular,angularMomentumSpecific)
-    !!{
-    Do not compute the size of the merger remnant for \mono{node}.
+    !!{RST
+    Do not compute the size of the merger remnant for ``node``.
     !!}
     implicit none
     class           (mergerRemnantSizeNull), intent(inout) :: self

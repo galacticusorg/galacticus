@@ -196,6 +196,9 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
         </xs:restriction>
        </xs:simpleType>
       </xs:attribute>
+      <!-- docformat="rst" marks the description as reStructuredText, rendered
+           on ReadTheDocs (see scripts/doc/extractDocsRST.py). -->
+      <xs:attribute name="docformat" use="optional"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

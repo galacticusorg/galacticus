@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an stellar feedback model which scales with peak halo velocity.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsVlctyMxSclng">
-   <description>A stellar feedback outflow model in which the mass outflow rate scales as a power law in the \emph{peak} (maximum) circular velocity of the dark matter halo profile and the cosmological expansion factor, providing stronger feedback in lower-mass halos with lower peak velocities.</description>
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsVlctyMxSclng" docformat="rst">
+   <description>
+   A stellar feedback outflow model in which the mass outflow rate scales as a power law in the *peak* (maximum) circular velocity of the dark matter halo profile and the cosmological expansion factor, providing stronger feedback in lower-mass halos with lower peak velocities.
+   </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsVlctyMxSclng
-     !!{
+     !!{RST
      Implementation of an stellar feedback model which scales with peak halo velocity.
      !!}
      private
@@ -48,7 +50,7 @@
   end type stellarFeedbackOutflowsVlctyMxSclng
 
   interface stellarFeedbackOutflowsVlctyMxSclng
-     !!{
+     !!{RST
      Constructors for the velocity maximum scaling fraction stellar feedback class.
      !!}
      module procedure vlctyMxSclngConstructorParameters
@@ -58,9 +60,8 @@
 contains
 
   function vlctyMxSclngConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the velocity maximum scaling fraction stellar feedback class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the velocity maximum scaling fraction stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -72,23 +73,29 @@ contains
     class           (darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fraction</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>The normalization $f$ of the outflow rate relative to the star formation rate, evaluated at the reference peak circular velocity of 200 km/s and expansion factor of 1, setting the overall amplitude of the feedback-driven outflow.</description>
+      <description>
+      The normalization :math:`f` of the outflow rate relative to the star formation rate, evaluated at the reference peak circular velocity of 200 km/s and expansion factor of 1, setting the overall amplitude of the feedback-driven outflow.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <source>parameters</source>
       <defaultValue>-2.0d0</defaultValue>
-      <description>The exponent of virial velocity in the outflow rate in disks.</description>
+      <description>
+      The exponent of virial velocity in the outflow rate in disks.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The power-law exponent of the cosmological expansion factor in the peak-velocity-scaling outflow rate, controlling the redshift evolution of the mass-loading factor; a value of zero gives no redshift evolution.</description>
+      <description>
+      The power-law exponent of the cosmological expansion factor in the peak-velocity-scaling outflow rate, controlling the redshift evolution of the mass-loading factor; a value of zero gives no redshift evolution.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -103,7 +110,7 @@ contains
   end function vlctyMxSclngConstructorParameters
 
   function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the halo scaling stellar feedback class.
     !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
@@ -134,7 +141,7 @@ contains
   end function vlctyMxSclngConstructorInternal
 
   subroutine vlctyMxSclngDestructor(self)
-    !!{
+    !!{RST
     Destructor for the velocity maximum scaling stellar feedback class.
     !!}
     implicit none
@@ -148,8 +155,8 @@ contains
   end subroutine vlctyMxSclngDestructor
 
   subroutine vlctyMxSclngOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the given \mono{component}.
+    !!{RST
+    Returns the outflow rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the given ``component``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
   !!}
 
@@ -37,9 +37,11 @@
   end type parameterMaps
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>orderRotation</name>
-   <description>Specifies how to rotate the order of likelihood evaluation by process number.</description>
+   <description>
+   Specifies how to rotate the order of likelihood evaluation by process number.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="none"        />
@@ -49,30 +51,21 @@
   !!]
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods" docformat="rst">
     <description>
-      A posterior sampling likelihood class which combines likelihoods from one or more other \refClass{posteriorSampleLikelihoodClass}
-      classes that are assumed to be independent (i.e. the $\log \mathcal{L}$ of the models are simply summed to find the final
-      likelihood).
-      
-      Since each \refClass{posteriorSampleLikelihoodClass} class may require a different set of parameters a \mono{[parameterMap]} parameter may be specified. If present, the number of \mono{[parameterMap]} parameters must
-      equal the number of \mono{[posteriorSampleLikelihood]} parameters. Each such parameter should give a
-      (space-separated) list of the names of parameters (as defined in the \refClass{modelParameterActive} model parameter class) which should be
-      passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no \mono{[parameterMap]} parameters are given then all parameters are passed to each \refClass{posteriorSampleLikelihoodClass} class.
-      
-      Similarly, a set of \mono{parameterInactiveMap} parameters may be given, to specify which (if any, an empty
-      \mono{value} is permissible) of the inactive parameters specified by \refClass{modelParameterInactive}
-      should be passed to the corresponding \mono{[posteriorSampleLikelihood]}. If no \mono{[parameterInactiveMap]} then no inactive parameters are passed to any of the \mono{[posteriorSampleLikelihood]} classes.
+    A posterior sampling likelihood class which combines likelihoods from one or more other ``posteriorSampleLikelihoodClass`` classes that are assumed to be independent (i.e. the :math:`\log \mathcal{L}` of the models are simply summed to find the final likelihood).
 
-      Optionally, a parameter \mono{[logLikelihoodAccept]} may be specified. Once the likelihood of a chain
-      reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely
-      that it is ``acceptable''.
+    Since each ``posteriorSampleLikelihoodClass`` class may require a different set of parameters a ``[parameterMap]`` parameter may be specified. If present, the number of ``[parameterMap]`` parameters must equal the number of ``[posteriorSampleLikelihood]`` parameters. Each such parameter should give a (space-separated) list of the names of parameters (as defined in the ``modelParameterActive`` model parameter class) which should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterMap]`` parameters are given then all parameters are passed to each ``posteriorSampleLikelihoodClass`` class.
+
+    Similarly, a set of ``parameterInactiveMap`` parameters may be given, to specify which (if any, an empty ``value`` is permissible) of the inactive parameters specified by ``modelParameterInactive`` should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterInactiveMap]`` then no inactive parameters are passed to any of the ``[posteriorSampleLikelihood]`` classes.
+
+    Optionally, a parameter ``[logLikelihoodAccept]`` may be specified. Once the likelihood of a chain reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely that it is "acceptable".
     </description>
    <linkedList type="posteriorSampleLikelihoodList" variable="modelLikelihoods" next="next" object="modelLikelihood_" objectType="posteriorSampleLikelihoodClass"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
      !!}
      private
@@ -88,8 +81,8 @@
   end type posteriorSampleLikelihoodIndependentLikelihoods
 
   interface posteriorSampleLikelihoodIndependentLikelihoods
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
@@ -98,9 +91,8 @@
 contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter                         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters, &
@@ -117,24 +109,30 @@ contains
     type   (varying_string                                 )                              :: parameterMapJoined, orderRotation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>orderRotation</name>
       <source>parameters</source>
       <defaultValue>var_str('none')</defaultValue>
-      <description>The order in which evaluation of likelihoods should be rotated as a function of process number.</description>
+      <description>
+      The order in which evaluation of likelihoods should be rotated as a function of process number.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logLikelihoodAccept</name>
       <variable>self%logLikelihoodAccept</variable>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
+      <description>
+      The log-likelihood which should be "accepted"---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>report</name>
       <variable>self%report</variable>
       <defaultValue>.false.</defaultValue>
-      <description>If true, report on the log-likelihood obtained.</description>
+      <description>
+      If true, report on the log-likelihood obtained.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -231,8 +229,8 @@ contains
   end function independentLikelihoodsConstructorParameters
 
   function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report,orderRotation) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
@@ -248,8 +246,8 @@ contains
   end function independentLikelihoodsConstructorInternal
 
   subroutine independentLikelihoodsDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodIndependentLikelihoods} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
@@ -283,7 +281,7 @@ contains
   end subroutine independentLikelihoodsDestructor
 
   double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
     use :: Display                     , only : displayMessage
@@ -411,7 +409,7 @@ contains
   end function independentLikelihoodsEvaluate
 
   subroutine independentLikelihoodsFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

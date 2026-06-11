@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class to describe radiation fields.
 !!}
 
 module Radiation_Fields
-  !!{
+  !!{RST
   Implements a class to describe radiation fields.
   !!}
   use :: Galacticus_Nodes       , only : treeNode
@@ -40,7 +40,7 @@ module Radiation_Fields
   !!]
 
   type :: rateCoefficient
-     !!{
+     !!{RST
      Type used to store tables of rate coefficients.
      !!}
      private
@@ -58,25 +58,26 @@ module Radiation_Fields
   end type rateCoefficient
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>radiationField</name>
    <descriptiveName>Radiation Fields</descriptiveName>
-   <description>Class providing radiation fields---the specific intensity (flux per unit frequency per steradian,
-    in units of ergs~cm$^{-2}$~s$^{-1}$~Hz$^{-1}$~ster$^{-1}$) of a radiation background as a function of
-    wavelength and cosmic time. Radiation fields are used to compute photoionization and photodissociation
-    rates in the \gls{igm} and \gls{cgm} by integrating the flux weighted by relevant cross-sections over
-    wavelength. Implementations include the cosmic microwave background, ultraviolet and X-ray ionizing
-    backgrounds, and stellar radiation fields.</description>
+   <description>
+   Class providing radiation fields---the specific intensity (flux per unit frequency per steradian, in units of ergs cm\ :math:`^{-2}` s\ :math:`^{-1}` Hz\ :math:`^{-1}` ster\ :math:`^{-1}`) of a radiation background as a function of wavelength and cosmic time. Radiation fields are used to compute photoionization and photodissociation rates in the :term:`IGM` and :term:`CGM` by integrating the flux weighted by relevant cross-sections over wavelength. Implementations include the cosmic microwave background, ultraviolet and X-ray ionizing backgrounds, and stellar radiation fields.
+   </description>
    <default>null</default>
    <method name="flux">
-    <description>Return the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
+    <description>
+    Return the flux (in units of ergs cm\ :math:`^{-2}` s\ :math:`^{-1}` Hz\ :math:`^{-1}` ster\ :math:`^{-1}`) of the given radiation field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: wavelength</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="integrateOverCrossSection">
-    <description>Integrates the flux (in units of ergs cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between the wavelengths given in \mono{wavelengthRange} over a cross section specified by the function \mono{crossSectionFunction}.</description>
+    <description>
+    Integrates the flux (in units of ergs cm\ :math:`^{-2}` s\ :math:`^{-1}` Hz\ :math:`^{-1}` ster\ :math:`^{-1}`) of the given radiation structure between the wavelengths given in ``wavelengthRange`` over a cross section specified by the function ``crossSectionFunction``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                              , dimension(2), intent(in   ) :: wavelengthRange</argument>
@@ -87,18 +88,24 @@ module Radiation_Fields
     </code>
    </method>
    <method name="time">
-     <description>Return the time for which the radiation field is currently set.</description>
+     <description>
+     Return the time for which the radiation field is currently set.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
    </method>
    <method name="timeSet">
-     <description>Set the cosmic time (in Gyr) at which the radiation field properties---such as the CMB temperature or the UV background intensity---should be evaluated for subsequent flux queries.</description>
+     <description>
+     Set the cosmic time (in Gyr) at which the radiation field properties---such as the CMB temperature or the UV background intensity---should be evaluated for subsequent flux queries.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="timeDependentOnly">
-     <description>Return true if the radiation field depends upon time, but upon no other variables.</description>
+     <description>
+     Return true if the radiation field depends upon time, but upon no other variables.
+     </description>
      <type>logical</type>
      <pass>yes</pass>
    </method>
@@ -121,13 +128,14 @@ module Radiation_Fields
 contains
 
   double precision function radiationFieldIntegrateOverCrossSection_(self,wavelengthRange,crossSectionFunction,node)
-    !!{
-    Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
-    section in units of cm$^2$), i.e.:
-    \begin{equation}
-    {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
-    \end{equation}
-    where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
+    !!{RST
+    Integrate the photon number of the radiation field over a given cross-section function (which should return the cross section in units of cm\ :math:`^2`), i.e.:
+
+    .. math::
+
+       {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
+
+    where :math:`j_{\nu}` is the flux of energy per unit area per unit solid angle and per unit frequency.
     !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant
@@ -242,7 +250,7 @@ contains
   end function radiationFieldIntegrateOverCrossSection_
 
   double precision function crossSectionIntegrand(wavelength)
-    !!{
+    !!{RST
     Integrand function use in integrating a radiation field over a cross section function.
     !!}
     double precision, intent(in   ) :: wavelength
@@ -258,7 +266,7 @@ contains
   end function crossSectionIntegrand
 
   subroutine rateCoefficientInterpolatorDeepCopy(self)
-    !!{
+    !!{RST
     Perform deep copy actions on the interpolator.
     !!}
     implicit none

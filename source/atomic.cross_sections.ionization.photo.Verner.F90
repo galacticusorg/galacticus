@@ -17,25 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an atomic photoionization cross section class based on
-  (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}\mono{phfit2.f}) written by
-  \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
+  !!{RST
+  Implementation of an atomic photoionization cross section class based on (`phfit2.f <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_) written by `D. A. Verner <mailto:verner@pa.uky.edu>`_ (Version 2. March 25, 1996).
   !!}
 
   !![
-  <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner">
+  <atomicCrossSectionIonizationPhoto name="atomicCrossSectionIonizationPhotoVerner" docformat="rst">
    <description>
-   An atomic photoionization cross section class based on (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}{\mono{phfit2.f}})
-   written by \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
+   An atomic photoionization cross section class based on (`phfit2.f &lt;https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f&gt;`_) written by `D. A. Verner &lt;mailto:verner@pa.uky.edu&gt;`_ (Version 2. March 25, 1996).
    </description>
   </atomicCrossSectionIonizationPhoto>
   !!]
   type, extends(atomicCrossSectionIonizationPhotoClass) :: atomicCrossSectionIonizationPhotoVerner
-     !!{
-     Implementation of an atomic photoionization cross section class based on
-     (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}\mono{phfit2.f}) written by
-     \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
+     !!{RST
+     Implementation of an atomic photoionization cross section class based on (`phfit2.f <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_) written by `D. A. Verner <mailto:verner@pa.uky.edu>`_ (Version 2. March 25, 1996).
      !!}
      private
    contains
@@ -43,8 +38,8 @@
   end type atomicCrossSectionIonizationPhotoVerner
 
   interface atomicCrossSectionIonizationPhotoVerner
-     !!{
-     Constructors for the \refClass{atomicCrossSectionIonizationPhotoVerner} atomic photoionization cross-section class.
+     !!{RST
+     Constructors for the ``atomicCrossSectionIonizationPhotoVerner`` atomic photoionization cross-section class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicCrossSectionIonizationPhotoVerner
@@ -1946,8 +1941,8 @@
 contains
 
   function vernerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicCrossSectionIonizationPhotoVerner} atomic photoionization cross-section class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``atomicCrossSectionIonizationPhotoVerner`` atomic photoionization cross-section class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -1962,18 +1957,13 @@ contains
   end function vernerConstructorParameters
 
   double precision function vernerCrossSection(self,atomicNumber,ionizationState,shellNumber,wavelength)
-    !!{
-    Computes the cross section for photo-ionization (in units of cm$^2$) at the specified \mono{wavelength} for all ionization stages of all atoms from H to Zn
-    ($Z=30$) by use of the following fit parameters:
-    \begin{itemize}
-    \item Outer shells of the Opacity Project (OP) elements: \cite{verner_atomic_1996_1}
-    \item Inner shells of all elements, and outer shells of the non-OP elements: \cite{verner_analytic_1995}
-    \end{itemize}
-    Original version (\href{https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f}\mono{phfit2.f}) written by
-    \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
-    Inner-shell ionization energies of some low-ionized species are slightly
-    improved to fit smoothly the experimental inner-shell ionization energies
-    of neutral atoms.
+    !!{RST
+    Computes the cross section for photo-ionization (in units of cm\ :math:`^2`) at the specified ``wavelength`` for all ionization stages of all atoms from H to Zn (:math:`Z=30`) by use of the following fit parameters:
+
+    * Outer shells of the Opacity Project (OP) elements: :cite:t:`verner_atomic_1996_1`
+    * Inner shells of all elements, and outer shells of the non-OP elements: :cite:t:`verner_analytic_1995`
+
+    Original version (`phfit2.f <https://web.archive.org/web/20220313133758/https://www.pa.uky.edu/~verner/dima/rec/rrfit.f>`_) written by `D. A. Verner <mailto:verner@pa.uky.edu>`_ (Version 2. March 25, 1996). Inner-shell ionization energies of some low-ionized species are slightly improved to fit smoothly the experimental inner-shell ionization energies of neutral atoms.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
     use :: Numerical_Constants_Prefixes, only : centi            , mega

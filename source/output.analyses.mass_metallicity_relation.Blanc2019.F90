@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
+  !!{RST
+  Implements a gas-phase mass-metallicity relation analysis class using the observational results of :cite:t:`blanc_characteristic_2019`.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisMassMetallicityBlanc2019">
-   <description>Computes the gas-phase stellar mass--metallicity relation for comparison with the \cite{blanc_characteristic_2019} observational data, with stellar mass and metallicity random/systematic error polynomial coefficients and a gas fraction threshold for sample selection.</description>
+  <outputAnalysis name="outputAnalysisMassMetallicityBlanc2019" docformat="rst">
+   <description>
+   Computes the gas-phase stellar mass--metallicity relation for comparison with the :cite:t:`blanc_characteristic_2019` observational data, with stellar mass and metallicity random/systematic error polynomial coefficients and a gas fraction threshold for sample selection.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2019
-     !!{
-     A gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
+     !!{RST
+     A gas-phase mass-metallicity relation analysis class using the observational results of :cite:t:`blanc_characteristic_2019`.
      !!}
      private
     double precision                                           , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient, &
@@ -44,8 +46,8 @@
  end type outputAnalysisMassMetallicityBlanc2019
 
   interface outputAnalysisMassMetallicityBlanc2019
-     !!{
-     Constructors for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class.
      !!}
      module procedure massMetallicityBlanc2019ConstructorParameters
      module procedure massMetallicityBlanc2019ConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function massMetallicityBlanc2019ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                       , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters                          , only : inputParameter                 , inputParameters
@@ -80,46 +82,58 @@ contains
     allocate(           systematicErrorPolynomialCoefficient(max(1,parameters%count(           'systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(               randomErrorPolynomialCoefficient(max(1,parameters%count(               'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>metallicitySystematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>metallicitySystematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the metallicity systematic error polynomial.</description>
+      <description>
+      The coefficients of the metallicity systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The maximum random error for stellar masses.</description>
+      <description>
+      The maximum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionGasThreshold</name>
       <source>parameters</source>
       <defaultValue>0.05d0</defaultValue>
-      <description>The minimum gas fraction to include in the sample.</description>
+      <description>
+      The minimum gas fraction to include in the sample.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"/>
@@ -141,8 +155,8 @@ contains
   end function massMetallicityBlanc2019ConstructorParameters
 
   function massMetallicityBlanc2019ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class for internal use.
     !!}
     use :: Abundances_Structure                      , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                               , only : Atomic_Mass
@@ -476,8 +490,8 @@ contains
   end function massMetallicityBlanc2019ConstructorInternal
 
   subroutine massMetallicityBlanc2019Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassMetallicityBlanc2019} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassMetallicityBlanc2019), intent(inout) :: self

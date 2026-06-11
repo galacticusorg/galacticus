@@ -17,37 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements on-the-fly analyses.
 !!}
 
 module Output_Analysis_Molecular_Ratios
-  !!{
+  !!{RST
   Provides a class that implements operators on properties for on-the-fly analyses.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>outputAnalysisMolecularRatio</name>
    <descriptiveName>Output Analysis Molecular Ratio</descriptiveName>
-   <description>Class providing models of the H$_2$-to-H\textsc{i} molecular ratio $R_\mathrm{mol} = M_{\mathrm{H}_2}/M_{\mathrm{H\,I}}$
-    for on-the-fly output analysis---the fraction of cold interstellar gas in molecular form, which
-    governs the H$_2$ mass function and the molecular gas content of galaxies. Methods return both the
-    mean ratio (as a function of ISM mass and galaxy properties) and its logarithmic scatter, allowing
-    the molecular gas distribution to be convolved with the total ISM mass distribution when predicting
-    H\textsc{i} and H$_2$ mass functions.</description>
+   <description>
+   Class providing models of the H\ :math:`_2`-to-H**i** molecular ratio :math:`R_\mathrm{mol} = M_{\mathrm{H}_2}/M_{\mathrm{H\,I}}` for on-the-fly output analysis---the fraction of cold interstellar gas in molecular form, which governs the H\ :math:`_2` mass function and the molecular gas content of galaxies. Methods return both the mean ratio (as a function of ISM mass and galaxy properties) and its logarithmic scatter, allowing the molecular gas distribution to be convolved with the total ISM mass distribution when predicting H**i** and H\ :math:`_2` mass functions.
+   </description>
    <default>obreschkow2009</default>
    <method name="ratio" >
-    <description>Return the molecular ratio, $R_\mathrm{mol}=M_\mathrm{H_2}/M_\mathrm{HI}$.</description>
+    <description>
+    Return the molecular ratio, :math:`R_\mathrm{mol}=M_\mathrm{H_2}/M_\mathrm{HI}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: massISM</argument>
     <argument>type            (treeNode), intent(inout) :: node</argument>
    </method>
    <method name="ratioScatter" >
-    <description>Return the scatter in logarithmic molecular ratio, $\log_{10}R_\mathrm{mol}=\log_{10}(M_\mathrm{H_2}/M_\mathrm{HI})$.</description>
+    <description>
+    Return the scatter in logarithmic molecular ratio, :math:`\log_{10}R_\mathrm{mol}=\log_{10}(M_\mathrm{H_2}/M_\mathrm{HI})`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: massISM</argument>

@@ -17,41 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
-  over the parameters in the form of a set of MCMC chains.
+  !!{RST
+  Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.
   !!}
 
   use :: Nearest_Neighbors, only : nearestNeighbors
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior" docformat="rst">
    <description>
-    The likelihood is computed either using another likelihood function (the ``wrapped'' likelihood), while including in the
-    likelihood an estimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous
-    simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow
-    subparameters:
-    \begin{description}
-    \item[\mono{chainBaseName}] The base name for the old set of MCMC chains to use as the new prior;
-    \item[\mono{neighborCount}] The number of neighbor points to use in kernel density estimation of the posterior probability;
-    \item[\mono{tolerance}] Tolerance used in finding nearest neighbors;
-    \item[\mono{wrappedLikelihood}] Contains another likelihood function definition which will be used to provide the current likelihood.
-    \end{description}
-    
-    This method uses the \gls{ann} library to locate \mono{neighborCount} nearest neighbor points in the set of
-    converged states found in the given chains. The \mono{tolerance} element determines the accuracy of nearest
-    neighbor finding (see the \gls{ann} documentation for details).When finding nearest neighbors in the MCMC chains, parameters are
-    mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest
-    neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC
-    chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to
-    the distance to the furthest of the nearest neighbors.
+   The likelihood is computed either using another likelihood function (the "wrapped" likelihood), while including in the likelihood an estimate of the posterior probability of a previous simulation. This effectively allows the posterior of the previous simulation to be used as a prior on the current simulation. The details of the likelihood are specified by the follow subparameters:
+
+   ``chainBaseName``
+      The base name for the old set of MCMC chains to use as the new prior;
+
+   ``neighborCount``
+      The number of neighbor points to use in kernel density estimation of the posterior probability;
+
+   ``tolerance``
+      Tolerance used in finding nearest neighbors;
+
+   ``wrappedLikelihood``
+      Contains another likelihood function definition which will be used to provide the current likelihood.
+
+   This method uses the :term:`Approximate Nearest Neighbor` library to locate ``neighborCount`` nearest neighbor points in the set of converged states found in the given chains. The ``tolerance`` element determines the accuracy of nearest neighbor finding (see the :term:`Approximate Nearest Neighbor` documentation for details).When finding nearest neighbors in the MCMC chains, parameters are mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to the distance to the furthest of the nearest neighbors.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
-     !!{
-     Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
-     over the parameters in the form of a set of MCMC chains.
+     !!{RST
+     Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.
      !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
@@ -78,8 +73,8 @@
   end type posteriorSampleLikelihoodPosteriorAsPrior
 
   interface posteriorSampleLikelihoodPosteriorAsPrior
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
      !!}
      module procedure posteriorAsPriorConstructorParameters
      module procedure posteriorAsPriorConstructorInternal
@@ -88,9 +83,8 @@
 contains
 
   function posteriorAsPriorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class which builds the object
-    from a parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,24 +97,32 @@ contains
     double precision                                                                         :: tolerance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>chainBaseName</name>
-      <description>The base name of the MCMC chain files to read.</description>
+      <description>
+      The base name of the MCMC chain files to read.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>neighborCount</name>
-      <description>The number of nearest neighbors to use when estimating the posterior likelihood.</description>
+      <description>
+      The number of nearest neighbors to use when estimating the posterior likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerance</name>
-      <description>Tolerance to use when estimating the posterior likelihood.</description>
+      <description>
+      Tolerance to use when estimating the posterior likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exclusions</name>
-      <description>List of parameter indices to exclude from the posterior likelihood calculation.</description>
+      <description>
+      List of parameter indices to exclude from the posterior likelihood calculation.
+      </description>
       <defaultValue>[integer :: ]</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -135,8 +137,8 @@ contains
   end function posteriorAsPriorConstructorParameters
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string
@@ -233,8 +235,8 @@ contains
   end function posteriorAsPriorConstructorInternal
 
   subroutine posteriorAsPriorDestructor(self)
-    !!{
-    Destructor for \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood class.
+    !!{RST
+    Destructor for ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
@@ -246,8 +248,8 @@ contains
   end subroutine posteriorAsPriorDestructor
 
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
-    !!{
-    Initialize a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} posterior sampling likelihood object.
+    !!{RST
+    Initialize a ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood object.
     !!}
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
@@ -293,8 +295,8 @@ contains
   end subroutine posteriorAsPriorInitialize
 
   double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
-    Return the log-likelihood for a \refClass{posteriorSampleLikelihoodPosteriorAsPrior} likelihood function.
+    !!{RST
+    Return the log-likelihood for a ``posteriorSampleLikelihoodPosteriorAsPrior`` likelihood function.
     !!}
     use :: Numerical_Constants_Math      , only : Pi
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
@@ -350,7 +352,7 @@ contains
   end function posteriorAsPriorEvaluate
 
   subroutine posteriorAsPriorFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

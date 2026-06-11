@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a supernovae type Ia class in which the yield is independent of progenitor.
   !!}
   
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaFixedYield" abstract="yes">
+  <supernovaeTypeIa name="supernovaeTypeIaFixedYield" abstract="yes" docformat="rst">
    <description>
-    A supernovae type Ia class in which the yield is independent of progenitor.
+   A supernovae type Ia class in which the yield is independent of progenitor.
    </description>
   </supernovaeTypeIa>
   !!]
   type, abstract, extends(supernovaeTypeIaClass) :: supernovaeTypeIaFixedYield
-     !!{
+     !!{RST
      A supernovae type Ia class in which the yield is independent of progenitor.
      !!}
      private
@@ -49,8 +49,8 @@
 contains
 
   subroutine fixedYieldInitialize(self)
-    !!{
-    Read data for the \mono{fixedYield} supernovae type Ia class.
+    !!{RST
+    Read data for the ``fixedYield`` supernovae type Ia class.
     !!}
     use :: Atomic_Data       , only : Atom_Lookup                   , Atomic_Data_Atoms_Count
     use :: FoX_dom           , only : destroy                       , node                             , extractDataContent
@@ -101,12 +101,8 @@ contains
   end subroutine fixedYieldInitialize
 
   double precision function fixedYieldYield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex) result(yield)
-    !!{
-    Compute the cumulative yield from Type Ia supernovae originating per unit interval of secondary star mass with given
-    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. The
-    calculation is based on that of \cite{nagashima_metal_2005} with Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The
-    number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an
-    initial mass function.
+    !!{RST
+    Compute the cumulative yield from Type Ia supernovae originating per unit interval of secondary star mass with given ``initialMass`` and ``metallicity`` after a time ``age``. The calculation is based on that of :cite:t:`nagashima_metal_2005` with Type Ia yields from :cite:t:`nomoto_nucleosynthesis_1997`. The number returned here assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
     !!}
     implicit none
     class           (supernovaeTypeIaFixedYield), intent(inout)           :: self

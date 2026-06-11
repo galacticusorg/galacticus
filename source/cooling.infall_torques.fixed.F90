@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple infall torque calculation in which a fixed fraction of angular momentum is lost during infall.
   !!}
 
   !![
-  <coolingInfallTorque name="coolingInfallTorqueFixed">
+  <coolingInfallTorque name="coolingInfallTorqueFixed" docformat="rst">
    <description>
-    A cooling infall torque class in which a fixed fraction of specific angular momentum is lost from gas as it cools and falls onto the galaxy. The fraction of angular momentum lost during infall is specified by the \mono{[fractionLossAngularMomentum]} parameter.
+   A cooling infall torque class in which a fixed fraction of specific angular momentum is lost from gas as it cools and falls onto the galaxy. The fraction of angular momentum lost during infall is specified by the ``[fractionLossAngularMomentum]`` parameter.
    </description>
   </coolingInfallTorque>
   !!]
   type, extends(coolingInfallTorqueClass) :: coolingInfallTorqueFixed
-     !!{
+     !!{RST
      Implementation of a simple infall torque calculation in which a fixed fraction of angular momentum is lost during infall.
      !!}
      private
@@ -39,7 +39,7 @@
   end type coolingInfallTorqueFixed
 
   interface coolingInfallTorqueFixed
-     !!{
+     !!{RST
      Constructors for the cooling radius infall radii class.
      !!}
      module procedure fixedConstructorParameters
@@ -49,8 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingInfallTorqueFixed} class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``coolingInfallTorqueFixed`` class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,10 +59,12 @@ contains
     double precision                                          :: fractionLossAngularMomentum
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionLossAngularMomentum</name>
       <defaultValue>0.3d0</defaultValue>
-      <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
+      <description>
+      Specifies the fraction of angular momentum that is lost from cooling/infalling gas.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -74,8 +76,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(fractionLossAngularMomentum) result(self)
-    !!{
-    Internal constructor for the \refClass{coolingInfallTorqueFixed} class.
+    !!{RST
+    Internal constructor for the ``coolingInfallTorqueFixed`` class.
     !!}
     implicit none
     type            (coolingInfallTorqueFixed)                :: self
@@ -88,7 +90,7 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedFractionAngularMomentumLoss(self,node) result(fractionAngularMomentumLoss)
-    !!{
+    !!{RST
     Return the fraction of angular momentum lost during infall.
     !!}
     implicit none

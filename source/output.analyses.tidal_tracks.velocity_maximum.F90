@@ -19,20 +19,22 @@
 
   !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !!{
-  Implements an output analysis class that computes subhalo $V_\mathrm{max}$ vs. $M_\mathrm{bound}$ tidal tracks.
+  !!{RST
+  Implements an output analysis class that computes subhalo :math:`V_\mathrm{max}` vs. :math:`M_\mathrm{bound}` tidal tracks.
   !!}
 
   use    :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   !$ use :: Locks                   , only : ompLock
 
   !![
-  <outputAnalysis name="outputAnalysisTidalTracksVelocityMaximum">
-    <description>Computes the subhalo tidal evolution track of $V_\mathrm{max}$ vs. bound mass fraction, fitting the \cite{penarrubia_impact_2010} tidal track functional form with parameters $\mu$ and $\eta$, for comparison with N-body tidal stripping simulations.</description>
+  <outputAnalysis name="outputAnalysisTidalTracksVelocityMaximum" docformat="rst">
+    <description>
+    Computes the subhalo tidal evolution track of :math:`V_\mathrm{max}` vs. bound mass fraction, fitting the :cite:t:`penarrubia_impact_2010` tidal track functional form with parameters :math:`\mu` and :math:`\eta`, for comparison with N-body tidal stripping simulations.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisTidalTracksVelocityMaximum
-     !!{
+     !!{RST
      An output analysis class that computes subhalo mean maximum velocity as a function of mass.
      !!}
      private
@@ -52,8 +54,8 @@
   end type outputAnalysisTidalTracksVelocityMaximum
 
   interface outputAnalysisTidalTracksVelocityMaximum
-     !!{
-     Constructors for the \refClass{outputAnalysisTidalTracksVelocityMaximum} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class.
      !!}
      module procedure tidalTracksVelocityMaximumConstructorParameters
      module procedure tidalTracksVelocityMaximumConstructorInternal
@@ -62,8 +64,8 @@
 contains
 
   function tidalTracksVelocityMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisTidalTracksVelocityMaximum} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,17 +75,21 @@ contains
     double precision                                                          :: mu                   , eta
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu</name>
       <source>parameters</source>
       <defaultValue>0.4d0</defaultValue>
-      <description>The parameter $\mu$ in the \cite{penarrubia_impact_2010} tidal track fitting function.</description>
+      <description>
+      The parameter :math:`\mu` in the :cite:t:`penarrubia_impact_2010` tidal track fitting function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>eta</name>
       <source>parameters</source>
       <defaultValue>0.3d0</defaultValue>
-      <description>The parameter $\eta$ in the \cite{penarrubia_impact_2010} tidal track fitting function.</description>
+      <description>
+      The parameter :math:`\eta` in the :cite:t:`penarrubia_impact_2010` tidal track fitting function.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMOUnheated" source="parameters"   parameterName="darkMatterProfileDMOUnheated"/>
@@ -98,8 +104,8 @@ contains
   end function tidalTracksVelocityMaximumConstructorParameters
   
   function tidalTracksVelocityMaximumConstructorInternal(mu,eta,darkMatterProfileDMO_,darkMatterProfileDMOUnheated) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisTidalTracksVelocityMaximum} output analysis class for internal use.
+    !!{RST
+    Constructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class for internal use.
     !!}
     implicit none
     type            (outputAnalysisTidalTracksVelocityMaximum)                         :: self
@@ -116,8 +122,8 @@ contains
   end function tidalTracksVelocityMaximumConstructorInternal
 
   subroutine tidalTracksVelocityMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisTidalTracksVelocityMaximum} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class.
     !!}
     implicit none
     type(outputAnalysisTidalTracksVelocityMaximum), intent(inout) :: self
@@ -130,7 +136,7 @@ contains
   end subroutine tidalTracksVelocityMaximumDestructor
 
   subroutine tidalTracksVelocityMaximumAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Analyze the maximum velocity tidal track.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentSatellite
@@ -198,7 +204,7 @@ contains
   end subroutine tidalTracksVelocityMaximumAnalyze
 
   subroutine tidalTracksVelocityMaximumReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the maximum velocity tidal track output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -240,7 +246,7 @@ contains
   end subroutine tidalTracksVelocityMaximumReduce
 
   subroutine tidalTracksVelocityMaximumFinalize(self,groupName)
-    !!{
+    !!{RST
     Output results of the maximum velocity tidal track output analysis.
     !!}
 #ifdef USEMPI
@@ -330,7 +336,7 @@ contains
   end subroutine tidalTracksVelocityMaximumFinalize
   
   double precision function tidalTracksVelocityMaximumLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a maximum velocity tidal track output analysis.
     !!}
     implicit none

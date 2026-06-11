@@ -17,20 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body dark matter halo mass error class in which
-errors are a power-law in halo mass.
+!!{RST
+Implements an N-body dark matter halo mass error class in which errors are a power-law in halo mass.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <nbodyHaloMassError name="nbodyHaloMassErrorPowerLaw">
-   <description>An N-body dark matter halo mass error class in which the fractional mass uncertainty is modeled as a power-law function of halo mass, useful for parameterizing simulation resolution effects. The model is characterized by the normalization parameters $\sigma_{12}$ and $\sigma_\infty$, and the power-law exponent with respect to mass. Optionally, correlations between mass errors of pairs of halos may be modeled as a power-law in the ratio of halo masses and expansion factors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$. If this option is disabled (the default), a trivial correlation model is used in which the correlation is unity for halos with identical mass and time, and zero otherwise.</description>
+  <nbodyHaloMassError name="nbodyHaloMassErrorPowerLaw" docformat="rst">
+   <description>
+   An N-body dark matter halo mass error class in which the fractional mass uncertainty is modeled as a power-law function of halo mass, useful for parameterizing simulation resolution effects. The model is characterized by the normalization parameters :math:`\sigma_{12}` and :math:`\sigma_\infty`, and the power-law exponent with respect to mass. Optionally, correlations between mass errors of pairs of halos may be modeled as a power-law in the ratio of halo masses and expansion factors: :math:`C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta`. If this option is disabled (the default), a trivial correlation model is used in which the correlation is unity for halos with identical mass and time, and zero otherwise.
+   </description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorPowerLaw
-     !!{
+     !!{RST
      An N-body halo mass error class in which errors are a power-law in halo mass.
      !!}
      private
@@ -47,8 +48,8 @@ errors are a power-law in halo mass.
   end type nbodyHaloMassErrorPowerLaw
 
   interface nbodyHaloMassErrorPowerLaw
-     !!{
-     Constructors for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
+     !!{RST
+     Constructors for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorPowerLawConstructorParameters
      module procedure nbodyHaloMassErrorPowerLawConstructorInternal
@@ -60,8 +61,8 @@ errors are a power-law in halo mass.
 contains
 
   function nbodyHaloMassErrorPowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,56 +76,69 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
-      <description>Parameter $\sigma_{12}$ appearing in model for random errors in the halo mass function.</description>
+      <description>
+      Parameter :math:`\sigma_{12}` appearing in model for random errors in the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionalErrorHighMass</name>
       <source>parameters</source>
-      <description>Parameter $\sigma_\infty$ appearing in model for random errors in the halo mass function.</description>
+      <description>
+      Parameter :math:`\sigma_\infty` appearing in model for random errors in the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <source>parameters</source>
       <description>
-       Parameter $\gamma$ appearing in model for random errors in the halo mass
-       function. Specifically, the fractional error is given by
-       \begin{equation}
-       \sigma(M) = \left[ \sigma^2_{12} \left({M_\mathrm{halo} \over 10^{12}\mathrm{M}_\odot}\right)^{2\gamma} + \sigma^2_\infty \right]^{1/2},
-       \end{equation}
-       where $\sigma_{12}=$\mono{[normalization]}, and $\gamma=$\mono{[exponent]}.
+      Parameter :math:`\gamma` appearing in model for random errors in the halo mass function. Specifically, the fractional error is given by
+
+      .. math::
+
+         \sigma(M) = \left[ \sigma^2_{12} \left({M_\mathrm{halo} \over 10^{12}\mathrm{M}_\odot}\right)^{2\gamma} + \sigma^2_\infty \right]^{1/2},
+
+      where :math:`\sigma_{12}=`\ ``[normalization]``, and :math:`\gamma=`\ ``[exponent]``.
       </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationModelTrivial</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, the correlation between mass errors of pairs of halos is unity for halos with identical mass and time, and zero otherwise. If false, a power-law correlation model in mass ratio and expansion factor ratio is used instead.</description>
+      <description>
+      If true, the correlation between mass errors of pairs of halos is unity for halos with identical mass and time, and zero otherwise. If false, a power-law correlation model in mass ratio and expansion factor ratio is used instead.
+      </description>
     </inputParameter>
     !!]
     if (correlationModelTrivial) then
        self=nbodyHaloMassErrorPowerLaw(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>correlationNormalization</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>Variable $C_0$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+         <description>
+         Variable :math:`C_0` in the model for the correlation between halo mass errors: :math:`C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta`.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>correlationMassExponent</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>Variable $\alpha$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+         <description>
+         Variable :math:`\alpha` in the model for the correlation between halo mass errors: :math:`C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta`.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>correlationRedshiftExponent</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+         <description>
+         Variable :math:`\beta` in the model for the correlation between halo mass errors: :math:`C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta`.
+         </description>
        </inputParameter>
        <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
        !!]
@@ -140,8 +154,8 @@ contains
   end function nbodyHaloMassErrorPowerLawConstructorParameters
 
   function nbodyHaloMassErrorPowerLawConstructorInternal(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
+    !!{RST
+    Internal constructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -180,8 +194,8 @@ contains
   end function nbodyHaloMassErrorPowerLawConstructorInternal
 
   subroutine powerLawDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyHaloMassErrorPowerLaw} N-body halo mass error class.
+    !!{RST
+    Destructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
@@ -193,7 +207,7 @@ contains
   end subroutine powerLawDestructor
 
   double precision function powerLawErrorFractional(self,node)
-    !!{
+    !!{RST
     Return the fractional error on the mass of an N-body halo in the power-law error model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -215,7 +229,7 @@ contains
   end function powerLawErrorFractional
 
   double precision function powerLawCorrelation(self,node1,node2)
-    !!{
+    !!{RST
     Return the correlation of the masses of a pair of N-body halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

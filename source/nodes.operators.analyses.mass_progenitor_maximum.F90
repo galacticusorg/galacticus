@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the maximum progenitor halo mass of a node.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorMassProgenitorMaximum">
+  <nodeOperator name="nodeOperatorMassProgenitorMaximum" docformat="rst">
     <description>
-      A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class to extract those ages for output.
+    A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the ``nodePropertyExtractorMassProgenitorMaximum`` property extractor class to extract those ages for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassProgenitorMaximum
-     !!{
+     !!{RST
      A node operator class that tracks the maximum progenitor halo mass which of a node.
      !!}
      private
@@ -41,8 +40,8 @@
   end type nodeOperatorMassProgenitorMaximum
   
   interface nodeOperatorMassProgenitorMaximum
-     !!{
-     Constructors for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorMassProgenitorMaximum`` node operator class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -51,8 +50,8 @@
 contains
 
   function massProgenitorMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorMassProgenitorMaximum`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,8 +66,8 @@ contains
   end function massProgenitorMaximumConstructorParameters
 
   function massProgenitorMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMassProgenitorMaximum} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorMassProgenitorMaximum`` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassProgenitorMaximum) :: self
@@ -80,7 +79,7 @@ contains
   end function massProgenitorMaximumConstructorInternal
 
   subroutine massProgenitorMaximumNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the maximum progenitor mass of this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -105,7 +104,7 @@ contains
   end subroutine massProgenitorMaximumNodeInitialize
 
   subroutine massProgenitorMaximumNodePromote(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node as a result of node promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

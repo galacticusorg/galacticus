@@ -23,7 +23,7 @@
   use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: cartesian3DBoundaries
-     !!{
+     !!{RST
      Type used to store boundaries of computational domain cells for 3D Cartesian domains.
      !!}
      private
@@ -31,12 +31,14 @@
   end type cartesian3DBoundaries
   
   !![
-  <computationalDomain name="computationalDomainCartesian3D">
-   <description>Defines a computational domain on a three-dimensional Cartesian grid, with cell boundaries along each axis specified by \mono{[xBoundaries]}, \mono{[yBoundaries]}, and \mono{[zBoundaries]}, and the number of cells per dimension by \mono{[countCells]}. Convergence of cell quantities is assessed using a percentile criterion controlled by \mono{[convergencePercentile]} and \mono{[convergenceThreshold]}.</description>
+  <computationalDomain name="computationalDomainCartesian3D" docformat="rst">
+   <description>
+   Defines a computational domain on a three-dimensional Cartesian grid, with cell boundaries along each axis specified by ``[xBoundaries]``, ``[yBoundaries]``, and ``[zBoundaries]``, and the number of cells per dimension by ``[countCells]``. Convergence of cell quantities is assessed using a percentile criterion controlled by ``[convergencePercentile]`` and ``[convergenceThreshold]``.
+   </description>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCartesian3D
-     !!{
+     !!{RST
      Implementation of a computational domain using a 3D Cartesian grid.
      !!}
      private
@@ -68,15 +70,15 @@
   end type computationalDomainCartesian3D
 
   interface computationalDomainCartesian3D
-     !!{
-     Constructors for the \refClass{computationalDomainCartesian3D} computational domain.
+     !!{RST
+     Constructors for the ``computationalDomainCartesian3D`` computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
   end interface computationalDomainCartesian3D
 
   type, extends(domainIterator) :: domainIteratorCartesian3D
-     !!{
+     !!{RST
      An interactor for 3D Cartesian computational domains.
      !!}
      private
@@ -93,8 +95,8 @@
 contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainCartesian3D} computational domain class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainCartesian3D`` computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -110,46 +112,60 @@ contains
          &                                                                 convergenceRatioThreshold
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[x_\mathrm{min}, x_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $x$-axis.</description>
+      <description>
+      A two-element array :math:`[x_\mathrm{min}, x_\mathrm{max}]` specifying the physical extent of the 3D Cartesian computational domain along the :math:`x`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[y_\mathrm{min}, y_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $y$-axis.</description>
+      <description>
+      A two-element array :math:`[y_\mathrm{min}, y_\mathrm{max}]` specifying the physical extent of the 3D Cartesian computational domain along the :math:`y`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zBoundaries</name>
       <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-      <description>A two-element array $[z_\mathrm{min}, z_\mathrm{max}]$ specifying the physical extent of the 3D Cartesian computational domain along the $z$-axis.</description>
+      <description>
+      A two-element array :math:`[z_\mathrm{min}, z_\mathrm{max}]` specifying the physical extent of the 3D Cartesian computational domain along the :math:`z`-axis.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countCells</name>
       <defaultValue>[3_c_size_t,3_c_size_t,3_c_size_t]</defaultValue>
-      <description>A three-element integer array specifying the number of grid cells along the $x$, $y$, and $z$ dimensions of the 3D Cartesian computational domain, controlling the spatial resolution of the radiative transfer calculation.</description>
+      <description>
+      A three-element integer array specifying the number of grid cells along the :math:`x`, :math:`y`, and :math:`z` dimensions of the 3D Cartesian computational domain, controlling the spatial resolution of the radiative transfer calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergencePercentile</name>
       <defaultValue>0.99d0</defaultValue>
-      <description>The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells (those with the smallest deviations) must satisfy the convergence threshold, allowing cells with rare high-flux events to be excluded.</description>
+      <description>
+      The percentile of cells (between 0 and 1) used in assessing convergence; only this fraction of cells (those with the smallest deviations) must satisfy the convergence threshold, allowing cells with rare high-flux events to be excluded.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergenceThreshold</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value, indicating that the radiative transfer solution has stabilized.</description>
+      <description>
+      The threshold value for the convergence measure; the domain is considered converged when the specified percentile of cells has a convergence metric below this value, indicating that the radiative transfer solution has stabilized.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergenceRatioThreshold</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating that the solution is no longer changing significantly between iterations.</description>
+      <description>
+      The threshold for the ratio of the convergence criterion between successive iterations; convergence is accepted when this ratio falls below the threshold, indicating that the solution is no longer changing significantly between iterations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
@@ -168,8 +184,8 @@ contains
   end function cartesian3DConstructorParameters
 
   function cartesian3DConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
-    !!{
-    Constructor for the \refClass{computationalDomainCartesian3D} computational domain class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``computationalDomainCartesian3D`` computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -201,8 +217,8 @@ contains
   end function cartesian3DConstructorInternal
 
   subroutine cartesian3DDestructor(self)
-    !!{
-    Destructor for the \refClass{computationalDomainCartesian3D} computational domain class.
+    !!{RST
+    Destructor for the ``computationalDomainCartesian3D`` computational domain class.
     !!}
     implicit none
     type(computationalDomainCartesian3D), intent(inout) :: self
@@ -215,7 +231,7 @@ contains
   end subroutine cartesian3DDestructor
 
   subroutine cartesian3DInitialize(self)
-    !!{
+    !!{RST
     Initialize the computational domain.
     !!}
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCartesian3D
@@ -306,7 +322,7 @@ contains
   end subroutine cartesian3DInitialize
 
   subroutine cartesian3DIterator(self,iterator)
-    !!{
+    !!{RST
     Construct an iterator for this domain,
     !!}
     implicit none
@@ -331,7 +347,7 @@ contains
   end function domainIteratorCartesian3DNext
   
   subroutine cartesian3DReset(self)
-    !!{
+    !!{RST
     Reset the computational domain prior to a new iteration.
     !!}
     implicit none
@@ -350,7 +366,7 @@ contains
   end subroutine cartesian3DReset
 
   subroutine cartesian3DIndicesFromPosition(self,position,indices)
-    !!{
+    !!{RST
     Determine the indices of the cell containing the given point.
     !!}
     use :: Arrays_Search, only : searchArray
@@ -382,7 +398,7 @@ contains
   end subroutine cartesian3DIndicesFromPosition
 
   double precision function cartesian3DAbsorptionCoefficient(self,photonPacket,indices)
-    !!{
+    !!{RST
     Return the absorption coefficient for the given photon packet in the given domain cell.
     !!}
     implicit none
@@ -402,7 +418,7 @@ contains
   end function cartesian3DAbsorptionCoefficient
   
   double precision function cartesian3DLengthToCellBoundary(self,photonPacket,indices,indicesNeighbor,positionBoundary)
-    !!{
+    !!{RST
     Return the length to the first domain cell boundary intersected by the given photon packet.
     !!}
     implicit none
@@ -466,8 +482,8 @@ contains
   end function cartesian3DLengthToCellBoundary
 
   subroutine cartesian3DAccumulatePhotonPacket(self,photonPacket,indices,absorptionCoefficient,lengthTraversed)
-    !!{
-    Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!{RST
+    Accumulate "absorptions" from the photon packet as it traverses a cell of the computational domain.
     !!}
     implicit none
     class           (computationalDomainCartesian3D    )              , intent(inout) :: self
@@ -489,7 +505,7 @@ contains
   end subroutine cartesian3DAccumulatePhotonPacket
 
   logical function cartesian3DInteractWithPhotonPacket(self,photonPacket,indices)
-    !!{
+    !!{RST
     Allow matter in a domain cell to interact with the photon packet.
     !!}
     implicit none
@@ -509,7 +525,7 @@ contains
   end function cartesian3DInteractWithPhotonPacket
   
   subroutine cartesian3DStateSolve(self)
-    !!{
+    !!{RST
     Solve for the state of matter in the computational domain.
     !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
@@ -597,7 +613,7 @@ contains
   end subroutine cartesian3DStateSolve
 
   logical function cartesian3DConverged(self)
-    !!{
+    !!{RST
     Return the convergence state of the computational domain.
     !!}
     use :: Arrays_Search                  , only : searchArray
@@ -687,7 +703,7 @@ contains
   end function cartesian3DConverged
 
   subroutine cartesian3DOutput(self,outputGroup)
-    !!{
+    !!{RST
     Output the computational domain.
     !!}
     !$ use :: HDF5_Access                     , only : hdf5Access

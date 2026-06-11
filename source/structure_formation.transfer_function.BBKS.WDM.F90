@@ -17,25 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a transfer function class based on the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
+!!{RST
+Implements a transfer function class based on the :term:`WDM` modifier of :cite:t:`bardeen_statistics_1986`.
 !!}
 
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionBBKSWDM">
+  <transferFunction name="transferFunctionBBKSWDM" docformat="rst">
    <description>
-    A transfer function class providing the \gls{wdm} transfer function fitting function of \cite{bardeen_statistics_1986}. The
-    free-streaming length is computed from the dark matter particle (which must be of the \mono{darkMatterParticleWDMThermal} class) properties, and the resulting modifier of \cite{bardeen_statistics_1986} is applied to
-    the provided \gls{cdm} transfer function.
+   A transfer function class providing the :term:`WDM` transfer function fitting function of :cite:t:`bardeen_statistics_1986`. The free-streaming length is computed from the dark matter particle (which must be of the ``darkMatterParticleWDMThermal`` class) properties, and the resulting modifier of :cite:t:`bardeen_statistics_1986` is applied to the provided :term:`CDM` transfer function.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
-     !!{
-     A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
+     !!{RST
+     A transfer function class which modifies another transfer function using the :term:`WDM` modifier of :cite:t:`bardeen_statistics_1986`.
      !!}
      private
      class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
@@ -51,8 +49,8 @@ Implements a transfer function class based on the \gls{wdm} modifier of \cite{ba
   end type transferFunctionBBKSWDM
 
   interface transferFunctionBBKSWDM
-     !!{
-     Constructors for the \refClass{transferFunctionBBKSWDM} transfer function class.
+     !!{RST
+     Constructors for the ``transferFunctionBBKSWDM`` transfer function class.
      !!}
      module procedure bbksWDMConstructorParameters
      module procedure bbksWDMConstructorInternal
@@ -61,8 +59,8 @@ Implements a transfer function class based on the \gls{wdm} modifier of \cite{ba
 contains
 
   function bbksWDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionBBKSWDM} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``transferFunctionBBKSWDM`` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,8 +89,8 @@ contains
   end function bbksWDMConstructorParameters
 
   function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionBBKSWDM} transfer function class.
+    !!{RST
+    Internal constructor for the ``transferFunctionBBKSWDM`` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
@@ -135,8 +133,8 @@ contains
   end function bbksWDMConstructorInternal
 
   subroutine bbksWDMDestructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionBBKSWDM} transfer function class.
+    !!{RST
+    Destructor for the ``transferFunctionBBKSWDM`` transfer function class.
     !!}
     implicit none
     type(transferFunctionBBKSWDM), intent(inout) :: self
@@ -151,7 +149,7 @@ contains
   end subroutine bbksWDMDestructor
 
   double precision function bbksWDMValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -176,7 +174,7 @@ contains
   end function bbksWDMValue
 
   double precision function bbksWDMLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -196,9 +194,8 @@ contains
   end function bbksWDMLogarithmicDerivative
 
   double precision function bbksWDMHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -227,7 +224,7 @@ contains
   end function bbksWDMHalfModeMass
 
   double precision function bbksWDMEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

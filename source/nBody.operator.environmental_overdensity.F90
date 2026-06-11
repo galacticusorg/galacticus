@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the environmental overdensity around particles.
 !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
-   <description>An N-body data operator which measures the local environmental overdensity around each particle by counting neighbors within a spherical aperture and comparing to the mean simulation density. The aperture radius is set by \mono{[radiusEnvironment]}, periodic boundary conditions by \mono{[usePeriodic]}, and sampling efficiency by \mono{[sampleRate]}.</description>
+  <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity" docformat="rst">
+   <description>
+   An N-body data operator which measures the local environmental overdensity around each particle by counting neighbors within a spherical aperture and comparing to the mean simulation density. The aperture radius is set by ``[radiusEnvironment]``, periodic boundary conditions by ``[usePeriodic]``, and sampling efficiency by ``[sampleRate]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnvironmentalOverdensity
-     !!{
+     !!{RST
      An N-body data operator which determines the environmental overdensity around particles.
      !!}
      private
@@ -42,8 +44,8 @@ Implements an N-body data operator which determines the environmental overdensit
   end type nbodyOperatorEnvironmentalOverdensity
 
   interface nbodyOperatorEnvironmentalOverdensity
-     !!{
-     Constructors for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class.
      !!}
      module procedure environmentalOverdensityConstructorParameters
      module procedure environmentalOverdensityConstructorInternal
@@ -52,8 +54,8 @@ Implements an N-body data operator which determines the environmental overdensit
 contains
 
   function environmentalOverdensityConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,32 +67,42 @@ contains
     logical                                                                :: periodic
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSphere</name>
       <source>parameters</source>
-      <description>The radius of the sphere within which to measure environmental overdensity.</description>
+      <description>
+      The radius of the sphere within which to measure environmental overdensity.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityParticleMean</name>
       <source>parameters</source>
-      <description>The mean density of particles in the simulation.</description>
+      <description>
+      The mean density of particles in the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sampleRate</name>
       <source>parameters</source>
-      <description>One in \mono{[sampleRate]} particles will be sampled when computed environmental overdensities.</description>
+      <description>
+      One in ``[sampleRate]`` particles will be sampled when computed environmental overdensities.
+      </description>
       <defaultValue>1_c_size_t</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthBox</name>
       <source>parameters</source>
-      <description>The length of the periodic box.</description>
+      <description>
+      The length of the periodic box.
+      </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>periodic</name>
       <source>parameters</source>
-      <description>If true, periodic boundary conditions will be used.</description>
+      <description>
+      If true, periodic boundary conditions will be used.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
     !!]
@@ -102,8 +114,8 @@ contains
   end function environmentalOverdensityConstructorParameters
 
   function environmentalOverdensityConstructorInternal(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorEnvironmentalOverdensity} N-body operator class.
+    !!{RST
+    Internal constructor for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -126,7 +138,7 @@ contains
   end function environmentalOverdensityConstructorInternal
 
   subroutine environmentalOverdensityOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the mean position and velocity of N-body particles.
     !!}
     use    :: Display          , only : displayCounter    , displayCounterClear
@@ -240,7 +252,7 @@ contains
   contains
 
     double precision function boundLower(l)
-      !!{
+      !!{RST
       Compute lower bounds for particle inclusion in periodically replicated volumes.
       !!}
       use :: Error, only : Error_Report
@@ -262,7 +274,7 @@ contains
     end function boundLower
 
     double precision function boundUpper(l)
-      !!{
+      !!{RST
       Compute upper bounds for particle inclusion in periodically replicated volumes.
       !!}
       use :: Error, only : Error_Report

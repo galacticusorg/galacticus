@@ -19,7 +19,7 @@
 
 !+    Contributions to this file made by Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implements a stellar mass function output analysis class.
   !!}
 
@@ -30,12 +30,14 @@
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <outputAnalysis name="outputAnalysisStarFormationRateFunction">
-   <description>Computes the galaxy star formation rate function as a number density per unit log-star-formation-rate, with user-specified SFR bin centers, \mono{label}, \mono{comment}, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisStarFormationRateFunction" docformat="rst">
+   <description>
+   Computes the galaxy star formation rate function as a number density per unit log-star-formation-rate, with user-specified SFR bin centers, ``label``, ``comment``, optional target dataset for likelihood evaluation, and binomial covariance matrix construction parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisStarFormationRateFunction
-     !!{
+     !!{RST
      A starFormationRateFunction output analysis class.
      !!}
      private
@@ -50,8 +52,8 @@
   end type outputAnalysisStarFormationRateFunction
 
   interface outputAnalysisStarFormationRateFunction
-     !!{
-     Constructors for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
+     !!{RST
+     Constructors for the ``outputAnalysisStarFormationRateFunction`` output analysis class.
      !!}
      module procedure starFormationRateFunctionConstructorParameters
      module procedure starFormationRateFunctionConstructorInternal
@@ -61,8 +63,8 @@
 contains
 
   function starFormationRateFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormationRateFunction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -91,65 +93,83 @@ contains
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(starFormationRates(parameters%count('starFormationRate')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the mass function.</description>
+      <description>
+      A label for the mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the mass function.</description>
+      <description>
+      A descriptive comment for the mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>starFormationRates</name>
       <source>parameters</source>
       <variable>starFormationRates</variable>
-      <description>The star formation rates corresponding to bin centers.</description>
+      <description>
+      The star formation rates corresponding to bin centers.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of star formation rate to use when constructing star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of star formation rate to use when constructing star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d10</defaultValue>
-      <description>The star formation rate to consider when constructing star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The star formation rate to consider when constructing star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d12</defaultValue>
-      <description>The maximum star formation rate to consider when constructing star formation rate function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum star formation rate to consider when constructing star formation rate function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('targetLabel')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCovarianceTarget</name>
             <source>parameters</source>
             <variable>functionCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -197,8 +217,8 @@ contains
   end function starFormationRateFunctionConstructorParameters
 
   function starFormationRateFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which reads bin information from a standard format file.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormationRateFunction`` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -263,8 +283,8 @@ contains
   end function starFormationRateFunctionConstructorFile
 
   function starFormationRateFunctionConstructorInternal(label,comment,starFormationRates,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``outputAnalysisStarFormationRateFunction`` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -446,8 +466,8 @@ contains
   end function starFormationRateFunctionConstructorInternal
 
   subroutine starFormationRateFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStarFormationRateFunction} output analysis class.
+    !!{RST
+    Destructor for the ``outputAnalysisStarFormationRateFunction`` output analysis class.
     !!}
     type(outputAnalysisStarFormationRateFunction), intent(inout) :: self
 

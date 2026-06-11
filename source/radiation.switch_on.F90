@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class that switches on a radiation field at a specified time.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <radiationField name="radiationFieldSwitchOn">
+  <radiationField name="radiationFieldSwitchOn" docformat="rst">
    <description>
-    A radiation field class that wraps another radiation field and switches it on at a specified cosmic epoch, returning zero flux before the switch-on redshift. The redshift at which the field activates is controlled by the \mono{[redshiftSwitchOn]} parameter.
+   A radiation field class that wraps another radiation field and switches it on at a specified cosmic epoch, returning zero flux before the switch-on redshift. The redshift at which the field activates is controlled by the ``[redshiftSwitchOn]`` parameter.
    </description>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldSwitchOn
-     !!{
+     !!{RST
      A radiation field class that switches on another radiation field at a specified time.
      !!}
      private
@@ -48,8 +48,8 @@
   end type radiationFieldSwitchOn
 
   interface radiationFieldSwitchOn
-     !!{
-     Constructors for the \refClass{radiationFieldSwitchOn} radiation field class.
+     !!{RST
+     Constructors for the ``radiationFieldSwitchOn`` radiation field class.
      !!}
      module procedure switchOnConstructorParameters
      module procedure switchOnConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function switchOnConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldSwitchOn} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``radiationFieldSwitchOn`` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,9 +70,11 @@ contains
     double precision                                         :: redshiftSwitchOn
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftSwitchOn</name>
-      <description>The redshift at which the wrapped radiation field is switched on; at cosmic times corresponding to higher redshifts (earlier times) the field returns zero flux, and at later times it returns the flux of the underlying \refClass{radiationFieldClass} object.</description>
+      <description>
+      The redshift at which the wrapped radiation field is switched on; at cosmic times corresponding to higher redshifts (earlier times) the field returns zero flux, and at later times it returns the flux of the underlying ``radiationFieldClass`` object.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -88,8 +90,8 @@ contains
   end function switchOnConstructorParameters
 
   function switchOnConstructorInternal(timeSwitchOn,radiationField_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldSwitchOn} radiation field class.
+    !!{RST
+    Internal constructor for the ``radiationFieldSwitchOn`` radiation field class.
     !!}
     implicit none
     type            (radiationFieldSwitchOn )                        :: self
@@ -105,8 +107,8 @@ contains
   end function switchOnConstructorInternal
 
   subroutine switchOnDestructor(self)
-    !!{
-    Destructor for the \refClass{radiationFieldSwitchOn} radiation field class.
+    !!{RST
+    Destructor for the ``radiationFieldSwitchOn`` radiation field class.
     !!}
     implicit none
     type(radiationFieldSwitchOn), intent(inout) :: self
@@ -119,7 +121,7 @@ contains
   end subroutine switchOnDestructor
 
   double precision function switchOnFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Return the flux in the radiation field.
     !!}
     implicit none
@@ -136,7 +138,7 @@ contains
   end function switchOnFlux
 
   double precision function switchOnTime(self)
-    !!{
+    !!{RST
     Set the time of the radiation field.
     !!}
     implicit none
@@ -147,7 +149,7 @@ contains
   end function switchOnTime
 
   subroutine switchOnTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time of the radiation field.
     !!}
     implicit none
@@ -160,7 +162,7 @@ contains
   end subroutine switchOnTimeSet
 
   logical function switchOnTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return whether the radiation field in this class depends only on time.
     !!}
     implicit none

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a spin parameter output analysis property extractor class.
 !!}
   
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSpin">
-   <description>Extracts the dimensionless spin parameter $\lambda$ of a dark matter halo, characterizing its angular momentum content relative to gravitational and kinetic energy, a key parameter linking halo properties to disk galaxy sizes in semi-analytic models.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSpin" docformat="rst">
+   <description>
+   Extracts the dimensionless spin parameter :math:`\lambda` of a dark matter halo, characterizing its angular momentum content relative to gravitational and kinetic energy, a key parameter linking halo properties to disk galaxy sizes in semi-analytic models.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpin
-     !!{
+     !!{RST
      A spin parameter property extractor output analysis class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a spin parameter output analysis property extractor class.
   end type nodePropertyExtractorSpin
 
   interface nodePropertyExtractorSpin
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSpin} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorSpin`` property extractor class.
      !!}
      module procedure spinConstructorParameters
      module procedure spinConstructorInternal
@@ -54,8 +56,8 @@ Implements a spin parameter output analysis property extractor class.
 contains
 
   function spinConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSpin} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorSpin`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +78,8 @@ contains
   end function spinConstructorParameters
 
   function spinConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSpin} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorSpin`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSpin)                        :: self
@@ -90,8 +92,8 @@ contains
   end function spinConstructorInternal
 
   subroutine spinDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorSpin} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorSpin`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpin), intent(inout) :: self
@@ -103,7 +105,7 @@ contains
   end subroutine spinDestructor
 
   double precision function spinExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a spin output property extractor.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -123,7 +125,7 @@ contains
 
 
   function spinName(self)
-    !!{
+    !!{RST
     Return the name of the spin property.
     !!}
     implicit none
@@ -136,7 +138,7 @@ contains
   end function spinName
 
   function spinDescription(self)
-    !!{
+    !!{RST
     Return a description of the spin property.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end function spinDescription
 
   double precision function spinUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the spin property in the SI system.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function spinUnitsInSI
 
   function spinUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the spin property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs stellar feedback in spheroids.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Stellar_Feedback_Outflows     , only : stellarFeedbackOutflowsClass
   
   !![
-  <nodeOperator name="nodeOperatorStellarFeedbackSpheroids">
-   <description>Computes stellar feedback-driven outflows from galactic spheroids (bulges), applying supernova and stellar wind energy to drive gas ejection from the dense spheroid, modulating starburst activity triggered by galaxy mergers and disk instabilities.</description>
+  <nodeOperator name="nodeOperatorStellarFeedbackSpheroids" docformat="rst">
+   <description>
+   Computes stellar feedback-driven outflows from galactic spheroids (bulges), applying supernova and stellar wind energy to drive gas ejection from the dense spheroid, modulating starburst activity triggered by galaxy mergers and disk instabilities.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackSpheroids
-     !!{
+     !!{RST
      A node operator class that performs stellar feedback in spheroids.
      !!}
      private
@@ -44,8 +46,8 @@
   end type nodeOperatorStellarFeedbackSpheroids
   
   interface nodeOperatorStellarFeedbackSpheroids
-     !!{
-     Constructors for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
      !!}
      module procedure stellarFeedbackSpheroidsConstructorParameters
      module procedure stellarFeedbackSpheroidsConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function stellarFeedbackSpheroidsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function stellarFeedbackSpheroidsConstructorParameters
 
   function stellarFeedbackSpheroidsConstructorInternal(starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackSpheroids)                        :: self
@@ -97,8 +99,8 @@ contains
   end function stellarFeedbackSpheroidsConstructorInternal
 
   subroutine stellarFeedbackSpheroidsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorStellarFeedbackSpheroids} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackSpheroids), intent(inout) :: self
@@ -112,7 +114,7 @@ contains
   end subroutine stellarFeedbackSpheroidsDestructor
   
   subroutine stellarFeedbackSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform feedback from stars in a spheroid.
     !!}
     use :: Abundances_Structure          , only : abundances         , zeroAbundances

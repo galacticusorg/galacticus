@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an ``equilibrium'' solver for galactic structure.
+  !!{RST
+  Implementation of an "equilibrium" solver for galactic structure.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
 
   !![
-  <galacticStructureSolver name="galacticStructureSolverEquilibrium">
-   <description>An ``equilibrium'' solver for galactic structure that iteratively finds radii at which each galactic component is in equilibrium within the combined gravitational potential of dark matter and baryons. Convergence is controlled by \mono{[solutionTolerance]}, with optional inclusion of baryon self-gravity via \mono{[includeBaryonGravity]}.</description>
+  <galacticStructureSolver name="galacticStructureSolverEquilibrium" docformat="rst">
+   <description>
+   An "equilibrium" solver for galactic structure that iteratively finds radii at which each galactic component is in equilibrium within the combined gravitational potential of dark matter and baryons. Convergence is controlled by ``[solutionTolerance]``, with optional inclusion of baryon self-gravity via ``[includeBaryonGravity]``.
+   </description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverEquilibrium
-     !!{
-     Implementation of an ``equilibrium'' solver for galactic structure.
+     !!{RST
+     Implementation of an "equilibrium" solver for galactic structure.
      !!}
      private
      logical                                              :: includeBaryonGravity                , useFormationHalo         , &
@@ -47,8 +49,8 @@
   end type galacticStructureSolverEquilibrium
 
   interface galacticStructureSolverEquilibrium
-     !!{
-     Constructors for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
+     !!{RST
+     Constructors for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
      !!}
      module procedure equilibriumConstructorParameters
      module procedure equilibriumConstructorInternal
@@ -65,9 +67,8 @@
 contains
 
   function equilibriumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,34 +81,44 @@ contains
     double precision                                                    :: solutionTolerance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>convergenceFailureIsFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, failure to achieve convergence in radii results in a fatal error.</description>
+      <description>
+      If true, failure to achieve convergence in radii results in a fatal error.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeBaryonGravity</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components.</description>
+      <description>
+      Specifies whether or not gravity from baryons is included when solving for sizes of galactic components.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFormationHalo</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
+      <description>
+      Specifies whether or not the "formation halo" should be used when solving for the radii of galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>solveForInactiveProperties</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, galactic structure is solved for during evaluation of inactive property integrals. Otherwise, structure is not solved for during this phase---this should only be used if the inactive property integrands \emph{do not} depend on galactic structure.</description>
+      <description>
+      If true, galactic structure is solved for during evaluation of inactive property integrals. Otherwise, structure is not solved for during this phase---this should only be used if the inactive property integrands *do not* depend on galactic structure.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>solutionTolerance</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
+      <description>
+      Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -123,8 +134,8 @@ contains
   end function equilibriumConstructorParameters
 
   function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
+    !!{RST
+    Internal constructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
     !!}
     implicit none
     type            (galacticStructureSolverEquilibrium)                        :: self
@@ -141,7 +152,7 @@ contains
   end function equilibriumConstructorInternal
 
   subroutine equilibriumAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : dependencyDirectionAfter, dependencyRegEx   , nodePromotionEvent  , openMPThreadBindingAtLevel, &
@@ -159,8 +170,8 @@ contains
   end subroutine equilibriumAutoHook
 
   subroutine equilibriumDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticStructureSolverEquilibrium} galactic structure solver class.
+    !!{RST
+    Destructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
@@ -178,7 +189,7 @@ contains
   end subroutine equilibriumDestructor
 
   subroutine equilibriumSolveHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -196,7 +207,7 @@ contains
   end subroutine equilibriumSolveHook
 
   subroutine equilibriumSolvePreDeriativeHook(self,node,propertyType)
-    !!{
+    !!{RST
     Hookable wrapper around the solver for pre-derivative events.
     !!}
     use :: Error           , only : Error_Report
@@ -216,7 +227,7 @@ contains
   end subroutine equilibriumSolvePreDeriativeHook
 
   subroutine equilibriumSolve(self,node,plausibilityOnly)
-    !!{
+    !!{RST
     Solve for the structure of galactic components.
     !!}
     use :: Calculations_Resets                       , only : Calculations_Reset
@@ -283,7 +294,7 @@ contains
   contains
 
     subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
-      !!{
+      !!{RST
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                     , solverSet
@@ -475,7 +486,7 @@ contains
   end subroutine equilibriumSolve
 
   subroutine equilibriumRevert(self,node)
-    !!{
+    !!{RST
     Revert radii for the equilibrium galactic structure solve.
     !!}
     implicit none

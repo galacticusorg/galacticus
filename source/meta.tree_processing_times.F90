@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module providing a class for calculations of the time taken to process merger trees.
 !!}
 
 module Meta_Tree_Compute_Times
-  !!{
+  !!{RST
   Provides a class for calculations of the time taken to process merger trees.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
@@ -30,18 +30,17 @@ module Meta_Tree_Compute_Times
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>metaTreeProcessingTime</name>
    <descriptiveName>Merger Tree Processing Times</descriptiveName>
-   <description>Class providing estimates of the computational processing time required for merger
-    trees---predictions of how long (in wall-clock time) it will take to evolve a merger tree of a given
-    root halo mass, and of the remaining time for a partially-processed tree. These estimates are
-    used by the work-sharing scheduler to balance computational load across MPI processes: trees
-    expected to take longer can be started earlier or assigned to dedicated workers. The null
-    implementation returns a negative value indicating that no estimate is available.</description>
+   <description>
+   Class providing estimates of the computational processing time required for merger trees---predictions of how long (in wall-clock time) it will take to evolve a merger tree of a given root halo mass, and of the remaining time for a partially-processed tree. These estimates are used by the work-sharing scheduler to balance computational load across MPI processes: trees expected to take longer can be started earlier or assigned to dedicated workers. The null implementation returns a negative value indicating that no estimate is available.
+   </description>
    <default>null</default>
    <method name="time" >
-    <description>Return an estimate of the time needed to process a tree of the given mass.</description>
+    <description>
+    Return an estimate of the time needed to process a tree of the given mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massTree</argument>
@@ -52,7 +51,9 @@ module Meta_Tree_Compute_Times
     </code>
    </method>
    <method name="timeRemaining" >
-    <description>Return an estimate of the remaining time needed to process a given tree.</description>
+    <description>
+    Return an estimate of the remaining time needed to process a given tree.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(mergerTree), intent(inout) :: tree     </argument>

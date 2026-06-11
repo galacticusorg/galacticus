@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+  !!{RST
+  Implements a merger progenitor properties class which uses the algorithm of :cite:t:`cole_hierarchical_2000`.
   !!}
 
   use :: Root_Finder                     , only : rootFinder
@@ -26,45 +26,41 @@
   use :: Mass_Distributions              , only : massDistributionClass
 
   !![
-  <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
+  <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000" docformat="rst">
    <description>
-    A merger progenitor properties class which uses the algorithms of \cite{cole_hierarchical_2000} to compute progenitor
-    properties. Masses of progenitors are set to
-    \begin{equation}
-     M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
-    \end{equation}
-    where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
-    spheroid are set to
-    \begin{equation}
-     M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
-    \end{equation}
-    where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
-    of material that will end up in the spheroid are set by finding the solution to:
-    \begin{equation}
-    \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j}(r) \delta_{i,j} = {1 \over 2}
-    \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
-    \end{equation}
-    such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular
-    momentum factor is set to
-    \begin{equation}
-     f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
-     \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
-    \end{equation}
-    where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$\footnote{This is
-    technically not quite what \protect\cite{cole_hierarchical_2000} do. Instead, when computing the masses of the material
-    which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic
-    contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then
-    $j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}$ (where $M_\mathrm{remnant}$ includes the contribution from
-    dark matter and the factor of $2$ appears to make this the half-mass). This approach is currently not used in \protect\glc\
-    since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general
-    case. This is a solvable problem, and so this algorithm is expected to be modified to match that of
-    \protect\cite{cole_hierarchical_2000} precisely in a future version of \protect\glc.}.
+   A merger progenitor properties class which uses the algorithms of :cite:t:`cole_hierarchical_2000` to compute progenitor properties. Masses of progenitors are set to
+
+   .. math::
+
+      M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
+
+   where :math:`M_{i,j}` is the mass of mass type :math:`j` in :term:`component` :math:`i`. Masses of progenitors that will end up in the remnant spheroid are set to
+
+   .. math::
+
+      M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+
+   where :math:`\delta_{i,j}=0` of mass type :math:`j` in :term:`component` :math:`i` will end up in the remnant spheroid and :math:`0` otherwise. Radii of material that will end up in the spheroid are set by finding the solution to:
+
+   .. math::
+
+      \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j}(r) \delta_{i,j} = {1 \over 2}
+      \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+
+   such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular momentum factor is set to
+
+   .. math::
+
+      f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+      \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+
+   where :math:`J_{i,j}` is the angular momentum or pseudo-angular momentum of mass type :math:`j` in :term:`component` :math:`i`\ \footnoteThis is technically not quite what :cite:t:`cole_hierarchical_2000` do. Instead, when computing the masses of the material which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then :math:`j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}` (where :math:`M_\mathrm{remnant}` includes the contribution from dark matter and the factor of :math:`2` appears to make this the half-mass). This approach is currently not used in Galacticus since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general case. This is a solvable problem, and so this algorithm is expected to be modified to match that of :cite:t:`cole_hierarchical_2000` precisely in a future version of Galacticus..
    </description>
   </mergerProgenitorProperties>
   !!]
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesCole2000
-     !!{
-     A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+     !!{RST
+     A merger progenitor properties class which uses the algorithm of :cite:t:`cole_hierarchical_2000`.
      !!}
      private
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
@@ -75,8 +71,8 @@
   end type mergerProgenitorPropertiesCole2000
 
   interface mergerProgenitorPropertiesCole2000
-     !!{
-     Constructors for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
+     !!{RST
+     Constructors for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -94,8 +90,8 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -159,8 +155,8 @@ contains
   end function cole2000ConstructorParameters
 
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
+    !!{RST
+    Internal constructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -184,8 +180,8 @@ contains
   end function cole2000ConstructorInternal
 
   subroutine cole2000Destructor(self)
-    !!{
-    Destructor for the \refClass{mergerProgenitorPropertiesCole2000} merger progenitor properties class.
+    !!{RST
+    Destructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesCole2000), intent(inout) :: self
@@ -197,7 +193,7 @@ contains
   end subroutine cole2000Destructor
 
   subroutine cole2000Get(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
-    !!{
+    !!{RST
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
     use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid    , massTypeGaseous         , massTypeStellar, &
@@ -419,7 +415,7 @@ contains
   end subroutine cole2000Get
 
   double precision function cole2000HalfMassRadiusRoot(radius)
-    !!{
+    !!{RST
     Function used in root finding for progenitor galaxy half-mass radii.
     !!}
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerUnmoved

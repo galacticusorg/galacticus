@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
   !!}
 
@@ -27,13 +27,15 @@
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
-   <description>A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by \mono{[fileName]}, with the evaluation redshift, mass limits, and minimum halo count per bin set by \mono{[redshift]}, \mono{[massMinimum]}, and \mono{[countMinimum]}.</description>
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction" docformat="rst">
+   <description>
+   A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by ``[fileName]``, with the evaluation redshift, mass limits, and minimum halo count per bin set by ``[redshift]``, ``[massMinimum]``, and ``[countMinimum]``.
+   </description>
    <runTimeFileDependencies paths="fileNames"/>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodHaloMassFunction
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      !!}
      private
@@ -65,8 +67,8 @@
   end type posteriorSampleLikelihoodHaloMassFunction
 
   interface posteriorSampleLikelihoodHaloMassFunction
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``posteriorSampleLikelihoodHaloMassFunction`` posterior sampling likelihood class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -75,9 +77,8 @@
 contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodHaloMassFunction`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,92 +105,122 @@ contains
     allocate(fileNames(parameters%count('fileNames')))
     allocate(redshifts(parameters%count('redshifts')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>baseParametersFileName</name>
-      <description>The path to the XML parameter file that provides the base configuration for each model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
+      <description>
+      The path to the XML parameter file that provides the base configuration for each model evaluation, to which parameter changes from the posterior sampler are then applied.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pathSamples</name>
-      <description>The path into which the sampled mass functions should be written. If \mono{none}, then samples are not written.</description>
+      <description>
+      The path into which the sampled mass functions should be written. If ``none``, then samples are not written.
+      </description>
       <source>parameters</source>
       <defaultValue>var_str('none')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendSamples</name>
-      <description>If true, samples will be appended to the file. Otherwise, the file is overwritten.</description>
+      <description>
+      If true, samples will be appended to the file. Otherwise, the file is overwritten.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNames</name>
-      <description>The names of the files containing the halo mass functions.</description>
+      <description>
+      The names of the files containing the halo mass functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshifts</name>
-      <description>The redshifts at which to evaluate the halo mass functions.</description>
+      <description>
+      The redshifts at which to evaluate the halo mass functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRangeMinimum</name>
-      <description>The minimum halo mass to include in the likelihood evaluation.</description>
+      <description>
+      The minimum halo mass to include in the likelihood evaluation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRangeMaximum</name>
-      <description>The maximum halo mass to include in the likelihood evaluation.</description>
+      <description>
+      The maximum halo mass to include in the likelihood evaluation.
+      </description>
       <source>parameters</source>
       <defaultValue>huge(0.0d0)</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCountMinimum</name>
-      <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
+      <description>
+      The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodPoisson</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, likelihood is computed assuming a Poisson distribution for the number of halos in each bin (with no covariance between bins). Otherwise a multivariate normal is assumed when computing likelihood.</description>
+      <description>
+      If true, likelihood is computed assuming a Poisson distribution for the number of halos in each bin (with no covariance between bins). Otherwise a multivariate normal is assumed when computing likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>varianceFractionalModelDiscrepancy</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The fractional variance due to model discrepancy.</description>
+      <description>
+      The fractional variance due to model discrepancy.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowEmptyMassFunction</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, empty mass functions (i.e. those with no useable bins) are allowed, and return $\log \mathcal{L}=0$.</description>
+      <description>
+      If true, empty mass functions (i.e. those with no useable bins) are allowed, and return :math:`\log \mathcal{L}=0`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>report</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, give detailed reporting on likelihood calculations.</description>
+      <description>
+      If true, give detailed reporting on likelihood calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeCorrelations</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, account for correlations between halo mass functions measured at different redshifts.</description>
+      <description>
+      If true, account for correlations between halo mass functions measured at different redshifts.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binAverage</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, the mass function is averaged over each bin.</description>
+      <description>
+      If true, the mass function is averaged over each bin.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
     if (size(changeParametersFileNames) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>changeParametersFileNames</name>
-	 <description>The names of files containing parameter changes to be applied.</description>
+	 <description>
+	 The names of files containing parameter changes to be applied.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -218,8 +249,8 @@ contains
   end function haloMassFunctionConstructorParameters
 
   function haloMassFunctionConstructorInternal(fileNames,redshifts,pathSamples,appendSamples,massRangeMinimum,massRangeMaximum,binCountMinimum,likelihoodPoisson,varianceFractionalModelDiscrepancy,binAverage,includeCorrelations,allowEmptyMassFunction,report,parametersModel,changeParametersFileNames,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the ``posteriorSampleLikelihoodHaloMassFunction`` posterior sampling likelihood class.
     !!}
     use :: Display                 , only : displayMessage, displayMagenta, displayReset
     use :: Error                   , only : Error_Report
@@ -271,8 +302,10 @@ contains
     allocate(self%parametersModel)
     self%parametersModel%parametersModel => parametersModel
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_               => self%parametersModel
     self%parametersModelManager =  resourceManager(dummyPointer_)
@@ -445,8 +478,8 @@ contains
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodHaloMassFunction} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the ``posteriorSampleLikelihoodHaloMassFunction`` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self
@@ -461,9 +494,8 @@ contains
   end subroutine haloMassFunctionDestructor
 
   double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance) result(logLikelihood)
-    !!{
-    Return the log-likelihood for the halo mass function likelihood function. If \mono{[likelihoodPoisson]=false}
-    then Gaussian statistics are assumed, otherwise, Poisson statistics are assumed. No covariance between bins is assumed.
+    !!{RST
+    Return the log-likelihood for the halo mass function likelihood function. If ``[likelihoodPoisson]=false`` then Gaussian statistics are assumed, otherwise, Poisson statistics are assumed. No covariance between bins is assumed.
     !!}
     use :: Error                            , only : Error_Report
     use :: Display                          , only : displayMessage                                , displayIndent                         , displayUnindent
@@ -897,7 +929,7 @@ contains
   end function haloMassFunctionEvaluate
   
   subroutine haloMassFunctionFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

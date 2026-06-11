@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a model of ram pressure stripping of hot halos which always returns zero force.
   !!}
 
   !![
-  <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
+  <hotHaloRamPressureForce name="hotHaloRamPressureForceZero" docformat="rst">
    <description>
-    A hot halo ram pressure force class which assumes a zero ram pressure force due to the hot halo.
+   A hot halo ram pressure force class which assumes a zero ram pressure force due to the hot halo.
    </description>
   </hotHaloRamPressureForce>
   !!]
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceZero
-     !!{
+     !!{RST
      Implementation of a hot halo ram pressure force class which always returns zero force.
      !!}
      private
@@ -38,8 +38,8 @@
   end type hotHaloRamPressureForceZero
 
   interface hotHaloRamPressureForceZero
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureForceZero} hot halo ram pressure force class.
+     !!{RST
+     Constructors for the ``hotHaloRamPressureForceZero`` hot halo ram pressure force class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloRamPressureForceZero
@@ -47,8 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureForceZero} hot halo ram pressure force class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the ``hotHaloRamPressureForceZero`` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroForce(self,node)
-    !!{
+    !!{RST
     Return a zero ram pressure force due to the hot halo.
     !!}
     implicit none

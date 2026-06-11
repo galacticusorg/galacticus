@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that records details of galaxy-galaxy mergers.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <nodeOperator name="nodeOperatorGalaxyMergers">
+  <nodeOperator name="nodeOperatorGalaxyMergers" docformat="rst">
     <description>
-      A node operator class that records details of galaxy-galaxy mergers.  Data recorded consists of:
-      output are:
-      \begin{description}
-       \item The index of the satellite halo in the merger;
-       \item The stellar/gas mass of te host/satellite galaxy;
-       \item The time at which the merger occurred.
-      \end{description}
-      Two \refClass{galacticFilterClass}es are accepted, via parameters \mono{[galacticFilterSatellite]} and \mono{[galacticFilterCentral]} which can be used to control which galaxies are included in the output.
-  </description>
+    A node operator class that records details of galaxy-galaxy mergers.  Data recorded consists of: output are:
+
+    * The index of the satellite halo in the merger;
+
+    * The stellar/gas mass of te host/satellite galaxy;
+
+    * The time at which the merger occurred.
+
+    Two ``galacticFilterClass``\ es are accepted, via parameters ``[galacticFilterSatellite]`` and ``[galacticFilterCentral]`` which can be used to control which galaxies are included in the output.
+    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMergers
-     !!{
+     !!{RST
      A node operator class that records the times of gas-mass-based major mergers between galaxies.
      !!}
      private
@@ -53,8 +54,8 @@
   end type nodeOperatorGalaxyMergers
   
   interface nodeOperatorGalaxyMergers
-     !!{
-     Constructors for the \refClass{nodeOperatorGalaxyMergers} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorGalaxyMergers`` node operator class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -63,8 +64,8 @@
 contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorGalaxyMergers} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorGalaxyMergers`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,10 +75,12 @@ contains
     class  (galacticFilterClass      ), pointer       :: galacticFilterSatellite_, galacticFilterCentral_
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countMergersMaximum</name>
       <defaultValue>huge(0_c_size_t)</defaultValue>
-      <description>The maximum number of mergers to accumulate for each node. Defaults to the maximum possible.</description>
+      <description>
+      The maximum number of mergers to accumulate for each node. Defaults to the maximum possible.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="galacticFilter" parameterName="galacticFilterSatellite" name="galacticFilterSatellite_" source="parameters">
@@ -99,8 +102,8 @@ contains
   end function galaxyMergersConstructorParameters
 
   function galaxyMergersConstructorInternal(countMergersMaximum,galacticFilterSatellite_,galacticFilterCentral_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorGalaxyMergers} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorGalaxyMergers`` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -123,7 +126,7 @@ contains
   end function galaxyMergersConstructorInternal
 
   subroutine galaxyMergersAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
@@ -137,8 +140,8 @@ contains
   end subroutine galaxyMergersAutoHook
   
   subroutine galaxyMergersDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorGalaxyMergers} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorGalaxyMergers`` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -153,7 +156,7 @@ contains
   end subroutine galaxyMergersDestructor
 
   subroutine satelliteMerger(self,node)
-    !!{
+    !!{RST
     Record galaxy-galaxy mergers.
     !!}
     use :: Error           , only : Error_Report

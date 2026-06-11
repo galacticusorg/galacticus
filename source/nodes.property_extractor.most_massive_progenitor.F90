@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node property extractor for the most massive progenitor.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor">
+  <nodePropertyExtractor name="nodePropertyExtractorMostMassiveProgenitor" docformat="rst">
    <description>
-    A node property extractor class which extracts a value of $1$ for the most massive progenitor node in a tree at each output
-    time and $0$ for all other nodes.
+   A node property extractor class which extracts a value of :math:`1` for the most massive progenitor node in a tree at each output time and :math:`0` for all other nodes.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMostMassiveProgenitor
-     !!{
+     !!{RST
      A node property extractor for most massive progenitor status.
      !!}
      private
@@ -43,8 +42,8 @@ Implements a node property extractor for the most massive progenitor.
   end type nodePropertyExtractorMostMassiveProgenitor
 
   interface nodePropertyExtractorMostMassiveProgenitor
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class.
      !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal
@@ -53,8 +52,8 @@ Implements a node property extractor for the most massive progenitor.
 contains
 
   function mostMassiveProgenitorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,8 +68,8 @@ contains
   end function mostMassiveProgenitorConstructorParameters
 
   function mostMassiveProgenitorConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMostMassiveProgenitor} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor) :: self
@@ -82,8 +81,8 @@ contains
   end function mostMassiveProgenitorConstructorInternal
 
   function mostMassiveProgenitorExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{mostMassiveProgenitor} node property extractor.
+    !!{RST
+    Implement a ``mostMassiveProgenitor`` node property extractor.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic           , treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -130,7 +129,7 @@ contains
 
 
   function mostMassiveProgenitorName(self)
-    !!{
+    !!{RST
     Return the name of the mostMassiveProgenitor property.
     !!}
     implicit none
@@ -143,7 +142,7 @@ contains
   end function mostMassiveProgenitorName
 
   function mostMassiveProgenitorDescription(self)
-    !!{
+    !!{RST
     Return a description of the mostMassiveProgenitor property.
     !!}
     implicit none

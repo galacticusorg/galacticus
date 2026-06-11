@@ -17,33 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile shapes  using the \cite{brown_towards_2022} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile shapes  using the :cite:t:`brown_towards_2022` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterProfileShape name="darkMatterProfileShapeBrown2021">
+  <darkMatterProfileShape name="darkMatterProfileShapeBrown2021" docformat="rst">
    <description>
-    A dark matter profile shape class in which the shape parameter for Einasto density profiles\index{Einasto
-    profile}\index{density profile!Einasto} is computed using a fitting function from \cite[][eqn. 21]{brown_towards_2022}:
-    \begin{equation}
-    \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 &amp; \hbox{ if } \nu_\alpha &lt; 3.541 \\ 0.3 &amp; \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
-    \end{equation}
-    where $\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included
-    since \cite{brown_towards_2022}'s fits do not probe this region and extremely large values of $\alpha$ are numerically
-    troublesome.
-     
-     This implementation accepts any \refClass{cosmologicalMassVarianceClass} object for use in computing for computing
-     $\sigma_\mathrm{c}(M)$. \emph{However}, \cite{brown_towards_2022} recommend using $\sigma_\mathrm{c}(M)$ computed using a
-     generalized top-hat window function (\refClass{powerSpectrumWindowFunctionTopHatGeneralized}) with $\mu_\mathrm{g}=0.01$.
+   A dark matter profile shape class in which the shape parameter for Einasto density profiles is computed using a fitting function from :cite:t:`brown_towards_2022`:
+
+   .. math::
+
+      \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 &amp; \hbox{ if } \nu_\alpha &lt; 3.541 \\ 0.3 &amp; \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
+
+   where :math:`\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)` is the peak height of the halo. The truncation at :math:`\alpha = 0.3` is included since :cite:t:`brown_towards_2022`'s fits do not probe this region and extremely large values of :math:`\alpha` are numerically troublesome.
+
+   This implementation accepts any ``cosmologicalMassVarianceClass`` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (``powerSpectrumWindowFunctionTopHatGeneralized``) with :math:`\mu_\mathrm{g}=0.01`.
    </description>
   </darkMatterProfileShape>
   !!]
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeBrown2021
-     !!{
-     A dark matter halo profile shape parameter class implementing the algorithm of \cite{brown_towards_2022}.
+     !!{RST
+     A dark matter halo profile shape parameter class implementing the algorithm of :cite:t:`brown_towards_2022`.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -54,8 +51,8 @@
   end type darkMatterProfileShapeBrown2021
 
   interface darkMatterProfileShapeBrown2021
-     !!{
-     Constructors for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile shape class.
+     !!{RST
+     Constructors for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
      !!}
      module procedure brown2021ConstructorParameters
      module procedure brown2021ConstructorInternal
@@ -64,9 +61,8 @@
 contains
 
   function brown2021ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{brown2021} dark matter halo profile
-    shape class.
+    !!{RST
+    Default constructor for the ``brown2021`` dark matter halo profile shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,9 +85,8 @@ contains
   end function brown2021ConstructorParameters
 
   function brown2021ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile
-    shape class.
+    !!{RST
+    Constructor for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
     !!}
     implicit none
     type (darkMatterProfileShapeBrown2021)                        :: self
@@ -105,8 +100,8 @@ contains
   end function brown2021ConstructorInternal
 
   subroutine brown2021Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileShapeBrown2021} dark matter halo profile shape class.
+    !!{RST
+    Destructor for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeBrown2021), intent(inout) :: self
@@ -119,13 +114,14 @@ contains
   end subroutine brown2021Destructor
 
   double precision function brown2021Shape(self,node)
-    !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of \mono{node} using the
-    \cite[][eqn. 21]{brown_towards_2022} algorithm. Specifically, the parameter is given by:
-    \begin{equation}
-     \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 & \hbox{ if } \nu_\alpha < 3.541 \\ 0.3 & \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
-    \end{equation}
-    where $\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)$ is the peak height of the halo.
+    !!{RST
+    Return the Einasto profile shape parameter of the dark matter halo profile of ``node`` using the :cite:t:`brown_towards_2022` algorithm. Specifically, the parameter is given by:
+
+    .. math::
+
+       \alpha = \left\{ \begin{array}{ll} 8.52 \times 10^{-4} \nu_\alpha^4 + 0.166 & \hbox{ if } \nu_\alpha < 3.541 \\ 0.3 & \hbox{ if } \nu_\alpha \ge 3.541, \end{array} \right.
+
+    where :math:`\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)` is the peak height of the halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

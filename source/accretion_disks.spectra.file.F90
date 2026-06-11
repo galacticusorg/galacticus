@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of the accretion disk spectra class for tabulated spectra read from file.
   !!}
 
@@ -26,14 +26,16 @@
   use :: Numerical_Interpolation   , only : interpolator
 
   !![
-  <accretionDiskSpectra name="accretionDiskSpectraFile">
-   <description>Accretion disk spectra are computed by interpolating from tabulated data read from a file specified by \mono{[fileName]}. The tables provide spectral energy distributions as a function of physical parameters, enabling efficient lookup of accretion disk emission across a range of conditions.</description>
+  <accretionDiskSpectra name="accretionDiskSpectraFile" docformat="rst">
+   <description>
+   Accretion disk spectra are computed by interpolating from tabulated data read from a file specified by ``[fileName]``. The tables provide spectral energy distributions as a function of physical parameters, enabling efficient lookup of accretion disk emission across a range of conditions.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </accretionDiskSpectra>
   !!]
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
-     !!{
+     !!{RST
      An accretion disk spectra class which interpolates in spectra read from file.
      !!}
      private
@@ -57,8 +59,8 @@
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
-     !!{
-     Constructors for the \refClass{accretionDiskSpectraFile} accretion disk spectra class.
+     !!{RST
+     Constructors for the ``accretionDiskSpectraFile`` accretion disk spectra class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -70,8 +72,8 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{accretionDiskSpectraFile} accretion disk spectra class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``accretionDiskSpectraFile`` accretion disk spectra class which takes a parameter set as input.
     !!}
     implicit none
     type (accretionDiskSpectraFile   )                :: self
@@ -81,10 +83,12 @@ contains
     class(accretionDisksClass        ), pointer       :: accretionDisks_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
+      <description>
+      The name of a file from which to read tabulated spectra of accretion disks.
+      </description>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
     <objectBuilder class="accretionDisks"         name="accretionDisks_"         source="parameters"/>
@@ -99,8 +103,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName,blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionDiskSpectraFile} accretion disk spectra class.
+    !!{RST
+    Internal constructor for the ``accretionDiskSpectraFile`` accretion disk spectra class.
     !!}
     implicit none
     type     (accretionDiskSpectraFile   )                        :: self
@@ -116,8 +120,8 @@ contains
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
-    !!{
-    Default destructor for the \mono{file} accretion disk spectra class.
+    !!{RST
+    Default destructor for the ``file`` accretion disk spectra class.
     !!}
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
@@ -130,7 +134,7 @@ contains
   end subroutine fileDestructor
 
   subroutine fileLoadFile(self,fileName)
-    !!{
+    !!{RST
     Load a file of AGN spectra.
     !!}
     use :: Error       , only : Error_Report
@@ -163,7 +167,7 @@ contains
   end subroutine fileLoadFile
 
   subroutine fileWavelengths(self,wavelengthsCount,wavelengths)
-    !!{
+    !!{RST
     Return a list of wavelengths at which AGN spectra are tabulated.
     !!}
     implicit none
@@ -179,7 +183,7 @@ contains
   end subroutine fileWavelengths
 
   double precision function fileSpectrumNode(self,node,wavelength)
-    !!{
+    !!{RST
     Return the accretion disk spectrum for tabulated spectra.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -203,7 +207,7 @@ contains
   end function fileSpectrumNode
 
   double precision function fileSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength)
-    !!{
+    !!{RST
     Return the accretion disk spectrum for tabulated spectra.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t

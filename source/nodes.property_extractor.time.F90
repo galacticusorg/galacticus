@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cosmic time output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTime">
-   <description>Extracts the cosmic time (age of the universe) at the epoch of each output snapshot, providing the absolute time coordinate for each node and enabling time-based analysis of galaxy formation histories across cosmic epochs.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTime" docformat="rst">
+   <description>
+   Extracts the cosmic time (age of the universe) at the epoch of each output snapshot, providing the absolute time coordinate for each node and enabling time-based analysis of galaxy formation histories across cosmic epochs.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTime
-     !!{
+     !!{RST
      A cosmic time property extractor output analysis class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a cosmic time output analysis property extractor class.
   end type nodePropertyExtractorTime
 
   interface nodePropertyExtractorTime
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTime} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTime`` property extractor class.
      !!}
      module procedure timeConstructorParameters
   end interface nodePropertyExtractorTime
@@ -49,8 +51,8 @@ Implements a cosmic time output analysis property extractor class.
 contains
 
   function timeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTime} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTime`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function timeConstructorParameters
 
   double precision function timeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a time output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -83,7 +85,7 @@ contains
 
 
   function timeName(self)
-    !!{
+    !!{RST
     Return the name of the time property.
     !!}
     implicit none
@@ -96,7 +98,7 @@ contains
   end function timeName
 
   function timeDescription(self)
-    !!{
+    !!{RST
     Return a description of the time property.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end function timeDescription
 
   double precision function timeUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the time property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -122,7 +124,7 @@ contains
   end function timeUnitsInSI
 
   function timeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the time property.
     !!}
     use :: Units_MetaData, only : unitType

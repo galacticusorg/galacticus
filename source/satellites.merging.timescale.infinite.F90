@@ -19,21 +19,19 @@
 
 !+    Contributions to this file made by:  Markus Haider.
 
-  !!{
+  !!{RST
   Implements a satellite merging timescale class in which merging timescales are always infinite.
   !!}
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite" docformat="rst">
    <description>
-    A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value
-    close to the largest representable double precision floating point number which should be sufficiently close to infinity
-    for practical purposes).
+   A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value close to the largest representable double precision floating point number which should be sufficiently close to infinity for practical purposes).
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesInfinite
-     !!{
+     !!{RST
      A class implementing satellite merging timescales that are always infinite.
      !!}
      private
@@ -42,8 +40,8 @@
   end type satelliteMergingTimescalesInfinite
 
   interface satelliteMergingTimescalesInfinite
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesInfinite} satellite merging timescale class.
+     !!{RST
+     Constructors for the ``satelliteMergingTimescalesInfinite`` satellite merging timescale class.
      !!}
      module procedure infiniteConstructorParameters
   end interface satelliteMergingTimescalesInfinite
@@ -51,9 +49,8 @@
 contains
 
   function infiniteConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{infinite} satellite merging timescale class which builds the object from a
-    parameter set.
+    !!{RST
+    A constructor for the ``infinite`` satellite merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +65,7 @@ contains
   end function infiniteConstructorParameters
 
   double precision function infiniteTimeUntilMerging(self,node,orbit)
-    !!{
+    !!{RST
     Return a infinite timescale for satellite merging.
     !!}
     implicit none

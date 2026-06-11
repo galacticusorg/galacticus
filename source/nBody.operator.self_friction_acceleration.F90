@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following \cite{barnes_hierarchical_1986}.
+!!{RST
+Implements an N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
 !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorSelfFrictionAcceleration">
-   <description>An N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following \cite{barnes_hierarchical_1986}.</description>
+  <nbodyOperator name="nbodyOperatorSelfFrictionAcceleration" docformat="rst">
+   <description>
+   An N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction between particles is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfFrictionAcceleration
-     !!{
-     An N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction is computed using a tree method following \cite{barnes_hierarchical_1986}.
+     !!{RST
+     An N-body data operator which determines the acceleration of self-bound particles from unbound ones. The interaction is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
      !!}
      private
      integer         (c_size_t) :: bootstrapSampleCount
@@ -41,8 +43,8 @@ Implements an N-body data operator which determines the acceleration of self-bou
   end type nbodyOperatorSelfFrictionAcceleration
 
   interface nbodyOperatorSelfFrictionAcceleration
-     !!{
-     Constructors for the \refClass{nbodyOperatorSelfFrictionAcceleration} N-body operator class.
+     !!{RST
+     Constructors for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class.
      !!}
      module procedure selfFrictionAccelerationConstructorParameters
      module procedure selfFrictionAccelerationConstructorInternal
@@ -51,8 +53,8 @@ Implements an N-body data operator which determines the acceleration of self-bou
 contains
 
   function selfFrictionAccelerationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSelfFrictionAcceleration} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,17 +64,21 @@ contains
     double precision                                                       :: thetaTolerance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thetaTolerance</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The Barnes-Hut opening-angle tolerance $\theta$; cells subtending an angle smaller than $\theta$ at a particle are treated as point masses, trading accuracy for speed.</description>
+      <description>
+      The Barnes-Hut opening-angle tolerance :math:`\theta`; cells subtending an angle smaller than :math:`\theta` at a particle are treated as point masses, trading accuracy for speed.
+      </description>
     </inputParameter>
     !!]
     self=nbodyOperatorSelfFrictionAcceleration(bootstrapSampleCount,thetaTolerance)
@@ -83,8 +89,8 @@ contains
   end function selfFrictionAccelerationConstructorParameters
 
   function selfFrictionAccelerationConstructorInternal(bootstrapSampleCount,thetaTolerance) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSelfFrictionAcceleration} N-body operator class
+    !!{RST
+    Internal constructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfFrictionAcceleration)                :: self
@@ -98,8 +104,8 @@ contains
   end function selfFrictionAccelerationConstructorInternal
 
   subroutine selfFrictionAccelerationDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSelfFrictionAcceleration} N-body operator class.
+    !!{RST
+    Destructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfFrictionAcceleration), intent(inout) :: self
@@ -109,7 +115,7 @@ contains
   end subroutine selfFrictionAccelerationDestructor
  
   subroutine selfFrictionAccelerationOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the acceleration of bound particles from unbound ones.
     !!}
     use :: Display                         , only : displayIndent                 , displayUnindent
@@ -217,9 +223,8 @@ contains
   end subroutine selfFrictionAccelerationOperate
 
   subroutine gravitationalAcceleration(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquared)
-    !!{
-    Compute the interaction between a particle and a node in the octree. Currently assumes the functional form of the softening used by
-    Gadget.
+    !!{RST
+    Compute the interaction between a particle and a node in the octree. Currently assumes the functional form of the softening used by Gadget.
     !!}:
     implicit none
     double precision, dimension(:), intent(inout) :: value

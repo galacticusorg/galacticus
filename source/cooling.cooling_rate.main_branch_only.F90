@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling side branches.
   !!}
 
 
   !![
-  <coolingRate name="coolingRateMainBranchOnly">
-   <description>Wraps a \refClass{coolingRateClass} object and suppresses cooling in side branches of the merger tree, restricting gas cooling to the main progenitor branch only for studies of main branch evolution.</description>
+  <coolingRate name="coolingRateMainBranchOnly" docformat="rst">
+   <description>
+   Wraps a ``coolingRateClass`` object and suppresses cooling in side branches of the merger tree, restricting gas cooling to the main progenitor branch only for studies of main branch evolution.
+   </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateMainBranchOnly
-     !!{
+     !!{RST
      Implementation of cooling rate class which modifies another cooling rate by cutting off cooling in side branches.
      !!}
      private
@@ -39,7 +41,7 @@
   end type coolingRateMainBranchOnly
 
   interface coolingRateMainBranchOnly
-     !!{
+     !!{RST
      Constructors for the cut off cooling rate class.
      !!}
      module procedure mainBranchOnlyConstructorParameters
@@ -49,7 +51,7 @@
 contains
 
   function mainBranchOnlyConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cut off cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -70,7 +72,7 @@ contains
   end function mainBranchOnlyConstructorParameters
 
   function mainBranchOnlyConstructorInternal(coolingRate_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the cut off cooling rate class.
     !!}
     type (coolingRateMainBranchOnly)                        :: self
@@ -83,7 +85,7 @@ contains
   end function mainBranchOnlyConstructorInternal
 
   subroutine mainBranchOnlyDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cut off cooling rate class.
     !!}
     implicit none
@@ -96,9 +98,8 @@ contains
   end subroutine mainBranchOnlyDestructor
 
   double precision function mainBranchOnlyRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
-    in side branches.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is cut off in side branches.
     !!}
     implicit none
     class(coolingRateMainBranchOnly), intent(inout) :: self

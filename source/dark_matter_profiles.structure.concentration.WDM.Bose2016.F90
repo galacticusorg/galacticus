@@ -19,32 +19,29 @@
 
 !+    Contributions to this file made by:  Xiaolong Du, Andrew Benson.
 
-  !!{
-  An implementation of warm dark matter halo profile concentrations using the
-  \cite{bose_copernicus_2016} modifier.
+  !!{RST
+  An implementation of warm dark matter halo profile concentrations using the :cite:t:`bose_copernicus_2016` modifier.
   !!}
 
   use :: Transfer_Functions , only : transferFunctionClass
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDMBose2016">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDMBose2016" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed by applying the correction factor of
-    \cite{bose_copernicus_2016}:
-    \begin{equation}
-    c_\mathrm{WDM} = c_\mathrm{CDM} \left( 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}} \right)^{-\gamma_2} (1+z)^{\beta(z)},
-    \end{equation}
-    where $\gamma_1=60$, $\gamma_2=0.17$, $M_\mathrm{1/2}$ is the mass corresponding to the wavenumber at which the WDM transfer
-    function is suppressed below the CDM transfer function by a factor of 2, $M_\mathrm{halo}$ is the mass of the dark matter
-    halo, and $\beta(z)=0.026 z-0.04$, to a CDM concentration algorithm as specified by \mono{[cdmConcentration]}.
+   A dark matter profile concentration class in which the concentration is computed by applying the correction factor of :cite:t:`bose_copernicus_2016`:
+
+   .. math::
+
+      c_\mathrm{WDM} = c_\mathrm{CDM} \left( 1 + \gamma_1 {M_\mathrm{1/2} \over M_\mathrm{halo}} \right)^{-\gamma_2} (1+z)^{\beta(z)},
+
+   where :math:`\gamma_1=60`, :math:`\gamma_2=0.17`, :math:`M_\mathrm{1/2}` is the mass corresponding to the wavenumber at which the WDM transfer function is suppressed below the CDM transfer function by a factor of 2, :math:`M_\mathrm{halo}` is the mass of the dark matter halo, and :math:`\beta(z)=0.026 z-0.04`, to a CDM concentration algorithm as specified by ``[cdmConcentration]``.
    </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationWDMBose2016
-     !!{
-     A dark matter halo profile concentration class implementing the modifier of
-     \cite{bose_copernicus_2016}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the modifier of :cite:t:`bose_copernicus_2016`.
      !!}
      private
      class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration    => null()
@@ -58,9 +55,8 @@
   end type darkMatterProfileConcentrationWDMBose2016
 
   interface darkMatterProfileConcentrationWDMBose2016
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration
-     class.
+     !!{RST
+     Constructors for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
      !!}
      module procedure wdmBose2016ConstructorParameters
      module procedure wdmBose2016ConstructorInternal
@@ -69,8 +65,8 @@
 contains
 
   function wdmBose2016ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{wdm} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``wdm`` dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,8 +92,8 @@ contains
   end function wdmBose2016ConstructorParameters
 
   function wdmBose2016ConstructorInternal(cdmConcentration,transferFunction_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDMBose2016)                        :: self
@@ -112,8 +108,8 @@ contains
   end function wdmBose2016ConstructorInternal
 
   subroutine wdmBose2016Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationWDMBose2016} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDMBose2016), intent(inout) :: self
@@ -127,9 +123,8 @@ contains
   end subroutine wdmBose2016Destructor
 
   double precision function wdmBose2016Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the warm dark matter modifier of \cite{bose_copernicus_2016}.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the warm dark matter modifier of :cite:t:`bose_copernicus_2016`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -157,9 +152,8 @@ contains
   end function wdmBose2016Concentration
 
   function wdmBose2016DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of
-    concentration in the warm dark matter modifier of \cite{bose_copernicus_2016}.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the warm dark matter modifier of :cite:t:`bose_copernicus_2016`.
     !!}
     implicit none
     class(virialDensityContrastClass               ), pointer       :: wdmBose2016DensityContrastDefinition
@@ -170,9 +164,8 @@ contains
   end function wdmBose2016DensityContrastDefinition
 
   function wdmBose2016DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    warm dark matter modifier of \cite{bose_copernicus_2016}.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the warm dark matter modifier of :cite:t:`bose_copernicus_2016`.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                ), pointer       :: wdmBose2016DarkMatterProfileDefinition

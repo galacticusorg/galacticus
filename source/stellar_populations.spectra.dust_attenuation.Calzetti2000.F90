@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{calzetti_dust_2000}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`calzetti_dust_2000`.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCalzetti2000">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCalzetti2000" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`calzetti_dust_2000`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCalzetti2000
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{calzetti_dust_2000}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`calzetti_dust_2000`.
      !!}
      private
    contains
@@ -36,8 +38,8 @@
   end type stellarSpectraDustAttenuationCalzetti2000
 
   interface stellarSpectraDustAttenuationCalzetti2000
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationCalzetti2000} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the ``stellarSpectraDustAttenuationCalzetti2000`` stellar spectra dust attenuation class.
      !!}
      module procedure calzetti2000ConstructorParameters
   end interface stellarSpectraDustAttenuationCalzetti2000
@@ -45,9 +47,8 @@
 contains
 
   function calzetti2000ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationCalzetti2000} stellar spectra dust attenuation class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the ``stellarSpectraDustAttenuationCalzetti2000`` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,8 +63,8 @@ contains
   end function calzetti2000ConstructorParameters
 
   double precision function calzetti2000Attenuation(self,wavelength,age,vBandAttenuation)
-    !!{
-    Return attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.
+    !!{RST
+    Return attenuation of stellar spectra according to the model of :cite:t:`calzetti_dust_2000`.
     !!}
     use :: Numerical_Constants_Units, only : micronsToAngstroms
     implicit none

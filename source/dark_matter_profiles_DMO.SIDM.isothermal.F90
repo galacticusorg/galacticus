@@ -17,23 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  An implementation of dark matter halo profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal">
+  <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal" docformat="rst">
     <description>
-      Dark matter halo profiles for self-interacting dark matter following the ``isothermal'' model of
-      \cite{jiang_semi-analytic_2023} are built via the \refClass{massDistributionSphericalSIDMIsothermal} mass distribution class.
+    Dark matter halo profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023` are built via the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSIDMIsothermal
-     !!{
-     A dark matter halo profile class implementing profiles for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     A dark matter halo profile class implementing profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
      class(darkMatterParticleClass  ), pointer :: darkMatterParticle_   => null()
@@ -44,8 +43,8 @@
   end type darkMatterProfileDMOSIDMIsothermal
 
   interface darkMatterProfileDMOSIDMIsothermal
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -54,8 +53,8 @@
 contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +77,8 @@ contains
   end function sidmIsothermalConstructorParameters
 
   function sidmIsothermalConstructorInternal(darkMatterProfileDMO_,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -101,8 +100,8 @@ contains
   end function sidmIsothermalConstructorInternal
 
   subroutine sidmIsothermalDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOSIDMIsothermal} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self
@@ -115,8 +114,8 @@ contains
   end subroutine sidmIsothermalDestructor
 
   function sidmIsothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                  , massTypeDark                        , weightByMass

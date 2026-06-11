@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the cosmological functions class for cosmologies consisting of collisionless
-  matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+  !!{RST
+  An implementation of the cosmological functions class for cosmologies consisting of collisionless matter and dark energy with an equation of state of the form: :math:`P=\rho^w` with :math:`w(a)=w_0+w_1 a (1-a)`.
   !!}
 
   use :: Root_Finder, only : rootFinder
@@ -37,16 +36,15 @@
   !$omp threadprivate(factorDominateCurrent)
 
   !![
-  <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
+  <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy" docformat="rst">
    <description>
-    Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
-    equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=$\mono{[darkEnergyEquationOfStateW0]}, and $w_1=$\mono{[darkEnergyEquationOfStateW1]}.
+   Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an equation of state :math:`w(a)=w_0+w_1a(1-a)` :cite:p:`jassal_wmap_2005`, with :math:`w_0=`\ ``[darkEnergyEquationOfStateW0]``, and :math:`w_1=`\ ``[darkEnergyEquationOfStateW1]``.
    </description>
   </cosmologyFunctions>
   !!]
   type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
-     !!{
-     A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
+     !!{RST
+     A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state :math:`w(a)=w_0+a(1-a)w_1`.
      !!}
      private
      double precision             :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
@@ -79,7 +77,7 @@
   !$omp threadprivate(self_)
 
   interface cosmologyFunctionsMatterDarkEnergy
-     !!{
+     !!{RST
      Constructors for the matter plus dark energy cosmological functions class.
      !!}
      module procedure matterDarkEnergyConstructorParameters
@@ -89,7 +87,7 @@
 contains
 
   function matterDarkEnergyConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Default constructor for the matter plus dark energy cosmological functions class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -100,17 +98,21 @@ contains
     double precision                                                    :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkEnergyEquationOfStateW0</name>
       <source>parameters</source>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+      <description>
+      The equation of state parameter for dark energy, :math:`w_0`, defined such that :math:`P=\rho^w` with :math:`w(a)=w_0+w_1 a (1-a)`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkEnergyEquationOfStateW1</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+      <description>
+      The equation of state parameter for dark energy, :math:`w_1`, defined such that :math:`P=\rho^w` with :math:`w(a)=w_0+w_1 a (1-a)`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -128,7 +130,7 @@ contains
   end function matterDarkEnergyConstructorParameters
 
   function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1) result(self)
-    !!{
+    !!{RST
     Constructor for the matter plus dark energy cosmological functions class.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -196,7 +198,7 @@ contains
   end function matterDarkEnergyConstructorInternal
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
-    !!{
+    !!{RST
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
     use :: Error, only : Error_Report
@@ -235,8 +237,8 @@ contains
   end function matterDarkEnergyCosmicTime
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the dark energy density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -325,8 +327,8 @@ contains
   end function matterDarkEnergyDominationEpochMatter
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the Hubble parameter at the request cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -368,8 +370,8 @@ contains
   end function matterDarkEnergyHubbleParameterEpochal
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the rate of change of the Hubble parameter at the requested cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the rate of change of the Hubble parameter at the requested cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -414,7 +416,7 @@ contains
   end function matterDarkEnergyHubbleParameterRateOfChange
 
   double precision function matterDarkEnergyEqualityEpochMatterDarkEnergy(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
@@ -440,7 +442,7 @@ contains
   end function matterDarkEnergyEqualityEpochMatterDarkEnergy
 
   double precision function matterDarkEnergyDomination(expansionFactor)
-    !!{
+    !!{RST
     Function used in root finding when seeking epoch at which matter dominates over dark energy.
     !!}
     implicit none
@@ -456,7 +458,7 @@ contains
   end function matterDarkEnergyDomination
 
   subroutine matterDarkEnergyTargetSelf(self)
-    !!{
+    !!{RST
     Set a module-scope pointer to the current dark energy cosmology functions object.
     !!}
     implicit none
@@ -467,7 +469,7 @@ contains
   end subroutine matterDarkEnergyTargetSelf
 
   subroutine matterDarkEnergyMakeExpansionFactorTable(self,time)
-    !!{
+    !!{RST
     Builds a table of expansion factor vs. time for dark energy universes.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsTime
@@ -622,8 +624,8 @@ contains
   end subroutine matterDarkEnergyMakeExpansionFactorTable
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
-    !!{
-    Compute the expansion factor at time \mono{timeEnd} given an initial value \mono{expansionFactorStart} at time \mono{timeStart}.
+    !!{RST
+    Compute the expansion factor at time ``timeEnd`` given an initial value ``expansionFactorStart`` at time ``timeStart``.
     !!}
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
@@ -643,7 +645,7 @@ contains
   end function matterDarkEnergyExpansionFactorChange
 
   integer function matterDarkEnergyAgeTableODEs(t,a,dadt)
-    !!{
+    !!{RST
     System of differential equations to solve for expansion factor vs. age.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -662,8 +664,8 @@ contains
   end function matterDarkEnergyAgeTableODEs
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
-    !!{
-    Returns the cosmological time corresponding to given \mono{comovingDistance}.
+    !!{RST
+    Returns the cosmological time corresponding to given ``comovingDistance``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -677,8 +679,8 @@ contains
   end function matterDarkEnergyTimeAtDistanceComoving
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
-    !!{
-    Returns the comoving distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the comoving distance to cosmological time ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -692,7 +694,7 @@ contains
    end function matterDarkEnergyDistanceComoving
 
   double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !!{
+    !!{RST
     Convert between different measures of distance.
     !!}
     use :: Error, only : Error_Report
@@ -709,7 +711,7 @@ contains
   end function matterDarkEnergyDistanceComovingConvert
 
   double precision function matterDarkEnergyEquationOfStateDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy equation of state.
     !!}
     use :: Error, only : Error_Report
@@ -737,7 +739,7 @@ contains
   end function matterDarkEnergyEquationOfStateDarkEnergy
 
   double precision function matterDarkEnergyExponentDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy exponent.
     !!}
     use :: Error, only : Error_Report
@@ -763,7 +765,7 @@ contains
   end function matterDarkEnergyExponentDarkEnergy
 
   double precision function matterDarkEnergyExponentDarkEnergyDerivative(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the derivative of the dark energy exponent with respect to expansion factor.
     !!}
     use :: Error, only : Error_Report

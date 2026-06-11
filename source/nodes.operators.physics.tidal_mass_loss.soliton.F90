@@ -19,23 +19,20 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{  
-  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model
-  of \cite{du_tidal_2018}.
+  !!{RST
+  Implements a node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorTidalMassLossSoliton">
+  <nodeOperator name="nodeOperatorTidalMassLossSoliton" docformat="rst">
     <description>
-      A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of
-      \cite{du_tidal_2018}.
+    A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossSoliton
-     !!{
-     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of
-     \cite{du_tidal_2018}.
+     !!{RST
+     A node operator class that accumulates the tidal-heating source term from the FDM solitonic core, following the model of :cite:t:`du_tidal_2018`.
      !!}
      private
      integer :: massCoreNormalID, massCoreID, &
@@ -45,8 +42,8 @@
   end type nodeOperatorTidalMassLossSoliton
   
   interface nodeOperatorTidalMassLossSoliton
-     !!{
-     Constructors for the \refClass{nodeOperatorTidalMassLossSoliton} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorTidalMassLossSoliton`` node operator class.
      !!}
      module procedure tidalMassLossSolitonConstructorParameters
      module procedure tidalMassLossSolitonConstructorInternal
@@ -55,8 +52,8 @@
 contains
 
   function tidalMassLossSolitonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTidalMassLossSoliton} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorTidalMassLossSoliton`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +68,8 @@ contains
   end function tidalMassLossSolitonConstructorParameters
 
   function tidalMassLossSolitonConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTidalMassLossSoliton} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorTidalMassLossSoliton`` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossSoliton) :: self
@@ -85,8 +82,8 @@ contains
   end function tidalMassLossSolitonConstructorInternal
 
   subroutine tidalMassLossSolitonDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Set the rate of tidal mass loss from the soliton following the model of \cite{du_tidal_2018}.
+    !!{RST
+    Set the rate of tidal mass loss from the soliton following the model of :cite:t:`du_tidal_2018`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile, nodeComponentSatellite, treeNode
     use :: Mass_Distributions              , only : massDistributionClass

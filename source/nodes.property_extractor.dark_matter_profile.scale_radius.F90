@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter profile scale radius output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius">
-   <description>Extracts the scale radius of the dark matter halo density profile (e.g., the NFW scale radius $r_\mathrm{s}$ where the logarithmic slope equals $-2$), a key structural parameter relating halo mass to its spatial extent and concentration.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileScaleRadius" docformat="rst">
+   <description>
+   Extracts the scale radius of the dark matter halo density profile (e.g., the NFW scale radius :math:`r_\mathrm{s}` where the logarithmic slope equals :math:`-2`), a key structural parameter relating halo mass to its spatial extent and concentration.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileScaleRadius
-     !!{
+     !!{RST
      A dark matter profile scale radius output property extractor class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a dark matter profile scale radius output analysis property extractor
   end type nodePropertyExtractorDarkMatterProfileScaleRadius
 
   interface nodePropertyExtractorDarkMatterProfileScaleRadius
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorDarkMatterProfileScaleRadius`` property extractor class.
      !!}
      module procedure darkMatterProfileScaleRadiusConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileScaleRadius
@@ -49,8 +51,8 @@ Implements a dark matter profile scale radius output analysis property extractor
 contains
 
   function darkMatterProfileScaleRadiusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileScaleRadius} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorDarkMatterProfileScaleRadius`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function darkMatterProfileScaleRadiusConstructorParameters
 
   double precision function darkMatterProfileScaleRadiusExtract(self,node,instance)
-    !!{
-    Implement a \mono{darkMatterProfileScaleRadius} output analysis.
+    !!{RST
+    Implement a ``darkMatterProfileScaleRadius`` output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -83,8 +85,8 @@ contains
 
 
   function darkMatterProfileScaleRadiusName(self)
-    !!{
-    Return the name of the \mono{darkMatterProfileScaleRadius} property.
+    !!{RST
+    Return the name of the ``darkMatterProfileScaleRadius`` property.
     !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusName
@@ -96,8 +98,8 @@ contains
   end function darkMatterProfileScaleRadiusName
 
   function darkMatterProfileScaleRadiusDescription(self)
-    !!{
-    Return a description of the \mono{darkMatterProfileScaleRadius} property.
+    !!{RST
+    Return a description of the ``darkMatterProfileScaleRadius`` property.
     !!}
     implicit none
     type (varying_string                                   )                :: darkMatterProfileScaleRadiusDescription
@@ -109,8 +111,8 @@ contains
   end function darkMatterProfileScaleRadiusDescription
 
   double precision function darkMatterProfileScaleRadiusUnitsInSI(self)
-    !!{
-    Return the units of the \mono{darkMatterProfileScaleRadius} property in the SI system.
+    !!{RST
+    Return the units of the ``darkMatterProfileScaleRadius`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
@@ -122,7 +124,7 @@ contains
   end function darkMatterProfileScaleRadiusUnitsInSI
 
   function darkMatterProfileScaleRadiusUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the darkMatterProfileScaleRadius property.
     !!}
     use :: Units_MetaData, only : unitType

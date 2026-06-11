@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.
 !!}
 
   !![
-  <gravitationalLensing name="gravitationalLensingBaryonicModifier">
+  <gravitationalLensing name="gravitationalLensingBaryonicModifier" docformat="rst">
    <description>
-    A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of
-    baryons. The distribution to modify is specified via the \mono{[gravitationalLensingBaryonicModifierOriginalDistribution]} parameter. The modification takes the form:
-    \begin{equation}
-    P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
-    \end{equation}
-    where $\alpha=$\mono{[gravitationalLensingBaryonicModifierAlpha]} and $\beta=$\mono{[gravitationalLensingBaryonicModifierBeta]}. The distribution is then renormalized to ensure that the cumulative
-    probability reaches unity for infinite magnification. As an example, values of $\alpha=2.05\times 10^{-3}$ and $\beta=0.62$
-    approximately reproduce the results of \cite[][their Fig.~1]{hilbert_strong-lensing_2008}.
+   A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of baryons. The distribution to modify is specified via the ``[gravitationalLensingBaryonicModifierOriginalDistribution]`` parameter. The modification takes the form:
+
+   .. math::
+
+      P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
+
+   where :math:`\alpha=`\ ``[gravitationalLensingBaryonicModifierAlpha]`` and :math:`\beta=`\ ``[gravitationalLensingBaryonicModifierBeta]``. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of :math:`\alpha=2.05\times 10^{-3}` and :math:`\beta=0.62` approximately reproduce the results of :cite:t:`hilbert_strong-lensing_2008`.
    </description>
   </gravitationalLensing>
   !!]
@@ -53,8 +52,8 @@ Implements the gravitational lensing distribution by modifying another distribut
   end type gravitationalLensingBaryonicModifier
 
   interface gravitationalLensingBaryonicModifier
-     !!{
-     Constructors for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
+     !!{RST
+     Constructors for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
      !!}
      module procedure baryonicModifierConstructorParameters
      module procedure baryonicModifierConstructorInternal
@@ -63,8 +62,8 @@ Implements the gravitational lensing distribution by modifying another distribut
 contains
 
   function baryonicModifierConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{baryonicModifier} gravitational lensing class.
+    !!{RST
+    Default constructor for the ``baryonicModifier`` gravitational lensing class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,17 +74,21 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter $\alpha$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
+      <description>
+      Parameter :math:`\alpha` in the modified gravitational lensing :term:`PDF`, :math:`P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>Parameter $\beta$ in the modified gravitational lensing \gls{pdf}, $P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]$.</description>
+      <description>
+      Parameter :math:`\beta` in the modified gravitational lensing :term:`PDF`, :math:`P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]`.
+      </description>
     </inputParameter>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     !!]
@@ -99,8 +102,8 @@ contains
   end function baryonicModifierConstructorParameters
 
   function baryonicModifierConstructorInternal(gravitationalLensing_,alpha,beta) result(self)
-    !!{
-    Internal constructor for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
+    !!{RST
+    Internal constructor for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
     !!}
     implicit none
     type            (gravitationalLensingBaryonicModifier)                        :: self
@@ -117,8 +120,8 @@ contains
   end function baryonicModifierConstructorInternal
 
   subroutine baryonicModifierDestructor(self)
-    !!{
-    Destructor for the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
+    !!{RST
+    Destructor for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
     !!}
     implicit none
     type(gravitationalLensingBaryonicModifier), intent(inout) :: self
@@ -130,8 +133,8 @@ contains
   end subroutine baryonicModifierDestructor
 
   subroutine baryonicModifierRenormalize(self,redshift,scaleSource)
-    !!{
-    Renormalize for \gls{pdf} for baryonic modification.
+    !!{RST
+    Renormalize for :term:`PDF` for baryonic modification.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
@@ -193,8 +196,8 @@ contains
   contains
 
     double precision function magnificationTransition(magnification)
-      !!{
-      Root finding function used in the \refClass{gravitationalLensingBaryonicModifier} gravitational lensing class.
+      !!{RST
+      Root finding function used in the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
       !!}
       implicit none
       double precision, intent(in   ) :: magnification
@@ -206,9 +209,8 @@ contains
   end subroutine baryonicModifierRenormalize
 
   double precision function baryonicModifierMagnificationPDF(self,magnification,redshift,scaleSource)
-    !!{
-    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
-    another distribution for the effects of baryons.
+    !!{RST
+    Compute the magnification probability density function at the given ``magnification`` and ``redshift`` by modifying another distribution for the effects of baryons.
     !!}
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self
@@ -227,9 +229,8 @@ contains
   end function baryonicModifierMagnificationPDF
 
   double precision function baryonicModifierMagnificationCDF(self,magnification,redshift,scaleSource)
-    !!{
-    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} by modifying
-    another distribution for the effects of baryons.
+    !!{RST
+    Compute the magnification probability density function at the given ``magnification`` and ``redshift`` by modifying another distribution for the effects of baryons.
     !!}
     implicit none
     class           (gravitationalLensingBaryonicModifier), intent(inout) :: self

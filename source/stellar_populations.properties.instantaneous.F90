@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar population properties class based on the instantaneous recycling approximation.
   !!}
 
@@ -27,24 +27,20 @@
   use            :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !![
-  <stellarPopulationProperties name="stellarPopulationPropertiesInstantaneous">
+  <stellarPopulationProperties name="stellarPopulationPropertiesInstantaneous" docformat="rst">
    <description>
-    A stellar population properties class based on the instantaneous recycling approximation. Specifically, given a star
-    formation rate $\phi$, this method assumes a rate of increase of stellar mass of $\dot{M}_\star=(1-R)\phi$, a corresponding
-    rate of decrease in fuel mass. The rate of change of the metal content of stars follows from the fuel metallicity, while
-    that of the fuel changes according to
-    \begin{equation}
-     \dot{M}_{fuel,Z} = - (1-R) Z_\mathrm{fuel} \phi + p \phi.
-    \end{equation}
-    In the above $R$ is the instantaneous recycled fraction and $p$ is the yield, both of which are supplied by the \gls{imf}
-    subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy
-    from a single stellar population (as defined by the \mono{feedbackEnergyInputAtInfinityCanonical}) is
-    input instantaneously.
+   A stellar population properties class based on the instantaneous recycling approximation. Specifically, given a star formation rate :math:`\phi`, this method assumes a rate of increase of stellar mass of :math:`\dot{M}_\star=(1-R)\phi`, a corresponding rate of decrease in fuel mass. The rate of change of the metal content of stars follows from the fuel metallicity, while that of the fuel changes according to
+
+   .. math::
+
+      \dot{M}_{fuel,Z} = - (1-R) Z_\mathrm{fuel} \phi + p \phi.
+
+   In the above :math:`R` is the instantaneous recycled fraction and :math:`p` is the yield, both of which are supplied by the :term:`IMF` subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy from a single stellar population (as defined by the ``feedbackEnergyInputAtInfinityCanonical``) is input instantaneously.
    </description>
   </stellarPopulationProperties>
   !!]
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
-     !!{
+     !!{RST
      A stellar population properties class based on the instantaneous recycling approximation.
      !!}
      private
@@ -64,8 +60,8 @@
   end type stellarPopulationPropertiesInstantaneous
 
   interface stellarPopulationPropertiesInstantaneous
-     !!{
-     Constructors for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
+     !!{RST
+     Constructors for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
      !!}
      module procedure instantaneousConstructorParameters
      module procedure instantaneousConstructorInternal
@@ -74,9 +70,8 @@
 contains
 
   function instantaneousConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class which takes a parameter list
-    as input.
+    !!{RST
+    Constructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,8 +94,8 @@ contains
   end function instantaneousConstructorParameters
 
   function instantaneousConstructorInternal(stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
+    !!{RST
+    Internal constructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
@@ -122,8 +117,8 @@ contains
   end function instantaneousConstructorInternal
 
   subroutine instantaneousDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationPropertiesInstantaneous} stellar population properties class.
+    !!{RST
+    Destructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesInstantaneous), intent(inout) :: self
@@ -137,7 +132,7 @@ contains
 
   subroutine instantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
-    !!{
+    !!{RST
     Return stellar population property rates of change given a star formation rate and fuel abundances.
     !!}
     use :: Abundances_Structure      , only : Abundances_Get_Metallicity            , adjustElementsReset
@@ -224,9 +219,8 @@ contains
   end subroutine instantaneousRates
 
   subroutine instantaneousScales(self,massStellar,abundancesStellar,history_)
-    !!{
-    Set the scalings for error control on the absolute values of stellar population properties. The instantaneous method
-    requires none, so just return.
+    !!{RST
+    Set the scalings for error control on the absolute values of stellar population properties. The instantaneous method requires none, so just return.
     !!}
     implicit none
     class           (stellarPopulationPropertiesInstantaneous), intent(inout) :: self
@@ -239,7 +233,7 @@ contains
   end subroutine instantaneousScales
 
   integer function instantaneousHistoryCount(self)
-    !!{
+    !!{RST
     Returns the number of histories required by the instantaneous stellar populations properties class.
     !!}
     implicit none
@@ -251,9 +245,8 @@ contains
   end function instantaneousHistoryCount
 
   subroutine instantaneousHistoryCreate(self,node,history_)
-    !!{
-    Create any history required for storing stellar population properties. The instantaneous method requires none, so don't
-    create one.
+    !!{RST
+    Create any history required for storing stellar population properties. The instantaneous method requires none, so don't create one.
     !!}
     implicit none
     class(stellarPopulationPropertiesInstantaneous), intent(inout) :: self

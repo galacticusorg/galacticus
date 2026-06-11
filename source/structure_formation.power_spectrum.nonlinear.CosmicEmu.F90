@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-code of \cite{moran_mira-titan_2023}.
+!!{RST
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the code of :cite:t:`moran_mira-titan_2023`.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -30,17 +29,15 @@ code of \cite{moran_mira-titan_2023}.
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
   !![
-  <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu" docformat="rst">
    <description>
-    Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
-    \cite{moran_mira-titan_2023}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
+   Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of :cite:t:`moran_mira-titan_2023`. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is utilized.
    </description>
   </powerSpectrumNonlinear>
   !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
-     !!{
-     A nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-     code of \cite{moran_mira-titan_2023}.
+     !!{RST
+     A nonlinear power spectrum class in which the nonlinear power spectrum is computed using the code of :cite:t:`moran_mira-titan_2023`.
      !!}
      private
      integer                                                                    :: wavenumberCount
@@ -58,8 +55,8 @@ code of \cite{moran_mira-titan_2023}.
   end type powerSpectrumNonlinearCosmicEmu
 
   interface powerSpectrumNonlinearCosmicEmu
-     !!{
-     Constructors for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
+     !!{RST
+     Constructors for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
      !!}
      module procedure cosmicEmuConstructorParameters
      module procedure cosmicEmuConstructorInternal
@@ -71,7 +68,7 @@ code of \cite{moran_mira-titan_2023}.
 contains
 
   function cosmicEmuConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -104,8 +101,8 @@ contains
   end function cosmicEmuConstructorParameters
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
+    !!{RST
+    Internal constructor for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -150,8 +147,8 @@ contains
   end function cosmicEmuConstructorInternal
 
   subroutine cosmicEmuDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumNonlinearCosmicEmu} nonlinear power spectrum class.
+    !!{RST
+    Destructor for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
@@ -166,8 +163,8 @@ contains
   end subroutine cosmicEmuDestructor
 
   double precision function cosmicEmuValue(self,waveNumber,time)
-    !!{
-    Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
+    !!{RST
+    Return a nonlinear power spectrum equal using the code of :cite:t:`lawrence_coyote_2010`.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayMessage              , verbosityLevelWorking

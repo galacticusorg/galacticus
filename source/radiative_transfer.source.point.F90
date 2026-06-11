@@ -21,12 +21,14 @@
   use :: Radiative_Transfer_Spectra, only : radiativeTransferSpectrumClass
   
   !![
-  <radiativeTransferSource name="radiativeTransferSourcePoint">
-   <description>A photon source class for unresolved point-like radiative transfer sources that emit isotropically from a fixed location in three-dimensional space. The source position and a descriptive label are given by the \mono{[position]} and \mono{[label]} parameters, and the spectral shape is provided via the \mono{[radiativeTransferSpectrum]} object.</description>
+  <radiativeTransferSource name="radiativeTransferSourcePoint" docformat="rst">
+   <description>
+   A photon source class for unresolved point-like radiative transfer sources that emit isotropically from a fixed location in three-dimensional space. The source position and a descriptive label are given by the ``[position]`` and ``[label]`` parameters, and the spectral shape is provided via the ``[radiativeTransferSpectrum]`` object.
+   </description>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourcePoint
-     !!{
+     !!{RST
      Implementation of a point source class for radiative transfer calculations.
      !!}
      private
@@ -44,8 +46,8 @@
   end type radiativeTransferSourcePoint
 
   interface radiativeTransferSourcePoint
-     !!{
-     Constructors for the \refClass{radiativeTransferSourcePoint} radiative transfer source class.
+     !!{RST
+     Constructors for the ``radiativeTransferSourcePoint`` radiative transfer source class.
      !!}
      module procedure pointConstructorParameters
      module procedure pointConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function pointConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSourcePoint} radiative transfer source class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``radiativeTransferSourcePoint`` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,16 +69,20 @@ contains
     type            (varying_string                )                :: label
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>position</name>
       <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
-      <description>The position of the point source.</description>
+      <description>
+      The position of the point source.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>A descriptive label for the source.</description>
+      <description>
+      A descriptive label for the source.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
@@ -92,8 +98,8 @@ contains
   end function pointConstructorParameters
 
   function pointConstructorInternal(position,label,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSourcePoint} radiative transfer source class.
+    !!{RST
+    Internal constructor for the ``radiativeTransferSourcePoint`` radiative transfer source class.
     !!}
     implicit none
     type            (radiativeTransferSourcePoint  )                              :: self
@@ -109,8 +115,8 @@ contains
   end function pointConstructorInternal
 
   subroutine pointDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferSourcePoint} radiative transfer source class.
+    !!{RST
+    Destructor for the ``radiativeTransferSourcePoint`` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourcePoint), intent(inout) :: self
@@ -123,7 +129,7 @@ contains
   end subroutine pointDestructor
 
   subroutine pointInitializePhotonPacket(self,photonPacket)
-    !!{
+    !!{RST
     Initialize the wavelength of the photon packet.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -151,7 +157,7 @@ contains
   end subroutine pointInitializePhotonPacket
 
   double precision function pointSpectrum(self,wavelength,sourceType)
-    !!{
+    !!{RST
     Return the spectrum of the point source.
     !!}
     use :: Error, only : Error_Report
@@ -168,7 +174,7 @@ contains
   end function pointSpectrum
 
   double precision function pointLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
-    !!{
+    !!{RST
     Return the luminosity of the point source.
     !!}
     use :: Error, only : Error_Report
@@ -185,7 +191,7 @@ contains
   end function pointLuminosity
 
   integer function pointSourceTypeCount(self)
-    !!{
+    !!{RST
     Return the number of source types provided.
     !!}
     implicit none
@@ -197,7 +203,7 @@ contains
   end function pointSourceTypeCount
 
   function pointSourceTypeName(self,sourceType)
-    !!{
+    !!{RST
     Return the name of the source type.
     !!}
     use :: Error, only : Error_Report

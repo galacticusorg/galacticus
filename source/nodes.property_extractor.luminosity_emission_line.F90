@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implements a property extractor class for the emission line luminosity of a component.
   !!}
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -33,7 +33,7 @@
   use            :: HII_Region_Escape_Fraction      , only : hiiRegionEscapeFractionClass
 
   type:: emissionLineLuminosityTemplate
-     !!{
+     !!{RST
      Type used to store luminosity templates for emission lines.
      !!}
      private
@@ -42,15 +42,15 @@
   end type emissionLineLuminosityTemplate
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLuminosityEmissionLine">
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityEmissionLine" docformat="rst">
    <description>
-    An emission line luminosity property extractor class. The luminosities of the named emission lines (given by the \mono{lineNames} parameter) are computed.
+   An emission line luminosity property extractor class. The luminosities of the named emission lines (given by the ``lineNames`` parameter) are computed.
    </description>
    <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityEmissionLine
-     !!{
+     !!{RST
      A property extractor class for the emission line luminosity of a component.
      !!}
      private
@@ -103,8 +103,8 @@
   end type nodePropertyExtractorLuminosityEmissionLine
   
   interface nodePropertyExtractorLuminosityEmissionLine
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
      !!}
      module procedure emissionLineLuminosityConstructorParameters
      module procedure emissionLineLuminosityConstructorInternal
@@ -113,8 +113,8 @@
 contains
 
   function emissionLineLuminosityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -135,27 +135,35 @@ contains
     
     allocate(lineNames(parameters%count('lineNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cloudyTableFileName</name>
       <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_BC2003_highResolution_imfChabrier.hdf5')</defaultValue>
       <source>parameters</source>
-      <description>The file of emission line luminosities to use.</description>
+      <description>
+      The file of emission line luminosities to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lineNames</name>
       <source>parameters</source>
-      <description>The emission lines to extract.</description>
+      <description>
+      The emission lines to extract.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation rate.</description>
+      <description>
+      The component from which to extract star formation rate.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <source>parameters</source>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance used in integration over stellar population spectra.</description>
+      <description>
+      The relative tolerance used in integration over stellar population spectra.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationHistory"         name="starFormationHistory_"         source="parameters"/>
     <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
@@ -180,8 +188,8 @@ contains
   end function emissionLineLuminosityConstructorParameters
 
   function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
     !!}
     use :: Array_Utilities                 , only : slice5Dto2D
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
@@ -419,8 +427,8 @@ contains
   end function emissionLineLuminosityConstructorInternal
 
   subroutine emissionLineLuminosityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityEmissionLine} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
@@ -437,8 +445,8 @@ contains
   end subroutine emissionLineLuminosityDestructor
   
   integer function emissionLineLuminosityElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{emissionLineLuminosity} property extractors.
+    !!{RST
+    Return the number of elements in the ``emissionLineLuminosity`` property extractors.
     !!}
     implicit none
     class     (nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self
@@ -450,8 +458,8 @@ contains
   end function emissionLineLuminosityElementCount
 
   function emissionLineLuminosityExtract(self,node,time,instance) result(luminosity)
-    !!{
-    Implement a \mono{luminosityEmissionLine} property extractor.
+    !!{RST
+    Implement a ``luminosityEmissionLine`` property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
@@ -507,8 +515,8 @@ contains
   end function emissionLineLuminosityExtract
 
   subroutine emissionLineLuminosityNames(self,time,names)
-    !!{
-    Return the names of the \mono{emissionLines}.
+    !!{RST
+    Return the names of the ``emissionLines``.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -523,8 +531,8 @@ contains
   end subroutine emissionLineLuminosityNames
   
   subroutine emissionLineLuminosityDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{emission line luminosity} property.
+    !!{RST
+    Return descriptions of the ``emission line luminosity`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorLuminosityEmissionLine), intent(inout)                            :: self
@@ -538,9 +546,9 @@ contains
   end subroutine emissionLineLuminosityDescriptions
   
   function emissionLineLuminosityUnitsInSI(self,time) result(unitsInSI)
-  !!{
-    Return the units of the \mono{emissionLineLuminosity} properties in the SI system.
-    !!}
+  !!{RST
+  Return the units of the ``emissionLineLuminosity`` properties in the SI system.
+  !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
     double precision                                             , allocatable  , dimension(:) :: unitsInSI
@@ -554,7 +562,7 @@ contains
   end function emissionLineLuminosityUnitsInSI
 
   subroutine emissionLineLuminosityMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for tuple property meta-data.
     !!}
     implicit none
@@ -570,7 +578,7 @@ contains
   end subroutine emissionLineLuminosityMetaData
 
   integer function emissionLineLuminosityIndexTemplateTime(self,time) result(indexTemplate)
-    !!{
+    !!{RST
     Find the index of the template emission lines to use.
     !!}
     use :: Numerical_Comparison    , only : Values_Agree
@@ -601,7 +609,7 @@ contains
   end function emissionLineLuminosityIndexTemplateTime
 
   function emissionLineLuminosityIndexTemplateNode(self,node,starFormationHistory) result(indexTemplate)
-    !!{
+    !!{RST
     Find the index of the template emission line luminosity to use, and also compute the template.
     !!}
     use :: Display                 , only : displayMessage               , verbosityLevelWorking
@@ -725,7 +733,7 @@ contains
   end function emissionLineLuminosityIndexTemplateNode
 
   function emissionLineLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize,times_) result(luminosityMean)
-    !!{
+    !!{RST
     Compute the mean luminosity of the stellar population in each bin of the star formation history.
     !!}
     use :: Display                , only : displayIndent                   , displayUnindent             , displayCounter        , displayCounterClear, &
@@ -862,7 +870,7 @@ contains
   contains
 
     double precision function emissionLineLuminosityIntegrandMetallicity(metallicity) result(integrand)
-      !!{
+      !!{RST
       Integrand over metallicity of the stellar population.
       !!}
       implicit none
@@ -874,7 +882,7 @@ contains
     end function emissionLineLuminosityIntegrandMetallicity
 
     double precision function emissionLineLuminosityIntegrandTime(timeBirth) result(integrand)
-      !!{
+      !!{RST
       Integrand over birth time of the stellar population.
       !!}
       implicit none
@@ -916,7 +924,7 @@ contains
   end function emissionLineLuminosityMean
 
   function emissionLineLuminosityHistoryHashedDescriptor(self,node,indexOutput,starFormationHistory) result(hashedDescriptor)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters        , only : inputParameters
@@ -940,9 +948,9 @@ contains
     type            (varying_string                             )                              :: descriptorString    , values
     integer                                                                                    :: i                   , status
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
       <description>
-	Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
       </description>
     </workaround>
     !!]
@@ -999,9 +1007,9 @@ contains
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorLuminosityEmissionLine5)//"}"
     !![
-    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845" docformat="rst">
      <description>
-      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+     Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
      </description>
     </workaround>
     !!]
@@ -1010,7 +1018,7 @@ contains
   end function emissionLineLuminosityHistoryHashedDescriptor
 
   function luminosityEmissionLineUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the luminosityEmissionLine properties.
     !!}
     use :: Units_MetaData, only : unitType

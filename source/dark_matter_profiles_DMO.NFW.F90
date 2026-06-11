@@ -17,25 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
+  !!{RST
+  An implementation of :cite:t:`navarro_universal_1997` dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMONFW">
+  <darkMatterProfileDMO name="darkMatterProfileDMONFW" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionNFW} objects to implement the \gls{nfw} density profile
-    \citep{navarro_universal_1997}, normalized such that the total mass of the \gls{node} is enclosed with the virial radius and
-    with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see
-    \refPhysics{darkMatterProfileConcentration}).
+   A dark matter profile DMO class which builds ``massDistributionNFW`` objects to implement the :term:`NFW` density profile :cite:p:`navarro_universal_1997`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see ``darkMatterProfileConcentration``).
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMONFW
-     !!{
-     A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :cite:t:`navarro_universal_1997` dark matter halos.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_                 => null()
@@ -46,8 +43,8 @@
   end type darkMatterProfileDMONFW
 
   interface darkMatterProfileDMONFW
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -56,8 +53,8 @@
 contains
 
   function nfwConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,11 +64,13 @@ contains
     logical                                          :: velocityDispersionUseSeriesExpansion
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionUseSeriesExpansion</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, radial velocity dispersion is computed using series expansion.</description>
+      <description>
+      If ``true``, radial velocity dispersion is computed using series expansion.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -84,8 +83,8 @@ contains
   end function nfwConstructorParameters
 
   function nfwConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -112,8 +111,8 @@ contains
   end function nfwConstructorInternal
 
   subroutine nfwDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMONFW} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMONFW), intent(inout) :: self
@@ -125,8 +124,8 @@ contains
   end subroutine nfwDestructor
 
   function nfwGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo, massTypeDark                   , weightByMass

@@ -19,11 +19,11 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module of satellite orbit tree node methods.
 !!}
 module Node_Component_Satellite_Orbiting
-  !!{
+  !!{RST
   Implements the orbiting satellite component.
   !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -119,7 +119,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Satellite_Orbiting_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the orbiting satellite methods module.
     !!}
     use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
@@ -134,10 +134,12 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSatellite')
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>acceptUnboundOrbits</name>
          <defaultValue>.false.</defaultValue>
-         <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
+         <description>
+         If true, accept unbound virial orbits for satellites, otherwise reject them.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -152,7 +154,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Orbiting_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
@@ -183,7 +185,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Orbiting_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node orbiting satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
@@ -205,8 +207,8 @@ contains
   <scaleSetTask function="Node_Component_Satellite_Orbiting_Scale_Set"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
@@ -264,9 +266,8 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
   
   subroutine nodePromotion(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
-    from the parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit from the parent.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteOrbiting
@@ -297,8 +298,8 @@ contains
   end subroutine nodePromotion
 
   subroutine subhaloPromotion(self,node,nodePromotion)
-    !!{
-    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).    
+    !!{RST
+    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
@@ -311,7 +312,7 @@ contains
   end subroutine subhaloPromotion
 
   subroutine satellitePreHostChange(self,node,nodeHostNew)
-    !!{
+    !!{RST
     A satellite is about to move to a new host, adjust its position and velocity appropriately
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
@@ -352,7 +353,7 @@ contains
   end subroutine satellitePreHostChange
   
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
-    !!{
+    !!{RST
     Return the orbit of the satellite at the virial radius.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, treeNode
@@ -388,7 +389,7 @@ contains
   end function Node_Component_Satellite_Orbiting_Virial_Orbit
   
   subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,orbit)
-    !!{
+    !!{RST
     Set the orbit of the satellite at the virial radius.
     !!}
     use :: Coordinates     , only : assignment(=)
@@ -424,7 +425,7 @@ contains
   <stateStoreTask function="Node_Component_Satellite_Orbiting_State_Store"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -445,7 +446,7 @@ contains
   <stateRetrieveTask function="Node_Component_Satellite_Orbiting_State_Restore"/>
   !!]
   subroutine Node_Component_Satellite_Orbiting_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

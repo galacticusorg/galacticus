@@ -17,25 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the dark matter halo spin distribution which uses the fitting function proposed by
-  \cite{bett_spin_2007}.
+  !!{RST
+  An implementation of the dark matter halo spin distribution which uses the fitting function proposed by :cite:t:`bett_spin_2007`.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !![
-  <haloSpinDistribution name="haloSpinDistributionBett2007">
+  <haloSpinDistribution name="haloSpinDistributionBett2007" docformat="rst">
    <description>
-    A halo spin distribution in which the spin is drawn from the distribution found by \cite{bett_spin_2007}. The $\lambda_0$
-    and $\alpha$ parameter of \cite{bett_spin_2007}'s distribution are set by the \mono{[lambda0]} and \mono{[alpha]} input parameters.
+   A halo spin distribution in which the spin is drawn from the distribution found by :cite:t:`bett_spin_2007`. The :math:`\lambda_0` and :math:`\alpha` parameter of :cite:t:`bett_spin_2007`'s distribution are set by the ``[lambda0]`` and ``[alpha]`` input parameters.
    </description>
   </haloSpinDistribution>
   !!]
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionBett2007
-     !!{
-     A dark matter halo spin distribution class which assumes a \cite{bett_spin_2007} distribution.
+     !!{RST
+     A dark matter halo spin distribution class which assumes a :cite:t:`bett_spin_2007` distribution.
      !!}
      private
      class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_  => null()
@@ -50,9 +48,8 @@
   end type haloSpinDistributionBett2007
 
   interface haloSpinDistributionBett2007
-     !!{
-     Constructors for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
-     distribution class.
+     !!{RST
+     Constructors for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
      !!}
      module procedure bett2007ConstructorParameters
      module procedure bett2007ConstructorInternal
@@ -66,9 +63,8 @@
 contains
 
   function bett2007ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
-    distribution class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,19 +75,27 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lambda0</name>
       <source>parameters</source>
       <defaultValue>0.04326d0</defaultValue>
-      <defaultSource>\citep{bett_spin_2007}</defaultSource>
-      <description>The parameter $\lambda_0$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
+      <defaultSource>
+      :cite:p:`bett_spin_2007`
+      </defaultSource>
+      <description>
+      The parameter :math:`\lambda_0` in the halo spin distribution of :cite:t:`bett_spin_2007`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>2.509d0</defaultValue>
-      <defaultSource>\citep{bett_spin_2007}</defaultSource>
-      <description>The parameter $\alpha$ in the halo spin distribution of \cite{bett_spin_2007}.</description>
+      <defaultSource>
+      :cite:p:`bett_spin_2007`
+      </defaultSource>
+      <description>
+      The parameter :math:`\alpha` in the halo spin distribution of :cite:t:`bett_spin_2007`.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -104,9 +108,8 @@ contains
   end function bett2007ConstructorParameters
 
   function bett2007ConstructorInternal(lambda0,alpha,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
-    distribution class.
+    !!{RST
+    Internal constructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
     use :: Table_Labels   , only : extrapolationTypeFix
@@ -173,9 +176,8 @@ contains
   end function bett2007ConstructorInternal
 
   subroutine bett2007Destructor(self)
-    !!{
-    Destructor for the \refClass{haloSpinDistributionBett2007} dark matter halo spin
-    distribution class.
+    !!{RST
+    Destructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
     !!}
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self
@@ -189,8 +191,8 @@ contains
   end subroutine bett2007Destructor
 
   double precision function bett2007Sample(self,node)
-    !!{
-    Sample from a \cite{bett_spin_2007} spin parameter distribution for the given \mono{node}.
+    !!{RST
+    Sample from a :cite:t:`bett_spin_2007` spin parameter distribution for the given ``node``.
     !!}
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
@@ -201,9 +203,8 @@ contains
   end function bett2007Sample
 
   double precision function bett2007Distribution(self,node)
-    !!{
-    Compute the spin parameter distribution for the given \mono{node} assuming the fitting function of
-    \cite{bett_spin_2007}.
+    !!{RST
+    Compute the spin parameter distribution for the given ``node`` assuming the fitting function of :cite:t:`bett_spin_2007`.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Nodes      , only : nodeComponentSpin                      , treeNode

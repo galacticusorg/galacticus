@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple model for galactic disk bar instability in which the timescale is fixed.
   !!}
 
   !![
-  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityFixedTimescale">
-   <description>A simple model for galactic disk bar instability in which the bar formation timescale is a fixed constant set by \mono{[timescale]}. Angular momentum redistributed during bar formation is partitioned between the disk and spheroid according to \mono{[fractionAngularMomentumRetainedDisk]} and \mono{[fractionAngularMomentumRetainedSpheroid]}.</description>
+  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityFixedTimescale" docformat="rst">
+   <description>
+   A simple model for galactic disk bar instability in which the bar formation timescale is a fixed constant set by ``[timescale]``. Angular momentum redistributed during bar formation is partitioned between the disk and spheroid according to ``[fractionAngularMomentumRetainedDisk]`` and ``[fractionAngularMomentumRetainedSpheroid]``.
+   </description>
   </galacticDynamicsBarInstability>
   !!]
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityFixedTimescale
-     !!{
+     !!{RST
      Implementation of a simple model for galactic disk bar instability in which the timescale is fixed.
      !!}
      private
@@ -38,8 +40,8 @@
   end type galacticDynamicsBarInstabilityFixedTimescale
 
   interface galacticDynamicsBarInstabilityFixedTimescale
-     !!{
-     Constructors for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class.
+     !!{RST
+     Constructors for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class.
      !!}
      module procedure fixedTimescaleConstructorParameters
      module procedure fixedTimescaleConstructorInternal
@@ -48,9 +50,8 @@
 contains
 
   function fixedTimescaleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,22 +61,28 @@ contains
          &                                                                           timescale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fixed timescale (in Gyr) for bar instability; the disk is depleted exponentially on this timescale, with the redistributed mass transferred to the spheroid.</description>
+      <description>
+      The fixed timescale (in Gyr) for bar instability; the disk is depleted exponentially on this timescale, with the redistributed mass transferred to the spheroid.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionAngularMomentumRetainedDisk</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.</description>
+      <description>
+      The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionAngularMomentumRetainedSpheroid</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the spheroid.</description>
+      <description>
+      The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the spheroid.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -87,8 +94,8 @@ contains
   end function fixedTimescaleConstructorParameters
 
   function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticDynamicsBarInstabilityFixedTimescale} model for galactic disk bar instability class.
+    !!{RST
+    Internal constructor for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self
@@ -102,7 +109,7 @@ contains
   end function fixedTimescaleConstructorInternal
 
   subroutine fixedTimescaleTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
-    !!{
+    !!{RST
     Assume a constant timescale for depletion of a disk to a pseudo-bulge via bar instability.
     !!}
     implicit none

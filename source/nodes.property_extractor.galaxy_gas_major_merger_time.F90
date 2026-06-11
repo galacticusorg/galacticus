@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyGasMajorMergerTime">
-   <description>Extracts the cosmic times of gas-mass-based major merger events for each galaxy, where merger significance is determined by the gas mass ratio of the merging pair rather than total or stellar mass.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyGasMajorMergerTime" docformat="rst">
+   <description>
+   Extracts the cosmic times of gas-mass-based major merger events for each galaxy, where merger significance is determined by the gas mass ratio of the merging pair rather than total or stellar mass.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyGasMajorMergerTime
-     !!{
+     !!{RST
      A property extractor which extracts the times of gas-mass-based major merger for each galaxy.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorGalaxyGasMajorMergerTime
 
   interface nodePropertyExtractorGalaxyGasMajorMergerTime
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyGasMajorMergerTime} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorGalaxyGasMajorMergerTime`` property extractor class.
      !!}
      module procedure galaxyGasMajorMergerTimeConstructorParameters
      module procedure galaxyGasMajorMergerTimeConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function galaxyGasMajorMergerTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyGasMajorMergerTime} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorGalaxyGasMajorMergerTime`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function galaxyGasMajorMergerTimeConstructorParameters
 
   function galaxyGasMajorMergerTimeConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyGasMajorMergerTime} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorGalaxyGasMajorMergerTime`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyGasMajorMergerTime) :: self
@@ -77,7 +79,7 @@ contains
   end function galaxyGasMajorMergerTimeConstructorInternal
 
   integer function galaxyGasMajorMergerTimeElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -88,7 +90,7 @@ contains
   end function galaxyGasMajorMergerTimeElementCount
 
   function galaxyGasMajorMergerTimeExtract(self,node,instance) result(timeMajorMergers)
-    !!{
+    !!{RST
     Implement a galaxyGasMajorMergerTime output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -110,8 +112,8 @@ contains
   end function galaxyGasMajorMergerTimeExtract
   
   subroutine galaxyGasMajorMergerTimeNames(self,names)
-    !!{
-    Return the names of the \mono{galaxyGasMajorMergerTime} properties.
+    !!{RST
+    Return the names of the ``galaxyGasMajorMergerTime`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyGasMajorMergerTime), intent(inout)                             :: self
@@ -124,8 +126,8 @@ contains
   end subroutine galaxyGasMajorMergerTimeNames
 
   subroutine galaxyGasMajorMergerTimeDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{galaxyGasMajorMergerTime} properties.
+    !!{RST
+    Return the descriptions of the ``galaxyGasMajorMergerTime`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyGasMajorMergerTime), intent(inout)                             :: self
@@ -138,8 +140,8 @@ contains
   end subroutine galaxyGasMajorMergerTimeDescriptions
 
   function galaxyGasMajorMergerTimeUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{galaxyGasMajorMergerTime} properties in the SI system.
+    !!{RST
+    Return the units of the ``galaxyGasMajorMergerTime`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -153,7 +155,7 @@ contains
   end function galaxyGasMajorMergerTimeUnitsInSI
 
   function galaxyGasMajorMergerTimeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the galaxyGasMajorMergerTime properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear

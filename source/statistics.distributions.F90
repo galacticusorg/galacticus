@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class of distributions.
 !!}
 
@@ -26,15 +26,12 @@ module Statistics_Distributions
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>distributionFunction1D</name>
    <descriptiveName>One-dimensional Distribution Functions</descriptiveName>
-   <description>Class providing probability distribution functions of a single continuous variable---the
-    probability density $p(x)$, the cumulative distribution function $P(x) = \int_{-\infty}^x p(x')\,\mathrm{d}x'$,
-    and its inverse $x(P)$ (the quantile function). These distributions are used throughout \glc\
-    for drawing random variates (via the inverse CDF method), defining priors over model parameters,
-    and computing likelihoods. Implementations include uniform, Gaussian, log-normal, Poisson, and
-    truncated variants, with a numerical inverse-CDF fallback for arbitrary densities.</description>
+   <description>
+   Class providing probability distribution functions of a single continuous variable---the probability density :math:`p(x)`, the cumulative distribution function :math:`P(x) = \int_{-\infty}^x p(x')\,\mathrm{d}x'`, and its inverse :math:`x(P)` (the quantile function). These distributions are used throughout Galacticus for drawing random variates (via the inverse CDF method), defining priors over model parameters, and computing likelihoods. Implementations include uniform, Gaussian, log-normal, Poisson, and truncated variants, with a numerical inverse-CDF fallback for arbitrary densities.
+   </description>
    <default>uniform</default>
    <destructor>
     <code>
@@ -43,19 +40,25 @@ module Statistics_Distributions
     </code>
    </destructor>
    <method name="density" >
-     <description>Return the probability density function $p(x)$ evaluated at the given value \mono{x}, representing the relative likelihood of the random variable taking that value.</description>
+     <description>
+     Return the probability density function :math:`p(x)` evaluated at the given value ``x``, representing the relative likelihood of the random variable taking that value.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="cumulative" >
-     <description>Return the cumulative distribution function $P(x) = \int_{-\infty}^x p(x')\,\mathrm{d}x'$, giving the probability that the random variable takes a value less than or equal to \mono{x}.</description>
+     <description>
+     Return the cumulative distribution function :math:`P(x) = \int_{-\infty}^x p(x')\,\mathrm{d}x'`, giving the probability that the random variable takes a value less than or equal to ``x``.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="inverse" >
-     <description>Return the value of the independent variable corresponding to cumulative probability \mono{p}.</description>
+     <description>
+     Return the value of the independent variable corresponding to cumulative probability ``p``.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <selfTarget>yes</selfTarget>
@@ -104,7 +107,9 @@ module Statistics_Distributions
      </code>
    </method>
    <method name="sample" >
-     <description>Return a random deviate drawn from this probability distribution, using the inverse CDF method by default (drawing a uniform random number and applying the quantile function).</description>
+     <description>
+     Return a random deviate drawn from this probability distribution, using the inverse CDF method by default (drawing a uniform random number and applying the quantile function).
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <modules>Error</modules>
@@ -124,7 +129,9 @@ module Statistics_Distributions
      </code>
    </method>
    <method name="minimum" >
-     <description>Returns the minimum possible value (lower bound) of the support of this distribution, i.e., the smallest value $x$ for which the probability density is non-zero. Returns $-\infty$ by default.</description>
+     <description>
+     Returns the minimum possible value (lower bound) of the support of this distribution, i.e., the smallest value :math:`x` for which the probability density is non-zero. Returns :math:`-\infty` by default.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <code>
@@ -132,7 +139,9 @@ module Statistics_Distributions
      </code>
    </method>
    <method name="maximum" >
-     <description>Returns the maximum possible value (upper bound) of the support of this distribution, i.e., the largest value $x$ for which the probability density is non-zero. Returns $+\infty$ by default.</description>
+     <description>
+     Returns the maximum possible value (upper bound) of the support of this distribution, i.e., the largest value :math:`x` for which the probability density is non-zero. Returns :math:`+\infty` by default.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <code>
@@ -144,10 +153,12 @@ module Statistics_Distributions
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>distributionFunctionMultivariate</name>
    <descriptiveName>Multivariate Distribution Functions</descriptiveName>
-   <description>Class providing multivariate distribution functions.</description>
+   <description>
+   Class providing multivariate distribution functions.
+   </description>
    <default>normal</default>
    <destructor>
     <code>
@@ -156,7 +167,9 @@ module Statistics_Distributions
     </code>
    </destructor>
    <method name="density" >
-     <description>Return the probability density at \mono{x}.</description>
+     <description>
+     Return the probability density at ``x``.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ), dimension(:) :: x          </argument>
@@ -164,7 +177,9 @@ module Statistics_Distributions
      <argument>integer         , intent(  out), optional     :: status     </argument>
    </method>
    <method name="cumulative" >
-     <description>Return the cumulative probability between \mono{xLow}, and \mono{xHigh}. The cumulative distribution is defined as $P(x_1 &lt; X_1,\ldots,x_N &lt; X_N)$ where $\mathbf{X}=$\mono{x}.</description>     
+     <description>
+     Return the cumulative probability between ``xLow``, and ``xHigh``. The cumulative distribution is defined as :math:`P(x_1 &lt; X_1,\ldots,x_N &lt; X_N)` where :math:`\mathbf{X}=`\ ``x``.
+     </description>     
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ), dimension(:) :: xLow       , xHigh</argument>
@@ -188,8 +203,8 @@ module Statistics_Distributions
 contains
   
   subroutine distributionFunction1DFinalize(self)
-    !!{
-    Destructor for \refClass{distributionFunction1DClass} objects.
+    !!{RST
+    Destructor for ``distributionFunction1DClass`` objects.
     !!}
     type(distributionFunction1DClass), intent(inout) :: self
 
@@ -200,8 +215,8 @@ contains
   end subroutine distributionFunction1DFinalize
 
   subroutine distributionFunctionMultivariateFinalize(self)
-    !!{
-    Destructor for \mono{distributionFunction1D} objects.
+    !!{RST
+    Destructor for ``distributionFunction1D`` objects.
     !!}
     type(distributionFunctionMultivariateClass), intent(inout) :: self
 
@@ -212,7 +227,7 @@ contains
   end subroutine distributionFunctionMultivariateFinalize
 
   double precision function inverseRoot(x)
-    !!{
+    !!{RST
     Root function used in numerically inverting cumulative distribution functions.
     !!}
     implicit none

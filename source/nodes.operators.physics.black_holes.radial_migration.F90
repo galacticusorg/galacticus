@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that implements radial migration of non-central black holes.
   !!}
 
@@ -28,12 +28,14 @@
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorBlackHolesRadialMigration">
-   <description>Evolves the positions of off-center black holes toward the galactic center via dynamical friction, modelling the orbital decay of black holes displaced by galaxy mergers and enabling treatment of off-center and wandering black hole populations.</description>
+  <nodeOperator name="nodeOperatorBlackHolesRadialMigration" docformat="rst">
+   <description>
+   Evolves the positions of off-center black holes toward the galactic center via dynamical friction, modelling the orbital decay of black holes displaced by galaxy mergers and enabling treatment of off-center and wandering black hole populations.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesRadialMigration
-     !!{
+     !!{RST
      A node operator class that implements radial migration of non-central black holes.
      !!}
      private
@@ -49,8 +51,8 @@
   end type nodeOperatorBlackHolesRadialMigration
   
   interface nodeOperatorBlackHolesRadialMigration
-     !!{
-     Constructors for the \refClass{nodeOperatorBlackHolesRadialMigration} node operator class.
+     !!{RST
+     Constructors for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
      !!}
      module procedure blackHolesRadialMigrationConstructorParameters
      module procedure blackHolesRadialMigrationConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function blackHolesRadialMigrationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBlackHolesRadialMigration} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,8 +99,8 @@ contains
   end function blackHolesRadialMigrationConstructorParameters
 
   function blackHolesRadialMigrationConstructorInternal(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,blackHoleSeeds_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBlackHolesRadialMigration} node operator class.
+    !!{RST
+    Internal constructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesRadialMigration   )                        :: self
@@ -115,8 +117,8 @@ contains
   end function blackHolesRadialMigrationConstructorInternal
 
   subroutine blackHolesRadialMigrationDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBlackHolesRadialMigration} node operator class.
+    !!{RST
+    Destructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesRadialMigration), intent(inout) :: self
@@ -132,7 +134,7 @@ contains
   end subroutine blackHolesRadialMigrationDestructor
 
   subroutine blackHolesRadialMigrationDifferentialEvolutionScales(self,node)
-    !!{
+    !!{RST
     Set absolute ODE solver scale for black hole radial migration.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentSpheroid
@@ -168,7 +170,7 @@ contains
   end subroutine blackHolesRadialMigrationDifferentialEvolutionScales
   
   subroutine blackHolesRadialMigrationDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Account for radial migration of black holes.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole        , propertyInactive
@@ -233,7 +235,7 @@ contains
   end subroutine blackHolesRadialMigrationDifferentialEvolution
   
   subroutine mergeBlackHoles(node,timeEnd)
-    !!{
+    !!{RST
     Merge two black holes.
     !!}
     use :: Galacticus_Nodes                     , only : nodeComponentBlackHole , treeNode

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a hot mode accretion fraction rate property extractor class.
 !!}
 
   use :: Accretion_Halos, only : accretionHalo, accretionHaloClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode">
-   <description>Extracts the fraction of total gas accretion onto a halo that arrives via the hot-mode channel, where infalling gas is shock-heated to the virial temperature rather than streaming in cold. Traces the transition between accretion regimes as a function of halo mass and redshift.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorFractionAccretionHotMode" docformat="rst">
+   <description>
+   Extracts the fraction of total gas accretion onto a halo that arrives via the hot-mode channel, where infalling gas is shock-heated to the virial temperature rather than streaming in cold. Traces the transition between accretion regimes as a function of halo mass and redshift.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorFractionAccretionHotMode
-     !!{
+     !!{RST
      A hot mode accretion fraction property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a hot mode accretion fraction rate property extractor class.
   end type nodePropertyExtractorFractionAccretionHotMode
 
   interface nodePropertyExtractorFractionAccretionHotMode
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
      !!}
      module procedure fractionAccretionHotModeConstructorParameters
      module procedure fractionAccretionHotModeConstructorInternal
@@ -54,8 +56,8 @@ Implements a hot mode accretion fraction rate property extractor class.
 contains
 
   function fractionAccretionHotModeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function fractionAccretionHotModeConstructorParameters
 
   function fractionAccretionHotModeConstructorInternal(accretionHalo_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
+    !!{RST
+    Internal constructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                        :: self
@@ -89,8 +91,8 @@ contains
   end function fractionAccretionHotModeConstructorInternal
 
   subroutine fractionAccretionHotModeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorFractionAccretionHotMode} property extractor class.
+    !!{RST
+    Destructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
@@ -102,8 +104,8 @@ contains
   end subroutine fractionAccretionHotModeDestructor
 
   double precision function fractionAccretionHotModeExtract(self,node,instance)
-    !!{
-    Implement a \mono{fractionAccretionHotMode} property extractor.
+    !!{RST
+    Implement a ``fractionAccretionHotMode`` property extractor.
     !!}
     use :: Accretion_Halos, only : accretionModeHot, accretionModeTotal
     implicit none
@@ -124,8 +126,8 @@ contains
   end function fractionAccretionHotModeExtract
 
   function fractionAccretionHotModeName(self)
-    !!{
-    Return the name of the \mono{fractionAccretionHotMode} property.
+    !!{RST
+    Return the name of the ``fractionAccretionHotMode`` property.
     !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeName
@@ -137,8 +139,8 @@ contains
   end function fractionAccretionHotModeName
 
   function fractionAccretionHotModeDescription(self)
-    !!{
-    Return a description of the \mono{fractionAccretionHotMode} property.
+    !!{RST
+    Return a description of the ``fractionAccretionHotMode`` property.
     !!}
     implicit none
     type (varying_string                               )                :: fractionAccretionHotModeDescription
@@ -150,8 +152,8 @@ contains
   end function fractionAccretionHotModeDescription
 
   double precision function fractionAccretionHotModeUnitsInSI(self)
-    !!{
-    Return the units of the \mono{fractionAccretionHotMode} property in the SI system.
+    !!{RST
+    Return the units of the ``fractionAccretionHotMode`` property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self
@@ -162,7 +164,7 @@ contains
   end function fractionAccretionHotModeUnitsInSI
 
   function fractionAccretionHotModeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the fractionAccretionHotMode property.
     !!}
     use :: Units_MetaData, only : unitType

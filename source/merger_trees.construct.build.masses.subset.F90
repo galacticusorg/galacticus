@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which constructs a subset of another class.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesSubset">
-   <description>A merger tree masses class which extracts a contiguous subset of halo masses from a delegate class, enabling parallel processing of mass lists across multiple jobs. The range of entries to extract is specified by \mono{[subsetBegin]} and \mono{[subsetEnd]}, both indexed from 1.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSubset" docformat="rst">
+   <description>
+   A merger tree masses class which extracts a contiguous subset of halo masses from a delegate class, enabling parallel processing of mass lists across multiple jobs. The range of entries to extract is specified by ``[subsetBegin]`` and ``[subsetEnd]``, both indexed from 1.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSubset
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which constructs a subset of another class.
      !!}
      private
@@ -48,9 +50,8 @@
 contains
 
   function subsetConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesSubset} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,14 +61,18 @@ contains
     integer(c_size_t                   )                :: subsetBegin           , subsetEnd
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subsetBegin</name>
-      <description>The first entry in the subset (indexed from 1).</description>
+      <description>
+      The first entry in the subset (indexed from 1).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subsetEnd</name>
-      <description>The last entry in the subset (indexed from 1).</description>
+      <description>
+      The last entry in the subset (indexed from 1).
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
@@ -80,8 +85,8 @@ contains
   end function subsetConstructorParameters
 
   function subsetConstructorInternal(subsetBegin,subsetEnd,mergerTreeBuildMasses_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesSubset} merger tree masses class.
+    !!{RST
+    Internal constructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class.
     !!}
     implicit none
     type   (mergerTreeBuildMassesSubset)                        :: self
@@ -95,8 +100,8 @@ contains
   end function subsetConstructorInternal
 
   subroutine subsetDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassesSubset} merger tree masses class.
+    !!{RST
+    Destructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSubset), intent(inout) :: self
@@ -108,7 +113,7 @@ contains
   end subroutine subsetDestructor
 
   subroutine subsetConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by taking a subset from another set.
     !!}
     implicit none

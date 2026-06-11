@@ -17,30 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+  !!{RST
+  Implements a stellar initial mass function class for the :cite:t:`scalo_stellar_1986` :term:`IMF`.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionScalo1986">
+  <initialMassFunction name="initialMassFunctionScalo1986" docformat="rst">
    <description>
-    A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}:
-    \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll}
-     M^{+1.60} &amp; \hbox{ for } 0.10\mathrm{M}_\odot &lt; M &lt; 0.18\mathrm{M}_\odot \\
-     M^{-1.01} &amp; \hbox{ for } 0.18\mathrm{M}_\odot &lt; M &lt; 0.42\mathrm{M}_\odot \\
-     M^{-2.75} &amp; \hbox{ for } 0.42\mathrm{M}_\odot &lt; M &lt; 0.62\mathrm{M}_\odot \\
-     M^{-2.08} &amp; \hbox{ for } 0.62\mathrm{M}_\odot &lt; M &lt; 1.18\mathrm{M}_\odot \\
-     M^{-3.50} &amp; \hbox{ for } 1.18\mathrm{M}_\odot &lt; M &lt; 3.50\mathrm{M}_\odot \\
-     M^{-2.63} &amp; \hbox{ for } 3.50\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
-     0 &amp; \hbox {otherwise.} \end{array} \right.
-    \end{equation}
+   A stellar initial mass function class for the :cite:t:`scalo_stellar_1986` :term:`IMF`:
+
+   .. math::
+
+      \phi(M) \propto \left\{ \begin{array}{ll}
+      M^{+1.60} &amp; \hbox{ for } 0.10\mathrm{M}_\odot &lt; M &lt; 0.18\mathrm{M}_\odot \\
+      M^{-1.01} &amp; \hbox{ for } 0.18\mathrm{M}_\odot &lt; M &lt; 0.42\mathrm{M}_\odot \\
+      M^{-2.75} &amp; \hbox{ for } 0.42\mathrm{M}_\odot &lt; M &lt; 0.62\mathrm{M}_\odot \\
+      M^{-2.08} &amp; \hbox{ for } 0.62\mathrm{M}_\odot &lt; M &lt; 1.18\mathrm{M}_\odot \\
+      M^{-3.50} &amp; \hbox{ for } 1.18\mathrm{M}_\odot &lt; M &lt; 3.50\mathrm{M}_\odot \\
+      M^{-2.63} &amp; \hbox{ for } 3.50\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
+      0 &amp; \hbox {otherwise.} \end{array} \right.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionScalo1986
-     !!{
-     A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+     !!{RST
+     A stellar initial mass function class for the :cite:t:`scalo_stellar_1986` :term:`IMF`.
      !!}
      private
    contains
@@ -48,8 +49,8 @@
   end type initialMassFunctionScalo1986
 
   interface initialMassFunctionScalo1986
-     !!{
-     Constructors for the \refClass{initialMassFunctionScalo1986} initial mass function class.
+     !!{RST
+     Constructors for the ``initialMassFunctionScalo1986`` initial mass function class.
      !!}
      module procedure scalo1986ConstructorParameters
      module procedure scalo1986ConstructorInternal
@@ -58,8 +59,8 @@
 contains
 
   function scalo1986ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionScalo1986} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the ``initialMassFunctionScalo1986`` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +75,8 @@ contains
   end function scalo1986ConstructorParameters
 
   function scalo1986ConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionScalo1986} initial mass function.
+    !!{RST
+    Internal constructor for the ``initialMassFunctionScalo1986`` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionScalo1986):: self
@@ -88,8 +89,8 @@ contains
   end function scalo1986ConstructorInternal
 
   function scalo1986Label(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionScalo1986), intent(inout) :: self

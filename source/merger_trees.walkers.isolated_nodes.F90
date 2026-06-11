@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a depth-first merger tree walker over all isolated nodes.
 !!}
 
   !![
-  <mergerTreeWalker name="mergerTreeWalkerIsolatedNodes">
-   <description>Provides a merger tree walker which iterates depth-first over all isolated nodes.</description>
+  <mergerTreeWalker name="mergerTreeWalkerIsolatedNodes" docformat="rst">
+   <description>
+   Provides a merger tree walker which iterates depth-first over all isolated nodes.
+   </description>
   </mergerTreeWalker>
   !!]
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerIsolatedNodes
-     !!{
+     !!{RST
      A merger tree walker which iterates depth-first over all isolated nodes.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a depth-first merger tree walker over all isolated nodes.
   end type mergerTreeWalkerIsolatedNodes
 
   interface mergerTreeWalkerIsolatedNodes
-     !!{
-     Constructors for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class.
+     !!{RST
+     Constructors for the ``mergerTreeWalkerIsolatedNodes`` merger tree walker class.
      !!}
      module procedure isolatedNodesParameters
      module procedure isolatedNodesInternal
@@ -46,8 +48,8 @@ Implements a depth-first merger tree walker over all isolated nodes.
 contains
 
   function isolatedNodesParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``mergerTreeWalkerIsolatedNodes`` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -61,8 +63,8 @@ contains
   end function isolatedNodesParameters
 
   function isolatedNodesInternal(tree,spanForest) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeWalkerIsolatedNodes} merger tree walker class.
+    !!{RST
+    Internal constructor for the ``mergerTreeWalkerIsolatedNodes`` merger tree walker class.
     !!}
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                          :: self
@@ -74,11 +76,8 @@ contains
   end function isolatedNodesInternal
 
   logical function isolatedNodesNext(self,node)
-    !!{
-    This function will update to given \mono{node} to the next node which should be visited in a tree to
-    perform a depth-first walk. Once the entire tree has been walked, a \mono{null()} pointer will be set, and
-    a value of \mono{false} returned indicating that there are no more nodes to walk. Each node will be
-    visited once and once only if the tree is walked in this way.
+    !!{RST
+    This function will update to given ``node`` to the next node which should be visited in a tree to perform a depth-first walk. Once the entire tree has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way.
     !!}
     implicit none
     class(mergerTreeWalkerIsolatedNodes), intent(inout)          :: self

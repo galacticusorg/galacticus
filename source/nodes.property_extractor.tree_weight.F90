@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree weight property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTreeWeight">
-   <description>Extracts the statistical weight assigned to each merger tree, representing the number density of halos of that mass in the target cosmology, used when combining results across trees sampled at discrete mass points to recover volume-averaged statistics.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTreeWeight" docformat="rst">
+   <description>
+   Extracts the statistical weight assigned to each merger tree, representing the number density of halos of that mass in the target cosmology, used when combining results across trees sampled at discrete mass points to recover volume-averaged statistics.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorTreeWeight
-     !!{
+     !!{RST
      A merger tree weight property extractor class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a merger tree weight property extractor class.
   end type nodePropertyExtractorTreeWeight
 
   interface nodePropertyExtractorTreeWeight
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTreeWeight} property extractor class.
+     !!{RST
+     Constructors for the ``nodePropertyExtractorTreeWeight`` property extractor class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight
@@ -49,8 +51,8 @@ Implements a merger tree weight property extractor class.
 contains
 
   function treeWeightConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTreeWeight} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``nodePropertyExtractorTreeWeight`` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function treeWeightConstructorParameters
 
   double precision function treeWeightExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     implicit none
@@ -79,7 +81,7 @@ contains
   end function treeWeightExtract
 
   function treeWeightName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -92,7 +94,7 @@ contains
   end function treeWeightName
 
   function treeWeightDescription(self)
-    !!{
+    !!{RST
     Return a description of the treeWeight property.
     !!}
     implicit none
@@ -105,7 +107,7 @@ contains
   end function treeWeightDescription
 
   double precision function treeWeightUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -118,7 +120,7 @@ contains
   end function treeWeightUnitsInSI
 
   function treeWeightUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the treeWeight property.
     !!}
     use :: Units_MetaData, only : unitType

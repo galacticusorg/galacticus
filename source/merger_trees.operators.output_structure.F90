@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
   !!}
 
@@ -25,18 +25,14 @@
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
   
   !![
-  <mergerTreeOperator name="mergerTreeOperatorOutputStructure">
+  <mergerTreeOperator name="mergerTreeOperatorOutputStructure" docformat="rst">
    <description>
-    A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be
-    included in the dump are controlled by a \refClass{nodePropertyExtractorClass} object provided to this class.  Structures are
-    written to a new group, \mono{mergerTreeStructures}, in the \glc\ output file. This group will contain
-    groups called \mono{mergerTreeN} where \mono{N} is the merger tree index. Each such group
-    will contain datasets corresponding to all extracted properties.
+   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in the dump are controlled by a ``nodePropertyExtractorClass`` object provided to this class.  Structures are written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called ``mergerTreeN`` where ``N`` is the merger tree index. Each such group will contain datasets corresponding to all extracted properties.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputStructure
-     !!{
+     !!{RST
      A merger tree operator class which dumps pre-evolution tree structure to the output file.
      !!}
      private
@@ -48,8 +44,8 @@
   end type mergerTreeOperatorOutputStructure
 
   interface mergerTreeOperatorOutputStructure
-     !!{
-     Constructors for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
+     !!{RST
+     Constructors for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
      !!}
      module procedure outputStructureConstructorParameters
      module procedure outputStructureConstructorInternal
@@ -58,9 +54,8 @@
 contains
 
   function outputStructureConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,8 +75,8 @@ contains
   end function outputStructureConstructorParameters
 
   function outputStructureConstructorInternal(nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
+    !!{RST
+    Internal constructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorOutputStructure)                        :: self
@@ -94,8 +89,8 @@ contains
   end function outputStructureConstructorInternal
 
   subroutine outputStructureDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOperatorOutputStructure} merger tree operator class.
+    !!{RST
+    Destructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self
@@ -107,8 +102,8 @@ contains
   end subroutine outputStructureDestructor
   
   subroutine outputStructureOperatePreEvolution(self,tree)
-    !!{
-    Output the structure of \mono{tree}.
+    !!{RST
+    Output the structure of ``tree``.
     !!}
     use    :: Error                             , only : Error_Report
     use    :: Output_HDF5                       , only : outputFile
