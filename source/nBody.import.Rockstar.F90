@@ -696,6 +696,10 @@ contains
                      &                         /kilo
              case (rockstarColumnVmax      %ID)
                 columnName='velocityMaximum'
+             case (rockstarColumnb_to_a    %ID)
+                columnName='axisRatioBToA'
+             case (rockstarColumnc_to_a    %ID)
+                columnName='axisRatioCToA'
              case (rockstarColumnTU        %ID)
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &

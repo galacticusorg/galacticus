@@ -121,11 +121,11 @@ def _base_files(entry_groups,options):
             matched  = suite['matchedICs']
             data_path_static = data_path + '/static/darkMatter/'
             file_self = (data_path_static
-                         + f"progenitorMassFunction_{suite['name']}_{grp['name']}_{res['name']}"
-                         + f"_{sim['name']}_{real}_z{redshift}.hdf5")
+                         + f"{suite['name']}/{grp['name']}/{res['name']}"
+                         + f"/{sim['name']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
             file_ref  = (data_path_static
-                         + f"progenitorMassFunction_{matched['suite']}_{grp['name']}_{res['name']}"
-                         + f"_{matched['simulation']}_{real}_z{redshift}.hdf5")
+                         + f"{matched['suite']}/{grp['name']}/{res['name']}"
+                         + f"/{matched['simulation']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
             with h5py.File(file_self, 'r') as hf:
                 count_self = hf['simulation0001/count'][:]
             with h5py.File(file_ref, 'r') as hf:
@@ -162,7 +162,7 @@ def _base_files(entry_groups,options):
 
         # --- File names ---
         file_name_base = f"{output_dir}progenitorMassFunctionBase_{suite['name']}_{grp['name']}_{res['name']}_{sim['name']}_{real}_z{redshift_parent}.xml"
-        file_name_target = f"%DATASTATICPATH%/darkMatter/progenitorMassFunction_{suite['name']}_{grp['name']}_{res['name']}_{sim['name']}_{real}_z{redshift_parent}.hdf5"
+        file_name_target = f"%DATASTATICPATH%/darkMatter/{suite['name']}/{grp['name']}/{res['name']}/{sim['name']}/{real}/progenitorMassFunction_z{redshift_parent}.hdf5"
         # --- Non-CDM modifications ---
         changes = None
         changes_file_name = f"{output_dir}progenitorMassFunctionChanges_{suite['name']}_{grp['name']}_{res['name']}_{sim['name']}_{real}_z{redshift_parent}.xml"
@@ -289,7 +289,7 @@ def _base_files(entry_groups,options):
                 f'</mergerTreeBuildMassDistribution>\n'
                 )
         elif tree_masses_method == "file":
-            file_name_mass = f'{data_path}/static/darkMatter/hostHaloMasses_{suite_n}_{grp_n}_{res_n}_{sim_n}_z{redshift_parent}.hdf5'
+            file_name_mass = f'{data_path}/static/darkMatter/{suite_n}/{grp_n}/{res_n}/{sim_n}/hostHaloMasses_z{redshift_parent}.hdf5'
             count_replications = entry['resolution']['progenitorMassFunction']['countReplications']['value']
             base += (
                 f'<!-- Replicated list of merger tree masses to build -->\n'

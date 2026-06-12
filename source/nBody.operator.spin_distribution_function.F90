@@ -295,9 +295,12 @@ contains
 #endif
        ! Normalize the distribution function.
        do i=1_c_size_t,massCount
-          countTotal                   =dble(sum(countBin(i,:)))
-          if (countTotal <= 0.0d0) cycle
-          spinDistributionFunction(i,:)=dble(    countBin(i,:) )*binWidthInverseSpin/log(10.0d0)/countTotal
+          countTotal                      =dble(sum(countBin(i,:)))
+          if (countTotal > 0.0d0)  then
+             spinDistributionFunction(i,:)=dble(    countBin(i,:) )*binWidthInverseSpin/log(10.0d0)/countTotal
+          else
+             spinDistributionFunction(i,:)=0.0d0
+          end if
        end do
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then

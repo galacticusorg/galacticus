@@ -246,12 +246,13 @@ def iterate(simulations, options, stop_after='redshift'):
                             # Set target data file path.
                             entry['fileTargetData'] = (
                                 os.environ.get('GALACTICUS_DATA_PATH', '') +
-                                '/static/darkMatter/haloMassFunction_' +
-                                suite_name + '_' +
-                                group_name + '_' +
-                                res_name + '_' +
-                                sim_name + '_' +
-                                realization + '_' +
+                                '/static/darkMatter/' +
+                                suite_name + '/' +
+                                group_name + '/' +
+                                res_name + '/' +
+                                sim_name + '/' +
+                                realization + '/' +
+                                'haloMassFunction_' +
                                 'z' + redshift_label +
                                 '.hdf5'
                             )
