@@ -66,6 +66,7 @@
        <method description="Return the radius variable used in solving the potential that corresponds to a given physical radius." method="potentialSolverRadius"              />
        <method description="Set sub-module scope pointers on a stack to allow recursive calls to functions."                       method="solverSphericalSet"                 />
        <method description="Unset sub-module scope pointers on a stack."                                                           method="solverSphericalUnset"               />
+       <method description="Reset all cached tabulations."                                                                         method="tabulationReset"                    />
      </methods>
      !!]
      procedure :: symmetry                            => sphericalSymmetry
