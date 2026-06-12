@@ -46,13 +46,14 @@
      class           (darkMatterHaloScaleClass ), pointer     :: darkMatterHaloScale_        => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
      type            (interpolator2D           ), allocatable :: decelerationFactor_
-     double precision                                         :: rateScatteringNormalization          , xMaximum, &
-          &                                                      velocityMinimum                             , velocityMaximum, &
+     double precision                                         :: rateScatteringNormalization          , xMaximum       , &
+          &                                                      velocityMinimum                      , velocityMaximum, &
           &                                                      fractionDarkMatter
    contains
      !![
      <methods>
-       <method description="Tabulate the deceleration factor." method="tabulate" />
+       <method description="Tabulate the deceleration factor."                  method="tabulate"           />
+       <method description="Return the dynamical-friction deceleration factor." method="decelerationFactor" />
      </methods>
      !!]
      final     ::                       kummer2018Destructor

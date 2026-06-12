@@ -50,6 +50,8 @@ Implements a selfInteracting dark matter particle class.
        <method method="crossSectionSelfInteractionDifferentialCos"  description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, of the dark matter particle as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$."/>
        <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                         />
        <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                                 />
+       <method method="crossSectionEffective"                       description="Return the effective self-interaction cross section, $\sigma_\mathrm{eff}$, in units of cm$^2$ g$^{-1}$, for a halo of the given maximum circular velocity."                              />
+       <method method="crossSectionEffectiveTabulate"               description="Tabulate the effective self-interaction cross section, $\sigma_\mathrm{eff}$, as a function of maximum circular velocity."                                                                 />
      </methods>
      !!]
      procedure(crossSectionSelfInteractionTemplate                ), deferred :: crossSectionSelfInteraction

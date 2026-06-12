@@ -52,7 +52,8 @@
    contains
      !![
      <methods>
-       <method description="Tabulate the evaporation factor." method="tabulate" />
+       <method description="Tabulate the evaporation factor." method="tabulate"          />
+       <method description="Return the evaporation factor."   method="evaporationFactor" />
      </methods>
      !!]
      final     ::                      kummer2018Destructor
