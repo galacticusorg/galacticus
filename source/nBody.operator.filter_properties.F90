@@ -95,14 +95,14 @@ contains
       <name>rangeLow</name>
       <source>parameters</source>
       <description>
-      The lowest value of each property to pass ("``-infinity``" is interpreted as the lowest possible value for the property.
+      The lowest value of each property to pass ("``-infinity``" is interpreted as the lowest possible value for the property).
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>rangeHigh</name>
       <source>parameters</source>
       <description>
-      The highest value of each property to pass ("``+infinity``" is interpreted as the lowest possible value for the property.
+      The highest value of each property to pass ("``+infinity``" is interpreted as the lowest possible value for the property).
       </description>
     </inputParameter>
     !!]

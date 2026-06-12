@@ -412,7 +412,7 @@ contains
   
   function Filter_Response_Function(filterIndex) result(interpolator_)
     !!{RST
-    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the convention of :cite:t:`hogg_k_2002` and assume that the filter response gives the fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the convention of :cite:t:`hogg_k_2002` and assume that the filter response gives the fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector).
     !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none

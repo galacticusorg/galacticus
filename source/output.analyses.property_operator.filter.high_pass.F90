@@ -74,7 +74,7 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
       <description>
-      The width of the filter (0 for a sharp transition; :math:`&gt;0` for a smoothed transition.
+      The width of the filter (0 for a sharp transition; :math:`&gt;0` for a smoothed transition).
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

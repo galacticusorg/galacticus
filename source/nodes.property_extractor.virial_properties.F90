@@ -25,7 +25,7 @@
    A node property extractor which extracts the following quantities related to the virialized region of each node:
 
    ``nodeVirialRadius``
-      The virial radius (following whatever definition of virial overdensity is specified by the virial density contrast (see ``virialDensityContrast``) in units of Mpc;
+      The virial radius (following whatever definition of virial overdensity is specified by the virial density contrast (see ``virialDensityContrast``)) in units of Mpc;
 
    ``nodeVirialVelocity``
       The circular velocity at the virial radius (in km/s).

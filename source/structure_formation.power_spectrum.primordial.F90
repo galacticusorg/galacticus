@@ -37,7 +37,7 @@ module Power_Spectra_Primordial
    <default>powerLaw</default>
    <method name="power" >
     <description>
-    Return the (unnormalized) power in the primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`.
+    Return the (unnormalized) power in the primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`).
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -45,7 +45,7 @@ module Power_Spectra_Primordial
    </method>
    <method name="logarithmicDerivative" >
     <description>
-    Return the logarithmic derivative with respect to wavenumber of the primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`.
+    Return the logarithmic derivative with respect to wavenumber of the primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`).
     </description>
     <type>double precision</type>
     <pass>yes</pass>

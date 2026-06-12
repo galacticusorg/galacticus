@@ -32,7 +32,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN" docformat="rst">
     <description>
-    An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines (given by the ``lineNames`` parameter are computed, largely following the model of :cite:t:`feltre_nuclear_2016`.
+    An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines (given by the ``lineNames`` parameter) are computed, largely following the model of :cite:t:`feltre_nuclear_2016`.
     </description>
     <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>

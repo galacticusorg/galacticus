@@ -774,7 +774,7 @@ contains
        !![
        <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
 	 <description>
-	 Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here (instead of just using this directly in the expression for "sample" to avoid a memory leak. The variable "offsets" will be finalized when leaving this function scope.
+	 Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here (instead of just using this directly in the expression for "sample") to avoid a memory leak. The variable "offsets" will be finalized when leaving this function scope.
 	 </description>
        </workaround>
        !!]   

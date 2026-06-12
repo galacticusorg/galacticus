@@ -36,7 +36,7 @@
       A dataset giving the wavenumbers (in units of Mpc\ :math:`^{-1}`) at which all output power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the ``[haloModelWavenumberMinimum]`` and ``[haloModelWavenumberMaximum]`` parameters respectively, while the number of points to tabulate in each decade of wavenumber is determined by the ``[haloModelWavenumberPointsPerDecade]`` parameter.
 
    ``powerSpectrum``
-      A dataset giving the linear theory power spectrum (in units of Mpc\ :math:`^3` normalized to :math:`z=0` at each wavenumber specified in the ``wavenumber`` dataset.
+      A dataset giving the linear theory power spectrum (in units of Mpc\ :math:`^3` normalized to :math:`z=0`) at each wavenumber specified in the ``wavenumber`` dataset.
 
    ``Output{i}/mergerTree{j}/fourierProfile{k}``
       A dataset giving the Fourier transform of the dark matter halo density profile (dimensionless and normalized to unity at small wavenumber) for the node with index ``k`` in merger tree with index ``j`` at output number ``i``. Profiles are written only for nodes which are isolated, and are tabulated at the wavenumbers given in the ``wavenumber`` group. Note that wavenumbers are assumed to be comoving.
