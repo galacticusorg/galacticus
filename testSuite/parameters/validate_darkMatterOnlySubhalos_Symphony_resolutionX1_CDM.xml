@@ -33,7 +33,7 @@
   <mergerTreeBuildMasses value="replicate">
     <replicationCount value="4"/>
     <mergerTreeBuildMasses value="readHDF5">
-      <fileName value="%DATASTATICPATH%/darkMatter/hostHaloMasses_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <fileName value="%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/hostHaloMasses_z0.000.hdf5"/>
     </mergerTreeBuildMasses>
   </mergerTreeBuildMasses>
 
@@ -50,19 +50,19 @@
   </outputTimes>
   <outputAnalysis value="multi">
     <outputAnalysis value="subhaloMassFunction">
-      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <fileName                          value="%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/subhaloDistributions_z0.000.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                                                           /> <!-- Boylan-Kolchin et al. (2010) -->
       <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
       <redshift                          value="0.0"                                                                                            />
     </outputAnalysis>
     <outputAnalysis value="subhaloRadialDistribution">
-      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <fileName                          value="%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/subhaloDistributions_z0.000.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                                                           /> <!-- Boylan-Kolchin et al. (2010) -->
       <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
       <redshift                          value="0.0"                                                                                            />
     </outputAnalysis>
     <outputAnalysis value="subhaloVMaxVsMass">
-      <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributions_Symphony_MilkyWay_resolutionX1_CDM_z0.000.hdf5"/>
+      <fileName                          value="%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/subhaloDistributions_z0.000.hdf5"/>
       <virialDensityContrastDefinition   value="bryanNorman1998"                                                                                />
       <redshift                          value="0.0"                                                                                            />
     </outputAnalysis>
