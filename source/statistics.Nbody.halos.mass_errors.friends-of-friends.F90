@@ -79,17 +79,27 @@ contains
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: self
     double precision                                    , intent(in   ) :: massParticle
-    double precision                                    , parameter     :: exponent         =-0.5d00
-    double precision                                    , parameter     :: normalization    =+1.25d00
-    double precision                                    , parameter     :: errorHighMass    =+0.022d00
+    double precision                                    , parameter     :: exponentLocal      =-0.5d00
+    double precision                                    , parameter     :: normalizationLocal =+1.25d00
+    double precision                                    , parameter     :: errorHighMass      =+0.022d00
+    double precision                                                    :: normalizationParent
     !![
     <constructorAssign variables="massParticle"/>
     !!]
-    
+
     ! Convert from a model defined in terms of particle number (in which the fractional error is 1.2/sqrt(N)) to one defined in
-    ! terms of halo mass as used in our parent class.
-    self%normalizationSquared          =(normalization*(massReference/massParticle)**exponent)**2
-    self%exponent                      =exponent
-    self%fractionalErrorHighMassSquared=errorHighMass                                         **2
+    ! terms of halo mass as used in our parent class. Build the parent class with the trivial correlation model so that the new
+    ! correlation parameters introduced in the parent class are initialized.
+    normalizationParent             = +normalizationLocal                       &
+         &                            *(                                        &
+         &                              +massReference                          &
+         &                              /massParticle                           &
+         &                             )**exponentLocal
+    self%nbodyHaloMassErrorPowerLaw =  nbodyHaloMassErrorPowerLaw(                                             &
+         &                                                        normalization          =normalizationParent, &
+         &                                                        exponent               =exponentLocal      , &
+         &                                                        fractionalErrorHighMass=errorHighMass      , &
+         &                                                        correlationModelTrivial=.true.               &
+         &                                                       )
     return
   end function friendsOfFriendsConstructorInternal

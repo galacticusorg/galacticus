@@ -28,6 +28,9 @@ export SUFFIX ?=_lib
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
 export BUILDPATH ?= ./work/buildGProf
 export SUFFIX ?= _gprof
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'perf'
+export BUILDPATH ?= ./work/buildPerf
+export SUFFIX ?= _perf
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
 export BUILDPATH ?= ./work/buildODEProf
 export SUFFIX ?= _odeProf
@@ -109,6 +112,16 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS  += -fopenmp
 CFLAGS   += -fopenmp
 CPPFLAGS += -fopenmp
+# Link-time optimization option. Enabled by default; set `LTO=disabled` to turn off. This is needed, for
+# example, on Apple Silicon, where the DWARF that LTO emits into the object files is large and only loosely
+# matches the final, link-time recompiled code, which makes `dsymutil` balloon in memory and get OOM-killed
+# (even `dsymutil --num-threads 1` is insufficient).
+LTO ?= enabled
+ifeq '$(LTO)' 'enabled'
+FCFLAGS  += -flto=auto
+CFLAGS   += -flto=auto
+CPPFLAGS += -flto=auto
+endif
 # Detect static compilation
 STATIC=$(findstring -static,${FCFLAGS})
 ifeq '${STATIC}' '-static'
@@ -116,6 +129,11 @@ FCFLAGS  += -DSTATIC
 CFLAGS   += -DSTATIC
 CPPFLAGS += -DSTATIC
 endif
+
+# The -O3 + LTO middle-end emits false-positive -Wstringop-overread warnings on in-place Fortran
+# character substring assignments (e.g. `s = s(2:len_trim(s))`). This flag is rejected by the Fortran
+# front-end (f951), so it must be applied only at the LTO link step via FCFLAGS_LINK (see the %.exe rule).
+FCFLAGS_LINK  += -Wno-stringop-overread
 
 # C compiler flags:
 CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
@@ -147,6 +165,13 @@ LINKNOEXECSTACK := -Wl,-z,noexecstack
 endif
 endif
 
+# Add debugging symbols.
+FCFLAGS       += -g
+FCFLAGS_NOOPT += -g
+F77FLAGS      += -g
+CFLAGS        += -g
+CPPFLAGS      += -g
+
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
 FCFLAGS       += -pg
@@ -154,12 +179,15 @@ FCFLAGS_NOOPT += -pg
 F77FLAGS      += -pg
 CFLAGS        += -pg
 CPPFLAGS      += -pg
-else
-FCFLAGS       += -g
-FCFLAGS_NOOPT += -g
-F77FLAGS      += -g
-CFLAGS        += -g
-CPPFLAGS      += -g
+endif
+
+# Detect perf compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'perf'
+FCFLAGS       += -fno-omit-frame-pointer
+FCFLAGS_NOOPT += -fno-omit-frame-pointer
+F77FLAGS      += -fno-omit-frame-pointer
+CFLAGS        += -fno-omit-frame-pointer
+CPPFLAGS      += -fno-omit-frame-pointer
 endif
 
 # Detect ODE profiling compile.
@@ -177,11 +205,6 @@ FCFLAGS_NOOPT += -DUSEMPI
 CFLAGS        += -DUSEMPI
 CPPFLAGS      += -DUSEMPI 
 endif
-
-# Detect YEPPP libraries.
-# ifdef YEPROOT
-# FCFLAGS += -I$(YEPROOT)/bindings/fortran/modules/$(YEPPLATFORM)-gfortran/ -L$(YEPBINARIES) -DYEPPP
-# endif
 
 # OFD locks option.
 OFDLOCKS ?= enabled
@@ -604,7 +627,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	fi; \
 	./scripts/build/sourceDigests.py `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
-	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 # Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
 # scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
@@ -641,7 +664,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # GNU Fortran emits stack-based trampolines). Newer kernels/loaders refuse to `dlopen()` such a library,
 # causing the Python interface to fail with "cannot enable executable stack as shared object requires:
 # Invalid argument". This flag is applied only to the library link, leaving executable builds unchanged.
-	$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+	$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate

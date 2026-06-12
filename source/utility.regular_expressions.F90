@@ -71,8 +71,8 @@ module Regular_Expressions
        Template for a C function that initializes a regular expression.
        !!}
        import
-       type     (c_ptr )        :: Regular_Expression_Construct_C
-       character(c_char), value :: pattern
+       type     (c_ptr )                  :: Regular_Expression_Construct_C
+       character(c_char), dimension(*)    :: pattern
      end function Regular_Expression_Construct_C
   end interface
 
@@ -92,9 +92,9 @@ module Regular_Expressions
        Template for a C function that checks for a match with a regular expression.
        !!}
        import
-       integer  (c_int )        :: Regular_Expression_Match_C
-       type     (c_ptr ), value :: r
-       character(c_char), value :: string
+       integer  (c_int )                  :: Regular_Expression_Match_C
+       type     (c_ptr ), value           :: r
+       character(c_char), dimension(*)    :: string
      end function Regular_Expression_Match_C
   end interface
 

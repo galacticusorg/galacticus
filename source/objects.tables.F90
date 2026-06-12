@@ -660,9 +660,8 @@ contains
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
-	     <workaround type="gfortran" PR="46897" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=46897">
-	       <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696"/>
-	       <description>Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.</description>
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696">
+	       <description>Defined assignment for components not used when those are ALLOCATABLE</description>
              !!]
              do i=1,size(from%interpolators)
                 if (allocated(to%interpolators(i)%interpolator_)) deallocate(to%interpolators(i)%interpolator_)

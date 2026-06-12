@@ -70,23 +70,24 @@ contains
     return
   end subroutine downloadInitialize
 
-  subroutine downloadVarStrVarStr(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrVarStr(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
     type   (varying_string), intent(in   )           :: url    , outputFileName
-    integer                , intent(in   ), optional :: retries, retryWait
+    integer                , intent(in   ), optional :: retries, retryWait     , &
+         &                                              timeout
     integer                , intent(  out), optional :: status
     type   (varying_string), dimension(1)            :: urls
 
     urls(1)=url
-    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,timeout,status)
     return
   end subroutine downloadVarStrVarStr
 
-  subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -94,16 +95,17 @@ contains
     implicit none
     type     (varying_string), intent(in   )           :: url
     character(len=*         ), intent(in   )           :: outputFileName
-    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(in   ), optional :: retries       , retryWait, &
+         &                                                timeout
     integer                  , intent(  out), optional :: status
     type   (varying_string), dimension(1)            :: urls
 
     urls(1)=url
-    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    call downloadMultiple(urls,outputFileName,retries,retryWait,timeout,status)
     return
   end subroutine downloadVarStrChar
 
-  subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,status)
+  subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -111,32 +113,34 @@ contains
     implicit none
     character(len=*         ), intent(in   )           :: url
     type     (varying_string), intent(in   )           :: outputFileName
-    integer                  , intent(in   ), optional :: retries       , retryWait
+    integer                  , intent(in   ), optional :: retries       , retryWait, &
+         &                                                timeout
     integer                  , intent(  out), optional :: status
     type     (varying_string), dimension(1)            :: urls
 
     urls(1)=url
-    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,timeout,status)
     return
   end subroutine downloadCharVarStr
 
-  subroutine downloadCharChar(url,outputFileName,retries,retryWait,status)
+  subroutine downloadCharChar(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the given {\normalfont url} to the given \mono{outputFileName}.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     character(len=*         ), intent(in   )           :: url    , outputFileName
-    integer                  , intent(in   ), optional :: retries, retryWait
+    integer                  , intent(in   ), optional :: retries, retryWait     , &
+         &                                                timeout
     integer                  , intent(  out), optional :: status
     type     (varying_string), dimension(1)            :: urls
 
     urls(1)=url
-    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    call downloadMultiple(urls,outputFileName,retries,retryWait,timeout,status)
     return
   end subroutine downloadCharChar
 
-  subroutine downloadVarStrArrayVarStr(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrArrayVarStr(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -144,14 +148,15 @@ contains
     implicit none
     type   (varying_string), intent(in   ), dimension(:) :: url
     type   (varying_string), intent(in   )               :: outputFileName
-    integer                , intent(in   ), optional     :: retries       , retryWait
+    integer                , intent(in   ), optional     :: retries       , retryWait, &
+         &                                                  timeout
     integer                , intent(  out), optional     :: status
 
-    call downloadMultiple(url,char(outputFileName),retries,retryWait,status)
+    call downloadMultiple(url,char(outputFileName),retries,retryWait,timeout,status)
     return
   end subroutine downloadVarStrArrayVarStr
 
-  subroutine downloadVarStrArrayChar(url,outputFileName,retries,retryWait,status)
+  subroutine downloadVarStrArrayChar(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -159,14 +164,15 @@ contains
     implicit none
     type     (varying_string), intent(in   ), dimension(:) :: url
     character(len=*         ), intent(in   )               :: outputFileName
-    integer                  , intent(in   ), optional     :: retries       , retryWait
+    integer                  , intent(in   ), optional     :: retries       , retryWait, &
+         &                                                    timeout
     integer                  , intent(  out), optional     :: status
 
-    call downloadMultiple(url,outputFileName,retries,retryWait,status)
+    call downloadMultiple(url,outputFileName,retries,retryWait,timeout,status)
     return
   end subroutine downloadVarStrArrayChar
 
-  subroutine downloadCharArrayVarStr(url,outputFileName,retries,retryWait,status)
+  subroutine downloadCharArrayVarStr(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -174,7 +180,8 @@ contains
     implicit none
     character(len=*         ), intent(in   ), dimension(:        ) :: url
     type     (varying_string), intent(in   )                       :: outputFileName
-    integer                  , intent(in   ), optional             :: retries       , retryWait
+    integer                  , intent(in   ), optional             :: retries       , retryWait, &
+         &                                                            timeout
     integer                  , intent(  out), optional             :: status
     type     (varying_string)               , dimension(size(url)) :: urls
     integer                                                        :: i
@@ -182,11 +189,11 @@ contains
     do i=1,size(url)
        urls(i)=url(i)
     end do
-    call downloadMultiple(urls,char(outputFileName),retries,retryWait,status)
+    call downloadMultiple(urls,char(outputFileName),retries,retryWait,timeout,status)
     return
   end subroutine downloadCharArrayVarStr
 
-  subroutine downloadCharArrayChar(url,outputFileName,retries,retryWait,status)
+  subroutine downloadCharArrayChar(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
     !!}
@@ -194,7 +201,8 @@ contains
     implicit none
     character(len=*       ), intent(in   ), dimension(:        ) :: url
     character(len=*       ), intent(in   )                       :: outputFileName
-    integer                , intent(in   ), optional             :: retries       , retryWait
+    integer                , intent(in   ), optional             :: retries       , retryWait, &
+         &                                                          timeout
     integer                , intent(  out), optional             :: status
     type   (varying_string)               , dimension(size(url)) :: urls
     integer                                                      :: i
@@ -202,11 +210,11 @@ contains
     do i=1,size(url)
        urls(i)=url(i)
     end do
-    call downloadMultiple(urls,outputFileName,retries,retryWait,status)
+    call downloadMultiple(urls,outputFileName,retries,retryWait,timeout,status)
     return
   end subroutine downloadCharArrayChar
 
-  subroutine downloadMultiple(url,outputFileName,retries,retryWait,status)
+  subroutine downloadMultiple(url,outputFileName,retries,retryWait,timeout,status)
     !!{
     Download content to the given \mono{outputFileName}, trying each URL in {\normalfont url} in turn. If the download from one
     URL fails (even after any retries), the next URL is used as a fallback. The download is considered successful as soon as any
@@ -219,16 +227,21 @@ contains
     implicit none
     type     (varying_string), intent(in   ), dimension(:) :: url
     character(len=*         ), intent(in   )               :: outputFileName
-    integer                  , intent(in   ), optional     :: retries       , retryWait
+    integer                  , intent(in   ), optional     :: retries       , retryWait, &
+         &                                                    timeout
     integer                  , intent(  out), optional     :: status
     integer                                                :: status_       , tries    , i
     type     (varying_string)                              :: urlList
+    character(len=12        )                              :: timeoutLabel
     !![
-    <optionalArgument name="retries"   defaultsTo="0" />
-    <optionalArgument name="retryWait" defaultsTo="60"/>
+    <optionalArgument name="retries"   defaultsTo="0"  />
+    <optionalArgument name="retryWait" defaultsTo="60" />
+    <optionalArgument name="timeout"   defaultsTo="300"/>
     !!]
 
     call downloadInitialize()
+    ! Build a string representation of the per-attempt timeout (in seconds) for use in the downloader commands below.
+    write (timeoutLabel,'(i0)') timeout_
     if (present(status)) status=0
     status_=errorStatusFail
     do i=1,size(url)
@@ -236,9 +249,16 @@ contains
        do while (tries <= retries_)
           status_=errorStatusFail
           if      (downloadUsingWget) then
-             call System_Command_Do('wget --no-check-certificate "'//char(url(i))//'" -O '      //trim(outputFileName),status_)
+             ! Force `wget` to make only a single attempt (its default is `--tries=20`). We handle retries ourselves via the loop
+             ! here, so allowing `wget` to also retry internally results in a multiplicative number of attempts (and can cause the
+             ! download to far exceed any time limit when each internal attempt hangs until its read-timeout). The `--timeout`
+             ! option bounds the time spent on DNS lookup, connection, and reads for the single attempt.
+             call System_Command_Do('wget --no-check-certificate --tries=1 --timeout='//trim(timeoutLabel)//' "'//char(url(i))//'" -O '      //trim(outputFileName),status_)
           else if (downloadUsingCurl) then
-             call System_Command_Do('curl --insecure --location "' //char(url(i))//'" --output '//trim(outputFileName),status_)
+             ! Force `curl` to make only a single attempt (i.e. disable its own retrying) so that retries are handled solely by the
+             ! loop here, consistent with the behavior of `wget` above. The `--max-time` option bounds the total time allowed for
+             ! the single attempt.
+             call System_Command_Do('curl --insecure --location --retry 0 --max-time '//trim(timeoutLabel)//' "' //char(url(i))//'" --output '//trim(outputFileName),status_)
           else if (.not.present(status)) then
              call Error_Report('no downloader available'//{introspection:location})
           end if

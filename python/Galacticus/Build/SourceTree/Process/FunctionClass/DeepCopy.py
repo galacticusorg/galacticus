@@ -98,7 +98,7 @@ def generate_assignment_allocatable_code(assignment, declaration, name,
     )
     intrinsic = declaration.get('intrinsic')
     if rank > 0 and intrinsic == 'type':
-        # gfortran PR 46897 / 57696 workaround — use explicit element-wise
+        # gfortran PR 57696 workaround — use explicit element-wise
         # assignment rather than a single slice assignment.
         for i in range(1, rank + 1):
             assignment['code'] += (

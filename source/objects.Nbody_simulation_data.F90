@@ -125,41 +125,51 @@ contains
     character(len=*                      ), intent(in   ) :: propertyName
 
     select case (propertyName)
-    case('particleID'               )
+    case('particleID'                  )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendantID'             )
+    case('descendantID'                )
        nBodyDataPropertyType=propertyTypeInteger
-    case('progenitorCount'          )
+    case('progenitorCount'             )
        nBodyDataPropertyType=propertyTypeInteger
-    case('hostID'                   )
+    case('hostID'                      )
        nBodyDataPropertyType=propertyTypeInteger
-    case('hostedRootID'             )
+    case('hostedRootID'                )
        nBodyDataPropertyType=propertyTypeInteger
-    case('isolatedHostID'           )
+    case('isolatedHostID'              )
        nBodyDataPropertyType=propertyTypeInteger
-    case('descendantHostID'         )
+    case('descendantHostID'            )
        nBodyDataPropertyType=propertyTypeInteger
-    case('isPhantom'                )
+    case('isPhantom'                   )
        nBodyDataPropertyType=propertyTypeInteger
-    case('alwaysIsolated'           )
+    case('alwaysIsolated'              )
        nBodyDataPropertyType=propertyTypeInteger
-    case('isFlyby'                  )
+    case('isFlyby'                     )
        nBodyDataPropertyType=propertyTypeInteger
-    case('expansionFactor'          )
+    case('expansionFactor'             )
        nBodyDataPropertyType=propertyTypeReal
-    case('descendantExpansionFactor')
+    case('descendantExpansionFactor'   )
        nBodyDataPropertyType=propertyTypeReal
-    case('massVirial'               )
+    case('massVirial'                  )
        nBodyDataPropertyType=propertyTypeReal
-    case('radiusVirial'             )
+    case('radiusVirial'                )
        nBodyDataPropertyType=propertyTypeReal
-    case('radiusScale'              )
+    case('radiusScale'                 )
        nBodyDataPropertyType=propertyTypeReal
-    case('spin'                     )
+    case('spin'                        )
        nBodyDataPropertyType=propertyTypeReal
-    case('virialRatio'              )
+    case('virialRatio'                 )
        nBodyDataPropertyType=propertyTypeReal
-    case('distanceFromPoint'        )
+    case('timeFormation'               )
+       nBodyDataPropertyType=propertyTypeReal
+    case('timeCrossing'                )
+       nBodyDataPropertyType=propertyTypeReal
+    case('timeSinceFormationFractional')
+       nBodyDataPropertyType=propertyTypeReal
+    case('axisRatioBToA'               )
+       nBodyDataPropertyType=propertyTypeReal
+    case('axisRatioCToA'               )
+       nBodyDataPropertyType=propertyTypeReal
+    case('distanceFromPoint'           )
        nBodyDataPropertyType=propertyTypeReal
     case default
        nBodyDataPropertyType=propertyTypeUnknown
