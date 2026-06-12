@@ -27,6 +27,7 @@ from __future__ import annotations
 import html
 import os
 import re
+import subprocess
 import sys
 import textwrap
 
@@ -101,7 +102,49 @@ def _desc_to_rst(raw: str | None, glsmap: dict) -> str:
     """
     if not raw:
         return ''
-    return textwrap.dedent(html.unescape(raw).strip('\n')).strip('\n')
+    return _process_figures(
+        textwrap.dedent(html.unescape(raw).strip('\n')).strip('\n'))
+
+
+# Build-time figure handling: each ``.. figure:: <path>.pdf`` (the figure's
+# \includegraphics path, relative to doc/) is rasterised to a PNG under
+# <out>/_figures and rewritten to a web path.  Set by main().
+_FIGURES_DIR: str | None = None
+_FIGURE_CACHE: dict[str, str | None] = {}
+
+
+def _process_figures(text: str) -> str:
+    if _FIGURES_DIR is None:
+        return text
+
+    def repl(m: re.Match) -> str:
+        path = m.group(1).strip()
+        if not path.lower().endswith('.pdf'):
+            return m.group(0)
+        pdf = os.path.normpath(os.path.join('doc', path))   # LaTeX runs in doc/
+        if pdf not in _FIGURE_CACHE:
+            _FIGURE_CACHE[pdf] = _rasterise(pdf)
+        web = _FIGURE_CACHE[pdf]
+        return f'.. figure:: {web}' if web else m.group(0)
+
+    return re.sub(r'\.\. figure:: (\S+)', repl, text)
+
+
+def _rasterise(pdf: str) -> str | None:
+    """PDF -> PNG (150 dpi) under _FIGURES_DIR; returns the web path or None."""
+    if not os.path.isfile(pdf):
+        print(f'warning: figure not found: {pdf}', file=sys.stderr)
+        return None
+    name = re.sub(r'[^A-Za-z0-9_.-]', '_',
+                  os.path.splitext(os.path.basename(pdf))[0])
+    out = os.path.join(_FIGURES_DIR, name)                   # pdftocairo adds .png
+    try:
+        subprocess.run(['pdftocairo', '-png', '-r', '150', '-singlefile',
+                        pdf, out], check=True, capture_output=True)
+    except (OSError, subprocess.CalledProcessError) as exc:
+        print(f'warning: pdftocairo failed for {pdf}: {exc}', file=sys.stderr)
+        return None
+    return f'/_figures/{name}.png'
 
 
 def _heading(text: str, char: str) -> str:
@@ -339,6 +382,10 @@ def main() -> int:
         print('Usage: extractDocsRST.py <sourceDir> <outDir>', file=sys.stderr)
         return 1
     source_dir, out_dir = sys.argv[1], sys.argv[2]
+
+    global _FIGURES_DIR
+    _FIGURES_DIR = os.path.join(out_dir, '_figures')
+    os.makedirs(_FIGURES_DIR, exist_ok=True)
 
     glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
     glsmap = glossary_display_map(glossary)

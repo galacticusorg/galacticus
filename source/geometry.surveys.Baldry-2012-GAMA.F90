@@ -40,7 +40,9 @@ Implements the geometry of the GAMA survey used by :cite:t:`baldry_galaxy_2012`.
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
-   The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`baldry_galaxy_2012`. Points show the results obtained from data provided by Baldry, while the lines shows a polynomial fit to these results (given in eqn. ). Note that above :math:`10^9\mathrm{M}_\odot` the distance is limited by the imposed upper limit of :math:`z=0.06` in the GAMA sample---the polynomial fit does not consider these points.
+   .. figure:: Plots/DataAnalysis/BaldryGAMAMassDistanceRelation.pdf
+
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`baldry_galaxy_2012`. Points show the results obtained from data provided by Baldry, while the lines shows a polynomial fit to these results (given in eqn. ). Note that above :math:`10^9\mathrm{M}_\odot` the distance is limited by the imposed upper limit of :math:`z=0.06` in the GAMA sample---the polynomial fit does not consider these points.
    </description>
   </surveyGeometry>
   !!]

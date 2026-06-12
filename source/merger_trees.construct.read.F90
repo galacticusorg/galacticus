@@ -111,7 +111,9 @@
         - 7
         - 8
 
-   An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property). Where a node is not its own host node it is placed inside its host node.
+   .. figure:: Diagrams/MergerTreeSimple.pdf
+
+      An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property). Where a node is not its own host node it is placed inside its host node.
 
    The following should be noted when constructing merger tree files:
 

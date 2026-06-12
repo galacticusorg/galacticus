@@ -39,7 +39,9 @@ Implements the geometry of the SDSS survey used by :cite:t:`bernardi_massive_201
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
-   The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`bernardi_massive_2013`. Points show the results obtained from data provided by Bernardi, while the lines shows a polynomial fit to these results (given in eqn. ).
+   .. figure:: Plots/DataAnalysis/BernardiSDSSMassLuminosityRelation.pdf
+
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`bernardi_massive_2013`. Points show the results obtained from data provided by Bernardi, while the lines shows a polynomial fit to these results (given in eqn. ).
    </description>
   </surveyGeometry>
   !!]

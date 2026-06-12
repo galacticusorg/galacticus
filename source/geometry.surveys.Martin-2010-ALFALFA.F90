@@ -43,7 +43,9 @@ Implements the survey geometry used by :cite:t:`martin_arecibo_2010`.
 
       M_\mathrm{HI} = 2.356\times10^5 \left({D\over \hbox{Mpc}}\right)^2 \left({S_\mathrm{int}\over\hbox{Jy km s}^{-1}}\right).
 
-   HI line width vs. HI mass as measured from the :math:`\alpha.40` survey of :cite:t:`martin_arecibo_2010`. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn. ().
+   .. figure:: Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf
+
+      HI line width vs. HI mass as measured from the :math:`\alpha.40` survey of :cite:t:`martin_arecibo_2010`. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn. ().
    </description>
   </surveyGeometry>
   !!]

@@ -6,6 +6,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  apt_packages:
+    # pdftocairo, used to rasterise the figure PDFs to PNG (extractDocsRST.py).
+    - poppler-utils
   commands:
     # Install the documentation toolchain.
     - pip install -r docs/requirements.txt

@@ -39,7 +39,9 @@ Implements the survey geometry used by :cite:t:`caputi_stellar_2011`.
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
-   The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`caputi_stellar_2011`. Points show the results obtained using the :cite:t:`henriques_confronting_2012` model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn. ).
+   .. figure:: Plots/DataAnalysis/UKIDSSUDSMassLuminosityRelation.pdf
+
+      The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`caputi_stellar_2011`. Points show the results obtained using the :cite:t:`henriques_confronting_2012` model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn. ).
    </description>
   </surveyGeometry>
   !!]

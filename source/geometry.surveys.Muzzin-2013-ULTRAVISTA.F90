@@ -40,7 +40,9 @@ Implements the geometry of the ULTRAVISTA survey used by :cite:t:`muzzin_evoluti
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`.
 
-   The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`muzzin_evolution_2013`. The dotted line shows the results obtained from the ULTRAVISTA survey :cite:p:`muzzin_evolution_2013`, while the solid line shows the polynomial fit to these results (given in eqn. ).
+   .. figure:: Plots/DataAnalysis/MuzzinULTRAVISTAMassRedshiftRelation.pdf
+
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`muzzin_evolution_2013`. The dotted line shows the results obtained from the ULTRAVISTA survey :cite:p:`muzzin_evolution_2013`, while the solid line shows the polynomial fit to these results (given in eqn. ).
    </description>
   </surveyGeometry>
   !!]

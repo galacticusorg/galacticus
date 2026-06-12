@@ -449,7 +449,13 @@ def _convert_lists(text: str, glsmap: dict[str, str]) -> str:
 
 
 def _strip_float_envs(text: str) -> str:
-    """Replace each figure/table float with its ``\\caption`` text only."""
+    """Convert figure/table floats.
+
+    Each figure becomes ``@@FIGURE@@<image path>@@`` followed by its caption (a
+    placeholder finalised into a ``.. figure::`` by :func:`_finalise_figures`
+    once the caption has been converted); a figure with no ``\\includegraphics``
+    and any table float collapse to the caption text only.
+    """
     for env in ('figure', 'figure*', 'table', 'table*'):
         begin_re = re.compile(r'\\begin\{' + re.escape(env) + r'\}(?:\[[^\]]*\])?')
         end_re = re.compile(r'\\end\{' + re.escape(env) + r'\}')
@@ -466,8 +472,31 @@ def _strip_float_envs(text: str) -> str:
             if cm:
                 arg, _ = _take_arg(inner, cm.end())
                 caption = (arg or '').strip()
-            replacement = f'\n\n{caption}\n\n' if caption else '\n\n'
+            image = ''
+            im = re.search(r'\\includegraphics(?:\[[^\]]*\])?\s*\{', inner)
+            if im and env.startswith('figure'):
+                image, _ = extract_braced(inner, im.end() - 1)
+            if image.strip():
+                replacement = f'\n\n@@FIGURE@@{image.strip()}@@\n\n{caption}\n\n'
+            else:
+                replacement = f'\n\n{caption}\n\n' if caption else '\n\n'
             text = text[:b.start()] + replacement + text[e.end():]
+    return text
+
+
+def _finalise_figures(text: str) -> str:
+    """Turn ``@@FIGURE@@path@@`` + caption placeholders (caption already
+    converted) into ``.. figure::`` directives."""
+    def with_caption(m: re.Match) -> str:
+        body = '.. figure:: ' + m.group(1).strip()
+        cap = m.group(2).strip()
+        if cap:
+            body += '\n\n' + textwrap.indent(cap, '   ')
+        return body
+
+    text = re.sub(r'@@FIGURE@@(.+?)@@\n\n([^\n]+)', with_caption, text)
+    text = re.sub(r'@@FIGURE@@(.+?)@@',
+                  lambda m: '.. figure:: ' + m.group(1).strip(), text)
     return text
 
 
@@ -839,6 +868,9 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
 
     # --- Restore protected fragments -------------------------------------
     text = vault.restore(text)
+
+    # --- Finalise figures (caption now converted) ------------------------
+    text = _finalise_figures(text)
 
     # --- Tidy whitespace --------------------------------------------------
     text = re.sub(r'[ \t]+\n', '\n', text)

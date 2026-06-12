@@ -40,7 +40,9 @@ Implements the geometry of the ZFOURGE survey used by :cite:t:`tomczak_galaxy_20
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
-   The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`tomczak_galaxy_2014`. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn. ).
+   .. figure:: Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf
+
+      The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`tomczak_galaxy_2014`. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn. ).
    </description>
   </surveyGeometry>
   !!]

@@ -201,9 +201,13 @@
 
    The resulting optimal sampling density curve is shown in Fig.  and is compared to weighting by the halo mass function (i.e. the result of sampling halos at random from a representative volume). Optimal sampling gives less weight to low mass halos (since a sufficient accuracy can be obtained without the need to run many tens of thousands of such halos) and to high mass halos which are computationally expensive.
 
-   Errors on the :cite:t:`li_distribution_2009` stellar mass function (points) and the fitting function (line) given by eqn. ().
+   .. figure:: ../plots/stellarMassFunctionErrors_z01.pdf
 
-   Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.
+      Errors on the :cite:t:`li_distribution_2009` stellar mass function (points) and the fitting function (line) given by eqn. ().
+
+   .. figure:: ../plots/optimalSamplingStellarMassFunction.pdf
+
+      Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.
    </description>
   </mergerTreeBuildMassDistribution>
   !!]
