@@ -80,6 +80,28 @@ def _extract_methods(block: str) -> list[dict]:
     return methods
 
 
+# A ``<methods>`` block of type-bound procedures (one per implementation), each
+# ``<method method="…" description="…"/>``.  Unlike the functionClass
+# ``<method name=…>`` interface, the description is a still-LaTeX attribute.
+_TYPE_METHODS_RE = re.compile(r'<methods>(.*?)</methods>', re.DOTALL)
+_TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)/?>')
+
+
+def _extract_type_methods(text: str) -> list[dict]:
+    """Extract ``<method method="…" description="…"/>`` entries from every
+    ``<methods>`` block in a file — the methods a concrete implementation's
+    derived type declares, beyond the base-class interface."""
+    out = []
+    for mb in _TYPE_METHODS_RE.finditer(text):
+        for m in _TYPE_METHOD_RE.finditer(mb.group(1)):
+            name = _attr(m.group(1), 'method')
+            if not name:
+                continue
+            out.append({'name': name,
+                        'description': _attr(m.group(1), 'description')})
+    return out
+
+
 def _extract_entries(block: str) -> list[dict]:
     """Extract ``<entry label="…" description="…"/>`` items of an enumeration."""
     entries = []
@@ -167,10 +189,13 @@ def scan_source(source_dir: str):
     * ``implementations``: ``{family: [{name, description, file}, …]}`` keyed by
       the root element name.
     * ``params_by_file``: ``{file_base: [{name, default, description}, …]}``.
+    * ``methods_by_file``: ``{file_base: [{name, description}, …]}`` — the
+      type-bound methods declared in that file's ``<methods>`` block(s).
     """
     families: dict[str, dict] = {}
     by_root: dict[str, list[dict]] = {}
     params_by_file: dict[str, list[dict]] = {}
+    methods_by_file: dict[str, list[dict]] = {}
     enumerations: list[dict] = []
 
     for root, _dirs, files in os.walk(source_dir):
@@ -183,6 +208,9 @@ def scan_source(source_dir: str):
                 text = fh.read()
             mmod = re.search(r'(?im)^\s*module\s+([a-z0-9_]+)\s*$', text)
             module_name = mmod.group(1) if mmod else base
+            tmeths = _extract_type_methods(text)
+            if tmeths:
+                methods_by_file[base] = tmeths
             for bm in _BLOCK_RE.finditer(text):
                 block = bm.group(1)
                 if 'docformat="rst"' not in block:
@@ -235,7 +263,8 @@ def scan_source(source_dir: str):
 
     implementations = {fam: by_root[fam] for fam in by_root if fam in families}
     enumerations.sort(key=lambda e: e['name'].lower())
-    return families, implementations, params_by_file, enumerations
+    return (families, implementations, params_by_file, methods_by_file,
+            enumerations)
 
 
 # ---------------------------------------------------------------------------
@@ -255,7 +284,8 @@ def render_parameter(p: dict, glsmap: dict) -> str:
 
 
 def render_family(fam: str, families: dict, implementations: dict,
-                  params_by_file: dict, glsmap: dict) -> str:
+                  params_by_file: dict, methods_by_file: dict,
+                  glsmap: dict) -> str:
     directive = families[fam]
     descriptive = directive.get('descriptiveName', fam)
     out = [f'.. _physics-{fam}:\n', _heading(descriptive, '=')]
@@ -300,6 +330,18 @@ def render_family(fam: str, families: dict, implementations: dict,
             out.append(idesc + '\n')
         if default and f'{fam}{default[:1].upper()}{default[1:]}' == name:
             out.append('**(Default implementation)**\n')
+        imethods = methods_by_file.get(impl.get('file', ''), [])
+        if imethods:
+            out.append('**Methods**\n')
+            for meth in imethods:
+                # The description is a still-LaTeX attribute; convert it here.
+                mdesc = re.sub(
+                    r'\s*\n\s*', ' ',
+                    latex_to_rst(html.unescape(meth.get('description') or ''),
+                                 glsmap)).strip()
+                out.append(f'* ``{meth["name"]}`` — {mdesc}' if mdesc
+                           else f'* ``{meth["name"]}``')
+            out.append('')
         params = params_by_file.get(impl.get('file', ''), [])
         if params:
             out.append('**Parameters**\n')
@@ -390,7 +432,7 @@ def main() -> int:
     glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
     glsmap = glossary_display_map(glossary)
 
-    families, implementations, params_by_file, enumerations = \
+    families, implementations, params_by_file, methods_by_file, enumerations = \
         scan_source(source_dir)
 
     physics_dir = os.path.join(out_dir, 'physics')
@@ -398,7 +440,7 @@ def main() -> int:
 
     for fam in implementations:
         page = render_family(fam, families, implementations,
-                             params_by_file, glsmap)
+                             params_by_file, methods_by_file, glsmap)
         with open(os.path.join(physics_dir, f'{fam}.rst'), 'w',
                   encoding='utf-8') as fh:
             fh.write(page)
@@ -424,10 +466,12 @@ def main() -> int:
 
     n_impl = sum(len(v) for v in implementations.values())
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
+    impl_files = {i.get('file') for v in implementations.values() for i in v}
+    n_tmeth = sum(len(m) for f, m in methods_by_file.items() if f in impl_files)
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
-          f'implementations, {n_meth} methods), {len(enumerations)} '
-          f'enumerations, glossary ({len(glossary)} entries), references.',
-          file=sys.stderr)
+          f'implementations, {n_meth} interface + {n_tmeth} type methods), '
+          f'{len(enumerations)} enumerations, glossary '
+          f'({len(glossary)} entries), references.', file=sys.stderr)
     return 0
 
 
