@@ -471,6 +471,108 @@ def _strip_float_envs(text: str) -> str:
     return text
 
 
+def _tabular_cell(c: str) -> str:
+    """Light conversion of a single tabular cell (kept inside a vaulted block,
+    so the main pipeline does not process it)."""
+    c = c.strip()
+    c = re.sub(r'\\(?:mono|texttt|refClass|refPhysics)\{([^{}]*)\}', r'``\1``', c)
+    c = re.sub(r'(?<!\\)\$([^$]+)\$', r':math:`\1`', c)
+    c = c.replace(r'\glc', 'Galacticus')
+    for src, dst in _ESCAPE_REPLACEMENTS:
+        c = c.replace(src, dst)
+    return c.strip()
+
+
+def _convert_tabular(text: str, vault: '_Vault') -> str:
+    """Convert ``\\begin{tabular}{spec} … \\end{tabular}`` to an RST
+    ``list-table`` (vaulted as a block).  Rows before the first internal
+    ``\\hline`` are treated as the header."""
+    tab_re = re.compile(
+        r'\\begin\{tabular\}\s*(?:\{[^{}]*\})?(.*?)\\end\{tabular\}', re.DOTALL)
+
+    def repl(m: re.Match) -> str:
+        segments = re.split(r'\\hline', m.group(1))
+        seg_rows = [[r.strip() for r in re.split(r'\\\\', s) if r.strip()]
+                    for s in segments]
+        nonempty = [rs for rs in seg_rows if rs]
+        if not nonempty:
+            return ''
+        all_rows = [r for rs in nonempty for r in rs]
+        header = len(nonempty[0]) if len(nonempty) >= 2 else 0
+        lines = ['.. list-table::']
+        if header:
+            lines.append(f'   :header-rows: {header}')
+        lines.append('')
+        for row in all_rows:
+            cells = [_tabular_cell(c) for c in row.split('&amp;')]
+            for i, cell in enumerate(cells):
+                lines.append(('   * - ' if i == 0 else '     - ') + cell)
+        return vault.stash('\n\n' + '\n'.join(lines) + '\n\n', block=True)
+
+    return tab_re.sub(repl, text)
+
+
+# One step of a ``\noindent\hspace{N mm} $\rightarrow$ \parbox[..]{W}{TEXT}``
+# decision tree (the ``{TEXT}`` opening brace is captured by extract_braced).
+_ARROW_RE = re.compile(
+    r'\\noindent\s*\\hspace\*?\s*\{\s*(\d+)\s*mm\s*\}\s*'
+    r'\$\\rightarrow\$\s*\\parbox\s*(?:\[[^\]]*\])?\s*\{[^{}]*\}\s*\{')
+
+
+def _arrows_to_itemize(text: str) -> str:
+    """Rewrite a run of indented ``→`` / ``\\parbox`` steps (indentation set by
+    ``\\hspace{N mm}``) into nested ``\\begin{itemize}`` so the normal list
+    machinery renders the nesting."""
+    items = []
+    i = 0
+    while True:
+        m = _ARROW_RE.search(text, i)
+        if not m:
+            break
+        body, end = extract_braced(text, m.end() - 1)
+        items.append((int(m.group(1)), body.strip(), m.start(), end))
+        i = end
+    if not items:
+        return text
+    lines, stack = [], []
+    for depth, body, _s, _e in items:
+        while stack and stack[-1] > depth:
+            lines.append('\\end{itemize}')
+            stack.pop()
+        if not stack or stack[-1] < depth:
+            lines.append('\\begin{itemize}')
+            stack.append(depth)
+        lines.append('\\item ' + body)
+    while stack:
+        lines.append('\\end{itemize}')
+        stack.pop()
+    start, finish = items[0][2], items[-1][3]
+    tail = re.sub(r'^\s*\\\\', '', text[finish:])          # drop trailing row break
+    return text[:start] + '\n'.join(lines) + '\n' + tail
+
+
+def _strip_parbox(text: str) -> str:
+    """Replace ``\\parbox[opt]{width}{text}`` with just ``text``."""
+    out, i = [], 0
+    while True:
+        j = text.find('\\parbox', i)
+        if j == -1:
+            out.append(text[i:])
+            break
+        p = j + len('\\parbox')
+        _, p = _take_optional(text, p)
+        _, p = _take_arg(text, p)                          # width
+        body, p2 = _take_arg(text, p)                      # text
+        out.append(text[i:j])
+        if body is not None:
+            out.append(body)
+            i = p2
+        else:
+            out.append('\\parbox')
+            i = j + len('\\parbox')
+    return ''.join(out)
+
+
 def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
     """Convert one LaTeX description string to reStructuredText.
 
@@ -485,9 +587,20 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
 
     # --- Float environments (figure/table) -> caption only ----------------
     # Keep the \caption text (converted with everything else below) and drop
-    # the float wrapper, \includegraphics, etc.  (Full figure/table rendering
-    # is a follow-up; see REVIEW_PATTERNS.)
+    # the float wrapper, \includegraphics, etc.
     text = _strip_float_envs(text)
+
+    # --- tabular -> list-table (vaulted block) ---------------------------
+    text = _convert_tabular(text, vault)
+
+    # --- \noindent\hspace{N} $\rightarrow$ \parbox{…} decision trees -----
+    # Rewrite into nested \begin{itemize} so the normal list machinery renders
+    # the nesting; then drop any leftover layout-only commands.
+    text = _arrows_to_itemize(text)
+    text = re.sub(r'\\hyperdef(?:\{[^{}]*\}){3}', '', text)
+    text = re.sub(r'\\noindent\b', '', text)
+    text = re.sub(r'\\hspace\*?\s*\{[^{}]*\}', '', text)
+    text = _strip_parbox(text)                             # \parbox[..]{W}{T} -> T
 
     # --- Protect display math --------------------------------------------
     for env in _DISPLAY_MATH_ENVS:

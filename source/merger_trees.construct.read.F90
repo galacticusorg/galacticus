@@ -78,44 +78,70 @@
   !![
   <mergerTreeConstructor name="mergerTreeConstructorRead" docformat="rst">
    <description>
-   A merger tree constructor class from data imported from a file and processed into a form suitable for Galacticus to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. Galacticus is currently designed to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which :term:`node` a given :term:`node` is physically associated with at a later time. Additionally, Galacticus expects the merger tree file to contain information on the host :term:`node`, i.e. the node within which a given node is physically located. In the following, these two properties are labeled ``descendantNode`` and ``hostNode``. Galacticus assumes that nodes for which ``descendantNode``\ :math:`=`\ ``hostNode`` are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig. . The particular structure would be represented by the following list of nodes and node properties (a :math:`-1` indicates that no descendant node exists):  \begintabularrrr \hline ``node`` &amp; ``descendantNode`` &amp; ``hostNode`` \\ \hline 1 &amp; -1 &amp; 1 \\ 2 &amp;  1 &amp; 2 \\ 3 &amp;  2 &amp; 3 \\ 4 &amp;  1 &amp; 4 \\ 5 &amp;  4 &amp; 5 \\ 6 &amp; -1 &amp; 1 \\ 7 &amp;  6 &amp; 4 \\ 8 &amp;  7 &amp; 8 \\ \hline \endtabular
+   A merger tree constructor class from data imported from a file and processed into a form suitable for Galacticus to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. Galacticus is currently designed to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which :term:`node` a given :term:`node` is physically associated with at a later time. Additionally, Galacticus expects the merger tree file to contain information on the host :term:`node`, i.e. the node within which a given node is physically located. In the following, these two properties are labeled ``descendantNode`` and ``hostNode``. Galacticus assumes that nodes for which ``descendantNode``\ :math:`=`\ ``hostNode`` are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig. . The particular structure would be represented by the following list of nodes and node properties (a :math:`-1` indicates that no descendant node exists):
 
-   An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property. Where a node is not its own host node it is placed inside its host node.
+   .. list-table::
+      :header-rows: 1
+
+      * - ``node``
+        - ``descendantNode``
+        - ``hostNode``
+      * - 1
+        - -1
+        - 1
+      * - 2
+        - 1
+        - 2
+      * - 3
+        - 2
+        - 3
+      * - 4
+        - 1
+        - 4
+      * - 5
+        - 4
+        - 5
+      * - 6
+        - -1
+        - 1
+      * - 7
+        - 6
+        - 4
+      * - 8
+        - 7
+        - 8
+
+   An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property). Where a node is not its own host node it is placed inside its host node.
 
    The following should be noted when constructing merger tree files:
 
    * Note that Galacticus does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along a branch of the tree. After processing the tree in this way, Galacticus builds additional links which identify the child node of each halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
    * It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such nodes will be created as satellites in the merger tree and, providing the selected node components (see `here &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.Components&gt;`_) initialize their properties appropriately, will be evolved correctly.
    * It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all progenitors descend into subhalos in the isolated node. In such cases, Galacticus will create a clone of the isolated node at a very slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does not affect the evolution of the tree.
-   * \hyperdefphysicsmergerTreeConstructRead.missingHosts Normally, cases where a node's host node cannot be found in the :term:`forest` will cause Galacticus to exit with an error. Setting ``[missingHostsAreFatal]``\ :math:`=`\ ``false`` will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full :term:`forest` is not available.
+   * Normally, cases where a node's host node cannot be found in the :term:`forest` will cause Galacticus to exit with an error. Setting ``[missingHostsAreFatal]``\ :math:`=`\ ``false`` will instead circumvent this issue by making any such nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full :term:`forest` is not available.
    * It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the latter case, all trees linked by jumping nodes (a so-called ":term:`forest`" of connected trees) must be stored as a single forest (with multiple root-nodes) in the merger tree file. Galacticus will process this :term:`forest` of trees simultaneously, allowing to nodes to move between their branches.
    * It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see :cite:author:`sales_cosmic_2007` :cite:year:`sales_cosmic_2007`). If ``[allowSubhaloPromotions]``\ :math:`=`\ ``true`` then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If the parameter ``[alwaysPromoteMostMassive]``\ :math:`=`\ ``true`` then the most massive progenitor is treated as the primary progenitor, even if that progenitor is a subhalo. Alternatively, if ``[alwaysPromoteMostMassive]``\ :math:`=`\ ``false`` then a most massive progenitor that is a subhalo is only treated as the primary progenitor *if* no isolated progenitors exist (otherwise, the most massive of the isolated progenitors is treated as the primary progenitor). If ``[allowSubhaloPromotions]``\ :math:`=`\ ``false`` then subhalos are not permitted to become isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
 
-     \noindent\hspace 5mm :math:`\rightarrow` \parbox[t]150mmFor any branch in a tree which at some point is a subhalo:\\
+     * For any branch in a tree which at some point is a subhalo:
 
-     \noindent\hspace10mm :math:`\rightarrow` \parbox[t]145mmBeginning from the earliest node in the branch that is a subhalo, repeatedly step to the next descendant node;\\
+       * Beginning from the earliest node in the branch that is a subhalo, repeatedly step to the next descendant node;
+       * If that descendant is *not* a subhalo then:
 
-     \noindent\hspace10mm :math:`\rightarrow` \parbox[t]145mmIf that descendant is *not* a subhalo then:\\
+         * If there is not currently any non-subhalo node which has the present node as its descendant then current node is only descendant of a subhalo. Therefore, try to make this node a subhalo, and propose the descendant of the host node of the previous node visited in the branch as the new host:
 
-     \noindent\hspace15mm :math:`\rightarrow` \parbox[t]140mmIf there is not currently any non-subhalo node which has the present node as its descendant then current node is only descendant of a subhalo. Therefore, try to make this node a subhalo, and propose the descendant of the host node of the previous node visited in the branch as the new host:\\
+           * If the proposed host exists:
 
-     \noindent\hspace20mm :math:`\rightarrow` \parbox[t]135mmIf the proposed host exists:\\
+             * If the mass of the current node is less than that of the proposed host:
 
-     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmIf the mass of the current node is less than that of the proposed host:\\
+               * If the proposed hosts exists before the current node, repeatedly step to its descendants until one is found which exists at or after the time of the current node. This is the new proposed host.
+               * If the proposed host is a subhalo, make it an isolated node.
+               * The current node is made a subhalo within the proposed host.
+             * Otherwise:
 
-     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmIf the proposed hosts exists before the current node, repeatedly step to its descendants until one is found which exists at or after the time of the current node. This is the new proposed host.\\
+               * The current node remains an isolated node, while the proposed host is instead made a subhalo within the current node.
+           * Otherwise:
 
-     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmIf the proposed host is a subhalo, make it an isolated node.\\
-
-     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmThe current node is made a subhalo within the proposed host.\\
-
-     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmOtherwise:\\
-
-     \noindent\hspace30mm :math:`\rightarrow` \parbox[t]125mmThe current node remains an isolated node, while the proposed host is instead made a subhalo within the current node.\\
-
-     \noindent\hspace20mm :math:`\rightarrow` \parbox[t]135mmOtherwise:\\
-
-     \noindent\hspace25mm :math:`\rightarrow` \parbox[t]130mmThe proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.\\
+             * The proposed host does not exists, which implies the end of a branch has been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it descended.
 
    **Requirements for Galacticus Input Parameters:** The following requirements must be met for the input parameters to Galacticus when using merger trees read from file:
 
