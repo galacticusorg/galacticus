@@ -102,7 +102,7 @@ contains
       <name>rangeHigh</name>
       <source>parameters</source>
       <description>
-      The highest value of each property to pass ("``+infinity``" is interpreted as the lowest possible value for the property).
+      The highest value of each property to pass ("``+infinity``" is interpreted as the highest possible value for the property).
       </description>
     </inputParameter>
     !!]

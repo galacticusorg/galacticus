@@ -33,7 +33,7 @@ contains
 
   double precision function Blackbody_Emission(wavelength,temperature,radianceType)
     !!{RST
-    Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` \AA\ :math:`^{-1}`) or J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` Hz\ :math:`^{-1}` depending on the optional ``radianceType`` argument). Input ``wavelength`` is in Angstroms, input temperature is in Kelvin.
+    Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` \AA\ :math:`^{-1}`, or J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` Hz\ :math:`^{-1}` depending on the optional ``radianceType`` argument). Input ``wavelength`` is in Angstroms, input temperature is in Kelvin.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant, plancksConstant, speedLight
     use :: Numerical_Constants_Units   , only : metersToAngstroms
