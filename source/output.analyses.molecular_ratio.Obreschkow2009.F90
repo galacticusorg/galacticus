@@ -27,9 +27,9 @@ Implements a molecular ratio class that assumes the model of :cite:t:`obreschkow
    A molecular ratio class which computes the molecular ratio. The class assumes that only the total :term:`ISM` mass of each galaxy is available, along with the disk radius (assuming an exponential disk). To infer the HI mass the model of :cite:t:`obreschkow_simulation_2009` is used. Specifically, the molecular ratio, :math:`R_\mathrm{mol}\equiv M_\mathrm{H_2}/M_\mathrm{HI}`, is given by:
 
    .. math::
+      :label: eq-HIMassSystematic
 
       R_\mathrm{mol} = \left( A_1 R_\mathrm{mol}^\mathrm{c\,\alpha_1} + A_2 R_\mathrm{mol}^\mathrm{c\,\alpha_2} \right)^{-1},
-      \label{eq:HIMassSystematic}
 
    where the ratio at the disk center is given by
 
@@ -63,7 +63,7 @@ Implements a molecular ratio class that assumes the model of :cite:t:`obreschkow
 
   interface outputAnalysisMolecularRatioObreschkow2009
      !!{RST
-     Constructors for the ``outputAnalysisMolecularRatioObreschkow2009`` output analysis molecular ratio class.
+     Constructors for the :galacticus-class:`outputAnalysisMolecularRatioObreschkow2009` output analysis molecular ratio class.
      !!}
      module procedure obreschkow2009ConstructorParameters
      module procedure obreschkow2009ConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function obreschkow2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisMolecularRatioObreschkow2009`` output analysis molecular ratio class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMolecularRatioObreschkow2009` output analysis molecular ratio class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -184,7 +184,7 @@ contains
 
   function obreschkow2009ConstructorInternal(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisMolecularRatioObreschkow2009`` output analysis molecular ratio class.
+    Internal constructor for the :galacticus-class:`outputAnalysisMolecularRatioObreschkow2009` output analysis molecular ratio class.
     !!}
     implicit none
     type            (outputAnalysisMolecularRatioObreschkow2009)                :: self

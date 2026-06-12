@@ -41,7 +41,7 @@
 
   interface blackHoleBinaryRecoilZero
      !!{RST
-     Constructors for the ``blackHoleBinaryRecoilZero`` black hole binary recoil class.
+     Constructors for the :galacticus-class:`blackHoleBinaryRecoilZero` black hole binary recoil class.
      !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinaryRecoilZero
@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryRecoilZero`` black hole binary recoil class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryRecoilZero` black hole binary recoil class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

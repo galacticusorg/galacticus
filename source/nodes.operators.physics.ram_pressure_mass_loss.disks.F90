@@ -43,7 +43,7 @@
   
   interface nodeOperatorRamPressureMassLossDisks
      !!{RST
-     Constructors for the ``nodeOperatorRamPressureMassLossDisks`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
      !!}
      module procedure ramPressureMassLossDisksConstructorParameters
      module procedure ramPressureMassLossDisksConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function ramPressureMassLossDisksConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorRamPressureMassLossDisks`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function ramPressureMassLossDisksConstructorInternal(ramPressureStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorRamPressureMassLossDisks`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorRamPressureMassLossDisks)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine ramPressureMassLossDisksDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorRamPressureMassLossDisks`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorRamPressureMassLossDisks), intent(inout) :: self

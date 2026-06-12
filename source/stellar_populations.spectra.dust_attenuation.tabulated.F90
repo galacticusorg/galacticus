@@ -46,7 +46,7 @@ contains
 
   subroutine tabulatedDestructor(self)
     !!{RST
-    Destructor for the ``stellarSpectraDustAttenuationTabulated`` stellar spectra dust attenuation class.
+    Destructor for the :galacticus-class:`stellarSpectraDustAttenuationTabulated` stellar spectra dust attenuation class.
     !!}
     implicit none
     type(stellarSpectraDustAttenuationTabulated), intent(inout) :: self

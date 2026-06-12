@@ -49,7 +49,7 @@
 
   interface outputAnalysisBlackHoleVelocityDispersionRelation
      !!{RST
-     Constructors for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisBlackHoleVelocityDispersionRelation` output analysis class.
      !!}
      module procedure blackHoleVelocityDispersionRelationConstructorParameters
      module procedure blackHoleVelocityDispersionRelationConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function blackHoleVelocityDispersionRelationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisBlackHoleVelocityDispersionRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -137,7 +137,7 @@ contains
 
   function blackHoleVelocityDispersionRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,report,cosmologyFunctions_,outputTimes_,toleranceRelative,darkMatterHaloScale_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisBlackHoleVelocityDispersionRelation` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -399,7 +399,7 @@ contains
 
   subroutine blackHoleVelocityDispersionRelationDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisBlackHoleVelocityDispersionRelation`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisBlackHoleVelocityDispersionRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisBlackHoleVelocityDispersionRelation), intent(inout) :: self

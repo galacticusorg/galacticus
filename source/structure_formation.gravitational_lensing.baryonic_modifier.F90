@@ -53,7 +53,7 @@ Implements the gravitational lensing distribution by modifying another distribut
 
   interface gravitationalLensingBaryonicModifier
      !!{RST
-     Constructors for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
+     Constructors for the :galacticus-class:`gravitationalLensingBaryonicModifier` gravitational lensing class.
      !!}
      module procedure baryonicModifierConstructorParameters
      module procedure baryonicModifierConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function baryonicModifierConstructorInternal(gravitationalLensing_,alpha,beta) result(self)
     !!{RST
-    Internal constructor for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
+    Internal constructor for the :galacticus-class:`gravitationalLensingBaryonicModifier` gravitational lensing class.
     !!}
     implicit none
     type            (gravitationalLensingBaryonicModifier)                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine baryonicModifierDestructor(self)
     !!{RST
-    Destructor for the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
+    Destructor for the :galacticus-class:`gravitationalLensingBaryonicModifier` gravitational lensing class.
     !!}
     implicit none
     type(gravitationalLensingBaryonicModifier), intent(inout) :: self
@@ -197,7 +197,7 @@ contains
 
     double precision function magnificationTransition(magnification)
       !!{RST
-      Root finding function used in the ``gravitationalLensingBaryonicModifier`` gravitational lensing class.
+      Root finding function used in the :galacticus-class:`gravitationalLensingBaryonicModifier` gravitational lensing class.
       !!}
       implicit none
       double precision, intent(in   ) :: magnification

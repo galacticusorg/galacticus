@@ -49,7 +49,7 @@
 
   interface radiativeTransferSourceDistributed
      !!{RST
-     Constructors for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
+     Constructors for the :galacticus-class:`radiativeTransferSourceDistributed` radiative transfer source class.
      !!}
      module procedure distributedConstructorParameters
      module procedure distributedConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function distributedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSourceDistributed` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function distributedConstructorInternal(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSourceDistributed` radiative transfer source class.
     !!}
     implicit none
     type            (radiativeTransferSourceDistributed)                              :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine distributedDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferSourceDistributed`` radiative transfer source class.
+    Destructor for the :galacticus-class:`radiativeTransferSourceDistributed` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceDistributed), intent(inout) :: self

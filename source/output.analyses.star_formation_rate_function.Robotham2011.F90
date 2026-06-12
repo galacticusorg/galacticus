@@ -46,7 +46,7 @@
 
   interface outputAnalysisStarFormationRateFunctionRobotham2011
      !!{RST
-     Constructors for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStarFormationRateFunctionRobotham2011` output analysis class.
      !!}
      module procedure starFormationRateFunctionRobotham2011ConstructorParameters
      module procedure starFormationRateFunctionRobotham2011ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function starFormationRateFunctionRobotham2011ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormationRateFunctionRobotham2011` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   function starFormationRateFunctionRobotham2011ConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormationRateFunctionRobotham2011` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -336,7 +336,7 @@ contains
 
   subroutine starFormationRateFunctionRobotham2011Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisStarFormationRateFunctionRobotham2011`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisStarFormationRateFunctionRobotham2011` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormationRateFunctionRobotham2011), intent(inout) :: self

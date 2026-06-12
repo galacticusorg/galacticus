@@ -76,7 +76,7 @@ An implementation of the hot halo outflow reincorporation class which uses simpl
 
   interface hotHaloOutflowReincorporationVelocityMaximumScaling
      !!{RST
-     Constructors for the ``hotHaloOutflowReincorporationVelocityMaximumScaling`` hot halo outflow reincorporation class.
+     Constructors for the :galacticus-class:`hotHaloOutflowReincorporationVelocityMaximumScaling` hot halo outflow reincorporation class.
      !!}
      module procedure velocityMaximumScalingConstructorParameters
      module procedure velocityMaximumScalingConstructorInternal

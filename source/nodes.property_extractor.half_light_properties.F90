@@ -44,7 +44,7 @@ Implements a half-light radii property extractor class.
 
   interface nodePropertyExtractorRadiiHalfLightProperties
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiiHalfLightProperties`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiiHalfLightProperties` property extractor class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
@@ -53,7 +53,7 @@ contains
 
   function radiiHalfLightPropertiesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiiHalfLightProperties`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiiHalfLightProperties` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -65,7 +65,7 @@
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive
      !!{RST
-     Constructors for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class.
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -146,7 +146,7 @@ contains
 
   function adaptiveConstructorInternal(exponentInitial,exponentMinimum,exponentMaximum,exponentAdjustFactor,gradientMinimum,gradientMaximum,updateCount) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive`` posterior sampling differential evolution random jump class.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive` posterior sampling differential evolution random jump class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpAdaptive)                :: self

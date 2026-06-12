@@ -43,7 +43,7 @@ Implements an N-body data operator which constructs the convex hull of the parti
 
   interface nbodyOperatorConvexHull
      !!{RST
-     Constructors for the ``nbodyOperatorConvexHull`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorConvexHull` N-body operator class.
      !!}
      module procedure convexHullConstructorParameters
      module procedure convexHullConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function convexHullConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorConvexHull`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorConvexHull` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -29,7 +29,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential" docformat="rst">
     <description>
-    Exponentially truncated dark matter halo profiles :cite:t:`kazantzidis_2006` are constructed via the ``massDistributionSphericalTruncatedExponential`` mass distribution class.
+    Exponentially truncated dark matter halo profiles :cite:t:`kazantzidis_2006` are constructed via the :galacticus-class:`massDistributionSphericalTruncatedExponential` mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -49,7 +49,7 @@
 
   interface darkMatterProfileDMOTruncatedExponential
      !!{RST
-     Constructors for the ``darkMatterProfileDMOTruncatedExponential`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOTruncatedExponential` dark matter halo profile class.
      !!}
      module procedure truncatedExponentialConstructorParameters
      module procedure truncatedExponentialConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function truncatedExponentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOTruncatedExponential`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOTruncatedExponential` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
@@ -102,7 +102,7 @@ contains
 
   function truncatedExponentialConstructorInternal(radiusFractionalDecay,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOTruncatedExponential`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOTruncatedExponential` dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -123,7 +123,7 @@ contains
 
   subroutine truncatedExponentialDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOTruncatedExponential`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOTruncatedExponential` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self

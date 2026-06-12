@@ -47,7 +47,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorHaloBias
      !!{RST
-     Constructors for the ``nodePropertyExtractorHaloBias`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
      !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function haloBiasConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorHaloBias`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function haloBiasConstructorInternal(darkMatterHaloBias_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorHaloBias`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloBias)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine haloBiasDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorHaloBias`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloBias), intent(inout) :: self

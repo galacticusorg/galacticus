@@ -42,7 +42,7 @@
   
   interface blackHoleSeedsFixed
      !!{RST
-     Constructors for the ``blackHoleSeedsFixed`` black hole seeds class.
+     Constructors for the :galacticus-class:`blackHoleSeedsFixed` black hole seeds class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleSeedsFixed`` black hole seeds class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleSeedsFixed` black hole seeds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function standardConstructorInternal(mass_,spin_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleSeedsFixed`` black hole seeds class.
+    Internal constructor for the :galacticus-class:`blackHoleSeedsFixed` black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsFixed)                :: self

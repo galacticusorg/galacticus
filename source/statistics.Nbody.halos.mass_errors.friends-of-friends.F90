@@ -39,7 +39,7 @@
 
   interface nbodyHaloMassErrorFriendsOfFriends
      !!{RST
-     Constructors for the ``nbodyHaloMassErrorFriendsOfFriends`` N-body halo mass error class.
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class.
      !!}
      module procedure friendsOfFriendsConstructorParameters
      module procedure friendsOfFriendsConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function friendsOfFriendsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nbodyHaloMassErrorFriendsOfFriends`` N-body halo mass error class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function friendsOfFriendsConstructorInternal(massParticle) result(self)
     !!{RST
-    Internal constructor for the ``nbodyHaloMassErrorFriendsOfFriends`` N-body halo mass error class.
+    Internal constructor for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: self

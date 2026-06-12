@@ -24,7 +24,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
   !![
   <nodePropertyExtractor name="nodePropertyExtractorScalarizer" docformat="rst">
    <description>
-   A property extractor that wraps an array or tuple ``nodePropertyExtractorClass`` and returns a single scalar value by selecting one entry from the array. The ``element`` parameter specifies which element index to extract; for tuple extractors an additional ``item`` parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.
+   A property extractor that wraps an array or tuple :galacticus-class:`nodePropertyExtractorClass` and returns a single scalar value by selecting one entry from the array. The ``element`` parameter specifies which element index to extract; for tuple extractors an additional ``item`` parameter selects the item (row) within the tuple. This allows individual components of compound property arrays (e.g.\ a single radial bin from a density profile, or one filter band from a magnitude tuple) to be extracted as independent scalar output datasets.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -46,7 +46,7 @@ Implements an output analysis property extractor class that scalarizes one eleme
 
   interface nodePropertyExtractorScalarizer
      !!{RST
-     Constructors for the ``nodePropertyExtractorScalarizer`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorScalarizer` property extractor class.
      !!}
      module procedure scalarizerConstructorParameters
      module procedure scalarizerConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function scalarizerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorScalarizer`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorScalarizer` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function scalarizerConstructorInternal(item,element,nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorScalarizer`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorScalarizer` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -123,7 +123,7 @@ contains
 
   subroutine scalarizerDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorScalarizer`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorScalarizer` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorScalarizer), intent(inout) :: self

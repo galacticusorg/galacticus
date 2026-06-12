@@ -40,7 +40,7 @@ Implements a boolean analysis property operator class.
 
   interface outputAnalysisPropertyOperatorBoolean
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorBoolean` output analysis property operator class.
      !!}
      module procedure booleanConstructorParameters
      module procedure booleanConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function booleanConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorBoolean` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
       <description>
-      If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, ``epsilon(0.0d0)``. This is useful since a precise 0 is treated differently by the ``outputAnalysisMeanFunction1D`` output analysis class.
+      If true, then input value of 0 will be mapped to precisely 0. Otherwise, they are mapped to the smallest representable non-zero value, ``epsilon(0.0d0)``. This is useful since a precise 0 is treated differently by the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class.
       </description>
     </inputParameter>
     !!]
@@ -77,7 +77,7 @@ contains
 
   function booleanConstructorInternal(preciseZero) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorBoolean`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorBoolean` output analysis property operator class.
     !!}
     implicit none
     type   (outputAnalysisPropertyOperatorBoolean)                :: self

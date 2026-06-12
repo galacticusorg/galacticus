@@ -35,7 +35,7 @@ module Merger_Trees_Evolve
    <name>mergerTreeEvolver</name>
    <descriptiveName>Merger Tree Evolvers</descriptiveName>
    <description>
-   Class providing evolvers for merger trees---the top-level driver that integrates the full system of ODEs for all nodes in a merger tree from an initial time to a specified end time. The evolver loops over nodes, determines the next timestep using the ``mergerTreeEvolveTimestepClass``, calls the node evolver to advance each node, and handles events such as node promotions and mergers. It also manages deadlock detection, work-sharing between CPU cores, and suspension of trees for I/O.
+   Class providing evolvers for merger trees---the top-level driver that integrates the full system of ODEs for all nodes in a merger tree from an initial time to a specified end time. The evolver loops over nodes, determines the next timestep using the :galacticus-class:`mergerTreeEvolveTimestepClass`, calls the node evolver to advance each node, and handles events such as node promotions and mergers. It also manages deadlock detection, work-sharing between CPU cores, and suspension of trees for I/O.
    </description>
    <default>standard</default>
    <method name="evolve" >

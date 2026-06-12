@@ -39,7 +39,7 @@ Implements a filter which passes only isolated halos.
 
   interface galacticFilterHaloIsolated
      !!{RST
-     Constructors for the ``galacticFilterHaloIsolated`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHaloIsolated` galactic filter class.
      !!}
      module procedure haloIsolatedConstructorParameters
   end interface galacticFilterHaloIsolated
@@ -48,7 +48,7 @@ contains
 
   function haloIsolatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHaloIsolated`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHaloIsolated` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -38,7 +38,7 @@
 
   interface kinematicsDistributionShi2016
      !!{RST
-     Constructors for the ``kinematicsDistributionShi2016`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionShi2016` kinematic distribution class.
      !!}
      module procedure shi2016KinematicsConstructorParameters
   end interface kinematicsDistributionShi2016
@@ -47,7 +47,7 @@ contains
 
   function shi2016KinematicsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionShi2016`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionShi2016` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

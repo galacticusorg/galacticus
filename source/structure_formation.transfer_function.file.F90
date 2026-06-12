@@ -133,7 +133,7 @@
       }
       }
 
-   If an optional ``transferFunctionClass`` object named ``transferFunctionReference`` is supplied then that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to ``transferFunctionReference`` are also computed.
+   If an optional :galacticus-class:`transferFunctionClass` object named ``transferFunctionReference`` is supplied then that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to ``transferFunctionReference`` are also computed.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </transferFunction>

@@ -41,7 +41,7 @@ Implements a depth-first merger tree walker over all nodes including formation n
 
   interface mergerTreeWalkerAllAndFormationNodes
      !!{RST
-     Constructors for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class.
+     Constructors for the :galacticus-class:`mergerTreeWalkerAllAndFormationNodes` merger tree walker class.
      !!}
      module procedure allAndFormationNodesParameters
      module procedure allAndFormationNodesInternal
@@ -51,7 +51,7 @@ contains
 
   function allAndFormationNodesParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeWalkerAllAndFormationNodes` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -66,7 +66,7 @@ contains
 
   function allAndFormationNodesInternal(tree,spanForest) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeWalkerAllAndFormationNodes`` merger tree walker class.
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerAllAndFormationNodes` merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerAllAndFormationNodes)                          :: self

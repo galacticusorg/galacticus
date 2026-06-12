@@ -74,7 +74,7 @@
 
   interface posteriorSampleLikelihoodPosteriorAsPrior
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` posterior sampling likelihood class.
      !!}
      module procedure posteriorAsPriorConstructorParameters
      module procedure posteriorAsPriorConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function posteriorAsPriorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -138,7 +138,7 @@ contains
 
   function posteriorAsPriorConstructorInternal(chainBaseName,neighborCount,tolerance,exclusions,posteriorSampleLikelihood_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` posterior sampling likelihood class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: ISO_Varying_String, only : varying_string
@@ -236,7 +236,7 @@ contains
 
   subroutine posteriorAsPriorDestructor(self)
     !!{RST
-    Destructor for ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood class.
+    Destructor for :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPosteriorAsPrior), intent(inout) :: self
@@ -249,7 +249,7 @@ contains
 
   subroutine posteriorAsPriorInitialize(self,modelParametersActive_)
     !!{RST
-    Initialize a ``posteriorSampleLikelihoodPosteriorAsPrior`` posterior sampling likelihood object.
+    Initialize a :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` posterior sampling likelihood object.
     !!}
     implicit none
     class           (posteriorSampleLikelihoodPosteriorAsPrior), intent(inout)               :: self
@@ -296,7 +296,7 @@ contains
 
   double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !!{RST
-    Return the log-likelihood for a ``posteriorSampleLikelihoodPosteriorAsPrior`` likelihood function.
+    Return the log-likelihood for a :galacticus-class:`posteriorSampleLikelihoodPosteriorAsPrior` likelihood function.
     !!}
     use :: Numerical_Constants_Math      , only : Pi
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass

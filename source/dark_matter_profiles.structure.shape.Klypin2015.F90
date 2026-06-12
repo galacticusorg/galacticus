@@ -58,7 +58,7 @@
 
   interface darkMatterProfileShapeKlypin2015
      !!{RST
-     Constructors for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
+     Constructors for the :galacticus-class:`darkMatterProfileShapeKlypin2015` dark matter halo profile shape class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function klypin2015ConstructorInternal(sample,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
+    Constructor for the :galacticus-class:`darkMatterProfileShapeKlypin2015` dark matter halo profile shape class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -119,7 +119,7 @@ contains
 
   subroutine klypin2015Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileShapeKlypin2015`` dark matter halo profile shape class.
+    Destructor for the :galacticus-class:`darkMatterProfileShapeKlypin2015` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeKlypin2015), intent(inout) :: self

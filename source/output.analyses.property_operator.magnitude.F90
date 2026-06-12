@@ -39,7 +39,7 @@ Implements an output analysis property operator class which converts luminosity 
 
   interface outputAnalysisPropertyOperatorMagnitude
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorMagnitude`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMagnitude` output analysis property operator class.
      !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude
@@ -48,7 +48,7 @@ contains
 
   function magnitudeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorMagnitude`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMagnitude` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

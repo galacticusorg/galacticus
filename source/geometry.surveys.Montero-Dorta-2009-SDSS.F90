@@ -135,7 +135,7 @@ contains
 
   subroutine monteroDorta2009SDSSDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryMonteroDorta2009SDSS`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryMonteroDorta2009SDSS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMonteroDorta2009SDSS), intent(inout) :: self

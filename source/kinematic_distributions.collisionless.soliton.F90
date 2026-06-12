@@ -40,7 +40,7 @@
 
   interface kinematicsDistributionSoliton
      !!{RST
-     Constructors for the ``kinematicsDistributionSoliton`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
      !!}
      module procedure solitonKinematicsConstructorParameters
      module procedure solitonKinematicsConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function solitonKinematicsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionSoliton`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function solitonKinematicsConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionSoliton`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSoliton)                          :: self
@@ -100,7 +100,7 @@ contains
   
   function solitonKinematicsConstructorDecorated(kinematicsDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionSoliton`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionSoliton)                :: self

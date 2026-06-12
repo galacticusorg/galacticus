@@ -39,7 +39,7 @@ Implements a null output analysis class.
 
   interface nodePropertyExtractorNull
      !!{RST
-     Constructors for the ``nodePropertyExtractorNull`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorNull` property extractor class.
      !!}
      module procedure nullConstructorParameters
   end interface nodePropertyExtractorNull
@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorNull`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorNull` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

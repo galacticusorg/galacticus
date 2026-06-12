@@ -48,7 +48,7 @@ Implements an N-body data operator which computes mass functions.
 
   interface nbodyOperatorMassFunction
      !!{RST
-     Constructors for the ``nbodyOperatorMassFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorMassFunction` N-body operator class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function massFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorMassFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorMassFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function massFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorMassFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorMassFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMassFunction)                        :: self
@@ -143,7 +143,7 @@ contains
   
   subroutine massFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorMassFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorMassFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMassFunction), intent(inout) :: self

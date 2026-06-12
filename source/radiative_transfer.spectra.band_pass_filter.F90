@@ -39,7 +39,7 @@
   
   interface radiativeTransferSpectrumBandPassFilter
      !!{RST
-     Constructors for the ``radiativeTransferSpectrumBandPassFilter`` radiative transfer spectrum class.
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
      !!}
      module procedure bandPassFilterConstructorParameters
      module procedure bandPassFilterConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function bandPassFilterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSpectrumBandPassFilter`` radiative transfer spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSpectrumBandPassFilter`` radiative transfer spectrum class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine bandPassFilterDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferSpectrumBandPassFilter`` radiative transfer spectrum class.
+    Destructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self

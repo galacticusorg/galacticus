@@ -52,7 +52,7 @@
 
   interface radiativeTransferOutputterSpectrum
      !!{RST
-     Constructors for the ``radiativeTransferOutputterSpectrum`` radiative transfer outputter class.
+     Constructors for the :galacticus-class:`radiativeTransferOutputterSpectrum` radiative transfer outputter class.
      !!}
      module procedure spectrumConstructorParameters
      module procedure spectrumConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function spectrumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferOutputterSpectrum`` radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferOutputterSpectrum` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters        , only : inputParameters
     use :: Numerical_Constants_Math, only : Pi
@@ -132,7 +132,7 @@ contains
 
   function spectrumConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,thetaMinimum,thetaMaximum,countThetas) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferOutputterSpectrum`` radiative transfer outputter class.
+    Internal constructor for the :galacticus-class:`radiativeTransferOutputterSpectrum` radiative transfer outputter class.
     !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight

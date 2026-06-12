@@ -59,7 +59,7 @@
 
   interface mergerTreeEvolveTimestepSatellite
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepSatellite`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class.
      !!}
      module procedure satelliteConstructorParameters
      module procedure satelliteConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function satelliteConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepSatellite`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepSatellite`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
@@ -124,7 +124,7 @@ contains
 
   subroutine satelliteDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepSatellite`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepSatellite), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface posteriorSampleStoppingCriterionStepCount
      !!{RST
-     Constructors for the ``posteriorSampleStoppingCriterionStepCount`` posterior sampling stopping class.
+     Constructors for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function stepCountConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStoppingCriterionStepCount`` posterior sampling stopping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function stepCountConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
     !!{RST
-    Internal constructor for the ``posteriorSampleStoppingCriterionStepCount`` posterior sampling stopping class.
+    Internal constructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionStepCount)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine stepCountDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleStoppingCriterionStepCount`` posterior sampling stopping class.
+    Destructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionStepCount), intent(inout) :: self

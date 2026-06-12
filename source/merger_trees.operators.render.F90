@@ -68,7 +68,7 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
 
   interface mergerTreeOperatorRender
      !!{RST
-     Constructors for the ``mergerTreeOperatorRender`` merger tree operator class.
+     Constructors for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
      !!}
      module procedure renderConstructorParameters
      module procedure renderConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function renderConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOperatorRender`` merger tree operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function renderConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOperatorRender`` merger tree operator class.
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorRender)                        :: self
@@ -119,7 +119,7 @@ contains
 
   subroutine renderDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOperatorRender`` merger tree operator class.
+    Destructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorRender), intent(inout) :: self

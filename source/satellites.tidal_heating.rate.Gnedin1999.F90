@@ -71,7 +71,7 @@ contains
 
   function gnedin1999ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalHeatingRateGnedin1999`` satellite tidal heating rate class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalHeatingRateGnedin1999` satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteTidalHeatingRateGnedin1999`` satellite tidal heating rate class.
+    Internal constructor for the :galacticus-class:`satelliteTidalHeatingRateGnedin1999` satellite tidal heating rate class.
     !!}
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self

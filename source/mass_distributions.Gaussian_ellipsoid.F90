@@ -67,7 +67,7 @@
 
   interface massDistributionGaussianEllipsoid
      !!{RST
-     Constructors for the ``massDistributionGaussianEllipsoid`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionGaussianEllipsoid` mass distribution class.
      !!}
      module procedure gaussianEllipsoidConstructorParameters
      module procedure gaussianEllipsoidConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function gaussianEllipsoidConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionGaussianEllipsoid`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionGaussianEllipsoid` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Linear_Algebra            , only : assignment(=)                 , vector
@@ -173,7 +173,7 @@ contains
   
   function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionGaussianEllipsoid`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionGaussianEllipsoid` mass distribution class.
     !!}
     use :: Error               , only : Error_Report
     use :: Linear_Algebra      , only : vector       , assignment(=)

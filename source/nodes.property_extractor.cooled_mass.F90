@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMassCooled
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassCooled`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function massCooledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassCooled`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function massCooledConstructorInternal(resetAfterExtract) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassCooled`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassCooled)                :: self

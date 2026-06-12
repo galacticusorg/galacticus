@@ -43,7 +43,7 @@
 
   interface posteriorSampleStateInitializeParameterFile
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeParameterFile` posterior sampling state initialization class.
      !!}
      module procedure parameterFileConstructorParameters
      module procedure parameterFileConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function parameterFileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeParameterFile` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function parameterFileConstructorInternal(fileName) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeParameterFile`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeParameterFile` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeParameterFile)                :: self

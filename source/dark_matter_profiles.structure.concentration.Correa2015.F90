@@ -62,7 +62,7 @@
 
   interface darkMatterProfileConcentrationCorrea2015
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationCorrea2015`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationCorrea2015` dark matter halo profile concentration class.
      !!}
      module procedure correa2015ConstructorParameters
      module procedure correa2015ConstructorInternal
@@ -114,7 +114,7 @@ contains
 
   function correa2015ConstructorInternal(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationCorrea2015`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationCorrea2015` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -169,7 +169,7 @@ contains
 
   subroutine correa2015Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationCorrea2015`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationCorrea2015` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self

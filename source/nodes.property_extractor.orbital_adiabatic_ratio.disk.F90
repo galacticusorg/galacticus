@@ -53,7 +53,7 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
      !!{RST
-     Constructors for the ``nodePropertyExtractorAdiabaticRatioOrbitalDisk`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorAdiabaticRatioOrbitalDisk`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorAdiabaticRatioOrbitalDisk`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine adiabaticRatioOrbitalDiskDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorAdiabaticRatioOrbitalDisk`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self

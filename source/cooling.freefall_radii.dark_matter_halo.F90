@@ -27,7 +27,7 @@
   !![
   <freefallRadius name="freefallRadiusDarkMatterHalo" docformat="rst">
    <description>
-   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see ``freefallTimeAvailable``).
+   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the dark matter halo equals the time available for freefall (see :galacticus-class:`freefallTimeAvailable`).
    </description>
   </freefallRadius>
   !!]

@@ -65,7 +65,7 @@
 
   interface darkMatterProfileScaleRadiusLudlow2016
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusLudlow2016`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2016ConstructorParameters
      module procedure ludlow2016ConstructorInternal
@@ -154,7 +154,7 @@ contains
 
   function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusLudlow2016`` dark matter halo profile scale radius class.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
@@ -177,7 +177,7 @@ contains
 
   subroutine ludlow2016Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusLudlow2016`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self

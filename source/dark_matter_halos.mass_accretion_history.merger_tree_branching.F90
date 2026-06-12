@@ -47,7 +47,7 @@
 
   interface darkMatterHaloMassAccretionHistoryMergerTreeBranching
      !!{RST
-     Constructors for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryMergerTreeBranching` dark matter halo mass accretion history class.
      !!}
      module procedure mergerTreeBranchingConstructorParameters
      module procedure mergerTreeBranchingConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function mergerTreeBranchingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryMergerTreeBranching` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function mergerTreeBranchingConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryMergerTreeBranching` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine mergerTreeBranchingDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloMassAccretionHistoryMergerTreeBranching`` dark matter halo mass accretion history class.
+    Destructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryMergerTreeBranching` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryMergerTreeBranching), intent(inout) :: self

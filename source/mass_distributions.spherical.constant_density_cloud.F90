@@ -45,7 +45,7 @@
 
   interface massDistributionConstantDensityCloud
      !!{RST
-     Constructors for the ``massDistributionConstantDensityCloud`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionConstantDensityCloud` mass distribution class.
      !!}
      module procedure constantDensityCloudConstructorParameters
      module procedure constantDensityCloudConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function constantDensityCloudConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionConstantDensityCloud`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionConstantDensityCloud` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -107,7 +107,7 @@ contains
   
   function constantDensityCloudConstructorInternal(mass,radius,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionConstantDensityCloud`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionConstantDensityCloud` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

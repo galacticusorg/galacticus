@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOPenarrubia2010" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionZhao1996`` to implement the :cite:t:`penarrubia_impact_2010` density profile.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionZhao1996` to implement the :cite:t:`penarrubia_impact_2010` density profile.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionStripped, massDistributionUnstripped"/>
@@ -53,7 +53,7 @@
 
   interface darkMatterProfileDMOPenarrubia2010
      !!{RST
-     Constructors for the ``darkMatterProfileDMOPenarrubia2010`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
      !!}
      module procedure penarrubia2010ConstructorParameters
      module procedure penarrubia2010ConstructorInternal
@@ -155,7 +155,7 @@ contains
 
   function penarrubia2010ConstructorInternal(alpha,beta,gamma,betaStripped,muRadius,etaRadius,muVelocity,etaVelocity,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOPenarrubia2010`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : massDistributionZhao1996
     implicit none
@@ -185,7 +185,7 @@ contains
 
   subroutine penarrubia2010Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOPenarrubia2010`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self

@@ -48,7 +48,7 @@ Implements a stellar population spectra postprocessor class which applies a sequ
 
   interface stellarPopulationSpectraPostprocessorSequence
      !!{RST
-     Constructors for the ``stellarPopulationSpectraPostprocessorSequence`` stellar population spectra postprocessor class.
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorSequence` stellar population spectra postprocessor class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorSequence`` stellar population spectra postprocessor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorSequence` stellar population spectra postprocessor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

@@ -47,7 +47,7 @@
   
   interface nodeOperatorStellarFeedbackDisks
      !!{RST
-     Constructors for the ``nodeOperatorStellarFeedbackDisks`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
      !!}
      module procedure stellarFeedbackDisksConstructorParameters
      module procedure stellarFeedbackDisksConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function stellarFeedbackDisksConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStellarFeedbackDisks`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function stellarFeedbackDisksConstructorInternal(starFormationRateDisks_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStellarFeedbackDisks`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackDisks)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine stellarFeedbackDisksDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStellarFeedbackDisks`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackDisks), intent(inout) :: self

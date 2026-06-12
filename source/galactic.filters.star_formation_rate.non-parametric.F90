@@ -64,7 +64,7 @@ Implements a galactic (high- or low-pass) filter for total star formation rate w
 
   interface galacticFilterStarFormationRateNonParametric
      !!{RST
-     Constructors for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStarFormationRateNonParametric` galactic filter class.
      !!}
      module procedure starFormationRateNonParametricConstructorParameters
      module procedure starFormationRateNonParametricConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function starFormationRateNonParametricConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStarFormationRateNonParametric` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function starFormationRateNonParametricConstructorInternal(filterType,massStellar,rateStarFormation,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterStarFormationRateNonParametric` galactic filter class.
     !!}
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
     use :: Numerical_Interpolation, only : gsl_interp_linear
@@ -147,7 +147,7 @@ contains
 
   subroutine starFormationRateNonParametricDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterStarFormationRateNonParametric`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterStarFormationRateNonParametric` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStarFormationRateNonParametric), intent(inout) :: self

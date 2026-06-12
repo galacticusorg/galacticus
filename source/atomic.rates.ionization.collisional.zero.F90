@@ -39,7 +39,7 @@
 
   interface atomicIonizationRateCollisionalZero
      !!{RST
-     Constructors for the ``atomicIonizationRateCollisionalZero`` atomic collisional ionization class.
+     Constructors for the :galacticus-class:`atomicIonizationRateCollisionalZero` atomic collisional ionization class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicIonizationRateCollisionalZero
@@ -48,7 +48,7 @@ contains
   
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicIonizationRateCollisionalZero`` atomic collisional ionization class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicIonizationRateCollisionalZero` atomic collisional ionization class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

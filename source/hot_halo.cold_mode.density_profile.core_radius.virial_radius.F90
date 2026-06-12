@@ -44,7 +44,7 @@ Implements a cold mode hot halo mass distribution core radius class which sets t
 
   interface hotHaloColdModeCoreRadiiVirialFraction
      !!{RST
-     Constructors for the ``hotHaloColdModeCoreRadiiVirialFraction`` cold mode hot halo mass distribution core radius class.
+     Constructors for the :galacticus-class:`hotHaloColdModeCoreRadiiVirialFraction` cold mode hot halo mass distribution core radius class.
      !!}
      module procedure virialRadiusFractionConstructorParameters
      module procedure virialRadiusFractionConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   subroutine virialRadiusFractionDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloColdModeCoreRadiiVirialFraction`` cold mode hot halo mass distribution core radius class.
+    Destructor for the :galacticus-class:`hotHaloColdModeCoreRadiiVirialFraction` cold mode hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloColdModeCoreRadiiVirialFraction), intent(inout) :: self

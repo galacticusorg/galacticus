@@ -39,7 +39,7 @@
 
   interface stellarPopulationSpectraPostprocessorMeiksin2006
      !!{RST
-     Constructors for the ``stellarPopulationSpectraPostprocessorMeiksin2006`` stellar population spectra postprocessor class.
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorMeiksin2006` stellar population spectra postprocessor class.
      !!}
      module procedure meiksin2006ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMeiksin2006
@@ -48,7 +48,7 @@ contains
 
   function meiksin2006ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorMeiksin2006`` stellar population spectra postprocessor class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorMeiksin2006` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -71,7 +71,7 @@
 
   interface starFormationHistoryAdaptive
      !!{RST
-     Constructors for the ``starFormationHistoryAdaptive`` star formation history class.
+     Constructors for the :galacticus-class:`starFormationHistoryAdaptive` star formation history class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationHistoryAdaptive`` star formation history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationHistoryAdaptive` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -183,7 +183,7 @@ contains
 
   function adaptiveConstructorInternal(outputTimes_,timeStepMinimum,countTimeStepsMaximum,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{RST
-    Internal constructor for the ``starFormationHistoryAdaptive`` star formation history class.
+    Internal constructor for the :galacticus-class:`starFormationHistoryAdaptive` star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -393,7 +393,7 @@ contains
 
   subroutine adaptiveDestructor(self)
     !!{RST
-    Destructor for the ``starFormationHistoryAdaptive`` star formation history class.
+    Destructor for the :galacticus-class:`starFormationHistoryAdaptive` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryAdaptive), intent(inout) :: self

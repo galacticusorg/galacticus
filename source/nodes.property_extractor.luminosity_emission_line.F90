@@ -104,7 +104,7 @@
   
   interface nodePropertyExtractorLuminosityEmissionLine
      !!{RST
-     Constructors for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLine` property extractor class.
      !!}
      module procedure emissionLineLuminosityConstructorParameters
      module procedure emissionLineLuminosityConstructorInternal
@@ -114,7 +114,7 @@ contains
 
   function emissionLineLuminosityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLine` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -189,7 +189,7 @@ contains
 
   function emissionLineLuminosityConstructorInternal(cloudyTableFileName,component,lineNames,toleranceRelative,starFormationHistory_,outputTimes_,hiiRegionLuminosityFunction_,hiiRegionMassFunction_,hiiRegionDensityDistribution_,hiiRegionEscapeFraction_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLine` property extractor class.
     !!}
     use :: Array_Utilities                 , only : slice5Dto2D
     use :: Galactic_Structure_Options      , only : componentTypeDisk, componentTypeSpheroid, componentTypeAll
@@ -428,7 +428,7 @@ contains
 
   subroutine emissionLineLuminosityDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLuminosityEmissionLine`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLuminosityEmissionLine` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityEmissionLine), intent(inout) :: self

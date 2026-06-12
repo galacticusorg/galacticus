@@ -59,7 +59,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
 
   interface nodePropertyExtractorTidallyTruncatedNFWFit
      !!{RST
-     Constructors for the ``nodePropertyExtractorTidallyTruncatedNFWFit`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
      !!}
      module procedure tidallyTruncatedNFWFitConstructorParameters
      module procedure tidallyTruncatedNFWFitConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function tidallyTruncatedNFWFitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTidallyTruncatedNFWFit`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function tidallyTruncatedNFWFitConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorTidallyTruncatedNFWFit`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidallyTruncatedNFWFit)                        :: self
@@ -119,7 +119,7 @@ contains
 
   subroutine tidallyTruncatedNFWFitDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorTidallyTruncatedNFWFit`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout) :: self

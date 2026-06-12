@@ -57,7 +57,7 @@
 
   interface massDistributionHeatingImpulsiveOutflow
      !!{RST
-     Constructors for the ``massDistributionHeatingImpulsiveOutflow`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingImpulsiveOutflow`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingImpulsiveOutflow`` mass distribution heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self

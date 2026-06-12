@@ -58,7 +58,7 @@
   
   interface nodeOperatorPositionInterpolated
      !!{RST
-     Constructors for the ``nodeOperatorPositionInterpolated`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPositionInterpolated` node operator class.
      !!}
      module procedure positionInterpolatedConstructorParameters
      module procedure positionInterpolatedConstructorInternal
@@ -83,7 +83,7 @@ contains
   
   function positionInterpolatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionInterpolated`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionInterpolated` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -135,7 +135,7 @@ contains
 
   function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionInterpolated`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionInterpolated` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -157,7 +157,7 @@ contains
 
   subroutine positionInterpolatedDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorPositionInterpolated`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorPositionInterpolated` node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionInterpolated), intent(inout) :: self

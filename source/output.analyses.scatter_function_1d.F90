@@ -95,7 +95,7 @@
 
   interface outputAnalysisScatterFunction1D
      !!{RST
-     Constructors for the ``outputAnalysisScatterFunction1D`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class.
      !!}
      module procedure scatterFunction1DConstructorParameters
      module procedure scatterFunction1DConstructorInternal
@@ -105,7 +105,7 @@ contains
 
   function scatterFunction1DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisScatterFunction1D`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -469,7 +469,7 @@ contains
 
   function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterQuantity,scatterIsComoving,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisScatterFunction1D`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class for internal use.
     !!}
     use :: Error                             , only : Error_Report
     use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
@@ -642,7 +642,7 @@ contains
 
   subroutine scatterFunction1DDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisScatterFunction1D`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisScatterFunction1D), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface haloMassFunctionReed2007
      !!{RST
-     Constructors for the ``haloMassFunctionReed2007`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
      !!}
      module procedure reed2007ConstructorParameters
      module procedure reed2007ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function reed2007ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionReed2007`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function reed2007ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionReed2007`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionReed2007     )                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine reed2007Destructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionReed2007`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionReed2007), intent(inout) :: self

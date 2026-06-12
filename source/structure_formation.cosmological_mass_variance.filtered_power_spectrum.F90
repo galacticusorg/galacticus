@@ -32,7 +32,7 @@
 
       \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
 
-   where :math:`P(k)` is the primordial power spectrum (see ``powerSpectrumPrimordial``), :math:`T(k)` is the transfer function (see ``transferFunction``), and :math:`W(k)` is the power spectrum variance window function (see ``powerSpectrumWindowFunction``).
+   where :math:`P(k)` is the primordial power spectrum (see :galacticus-class:`powerSpectrumPrimordial`), :math:`T(k)` is the transfer function (see :galacticus-class:`transferFunction`), and :math:`W(k)` is the power spectrum variance window function (see :galacticus-class:`powerSpectrumWindowFunction`).
 
    The normalization of the mass variance is specified via the ``[sigma_8]`` parameter, which defines the linear theory root-variance of the density field in spheres of radii :math:`8h^{-1}`\ Mpc. Note that when computing the normalization of the power spectrum to match the specified value of :math:`\sigma_8` a top-hat real-space window function is used (as per the definition of :math:`\sigma_8`), unless a different window function is explicitly defined via the ``[powerSpectrumWindowFunctionTopHat]`` parameter.
 
@@ -124,7 +124,7 @@
 
   interface cosmologicalMassVarianceFilteredPower
      !!{RST
-     Constructors for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
+     Constructors for the :galacticus-class:`cosmologicalMassVarianceFilteredPower` cosmological mass variance class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -158,7 +158,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`cosmologicalMassVarianceFilteredPower` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -358,7 +358,7 @@ contains
 
   function filteredPowerConstructorInternal(sigma8,amplitudeScalar,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,integrationFailureIsFatal,monotonicInterpolation,rootVarianceLogarithmicGradientTolerance,truncateAtParticleHorizon,storeTabulations,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,transferFunction_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
     !!{RST
-    Internal constructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
+    Internal constructor for the :galacticus-class:`cosmologicalMassVarianceFilteredPower` cosmological mass variance class.
     !!}
     use :: File_Utilities                 , only : Directory_Make                   , File_Path
     use :: Error                          , only : Error_Report
@@ -457,7 +457,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{RST
-    Destructor for the ``cosmologicalMassVarianceFilteredPower`` cosmological mass variance class.
+    Destructor for the :galacticus-class:`cosmologicalMassVarianceFilteredPower` cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self

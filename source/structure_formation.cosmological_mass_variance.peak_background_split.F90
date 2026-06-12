@@ -62,7 +62,7 @@
 
   interface cosmologicalMassVariancePeakBackgroundSplit
      !!{RST
-     Constructors for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
+     Constructors for the :galacticus-class:`cosmologicalMassVariancePeakBackgroundSplit` cosmological mass variance class.
      !!}
      module procedure variancePeakBackgroundSplitConstructorParameters
      module procedure variancePeakBackgroundSplitConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`cosmologicalMassVariancePeakBackgroundSplit` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function variancePeakBackgroundSplitConstructorInternal(factorMassEnvironment,haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
+    Internal constructor for the :galacticus-class:`cosmologicalMassVariancePeakBackgroundSplit` cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVariancePeakBackgroundSplit)                        :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine variancePeakBackgroundSplitDestructor(self)
     !!{RST
-    Destructor for the ``cosmologicalMassVariancePeakBackgroundSplit`` cosmological mass variance class.
+    Destructor for the :galacticus-class:`cosmologicalMassVariancePeakBackgroundSplit` cosmological mass variance class.
     !!}
     implicit none
     type(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

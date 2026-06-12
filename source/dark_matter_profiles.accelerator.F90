@@ -42,7 +42,7 @@
 
   interface darkMatterProfileAccelerator
      !!{RST
-     Constructors for the ``darkMatterProfileAccelerator`` non-dark-matter-only dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function acceleratorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileAccelerator`` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfile_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileAccelerator`` non-dark-matter-only dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileAccelerator)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine acceleratorDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileAccelerator`` dnon-dark-matter-only ark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileAccelerator` dnon-dark-matter-only ark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAccelerator), intent(inout) :: self

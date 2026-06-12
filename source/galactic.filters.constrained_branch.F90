@@ -40,7 +40,7 @@ Implements a filter which passes only constrained branch halos.
 
   interface galacticFilterConstrainedBranch
      !!{RST
-     Constructors for the ``galacticFilterConstrainedBranch`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterConstrainedBranch` galactic filter class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterConstrainedBranch`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterConstrainedBranch` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function constrainedBranchConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterConstrainedBranch`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterConstrainedBranch` galactic filter class.
     !!}
     implicit none
     type(galacticFilterConstrainedBranch) :: self

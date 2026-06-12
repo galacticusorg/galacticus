@@ -43,7 +43,7 @@
   
   interface nodeOperatorHaloAxisRatiosInterpolate
      !!{RST
-     Constructors for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHaloAxisRatiosInterpolate` node operator class.
      !!}
      module procedure haloAxisRatiosInterpolateConstructorParameters
      module procedure haloAxisRatiosInterpolateConstructorInternal
@@ -53,7 +53,7 @@ contains
   
   function haloAxisRatiosInterpolateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function haloAxisRatiosInterpolateConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorHaloAxisRatiosInterpolate`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosInterpolate` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosInterpolate) :: self

@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorRadiativeEfficiencyBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiativeEfficiencyBlackHoles` property extractor class.
      !!}
      module procedure radiativeEfficiencyBlackHolesConstructorParameters
      module procedure radiativeEfficiencyBlackHolesConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiativeEfficiencyBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function radiativeEfficiencyBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiativeEfficiencyBlackHoles`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiativeEfficiencyBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiativeEfficiencyBlackHoles)                        :: self

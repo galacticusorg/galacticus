@@ -44,7 +44,7 @@ Implements a stellar mass property extractor class.
 
   interface nodePropertyExtractorMassStellar
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassStellar`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassStellar` property extractor class.
      !!}
      module procedure massStellarConstructorParameters
   end interface nodePropertyExtractorMassStellar
@@ -53,7 +53,7 @@ contains
 
   function massStellarConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassStellar`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

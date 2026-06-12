@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module of globally-accessible functions supporting the ``nodeOperatorClass`` class.
+Contains a module of globally-accessible functions supporting the :galacticus-class:`nodeOperatorClass` class.
 !!}
 
 module Nodes_Operators_Utilities
   !!{RST
-  Provides globally-accessible functions supporting the ``nodeOperatorClass`` class.
+  Provides globally-accessible functions supporting the :galacticus-class:`nodeOperatorClass` class.
   !!}
   private
   public :: nodeOperatorConstruct       , nodeOperatorDestruct    , nodeOperatorDeepCopy  , nodeOperatorDeepCopyReset              , &

@@ -103,7 +103,7 @@ contains
 
   subroutine fspsDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationSpectraFSPS`` stellar population spectra class.
+    Destructor for the :galacticus-class:`stellarPopulationSpectraFSPS` stellar population spectra class.
     !!}
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self

@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorRadiusBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusBlackHoles` property extractor class.
      !!}
     module procedure radiusBlackHolesConstructorParameters
   end interface nodePropertyExtractorRadiusBlackHoles
@@ -52,7 +52,7 @@ contains
 
   function radiusBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function radiusBlackHolesConstructorInternal(blackHoleBinarySeparationGrowthRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusBlackHoles`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusBlackHoles   )                        :: self

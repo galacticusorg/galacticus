@@ -46,7 +46,7 @@
 
   interface massDistributionSphericalAccelerator
      !!{RST
-     Constructors for the ``massDistributionSphericalAccelerator`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalAccelerator` mass distribution class.
      !!}
      module procedure sphericalAcceleratorConstructorParameters
      module procedure sphericalAcceleratorConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function sphericalAcceleratorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalAccelerator`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalAccelerator` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -126,7 +126,7 @@ contains
   
   function sphericalAcceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalAccelerator`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalAccelerator` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccelerator)                          :: self
@@ -146,7 +146,7 @@ contains
 
   subroutine sphericalAcceleratorDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalAccelerator`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalAccelerator` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccelerator), intent(inout) :: self

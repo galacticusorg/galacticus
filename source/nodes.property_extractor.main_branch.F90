@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorMainBranchStatus
      !!{RST
-     Constructors for the ``nodePropertyExtractorMainBranchStatus`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class.
      !!}
      module procedure mainBranchStatusConstructorParameters
      module procedure mainBranchStatusConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function mainBranchStatusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMainBranchStatus`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function mainBranchStatusConstructorInternal(includeSubhalos) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMainBranchStatus`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMainBranchStatus)                :: self

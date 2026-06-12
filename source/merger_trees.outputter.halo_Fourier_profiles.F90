@@ -66,7 +66,7 @@
 
   interface mergerTreeOutputterHaloFourierProfiles
      !!{RST
-     Constructors for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterHaloFourierProfiles` merger tree outputter.
      !!}
      module procedure haloFourierProfilesConstructorParameters
      module procedure haloFourierProfilesConstructorInternal
@@ -76,7 +76,7 @@ contains
   
   function haloFourierProfilesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterHaloFourierProfiles` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -132,7 +132,7 @@ contains
 
   function haloFourierProfilesConstructorInternal(wavenumberPointsPerDecade,wavenumberMinimum,wavenumberMaximum,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class.
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterHaloFourierProfiles` merger tree outputter class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -156,7 +156,7 @@ contains
 
   subroutine haloFourierProfilesDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOutputterHaloFourierProfiles`` merger tree outputter class.
+    Destructor for the :galacticus-class:`mergerTreeOutputterHaloFourierProfiles` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self

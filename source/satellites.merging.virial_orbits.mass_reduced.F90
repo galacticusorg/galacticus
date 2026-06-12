@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  An implementation of virial orbits that modifies another ``virialOrbitClass`` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
+  An implementation of virial orbits that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -29,13 +29,13 @@
   !![
   <virialOrbit name="virialOrbitMassReduced" docformat="rst">
    <description>
-   A virial orbit class that modifies another ``virialOrbitClass`` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
+   A virial orbit class that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
    </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitMassReduced
      !!{RST
-     A virial orbit class that modifies another ``virialOrbitClass`` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
+     A virial orbit class that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
      !!}
      private
      class(virialOrbitClass          ), pointer :: virialOrbit_           => null()
@@ -53,7 +53,7 @@
 
   interface virialOrbitMassReduced
      !!{RST
-     Constructors for the ``virialOrbitMassReduced`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
      !!}
      module procedure massReducedConstructorParameters
      module procedure massReducedConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function massReducedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialOrbitMassReduced`` virial orbits class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function massReducedConstructorInternal(virialOrbit_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitMassReduced`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
     !!}
     implicit none
     type (virialOrbitMassReduced    )                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine massReducedDestructor(self)
     !!{RST
-    Destructor for the ``virialOrbitMassReduced`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
     !!}
     implicit none
     type(virialOrbitMassReduced), intent(inout) :: self

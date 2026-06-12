@@ -40,7 +40,7 @@
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
      !!{RST
-     Constructors for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed`` posterior sampling differential evolution random jump class.
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution random jump class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function fixedConstructorInternal(exponentValue) result(self)
     !!{RST
-    Internal constructor for the ``posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed`` posterior sampling differential evolution proposal size temperature exponent class.
+    Internal constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution proposal size temperature exponent class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                :: self

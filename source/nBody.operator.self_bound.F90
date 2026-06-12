@@ -48,7 +48,7 @@ Implements an N-body data operator which determines the subset of particles that
 
   interface nbodyOperatorSelfBound
      !!{RST
-     Constructors for the ``nbodyOperatorSelfBound`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class.
      !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function selfBoundConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSelfBound`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -139,7 +139,7 @@ contains
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSelfBound`` N-body operator class
+    Internal constructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
@@ -160,7 +160,7 @@ contains
 
   subroutine selfBoundDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSelfBound`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self

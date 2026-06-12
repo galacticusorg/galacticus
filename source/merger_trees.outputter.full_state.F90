@@ -24,7 +24,7 @@
   !![
   <mergerTreeOutputter name="mergerTreeOutputterFullState" docformat="rst">
    <description>
-   A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in output in raw binary format to the file specified as ``[fileName]``. This can be later re-read and post-processed using the ``taskPostprocessForests`` task class.
+   A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in output in raw binary format to the file specified as ``[fileName]``. This can be later re-read and post-processed using the :galacticus-class:`taskPostprocessForests` task class.
    </description>
   </mergerTreeOutputter>
   !!]
@@ -42,7 +42,7 @@
 
   interface mergerTreeOutputterFullState
      !!{RST
-     Constructors for the ``mergerTreeOutputterFullState`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter.
      !!}
      module procedure fullStateConstructorParameters
      module procedure fullStateConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function fullStateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterFullState`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function fullStateConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOutputterFullState`` merger tree outputter class.
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterFullState)                :: self

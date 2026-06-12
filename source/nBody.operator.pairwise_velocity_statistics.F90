@@ -55,7 +55,7 @@ Implements an N-body data operator which computes pairwise velocity statistics i
 
   interface nbodyOperatorPairwiseVelocityStatistics
      !!{RST
-     Constructors for the ``nbodyOperatorPairwiseVelocityStatistics`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
      !!}
      module procedure pairwiseVelocityStatisticsConstructorParameters
      module procedure pairwiseVelocityStatisticsConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function pairwiseVelocityStatisticsConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorPairwiseVelocityStatistics`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -177,7 +177,7 @@ contains
 
   function pairwiseVelocityStatisticsConstructorInternal(separationMinimum,separationMaximum,separationCount,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,cosmologyFunctions_,darkMatterHaloScale_,parameters) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorPairwiseVelocityStatistics`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPairwiseVelocityStatistics)                        :: self
@@ -201,7 +201,7 @@ contains
 
   subroutine pairwiseVelocityStatisticsDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorPairwiseVelocityStatistics`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPairwiseVelocityStatistics), intent(inout) :: self

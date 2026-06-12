@@ -73,7 +73,7 @@
 
   interface coolingFunctionVelocityCutOff
      !!{RST
-     Constructors for the ``coolingFunctionVelocityCutOff`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionVelocityCutOff` cooling function class.
      !!}
      module procedure velocityCutOffConstructorParameters
      module procedure velocityCutOffConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function velocityCutOffConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionVelocityCutOff`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionVelocityCutOff` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -160,7 +160,7 @@ contains
 
   function velocityCutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionVelocityCutOff`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionVelocityCutOff` cooling function class.
     !!}
     implicit none
     type            (coolingFunctionVelocityCutOff)                        :: self
@@ -180,7 +180,7 @@ contains
 
   subroutine velocityCutOffDestructor(self)
     !!{RST
-    Destructor for the ``coolingFunctionVelocityCutOff`` cooling function class.
+    Destructor for the :galacticus-class:`coolingFunctionVelocityCutOff` cooling function class.
     !!}
     implicit none
     type(coolingFunctionVelocityCutOff), intent(inout) :: self

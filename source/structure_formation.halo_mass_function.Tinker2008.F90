@@ -75,7 +75,7 @@
 
   interface haloMassFunctionTinker2008
      !!{RST
-     Constructors for the ``haloMassFunctionTinker2008`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionTinker2008` halo mass function class.
      !!}
      module procedure tinker2008ConstructorParameters
      module procedure tinker2008ConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function tinker2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionTinker2008`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionTinker2008` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function tinker2008ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionTinker2008`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionTinker2008` halo mass function class.
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : destroy                     , node
@@ -179,7 +179,7 @@ contains
 
   subroutine tinker2008Destructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionTinker2008`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionTinker2008` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionTinker2008), intent(inout) :: self

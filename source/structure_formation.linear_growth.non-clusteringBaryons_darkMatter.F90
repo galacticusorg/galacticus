@@ -59,7 +59,7 @@
 
   interface linearGrowthNonClusteringBaryonsDarkMatter
      !!{RST
-     Constructors for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
+     Constructors for the :galacticus-class:`linearGrowthNonClusteringBaryonsDarkMatter` linear growth class.
      !!}
      module procedure nonClusteringBaryonsDarkMatterConstructorParameters
      module procedure nonClusteringBaryonsDarkMatterConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function nonClusteringBaryonsDarkMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`linearGrowthNonClusteringBaryonsDarkMatter` linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function nonClusteringBaryonsDarkMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
+    Internal constructor for the :galacticus-class:`linearGrowthNonClusteringBaryonsDarkMatter` linear growth class.
     !!}
     implicit none
     type            (linearGrowthNonClusteringBaryonsDarkMatter)                           :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine nonClusteringBaryonsDarkMatterDestructor(self)
     !!{RST
-    Destructor for the ``linearGrowthNonClusteringBaryonsDarkMatter`` linear growth class.
+    Destructor for the :galacticus-class:`linearGrowthNonClusteringBaryonsDarkMatter` linear growth class.
     !!}
     implicit none
     type (linearGrowthNonClusteringBaryonsDarkMatter), intent(inout) :: self

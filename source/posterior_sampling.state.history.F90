@@ -45,7 +45,7 @@
 
   interface posteriorSampleStateHistory
      !!{RST
-     Constructors for the ``posteriorSampleStateHistory`` posterior sampling state class.
+     Constructors for the :galacticus-class:`posteriorSampleStateHistory` posterior sampling state class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function historyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateHistory`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateHistory` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function historyConstructorInternal(acceptedStateCount) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateHistory`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateHistory` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none

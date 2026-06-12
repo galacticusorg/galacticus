@@ -57,7 +57,7 @@
 
   interface initialMassFunctionChabrier2001
      !!{RST
-     Constructors for the ``initialMassFunctionChabrier2001`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionChabrier2001` initial mass function class.
      !!}
      module procedure chabrier2001ConstructorParameters
      module procedure chabrier2001ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function chabrier2001ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionChabrier2001`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionChabrier2001` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function chabrier2001ConstructorInternal(massLower,massTransition,massUpper,exponent,massCharacteristic,sigma) result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionChabrier2001`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionChabrier2001` initial mass function.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi

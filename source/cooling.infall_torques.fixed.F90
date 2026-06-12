@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingInfallTorqueFixed`` class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`coolingInfallTorqueFixed` class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function fixedConstructorInternal(fractionLossAngularMomentum) result(self)
     !!{RST
-    Internal constructor for the ``coolingInfallTorqueFixed`` class.
+    Internal constructor for the :galacticus-class:`coolingInfallTorqueFixed` class.
     !!}
     implicit none
     type            (coolingInfallTorqueFixed)                :: self

@@ -45,7 +45,7 @@
 
   interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
      !!{RST
-     Constructors for the ``sphericalCollapseSolverBaryonsDarkMatterDarkEnergy`` spherical collapse solver class.
+     Constructors for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
      !!}
      module procedure baryonsDarkMatterDarkEnergyConstructorParameters
      module procedure baryonsDarkMatterDarkEnergyConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``sphericalCollapseSolverBaryonsDarkMatterDarkEnergy`` spherical collapse solver class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``sphericalCollapseSolverBaryonsDarkMatterDarkEnergy`` spherical collapse solver class.
+    Internal constructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                      , pathTypeDataDynamic
@@ -166,7 +166,7 @@ contains
 
   subroutine baryonsDarkMatterDarkEnergyDestructor(self)
     !!{RST
-    Destructor for the ``sphericalCollapseSolverBaryonsDarkMatterDarkEnergy`` spherical collapse solver class.
+    Destructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), intent(inout) :: self

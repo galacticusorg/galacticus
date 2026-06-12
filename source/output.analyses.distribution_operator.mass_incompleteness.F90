@@ -44,7 +44,7 @@
 
   interface outputAnalysisDistributionOperatorMassIncompleteness
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorMassIncompleteness` output analysis distribution operator class.
      !!}
      module procedure massIncompletenessConstructorParameters
      module procedure massIncompletenessConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function massIncompletenessConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassIncompleteness` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function massIncompletenessConstructorInternal(massFunctionIncompleteness_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassIncompleteness` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorMassIncompleteness)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine massIncompletenessDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorMassIncompleteness`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassIncompleteness` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorMassIncompleteness), intent(inout) :: self

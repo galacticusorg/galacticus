@@ -47,7 +47,7 @@
 
   interface distributionFunction1DVoight
      !!{RST
-     Constructors for the ``distributionFunction1DVoight`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class.
      !!}
      module procedure voightConstructorParameters
      module procedure voightConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function voightConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DVoight`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -118,7 +118,7 @@ contains
 
   function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DVoight`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
     double precision                              , intent(in   )                   :: gamma                 , mu        , &

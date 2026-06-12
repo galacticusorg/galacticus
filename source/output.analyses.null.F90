@@ -42,7 +42,7 @@ Implements a null output analysis class.
 
   interface outputAnalysisNull
      !!{RST
-     Constructors for the ``outputAnalysisNull`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisNull` output analysis class.
      !!}
      module procedure nullConstructorParameters
   end interface outputAnalysisNull
@@ -51,7 +51,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisNull`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisNull` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

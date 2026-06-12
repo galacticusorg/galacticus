@@ -39,7 +39,7 @@
 
   interface outputAnalysisConcentrationDistributionCDMCOCO
      !!{RST
-     Constructors for the ``outputAnalysisConcentrationDistributionCDMCOCO`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class.
      !!}
      module procedure concentrationDistributionCDMCOCOConstructorParameters
      module procedure concentrationDistributionCDMCOCOConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisConcentrationDistributionCDMCOCO`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters             , only : cosmologyParameters, cosmologyParametersClass
@@ -105,7 +105,7 @@ contains
 
   function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisConcentrationDistributionCDMCOCO`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class.
     !!}
     use :: Error                            , only : Error_Report
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass

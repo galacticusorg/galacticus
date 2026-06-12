@@ -53,7 +53,7 @@
 
   interface criticalOverdensityKitayamaSuto1996
      !!{RST
-     Constructors for the ``criticalOverdensityKitayamaSuto1996`` critical overdensity class.
+     Constructors for the :galacticus-class:`criticalOverdensityKitayamaSuto1996` critical overdensity class.
      !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensityKitayamaSuto1996`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensityKitayamaSuto1996` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -94,7 +94,7 @@ contains
 
   function kitayamaSuto1996ConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensityKitayamaSuto1996`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensityKitayamaSuto1996` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -121,7 +121,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensityKitayamaSuto1996`` critical overdensity class.
+    Destructor for the :galacticus-class:`criticalOverdensityKitayamaSuto1996` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self

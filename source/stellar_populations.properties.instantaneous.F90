@@ -61,7 +61,7 @@
 
   interface stellarPopulationPropertiesInstantaneous
      !!{RST
-     Constructors for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
+     Constructors for the :galacticus-class:`stellarPopulationPropertiesInstantaneous` stellar population properties class.
      !!}
      module procedure instantaneousConstructorParameters
      module procedure instantaneousConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function instantaneousConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationPropertiesInstantaneous` stellar population properties class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function instantaneousConstructorInternal(stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
+    Internal constructor for the :galacticus-class:`stellarPopulationPropertiesInstantaneous` stellar population properties class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none
@@ -118,7 +118,7 @@ contains
 
   subroutine instantaneousDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationPropertiesInstantaneous`` stellar population properties class.
+    Destructor for the :galacticus-class:`stellarPopulationPropertiesInstantaneous` stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesInstantaneous), intent(inout) :: self

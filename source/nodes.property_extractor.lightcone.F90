@@ -70,7 +70,7 @@
    ``angularWeight``
       The mean number density of this galaxy per unit area on the sky (in degrees\ :math:`^{-2}`).
 
-   In order to allow this output a lightcone geometry (see ``geometryLightcone``) must be specified.
+   In order to allow this output a lightcone geometry (see :galacticus-class:`geometryLightcone`) must be specified.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -102,7 +102,7 @@
 
   interface nodePropertyExtractorLightcone
      !!{RST
-     Constructors for the ``nodePropertyExtractorLightcone`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLightcone` property extractor class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLightcone`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLightcone` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -179,7 +179,7 @@ contains
 
   function lightconeConstructorInternal(includeObservedRedshift,includeObservedPosition,includeAngularCoordinates,atCrossing,failIfNotInLightcone,cosmologyFunctions_,geometryLightcone_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorLightcone`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLightcone` property extractor class.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -264,7 +264,7 @@ contains
 
   subroutine lightconeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLightcone`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLightcone` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLightcone), intent(inout) :: self

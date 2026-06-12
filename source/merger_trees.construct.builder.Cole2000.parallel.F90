@@ -24,7 +24,7 @@
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000Parallel" docformat="rst">
    <description>
-   A merger tree builder class derived fro the ``mergerTreeBuilderCole2000`` merger tree builder class which implements a recursive tree construction algorithm utilizing OpenMP task parallelism.
+   A merger tree builder class derived fro the :galacticus-class:`mergerTreeBuilderCole2000` merger tree builder class which implements a recursive tree construction algorithm utilizing OpenMP task parallelism.
    </description>
   </mergerTreeBuilder>
   !!]
@@ -40,7 +40,7 @@
 
   interface mergerTreeBuilderCole2000Parallel
      !!{RST
-     Constructors for the ``mergerTreeBuilderCole2000Parallel`` merger tree builder class.
+     Constructors for the :galacticus-class:`mergerTreeBuilderCole2000Parallel` merger tree builder class.
      !!}
      module procedure cole2000ParallelConstructorParameters
      module procedure cole2000ParallelConstructorInternal

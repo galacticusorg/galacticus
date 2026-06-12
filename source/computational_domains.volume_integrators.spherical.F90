@@ -38,7 +38,7 @@
 
   interface computationalDomainVolumeIntegratorSpherical
      !!{RST
-     Constructors for the ``computationalDomainVolumeIntegratorSpherical`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainVolumeIntegratorSpherical` computational domain.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainVolumeIntegratorSpherical`` computational domain volume integrator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainVolumeIntegratorSpherical` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
   
   function sphericalConstructorInternal(boundaries) result(self)
     !!{RST
-    Internal constructor for the ``computationalDomainVolumeIntegratorSpherical`` computational domain volume integrator class.
+    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorSpherical` computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

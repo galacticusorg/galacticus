@@ -74,7 +74,7 @@
 
   interface massDistributionSphericalHeated
      !!{RST
-     Constructors for the ``massDistributionSphericalHeated`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
      !!}
      module procedure sphericalHeatedConstructorParameters
      module procedure sphericalHeatedConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function sphericalHeatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalHeated`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -188,7 +188,7 @@ contains
   
   function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalHeated`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeated  )                          :: self
@@ -219,7 +219,7 @@ contains
 
   subroutine sphericalHeatedDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSphericalHeated`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeated), intent(inout) :: self

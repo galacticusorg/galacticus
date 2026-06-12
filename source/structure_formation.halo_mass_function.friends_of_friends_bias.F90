@@ -50,7 +50,7 @@ Contains a  module which  implements a  dark matter  halo mass function  class w
 
   interface haloMassFunctionFofBias
      !!{RST
-     Constructors for the ``haloMassFunctionFofBias`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
      !!}
      module procedure fofBiasConstructorParameters
      module procedure fofBiasConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function fofBiasConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionFofBias`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -128,7 +128,7 @@ contains
 
   function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionFofBias`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionFofBias  )                        :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine fofBiasDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionFofBias`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionFofBias), intent(inout) :: self

@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorPresetNamedReals
      !!{RST
-     Constructors for the ``nodePropertyExtractorPresetNamedReals`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class.
      !!}
      module procedure presetNamedRealsConstructorParameters
      module procedure presetNamedRealsConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function presetNamedRealsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorPresetNamedReals`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function presetNamedRealsConstructorInternal(presetnames) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorPresetNamedReals`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedReals)                              :: self

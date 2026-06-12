@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module functions supporting the black hole physics in the ``nodeOperatorClass`` class.
+Contains a module functions supporting the black hole physics in the :galacticus-class:`nodeOperatorClass` class.
 !!}
 
 module Nodes_Operators_Black_Holes_Utilities
   !!{RST
-  Provides functions supporting the black hole physics in the ``nodeOperatorClass`` class.
+  Provides functions supporting the black hole physics in the :galacticus-class:`nodeOperatorClass` class.
   !!}
   private
   public :: blackHolesRecoilEscapes

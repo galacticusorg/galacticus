@@ -58,7 +58,7 @@ contains
 
   function localGroupClassicalConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``surveyGeometryLocalGroupClassical`` survey geometry class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`surveyGeometryLocalGroupClassical` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

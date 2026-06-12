@@ -49,7 +49,7 @@
 
   interface kinematicsDistributionLam2013
      !!{RST
-     Constructors for the ``kinematicsDistributionLam2013`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
      !!}
      module procedure lam2013ConstructorParameters
      module procedure lam2013ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function lam2013ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionLam2013`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -141,7 +141,7 @@ contains
   
   function lam2013ConstructorInternal(massVirial,radiusVirial,time,overdensityCritical,rateLinearGrowth,scaleFactorVelocity,radius,correlationFunctionVolumeAveraged,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionLam2013`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLam2013)                              :: self
@@ -161,7 +161,7 @@ contains
   
   subroutine lam2013Destructor(self)
     !!{RST
-    Destructor for the ``kinematicsDistributionLam2013`` kinematic distribution class.
+    Destructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionLam2013), intent(inout) :: self

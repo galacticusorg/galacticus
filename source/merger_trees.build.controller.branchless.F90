@@ -43,7 +43,7 @@ Implements a merger tree build controller class which builds branchless trees.
 
   interface mergerTreeBuildControllerBranchless
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerBranchless`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class.
      !!}
      module procedure branchlessConstructorParameters
      module procedure branchlessConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function branchlessConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerBranchless`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function branchlessConstructorInternal(mergerTreeBranchingProbability_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerBranchless`` merger tree build controller class .
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerBranchless)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine branchlessDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerBranchless`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerBranchless), intent(inout) :: self

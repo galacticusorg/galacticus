@@ -43,7 +43,7 @@ Implements an output analysis property extractor class that extracts the basic m
 
   interface nodePropertyExtractorMassBasic
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBasic`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBasic` property extractor class.
      !!}
      module procedure massBasicConstructorParameters
   end interface nodePropertyExtractorMassBasic
@@ -52,7 +52,7 @@ contains
 
   function massBasicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBasic`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBasic` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

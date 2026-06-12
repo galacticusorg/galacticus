@@ -46,7 +46,7 @@
 
   interface starFormationActiveMassSurfaceDensityThreshold
      !!{RST
-     Constructors for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
+     Constructors for the :galacticus-class:`starFormationActiveMassSurfaceDensityThreshold` active mass for star formation class.
      !!}
      module procedure surfaceDensityThresholdConstructorParameters
      module procedure surfaceDensityThresholdConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function surfaceDensityThresholdConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationActiveMassSurfaceDensityThreshold` active mass for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function surfaceDensityThresholdConstructorInternal(surfaceDensityThreshold,exponentVelocity,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationActiveMassSurfaceDensityThreshold` active mass for star formation class.
     !!}
     implicit none
     type            (starFormationActiveMassSurfaceDensityThreshold)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine surfaceDensityThresholdDestructor(self)
     !!{RST
-    Destructor for the ``starFormationActiveMassSurfaceDensityThreshold`` active mass for star formation class.
+    Destructor for the :galacticus-class:`starFormationActiveMassSurfaceDensityThreshold` active mass for star formation class.
     !!}
     implicit none
     type(starFormationActiveMassSurfaceDensityThreshold), intent(inout) :: self

@@ -47,7 +47,7 @@ Implements a radiusCooling property extractor class.
 
   interface nodePropertyExtractorRadiusCooling
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusCooling`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
      !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function radiusCoolingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusCooling`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function radiusCoolingConstructorInternal(coolingRadius_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusCooling`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusCooling)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine radiusCoolingDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusCooling`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusCooling), intent(inout) :: self

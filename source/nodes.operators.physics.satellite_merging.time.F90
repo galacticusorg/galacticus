@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingTime" docformat="rst">
    <description>
-   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a ``satelliteMergingTimescalesClass``, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.
+   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.
    </description>
   </nodeOperator>
   !!]
@@ -56,7 +56,7 @@
   
   interface nodeOperatorSatelliteMergingTime
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteMergingTime`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
      !!}
      module procedure satelliteMergingTimeConstructorParameters
      module procedure satelliteMergingTimeConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteMergingTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteMergingTime`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function satelliteMergingTimeConstructorInternal(resetOnHaloFormation,virialOrbit_,satelliteMergingTimescales_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteMergingTime`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMergingTime)                        :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine satelliteMergingTimeDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteMergingTime`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent
     implicit none

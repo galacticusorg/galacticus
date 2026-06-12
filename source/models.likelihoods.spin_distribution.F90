@@ -75,7 +75,7 @@
 
   interface posteriorSampleLikelihoodSpinDistribution
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
      !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -183,7 +183,7 @@ contains
 
   function spinDistributionConstructorInternal(fileName,distributionType,redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5Object
@@ -240,7 +240,7 @@ contains
 
   subroutine spinDistributionDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodSpinDistribution`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self

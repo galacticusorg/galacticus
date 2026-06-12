@@ -48,7 +48,7 @@ Implements an N-body data operator which computes the mean subhalo :math:`V_\mat
 
   interface nbodyOperatorSubhaloVelocityMaximumMeanFunction
      !!{RST
-     Constructors for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSubhaloVelocityMaximumMeanFunction` N-body operator class.
      !!}
      module procedure subhaloVelocityMaximumMeanFunctionConstructorParameters
      module procedure subhaloVelocityMaximumMeanFunctionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function subhaloVelocityMaximumMeanFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSubhaloVelocityMaximumMeanFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function subhaloVelocityMaximumMeanFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSubhaloVelocityMaximumMeanFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloVelocityMaximumMeanFunction)                        :: self
@@ -143,7 +143,7 @@ contains
   
   subroutine subhaloVelocityMaximumMeanFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSubhaloVelocityMaximumMeanFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSubhaloVelocityMaximumMeanFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloVelocityMaximumMeanFunction), intent(inout) :: self

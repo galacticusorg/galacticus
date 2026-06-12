@@ -31,16 +31,15 @@
    A cooling function class that computes the cooling function due to molecular hydrogen using the results of :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from :cite:t:`galli_chemistry_1998` are used. For the H\ :math:`_2^+`--e\ :math:`^-` and H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
 
    .. math::
+      :label: eq-H2CoolingFunction
 
       \log_{10}\left({\Lambda(T) \over \hbox{erg s}^{-1} \hbox{cm}^3}\right) = C_0 + C_1 \log_{10} \left({T\over\hbox{K}}\right)
       + C_2 \left[\log_{10} \left({T\over\hbox{K}}\right)\right]^2,
-      \label{eq:H2CoolingFunction}
 
-   where the coefficients :math:`C_{0-2}` are given in Table .
+   where the coefficients :math:`C_{0-2}` are given in Table :numref:`{number} &lt;tb-H2CoolingFunctionCoefficients&gt;`.
 
-   Coefficients of H\ :math:`_2^+` cooling functions as appearing in the fitting function, eq. .
-
-   .. list-table::
+   .. list-table:: Coefficients of H\ :math:`_2^+` cooling functions as appearing in the fitting function, eq. :eq:`eq-H2CoolingFunction`.
+      :name: tb-H2CoolingFunctionCoefficients
       :header-rows: 2
 
       * - ​
@@ -102,7 +101,7 @@
 
   interface coolingFunctionMolecularHydrogenGalliPalla
      !!{RST
-     Constructors for the ``coolingFunctionMolecularHydrogenGalliPalla`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class.
      !!}
      module procedure molecularHydrogenGalliPallaConstructorParameters
      module procedure molecularHydrogenGalliPallaConstructorInternal
@@ -141,7 +140,7 @@ contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionMolecularHydrogenGalliPalla`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -157,7 +156,7 @@ contains
 
   function molecularHydrogenGalliPallaConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionMolecularHydrogenGalliPalla`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none

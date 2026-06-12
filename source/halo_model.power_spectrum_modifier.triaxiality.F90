@@ -42,7 +42,7 @@
 
   interface haloModelPowerSpectrumModifierTriaxiality
      !!{RST
-     Constructors for the ``haloModelPowerSpectrumModifierTriaxiality`` halo model power spectrum modifier class.
+     Constructors for the :galacticus-class:`haloModelPowerSpectrumModifierTriaxiality` halo model power spectrum modifier class.
      !!}
      module procedure triaxialityConstructorParameters
      module procedure triaxialityConstructorInternal
@@ -135,7 +135,7 @@ contains
 
   subroutine triaxialityDestructor(self)
     !!{RST
-    Destructor for the ``haloModelPowerSpectrumModifierTriaxiality`` halo model power spectrum modifier class.
+    Destructor for the :galacticus-class:`haloModelPowerSpectrumModifierTriaxiality` halo model power spectrum modifier class.
     !!}
     implicit none
     type(haloModelPowerSpectrumModifierTriaxiality), intent(inout) :: self

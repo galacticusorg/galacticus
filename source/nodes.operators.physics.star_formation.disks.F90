@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorStarFormationDisks" docformat="rst">
    <description>
-   A node operator class that performs star formation in galactic disks by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by ``starFormationRateDisksClass`` and applied to evolve the disk gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).
+   A node operator class that performs star formation in galactic disks by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by :galacticus-class:`starFormationRateDisksClass` and applied to evolve the disk gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).
    </description>
   </nodeOperator>
   !!]
@@ -52,7 +52,7 @@
   
   interface nodeOperatorStarFormationDisks
      !!{RST
-     Constructors for the ``nodeOperatorStarFormationDisks`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationDisks` node operator class.
      !!}
      module procedure starFormationDisksConstructorParameters
      module procedure starFormationDisksConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function starFormationDisksConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStarFormationDisks`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function starFormationDisksConstructorInternal(luminositiesStellarInactive,starFormationRateDisks_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStarFormationDisks`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationDisks` node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationDisks  )                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine starFormationDisksDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStarFormationDisks`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationDisks), intent(inout) :: self

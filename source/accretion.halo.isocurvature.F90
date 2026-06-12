@@ -96,7 +96,7 @@
 
   interface accretionHaloIsocurvature
      !!{RST
-     Constructors for the ``accretionHaloIsocurvature`` halo accretion class.
+     Constructors for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
      !!}
      module procedure isocurvatureConstructorParameters
      module procedure isocurvatureConstructorInternal
@@ -114,7 +114,7 @@ contains
 
   function isocurvatureConstructorParameters(parameters) result(self)
     !!{RST
-    Default constructor for the ``accretionHaloIsocurvature`` halo accretion class.
+    Default constructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -156,7 +156,7 @@ contains
 
   function isocurvatureConstructorInternal(countPerDecade,accretionHalo_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``accretionHaloIsocurvature`` halo accretion class.
+    Internal constructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     implicit none
@@ -196,7 +196,7 @@ contains
 
   subroutine isocurvatureDestructor(self)
     !!{RST
-    Destructor for the ``accretionHaloIsocurvature`` halo accretion class.
+    Destructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     implicit none
     type(accretionHaloIsocurvature), intent(inout) :: self

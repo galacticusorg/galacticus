@@ -77,7 +77,7 @@
 
   interface powerSpectrumWindowFunctionTopHatSharpKHybrid
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionTopHatSharpKHybrid`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSharpKHybrid` power spectrum window function class.
      !!}
      module procedure topHatSharpKHybridConstructorParameters
      module procedure topHatSharpKHybridConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function topHatSharpKHybridConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionTopHatSharpKHybrid`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSharpKHybrid` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -135,7 +135,7 @@ contains
 
   function topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionTopHatSharpKHybrid`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSharpKHybrid` power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -167,7 +167,7 @@ contains
 
   subroutine topHatSharpKHybridDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionTopHatSharpKHybrid`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSharpKHybrid` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self

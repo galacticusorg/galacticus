@@ -41,7 +41,7 @@
 
   interface supernovaeTypeIaPowerLawDTDDifferential
      !!{RST
-     Constructors for the ``supernovaeTypeIaPowerLawDTDDifferential`` supernovae type Ia class.
+     Constructors for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class.
      !!}
      module procedure powerLawDTDDifferentialConstructorParameters
      module procedure powerLawDTDDifferentialConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function powerLawDTDDifferentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``supernovaeTypeIaPowerLawDTDDifferential`` supernovae type Ia class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function powerLawDTDDifferentialConstructorInternal(timeMinimum,exponent,normalization) result(self)
     !!{RST
-    Internal constructor for the ``supernovaeTypeIaPowerLawDTDDifferential`` supernovae type Ia class.
+    Internal constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class.
     !!}
     implicit none
     type            (supernovaeTypeIaPowerLawDTDDifferential)                :: self

@@ -82,7 +82,7 @@ contains
 
   subroutine mangleInitialize(self)
     !!{RST
-    Internal constructor for the ``surveyGeometryMangle`` survey geometry class.
+    Internal constructor for the :galacticus-class:`surveyGeometryMangle` survey geometry class.
     !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self

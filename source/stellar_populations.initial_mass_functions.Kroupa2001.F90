@@ -48,7 +48,7 @@
 
   interface initialMassFunctionKroupa2001
      !!{RST
-     Constructors for the ``initialMassFunctionKroupa2001`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function class.
      !!}
      module procedure kroupa2001ConstructorParameters
      module procedure kroupa2001ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function kroupa2001ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionKroupa2001`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function kroupa2001ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionKroupa2001`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionKroupa2001):: self

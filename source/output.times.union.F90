@@ -25,14 +25,14 @@
   !![
   <outputTimes name="outputTimesUnion" docformat="rst">
     <description>
-    An output times class which simply constructs the union of output times from a set of other ``outputTimesClass`` objects.
+    An output times class which simply constructs the union of output times from a set of other :galacticus-class:`outputTimesClass` objects.
     </description>
     <linkedList type="outputTimesUnionList" variable="outputTimesUnion_" next="next" object="outputTimes_" objectType="outputTimesClass"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesUnion
      !!{RST
-     Implementation of an output times class which simply constructs the union of output times from a set of other ``outputTimesClass`` objects.
+     Implementation of an output times class which simply constructs the union of output times from a set of other :galacticus-class:`outputTimesClass` objects.
      !!}
      private
      type(outputTimesUnionList), pointer :: outputTimesUnion_=> null()
@@ -48,7 +48,7 @@
 
   interface outputTimesUnion
      !!{RST
-     Constructors for the ``outputTimesUnion`` output times class.
+     Constructors for the :galacticus-class:`outputTimesUnion` output times class.
      !!}
      module procedure unionConstructorParameters
      module procedure unionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function unionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesUnion`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesUnion` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function unionConstructorInternal(outputTimesUnion_) result(self)
     !!{RST
-    Constructor for the ``outputTimesUnion`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesUnion` output times class which takes a parameter set as input.
     !!}
     implicit none
     type(outputTimesUnion    )                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine unionDestructor(self)
     !!{RST
-    Destructor for the ``outputTimesUnion`` output times class.
+    Destructor for the :galacticus-class:`outputTimesUnion` output times class.
     !!}
     implicit none
     type(outputTimesUnion    ), intent(inout) :: self

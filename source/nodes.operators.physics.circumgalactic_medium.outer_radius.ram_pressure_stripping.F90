@@ -53,7 +53,7 @@
   
   interface nodeOperatorCGMOuterRadiusRamPressureStripping
      !!{RST
-     Constructors for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMOuterRadiusRamPressureStripping` node operator class.
      !!}
      module procedure cgmOuterRadiusRamPressureStrippingConstructorParameters
      module procedure cgmOuterRadiusRamPressureStrippingConstructorInternal
@@ -63,7 +63,7 @@ contains
   
   function cgmOuterRadiusRamPressureStrippingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusRamPressureStripping` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function cgmOuterRadiusRamPressureStrippingConstructorInternal(cosmologyParameters_,darkMatterHaloScale_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,hotHaloOutflowReincorporation_,hotHaloOutflowStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusRamPressureStripping` node operator class.
     !!}
     implicit none
     type (nodeOperatorCGMOuterRadiusRamPressureStripping)                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine cgmOuterRadiusRamPressureStrippingDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMOuterRadiusRamPressureStripping`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusRamPressureStripping` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMOuterRadiusRamPressureStripping), intent(inout) :: self

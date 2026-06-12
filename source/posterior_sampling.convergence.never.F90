@@ -43,7 +43,7 @@
 
   interface posteriorSampleConvergenceNever
      !!{RST
-     Constructors for the ``posteriorSampleConvergenceNever`` posterior sampling convergence class.
+     Constructors for the :galacticus-class:`posteriorSampleConvergenceNever` posterior sampling convergence class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleConvergenceNever
@@ -52,7 +52,7 @@ contains
 
   function neverConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleConvergenceNever`` posterior sampling convergence class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleConvergenceNever` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

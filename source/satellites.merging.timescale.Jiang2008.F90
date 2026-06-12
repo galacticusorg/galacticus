@@ -118,7 +118,7 @@ contains
 
   subroutine jiang2008Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesJiang2008`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesJiang2008` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self

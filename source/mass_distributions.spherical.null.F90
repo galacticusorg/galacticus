@@ -47,7 +47,7 @@
 
   interface massDistributionZero
      !!{RST
-     Constructors for the ``massDistributionZero`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionZero` mass distribution class.
      !!}
      module procedure zeroConstructorParameters
      module procedure zeroConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionZero`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionZero` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
   
   function zeroConstructorInternal(dimensionless) result(self)
     !!{RST
-    Constructor for the ``massDistributionZero`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionZero` mass distribution class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeUnknown, massTypeUnknown
     implicit none

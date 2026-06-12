@@ -110,7 +110,7 @@
 
   interface starFormationRateSurfaceDensityDisksBlitz2006
      !!{RST
-     Constructors for the ``starFormationRateSurfaceDensityDisksBlitz2006`` star formation surface density rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateSurfaceDensityDisksBlitz2006` star formation surface density rate in disks class.
      !!}
      module procedure blitz2006ConstructorParameters
      module procedure blitz2006ConstructorInternal
@@ -125,7 +125,7 @@ contains
 
   function blitz2006ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateSurfaceDensityDisksBlitz2006`` star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksBlitz2006` star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
@@ -240,7 +240,7 @@ contains
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,assumeMonotonicSurfaceDensity,useTabulation) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateSurfaceDensityDisksBlitz2006`` star formation surface density rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksBlitz2006` star formation surface density rate in disks class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath                , pathTypeDataDynamic

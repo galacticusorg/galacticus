@@ -24,7 +24,7 @@ Implements an N-body data importer which imports using multiple other importers.
   !![
   <nbodyImporter name="nbodyImporterMultiple" docformat="rst">
     <description>
-    An N-body data importer which sequentially invokes multiple child ``nbodyImporterClass`` objects and concatenates their results into a single simulation array, enabling data to be loaded from several independent sources in one pass.
+    An N-body data importer which sequentially invokes multiple child :galacticus-class:`nbodyImporterClass` objects and concatenates their results into a single simulation array, enabling data to be loaded from several independent sources in one pass.
     </description>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
   </nbodyImporter>
@@ -44,7 +44,7 @@ Implements an N-body data importer which imports using multiple other importers.
 
   interface nbodyImporterMultiple
      !!{RST
-     Constructors for the ``nbodyImporterMultiple`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterMultiple` N-body importer class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function multipleConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterMultiple`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterMultiple` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function multipleConstructorInternal(importers) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterMultiple`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterMultiple` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple)                        :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine multipleDestructor(self)
     !!{RST
-    Destructor for the ``nbodyImporterMultiple`` N-body importer class.
+    Destructor for the :galacticus-class:`nbodyImporterMultiple` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMultiple), intent(inout) :: self

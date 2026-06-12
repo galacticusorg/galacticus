@@ -35,7 +35,7 @@
 
   interface outputTimesSimulationSnapshots
      !!{RST
-     Constructors for the ``outputTimesSimulationSnapshots`` output times class.
+     Constructors for the :galacticus-class:`outputTimesSimulationSnapshots` output times class.
      !!}
      module procedure simulationSnapshotsConstructorParameters
      module procedure simulationSnapshotsConstructorInternal
@@ -45,7 +45,7 @@ contains
 
   function simulationSnapshotsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesSimulationSnapshots`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesSimulationSnapshots` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function simulationSnapshotsConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``outputTimesSimulationSnapshots`` output times class.
+    Internal constructor for the :galacticus-class:`outputTimesSimulationSnapshots` output times class.
     !!}
     use :: Error         , only : Error_Report
     use :: FoX_DOM       , only : destroy       , node

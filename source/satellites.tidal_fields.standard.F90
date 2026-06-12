@@ -63,7 +63,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalFieldStandard`` satellite tidal field class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function standardConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteTidalFieldStandard`` satellite tidal field class.
+    Internal constructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class.
     !!}
     implicit none
     type (satelliteTidalFieldStandard)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``satelliteTidalFieldStandard`` satellite tidal field class.
+    Destructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldStandard), intent(inout) :: self

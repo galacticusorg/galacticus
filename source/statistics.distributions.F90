@@ -204,7 +204,7 @@ contains
   
   subroutine distributionFunction1DFinalize(self)
     !!{RST
-    Destructor for ``distributionFunction1DClass`` objects.
+    Destructor for :galacticus-class:`distributionFunction1DClass` objects.
     !!}
     type(distributionFunction1DClass), intent(inout) :: self
 

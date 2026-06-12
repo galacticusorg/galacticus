@@ -42,7 +42,7 @@
 
   interface kinematicsDistributionSphericalScaler
      !!{RST
-     Constructors for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionSphericalScaler` kinematic distribution class.
      !!}
      module procedure kinematicsSphericalScalerConstructorParameters
      module procedure kinematicsSphericalScalerConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function kinematicsSphericalScalerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionSphericalScaler` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
     
   function kinematicsSphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,kinematicsDistribution_) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionSphericalScaler` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSphericalScaler)                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine kinematicsSphericalScalerDestructor(self)
     !!{RST
-    Destructor for the ``kinematicsDistributionSphericalScaler`` kinematic distribution class.
+    Destructor for the :galacticus-class:`kinematicsDistributionSphericalScaler` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionSphericalScaler), intent(inout) :: self

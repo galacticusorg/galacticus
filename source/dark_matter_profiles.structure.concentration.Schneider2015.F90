@@ -67,7 +67,7 @@
 
   interface darkMatterProfileConcentrationSchneider2015
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` dark matter halo profile concentration class.
      !!}
      module procedure schneider2015ConstructorParameters
      module procedure schneider2015ConstructorInternal
@@ -139,7 +139,7 @@ contains
 
   function schneider2015ConstructorInternal(massFractionFormation,referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` dark matter halo profile concentration class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative
     implicit none
@@ -169,7 +169,7 @@ contains
 
   subroutine schneider2015Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationSchneider2015`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self

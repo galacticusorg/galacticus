@@ -94,7 +94,7 @@
 
   interface stellarAstrophysicsFile
      !!{RST
-     Constructors for the ``stellarAstrophysicsFile`` stellar astrophysics class.
+     Constructors for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarAstrophysicsFile`` stellar astrophysics class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class which takes a parameter list as input.
     !!}
     use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -135,7 +135,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``stellarAstrophysicsFile`` stellar astrophysics class.
+    Internal constructor for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class.
     !!}
     use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
     implicit none

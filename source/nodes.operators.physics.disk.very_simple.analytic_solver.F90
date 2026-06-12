@@ -30,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorDiskVerySimpleAnalyticSolver" docformat="rst">
    <description>
-   A node operator class that analytically integrates the evolution of satellite disks for the ``nodeComponentDiskVerySimple`` disk component. At the start of each ODE step the timescales for fuel depletion, star formation and outflow are computed; the disk gas and stellar masses (and optionally their abundances), together with the host hot halo's outflowed mass and abundances, are then provided as closed-form analytic solutions during the integration. Satellites that are too small to ever be of interest, and that will not merge before the present day, are pruned from the tree at this point.
+   A node operator class that analytically integrates the evolution of satellite disks for the :galacticus-class:`nodeComponentDiskVerySimple` disk component. At the start of each ODE step the timescales for fuel depletion, star formation and outflow are computed; the disk gas and stellar masses (and optionally their abundances), together with the host hot halo's outflowed mass and abundances, are then provided as closed-form analytic solutions during the integration. Satellites that are too small to ever be of interest, and that will not merge before the present day, are pruned from the tree at this point.
    </description>
   </nodeOperator>
   !!]
@@ -62,7 +62,7 @@
 
   interface nodeOperatorDiskVerySimpleAnalyticSolver
      !!{RST
-     Constructors for the ``nodeOperatorDiskVerySimpleAnalyticSolver`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
      !!}
      module procedure diskVerySimpleAnalyticSolverConstructorParameters
      module procedure diskVerySimpleAnalyticSolverConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function diskVerySimpleAnalyticSolverConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDiskVerySimpleAnalyticSolver`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -128,7 +128,7 @@ contains
 
   function diskVerySimpleAnalyticSolverConstructorInternal(pruneMassGas,pruneMassStars,trackAbundances,cosmologyFunctions_,stellarPopulationProperties_,stellarFeedbackOutflows_,starFormationRateDisks_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorDiskVerySimpleAnalyticSolver`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
     !!}
     implicit none
     type            (nodeOperatorDiskVerySimpleAnalyticSolver)                        :: self
@@ -149,7 +149,7 @@ contains
 
   subroutine diskVerySimpleAnalyticSolverDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDiskVerySimpleAnalyticSolver`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
     !!}
     implicit none
     type(nodeOperatorDiskVerySimpleAnalyticSolver), intent(inout) :: self

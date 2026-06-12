@@ -39,7 +39,7 @@
 
   interface mergerTreeEvolveTimestepStarFormationHistory
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepStarFormationHistory`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
      !!}
      module procedure starFormationHistoryConstructorParameters
      module procedure starFormationHistoryConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function starFormationHistoryConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepStarFormationHistory`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function starFormationHistoryConstructorInternal(starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolveTimestepStarFormationHistory`` merger tree evolution timestep class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
     !!}
     implicit none
     type (mergerTreeEvolveTimestepStarFormationHistory)                        :: self
@@ -84,7 +84,7 @@ contains
 
   subroutine starFormationHistoryDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepStarFormationHistory`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepStarFormationHistory), intent(inout) :: self

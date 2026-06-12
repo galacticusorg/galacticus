@@ -42,7 +42,7 @@
 
   interface kinematicsDistributionTruncated
      !!{RST
-     Constructors for the ``kinematicsDistributionTruncated`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionTruncated` kinematic distribution class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function truncatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionTruncated`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionTruncated` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function truncatedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionTruncated`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionTruncated` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionTruncated) :: self

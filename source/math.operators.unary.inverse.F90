@@ -41,7 +41,7 @@
 
   interface operatorUnaryInverse
      !!{RST
-     Constructors for the ``operatorUnaryInverse`` 1D distribution function class.
+     Constructors for the :galacticus-class:`operatorUnaryInverse` 1D distribution function class.
      !!}
      module procedure inverseConstructorParameters
   end interface operatorUnaryInverse
@@ -50,7 +50,7 @@ contains
 
   function inverseConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``operatorUnaryInverse`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`operatorUnaryInverse` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

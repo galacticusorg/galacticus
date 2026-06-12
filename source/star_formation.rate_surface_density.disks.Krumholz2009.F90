@@ -112,7 +112,7 @@
 
   interface starFormationRateSurfaceDensityDisksKrumholz2009
      !!{RST
-     Constructors for the ``starFormationRateSurfaceDensityDisksKrumholz2009`` star formation surface density rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateSurfaceDensityDisksKrumholz2009` star formation surface density rate in disks class.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -130,7 +130,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateSurfaceDensityDisksKrumholz2009`` star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksKrumholz2009` star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -185,7 +185,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateSurfaceDensityDisksKrumholz2009`` star formation surface density rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksKrumholz2009` star formation surface density rate in disks class.
     !!}
     use :: Abundances_Structure                      , only : unitAbundances
     use :: Table_Labels                              , only : extrapolationTypeFix
@@ -260,7 +260,7 @@ contains
 
   subroutine krumholz2009Destructor(self)
     !!{RST
-    Destructor for the ``starFormationRateSurfaceDensityDisksKrumholz2009`` star formation surface density rate in disks class.
+    Destructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksKrumholz2009` star formation surface density rate in disks class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

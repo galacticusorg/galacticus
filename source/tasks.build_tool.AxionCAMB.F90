@@ -36,7 +36,7 @@
 
   interface taskBuildToolAxionCAMB
      !!{RST
-     Constructors for the ``taskBuildToolAxionCAMB`` task.
+     Constructors for the :galacticus-class:`taskBuildToolAxionCAMB` task.
      !!}
      module procedure buildToolAxionCAMBParameters
   end interface taskBuildToolAxionCAMB
@@ -45,7 +45,7 @@ contains
 
   function buildToolAxionCAMBParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildToolAxionCAMB`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildToolAxionCAMB` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

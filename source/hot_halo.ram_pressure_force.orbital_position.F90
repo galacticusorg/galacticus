@@ -45,7 +45,7 @@
 
   interface hotHaloRamPressureForceOrbitalPosition
      !!{RST
-     Constructors for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureForceOrbitalPosition` hot halo ram pressure force class.
      !!}
      module procedure orbitalPositionConstructorParameters
      module procedure orbitalPositionConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function orbitalPositionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureForceOrbitalPosition` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function orbitalPositionConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureForceOrbitalPosition`` hot halo ram pressure force class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureForceOrbitalPosition` hot halo ram pressure force class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report             , Component_List

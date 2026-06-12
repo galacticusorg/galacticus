@@ -61,7 +61,7 @@
 
   interface massDistributionSphericalAccretionFlow
      !!{RST
-     Constructors for the ``massDistributionSphericalAccretionFlow`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalAccretionFlow` mass distribution class.
      !!}
      module procedure sphericalAccretionFlowConstructorParameters
      module procedure sphericalAccretionFlowConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function sphericalAccretionFlowConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalAccretionFlow`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalAccretionFlow` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -138,7 +138,7 @@ contains
   
   function sphericalAccretionFlowConstructorInternal(radiusTransition,nonAnalyticSolver,massDistribution_,massDistributionAccretionFlow_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalAccretionFlow`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalAccretionFlow` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAccretionFlow)                          :: self
@@ -157,7 +157,7 @@ contains
 
   subroutine sphericalAccretionFlowDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalAccretionFlow`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalAccretionFlow` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalAccretionFlow), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface blackHoleAccretionRateSpheroidTracking
      !!{RST
-     Constructors for the ``blackHoleAccretionRateSpheroidTracking`` black hole accretion rate class.
+     Constructors for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class.
      !!}
      module procedure spheroidTrackingConstructorParameters
      module procedure spheroidTrackingConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function spheroidTrackingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleAccretionRateSpheroidTracking`` black hole accretion rate class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function spheroidTrackingConstructorInternal(growthRatioToStellarSpheroid,starFormationRateSpheroids_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleAccretionRateSpheroidTracking`` black hole accretion rate class.
+    Internal constructor for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class.
     !!}
     implicit none
     type            (blackHoleAccretionRateSpheroidTracking)                        :: self

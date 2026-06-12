@@ -26,7 +26,7 @@ Implements a galactic filter on lightcone geometry.
   !![
   <galacticFilter name="galacticFilterLightcone" docformat="rst">
    <description>
-   Passes nodes that fall within a lightcone geometry as defined by a ``geometryLightconeClass`` object, enabling mock catalog construction by selecting only galaxies observable within the survey volume.
+   Passes nodes that fall within a lightcone geometry as defined by a :galacticus-class:`geometryLightconeClass` object, enabling mock catalog construction by selecting only galaxies observable within the survey volume.
    </description>
   </galacticFilter>
   !!]
@@ -43,7 +43,7 @@ Implements a galactic filter on lightcone geometry.
 
   interface galacticFilterLightcone
      !!{RST
-     Constructors for the ``galacticFilterLightcone`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function lightconeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterLightcone`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function lightconeConstructorInternal(geometryLightcone_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterLightcone`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
     !!}
     implicit none
     type (galacticFilterLightcone)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine lightconeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterLightcone`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
     !!}
     implicit none
     type(galacticFilterLightcone), intent(inout) :: self

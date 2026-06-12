@@ -35,7 +35,7 @@
 
   interface nodePropertyExtractorSatelliteVirialOrbit
      !!{RST
-     Constructors for the ``nodePropertyExtractorSatelliteVirialOrbit`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class.
      !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
@@ -45,7 +45,7 @@ contains
 
   function satelliteVirialOrbitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSatelliteVirialOrbit`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSatelliteVirialOrbit`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self

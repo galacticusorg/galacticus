@@ -39,7 +39,7 @@ Implements a filter which passes only nodes that are hosted in a merger tree.
 
   interface galacticFilterTreeHosted
      !!{RST
-     Constructors for the ``galacticFilterTreeHosted`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterTreeHosted` galactic filter class.
      !!}
      module procedure treeHostedConstructorParameters
   end interface galacticFilterTreeHosted
@@ -48,7 +48,7 @@ contains
 
   function treeHostedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterTreeHosted`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterTreeHosted` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

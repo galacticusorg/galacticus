@@ -43,7 +43,7 @@
 
   interface kinematicsDistributionHeated
      !!{RST
-     Constructors for the ``kinematicsDistributionHeated`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionHeated` kinematic distribution class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function heatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionHeated`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionHeated` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
   
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionHeated`` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionHeated` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self

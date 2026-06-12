@@ -57,7 +57,7 @@
 
   interface darkMatterHaloMassAccretionHistoryZhao2009
      !!{RST
-     Constructors for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryZhao2009` dark matter halo mass accretion history class.
      !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryZhao2009` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function zhao2009ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryZhao2009` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryZhao2009)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine zhao2009Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloMassAccretionHistoryZhao2009`` dark matter halo mass accretion history class.
+    Destructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryZhao2009` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self

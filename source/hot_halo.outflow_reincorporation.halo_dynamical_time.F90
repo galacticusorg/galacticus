@@ -44,7 +44,7 @@ An implementation of the hot halo outflow reincorporation class in which reincor
 
   interface hotHaloOutflowReincorporationHaloDynamicalTime
      !!{RST
-     Constructors for the ``hotHaloOutflowReincorporationHaloDynamicalTime`` hot halo outflow reincorporation class.
+     Constructors for the :galacticus-class:`hotHaloOutflowReincorporationHaloDynamicalTime` hot halo outflow reincorporation class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   subroutine haloDynamicalTimeDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloOutflowReincorporationHaloDynamicalTime`` hot halo outflow reincorporation class.
+    Destructor for the :galacticus-class:`hotHaloOutflowReincorporationHaloDynamicalTime` hot halo outflow reincorporation class.
     !!}
     implicit none
     type(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self

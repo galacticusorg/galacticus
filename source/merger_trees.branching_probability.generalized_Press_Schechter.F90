@@ -47,7 +47,7 @@ Implements a merger tree branching probability class using a generalized Press-S
       {\d R \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_0^{M_\mathrm{min}} {\d f \over \d t} {\d S \over \d
       M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
 
-   In the above, :math:`G[\omega,\sigma(M),\sigma(M^\prime)]` is a modification to the merger rate as computed by the selected ``mergerTreeBranchingProbabilityModifierClass``. If ``[smoothAccretion]``\ :math:`=`\ ``true`` then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
+   In the above, :math:`G[\omega,\sigma(M),\sigma(M^\prime)]` is a modification to the merger rate as computed by the selected :galacticus-class:`mergerTreeBranchingProbabilityModifierClass`. If ``[smoothAccretion]``\ :math:`=`\ ``true`` then smooth accretion (i.e. accretion of matter not in dark matter halos) is accounted for at the rate:
 
    .. math::
 
@@ -117,7 +117,7 @@ Implements a merger tree branching probability class using a generalized Press-S
 
   interface mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityGnrlzdPrssSchchtr`` merger tree branching probability class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` merger tree branching probability class.
      !!}
      module procedure generalizedPressSchechterConstructorParameters
      module procedure generalizedPressSchechterConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   function generalizedPressSchechterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBranchingProbabilityGnrlzdPrssSchchtr`` merger tree branching probability class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityGnrlzdPrssSchchtr` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self

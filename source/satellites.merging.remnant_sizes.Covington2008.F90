@@ -31,19 +31,19 @@
    A merger remnant size class which uses the algorithm of :cite:t:`covington_predicting_2008` to compute merger remnant spheroid sizes. Specifically
 
    .. math::
+      :label: eq-Covington2008Radius
 
       \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
       \left[ \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
       \frac{M_1 M_2}{r_1+r_2}\right] \left( 1 + f_\mathrm{gas} C_\mathrm{rad} \right),
-      \label{eq:Covington2008Radius}
 
-   where :math:`M_1` and :math:`M_2` are the baryonic masses of the merging galaxies and :math:`r_1` and :math:`r_2` are their half mass radii, :math:`r_\mathrm{new}` is the half mass radius of the spheroidal :term:`component` of the remnant galaxy and :math:`c` is a constant which depends on the distribution of the mass. For a Hernquist spheroid :math:`c=0.40` can be found by numerical integration while for a exponential disk :math:`c=0.49`. For simplicity a value of :math:`c=0.5` is adopted for all components. The parameter :math:`f_\mathrm{orbit}=`\ ``mergerRemnantSizeOrbitalEnergy`` depends on the orbital parameters of the galaxy pair. For example, a value of :math:`f_\mathrm{orbit} = 1` corresponds to point mass galaxies in circular orbits about their center of mass. The final term on the right hand side of eqn. () gives a correction to the final energy of the remnant due to dissipational losses based on the results of :cite:t:`covington_effects_2011`, with
+   where :math:`M_1` and :math:`M_2` are the baryonic masses of the merging galaxies and :math:`r_1` and :math:`r_2` are their half mass radii, :math:`r_\mathrm{new}` is the half mass radius of the spheroidal :term:`component` of the remnant galaxy and :math:`c` is a constant which depends on the distribution of the mass. For a Hernquist spheroid :math:`c=0.40` can be found by numerical integration while for a exponential disk :math:`c=0.49`. For simplicity a value of :math:`c=0.5` is adopted for all components. The parameter :math:`f_\mathrm{orbit}=`\ ``mergerRemnantSizeOrbitalEnergy`` depends on the orbital parameters of the galaxy pair. For example, a value of :math:`f_\mathrm{orbit} = 1` corresponds to point mass galaxies in circular orbits about their center of mass. The final term on the right hand side of eqn. (:eq:`eq-Covington2008Radius`) gives a correction to the final energy of the remnant due to dissipational losses based on the results of :cite:t:`covington_effects_2011`, with
 
    .. math::
 
       f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
 
-   begin the gas fraction of the progenitor galaxies. By default, :math:`C_\mathrm{rad}=2.75` :cite:p:`covington_effects_2011`. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the :cite:t:`cole_hierarchical_2000` algorithm (see ``mergerRemnantSizeCole2000``).
+   begin the gas fraction of the progenitor galaxies. By default, :math:`C_\mathrm{rad}=2.75` :cite:p:`covington_effects_2011`. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the :cite:t:`cole_hierarchical_2000` algorithm (see :galacticus-class:`mergerRemnantSizeCole2000`).
    </description>
   </mergerRemnantSize>
   !!]
@@ -68,7 +68,7 @@
 
   interface mergerRemnantSizeCovington2008
      !!{RST
-     Constructors for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
+     Constructors for the :galacticus-class:`mergerRemnantSizeCovington2008` merger remnant size class.
      !!}
      module procedure covington2008ConstructorParameters
      module procedure covington2008ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function covington2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerRemnantSizeCovington2008` merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -122,7 +122,7 @@ contains
 
   function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
     !!{RST
-    Internal constructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
+    Internal constructor for the :galacticus-class:`mergerRemnantSizeCovington2008` merger remnant size class.
     !!}
     implicit none
     type            (mergerRemnantSizeCovington2008 )                        :: self
@@ -152,7 +152,7 @@ contains
 
   subroutine covington2008Destructor(self)
     !!{RST
-    Destructor for the ``mergerRemnantSizeCovington2008`` merger remnant size class.
+    Destructor for the :galacticus-class:`mergerRemnantSizeCovington2008` merger remnant size class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

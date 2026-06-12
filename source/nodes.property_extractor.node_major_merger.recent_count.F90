@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
      !!{RST
-     Constructors for the ``nodePropertyExtractorNodeMajorMergerRecentCount`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorNodeMajorMergerRecentCount`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorNodeMajorMergerRecentCount`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorNodeMajorMergerRecentCount)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorNodeMajorMergerRecentCount`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self

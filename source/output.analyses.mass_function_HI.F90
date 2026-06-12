@@ -46,7 +46,7 @@ Implements an HI mass function output analysis class.
 
   interface outputAnalysisMassFunctionHI
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionHI`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class.
      !!}
      module procedure massFunctionHIConstructorParameters
      module procedure massFunctionHIConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function massFunctionHIConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                           , only : Error_Report
     use :: Input_Parameters                , only : inputParameter              , inputParameters
@@ -206,7 +206,7 @@ contains
 
   function massFunctionHIConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which reads bin information from a standard format file.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_HDF5                         , only : hdf5Object
@@ -254,7 +254,7 @@ contains
 
   function massFunctionHIConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionHI`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -449,7 +449,7 @@ contains
 
   subroutine massFunctionHIDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionHI`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class.
     !!}
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
 

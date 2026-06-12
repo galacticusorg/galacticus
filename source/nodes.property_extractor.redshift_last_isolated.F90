@@ -47,7 +47,7 @@ Implements a property extractor class that extracts the redshift at which a :ter
 
   interface nodePropertyExtractorRedshiftLastIsolated
      !!{RST
-     Constructors for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRedshiftLastIsolated` property extractor class.
      !!}
      module procedure redshiftLastIsolatedConstructorParameters
      module procedure redshiftLastIsolatedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function redshiftLastIsolatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRedshiftLastIsolated` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function redshiftLastIsolatedConstructorInternal(cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRedshiftLastIsolated` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshiftLastIsolated)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine redshiftLastIsolatedDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRedshiftLastIsolated`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRedshiftLastIsolated` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshiftLastIsolated), intent(inout) :: self

@@ -52,7 +52,7 @@
 
   interface blackHoleBinaryInitialSeparationVolonteri2003
      !!{RST
-     Constructors for the ``blackHoleBinaryInitialSeparationVolonteri2003`` black hole binary initial separation class.
+     Constructors for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class.
      !!}
      module procedure volonteri2003ConstructorParameters
      module procedure volonteri2003ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function volonteri2003ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryInitialSeparationVolonteri2003`` black hole binary initial separation class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function volonteri2003ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryInitialSeparationVolonteri2003`` black hole binary initial separation class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class which takes a parameter list as input.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationVolonteri2003)                        :: self
@@ -97,7 +97,7 @@ contains
 
   subroutine volonteri2003Destructor(self)
     !!{RST
-    Destructor for the ``blackHoleBinaryInitialSeparationVolonteri2003`` black hole binary initial separation class.
+    Destructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class.
     !!}
     implicit none
     type(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout) :: self

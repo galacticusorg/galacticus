@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorTimeFirstInfall" docformat="rst">
     <description>
-    A node operator class that tracks the time of first infall for a node. Intended to be paired with the ``nodePropertyExtractorTimeFirstInfall`` property extractor class to extract these times for output.
+    A node operator class that tracks the time of first infall for a node. Intended to be paired with the :galacticus-class:`nodePropertyExtractorTimeFirstInfall` property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]
@@ -40,7 +40,7 @@
   
   interface nodeOperatorTimeFirstInfall
      !!{RST
-     Constructors for the ``nodeOperatorTimeFirstInfall`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTimeFirstInfall` node operator class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTimeFirstInfall`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTimeFirstInfall` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function timeFirstInfallConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTimeFirstInfall`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTimeFirstInfall` node operator class.
     !!}
     implicit none
     type(nodeOperatorTimeFirstInfall) :: self

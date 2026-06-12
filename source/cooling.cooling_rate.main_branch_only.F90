@@ -25,7 +25,7 @@
   !![
   <coolingRate name="coolingRateMainBranchOnly" docformat="rst">
    <description>
-   Wraps a ``coolingRateClass`` object and suppresses cooling in side branches of the merger tree, restricting gas cooling to the main progenitor branch only for studies of main branch evolution.
+   Wraps a :galacticus-class:`coolingRateClass` object and suppresses cooling in side branches of the merger tree, restricting gas cooling to the main progenitor branch only for studies of main branch evolution.
    </description>
   </coolingRate>
   !!]

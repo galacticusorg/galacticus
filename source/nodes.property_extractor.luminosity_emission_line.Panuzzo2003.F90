@@ -85,7 +85,7 @@ Implements an emission line luminosity node property extractor class.
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
      !!{RST
-     Constructors for the ``nodePropertyExtractorLmnstyEmssnLinePanuzzo2003`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal
@@ -130,7 +130,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLmnstyEmssnLinePanuzzo2003`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -178,7 +178,7 @@ contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorLmnstyEmssnLinePanuzzo2003`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
@@ -280,7 +280,7 @@ contains
 
   subroutine lmnstyEmssnLinePanuzzo2003Destructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLmnstyEmssnLinePanuzzo2003`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self

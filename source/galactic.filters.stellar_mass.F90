@@ -40,7 +40,7 @@ Implements a galactic high-pass filter for total stellar mass.
 
   interface galacticFilterStellarMass
      !!{RST
-     Constructors for the ``galacticFilterStellarMass`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStellarMass` galactic filter class.
      !!}
      module procedure stellarMassConstructorParameters
      module procedure stellarMassConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function stellarMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStellarMass`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStellarMass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function stellarMassConstructorInternal(massThreshold) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterStellarMass`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterStellarMass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStellarMass)                :: self

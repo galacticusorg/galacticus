@@ -61,7 +61,7 @@
 
   interface blackHoleBinaryRecoilCampanelli2007
      !!{RST
-     Constructors for the ``blackHoleBinaryRecoilCampanelli2007`` black hole binary recoil class.
+     Constructors for the :galacticus-class:`blackHoleBinaryRecoilCampanelli2007` black hole binary recoil class.
      !!}
      module procedure campanelli2007ConstructorParameters
   end interface blackHoleBinaryRecoilCampanelli2007
@@ -70,7 +70,7 @@ contains
 
   function campanelli2007ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryRecoilCampanelli2007`` black hole binary recoil class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryRecoilCampanelli2007` black hole binary recoil class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -58,7 +58,7 @@ contains
 
   function fixedMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesFixedMass`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
     use :: Input_Parameters , only : inputParameter, inputParameters
@@ -166,7 +166,7 @@ contains
 
   function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesFixedMass`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                              :: self
@@ -186,7 +186,7 @@ contains
 
   subroutine fixedMassDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassesFixedMass`` merger tree masses class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesFixedMass), intent(inout) :: self

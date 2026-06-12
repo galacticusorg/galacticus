@@ -44,7 +44,7 @@
   
   interface blackHoleWindSimple
      !!{RST
-     Constructors for the ``blackHoleWindSimple`` black hole winds class.
+     Constructors for the :galacticus-class:`blackHoleWindSimple` black hole winds class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleWindSimple`` black hole winds class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleWindSimple` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function simpleConstructorInternal(efficiencyWind,blackHoleAccretionRate_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleWindSimple`` black hole winds class.
+    Internal constructor for the :galacticus-class:`blackHoleWindSimple` black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindSimple        )                        :: self

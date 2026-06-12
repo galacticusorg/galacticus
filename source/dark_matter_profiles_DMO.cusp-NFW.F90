@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOCuspNFW" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionCuspNFW`` objects to implement the cusp-NFW density profile :cite:p:`delos_cusp-halo_2025`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s}`.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionCuspNFW` objects to implement the cusp-NFW density profile :cite:p:`delos_cusp-halo_2025`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s}`.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -47,7 +47,7 @@
 
   interface darkMatterProfileDMOCuspNFW
      !!{RST
-     Constructors for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOCuspNFW` dark matter halo profile class.
      !!}
      module procedure cuspNFWConstructorParameters
      module procedure cuspNFWConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function cuspNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOCuspNFW` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function cuspNFWConstructorInternal(velocityDispersionUseSeriesExpansion,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOCuspNFW` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -138,7 +138,7 @@ contains
 
   subroutine cuspNFWDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOCuspNFW`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOCuspNFW` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOCuspNFW), intent(inout) :: self

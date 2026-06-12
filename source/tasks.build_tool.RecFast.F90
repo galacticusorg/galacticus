@@ -36,7 +36,7 @@
 
   interface taskBuildToolRecFast
      !!{RST
-     Constructors for the ``taskBuildToolRecFast`` task.
+     Constructors for the :galacticus-class:`taskBuildToolRecFast` task.
      !!}
      module procedure buildToolRecFastParameters
   end interface taskBuildToolRecFast
@@ -45,7 +45,7 @@ contains
 
   function buildToolRecFastParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildToolRecFast`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildToolRecFast` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

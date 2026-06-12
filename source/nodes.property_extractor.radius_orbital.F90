@@ -43,7 +43,7 @@ Implements an orbital radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusOrbital
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusOrbital`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusOrbital` property extractor class.
      !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital
@@ -52,7 +52,7 @@ contains
 
   function radiusOrbitalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusOrbital`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

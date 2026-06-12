@@ -34,7 +34,7 @@
       &amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ 0 &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot,
       outer}, \end{array} \right.
 
-   where :math:`\rho(r)` is the density profile of the hot halo, and :math:`r_\mathrm{infall}` is the infall radius (see ``coolingInfallRadius``).
+   where :math:`\rho(r)` is the density profile of the hot halo, and :math:`r_\mathrm{infall}` is the infall radius (see :galacticus-class:`coolingInfallRadius`).
    </description>
   </coolingRate>
   !!]

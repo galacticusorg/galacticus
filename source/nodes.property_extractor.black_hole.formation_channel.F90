@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorBlackHoleFormationChannel
      !!{RST
-     Constructors for the ``nodePropertyExtractorBlackHoleFormationChannel`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function blackHoleFormationChannelConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorBlackHoleFormationChannel`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function blackHoleFormationChannelConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorBlackHoleFormationChannel`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBlackHoleFormationChannel) :: self

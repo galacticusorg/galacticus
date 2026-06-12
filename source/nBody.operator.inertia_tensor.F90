@@ -47,7 +47,7 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
 
   interface nbodyOperatorInertiaTensor
      !!{RST
-     Constructors for the ``nbodyOperatorInertiaTensor`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
      !!}
      module procedure inertiaTensorConstructorParameters
      module procedure inertiaTensorConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function inertiaTensorConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorInertiaTensor`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function inertiaTensorConstructorInternal(radiusMaximum,selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorInertiaTensor`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorInertiaTensor)                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine inertiaTensorDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorInertiaTensor`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorInertiaTensor), intent(inout) :: self

@@ -25,7 +25,7 @@
   !![
   <coolingRate name="coolingRateNoCoolingSatellites" docformat="rst">
    <description>
-   Wraps a ``coolingRateClass`` object and suppresses cooling in satellite halos, restricting gas cooling to isolated (field) halos only, modeling strangulation of satellite gas supply after infall.
+   Wraps a :galacticus-class:`coolingRateClass` object and suppresses cooling in satellite halos, restricting gas cooling to isolated (field) halos only, modeling strangulation of satellite gas supply after infall.
    </description>
   </coolingRate>
   !!]

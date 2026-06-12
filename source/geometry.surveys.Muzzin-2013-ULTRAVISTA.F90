@@ -33,16 +33,17 @@ Implements the geometry of the ULTRAVISTA survey used by :cite:t:`muzzin_evoluti
    To determine the depth as a function of stellar mass, we simply fit the `tabulated relations &lt;https://github.com/galacticusorg/datasets/blob/master/static/surveyGeometry/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_100.dat&gt;`_ provided by the ULTRAVISTA survey:
 
    .. math::
+      :label: eq-MuzzinDepthPolynomial
 
       z_\mathrm{max}(M_\star) = {-8364.45 + m (4331.82 + m (-896.596 + m (92.6999 + m (-4.78750 + m (0.0988215))))) \over 1 -
       \exp[(m-11.24)/0.02] }
-       \label{eq:MuzzinDepthPolynomial}
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`.
 
    .. figure:: Plots/DataAnalysis/MuzzinULTRAVISTAMassRedshiftRelation.pdf
+      :name: fig-MuzzinULTRAVISTADepthFit
 
-      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`muzzin_evolution_2013`. The dotted line shows the results obtained from the ULTRAVISTA survey :cite:p:`muzzin_evolution_2013`, while the solid line shows the polynomial fit to these results (given in eqn. ).
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`muzzin_evolution_2013`. The dotted line shows the results obtained from the ULTRAVISTA survey :cite:p:`muzzin_evolution_2013`, while the solid line shows the polynomial fit to these results (given in eqn. :eq:`eq-MuzzinDepthPolynomial`).
    </description>
   </surveyGeometry>
   !!]
@@ -165,7 +166,7 @@ contains
 
   subroutine muzzin2013ULTRAVISTADestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryMuzzin2013ULTRAVISTA`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryMuzzin2013ULTRAVISTA` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self

@@ -45,7 +45,7 @@
 
   interface powerSpectrumWindowFunctionLagrangianChan2017
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionLagrangianChan2017` power spectrum window function class.
      !!}
      module procedure lagrangianChan2017ConstructorParameters
      module procedure lagrangianChan2017ConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function lagrangianChan2017ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionLagrangianChan2017` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function lagrangianChan2017ConstructorInternal(cosmologyParameters_,f) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionLagrangianChan2017` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionLagrangianChan2017)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine lagrangianChan2017Destructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionLagrangianChan2017`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionLagrangianChan2017` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionLagrangianChan2017), intent(inout) :: self

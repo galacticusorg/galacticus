@@ -178,7 +178,7 @@
 
   interface chemicalStateCIEFile
      !!{RST
-     Constructors for the ``chemicalStateCIEFile`` chemical state class.
+     Constructors for the :galacticus-class:`chemicalStateCIEFile` chemical state class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -191,7 +191,7 @@ contains
 
   function cieFileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``chemicalStateCIEFile`` chemical state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`chemicalStateCIEFile` chemical state class which takes a parameter set as input.
     !!}
     implicit none
     type(chemicalStateCIEFile)                :: self
@@ -217,7 +217,7 @@ contains
 
   function cieFileConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``chemicalStateCIEFile`` chemical state class.
+    Internal constructor for the :galacticus-class:`chemicalStateCIEFile` chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none

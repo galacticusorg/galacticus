@@ -49,7 +49,7 @@
 
   interface virialOrbitIsotropic
      !!{RST
-     Constructors for the ``virialOrbitIsotropic`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitIsotropic` virial orbits class.
      !!}
      module procedure isotropicConstructorParameters
      module procedure isotropicConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function isotropicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialOrbitIsotropic`` virial orbits class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialOrbitIsotropic` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function isotropicConstructorInternal(virialOrbit_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitIsotropic`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitIsotropic` virial orbits class.
     !!}
     implicit none
     type (virialOrbitIsotropic)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine isotropicDestructor(self)
     !!{RST
-    Destructor for the ``virialOrbitIsotropic`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitIsotropic` virial orbits class.
     !!}
     implicit none
     type(virialOrbitIsotropic), intent(inout) :: self

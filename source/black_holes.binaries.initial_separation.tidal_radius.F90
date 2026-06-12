@@ -52,7 +52,7 @@
 
   interface blackHoleBinaryInitialSeparationTidalRadius
      !!{RST
-     Constructors for the ``blackHoleBinaryInitialSeparationTidalRadius`` black hole binary initial separation class.
+     Constructors for the :galacticus-class:`blackHoleBinaryInitialSeparationTidalRadius` black hole binary initial separation class.
      !!}
      module procedure tidalRadiusConstructorParameters
      module procedure tidalRadiusConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function tidalRadiusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryInitialSeparationTidalRadius`` black hole binary initial separation class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationTidalRadius` black hole binary initial separation class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function tidalRadiusConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``blackHoleBinaryInitialSeparationTidalRadius`` black hole binary initial separation class.
+    Internal constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationTidalRadius` black hole binary initial separation class.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationTidalRadius) :: self

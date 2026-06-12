@@ -55,7 +55,7 @@
 
   interface massDistributionSphericalSIDMCoreNFW
      !!{RST
-     Constructors for the ``massDistributionSphericalSIDMCoreNFW`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
      !!}
      module procedure sphericalSIDMCoreNFWConstructorParameters
      module procedure sphericalSIDMCoreNFWConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function sphericalSIDMCoreNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalSIDMCoreNFW`` mass distribution class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -140,7 +140,7 @@ contains
 
   function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{RST
-    Internal constructor for the ``massDistributionSphericalSIDMCoreNFW`` mass distribution class.
+    Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -169,7 +169,7 @@ contains
 
   subroutine sphericalSIDMCoreNFWDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalSIDMCoreNFW`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMCoreNFW), intent(inout) :: self

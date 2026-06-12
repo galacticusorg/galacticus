@@ -177,7 +177,7 @@
 
   interface coolingFunctionCIEFile
      !!{RST
-     Constructors for the ``coolingFunctionCIEFile`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionCIEFile` cooling function class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -190,7 +190,7 @@ contains
 
   function cieFileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionCIEFile`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionCIEFile` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -216,7 +216,7 @@ contains
 
   function cieFileConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionCIEFile`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionCIEFile` cooling function class.
     !!}
     implicit none
     type(coolingFunctionCIEFile)                :: self

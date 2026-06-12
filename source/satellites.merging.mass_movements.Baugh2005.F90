@@ -58,7 +58,7 @@
 
   interface mergerMassMovementsBaugh2005
      !!{RST
-     Constructors for the ``mergerMassMovementsBaugh2005`` merger mass movements class.
+     Constructors for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements class.
      !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerMassMovementsBaugh2005`` merger mass movements class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
     !!{RST
-    Internal constructor for the ``mergerMassMovementsBaugh2005`` merger mass movements.
+    Internal constructor for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements.
     !!}
     implicit none
     type            (mergerMassMovementsBaugh2005    )                :: self
@@ -157,7 +157,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{RST
-    Destructor for the ``mergerMassMovementsBaugh2005`` merger mass movements class.
+    Destructor for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

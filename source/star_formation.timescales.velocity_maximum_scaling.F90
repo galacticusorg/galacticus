@@ -62,7 +62,7 @@
 
   interface starFormationTimescaleVelocityMaxScaling
      !!{RST
-     Constructors for the ``starFormationTimescaleVelocityMaxScaling`` timescale for star formation class.
+     Constructors for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
      !!}
      module procedure velocityMaxScalingConstructorParameters
      module procedure velocityMaxScalingConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function velocityMaxScalingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleVelocityMaxScaling`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleVelocityMaxScaling`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleVelocityMaxScaling)                        :: self
@@ -167,7 +167,7 @@ contains
 
   subroutine velocityMaxScalingDestructor(self)
     !!{RST
-    Destructor for the ``starFormationTimescaleVelocityMaxScaling`` timescale for star formation class.
+    Destructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

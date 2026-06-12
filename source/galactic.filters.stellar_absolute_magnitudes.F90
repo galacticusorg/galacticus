@@ -40,7 +40,7 @@ Implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute ma
 
   interface galacticFilterStellarAbsoluteMagnitudes
      !!{RST
-     Constructors for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStellarAbsoluteMagnitudes` galactic filter class.
      !!}
      module procedure stellarAbsoluteMagnitudesConstructorParameters
      module procedure stellarAbsoluteMagnitudesConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function stellarAbsoluteMagnitudesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStellarAbsoluteMagnitudes` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
@@ -85,7 +85,7 @@ contains
 
   function stellarAbsoluteMagnitudesConstructorInternal(absoluteMagnitudeThreshold) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterStellarAbsoluteMagnitudes`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterStellarAbsoluteMagnitudes` galactic filter class.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities

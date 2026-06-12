@@ -110,7 +110,7 @@
   
   interface massDistributionZhao1996
      !!{RST
-     Constructors for the ``massDistributionZhao1996`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionZhao1996` mass distribution class.
      !!}
      module procedure massDistributionZhao1996ConstructorParameters
      module procedure massDistributionZhao1996ConstructorInternal
@@ -126,7 +126,7 @@ contains
 
   function massDistributionZhao1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionZhao1996`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionZhao1996` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

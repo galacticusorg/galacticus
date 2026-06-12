@@ -35,7 +35,7 @@ module Models_Likelihoods
    <name>posteriorSampleLikelihood</name>
    <descriptiveName>Posterior Sampling Likelihoods</descriptiveName>
    <description>
-   Class providing likelihood functions for Bayesian posterior sampling simulations---the log-probability :math:`\ln\mathcal{L}(\boldsymbol{\theta})` that the observational data would be observed given model parameters :math:`\boldsymbol{\theta}`. Implementations compare Galacticus model predictions with observational constraints (e.g.\ stellar mass functions, sizes, colors) and return the log-likelihood and its variance. The likelihood is combined with the prior from ``modelParameterClass`` objects to drive the posterior sampler toward the best-fit parameter region.
+   Class providing likelihood functions for Bayesian posterior sampling simulations---the log-probability :math:`\ln\mathcal{L}(\boldsymbol{\theta})` that the observational data would be observed given model parameters :math:`\boldsymbol{\theta}`. Implementations compare Galacticus model predictions with observational constraints (e.g.\ stellar mass functions, sizes, colors) and return the log-likelihood and its variance. The likelihood is combined with the prior from :galacticus-class:`modelParameterClass` objects to drive the posterior sampler toward the best-fit parameter region.
    </description>
    <method name="evaluate" >
     <description>

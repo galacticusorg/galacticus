@@ -75,7 +75,7 @@
 
   interface outputAnalysisSubhaloRadialDistribution
      !!{RST
-     Constructors for the ``outputAnalysisSubhaloRadialDistribution`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class.
      !!}
      module procedure subhaloRadialDistributionConstructorParameters
      module procedure subhaloRadialDistributionConstructorFile
@@ -86,7 +86,7 @@ contains
 
   function subhaloRadialDistributionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisSubhaloRadialDistribution`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
@@ -211,7 +211,7 @@ contains
   
   function subhaloRadialDistributionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,redshift) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSubhaloRadialDistribution`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -276,7 +276,7 @@ contains
 
   function subhaloRadialDistributionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massThreshold,thresholdIsRatio,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSubhaloRadialDistribution`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated, galacticFilterHaloNotIsolated     , &
           &                                                 galacticFilterHighPass
@@ -529,7 +529,7 @@ contains
 
   subroutine subhaloRadialDistributionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisSubhaloRadialDistribution`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSubhaloRadialDistribution), intent(inout) :: self

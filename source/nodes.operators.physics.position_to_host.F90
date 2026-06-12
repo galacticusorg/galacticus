@@ -41,7 +41,7 @@
   
   interface nodeOperatorPositionToHost
      !!{RST
-     Constructors for the ``nodeOperatorPositionToHost`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPositionToHost` node operator class.
      !!}
      module procedure positionToHostConstructorParameters
   end interface nodeOperatorPositionToHost
@@ -50,7 +50,7 @@ contains
   
   function positionToHostConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionToHost`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionToHost` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   subroutine positionToHostDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorPositionToHost`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorPositionToHost` node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none

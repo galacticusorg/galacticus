@@ -52,7 +52,7 @@
 
   interface starFormationRateDisksIntgrtdSurfaceDensity
      !!{RST
-     Constructors for the ``starFormationRateDisksIntgrtdSurfaceDensity`` star formation rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateDisksIntgrtdSurfaceDensity` star formation rate in disks class.
      !!}
      module procedure intgrtdSurfaceDensityConstructorParameters
      module procedure intgrtdSurfaceDensityConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function intgrtdSurfaceDensityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateDisksIntgrtdSurfaceDensity`` star formation rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateDisksIntgrtdSurfaceDensity` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function intgrtdSurfaceDensityConstructorInternal(tolerance,starFormationRateSurfaceDensityDisks_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateDisksIntgrtdSurfaceDensity`` star formation rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateDisksIntgrtdSurfaceDensity` star formation rate in disks class.
     !!}
     use :: Numerical_Integration, only : GSL_Integ_Gauss15
     implicit none
@@ -117,7 +117,7 @@ contains
 
   subroutine intgrtdSurfaceDensityDestructor(self)
     !!{RST
-    Destructor for the ``starFormationRateDisksIntgrtdSurfaceDensity`` star formation rate in disks class.
+    Destructor for the :galacticus-class:`starFormationRateDisksIntgrtdSurfaceDensity` star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksIntgrtdSurfaceDensity), intent(inout) :: self

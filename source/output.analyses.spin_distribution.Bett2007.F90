@@ -39,7 +39,7 @@ Implements a spin parameter distribution output analysis class.
 
   interface outputAnalysisSpinDistributionBett2007
      !!{RST
-     Constructors for the ``outputAnalysisSpinDistributionBett2007`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class.
      !!}
      module procedure spinDistributionBett2007ConstructorParameters
      module procedure spinDistributionBett2007ConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function spinDistributionBett2007ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSpinDistributionBett2007`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class which takes a parameter set as input.
     !!}
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters, only : inputParameter                                          , inputParameters
@@ -115,7 +115,7 @@ contains
 
   function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisSpinDistributionBett2007`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass

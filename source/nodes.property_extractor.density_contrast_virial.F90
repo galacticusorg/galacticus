@@ -47,7 +47,7 @@ Implements a virial density contrast output analysis property extractor class.
 
   interface nodePropertyExtractorDensityContrastVirial
      !!{RST
-     Constructors for the ``nodePropertyExtractorDensityContrastVirial`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
      !!}
      module procedure densityContrastVirialConstructorParameters
      module procedure densityContrastVirialConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function densityContrastVirialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDensityContrastVirial`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function densityContrastVirialConstructorInternal(virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorDensityContrastVirial`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDensityContrastVirial)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine densityContrastVirialDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorDensityContrastVirial`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrastVirial), intent(inout) :: self

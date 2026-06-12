@@ -44,7 +44,7 @@ Implements a cosmic time output analysis property extractor class.
 
   interface nodePropertyExtractorTimeFirstInfall
      !!{RST
-     Constructors for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTimeFirstInfall` property extractor class.
      !!}
      module procedure timeFirstInfallConstructorParameters
      module procedure timeFirstInfallConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function timeFirstInfallConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTimeFirstInfall` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function timeFirstInfallConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorTimeFirstInfall`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTimeFirstInfall` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimeFirstInfall) :: self

@@ -250,7 +250,7 @@ contains
 
   subroutine convexHullAssign(to,from)
     !!{RST
-    Assignment operator for ``convexHull`` objects.
+    Assignment operator for :galacticus-class:`convexHull` objects.
     !!}
     implicit none
     class(convexHull), intent(  out) :: to

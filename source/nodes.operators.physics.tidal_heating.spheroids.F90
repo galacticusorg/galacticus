@@ -45,7 +45,7 @@
 
   interface nodeOperatorTidalHeatingSpheroids
      !!{RST
-     Constructors for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTidalHeatingSpheroids` node operator class.
      !!}
      module procedure tidalHeatingSpheroidsConstructorParameters
      module procedure tidalHeatingSpheroidsConstructorInternal
@@ -55,7 +55,7 @@ contains
   
   function tidalHeatingSpheroidsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTidalHeatingSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function tidalHeatingSpheroidsConstructorInternal(darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalHeatingSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalHeatingSpheroids)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine tidalHeatingSpheroidsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorTidalHeatingSpheroids`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorTidalHeatingSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalHeatingSpheroids), intent(inout) :: self

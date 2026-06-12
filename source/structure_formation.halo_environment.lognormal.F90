@@ -62,7 +62,7 @@ Implements a log-normal halo environment.
 
   interface haloEnvironmentLogNormal
      !!{RST
-     Constructors for the ``haloEnvironmentLogNormal`` halo environment class.
+     Constructors for the :galacticus-class:`haloEnvironmentLogNormal` halo environment class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloEnvironmentLogNormal`` halo environment class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloEnvironmentLogNormal` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !!{RST
-    Internal constructor for the ``haloEnvironmentLogNormal`` halo environment class.
+    Internal constructor for the :galacticus-class:`haloEnvironmentLogNormal` halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -159,7 +159,7 @@ contains
 
   subroutine logNormalDestructor(self)
     !!{RST
-    Destructor for the ``haloEnvironmentLogNormal`` halo environment class.
+    Destructor for the :galacticus-class:`haloEnvironmentLogNormal` halo environment class.
     !!}
     implicit none
     type(haloEnvironmentLogNormal), intent(inout) :: self

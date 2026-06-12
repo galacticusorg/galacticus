@@ -43,7 +43,7 @@
   !![
   <mergerTreeEvolver name="mergerTreeEvolverThreaded" docformat="rst">
    <description>
-   An OpenMP threaded merger tree evolver. This class extends the ``mergerTreeEvolverStandard`` merger tree evolver class. To evolve the tree, a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
+   An OpenMP threaded merger tree evolver. This class extends the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class. To evolve the tree, a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
    </description>
   </mergerTreeEvolver>
   !!]
@@ -64,7 +64,7 @@
 
   interface mergerTreeEvolverThreaded
      !!{RST
-     Constructors for the ``mergerTreeEvolverThreaded`` merger tree evolver.
+     Constructors for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function threadedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolverThreaded`` merger tree evolver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -190,7 +190,7 @@ contains
 
   function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolverThreaded`` merger tree evolver class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class.
     !!}
     implicit none
     type            (mergerTreeEvolverThreaded       )                        :: self
@@ -223,7 +223,7 @@ contains
 
   subroutine threadedDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolverThreaded`` merger tree evolver class.
+    Destructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverThreaded), intent(inout) :: self

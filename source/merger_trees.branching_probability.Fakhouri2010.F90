@@ -64,7 +64,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
 
   interface mergerTreeBranchingProbabilityFakhouri2010
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityFakhouri2010` merger tree branching probability class.
      !!}
      module procedure fakhouri2010ConstructorParameters
      module procedure fakhouri2010ConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function fakhouri2010ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityFakhouri2010` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                :: self
@@ -207,7 +207,7 @@ contains
 
   function fakhouri2010ConstructorInternal(alpha,beta,gamma,eta,A,xiBar,B,mu,nu,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBranchingProbabilityFakhouri2010`` merger tree branching probability class.
+    Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityFakhouri2010` merger tree branching probability class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityFakhouri2010)                        :: self

@@ -43,7 +43,7 @@ Implements a merger tree build controller class which provides no control.
 
   interface mergerTreeBuildControllerUncontrolled
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerUncontrolled`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerUncontrolled` merger tree build controller class.
      !!}
      module procedure uncontrolledConstructorParameters
      module procedure uncontrolledConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function uncontrolledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerUncontrolled`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerUncontrolled` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function uncontrolledConstructorInternal(mergerTreeBranchingProbability_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerUncontrolled`` merger tree build controller class .
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerUncontrolled` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerUncontrolled)                     :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine uncontrolledDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerUncontrolled`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerUncontrolled` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerUncontrolled), intent(inout) :: self

@@ -65,7 +65,7 @@
 
   interface mergerTreeBranchingProbabilityModifierZhang2014
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityModifierZhang2014`` merger tree branching probability rate class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierZhang2014` merger tree branching probability rate class.
      !!}
      module procedure zhang2014ConstructorParameters
      module procedure zhang2014ConstructorInternal
@@ -152,7 +152,7 @@ contains
 
   subroutine zhang2014Destructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBranchingProbabilityModifierZhang2014`` class.
+    Destructor for the :galacticus-class:`mergerTreeBranchingProbabilityModifierZhang2014` class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierZhang2014), intent(inout) :: self

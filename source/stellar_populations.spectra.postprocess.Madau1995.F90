@@ -39,7 +39,7 @@
 
   interface stellarPopulationSpectraPostprocessorMadau1995
      !!{RST
-     Constructors for the ``stellarPopulationSpectraPostprocessorMadau1995`` stellar population spectra postprocessor class.
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorMadau1995` stellar population spectra postprocessor class.
      !!}
      module procedure madau1995ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMadau1995
@@ -48,7 +48,7 @@ contains
 
   function madau1995ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorMadau1995`` stellar population spectra postprocessor class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorMadau1995` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

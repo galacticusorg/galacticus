@@ -24,7 +24,7 @@ Implements an inverting filter.
   !![
   <galacticFilter name="galacticFilterNot" docformat="rst">
    <description>
-   Implements logical negation of a wrapped ``galacticFilterClass``, passing nodes that the wrapped filter would reject and rejecting those it would pass, enabling complement-based selection criteria without defining explicit inverse filters.
+   Implements logical negation of a wrapped :galacticus-class:`galacticFilterClass`, passing nodes that the wrapped filter would reject and rejecting those it would pass, enabling complement-based selection criteria without defining explicit inverse filters.
    </description>
   </galacticFilter>
   !!]
@@ -41,7 +41,7 @@ Implements an inverting filter.
 
   interface galacticFilterNot
      !!{RST
-     Constructors for the ``galacticFilterNot`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterNot` galactic filter class.
      !!}
      module procedure notConstructorParameters
      module procedure notConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function notConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterNot`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterNot` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function notConstructorInternal(galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterNot`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterNot` galactic filter class.
     !!}
     implicit none
     type (galacticFilterNot  )                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine notDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterNot`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterNot` galactic filter class.
     !!}
     implicit none
     type(galacticFilterNot), intent(inout) :: self

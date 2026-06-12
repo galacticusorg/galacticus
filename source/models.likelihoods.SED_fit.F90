@@ -94,7 +94,7 @@
 
   interface posteriorSampleLikelihoodSEDFit
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodSEDFit`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
      !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function sedFitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodSEDFit`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -199,7 +199,7 @@ contains
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_,stellarPopulationBroadBandLuminosities_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodSEDFit`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
     !!}
     use :: ISO_Varying_String , only : var_str         , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
@@ -253,7 +253,7 @@ contains
 
   subroutine sedFitDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodSEDFit`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self

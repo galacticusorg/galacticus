@@ -36,7 +36,7 @@
 
   interface taskLocalGroupDatabase
      !!{RST
-     Constructors for the ``taskLocalGroupDatabase`` task.
+     Constructors for the :galacticus-class:`taskLocalGroupDatabase` task.
      !!}
      module procedure localGroupDatabaseParameters
   end interface taskLocalGroupDatabase
@@ -45,7 +45,7 @@ contains
 
   function localGroupDatabaseParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskLocalGroupDatabase`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskLocalGroupDatabase` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

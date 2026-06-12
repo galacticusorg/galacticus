@@ -29,7 +29,7 @@ Implements a sequence output analysis distribution operator class.
   !![
   <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence" docformat="rst">
    <description>
-   An output analysis distribution operator class that applies a linked list of child ``outputAnalysisDistributionOperatorClass`` objects sequentially, enabling composite transformations such as convolution with a measurement error kernel followed by a survey selection function.
+   An output analysis distribution operator class that applies a linked list of child :galacticus-class:`outputAnalysisDistributionOperatorClass` objects sequentially, enabling composite transformations such as convolution with a measurement error kernel followed by a survey selection function.
    </description>
    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
   </outputAnalysisDistributionOperator>
@@ -54,7 +54,7 @@ Implements a sequence output analysis distribution operator class.
 
   interface outputAnalysisDistributionOperatorSequence
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorSequence`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorSequence` output analysis distribution operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorSequence`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorSequence` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

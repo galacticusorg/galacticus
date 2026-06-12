@@ -54,7 +54,7 @@ Implements an N-body data operator which filters out particles based on a proper
 
   interface nbodyOperatorFilterProperties
      !!{RST
-     Constructors for the ``nbodyOperatorFilterProperties`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorFilterProperties` N-body operator class.
      !!}
      module procedure filterPropertiesConstructorParameters
      module procedure filterPropertiesConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function filterPropertiesConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorFilterProperties`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorFilterProperties` N-body operator class which takes a parameter set as input.
     !!}
     use :: Error                , only : Error_Report
     use :: Input_Parameters     , only : inputParameters
@@ -150,7 +150,7 @@ contains
 
   function filterPropertiesConstructorInternal(propertyRanges) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorFilterProperties`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorFilterProperties` N-body operator class.
     !!}
     use :: Error                , only : Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal

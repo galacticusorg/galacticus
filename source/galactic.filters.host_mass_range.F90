@@ -41,7 +41,7 @@ Implements a galactic filter which passes nodes with host halo basic mass within
 
   interface galacticFilterHostMassRange
      !!{RST
-     Constructors for the ``galacticFilterHostMassRange`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class.
      !!}
      module procedure hostMassRangeConstructorParameters
      module procedure hostMassRangeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function hostMassRangeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHostMassRange`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function hostMassRangeConstructorInternal(massMinimum,massMaximum,useFinalHost) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterHostMassRange`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHostMassRange)                :: self

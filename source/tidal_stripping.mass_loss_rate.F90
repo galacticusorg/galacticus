@@ -33,7 +33,7 @@ module Tidal_Stripping_Mass_Loss_Rate
    <name>tidalStripping</name>
    <descriptiveName>Tidal Stripping Mass Loss Rates</descriptiveName>
    <description>
-   Class providing models of tidal stripping of galactic components (disc gas and stars)---the removal of cold interstellar material from a satellite galaxy's disk as the galaxy orbits within its host halo's tidal field. Unlike dark matter tidal stripping (handled by ``satelliteTidalStrippingClass``), this class operates on individual galaxy components and returns the mass loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for the given component, based on whether the component extends beyond the satellite's tidal radius.
+   Class providing models of tidal stripping of galactic components (disc gas and stars)---the removal of cold interstellar material from a satellite galaxy's disk as the galaxy orbits within its host halo's tidal field. Unlike dark matter tidal stripping (handled by :galacticus-class:`satelliteTidalStrippingClass`), this class operates on individual galaxy components and returns the mass loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for the given component, based on whether the component extends beyond the satellite's tidal radius.
    </description>
    <default>simple</default>
    <method name="rateMassLoss" >

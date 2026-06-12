@@ -49,7 +49,7 @@
 
   interface cosmologicalMassVarianceScaled
      !!{RST
-     Constructors for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
+     Constructors for the :galacticus-class:`cosmologicalMassVarianceScaled` cosmological mass variance class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function scaledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`cosmologicalMassVarianceScaled` cosmological mass variance class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -76,7 +76,7 @@ contains
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The multiplicative factor applied to the rms mass variance :math:`\sigma(M,t)` returned by the wrapped ``cosmologicalMassVarianceClass`` object, allowing renormalization of the power spectrum amplitude.
+      The multiplicative factor applied to the rms mass variance :math:`\sigma(M,t)` returned by the wrapped :galacticus-class:`cosmologicalMassVarianceClass` object, allowing renormalization of the power spectrum amplitude.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -90,7 +90,7 @@ contains
 
   function scaledConstructorInternal(scale,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
+    Internal constructor for the :galacticus-class:`cosmologicalMassVarianceScaled` cosmological mass variance class.
     !!}
     implicit none
     type            (cosmologicalMassVarianceScaled)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine scaledDestructor(self)
     !!{RST
-    Destructor for the ``cosmologicalMassVarianceScaled`` cosmological mass variance class.
+    Destructor for the :galacticus-class:`cosmologicalMassVarianceScaled` cosmological mass variance class.
     !!}
     implicit none
     type   (cosmologicalMassVarianceScaled), intent(inout) :: self

@@ -38,7 +38,7 @@
 
   interface kinematicsDistributionCuspNFW
      !!{RST
-     Constructors for the ``kinematicsDistributionCuspNFW`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
      !!}
      module procedure cuspNFWKinematicsConstructorParameters
      module procedure cuspNFWKinematicsConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function cuspNFWKinematicsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionCuspNFW`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function cuspNFWKinematicsConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionCuspNFW`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCuspNFW)                          :: self
@@ -98,7 +98,7 @@ contains
   
   function cuspNFWKinematicsConstructorDecorated(kinematicsDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionCuspNFW`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCuspNFW)                :: self

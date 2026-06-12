@@ -63,7 +63,7 @@ contains
 
   function readHDF5ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesReadHDF5`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesReadHDF5` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function readHDF5ConstructorInternal(fileName,massIntervalFractional) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesReadHDF5`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesReadHDF5` merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesReadHDF5)                :: self

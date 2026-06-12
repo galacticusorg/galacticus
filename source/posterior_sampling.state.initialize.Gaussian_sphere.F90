@@ -45,7 +45,7 @@
 
   interface posteriorSampleStateInitializeGaussianSphere
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializeGaussianSphere`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
      !!}
      module procedure gaussianSphereConstructorParameters
      module procedure gaussianSphereConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function gaussianSphereConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeGaussianSphere`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: String_Handling , only : String_Count_Words
@@ -117,7 +117,7 @@ contains
 
   function gaussianSphereConstructorInternal(radiusSphere,radiusIsRelative,randomNumberGenerator_,usePriorMedian,stateInitial) result(self)
     !!{RST
-    Internal constructor for the ``posteriorSampleStateInitializeGaussianSphere`` posterior sampling state initialization class.
+    Internal constructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     implicit none
     type            (posteriorSampleStateInitializeGaussianSphere)                                        :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine gaussianSphereDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleStateInitializeGaussianSphere`` posterior sampling state initialization class.
+    Destructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeGaussianSphere), intent(inout) :: self

@@ -44,7 +44,7 @@
 
   interface distributionFunction1DNonCentralChiDegree3
      !!{RST
-     Constructors for the ``distributionFunction1DNonCentralChiDegree3`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class.
      !!}
      module procedure nonCentralChiSquaredDegree3ConstructorParameters
      module procedure nonCentralChiSquaredDegree3ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function nonCentralChiSquaredDegree3ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNonCentralChiDegree3`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function nonCentralChiSquaredDegree3ConstructorInternal(lambda,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNonCentralChiDegree3`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class.
     !!}
     implicit none
     type            (distributionFunction1DNonCentralChiDegree3)                                  :: self

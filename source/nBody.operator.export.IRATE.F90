@@ -48,7 +48,7 @@ Implements an N-body data operator which exports N-body data to IRATE format.
 
   interface nbodyOperatorExportIRATE
      !!{RST
-     Constructors for the ``nbodyOperatorExportIRATE`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
      !!}
      module procedure exportIRATEConstructorParameters
      module procedure exportIRATEConstructorInternal
@@ -58,7 +58,7 @@ contains
   
   function exportIRATEConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorExportIRATE`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function exportIRATEConstructorInternal(fileName,snapshot,redshift,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorExportIRATE`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorExportIRATE)                        :: self
@@ -124,7 +124,7 @@ contains
 
   subroutine exportIRATEDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorExportIRATE`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorExportIRATE), intent(inout) :: self

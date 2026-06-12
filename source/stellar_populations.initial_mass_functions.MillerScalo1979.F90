@@ -48,7 +48,7 @@
 
   interface initialMassFunctionMillerScalo1979
      !!{RST
-     Constructors for the ``initialMassFunctionMillerScalo1979`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function class.
      !!}
      module procedure millerScalo1979ConstructorParameters
      module procedure millerScalo1979ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function millerScalo1979ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionMillerScalo1979`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function millerScalo1979ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionMillerScalo1979`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionMillerScalo1979):: self

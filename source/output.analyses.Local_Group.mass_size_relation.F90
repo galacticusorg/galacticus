@@ -51,7 +51,7 @@
 
   interface outputAnalysisLocalGroupMassSizeRelation
      !!{RST
-     Constructors for the ``outputAnalysisLocalGroupMassSizeRelation`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLocalGroupMassSizeRelation` output analysis class.
      !!}
      module procedure localGroupMassSizeRelationConstructorParameters
      module procedure localGroupMassSizeRelationConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function localGroupMassSizeRelationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupMassSizeRelation`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupMassSizeRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -175,7 +175,7 @@ contains
 
   function localGroupMassSizeRelationConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,sizeSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupMassSizeRelation`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupMassSizeRelation` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                          , galacticFilterAll                         , galacticFilterHaloNotIsolated         , galacticFilterHostMassRange                    , &
           &                                                 galacticFilterSurveyGeometry                        , galacticFilterHighPass                    , enumerationPositionTypeType
@@ -538,7 +538,7 @@ contains
 
   subroutine localGroupMassSizeRelationDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLocalGroupMassSizeRelation`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLocalGroupMassSizeRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupMassSizeRelation), intent(inout) :: self

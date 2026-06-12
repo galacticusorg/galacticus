@@ -39,7 +39,7 @@
 
   interface stellarSpectraDustAttenuationPrevotBouchet
      !!{RST
-     Constructors for the ``stellarSpectraDustAttenuationPrevotBouchet`` stellar spectra dust attenuation class.
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class.
      !!}
      module procedure prevotBouchetConstructorParameters
      module procedure prevotBouchetConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function prevotBouchetConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationPrevotBouchet`` stellar spectra dust attenuation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -77,7 +77,7 @@ contains
 
   function prevotBouchetConstructorInternal(Rv) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationPrevotBouchet`` stellar spectra dust attenuation class. Data read directly from Table 3 of :cite:t:`bouchet_visible_1985`.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class. Data read directly from Table 3 of :cite:t:`bouchet_visible_1985`.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate

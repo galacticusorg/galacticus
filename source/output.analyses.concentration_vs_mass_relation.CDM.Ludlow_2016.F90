@@ -46,7 +46,7 @@
 
   interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
      !!{RST
-     Constructors for the ``outputAnalysisConcentrationVsHaloMassCDMLudlow2016`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class.
      !!}
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorParameters
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisConcentrationVsHaloMassCDMLudlow2016`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
@@ -100,7 +100,7 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisConcentrationVsHaloMassCDMLudlow2016`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass
@@ -250,7 +250,7 @@ contains
 
   subroutine concentrationVsHaloMassCDMLudlow2016Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisConcentrationVsHaloMassCDMLudlow2016`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class.
     !!}
     implicit none
     type(outputAnalysisConcentrationVsHaloMassCDMLudlow2016), intent(inout) :: self

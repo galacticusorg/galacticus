@@ -47,7 +47,7 @@ Implements a property extractor class for bar instability timescales.
 
   interface nodePropertyExtractorTimescaleBarInstability
      !!{RST
-     Constructors for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTimescaleBarInstability` property extractor class.
      !!}
      module procedure timescaleBarInstabilityConstructorParameters
      module procedure timescaleBarInstabilityConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function timescaleBarInstabilityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTimescaleBarInstability` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function timescaleBarInstabilityConstructorInternal(galacticDynamicsBarInstability_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTimescaleBarInstability` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTimescaleBarInstability)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine timescaleBarInstabilityDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorTimescaleBarInstability`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorTimescaleBarInstability` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTimescaleBarInstability), intent(inout) :: self

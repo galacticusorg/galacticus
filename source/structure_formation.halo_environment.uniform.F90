@@ -49,7 +49,7 @@ Implements a uniform halo environment.
 
   interface haloEnvironmentUniform
      !!{RST
-     Constructors for the ``haloEnvironmentUniform`` halo environment class.
+     Constructors for the :galacticus-class:`haloEnvironmentUniform` halo environment class.
      !!}
      module procedure uniformConstructorParameters
   end interface haloEnvironmentUniform
@@ -58,7 +58,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloEnvironmentUniform`` halo environment class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloEnvironmentUniform` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

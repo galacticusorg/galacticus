@@ -53,7 +53,7 @@ Implements an N-body data importer for IRATE files.
 
   interface nbodyImporterIRATE
      !!{RST
-     Constructors for the ``nbodyImporterIRATE`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
      !!}
      module procedure irateConstructorParameters
      module procedure irateConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function irateConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterIRATE`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -126,7 +126,7 @@ contains
 
   function irateConstructorInternal(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterIRATE`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
     !!}
     implicit none
     type   (nbodyImporterIRATE      )                              :: self
@@ -145,7 +145,7 @@ contains
 
   subroutine irateDestructor(self)
     !!{RST
-    Destructor for the ``nbodyImporterIRATE`` N-body importer class.
+    Destructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterIRATE), intent(inout) :: self

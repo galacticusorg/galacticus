@@ -39,7 +39,7 @@
 
   interface stellarSpectraDustAttenuationCalzetti2000
      !!{RST
-     Constructors for the ``stellarSpectraDustAttenuationCalzetti2000`` stellar spectra dust attenuation class.
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationCalzetti2000` stellar spectra dust attenuation class.
      !!}
      module procedure calzetti2000ConstructorParameters
   end interface stellarSpectraDustAttenuationCalzetti2000
@@ -48,7 +48,7 @@ contains
 
   function calzetti2000ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationCalzetti2000`` stellar spectra dust attenuation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationCalzetti2000` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

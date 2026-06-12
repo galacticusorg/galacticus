@@ -84,7 +84,7 @@
 
   interface posteriorSampleSimulationTemperedDffrntlEvltn
      !!{RST
-     Constructors for the ``posteriorSampleSimulationTemperedDffrntlEvltn`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationTemperedDffrntlEvltn` posterior sampling simulation class.
      !!}
      module procedure temperedDifferentialEvolutionConstructorParameters
      module procedure temperedDifferentialEvolutionConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationTemperedDffrntlEvltn`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationTemperedDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

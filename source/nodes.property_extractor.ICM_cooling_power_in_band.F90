@@ -28,7 +28,7 @@ Implements an intracluster medium cooling power in band property extractor class
   !![
   <nodePropertyExtractor name="nodePropertyExtractorICMCoolingPowerInBand" docformat="rst">
    <description>
-   A property extractor that returns the fraction of the hot halo (ICM) radiative cooling power emitted within a specified X-ray photon energy band---the ratio of in-band to bolometric cooling luminosity, integrated over the virial radius. The ``energyLow`` and ``energyHigh`` parameters specify the energy band boundaries in keV (e.g.\ 0.5--2.0 keV for soft X-ray). The ``label`` suffix distinguishes multiple instances of this extractor. Requires a ``coolingFunctionClass`` object to evaluate the cooling emissivity at each radius as a function of density, temperature, and metallicity.
+   A property extractor that returns the fraction of the hot halo (ICM) radiative cooling power emitted within a specified X-ray photon energy band---the ratio of in-band to bolometric cooling luminosity, integrated over the virial radius. The ``energyLow`` and ``energyHigh`` parameters specify the energy band boundaries in keV (e.g.\ 0.5--2.0 keV for soft X-ray). The ``label`` suffix distinguishes multiple instances of this extractor. Requires a :galacticus-class:`coolingFunctionClass` object to evaluate the cooling emissivity at each radius as a function of density, temperature, and metallicity.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -53,7 +53,7 @@ Implements an intracluster medium cooling power in band property extractor class
 
   interface nodePropertyExtractorICMCoolingPowerInBand
      !!{RST
-     Constructors for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMCoolingPowerInBand` property extractor class.
      !!}
      module procedure icmCoolingPowerInBandConstructorParameters
      module procedure icmCoolingPowerInBandConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function icmCoolingPowerInBandConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMCoolingPowerInBand` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -114,7 +114,7 @@ contains
 
   function icmCoolingPowerInBandConstructorInternal(energyLow,energyHigh,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMCoolingPowerInBand` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorICMCoolingPowerInBand)                        :: self
@@ -132,7 +132,7 @@ contains
 
   subroutine icmCoolingPowerInBandDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorICMCoolingPowerInBand`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMCoolingPowerInBand` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMCoolingPowerInBand), intent(inout) :: self

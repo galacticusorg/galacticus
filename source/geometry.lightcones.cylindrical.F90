@@ -88,7 +88,7 @@
 
   interface geometryLightconeCylindrical
      !!{RST
-     Constructors for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
+     Constructors for the :galacticus-class:`geometryLightconeCylindrical` lightcone geometry distribution class.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`geometryLightconeCylindrical` lightcone geometry distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -176,7 +176,7 @@ contains
 
   function cylindricalConstructorInternal(radiusCylinderComoving,radiusBufferComoving,massHaloLens,redshiftLens,cosmologyFunctions_,powerSpectrum_,linearGrowth_,outputTimes_,darkMatterHaloBias_,darkMatterHaloScale_,correlationFunctionTwoPoint_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
+    Internal constructor for the :galacticus-class:`geometryLightconeCylindrical` lightcone geometry distribution class.
     !!}
     use :: File_Utilities          , only : File_Exists, File_Lock          , File_Unlock  , lockDescriptor
     use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
@@ -461,7 +461,7 @@ contains
 
   subroutine cylindricalDestructor(self)
     !!{RST
-    Destructor for the ``geometryLightconeCylindrical`` lightcone geometry distribution class.
+    Destructor for the :galacticus-class:`geometryLightconeCylindrical` lightcone geometry distribution class.
     !!}
     implicit none
     type(geometryLightconeCylindrical), intent(inout) :: self

@@ -48,7 +48,7 @@
 
   interface massDistributionCorrelationFunction
      !!{RST
-     Constructors for the ``massDistributionCorrelationFunction`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class.
      !!}
      module procedure massDistributionCorrelationFunctionConstructorParameters
      module procedure massDistributionCorrelationFunctionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function massDistributionCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionCorrelationFunction`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -150,7 +150,7 @@ contains
 
   subroutine correlationFunctionDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionCorrelationFunction`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class.
     !!}
     implicit none
     type(massDistributionCorrelationFunction), intent(inout) :: self

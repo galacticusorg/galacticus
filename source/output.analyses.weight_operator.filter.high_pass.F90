@@ -40,7 +40,7 @@ Implements a high-pass filter analysis weight operator class.
 
   interface outputAnalysisWeightOperatorFilterHighPass
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorFilterHighPass` output analysis weight operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorFilterHighPass` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisWeightOperatorFilterHighPass`` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorFilterHighPass` output analysis weight operator class.
     !!}
     implicit none
     type            (outputAnalysisWeightOperatorFilterHighPass)                          :: self

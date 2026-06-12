@@ -30,7 +30,7 @@
 
       \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
 
-   has been accumulated by the ``nodeOperatorImpulsiveOutflowEnergy`` node operator object---radially-dependent factors are then applied in the ``massDistributionHeatingImpulsiveOutflow`` mass distribution object returned from our factory.
+   has been accumulated by the :galacticus-class:`nodeOperatorImpulsiveOutflowEnergy` node operator object---radially-dependent factors are then applied in the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution object returned from our factory.
    </description>
   </darkMatterProfileHeating>
   !!]
@@ -47,7 +47,7 @@
 
   interface darkMatterProfileHeatingImpulsiveOutflow
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingImpulsiveOutflow` dark matter profile heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingImpulsiveOutflow` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function impulsiveOutflowConstructorInternal(impulsiveEnergyFactor) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileHeatingImpulsiveOutflow`` dark matter profile heating class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingImpulsiveOutflow` dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingImpulsiveOutflow)                :: self

@@ -57,7 +57,7 @@
 
   interface taskExcursionSets
      !!{RST
-     Constructors for the ``taskExcursionSets`` task.
+     Constructors for the :galacticus-class:`taskExcursionSets` task.
      !!}
      module procedure excursionSetsConstructorParameters
      module procedure excursionSetsConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function excursionSetsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskExcursionSets`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskExcursionSets` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -217,7 +217,7 @@ contains
        &                                    powerSpectrum_              &
        &                                   ) result(self)
     !!{RST
-    Constructor for the ``taskExcursionSets`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskExcursionSets` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskExcursionSets             )                        :: self
@@ -243,7 +243,7 @@ contains
 
   subroutine excursionSetsDestructor(self)
     !!{RST
-    Destructor for the ``taskExcursionSets`` task class.
+    Destructor for the :galacticus-class:`taskExcursionSets` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

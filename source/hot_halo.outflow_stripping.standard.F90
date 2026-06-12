@@ -45,7 +45,7 @@ An implementation of the hot halo outflow stripping class using a simple estimat
 
   interface hotHaloOutflowStrippingStandard
      !!{RST
-     Constructors for the ``hotHaloOutflowStrippingStandard`` hot halo outflow stripping class.
+     Constructors for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function standardConstructorInternal(efficiency,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloOutflowStrippingStandard`` hot halo outflow stripping class.
+    Internal constructor for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
     !!}
     implicit none
     type            (hotHaloOutflowStrippingStandard)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloOutflowStrippingStandard`` hot halo outflow stripping class.
+    Destructor for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
     !!}
     implicit none
     type(hotHaloOutflowStrippingStandard), intent(inout) :: self

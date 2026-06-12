@@ -51,7 +51,7 @@ Implements satellite orbital extrema property extractor class.
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
      !!{RST
-     Constructors for the ``nodePropertyExtractorSatelliteOrbitalExtrema`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function satelliteOrbitalExtremaConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSatelliteOrbitalExtrema`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSatelliteOrbitalExtrema`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -125,7 +125,7 @@ contains
 
   subroutine satelliteOrbitalExtremaDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorSatelliteOrbitalExtrema`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self

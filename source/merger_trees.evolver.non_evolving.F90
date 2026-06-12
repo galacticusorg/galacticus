@@ -46,7 +46,7 @@
 
   interface mergerTreeEvolverNonEvolving
      !!{RST
-     Constructors for the ``mergerTreeEvolverNonEvolving`` merger tree evolver.
+     Constructors for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver.
      !!}
      module procedure nonEvolvingConstructorParameters
      module procedure nonEvolvingConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function nonEvolvingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolverNonEvolving`` merger tree evolver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function nonEvolvingConstructorInternal(pruneTree,cosmologyFunctions_,mergerTreeInitializor_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolverNonEvolving`` merger tree evolver class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverNonEvolving)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine nonEvolvingDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolverNonEvolving`` merger tree evolver class.
+    Destructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverNonEvolving), intent(inout) :: self

@@ -49,7 +49,7 @@
 
   interface massDistributionHernquist
      !!{RST
-     Constructors for the ``massDistributionHernquist`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionHernquist` mass distribution class.
      !!}
      module procedure hernquistConstructorParameters
      module procedure hernquistConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function hernquistConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHernquist`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHernquist` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

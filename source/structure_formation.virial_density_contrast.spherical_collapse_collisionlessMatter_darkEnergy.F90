@@ -41,7 +41,7 @@
 
   interface virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
      !!{RST
-     Constructors for the ``virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class.
      !!}
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy`` dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
@@ -91,7 +91,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class.
     !!}
     use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none

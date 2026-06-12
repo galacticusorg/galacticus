@@ -40,7 +40,7 @@
 
   interface mergerTreeEvolveTimestepSatelliteDestruction
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepSatelliteDestruction` merger tree evolution timestep class.
      !!}
      module procedure satelliteDestructionConstructorParameters
      module procedure satelliteDestructionConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function satelliteDestructionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatelliteDestruction` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function satelliteDestructionConstructorInternal() result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepSatelliteDestruction`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatelliteDestruction` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none

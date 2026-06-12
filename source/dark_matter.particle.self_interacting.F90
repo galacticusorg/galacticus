@@ -50,7 +50,7 @@ Implements a selfInteracting dark matter particle class.
 
   interface darkMatterParticleSelfInteractingDarkMatter
      !!{RST
-     Constructors for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
+     Constructors for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
      !!}
      module procedure selfInteractingDMConstructorParameters
      module procedure selfInteractingDMConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function selfInteractingDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
+    Internal constructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine selfInteractingDMDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterParticleSelfInteractingDarkMatter`` dark matter particle class.
+    Destructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self

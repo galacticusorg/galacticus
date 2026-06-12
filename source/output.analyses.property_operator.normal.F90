@@ -42,7 +42,7 @@
 
   interface outputAnalysisPropertyOperatorNormal
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorNormal` output analysis property operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorNormal` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,extentLower,extentUpper,rootVariance) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorNormal`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorNormal` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorNormal)                :: self

@@ -39,7 +39,7 @@ Implements a square output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSquare
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorSquare`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSquare` output analysis property operator class.
      !!}
      module procedure squareConstructorParameters
   end interface outputAnalysisPropertyOperatorSquare
@@ -48,7 +48,7 @@ contains
 
   function squareConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorSquare`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSquare` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

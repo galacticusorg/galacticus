@@ -51,7 +51,7 @@
 
   interface massDistributionCloudOverdensities
      !!{RST
-     Constructors for the ``massDistributionCloudOverdensities`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionCloudOverdensities` mass distribution class.
      !!}
      module procedure cloudOverdensitiesConstructorParameters
      module procedure cloudOverdensitiesConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function cloudOverdensitiesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionCloudOverdensities`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionCloudOverdensities` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -143,7 +143,7 @@ contains
   
   function cloudOverdensitiesConstructorInternal(radius,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionCloudOverdensities`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionCloudOverdensities` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Sorting                 , only : sortIndex, sortByIndex
@@ -213,7 +213,7 @@ contains
   
   subroutine cloudOverdensitiesDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionCloudOverdensities`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionCloudOverdensities` mass distribution class.
     !!}
     implicit none
     type(massDistributionCloudOverdensities), intent(inout) :: self

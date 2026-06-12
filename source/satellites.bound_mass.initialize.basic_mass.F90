@@ -39,7 +39,7 @@
 
   interface satelliteMassBoundInitializorBasicMass
      !!{RST
-     Constructors for the ``satelliteMassBoundInitializorBasicMass`` satellite bound mass initializor class.
+     Constructors for the :galacticus-class:`satelliteMassBoundInitializorBasicMass` satellite bound mass initializor class.
      !!}
      module procedure basicMassConstructorParameters
   end interface satelliteMassBoundInitializorBasicMass
@@ -48,7 +48,7 @@ contains
 
   function basicMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteMassBoundInitializorBasicMass`` satellite bound mass initializor class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteMassBoundInitializorBasicMass` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

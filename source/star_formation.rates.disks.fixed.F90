@@ -40,7 +40,7 @@
 
   interface starFormationRateDisksFixed
      !!{RST
-     Constructors for the ``starFormationRateDisksFixed`` star formation rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateDisksFixed` star formation rate in disks class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateDisksFixed`` star formation rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateDisksFixed` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function fixedConstructorInternal(rateStarFormation) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateDisksFixed`` star formation rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateDisksFixed` star formation rate in disks class.
     !!}
     implicit none
     type            (starFormationRateDisksFixed)                :: self

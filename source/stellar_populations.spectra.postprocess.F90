@@ -84,7 +84,7 @@ module Stellar_Population_Spectra_Postprocess
    <default>lookup</default>
    <method name="build" >
     <description>
-    Build and return a ``stellarPopulationSpectraPostprocessorClass`` object corresponding to the given string descriptor, acting as a factory that constructs the appropriate postprocessor (e.g., IGM absorption, dust) for each photometric filter.
+    Build and return a :galacticus-class:`stellarPopulationSpectraPostprocessorClass` object corresponding to the given string descriptor, acting as a factory that constructs the appropriate postprocessor (e.g., IGM absorption, dust) for each photometric filter.
     </description>
     <type>class(stellarPopulationSpectraPostprocessorClass)</type>
     <pass>yes</pass>
@@ -110,7 +110,7 @@ contains
 
   recursive subroutine stellarPopulationSpectraPostprocessorListAssign(self,from)
     !!{RST
-    Perform assignment for the ``stellarPopulationSpectraPostprocessorList`` class.
+    Perform assignment for the :galacticus-class:`stellarPopulationSpectraPostprocessorList` class.
     !!}
     implicit none
     class(stellarPopulationSpectraPostprocessorList), intent(  out) :: self

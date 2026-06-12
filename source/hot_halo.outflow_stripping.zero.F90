@@ -40,7 +40,7 @@ An implementation of the hot halo outflow stripping class which gives zero strip
 
   interface hotHaloOutflowStrippingZero
      !!{RST
-     Constructors for the ``hotHaloOutflowStrippingZero`` hot halo outflow stripping class.
+     Constructors for the :galacticus-class:`hotHaloOutflowStrippingZero` hot halo outflow stripping class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowStrippingZero

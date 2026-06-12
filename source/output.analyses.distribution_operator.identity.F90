@@ -40,7 +40,7 @@
 
   interface outputAnalysisDistributionOperatorIdentity
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorIdentity`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorIdentity` output analysis distribution operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity
@@ -49,7 +49,7 @@ contains
 
   function identityConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorIdentity`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorIdentity` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

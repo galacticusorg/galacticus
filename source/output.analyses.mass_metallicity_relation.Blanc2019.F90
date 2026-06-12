@@ -47,7 +47,7 @@
 
   interface outputAnalysisMassMetallicityBlanc2019
      !!{RST
-     Constructors for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassMetallicityBlanc2019` output analysis class.
      !!}
      module procedure massMetallicityBlanc2019ConstructorParameters
      module procedure massMetallicityBlanc2019ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function massMetallicityBlanc2019ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassMetallicityBlanc2019` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                       , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters                          , only : inputParameter                 , inputParameters
@@ -156,7 +156,7 @@ contains
 
   function massMetallicityBlanc2019ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassMetallicityBlanc2019` output analysis class for internal use.
     !!}
     use :: Abundances_Structure                      , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                               , only : Atomic_Mass
@@ -491,7 +491,7 @@ contains
 
   subroutine massMetallicityBlanc2019Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassMetallicityBlanc2019`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassMetallicityBlanc2019` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassMetallicityBlanc2019), intent(inout) :: self

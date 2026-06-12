@@ -22,7 +22,7 @@
   !![
   <task name="taskPosteriorSample" docformat="rst">
    <description>
-   A task which performs Bayesian inference by sampling from the posterior distribution of model parameters given observational constraints. Delegates to a ``posteriorSampleSimulationClass`` object that implements the specific sampling algorithm (e.g., MCMC, differential evolution, or particle swarm optimization).
+   A task which performs Bayesian inference by sampling from the posterior distribution of model parameters given observational constraints. Delegates to a :galacticus-class:`posteriorSampleSimulationClass` object that implements the specific sampling algorithm (e.g., MCMC, differential evolution, or particle swarm optimization).
    </description>
   </task>
   !!]
@@ -40,7 +40,7 @@
 
   interface taskPosteriorSample
      !!{RST
-     Constructors for the ``taskPosteriorSample`` task.
+     Constructors for the :galacticus-class:`taskPosteriorSample` task.
      !!}
      module procedure posteriorSampleConstructorParameters
      module procedure posteriorSampleConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function posteriorSampleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskPosteriorSample`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskPosteriorSample` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -100,7 +100,7 @@ contains
 
   function posteriorSampleConstructorInternal(posteriorSampleSimulation_) result(self)
     !!{RST
-    Internal constructor for the ``taskPosteriorSample`` task class.
+    Internal constructor for the :galacticus-class:`taskPosteriorSample` task class.
     !!}
     implicit none
     type (taskPosteriorSample           )                        :: self
@@ -115,7 +115,7 @@ contains
 
   subroutine posteriorSampleDestructor(self)
     !!{RST
-    Destructor for the ``taskPosteriorSample`` task class.
+    Destructor for the :galacticus-class:`taskPosteriorSample` task class.
     !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none

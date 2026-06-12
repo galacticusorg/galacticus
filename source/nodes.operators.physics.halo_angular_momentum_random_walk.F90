@@ -52,7 +52,7 @@
   
   interface nodeOperatorHaloAngularMomentumRandomWalk
      !!{RST
-     Constructors for the ``nodeOperatorHaloAngularMomentumRandomWalk`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
      !!}
      module procedure haloAngularMomentumRandomWalkConstructorParameters
      module procedure haloAngularMomentumRandomWalkConstructorInternal
@@ -62,7 +62,7 @@ contains
   
   function haloAngularMomentumRandomWalkConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHaloAngularMomentumRandomWalk`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorHaloAngularMomentumRandomWalk`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandomWalk)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine haloAngularMomentumRandomWalkDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorHaloAngularMomentumRandomWalk`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandomWalk), intent(inout) :: self

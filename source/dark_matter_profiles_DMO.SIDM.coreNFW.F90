@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMCoreNFW" docformat="rst">
     <description>
-    Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023` are built via ``massDistributionSphericalSIDMCoreNFW`` objects.
+    Cored-NFW dark matter halo profiles to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023` are built via :galacticus-class:`massDistributionSphericalSIDMCoreNFW` objects.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -53,7 +53,7 @@
 
   interface darkMatterProfileDMOSIDMCoreNFW
      !!{RST
-     Constructors for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOSIDMCoreNFW` dark matter halo profile class.
      !!}
      module procedure sidmCoreNFWConstructorParameters
      module procedure sidmCoreNFWConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sidmCoreNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOSIDMCoreNFW` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function sidmCoreNFWConstructorInternal(factorRadiusCore,darkMatterHaloScale_,darkMatterParticle_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOSIDMCoreNFW` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -138,7 +138,7 @@ contains
 
   subroutine sidmCoreNFWDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOSIDMCoreNFW`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOSIDMCoreNFW` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMCoreNFW), intent(inout) :: self

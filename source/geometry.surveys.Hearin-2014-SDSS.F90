@@ -110,7 +110,7 @@ contains
 
   subroutine hearin2014SDSSDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryHearin2014SDSS`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryHearin2014SDSS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryHearin2014SDSS), intent(inout) :: self

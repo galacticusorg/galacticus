@@ -46,7 +46,7 @@
 
   interface massDistributionGaussianSlab
      !!{RST
-     Constructors for the ``massDistributionGaussianSlab`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionGaussianSlab` mass distribution class.
      !!}
      module procedure gaussianSlabConstructorParameters
      module procedure gaussianSlabConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function gaussianSlabConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionGaussianSlab`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionGaussianSlab` mass distribution class which builds the object from a parameter set.
     !!}
      use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
      use :: Input_Parameters          , only : inputParameter                , inputParameters

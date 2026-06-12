@@ -52,7 +52,7 @@
 
   interface transferFunctionMurgia2017
      !!{RST
-     Constructors for the ``transferFunctionMurgia2017`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
      !!}
      module procedure murgia2017ConstructorParameters
      module procedure murgia2017ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
 function murgia2017ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionMurgia2017`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -128,7 +128,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
 
   function murgia2017ConstructorInternal(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionMurgia2017`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
     !!}
     implicit none
     type            (transferFunctionMurgia2017)                        :: self
@@ -147,7 +147,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
 
   subroutine murgia2017Destructor(self)
     !!{RST
-    Destructor for the ``transferFunctionMurgia2017`` transfer function class.
+    Destructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
     !!}
     implicit none
     type(transferFunctionMurgia2017), intent(inout) :: self

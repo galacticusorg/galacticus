@@ -78,7 +78,7 @@
   !![
   <mergerTreeConstructor name="mergerTreeConstructorRead" docformat="rst">
    <description>
-   A merger tree constructor class from data imported from a file and processed into a form suitable for Galacticus to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. Galacticus is currently designed to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which :term:`node` a given :term:`node` is physically associated with at a later time. Additionally, Galacticus expects the merger tree file to contain information on the host :term:`node`, i.e. the node within which a given node is physically located. In the following, these two properties are labeled ``descendantNode`` and ``hostNode``. Galacticus assumes that nodes for which ``descendantNode``\ :math:`=`\ ``hostNode`` are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig. . The particular structure would be represented by the following list of nodes and node properties (a :math:`-1` indicates that no descendant node exists):
+   A merger tree constructor class from data imported from a file and processed into a form suitable for Galacticus to evolve. Merger trees are inherently complex structures, particularly when the possibility of subhalos are considered. Galacticus is currently designed to work with single descendant merger trees, i.e. ones in which the tree structure is entirely defined by specifying which :term:`node` a given :term:`node` is physically associated with at a later time. Additionally, Galacticus expects the merger tree file to contain information on the host :term:`node`, i.e. the node within which a given node is physically located. In the following, these two properties are labeled ``descendantNode`` and ``hostNode``. Galacticus assumes that nodes for which ``descendantNode``\ :math:`=`\ ``hostNode`` are isolated halos (i.e. they are their own hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in Fig. :numref:`{number} &lt;fig-MergerTreeSimple&gt;`. The particular structure would be represented by the following list of nodes and node properties (a :math:`-1` indicates that no descendant node exists):
 
    .. list-table::
       :header-rows: 1
@@ -112,6 +112,7 @@
         - 8
 
    .. figure:: Diagrams/MergerTreeSimple.pdf
+      :name: fig-MergerTreeSimple
 
       An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique index indicated by the number inside each circle. Black arrows link each node to its descendant node (as specified by the ``descendantNode`` property). Where a node is not its own host node it is placed inside its host node.
 
@@ -289,7 +290,7 @@
 
   interface mergerTreeConstructorRead
      !!{RST
-     Constructors for the ``mergerTreeConstructorRead`` merger tree constructor class.
+     Constructors for the :galacticus-class:`mergerTreeConstructorRead` merger tree constructor class.
      !!}
      module procedure readConstructorParameters
      module procedure readConstructorInternal
@@ -336,7 +337,7 @@ contains
 
   function readConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeConstructorRead`` merger tree constructor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeConstructorRead` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -706,7 +707,7 @@ contains
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,alwaysPromoteMostMassive,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalAngularMomenta,presetAngularMomenta,presetAngularMomenta3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,mergerTreeSeeds_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeConstructorRead`` merger tree constructor class.
+    Internal constructor for the :galacticus-class:`mergerTreeConstructorRead` merger tree constructor class.
     !!}
     use :: Display                    , only : displayMagenta, displayReset
     use :: Error                      , only : Error_Report  , Warn
@@ -926,7 +927,7 @@ contains
 
   subroutine readDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeConstructorRead`` merger tree constructor class.
+    Destructor for the :galacticus-class:`mergerTreeConstructorRead` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self

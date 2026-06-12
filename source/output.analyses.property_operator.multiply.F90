@@ -40,7 +40,7 @@ Implements a multiplication analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMultiply
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMultiply` output analysis property operator class.
      !!}
      module procedure multiplyConstructorParameters
      module procedure multiplyConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function multiplyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMultiply` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function multiplyConstructorInternal(multiplier) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorMultiply`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMultiply` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self

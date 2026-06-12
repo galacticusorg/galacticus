@@ -81,7 +81,7 @@
   
   interface massDistributionEinasto
      !!{RST
-     Constructors for the ``massDistributionEinasto`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionEinasto` mass distribution class.
      !!}
      module procedure massDistributionEinastoConstructorParameters
      module procedure massDistributionEinastoConstructorInternal
@@ -91,7 +91,7 @@ contains
 
   function massDistributionEinastoConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionEinasto`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionEinasto` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

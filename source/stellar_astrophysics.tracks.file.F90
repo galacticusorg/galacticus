@@ -89,7 +89,7 @@
 
   interface stellarTracksFile
      !!{RST
-     Constructors for the ``stellarTracksFile`` stellar tracks class.
+     Constructors for the :galacticus-class:`stellarTracksFile` stellar tracks class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarTracksFile`` stellar tracks class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarTracksFile` stellar tracks class which takes a parameter list as input.
     !!}
     use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -130,7 +130,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``stellarTracksFile`` stellar tracks class.
+    Internal constructor for the :galacticus-class:`stellarTracksFile` stellar tracks class.
     !!}
     implicit none
     type     (stellarTracksFile)                :: self

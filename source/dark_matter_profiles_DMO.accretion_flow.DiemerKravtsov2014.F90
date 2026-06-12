@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowDiemerKravtsov2014" docformat="rst">
     <description>
-    An accretion flow class which models the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`. Specifically, ``massDistributionDiemerKravtsov2014`` objects are built with parameters chosen using fits to the redshift and :math:`\nu` dependencies of the fitting parameters :math:`b_\mathrm{e}` and :math:`s_\mathrm{e}` chosen to match the results of their figure 18.
+    An accretion flow class which models the accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`. Specifically, :galacticus-class:`massDistributionDiemerKravtsov2014` objects are built with parameters chosen using fits to the redshift and :math:`\nu` dependencies of the fitting parameters :math:`b_\mathrm{e}` and :math:`s_\mathrm{e}` chosen to match the results of their figure 18.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -50,7 +50,7 @@
 
   interface darkMatterProfileDMOAccretionFlowDiemerKravtsov2014
      !!{RST
-     Constructors for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` dark matter halo profile class.
      !!}
      module procedure accretionFlowDiemerKravtsov2014ConstructorParameters
      module procedure accretionFlowDiemerKravtsov2014ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -159,7 +159,7 @@ contains
 
   function accretionFlowDiemerKravtsov2014ConstructorInternal(b0,bz,bnu,s0,sz,snu,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowDiemerKravtsov2014)                        :: self
@@ -179,7 +179,7 @@ contains
 
   subroutine accretionFlowDiemerKravtsov2014Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOAccretionFlowDiemerKravtsov2014`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowDiemerKravtsov2014), intent(inout) :: self

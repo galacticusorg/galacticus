@@ -96,7 +96,7 @@
 
   interface taskHaloMassFunction
      !!{RST
-     Constructors for the ``taskHaloMassFunction`` task.
+     Constructors for the :galacticus-class:`taskHaloMassFunction` task.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -106,7 +106,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskHaloMassFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloMassFunction` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -397,7 +397,7 @@ contains
        &                                       transferFunctionRelative             &
        &                                      ) result(self)
     !!{RST
-    Constructor for the ``taskHaloMassFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloMassFunction` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloMassFunction                   )                                        :: self
@@ -445,7 +445,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``taskHaloMassFunction`` task class.
+    Destructor for the :galacticus-class:`taskHaloMassFunction` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

@@ -64,7 +64,7 @@ Implements an output analysis class for the :cite:t:`baldry_galaxy_2012` stellar
 
   interface outputAnalysisMassFunctionStellarBaldry2012GAMA
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarBaldry2012GAMA`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class.
      !!}
      module procedure massFunctionStellarBaldry2012GAMAConstructorParameters
      module procedure massFunctionStellarBaldry2012GAMAConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function massFunctionStellarBaldry2012GAMAConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarBaldry2012GAMA`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -193,7 +193,7 @@ contains
 
   function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarBaldry2012GAMA`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                             , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -360,7 +360,7 @@ contains
 
   subroutine massFunctionStellarBaldry2012GAMADestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarBaldry2012GAMA`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarBaldry2012GAMA), intent(inout) :: self

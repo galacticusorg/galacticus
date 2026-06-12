@@ -43,7 +43,7 @@
 
   interface nodePropertyExtractorMergedSubhaloProperties
      !!{RST
-     Constructors for the ``nodePropertyExtractorMergedSubhaloProperties`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class.
      !!}
      module procedure mergedSubhaloPropertiesConstructorParameters
      module procedure mergedSubhaloPropertiesConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function mergedSubhaloPropertiesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMergedSubhaloProperties`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function mergedSubhaloPropertiesConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMergedSubhaloProperties`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent

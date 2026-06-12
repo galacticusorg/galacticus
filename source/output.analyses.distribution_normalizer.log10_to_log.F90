@@ -39,7 +39,7 @@
 
   interface outputAnalysisDistributionNormalizerLog10ToLog
      !!{RST
-     Constructors for the ``outputAnalysisDistributionNormalizerLog10ToLog`` output analysis distribution normalizer class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerLog10ToLog` output analysis distribution normalizer class.
      !!}
      module procedure log10ToLogConstructorParameters
   end interface outputAnalysisDistributionNormalizerLog10ToLog
@@ -48,7 +48,7 @@ contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionNormalizerLog10ToLog`` output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerLog10ToLog` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -88,7 +88,7 @@ contains
 
   subroutine virialDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloTemperatureProfileVirial`` hot halo temperature profile class.
+    Destructor for the :galacticus-class:`hotHaloTemperatureProfileVirial` hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileVirial), intent(inout) :: self

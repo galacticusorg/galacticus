@@ -26,7 +26,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSEDAGN" docformat="rst">
     <description>
-    A property extractor class for the SED of the AGN. The spectrum is computed using the provided ``accretionDiskSpectraClass`` object, and will be output between wavelengths ``[wavelengthMinimum]`` and ``[wavelengthMaximum]``. If ``[resolution]`` is set to a positive value then this specifies the resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If ``[resolution]`` is non-positive then the SED will be output at the full native resolution provided by the ``accretionDiskSpectraClass`` object. The frame for the SED, ``rest`` or ``observed``, is specified by ``[frame]``. Note that using ``observed`` merely means that the extracted spectrum is evaluated at wavelength :math:`\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)` where :math:`\lambda_\mathrm{o}` is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method), :math:`\lambda_\mathrm{r}` is the rest-frame wavelength, and :math:`z` is redshift---*no adjustment* is made for the boost in observed flux due to the :math:`\mathrm{d}\lambda_\mathrm{o}/\mathrm{d}\lambda_\mathrm{r}` term which appears when computing observed-frame fluxes.
+    A property extractor class for the SED of the AGN. The spectrum is computed using the provided :galacticus-class:`accretionDiskSpectraClass` object, and will be output between wavelengths ``[wavelengthMinimum]`` and ``[wavelengthMaximum]``. If ``[resolution]`` is set to a positive value then this specifies the resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If ``[resolution]`` is non-positive then the SED will be output at the full native resolution provided by the :galacticus-class:`accretionDiskSpectraClass` object. The frame for the SED, ``rest`` or ``observed``, is specified by ``[frame]``. Note that using ``observed`` merely means that the extracted spectrum is evaluated at wavelength :math:`\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)` where :math:`\lambda_\mathrm{o}` is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method), :math:`\lambda_\mathrm{r}` is the rest-frame wavelength, and :math:`z` is redshift---*no adjustment* is made for the boost in observed flux due to the :math:`\mathrm{d}\lambda_\mathrm{o}/\mathrm{d}\lambda_\mathrm{r}` term which appears when computing observed-frame fluxes.
     </description>
   </nodePropertyExtractor>
   !!]
@@ -62,7 +62,7 @@
   
   interface nodePropertyExtractorSEDAGN
      !!{RST
-     Constructors for the ``nodePropertyExtractorSEDAGN`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
      !!}
      module procedure sedAGNConstructorParameters
      module procedure sedAGNConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function sedAGNConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSEDAGN`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameters
     use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
@@ -115,7 +115,7 @@ contains
       <source>parameters</source>
       <defaultValue>-1.0d0</defaultValue>
       <description>
-      The resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the ``accretionDiskSpectraClass`` object.
+      The resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the :galacticus-class:`accretionDiskSpectraClass` object.
       </description>
     </inputParameter>
     <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
@@ -132,7 +132,7 @@ contains
 
   function sedAGNConstructorInternal(frame,wavelengthMinimum,wavelengthMaximum,resolution,cosmologyFunctions_,accretionDiskSpectra_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSEDAGN`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -158,7 +158,7 @@ contains
 
   subroutine sedAGNDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorSEDAGN`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSEDAGN), intent(inout) :: self

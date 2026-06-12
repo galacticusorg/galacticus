@@ -51,7 +51,7 @@ contains
 
   function birthCloudsLacey2016ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorBirthCloudsLacey2016`` stellar population spectra postprocessor class which accepts a parameter set as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016` stellar population spectra postprocessor class which accepts a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function birthCloudsLacey2016ConstructorInternal(timescale) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationSpectraPostprocessorBirthCloudsLacey2016`` stellar population spectra postprocessor class.
+    Internal constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016` stellar population spectra postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorBirthCloudsLacey2016)                :: self

@@ -43,7 +43,7 @@ Implements a color distribution output analysis class for SDSS data.
 
   interface outputAnalysisColorDistributionSDSS
      !!{RST
-     Constructors for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisColorDistributionSDSS` output analysis class.
      !!}
      module procedure colorDistributionSDSSConstructorParameters
      module procedure colorDistributionSDSSConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function colorDistributionSDSSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisColorDistributionSDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisColorDistributionSDSS` output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -345,7 +345,7 @@ contains
 
   subroutine colorDistributionSDSSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisColorDistributionSDSS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisColorDistributionSDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisColorDistributionSDSS), intent(inout) :: self

@@ -85,7 +85,7 @@
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
      !!{RST
-     Constructors for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class.
+     Constructors for the :galacticus-class:`darkMatterHaloScaleVirialDensityContrastDefinition` dark matter halo scales class.
      !!}
      module procedure virialDensityContrastDefinitionConstructorParameters
      module procedure virialDensityContrastDefinitionConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   recursive function virialDensityContrastDefinitionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloScaleVirialDensityContrastDefinition` dark matter halo scales class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -164,7 +164,7 @@ contains
 
   subroutine virialDensityContrastDefinitionDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloScaleVirialDensityContrastDefinition`` dark matter halo scales class.
+    Destructor for the :galacticus-class:`darkMatterHaloScaleVirialDensityContrastDefinition` dark matter halo scales class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

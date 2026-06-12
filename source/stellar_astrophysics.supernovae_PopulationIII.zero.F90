@@ -39,7 +39,7 @@
 
   interface supernovaePopulationIIIZero
      !!{RST
-     Constructors for the ``supernovaePopulationIIIZero`` Population III supernovae class.
+     Constructors for the :galacticus-class:`supernovaePopulationIIIZero` Population III supernovae class.
      !!}
      module procedure zeroConstructorParameters
   end interface supernovaePopulationIIIZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``supernovaePopulationIIIZero`` Population III supernovae class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`supernovaePopulationIIIZero` Population III supernovae class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

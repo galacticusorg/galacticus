@@ -45,7 +45,7 @@
 
   interface darkMatterProfileScaleRadiusConcentrationLimiter
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusConcentrationLimiter`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
      !!}
      module procedure concentrationLimiterConstructorParameters
      module procedure concentrationLimiterConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function concentrationLimiterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusConcentrationLimiter`` dark matter halo profile scale radius class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function concentrationLimiterConstructorInternal(concentrationMinimum,concentrationMaximum,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileScaleRadiusConcentrationLimiter`` dark matter halo profile scale radius class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -112,7 +112,7 @@ contains
 
   subroutine concentrationLimiterDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusConcentrationLimiter`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentrationLimiter), intent(inout) :: self

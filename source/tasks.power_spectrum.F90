@@ -60,7 +60,7 @@
 
   interface taskPowerSpectra
      !!{RST
-     Constructors for the ``taskPowerSpectra`` task.
+     Constructors for the :galacticus-class:`taskPowerSpectra` task.
      !!}
      module procedure powerSpectraConstructorParameters
      module procedure powerSpectraConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function powerSpectraConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskPowerSpectra`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskPowerSpectra` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -229,7 +229,7 @@ contains
        &                                    pointsPerUnit                 &
        &                                   ) result(self)
     !!{RST
-    Internal constructor for the ``taskPowerSpectra`` task class.
+    Internal constructor for the :galacticus-class:`taskPowerSpectra` task class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -260,7 +260,7 @@ contains
 
   subroutine powerSpectraDestructor(self)
     !!{RST
-    Destructor for the ``taskPowerSpectra`` task class.
+    Destructor for the :galacticus-class:`taskPowerSpectra` task class.
     !!}
     implicit none
     type(taskPowerSpectra), intent(inout) :: self

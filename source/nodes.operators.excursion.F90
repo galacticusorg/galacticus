@@ -50,7 +50,7 @@
   
   interface nodeOperatorExcursion
      !!{RST
-     Constructors for the ``nodeOperatorExcursion`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorExcursion` node operator class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function excursionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorExcursion`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorExcursion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function excursionConstructorInternal(cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorExcursion`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorExcursion` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

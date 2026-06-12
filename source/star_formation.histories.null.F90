@@ -42,7 +42,7 @@ Implements a null star formation histories class.
 
   interface starFormationHistoryNull
      !!{RST
-     Constructors for the ``starFormationHistoryNull`` star formation history class.
+     Constructors for the :galacticus-class:`starFormationHistoryNull` star formation history class.
      !!}
      module procedure nullConstructorParameters
   end interface starFormationHistoryNull
@@ -51,7 +51,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationHistoryNull`` star formation history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationHistoryNull` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

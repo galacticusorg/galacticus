@@ -69,7 +69,7 @@ contains
 
   function sphericalSymmetryConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalFieldSphericalSymmetry`` satellite tidal field class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function sphericalSymmetryConstructorInternal(factorBoost,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteTidalFieldSphericalSymmetry`` satellite tidal field class.
+    Internal constructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class.
     !!}
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine sphericalSymmetryDestructor(self)
     !!{RST
-    Destructor for the ``satelliteTidalFieldSphericalSymmetry`` satellite tidal field class.
+    Destructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldSphericalSymmetry), intent(inout) :: self

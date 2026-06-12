@@ -50,7 +50,7 @@
 
   interface mergerTreeOutputterMulti
      !!{RST
-     Constructors for the ``mergerTreeOutputterMulti`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterMulti` merger tree outputter.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterMulti`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterMulti` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function multiConstructorInternal(outputters) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOutputterMulti`` merger tree outputter class.
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterMulti` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOutputterMulti`` merger tree outputter class.
+    Destructor for the :galacticus-class:`mergerTreeOutputterMulti` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterMulti), intent(inout) :: self

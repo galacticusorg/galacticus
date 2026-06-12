@@ -49,7 +49,7 @@
 
   interface massDistributionBetaProfile
      !!{RST
-     Constructors for the ``massDistributionBetaProfile`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionBetaProfile` mass distribution class.
      !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionBetaProfile`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionBetaProfile` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -162,7 +162,7 @@ contains
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionBetaProfile`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionBetaProfile` mass distribution class.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug

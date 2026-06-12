@@ -58,7 +58,7 @@
 
   interface taskRadiativeTransfer
      !!{RST
-     Constructors for the ``taskRadiativeTransfer`` task.
+     Constructors for the :galacticus-class:`taskRadiativeTransfer` task.
      !!}
      module procedure radiativeTransferConstructorParameters
      module procedure radiativeTransferConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function radiativeTransferConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskRadiativeTransfer`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskRadiativeTransfer` task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : var_str
     use :: Input_Parameters  , only : inputParameter              , inputParameters
@@ -199,7 +199,7 @@ contains
 
   function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``taskRadiativeTransfer`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskRadiativeTransfer` task class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
@@ -236,7 +236,7 @@ contains
 
   subroutine radiativeTransferDestructor(self)
     !!{RST
-    Destructor for the ``taskRadiativeTransfer`` task class.
+    Destructor for the :galacticus-class:`taskRadiativeTransfer` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

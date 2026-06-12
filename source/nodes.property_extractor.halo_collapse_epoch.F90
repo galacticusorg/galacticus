@@ -58,7 +58,7 @@
 
   interface nodePropertyExtractorHaloCollapseEpoch
      !!{RST
-     Constructors for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorHaloCollapseEpoch` property extractor class.
      !!}
      module procedure haloCollapseEpochConstructorParameters
      module procedure haloCollapseEpochConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function haloCollapseEpochConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorHaloCollapseEpoch` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function haloCollapseEpochConstructorInternal(massFractionFormation,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHaloCollapseEpoch` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorHaloCollapseEpoch)                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine haloCollapseEpochDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorHaloCollapseEpoch`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorHaloCollapseEpoch` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloCollapseEpoch), intent(inout) :: self

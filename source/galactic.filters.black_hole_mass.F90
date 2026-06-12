@@ -40,7 +40,7 @@ Implements a galactic high-pass filter for total black hole mass.
 
   interface galacticFilterBlackHoleMass
      !!{RST
-     Constructors for the ``galacticFilterBlackHoleMass`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterBlackHoleMass` galactic filter class.
      !!}
      module procedure blackHoleMassConstructorParameters
      module procedure blackHoleMassConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function blackHoleMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterBlackHoleMass`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterBlackHoleMass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function blackHoleMassConstructorInternal(massThreshold) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterBlackHoleMass`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterBlackHoleMass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterBlackHoleMass)                :: self

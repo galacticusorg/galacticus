@@ -44,7 +44,7 @@
   
   interface nodeOperatorDMOInterpolate
      !!{RST
-     Constructors for the ``nodeOperatorDMOInterpolate`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class.
      !!}
      module procedure dmoInterpolateConstructorParameters
      module procedure dmoInterpolateConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function dmoInterpolateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDMOInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function dmoInterpolateConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorDMOInterpolate`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class.
     !!}
     implicit none
     type(nodeOperatorDMOInterpolate) :: self

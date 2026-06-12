@@ -45,7 +45,7 @@ Implements a luminosity function output analysis class.
 
   interface outputAnalysisLuminosityFunction
      !!{RST
-     Constructors for the ``outputAnalysisLuminosityFunction`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class.
      !!}
      module procedure luminosityFunctionConstructorParameters
      module procedure luminosityFunctionConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function luminosityFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -202,7 +202,7 @@ contains
 
   function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which reads bin information from a standard format file.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
@@ -259,7 +259,7 @@ contains
 
   function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -434,7 +434,7 @@ contains
 
   subroutine luminosityFunctionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLuminosityFunction`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class.
     !!}
     type(outputAnalysisLuminosityFunction), intent(inout) :: self
 

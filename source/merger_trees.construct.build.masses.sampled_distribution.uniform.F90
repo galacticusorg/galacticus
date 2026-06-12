@@ -47,7 +47,7 @@ contains
 
   function sampledDistributionUniformConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesSampledDistributionUniform`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionUniform` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function sampledDistributionUniformConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesSampledDistributionUniform`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionUniform` merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -123,7 +123,7 @@ contains
 
   subroutine sampledDistributionUniformDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassesSampledDistributionUniform`` merger tree masses class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionUniform` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform), intent(inout) :: self

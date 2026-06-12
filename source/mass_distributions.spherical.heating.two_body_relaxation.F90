@@ -43,7 +43,7 @@
 
   interface massDistributionHeatingTwoBodyRelaxation
      !!{RST
-     Constructors for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingTwoBodyRelaxation` mass distribution heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingTwoBodyRelaxation` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
   
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeRelaxing,efficiency) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingTwoBodyRelaxation`` mass distribution heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingTwoBodyRelaxation` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTwoBodyRelaxation)                :: self

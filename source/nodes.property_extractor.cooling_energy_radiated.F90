@@ -24,7 +24,7 @@ Implements a cooling energy radiated property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorCoolingEnergyRadiated" docformat="rst">
    <description>
-   Extracts the total energy radiated by the hot halo gas through radiative cooling processes, tracking the cumulative energy loss from the ``nodeComponentHotHalo`` component. This quantity drives the supply of cold gas onto the galactic disk and ultimately powers star formation.
+   Extracts the total energy radiated by the hot halo gas through radiative cooling processes, tracking the cumulative energy loss from the :galacticus-class:`nodeComponentHotHalo` component. This quantity drives the supply of cold gas onto the galactic disk and ultimately powers star formation.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -44,7 +44,7 @@ Implements a cooling energy radiated property extractor class.
 
   interface nodePropertyExtractorCoolingEnergyRadiated
      !!{RST
-     Constructors for the ``nodePropertyExtractorCoolingEnergyRadiated`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorCoolingEnergyRadiated`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function coolingEnergyRadiatedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorCoolingEnergyRadiated`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorCoolingEnergyRadiated) :: self

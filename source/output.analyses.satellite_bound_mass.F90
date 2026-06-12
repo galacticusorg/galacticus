@@ -56,7 +56,7 @@
 
   interface outputAnalysisSatelliteBoundMass
      !!{RST
-     Constructors for the ``outputAnalysisSatelliteBoundMass`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class.
      !!}
      module procedure satelliteBoundMassConstructorParameters
      module procedure satelliteBoundMassConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteBoundMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisSatelliteBoundMass`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -105,7 +105,7 @@ contains
   
   function satelliteBoundMassConstructorInternal(fileName,relativeModelUncertainty,outputTimes_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSatelliteBoundMass`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -157,7 +157,7 @@ contains
 
   subroutine satelliteBoundMassDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisSatelliteBoundMass`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSatelliteBoundMass), intent(inout) :: self

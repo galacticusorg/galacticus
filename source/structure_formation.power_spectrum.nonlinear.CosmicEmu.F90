@@ -56,7 +56,7 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
 
   interface powerSpectrumNonlinearCosmicEmu
      !!{RST
-     Constructors for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumNonlinearCosmicEmu` nonlinear power spectrum class.
      !!}
      module procedure cosmicEmuConstructorParameters
      module procedure cosmicEmuConstructorInternal
@@ -102,7 +102,7 @@ contains
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumNonlinearCosmicEmu` nonlinear power spectrum class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -148,7 +148,7 @@ contains
 
   subroutine cosmicEmuDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumNonlinearCosmicEmu`` nonlinear power spectrum class.
+    Destructor for the :galacticus-class:`powerSpectrumNonlinearCosmicEmu` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearCosmicEmu), intent(inout) :: self

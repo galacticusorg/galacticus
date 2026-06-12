@@ -448,15 +448,23 @@ def _convert_lists(text: str, glsmap: dict[str, str]) -> str:
     return text
 
 
-def _strip_float_envs(text: str) -> str:
+def _sanitize_label(name: str) -> str:
+    """Turn a LaTeX ``\\label`` key (e.g. ``eq:GalliPalla``) into a Sphinx
+    cross-reference target (``eq-GalliPalla``).  The ``eq:``/``fig:``/``tb:``/
+    ``table:`` prefix is kept so equation/figure/table namespaces stay distinct;
+    the original keys are already globally unique."""
+    return re.sub(r'[^A-Za-z0-9]+', '-', name.strip()).strip('-')
+
+
+def _strip_float_envs(text: str, vault: '_Vault', glsmap: dict) -> str:
     """Convert figure/table floats.
 
-    A ``figure`` becomes ``@@FIGURE@@<image path>@@`` + caption (finalised into a
-    ``.. figure::`` by :func:`_finalise_figures` once the caption is converted),
-    or just the caption if it has no ``\\includegraphics``.  A ``table`` is
-    *unwrapped* — the float markers/label are removed but the inner content (a
-    list-table from :func:`_convert_tabular`) is kept, with its caption as a
-    paragraph.
+    A ``figure`` becomes ``@@FIGURE@@<image path>@@<name>@@`` + caption (finalised
+    into a ``.. figure::`` by :func:`_finalise_figures` once the caption is
+    converted), or just the caption if it has no ``\\includegraphics``.  A
+    ``table`` is unwrapped: the inner list-table (already stashed by
+    :func:`_convert_tabular`) gains the float's caption and ``:name:`` so it can
+    be ``:numref:``-referenced.
     """
     for env in ('figure', 'figure*'):
         begin_re = re.compile(r'\\begin\{' + re.escape(env) + r'\}(?:\[[^\]]*\])?')
@@ -474,19 +482,44 @@ def _strip_float_envs(text: str) -> str:
             if cm:
                 arg, _ = _take_arg(inner, cm.end())
                 caption = (arg or '').strip()
+            lm = re.search(r'\\label\{([^}]*)\}', inner)
+            name = _sanitize_label(lm.group(1)) if lm else ''
             image = ''
             im = re.search(r'\\includegraphics(?:\[[^\]]*\])?\s*\{', inner)
             if im:
                 image, _ = extract_braced(inner, im.end() - 1)
             if image.strip():
-                replacement = f'\n\n@@FIGURE@@{image.strip()}@@\n\n{caption}\n\n'
+                replacement = (f'\n\n@@FIGURE@@{image.strip()}@@{name}@@'
+                               f'\n\n{caption}\n\n')
             else:
                 replacement = f'\n\n{caption}\n\n' if caption else '\n\n'
             text = text[:b.start()] + replacement + text[e.end():]
-    # Unwrap table floats (keep the list-table + caption inside them).
-    for env in ('table', 'table*'):
-        text = re.sub(r'\\begin\{' + re.escape(env) + r'\}(?:\[[^\]]*\])?', '', text)
-        text = re.sub(r'\\end\{' + re.escape(env) + r'\}', '', text)
+
+    # Table floats: fold the caption + ``:name:`` into the stashed list-table.
+    def _table_repl(m: re.Match) -> str:
+        inner = m.group(1)
+        cap = ''
+        cm = re.search(r'\\caption\b', inner)
+        if cm:
+            arg, _ = _take_arg(inner, cm.end())
+            cap = _conv_cell(arg or '', glsmap)
+        lm = re.search(r'\\label\{([^}]*)\}', inner)
+        name = _sanitize_label(lm.group(1)) if lm else ''
+        tm = re.search('\x00(\\d+)\x00', inner)
+        if tm:
+            idx = int(tm.group(1))
+            block, is_block = vault.items[idx]
+            head = '.. list-table::'
+            new_head = head + ((' ' + cap) if cap else '')
+            if name:
+                new_head += '\n   :name: ' + name
+            if new_head != head:
+                vault.items[idx] = (block.replace(head, new_head, 1), is_block)
+            return '\n\n\x00' + str(idx) + '\x00\n\n'
+        return ('\n\n' + cap + '\n\n') if cap else '\n\n'
+
+    text = re.sub(r'\\begin\{table\*?\}(?:\[[^\]]*\])?(.*?)\\end\{table\*?\}',
+                  _table_repl, text, flags=re.DOTALL)
     text = _convert_command(text, 'caption', lambda a: '\n\n' + a.strip() + '\n\n')
     return text
 
@@ -494,16 +527,22 @@ def _strip_float_envs(text: str) -> str:
 def _finalise_figures(text: str) -> str:
     """Turn ``@@FIGURE@@path@@`` + caption placeholders (caption already
     converted) into ``.. figure::`` directives."""
+    def _fig(path: str, name: str) -> str:
+        body = '.. figure:: ' + path.strip()
+        if name.strip():
+            body += '\n   :name: ' + name.strip()
+        return body
+
     def with_caption(m: re.Match) -> str:
-        body = '.. figure:: ' + m.group(1).strip()
-        cap = m.group(2).strip()
+        body = _fig(m.group(1), m.group(2))
+        cap = m.group(3).strip()
         if cap:
             body += '\n\n' + textwrap.indent(cap, '   ')
         return body
 
-    text = re.sub(r'@@FIGURE@@(.+?)@@\n\n([^\n]+)', with_caption, text)
-    text = re.sub(r'@@FIGURE@@(.+?)@@',
-                  lambda m: '.. figure:: ' + m.group(1).strip(), text)
+    text = re.sub(r'@@FIGURE@@(.+?)@@(.*?)@@\n\n([^\n]+)', with_caption, text)
+    text = re.sub(r'@@FIGURE@@(.+?)@@(.*?)@@',
+                  lambda m: _fig(m.group(1), m.group(2)), text)
     return text
 
 
@@ -699,7 +738,7 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
     # --- Float environments ----------------------------------------------
     # figure -> ".. figure::" (image + caption); table -> unwrapped, keeping the
     # list-table above plus its caption.
-    text = _strip_float_envs(text)
+    text = _strip_float_envs(text, vault, glsmap)
 
     # --- \noindent\hspace{N} $\rightarrow$ \parbox{…} decision trees -----
     # Rewrite into nested \begin{itemize} so the normal list machinery renders
@@ -725,6 +764,13 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
             # ``split`` left-aligns the RHS next to the relation, and drop the
             # ``&`` entirely from a single-row equation.
             inner = textwrap.dedent(m.group(1).strip('\n')).strip('\n')
+            # Pull out \label{…} -> directive ``:label:`` so the equation can be
+            # referenced with ``:eq:``.  Keep the first label for the block.
+            eq_label = None
+            eq_labels = re.findall(r'\\label\{([^}]*)\}', inner)
+            if eq_labels:
+                eq_label = _sanitize_label(eq_labels[0])
+                inner = re.sub(r'\\label\{[^}]*\}', '', inner)
             if is_eqnarray:
                 # Alignment ampersands are XML-escaped as ``&amp;`` in the
                 # source description (``&lt;``/``&gt;`` inequalities are left
@@ -740,7 +786,10 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
                     inner = ' \\\\\n'.join(rows)
                 else:                                          # single row
                     inner = inner.replace('&amp;', ' ')
-            block = '.. math::\n\n' + textwrap.indent(inner, '   ')
+            directive = '.. math::'
+            if eq_label:
+                directive += '\n   :label: ' + eq_label
+            block = directive + '\n\n' + textwrap.indent(inner, '   ')
             return vault.stash('\n\n' + block + '\n\n', block=True)
 
         text = env_re.sub(repl_disp, text)
@@ -867,7 +916,7 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
             a = a.replace(src, dst)
         return vault.stash('``' + a.replace('`', "'").strip() + '``')
 
-    for cmd in ('mono', 'texttt', 'refClass', 'refPhysics', 'refMethod', 'path'):
+    for cmd in ('mono', 'texttt', 'refMethod', 'path'):
         text = _convert_command(text, cmd, lit)
 
     # --- Emphasis ---------------------------------------------------------
@@ -908,9 +957,33 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
 
     text = glslink_repl(text)
 
-    # --- Cross references (intra-PDF) ------------------------------------
+    # --- Cross references ------------------------------------------------
+    # \refClass/\refPhysics -> a custom role resolved at build time to a link to
+    # that class's page (or rendered as inline code when no page exists).
+    def refclass_repl(a: str) -> str:
+        name = re.sub(r'\\[a-zA-Z]+\*?\s*\{([^{}]*)\}', r'\1', a)
+        name = name.replace('{', '').replace('}', '').strip()
+        return vault.stash(':galacticus-class:`' + name + '`')
+
+    for cmd in ('refClass', 'refPhysics'):
+        text = _convert_command(text, cmd, refclass_repl)
+
+    # \ref{eq:…} -> ``:eq:`` (equation number); \ref{fig:…}/\ref{tb:…}/
+    # \ref{table:…} -> ``:numref:`` ("Fig. N"/"Table N"); others (e.g. \ref{sec:…}
+    # into the PDF manuals) are dropped.
+    def ref_repl(a: str) -> str:
+        # The source prose already supplies the leading word ("Table~\ref{…}",
+        # "Figure~\ref{…}"), so ``:numref:`` emits just the number ("{number}")
+        # to mirror LaTeX ``\ref``; equations use ``:eq:`` ("(N)") after "eq.".
+        key = a.strip()
+        if key.startswith('eq:'):
+            return vault.stash(':eq:`' + _sanitize_label(key) + '`')
+        if re.match(r'(?:fig|tb|table):', key):
+            return vault.stash(':numref:`{number} <' + _sanitize_label(key) + '>`')
+        return ''
+
     text = _convert_command(text, 'label', lambda a: '')
-    text = _convert_command(text, 'ref', lambda a: '')
+    text = _convert_command(text, 'ref', ref_repl)
     text = _convert_command(text, 'pageref', lambda a: '')
     text = _convert_command(text, 'index', lambda a: '')
     # Drop \includegraphics — figures are handled separately/by review.

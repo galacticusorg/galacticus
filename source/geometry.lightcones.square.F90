@@ -163,7 +163,7 @@
 
   interface geometryLightconeSquare
      !!{RST
-     Constructors for the ``geometryLightconeSquare`` lightcone geometry distribution class.
+     Constructors for the :galacticus-class:`geometryLightconeSquare` lightcone geometry distribution class.
      !!}
      module procedure squareConstructorParameters
      module procedure squareConstructorInternal
@@ -197,7 +197,7 @@ contains
 
   function squareConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``geometryLightconeSquare`` lightcone geometry distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`geometryLightconeSquare` lightcone geometry distribution class which takes a parameter list as input.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters   , cosmologyParametersClass, hubbleUnitsLittleH
     use :: Error                           , only : Error_Report
@@ -341,7 +341,7 @@ contains
 
   function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,nodeIndicesReport,cosmologyParameters_,cosmologyFunctions_,outputTimes_,nodeOperator_) result(self)
     !!{RST
-    Internal constructor for the ``geometryLightconeSquare`` lightcone geometry distribution class.
+    Internal constructor for the :galacticus-class:`geometryLightconeSquare` lightcone geometry distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : var_str         , varying_string
@@ -512,7 +512,7 @@ contains
 
   subroutine squareDestructor(self)
     !!{RST
-    Destructor for the ``geometryLightconeSquare`` lightcone geometry distribution class.
+    Destructor for the :galacticus-class:`geometryLightconeSquare` lightcone geometry distribution class.
     !!}
     use :: Functions_Global, only : nodeOperatorDestruct_
     implicit none

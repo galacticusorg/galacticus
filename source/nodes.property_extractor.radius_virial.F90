@@ -29,7 +29,7 @@ Implements a virial radius output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusVirial" docformat="rst">
    <description>
-   A property extractor that returns the virial radius (in Mpc) of the dark-matter-only halo---the radius enclosing the density contrast specified by the ``virialDensityContrastDefinition`` object, with the profile computed using ``darkMatterProfileDMOClass``. Two density contrast objects must be provided: one for the profile interpolation and one for the mass definition. If ``useLastIsolatedTime`` is ``true``, the density contrast is evaluated at the halo's last isolated time rather than the current time, yielding the conventionally-defined virial radius.
+   A property extractor that returns the virial radius (in Mpc) of the dark-matter-only halo---the radius enclosing the density contrast specified by the ``virialDensityContrastDefinition`` object, with the profile computed using :galacticus-class:`darkMatterProfileDMOClass`. Two density contrast objects must be provided: one for the profile interpolation and one for the mass definition. If ``useLastIsolatedTime`` is ``true``, the density contrast is evaluated at the halo's last isolated time rather than the current time, yielding the conventionally-defined virial radius.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -54,7 +54,7 @@ Implements a virial radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusVirial
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusVirial`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusVirial` property extractor class.
      !!}
      module procedure radiusVirialConstructorParameters
      module procedure radiusVirialConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function radiusVirialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusVirial`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusVirial` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function radiusVirialConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusVirial`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusVirial` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorRadiusVirial)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine radiusVirialDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusVirial`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusVirial` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVirial), intent(inout) :: self

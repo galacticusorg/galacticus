@@ -39,7 +39,7 @@ Implements an N-body data operator which computes the convex hull volume of the 
 
   interface nbodyOperatorConvexHullVolume
      !!{RST
-     Constructors for the ``nbodyOperatorConvexHullVolume`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorConvexHullVolume` N-body operator class.
      !!}
      module procedure convexHullVolumeConstructorParameters
   end interface nbodyOperatorConvexHullVolume
@@ -48,7 +48,7 @@ contains
 
   function convexHullVolumeConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorConvexHullVolume`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorConvexHullVolume` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

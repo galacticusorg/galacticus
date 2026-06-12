@@ -45,7 +45,7 @@
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorDiskSizeInclntn`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
      !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorDiskSizeInclntn`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function diskSizeInclinationConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorDiskSizeInclntn`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
     !!}
     use :: File_Utilities    , only : Directory_Make           , File_Exists                  , File_Lock                    , File_Unlock, &
           &                           lockDescriptor
@@ -153,7 +153,7 @@ contains
 
   subroutine diskSizeInclinationDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorDiskSizeInclntn`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self

@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalHeatingRateZero`` satellite tidal heating rate class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalHeatingRateZero` satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

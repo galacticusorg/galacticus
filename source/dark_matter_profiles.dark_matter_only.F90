@@ -47,7 +47,7 @@
 
   interface darkMatterProfileDarkMatterOnly
      !!{RST
-     Constructors for the ``darkMatterProfileDarkMatterOnly`` non-dark-matter-only dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure darkMatterOnlyConstructorParameters
      module procedure darkMatterOnlyConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function darkMatterOnlyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDarkMatterOnly`` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDarkMatterOnly`` non-dark-matter-only dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine darkMatterOnlyDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDarkMatterOnly`` non-dark-matter-only dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self

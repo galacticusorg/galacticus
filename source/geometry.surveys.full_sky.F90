@@ -149,7 +149,7 @@ contains
 
   subroutine fullSkyDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryFullSky`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryFullSky` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryFullSky), intent(inout) :: self

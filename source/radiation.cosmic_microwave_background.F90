@@ -46,7 +46,7 @@
 
   interface radiationFieldCosmicMicrowaveBackground
      !!{RST
-     Constructors for the ``radiationFieldCosmicMicrowaveBackground`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
      !!}
      module procedure cosmicMicrowaveBackgroundConstructorParameters
      module procedure cosmicMicrowaveBackgroundConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldCosmicMicrowaveBackground`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function cosmicMicrowaveBackgroundConstructorInternal(cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldCosmicMicrowaveBackground`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
     !!}
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine cosmicMicrowaveBackgroundDestructor(self)
     !!{RST
-    Destructor for the ``radiationFieldCosmicMicrowaveBackground`` radiation field class.
+    Destructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
     !!}
     implicit none
     type(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self

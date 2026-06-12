@@ -70,7 +70,7 @@
 
   interface computationalDomainCylindrical
      !!{RST
-     Constructors for the ``computationalDomainCylindrical`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainCylindrical` computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainCylindrical`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainCylindrical` computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -174,7 +174,7 @@ contains
 
   function cylindricalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{RST
-    Constructor for the ``computationalDomainCylindrical`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainCylindrical` computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -206,7 +206,7 @@ contains
 
   subroutine cylindricalDestructor(self)
     !!{RST
-    Destructor for the ``computationalDomainCylindrical`` computational domain class.
+    Destructor for the :galacticus-class:`computationalDomainCylindrical` computational domain class.
     !!}
     implicit none
     type(computationalDomainCylindrical), intent(inout) :: self

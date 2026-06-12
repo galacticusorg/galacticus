@@ -57,7 +57,7 @@
 
   interface distributionFunction1DLogUniform
      !!{RST
-     Constructors for the ``distributionFunction1DLogUniform`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class.
      !!}
      module procedure logUniformConstructorParameters
      module procedure logUniformConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function logUniformConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DLogUniform`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DLogUniform`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     type            (distributionFunction1DLogUniform)                                  :: self

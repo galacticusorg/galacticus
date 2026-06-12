@@ -49,7 +49,7 @@
 
   interface hotHaloRamPressureForceRelativePosition
      !!{RST
-     Constructors for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureForceRelativePosition` hot halo ram pressure force class.
      !!}
      module procedure relativePositionConstructorParameters
      module procedure relativePositionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function relativePositionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureForceRelativePosition` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function relativePositionConstructorInternal(hotHaloMassDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureForceRelativePosition` hot halo ram pressure force class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report             , Component_List
@@ -115,7 +115,7 @@ contains
 
   subroutine relativePositionDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureForceRelativePosition`` hot halo ram pressure force class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureForceRelativePosition` hot halo ram pressure force class.
     !!}
     implicit none
     type(hotHaloRamPressureForceRelativePosition), intent(inout) :: self

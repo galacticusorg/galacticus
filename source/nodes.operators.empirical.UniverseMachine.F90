@@ -78,7 +78,7 @@
   
   interface nodeOperatorEmpiricalGalaxyUniverseMachine
      !!{RST
-     Constructors for the ``nodeOperatorEmpiricalGalaxyUniverseMachine`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
      !!}
      module procedure empiricalGalaxyUniverseMachineConstructorParameters
      module procedure empiricalGalaxyUniverseMachineConstructorInternal
@@ -88,7 +88,7 @@ contains
 
   function empiricalGalaxyUniverseMachineConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorEmpiricalGalaxyUniverseMachine`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -396,7 +396,7 @@ contains
          &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorEmpiricalGalaxyUniverseMachine`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
@@ -435,7 +435,7 @@ contains
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
     !!{RST
-    Destructor for the ``nodeOperatorEmpiricalGalaxyUniverseMachine`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
     !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self

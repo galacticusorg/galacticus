@@ -44,7 +44,7 @@ Implements a spheroid stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassStellarSpheroid
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassStellarSpheroid`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassStellarSpheroid` property extractor class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid
@@ -53,7 +53,7 @@ contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassStellarSpheroid`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassStellarSpheroid` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

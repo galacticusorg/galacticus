@@ -34,7 +34,7 @@ module Posterior_Sampling_State_Samples
    <name>posteriorSamples</name>
    <descriptiveName>Posterior Samples</descriptiveName>
    <description>
-   Class providing lists of parameter-space states at which to evaluate the posterior distribution---a pre-defined grid or set of points used for posterior exploration or visualization rather than adaptive MCMC sampling. Implementations generate arrays of ``posteriorSampleStateSimple`` objects covering the parameter space according to a chosen scheme (e.g.\ a regular grid over the prior, or a set of previously sampled points). These samples are used to compute the posterior probability at each grid point for plotting or convergence diagnostics.
+   Class providing lists of parameter-space states at which to evaluate the posterior distribution---a pre-defined grid or set of points used for posterior exploration or visualization rather than adaptive MCMC sampling. Implementations generate arrays of :galacticus-class:`posteriorSampleStateSimple` objects covering the parameter space according to a chosen scheme (e.g.\ a regular grid over the prior, or a set of previously sampled points). These samples are used to compute the posterior probability at each grid point for plotting or convergence diagnostics.
    </description>
    <default>priorGrid</default>
    <method name="samples" >

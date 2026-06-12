@@ -46,7 +46,7 @@ Implements an N-body data operator which determines the kinetic and Chandrasekha
 
   interface nbodyOperatorEnergyTensors
      !!{RST
-     Constructors for the ``nbodyOperatorEnergyTensors`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorEnergyTensors` N-body operator class.
      !!}
      module procedure energyTensorsConstructorParameters
      module procedure energyTensorsConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function energyTensorsConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorEnergyTensors`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorEnergyTensors` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function energyTensorsConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorEnergyTensors`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorEnergyTensors` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorEnergyTensors)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine energyTensorsDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorEnergyTensors`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorEnergyTensors` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorEnergyTensors), intent(inout) :: self

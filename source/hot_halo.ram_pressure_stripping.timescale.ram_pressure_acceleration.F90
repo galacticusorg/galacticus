@@ -55,7 +55,7 @@
 
   interface hotHaloRamPressureTimescaleRamPressureAcceleration
      !!{RST
-     Constructors for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureTimescaleRamPressureAcceleration` hot halo ram pressure timescale class.
      !!}
      module procedure ramPressureAccelerationConstructorParameters
      module procedure ramPressureAccelerationConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function ramPressureAccelerationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureTimescaleRamPressureAcceleration` hot halo ram pressure timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloRamPressureForce_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureTimescaleRamPressureAcceleration` hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleRamPressureAcceleration)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine ramPressureAccelerationDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureTimescaleRamPressureAcceleration`` hot halo ram pressure timescale class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureTimescaleRamPressureAcceleration` hot halo ram pressure timescale class.
     !!}
     implicit none
     type(hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self

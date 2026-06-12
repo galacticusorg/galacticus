@@ -48,7 +48,7 @@
 
   interface supernovaePopulationIIIHegerWoosley2002
      !!{RST
-     Constructors for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
+     Constructors for the :galacticus-class:`supernovaePopulationIIIHegerWoosley2002` Population III supernovae class.
      !!}
      module procedure hegerWoosley2002ConstructorParameters
      module procedure hegerWoosley2002ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function hegerWoosley2002ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`supernovaePopulationIIIHegerWoosley2002` Population III supernovae class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !!{RST
-    Internal constructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
+    Internal constructor for the :galacticus-class:`supernovaePopulationIIIHegerWoosley2002` Population III supernovae class.
     !!}
     use :: FoX_dom                         , only : destroy       , node
     use :: Error                           , only : Error_Report
@@ -123,7 +123,7 @@ contains
 
   subroutine hegerWoosley2002Destructor(self)
     !!{RST
-    Destructor for the ``supernovaePopulationIIIHegerWoosley2002`` Population III supernovae class.
+    Destructor for the :galacticus-class:`supernovaePopulationIIIHegerWoosley2002` Population III supernovae class.
     !!}
     implicit none
     type(supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self

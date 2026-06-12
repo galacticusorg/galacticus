@@ -48,7 +48,7 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
 
   interface outputAnalysisPropertyOperatorCosmologySZ
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorCosmologySZ`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
      !!}
      module procedure csmlgySZConstructorParameters
      module procedure csmlgySZConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function csmlgySZConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorCosmologySZ`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function csmlgySZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorCosmologySZ`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
@@ -111,7 +111,7 @@ contains
 
   subroutine csmlgySZDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisPropertyOperatorCosmologySZ`` output analysis property operator class.
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self

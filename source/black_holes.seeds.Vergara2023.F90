@@ -57,7 +57,7 @@
   
   interface blackHoleSeedsVergara2023
      !!{RST
-     Constructors for the ``blackHoleSeedsVergara2023`` black hole seeds class.
+     Constructors for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
      !!}
      module procedure vergara2023ConstructorParameters
      module procedure vergara2023ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function vergara2023ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleSeedsVergara2023`` black hole seeds class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -131,7 +131,7 @@ contains
   
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleSeedsVergara2023`` black hole seeds class.
+    Internal constructor for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
     !!}
     implicit none
     type            (blackHoleSeedsVergara2023)                        :: self
@@ -161,7 +161,7 @@ contains
 
   subroutine vergara2023Destructor(self)
       !!{RST
-      Destructor for the ``blackHoleSeedsVergara2023`` black hole seeds class.
+      Destructor for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
       !!}
       implicit none 
       type(blackHoleSeedsVergara2023), intent(inout) :: self

@@ -47,7 +47,7 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
 
   interface powerSpectrumNonlinearPeacockDodds1996
      !!{RST
-     Constructors for the ``powerSpectrumNonlinearPeacockDodds1996`` nonlinear power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
      !!}
      module procedure peacockDodds1996ConstructorParameters
      module procedure peacockDodds1996ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumNonlinearPeacockDodds1996`` nonlinear power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
     !!}
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine peacockDodds1996Destructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumNonlinearPeacockDodds1996`` nonlinear power spectrum class.
+    Destructor for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self

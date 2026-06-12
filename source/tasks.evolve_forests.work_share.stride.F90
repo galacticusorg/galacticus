@@ -40,7 +40,7 @@
 
   interface evolveForestsWorkShareStride
      !!{RST
-     Constructors for the ``evolveForestsWorkShareStride`` forest evolution work sharing class.
+     Constructors for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
      !!}
      module procedure strideConstructorParameters
      module procedure strideConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function strideConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``evolveForestsWorkShareStride`` forest evolution work sharing class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function strideConstructorInternal(stride,offset,evolveForestsWorkShare_) result(self)
     !!{RST
-    Internal constructor for the ``evolveForestsWorkShareStride`` forest evolution work sharing class.
+    Internal constructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -103,7 +103,7 @@ contains
 
   subroutine strideDestructor(self)
     !!{RST
-    Destructor for the ``evolveForestsWorkShareStride`` forest evolution work sharing class.
+    Destructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareStride), intent(inout) :: self

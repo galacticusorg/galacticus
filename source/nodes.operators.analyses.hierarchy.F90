@@ -55,7 +55,7 @@
   
   interface nodeOperatorHierarchy
      !!{RST
-     Constructors for the ``nodeOperatorHierarchy`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHierarchy` node operator class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function hierarchyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHierarchy`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHierarchy` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function hierarchyConstructorInternal(factorMassReset) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorHierarchy`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorHierarchy` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -129,7 +129,7 @@ contains
 
   subroutine hierarchyDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorHierarchy`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorHierarchy` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none

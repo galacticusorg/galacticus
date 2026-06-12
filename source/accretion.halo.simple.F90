@@ -35,13 +35,13 @@
    Accretion onto halos using simple truncation to mimic the effects of reionization. The accretion rate of baryons into a halo is given by:
 
    .. math::
+      :label: eq-accretionHalo-truncation
 
        \dot{M}_\mathrm{accretion} = \left\{ \begin{array}{ll} (\Omega_\mathrm{b}/\Omega_\mathrm{M}) \dot{M}_\mathrm{halo} &amp;
        \hbox{ if } V_\mathrm{virial} &gt; V_\mathrm{reionization} \hbox{ or } z &gt; z_\mathrm{reionization} \\ 0 &amp; \hbox{
        otherwise,}\end{array} \right.
-      \label{eq:accretionHalo:truncation}
 
-   where :math:`z_\mathrm{reionization}=`\ ``[redshiftReionization]`` is the redshift at which the Universe is reionized (alternatively, the optical depth to reionization can be specified via ``[opticalDepthReionization]`` and the corresponding redshift will be computed) and :math:`V_\mathrm{reionization}=`\ ``[velocitySuppressionReionization]`` is the virial velocity below which accretion is suppressed after reionization. Setting :math:`V_\mathrm{reionization}` to zero will effectively switch off the effects of reionization on the accretion of baryons. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. :cite:author:`benson_effects_2002` :cite:year:`benson_effects_2002`). In particular, :cite:t:`font_modelingmilky_2010` show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the "failed" accretion rate. For halos which can accrete, and which have some mass in their "failed" reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the "failed" reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine :term:`IGM` and so has zero abundances. Chemical abundances are computed from the chemical state functions (see ``chemicalState``).
+   where :math:`z_\mathrm{reionization}=`\ ``[redshiftReionization]`` is the redshift at which the Universe is reionized (alternatively, the optical depth to reionization can be specified via ``[opticalDepthReionization]`` and the corresponding redshift will be computed) and :math:`V_\mathrm{reionization}=`\ ``[velocitySuppressionReionization]`` is the virial velocity below which accretion is suppressed after reionization. Setting :math:`V_\mathrm{reionization}` to zero will effectively switch off the effects of reionization on the accretion of baryons. This algorithm attempts to offer a simple prescription for the effects of reionization and has been explored by multiple authors (e.g. :cite:author:`benson_effects_2002` :cite:year:`benson_effects_2002`). In particular, :cite:t:`font_modelingmilky_2010` show that it produces results in good agreement with more elaborate treatments of reionization. For halos below the accretion threshold, any accretion rate that would have otherwise occurred is instead placed into the "failed" accretion rate. For halos which can accrete, and which have some mass in their "failed" reservoir, that mass will be added to the regular accretion rate at a rate equal to the mass of the "failed" reservoir times the specific growth rate of the halo. The gas accreted is assumed to be from a pristine :term:`IGM` and so has zero abundances. Chemical abundances are computed from the chemical state functions (see :galacticus-class:`chemicalState`).
 
    Note that, if :math:`\dot{M}_\mathrm{halo} &lt; 0` then negative accretion rates of gas into the node can result. This can be prevented by setting ``[accretionNegativeAllowed]``\ :math:`=`\ ``false``.
 
@@ -99,7 +99,7 @@
 
   interface accretionHaloSimple
      !!{RST
-     Constructors for the ``accretionHaloSimple`` halo accretion class.
+     Constructors for the :galacticus-class:`accretionHaloSimple` halo accretion class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -203,7 +203,7 @@ contains
 
   function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !!{RST
-    Internal constructor for the ``accretionHaloSimple`` halo accretion class.
+    Internal constructor for the :galacticus-class:`accretionHaloSimple` halo accretion class.
     !!}
     use :: Atomic_Data                  , only : Abundance_Pattern_Lookup
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
@@ -239,7 +239,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{RST
-    Destructor for the ``accretionHaloSimple`` halo accretion class.
+    Destructor for the :galacticus-class:`accretionHaloSimple` halo accretion class.
     !!}
     implicit none
     type(accretionHaloSimple), intent(inout) :: self

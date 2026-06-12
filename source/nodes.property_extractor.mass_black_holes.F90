@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBlackHoles` property extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles
@@ -49,7 +49,7 @@ contains
 
   function massBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

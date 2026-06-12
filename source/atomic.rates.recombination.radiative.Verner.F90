@@ -39,7 +39,7 @@
 
   interface atomicRecombinationRateRadiativeVerner1996
      !!{RST
-     Constructors for the ``atomicRecombinationRateRadiativeVerner1996`` atomic radiative recombination class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeVerner1996` atomic radiative recombination class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicRecombinationRateRadiativeVerner1996
@@ -548,7 +548,7 @@ contains
 
   function verner1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateRadiativeVerner1996`` atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeVerner1996` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

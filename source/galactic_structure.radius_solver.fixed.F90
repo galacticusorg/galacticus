@@ -71,7 +71,7 @@
 
   interface galacticStructureSolverFixed
      !!{RST
-     Constructors for the ``galacticStructureSolverFixed`` galactic structure solver class.
+     Constructors for the :galacticus-class:`galacticStructureSolverFixed` galactic structure solver class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticStructureSolverFixed`` galactic structure solver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticStructureSolverFixed` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -151,7 +151,7 @@ contains
 
   function fixedConstructorInternal(darkMatterHaloScale_,virialDensityContrast_,radiusFixed,factor,factorDisk,factorSpheroid) result(self)
     !!{RST
-    Internal constructor for the ``galacticStructureSolverFixed`` galactic structure solver class.
+    Internal constructor for the :galacticus-class:`galacticStructureSolverFixed` galactic structure solver class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -191,7 +191,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{RST
-    Destructor for the ``galacticStructureSolverFixed`` galactic structure solver class.
+    Destructor for the :galacticus-class:`galacticStructureSolverFixed` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

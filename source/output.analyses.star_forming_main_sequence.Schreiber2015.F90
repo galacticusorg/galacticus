@@ -44,7 +44,7 @@
 
   interface outputAnalysisStarFormingMainSequenceSchreiber2015
      !!{RST
-     Constructors for the ``outputAnalysisStarFormingMainSequenceSchreiber2015`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
      !!}
      module procedure starFormingMainSequenceSchreiber2015ConstructorParameters
      module procedure starFormingMainSequenceSchreiber2015ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function starFormingMainSequenceSchreiber2015ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormingMainSequenceSchreiber2015`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParameters   , cosmologyParametersClass
     use :: Cosmology_Functions , only : cosmologyFunctions    , cosmologyFunctionsClass
@@ -163,7 +163,7 @@ contains
 
   function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisStarFormingMainSequenceSchreiber2015`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -365,7 +365,7 @@ contains
 
   subroutine starFormingMainSequenceSchreiber2015Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisStarFormingMainSequenceSchreiber2015`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormingMainSequenceSchreiber2015), intent(inout) :: self

@@ -30,7 +30,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowShi2016" docformat="rst">
     <description>
-    A dark matter profile class which builds ``massDistributionShi2016`` objects to model accretion flows using the model of :cite:t:`shi_outer_2016`.
+    A dark matter profile class which builds :galacticus-class:`massDistributionShi2016` objects to model accretion flows using the model of :cite:t:`shi_outer_2016`.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -54,7 +54,7 @@
 
   interface darkMatterProfileDMOAccretionFlowShi2016
      !!{RST
-     Constructors for the ``darkMatterProfileDMOAccretionFlowShi2016`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
      !!}
      module procedure accretionFlowShi2016ConstructorParameters
      module procedure accretionFlowShi2016ConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function accretionFlowShi2016ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOAccretionFlowShi2016`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOAccretionFlowShi2016`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine accretionFlowShi2016Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOAccretionFlowShi2016`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowShi2016), intent(inout) :: self

@@ -58,7 +58,7 @@
 
   interface nodePropertyExtractorRotationCurve
      !!{RST
-     Constructors for the ``nodePropertyExtractorRotationCurve`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRotationCurve` property extractor class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function rotationCurveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRotationCurve`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRotationCurve` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
 
   function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRotationCurve`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRotationCurve` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -141,7 +141,7 @@ contains
 
   subroutine rotationCurveDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRotationCurve`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRotationCurve` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRotationCurve), intent(inout) :: self

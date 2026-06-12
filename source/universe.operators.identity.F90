@@ -35,7 +35,7 @@
 
   interface universeOperatorIdentity
      !!{RST
-     Constructors for the ``universeOperatorIdentity`` universe operator.
+     Constructors for the :galacticus-class:`universeOperatorIdentity` universe operator.
      !!}
      module procedure identityConstructorParameters
   end interface universeOperatorIdentity
@@ -44,7 +44,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``universeOperatorIdentity`` universe operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`universeOperatorIdentity` universe operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

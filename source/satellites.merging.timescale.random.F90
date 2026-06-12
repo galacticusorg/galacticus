@@ -42,7 +42,7 @@
 
   interface satelliteMergingTimescalesRandom
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesRandom`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesRandom` satellite merging timescale class.
      !!}
      module procedure randomConstructorParameters
   end interface satelliteMergingTimescalesRandom

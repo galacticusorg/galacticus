@@ -45,7 +45,7 @@
 
   interface darkMatterProfileConcentrationFixed
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationFixed`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationFixed`` dark matter halo profile concentration class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function fixedConstructorInternal(concentration_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationFixed`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationFixed)                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationFixed`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationFixed), intent(inout) :: self

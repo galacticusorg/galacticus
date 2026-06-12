@@ -40,7 +40,7 @@
 
   interface mergerTreeOutputterNull
      !!{RST
-     Constructors for the ``mergerTreeOutputterNull`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterNull` merger tree outputter.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOutputterNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterNull`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterNull` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -51,7 +51,7 @@
   
   interface massDistributionCoredNFW
      !!{RST
-     Constructors for the ``massDistributionCoredNFW`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionCoredNFW` mass distribution class.
      !!}
      module procedure coredNFWConstructorParameters
      module procedure coredNFWConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function coredNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionCoredNFW`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionCoredNFW` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -184,7 +184,7 @@ contains
 
   function coredNFWConstructorInternal(radiusScale,radiusCore,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
     !!{RST
-    Internal constructor for ``massDistributionCoredNFW`` mass distribution class.
+    Internal constructor for :galacticus-class:`massDistributionCoredNFW` mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi

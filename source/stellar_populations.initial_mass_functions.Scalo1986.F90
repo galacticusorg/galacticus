@@ -50,7 +50,7 @@
 
   interface initialMassFunctionScalo1986
      !!{RST
-     Constructors for the ``initialMassFunctionScalo1986`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionScalo1986` initial mass function class.
      !!}
      module procedure scalo1986ConstructorParameters
      module procedure scalo1986ConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function scalo1986ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionScalo1986`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionScalo1986` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function scalo1986ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionScalo1986`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionScalo1986` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionScalo1986):: self

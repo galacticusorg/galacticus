@@ -46,7 +46,7 @@
 
   interface taskIntergalacticMediumState
      !!{RST
-     Constructors for the ``taskIntergalacticMediumState`` task.
+     Constructors for the :galacticus-class:`taskIntergalacticMediumState` task.
      !!}
      module procedure intergalacticMediumStateConstructorParameters
      module procedure intergalacticMediumStateConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function intergalacticMediumStateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskIntergalacticMediumState`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskIntergalacticMediumState` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
        &                                               intergalacticMediumFilteringMass_  &
        &                                              ) result(self)
     !!{RST
-    Constructor for the ``taskIntergalacticMediumState`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskIntergalacticMediumState` task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskIntergalacticMediumState         )                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine intergalacticMediumStateDestructor(self)
     !!{RST
-    Destructor for the ``taskIntergalacticMediumState`` task class.
+    Destructor for the :galacticus-class:`taskIntergalacticMediumState` task class.
     !!}
     implicit none
     type(taskIntergalacticMediumState), intent(inout) :: self

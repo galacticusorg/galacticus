@@ -48,7 +48,7 @@ Implements an N-body data operator which computes merger rates of halos.
 
   interface nbodyOperatorMergerRates
      !!{RST
-     Constructors for the ``nbodyOperatorMergerRates`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorMergerRates` N-body operator class.
      !!}
      module procedure mergerRatesConstructorParameters
      module procedure mergerRatesConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorMergerRates`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorMergerRates` N-body operator class which takes a parameter set as input.
     !!}
     use :: ISO_Varying_String, only : operator(/=)
     use :: Input_Parameters  , only : inputParameters
@@ -144,7 +144,7 @@ contains
 
   function mergerRatesConstructorInternal(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorMergerRates`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorMergerRates` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMergerRates)                        :: self
@@ -163,7 +163,7 @@ contains
 
   subroutine mergerRatesDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorMergerRates`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorMergerRates` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMergerRates), intent(inout) :: self

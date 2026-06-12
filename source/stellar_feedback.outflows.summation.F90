@@ -43,7 +43,7 @@
 
   interface stellarFeedbackOutflowsSummation
      !!{RST
-     Constructors for the ``stellarFeedbackOutflowsSummation`` stellar feedback class.
+     Constructors for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarFeedbackOutflowsSummation`` stellar feedback class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -84,7 +84,7 @@ contains
 
   function summationConstructorInternal(stellarFeedbackOutflowss) result(self)
     !!{RST
-    Internal constructor for the ``stellarFeedbackOutflowsSummation`` stellar feedback class.
+    Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -105,7 +105,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{RST
-    Destructor for the ``stellarFeedbackOutflowsSummation`` stellar feedback class.
+    Destructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsSummation), intent(inout) :: self

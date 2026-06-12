@@ -44,7 +44,7 @@ Implements an N-body data operator which subsamples points at a given rate.
 
   interface nbodyOperatorSubsample
      !!{RST
-     Constructors for the ``nbodyOperatorSubsample`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function subsampleConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSubsample`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function subsampleConstructorInternal(rate,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSubsample`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -100,7 +100,7 @@ contains
 
   subroutine subsampleDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSubsample`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubsample), intent(inout) :: self

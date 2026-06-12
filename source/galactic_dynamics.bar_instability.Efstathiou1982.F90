@@ -61,7 +61,7 @@
 
   interface galacticDynamicsBarInstabilityEfstathiou1982
      !!{RST
-     Constructors for the ``galacticDynamicsBarInstabilityEfstathiou1982`` model for galactic disk bar instability class.
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class.
      !!}
      module procedure efstathiou1982ConstructorParameters
      module procedure efstathiou1982ConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function efstathiou1982ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticDynamicsBarInstabilityEfstathiou1982`` model for galactic disk bar instability class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
     !!{RST
-    Internal constructor for the ``galacticDynamicsBarInstabilityEfstathiou1982`` model for galactic disk bar instability class.
+    Internal constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self

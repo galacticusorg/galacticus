@@ -39,7 +39,7 @@
 
   interface chemicalReactionRateZero
      !!{RST
-     Constructors for the ``chemicalReactionRateZero`` chemical reaction rates class.
+     Constructors for the :galacticus-class:`chemicalReactionRateZero` chemical reaction rates class.
      !!}
      module procedure zeroConstructorParameters
   end interface chemicalReactionRateZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``chemicalReactionRateZero`` chemical reaction rates class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`chemicalReactionRateZero` chemical reaction rates class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -39,7 +39,7 @@
 
   interface taskBuildTableCIECloudy
      !!{RST
-     Constructors for the ``taskBuildTableCIECloudy`` task.
+     Constructors for the :galacticus-class:`taskBuildTableCIECloudy` task.
      !!}
      module procedure buildTableCIECloudyParameters
      module procedure buildTableCIECloudyInternal
@@ -49,7 +49,7 @@ contains
 
   function buildTableCIECloudyParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildTableCIECloudy`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildTableCIECloudy` task class which takes a parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
@@ -103,7 +103,7 @@ contains
 
   function buildTableCIECloudyInternal(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum) result(self)
     !!{RST
-    Internal constructor for the ``taskBuildTableCIECloudy`` task class.
+    Internal constructor for the :galacticus-class:`taskBuildTableCIECloudy` task class.
     !!}
     implicit none
     type            (taskBuildTableCIECloudy)                :: self

@@ -45,7 +45,7 @@
 
   interface starFormationRateDisksTimescale
      !!{RST
-     Constructors for the ``starFormationRateDisksTimescale`` star formation rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateDisksTimescale` star formation rate in disks class.
      !!}
      module procedure timescaleConstructorParameters
      module procedure timescaleConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function timescaleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateDisksTimescale`` star formation rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateDisksTimescale` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function timescaleConstructorInternal(starFormationActiveMass_,starFormationTimescale_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateDisksTimescale`` star formation rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateDisksTimescale` star formation rate in disks class.
     !!}
     implicit none
     type (starFormationRateDisksTimescale)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine timescaleDestructor(self)
     !!{RST
-    Destructor for the ``starFormationRateDisksTimescale`` star formation rate in disks class.
+    Destructor for the :galacticus-class:`starFormationRateDisksTimescale` star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksTimescale), intent(inout) :: self

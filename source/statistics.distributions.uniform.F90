@@ -56,7 +56,7 @@
 
   interface distributionFunction1DUniform
      !!{RST
-     Constructors for the ``distributionFunction1DUniform`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class.
      !!}
      module procedure uniformConstructorParameters
      module procedure uniformConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function uniformConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DUniform`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function uniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DUniform`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     type            (distributionFunction1DUniform)                                  :: self

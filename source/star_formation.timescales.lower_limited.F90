@@ -42,7 +42,7 @@
 
   interface starFormationTimescaleLowerLimited
      !!{RST
-     Constructors for the ``starFormationTimescaleLowerLimited`` timescale for star formation class.
+     Constructors for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class.
      !!}
      module procedure lowerLimitedConstructorParameters
      module procedure lowerLimitedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function lowerLimitedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleLowerLimited`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function lowerLimitedConstructorInternal(timescaleMinimum,starFormationTimescale_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleLowerLimited`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none

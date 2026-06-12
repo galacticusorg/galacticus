@@ -91,7 +91,7 @@ Implements a merger tree branching probability class using the algorithm of :cit
 
   interface mergerTreeBranchingProbabilityParkinsonColeHelly
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityParkinsonColeHelly`` merger tree branching probability class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class.
      !!}
      module procedure parkinsonColeHellyConstructorParameters
      module procedure parkinsonColeHellyConstructorInternal
@@ -111,7 +111,7 @@ contains
 
   function parkinsonColeHellyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBranchingProbabilityParkinsonColeHelly`` merger tree branching probability class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                :: self
@@ -204,7 +204,7 @@ contains
 
   function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBranchingProbabilityParkinsonColeHelly`` merger tree branching probability class.
+    Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class.
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : GSL_Integ_Gauss15

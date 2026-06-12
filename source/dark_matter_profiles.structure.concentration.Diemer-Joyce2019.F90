@@ -75,7 +75,7 @@
 
   interface darkMatterProfileConcentrationDiemerJoyce2019
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationDiemerJoyce2019`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
      !!}
      module procedure diemerJoyce2019ConstructorParameters
      module procedure diemerJoyce2019ConstructorInternal
@@ -208,7 +208,7 @@ contains
 
   function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,truncateUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationDiemerJoyce2019`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -285,7 +285,7 @@ contains
 
   subroutine diemerJoyce2019Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationDiemerJoyce2019`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self

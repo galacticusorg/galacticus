@@ -83,7 +83,7 @@
 
   interface massDistributionShi2016
      !!{RST
-     Constructors for the ``massDistributionShi2016`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionShi2016` mass distribution class.
      !!}
      module procedure massDistributionShi2016ConstructorParameters
      module procedure massDistributionShi2016ConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function massDistributionShi2016ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionShi2016`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionShi2016` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -203,7 +203,7 @@ contains
 
   subroutine shi2016Destructor(self)
     !!{RST
-    Destructor for the ``massDistributionShi2016`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionShi2016` mass distribution class.
     !!}
     implicit none
     type(massDistributionShi2016), intent(inout) :: self

@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorPresetNamedIntegers
      !!{RST
-     Constructors for the ``nodePropertyExtractorPresetNamedIntegers`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class.
      !!}
      module procedure presetNamedIntegersConstructorParameters
      module procedure presetNamedIntegersConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function presetNamedIntegersConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorPresetNamedIntegers`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function presetNamedIntegersConstructorInternal(presetnames) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorPresetNamedIntegers`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedIntegers)                              :: self

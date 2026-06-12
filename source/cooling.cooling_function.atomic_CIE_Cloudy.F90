@@ -49,7 +49,7 @@
 
   interface coolingFunctionAtomicCIECloudy
      !!{RST
-     Constructors for the ``coolingFunctionAtomicCIECloudy`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionAtomicCIECloudy` cooling function class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionAtomicCIECloudy`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionAtomicCIECloudy` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function atomicCIECloudyConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionAtomicCIECloudy`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionAtomicCIECloudy` cooling function class.
     !!}
     implicit none
     type(coolingFunctionAtomicCIECloudy) :: self

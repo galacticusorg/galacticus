@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a node operator class that applies labels to nodes during tree initialization based on a ``galacticFilterClass``.
+Implements a node operator class that applies labels to nodes during tree initialization based on a :galacticus-class:`galacticFilterClass`.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
@@ -26,13 +26,13 @@ Implements a node operator class that applies labels to nodes during tree initia
   !![
   <nodeOperator name="nodeOperatorLabel" docformat="rst">
    <description>
-   A node operator class that assigns a string ``label`` meta-property to nodes passing a ``galacticFilterClass`` test. ``onInitialize`` applies the label at tree initialization; ``onPostEvolution`` reapplies it after each differential evolution step, allowing dynamic labeling of nodes that satisfy time-varying filter criteria. Labels can be used to identify special populations for subsequent analysis or filtering.
+   A node operator class that assigns a string ``label`` meta-property to nodes passing a :galacticus-class:`galacticFilterClass` test. ``onInitialize`` applies the label at tree initialization; ``onPostEvolution`` reapplies it after each differential evolution step, allowing dynamic labeling of nodes that satisfy time-varying filter criteria. Labels can be used to identify special populations for subsequent analysis or filtering.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorLabel
      !!{RST
-     A node operator class that applies labels to nodes during tree initialization based on a ``galacticFilterClass``.
+     A node operator class that applies labels to nodes during tree initialization based on a :galacticus-class:`galacticFilterClass`.
      !!}
      private
      type   (varying_string     )          :: label
@@ -48,7 +48,7 @@ Implements a node operator class that applies labels to nodes during tree initia
 
   interface nodeOperatorLabel
      !!{RST
-     Constructors for the ``nodeOperatorLabel`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorLabel` node operator class.
      !!}
      module procedure labelConstructorParameters
      module procedure labelConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function labelConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorLabel`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorLabel` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
       <name>label</name>
       <source>parameters</source>
       <description>
-      The string label to assign as a meta-property to nodes that pass the ``galacticFilterClass`` test.
+      The string label to assign as a meta-property to nodes that pass the :galacticus-class:`galacticFilterClass` test.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -113,7 +113,7 @@ contains
 
   function labelConstructorInternal(label,onInitialize,onPostEvolution,persistent,galacticFilter_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorLabel`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorLabel` node operator class which takes a parameter set as input.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -132,7 +132,7 @@ contains
   
   subroutine labelDestructor(self)
     !!{RST
-    Destructor for  the ``nodeOperatorLabel`` node operator class.
+    Destructor for  the :galacticus-class:`nodeOperatorLabel` node operator class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self

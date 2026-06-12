@@ -46,7 +46,7 @@ Implements a merger tree build controller class which follows branches only if t
 
   interface mergerTreeBuildControllerFiltered
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerFiltered` merger tree build controller class.
      !!}
      module procedure filteredConstructorParameters
      module procedure filteredConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function filteredConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerFiltered` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function filteredConstructorInternal(mergerTreeBranchingProbability_,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class .
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerFiltered` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerFiltered  )                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine filteredDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerFiltered`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerFiltered` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerFiltered), intent(inout) :: self

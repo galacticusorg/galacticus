@@ -47,7 +47,7 @@ Implements an N-body data operator which determines the potential energy of each
 
   interface nbodyOperatorPotentialEnergy
      !!{RST
-     Constructors for the ``nbodyOperatorPotentialEnergy`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
      !!}
      module procedure potentialEnergyConstructorParameters
      module procedure potentialEnergyConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function potentialEnergyConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorPotentialEnergy`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function potentialEnergyConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,bootstrapSampleRate,thetaTolerance,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorPotentialEnergy`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPotentialEnergy)                        :: self
@@ -129,7 +129,7 @@ contains
 
   subroutine potentialEnergyDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorPotentialEnergy`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPotentialEnergy), intent(inout) :: self

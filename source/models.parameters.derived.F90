@@ -48,7 +48,7 @@
 
   interface modelParameterDerived
      !!{RST
-     Constructors for the ``modelParameterDerived`` model parameter class.
+     Constructors for the :galacticus-class:`modelParameterDerived` model parameter class.
      !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function derivedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``modelParameterDerived`` model parameter class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`modelParameterDerived` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function derivedConstructorInternal(name_,definition_,isInteger_) result(self)
     !!{RST
-    Internal constructor for the ``modelParameterDerived`` model parameter class.
+    Internal constructor for the :galacticus-class:`modelParameterDerived` model parameter class.
     !!}
     implicit none
     type   (modelParameterDerived)                :: self

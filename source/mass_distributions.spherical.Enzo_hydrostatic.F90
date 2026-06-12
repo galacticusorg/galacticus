@@ -31,7 +31,7 @@
        \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
        r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
 
-    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see ``hotHaloMassDistributionCoreRadius``). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
+    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
     </description>
   </massDistribution>
   !!]
@@ -56,7 +56,7 @@
 
   interface massDistributionEnzoHydrostatic
      !!{RST
-     Constructors for the ``massDistributionEnzoHydrostatic`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionEnzoHydrostatic` mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionEnzoHydrostatic`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionEnzoHydrostatic` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

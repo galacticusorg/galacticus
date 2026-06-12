@@ -47,7 +47,7 @@
 
   interface powerSpectrumWindowFunctionSmoothKSpace
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionSmoothKSpace` power spectrum window function class.
      !!}
      module procedure smoothKSpaceConstructorParameters
      module procedure smoothKSpaceConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function smoothKSpaceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionSmoothKSpace` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function smoothKSpaceConstructorInternal(cosmologyParameters_,beta,normalization) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionSmoothKSpace` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine smoothKSpaceDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionSmoothKSpace`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionSmoothKSpace` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self

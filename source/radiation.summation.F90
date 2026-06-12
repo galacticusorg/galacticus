@@ -29,7 +29,7 @@ Implements a radiation field class which sums over other radiation fields.
   !![
   <radiationField name="radiationFieldSummation" docformat="rst">
    <description>
-   A radiation field class that computes the total flux as the sum of contributions from a list of constituent ``radiationFieldClass`` objects, enabling composite radiation backgrounds to be assembled from individual components.
+   A radiation field class that computes the total flux as the sum of contributions from a list of constituent :galacticus-class:`radiationFieldClass` objects, enabling composite radiation backgrounds to be assembled from individual components.
    </description>
    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_" objectType="radiationFieldClass"/>
   </radiationField>
@@ -56,7 +56,7 @@ Implements a radiation field class which sums over other radiation fields.
 
   interface radiationFieldSummation
      !!{RST
-     Constructors for the ``radiationFieldSummation`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldSummation` radiation field class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function summationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``radiationFieldSummation`` radiation field class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiationFieldSummation` radiation field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

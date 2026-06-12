@@ -41,7 +41,7 @@
 
   interface massDistributionHeatingNull
      !!{RST
-     Constructors for the ``massDistributionHeatingNull`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingNull` mass distribution heating class.
      !!}
      module procedure nullConstructorParameters
   end interface massDistributionHeatingNull
@@ -50,7 +50,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingNull`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingNull` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

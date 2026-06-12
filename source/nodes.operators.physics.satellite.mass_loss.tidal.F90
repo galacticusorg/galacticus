@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteTidalMassLoss" docformat="rst">
    <description>
-   A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a ``satelliteTidalStrippingClass`` to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable. ``applyPreInfall`` enables tidal stripping before the satellite formally enters the host virial radius, allowing pre-infall environmental mass loss.
+   A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a :galacticus-class:`satelliteTidalStrippingClass` to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable. ``applyPreInfall`` enables tidal stripping before the satellite formally enters the host virial radius, allowing pre-infall environmental mass loss.
    </description>
   </nodeOperator>
   !!]
@@ -44,7 +44,7 @@
   
   interface nodeOperatorSatelliteTidalMassLoss
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteTidalMassLoss`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
      !!}
      module procedure satelliteTidalStrippingConstructorParameters
      module procedure satelliteTidalStrippingConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function satelliteTidalStrippingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteTidalMassLoss`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function satelliteTidalStrippingConstructorInternal(applyPreInfall,satelliteTidalStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteTidalMassLoss`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteTidalMassLoss)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine satelliteTidalStrippingDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteTidalMassLoss`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteTidalMassLoss), intent(inout) :: self

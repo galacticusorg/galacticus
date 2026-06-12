@@ -39,7 +39,7 @@
 
   interface outputTimesLogarithmicSpacingInRedshift
      !!{RST
-     Constructors for the ``outputTimesLogarithmicSpacingInRedshift`` output times class.
+     Constructors for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class.
      !!}
      module procedure logarithmicSpacingInRedshiftConstructorParameters
      module procedure logarithmicSpacingInRedshiftConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function logarithmicSpacingInRedshiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesLogarithmicSpacingInRedshift`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function logarithmicSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the ``outputTimesLogarithmicSpacingInRedshift`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none

@@ -55,7 +55,7 @@
    
   interface transferFunctionFuzzyDMPassaglia2022
      !!{RST
-     Constructors for the ``transferFunctionFuzzyDMPassaglia2022`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
      !!}
      module procedure fuzzyDMPassaglia2022ConstructorParameters
      module procedure fuzzyDMPassaglia2022ConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function fuzzyDMPassaglia2022ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionFuzzyDMPassaglia2022`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function fuzzyDMPassaglia2022ConstructorInternal(transferFunctionCDM,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionFuzzyDMPassaglia2022`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter
@@ -144,7 +144,7 @@ contains
 
   subroutine fuzzyDMPassaglia2022Destructor(self)
     !!{RST
-    Destructor for the ``transferFunctionFuzzyDMPassaglia2022`` transfer function class.
+    Destructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
     !!}
     implicit none
     type(transferFunctionFuzzyDMPassaglia2022), intent(inout) :: self

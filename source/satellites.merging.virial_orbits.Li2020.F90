@@ -81,7 +81,7 @@
 
   interface virialOrbitLi2020
      !!{RST
-     Constructors for the ``virialOrbitLi2020`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
      !!}
      module procedure li2020ConstructorParameters
      module procedure li2020ConstructorInternal
@@ -91,7 +91,7 @@ contains
 
   function li2020ConstructorParameters(parameters) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitLi2020`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -254,7 +254,7 @@ contains
 
   function li2020ConstructorInternal(mu1,mu2,sigma1,a0,a1,a2,a3,b1,b2,c,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitLi2020`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     implicit none
     type            (virialOrbitLi2020            )                             :: self
@@ -293,7 +293,7 @@ contains
 
   subroutine li2020Destructor(self)
     !!{RST
-    Destructor for the ``virialOrbitLi2020`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     implicit none
     type(virialOrbitLi2020), intent(inout) :: self

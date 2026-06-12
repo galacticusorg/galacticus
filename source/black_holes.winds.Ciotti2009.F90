@@ -69,7 +69,7 @@
   
   interface blackHoleWindCiotti2009
      !!{RST
-     Constructors for the ``blackHoleWindCiotti2009`` black hole winds class.
+     Constructors for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class.
      !!}
      module procedure ciotti2009ConstructorParameters
      module procedure ciotti2009ConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function ciotti2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleWindCiotti2009`` black hole winds class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function ciotti2009ConstructorInternal(efficiencyWind,efficiencyWindScalesWithEfficiencyRadiative,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleWindCiotti2009`` black hole winds class.
+    Internal constructor for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindCiotti2009    )                        :: self

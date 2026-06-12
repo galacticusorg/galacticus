@@ -45,7 +45,7 @@
 
   interface satelliteOrphanDistributionTraceDarkMatter
      !!{RST
-     Constructors for the ``satelliteOrphanDistributionTraceDarkMatter`` orphan satellite distribution class.
+     Constructors for the :galacticus-class:`satelliteOrphanDistributionTraceDarkMatter` orphan satellite distribution class.
      !!}
      module procedure traceDarkMatterConstructorParameters
      module procedure traceDarkMatterConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function traceDarkMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteOrphanDistributionTraceDarkMatter`` orphan satellite distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`satelliteOrphanDistributionTraceDarkMatter` orphan satellite distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function traceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteOrphanDistributionTraceDarkMatter`` orphan satellite distribution class.
+    Internal constructor for the :galacticus-class:`satelliteOrphanDistributionTraceDarkMatter` orphan satellite distribution class.
     !!}
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine traceDarkMatterDestructor(self)
     !!{RST
-    Destructor for the ``satelliteOrphanDistributionTraceDarkMatter`` orphan satellite distribution class.
+    Destructor for the :galacticus-class:`satelliteOrphanDistributionTraceDarkMatter` orphan satellite distribution class.
     !!}
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self

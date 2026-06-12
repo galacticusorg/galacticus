@@ -24,7 +24,7 @@
   !![
   <massFunctionIncompleteness name="massFunctionIncompletenessComplete" docformat="rst">
    <description>
-   A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the ``massFunctionIncompletenessClass`` interface.
+   A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the :galacticus-class:`massFunctionIncompletenessClass` interface.
    </description>
   </massFunctionIncompleteness>
   !!]
@@ -39,7 +39,7 @@
 
   interface massFunctionIncompletenessComplete
      !!{RST
-     Constructors for the ``massFunctionIncompletenessComplete`` incompleteness class.
+     Constructors for the :galacticus-class:`massFunctionIncompletenessComplete` incompleteness class.
      !!}
      module procedure completeConstructorParameters
   end interface massFunctionIncompletenessComplete
@@ -48,7 +48,7 @@ contains
 
   function completeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massFunctionIncompletenessComplete`` incompleteness class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`massFunctionIncompletenessComplete` incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

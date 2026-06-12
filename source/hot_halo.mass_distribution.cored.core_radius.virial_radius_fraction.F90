@@ -44,7 +44,7 @@ Implements a hot halo mass distribution core radius class which sets the core ra
 
   interface hotHaloMassDistributionCoreRadiusVirialFraction
      !!{RST
-     Constructors for the ``hotHaloMassDistributionCoreRadiusVirialFraction`` hot halo mass distribution core radius class.
+     Constructors for the :galacticus-class:`hotHaloMassDistributionCoreRadiusVirialFraction` hot halo mass distribution core radius class.
      !!}
      module procedure virialFractionConstructorParameters
      module procedure virialFractionConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   subroutine virialFractionDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionCoreRadiusVirialFraction`` hot halo mass distribution core radius class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusVirialFraction` hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self

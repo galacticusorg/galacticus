@@ -24,7 +24,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers" docformat="rst">
    <description>
-   Extracts combined physical and index properties for galaxy merger events by composing the ``nodePropertyExtractorGalaxyMergersPhysical`` and ``nodePropertyExtractorGalaxyMergersIndices`` extractors, packaging scalar and integer merger information (e.g., mass ratios, progenitor IDs, merger times) into a single output for post-processing analysis.
+   Extracts combined physical and index properties for galaxy merger events by composing the :galacticus-class:`nodePropertyExtractorGalaxyMergersPhysical` and :galacticus-class:`nodePropertyExtractorGalaxyMergersIndices` extractors, packaging scalar and integer merger information (e.g., mass ratios, progenitor IDs, merger times) into a single output for post-processing analysis.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -38,7 +38,7 @@
 
   interface nodePropertyExtractorGalaxyMergers
      !!{RST
-     Constructors for the ``nodePropertyExtractorGalaxyMergers`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorGalaxyMergers`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +64,7 @@ contains
 
   function galaxyMergersConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorGalaxyMergers`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorGalaxyMergers) :: self

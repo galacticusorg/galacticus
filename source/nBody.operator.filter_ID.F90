@@ -41,7 +41,7 @@ Implements an N-body data operator which filters particles by ID.
 
   interface nbodyOperatorFilterID
      !!{RST
-     Constructors for the ``nbodyOperatorFilterID`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class.
      !!}
      module procedure filterIDConstructorParameters
      module procedure filterIDConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function filterIDConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorFilterID`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: IO_HDF5         , only : hdf5Object
@@ -127,7 +127,7 @@ contains
 
   function filterIDConstructorInternal(idSelection) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorFilterID`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class.
     !!}
     use :: Sorting, only : sort
     implicit none

@@ -24,7 +24,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneLightcone" docformat="rst">
    <description>
-   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the newer approach, in which galaxies are evolved to precisely the time of lightcone crossing*. For the older approach (in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot) see the ``mergerTreeOperatorPruneLightconeSnapshots`` merger tree operator class.
+   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the newer approach, in which galaxies are evolved to precisely the time of lightcone crossing*. For the older approach (in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot) see the :galacticus-class:`mergerTreeOperatorPruneLightconeSnapshots` merger tree operator class.
 
    Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter ``[splitTrees]`` is set to ``true`` then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a forest).
    </description>

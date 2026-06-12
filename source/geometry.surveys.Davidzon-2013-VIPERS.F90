@@ -30,19 +30,20 @@ Implements the geometry of the VIPERS survey used by :cite:t:`davidzon_vimos_201
 
    For the angular mask, we make use of ``mangle`` polygon files provided by I. Davidzon (private communication) corresponding to the VIPERS fields. The solid angle of each mask is computed using the ``mangle`` ``harmonize`` command.
 
-   To determine the depth as a function of stellar mass, we make use of the tabulated mass function, :math:`\phi`, and number of galaxies per bin, :math:`N`, supplied by I. Davidzon (private communication). The effective volume of each bin is found as :math:`V_i = N_i/f_\mathrm{complete}\phi_i\Delta\log_{10}M_\star`, where :math:`\Delta\log_{10}M_\star` is the width of the bin, and :math:`f_\mathrm{complete}` is the completeness of the survey, estimated to be approximately 40% :cite:p:`guzzo_vimos_2013`. These volumes are converted to maximum distances in each field using the survey solid angle. The resulting mass vs. distance relation in each field is fit with a :math:`1^\mathrm{st}`-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed upper limit to redshift. Figure  shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from VIPERS, while the lines show polynomial fits:
+   To determine the depth as a function of stellar mass, we make use of the tabulated mass function, :math:`\phi`, and number of galaxies per bin, :math:`N`, supplied by I. Davidzon (private communication). The effective volume of each bin is found as :math:`V_i = N_i/f_\mathrm{complete}\phi_i\Delta\log_{10}M_\star`, where :math:`\Delta\log_{10}M_\star` is the width of the bin, and :math:`f_\mathrm{complete}` is the completeness of the survey, estimated to be approximately 40% :cite:p:`guzzo_vimos_2013`. These volumes are converted to maximum distances in each field using the survey solid angle. The resulting mass vs. distance relation in each field is fit with a :math:`1^\mathrm{st}`-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed upper limit to redshift. Figure :numref:`{number} &lt;fig-Davidzon2013DepthFit&gt;` shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from VIPERS, while the lines show polynomial fits:
 
    .. math::
+      :label: eq-DavidzonDepthPolynomial
 
       \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} 3.207 + 0.0124m &amp; 0.5 &lt; z &lt;
       0.6 \\ 3.148 + 0.0268m &amp; 0.6 &lt; z &lt; 0.8 \\ 3.207 + 0.0273m &amp; 0.8 &lt; z &lt; 1.0 \end{array} \right.
-      \label{eq:DavidzonDepthPolynomial}
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
    .. figure:: Plots/DataAnalysis/DavidzonVIPERSMassDistanceRelation.pdf
+      :name: fig-Davidzon2013DepthFit
 
-      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`davidzon_vimos_2013`. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn. ). Note that at high masses the distance is limited by the imposed upper limit---the polynomial fit does not consider these points.
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`davidzon_vimos_2013`. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-DavidzonDepthPolynomial`). Note that at high masses the distance is limited by the imposed upper limit---the polynomial fit does not consider these points.
    </description>
   </surveyGeometry>
   !!]
@@ -154,7 +155,7 @@ contains
 
   subroutine davidzon2013VIPERSDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryDavidzon2013VIPERS`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryDavidzon2013VIPERS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self

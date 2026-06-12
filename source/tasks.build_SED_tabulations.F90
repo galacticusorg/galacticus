@@ -50,7 +50,7 @@
 
   interface taskBuildSEDTabulations
      !!{RST
-     Constructors for the ``taskBuildSEDTabulations`` task.
+     Constructors for the :galacticus-class:`taskBuildSEDTabulations` task.
      !!}
      module procedure buildSEDTabulationsParameters
      module procedure buildSEDTabulationsInternal
@@ -60,7 +60,7 @@ contains
 
   function buildSEDTabulationsParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildSEDTabulations`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildSEDTabulations` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
@@ -104,7 +104,7 @@ contains
 
   function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildSEDTabulations`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildSEDTabulations` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   subroutine buildSEDDestructor(self)
     !!{RST
-    Destructor for the ``taskBuildSEDTabulations`` task class.
+    Destructor for the :galacticus-class:`taskBuildSEDTabulations` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

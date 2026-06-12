@@ -83,7 +83,7 @@
 
   interface massDistributionSphericalSIDMIsothermalBaryons
      !!{RST
-     Constructors for the ``massDistributionSphericalSIDMIsothermalBaryons`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalBaryonsConstructorParameters
      module procedure sphericalSIDMIsothermalBaryonsConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalSIDMIsothermalBaryons`` mass distribution class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -174,7 +174,7 @@ contains
 
   function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{RST
-    Internal constructor for the ``massDistributionSphericalSIDMIsothermalBaryons`` mass distribution class.
+    Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -207,7 +207,7 @@ contains
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalSIDMIsothermalBaryons`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self

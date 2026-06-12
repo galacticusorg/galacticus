@@ -43,7 +43,7 @@ Implements a node property extractor for the most massive progenitor.
 
   interface nodePropertyExtractorMostMassiveProgenitor
      !!{RST
-     Constructors for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMostMassiveProgenitor` property extractor class.
      !!}
      module procedure mostMassiveProgenitorConstructorParameters
      module procedure mostMassiveProgenitorConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function mostMassiveProgenitorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMostMassiveProgenitor` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function mostMassiveProgenitorConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMostMassiveProgenitor`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMostMassiveProgenitor` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor) :: self

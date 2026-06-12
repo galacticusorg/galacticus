@@ -41,7 +41,7 @@ Implements a galactic filter which applies another filter to satellite nodes of 
 
   interface galacticFilterAnySatelliteNode
      !!{RST
-     Constructors for the ``galacticFilterAnySatelliteNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterAnySatelliteNode` galactic filter class.
      !!}
      module procedure anySatelliteNodeConstructorParameters
      module procedure anySatelliteNodeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function anySatelliteNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterAnySatelliteNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterAnySatelliteNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
   
   function anySatelliteNodeConstructorInternal(galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterAnySatelliteNode`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterAnySatelliteNode` galactic filter class.
     !!}
     implicit none
     type (galacticFilterAnySatelliteNode)                        :: self
@@ -86,7 +86,7 @@ contains
   
   subroutine anySatelliteNodeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterAnySatelliteNode`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterAnySatelliteNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAnySatelliteNode), intent(inout) :: self

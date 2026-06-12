@@ -43,7 +43,7 @@ Implements an N-body data operator which filters particles to select those withi
 
   interface nbodyOperatorFilterUncontaminatedSphere
      !!{RST
-     Constructors for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorFilterUncontaminatedSphere` N-body operator class.
      !!}
      module procedure filterUncontaminatedSphereConstructorParameters
      module procedure filterUncontaminatedSphereConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function filterUncontaminatedSphereConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorFilterUncontaminatedSphere` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function filterUncontaminatedSphereConstructorInternal(point,fractionContamination,particleType,massWeighted) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorFilterUncontaminatedSphere`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorFilterUncontaminatedSphere` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorFilterUncontaminatedSphere)                              :: self

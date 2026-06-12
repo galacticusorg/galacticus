@@ -56,7 +56,7 @@ Implements a two-point correlation function class in which the correlation funct
 
   interface correlationFunctionTwoPointPowerSpectrumTransform
      !!{RST
-     Constructors for the ``correlationFunctionTwoPointPowerSpectrumTransform`` two-point correlation function class.
+     Constructors for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
      !!}
      module procedure powerSpectrumTransformConstructorParameters
      module procedure powerSpectrumTransformConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function powerSpectrumTransformConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``correlationFunctionTwoPointPowerSpectrumTransform`` two-point correlation function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_,cosmologyFunctions_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``correlationFunctionTwoPointPowerSpectrumTransform`` two-point correlation function class.
+    Internal constructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -146,7 +146,7 @@ contains
 
   subroutine powerSpectrumTransformDestructor(self)
     !!{RST
-    Destructor for the ``correlationFunctionTwoPointPowerSpectrumTransform`` two-point correlation function class.
+    Destructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
     !!}
     implicit none
     type(correlationFunctionTwoPointPowerSpectrumTransform), intent(inout) :: self

@@ -46,7 +46,7 @@ Implements a cosmological angular distance corrector analysis property operator 
 
   interface outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyAnglrDstnc` output analysis property operator class.
      !!}
      module procedure csmlgyAngularDistanceConstructorParameters
      module procedure csmlgyAngularDistanceConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function csmlgyAngularDistanceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyAnglrDstnc` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function csmlgyAngularDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyAnglrDstnc` output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -139,7 +139,7 @@ contains
 
   subroutine csmlgyAngularDistanceDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisPropertyOperatorCsmlgyAnglrDstnc`` output analysis property operator class.
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyAnglrDstnc` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc), intent(inout) :: self

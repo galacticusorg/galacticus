@@ -28,7 +28,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorPruneLightconeSnapshots" docformat="rst">
    <description>
-   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the older approach in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot*. For the newer approach (in which galaxies are evolved to precisely the time of lightcone crossing) see the ``mergerTreeOperatorPruneLightcone`` merger tree operator class.
+   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the older approach in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot*. For the newer approach (in which galaxies are evolved to precisely the time of lightcone crossing) see the :galacticus-class:`mergerTreeOperatorPruneLightcone` merger tree operator class.
 
    Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter ``[splitTrees]`` is set to ``true`` then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a forest). If the parameter ``[bufferIsolatedHalos]`` is set to ``true`` then, when testing whether an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible orphan galaxies associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo might possibly intersect the lightcone the halo will not be pruned away.
    </description>
@@ -87,7 +87,7 @@ contains
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. "satellite") halos, and of isolated halos (a.k.a "centrals") with a buffer region (with radius equal to the extent of the orphan satellite distribution---see ``satelliteOrphanDistribution``) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is ``false`` then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.
+      If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. "satellite") halos, and of isolated halos (a.k.a "centrals") with a buffer region (with radius equal to the extent of the orphan satellite distribution---see :galacticus-class:`satelliteOrphanDistribution`) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is ``false`` then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

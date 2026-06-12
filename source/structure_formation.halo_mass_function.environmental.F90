@@ -40,7 +40,7 @@ Implements a dark matter halo mass function class which handles the transition t
 
   interface haloMassFunctionEnvironmental
      !!{RST
-     Constructors for the ``haloMassFunctionEnvironmental`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function environmentalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionEnvironmental`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function environmentalConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionEnvironmental`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionEnvironmental)                        :: self

@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingTidal" docformat="rst">
    <description>
-   A dark matter profile heating class that constructs ``massDistributionHeatingTidal`` objects to compute heating due to tidal shocks.
+   A dark matter profile heating class that constructs :galacticus-class:`massDistributionHeatingTidal` objects to compute heating due to tidal shocks.
    </description>
   </darkMatterProfileHeating>
   !!]
@@ -41,7 +41,7 @@
 
   interface darkMatterProfileHeatingTidal
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingTidal`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingTidal`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function tidalConstructorInternal(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileHeatingTidal`` dark matter profile heating class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTidal)                :: self

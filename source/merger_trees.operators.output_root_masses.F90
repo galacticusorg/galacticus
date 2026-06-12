@@ -149,7 +149,7 @@ contains
 
   subroutine outputRootMassesDestructor(self)
     !!{RST
-    Destructor for  the ``mergerTreeOperatorOutputRootMasses`` merger tree operator class.
+    Destructor for  the :galacticus-class:`mergerTreeOperatorOutputRootMasses` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputRootMasses), intent(inout) :: self

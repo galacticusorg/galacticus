@@ -52,7 +52,7 @@
 
   interface mergerTreeBuilderExcursionSetSimulator
      !!{RST
-     Constructors for the ``mergerTreeBuilderExcursionSetSimulator`` merger tree builder class.
+     Constructors for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
      !!}
      module procedure excursionSetSimulatorConstructorParameters
        module procedure excursionSetSimulatorConstructorInternal
@@ -62,7 +62,7 @@
 
       function excursionSetSimulatorConstructorParameters(parameters) result(self)
         !!{RST
-        Constructor for the ``mergerTreeBuilderExcursionSetSimulator`` merger tree builder class which takes a parameter set as input.
+        Constructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class which takes a parameter set as input.
         !!}
         use :: Input_Parameters, only : inputParameter, inputParameters
         implicit none
@@ -145,7 +145,7 @@
 
       function excursionSetSimulatorConstructorInternal(timeEarliest,varianceStepMinimum,varianceStepSigmaMaximum,excursionStep,factorMassConsolidate,factorTimeConsolidate,cosmologyFunctions_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
         !!{RST
-        Internal constructor for the ``mergerTreeBuilderExcursionSetSimulator`` merger tree builder class.
+        Internal constructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
         !!}
         implicit none
         type            (mergerTreeBuilderExcursionSetSimulator)                        :: self
@@ -169,7 +169,7 @@
 
       subroutine excursionSetSimulatorDestructor(self)
         !!{RST
-        Destructor for the ``mergerTreeBuilderExcursionSetSimulator`` merger tree builder class.
+        Destructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
         !!}
         implicit none
         type(mergerTreeBuilderExcursionSetSimulator), intent(inout) :: self

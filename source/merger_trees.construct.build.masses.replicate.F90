@@ -49,7 +49,7 @@ contains
 
   function replicateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesReplicate`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesReplicate` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function replicateConstructorInternal(replicationCount,mergerTreeBuildMasses_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesReplicate`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesReplicate` merger tree masses class.
     !!}
     implicit none
     type   (mergerTreeBuildMassesReplicate)                        :: self

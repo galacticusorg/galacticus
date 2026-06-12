@@ -34,7 +34,7 @@
 
     * The time at which the merger occurred.
 
-    Two ``galacticFilterClass``\ es are accepted, via parameters ``[galacticFilterSatellite]`` and ``[galacticFilterCentral]`` which can be used to control which galaxies are included in the output.
+    Two :galacticus-class:`galacticFilterClass`\ es are accepted, via parameters ``[galacticFilterSatellite]`` and ``[galacticFilterCentral]`` which can be used to control which galaxies are included in the output.
     </description>
   </nodeOperator>
   !!]
@@ -55,7 +55,7 @@
   
   interface nodeOperatorGalaxyMergers
      !!{RST
-     Constructors for the ``nodeOperatorGalaxyMergers`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorGalaxyMergers` node operator class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorGalaxyMergers`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorGalaxyMergers` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function galaxyMergersConstructorInternal(countMergersMaximum,galacticFilterSatellite_,galacticFilterCentral_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorGalaxyMergers`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorGalaxyMergers` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -141,7 +141,7 @@ contains
   
   subroutine galaxyMergersDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorGalaxyMergers`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorGalaxyMergers` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

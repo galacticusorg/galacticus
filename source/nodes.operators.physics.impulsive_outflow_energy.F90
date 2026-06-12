@@ -78,7 +78,7 @@
   
   interface nodeOperatorImpulsiveOutflowEnergy
      !!{RST
-     Constructors for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorImpulsiveOutflowEnergy` node operator class.
      !!}
      module procedure impulsiveOutflowEnergyConstructorParameters
      module procedure impulsiveOutflowEnergyConstructorInternal
@@ -88,7 +88,7 @@ contains
 
   function impulsiveOutflowEnergyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorImpulsiveOutflowEnergy` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -146,7 +146,7 @@ contains
 
   function impulsiveOutflowEnergyConstructorInternal(impulsiveCorrectionScale,impulsiveCorrectionExponent,darkMatterProfileDMO_,stellarFeedbackOutflowsDisks_,stellarFeedbackOutflowsSpheroids_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,mergerMassMovements_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorImpulsiveOutflowEnergy` node operator class.
     !!}
     implicit none
     type            (nodeOperatorImpulsiveOutflowEnergy)                        :: self
@@ -170,7 +170,7 @@ contains
 
   subroutine impulsiveOutflowEnergyDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorImpulsiveOutflowEnergy`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorImpulsiveOutflowEnergy` node operator class.
     !!}
     implicit none
     type(nodeOperatorImpulsiveOutflowEnergy), intent(inout) :: self

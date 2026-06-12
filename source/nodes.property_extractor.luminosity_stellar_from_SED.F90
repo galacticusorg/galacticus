@@ -35,7 +35,7 @@ Implements a stellar mass output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED" docformat="rst">
    <description>
-   A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a ``nodePropertyExtractorSED`` property extractor object) through a set of broadband filter response functions specified by ``filterNames``. For each filter, the filter transmission curve is convolved with the galaxy SED to compute :math:`L_\nu` in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.
+   A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a :galacticus-class:`nodePropertyExtractorSED` property extractor object) through a set of broadband filter response functions specified by ``filterNames``. For each filter, the filter transmission curve is convolved with the galaxy SED to compute :math:`L_\nu` in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.
    </description>
    <deepCopy>
     <functionClass variables="nodePropertyExtractor_"/>
@@ -68,7 +68,7 @@ Implements a stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorLuminosityStellarFromSED
      !!{RST
-     Constructors for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
      !!}
      module procedure luminosityStellarFromSEDConstructorParameters
      module procedure luminosityStellarFromSEDConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -137,7 +137,7 @@ contains
   
   subroutine luminosityStellarFromSEDDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLuminosityStellarFromSED`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self

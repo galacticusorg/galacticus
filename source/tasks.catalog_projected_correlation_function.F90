@@ -70,7 +70,7 @@
 
   interface taskCatalogProjectedCorrelationFunction
      !!{RST
-     Constructors for the ``taskCatalogProjectedCorrelationFunction`` task.
+     Constructors for the :galacticus-class:`taskCatalogProjectedCorrelationFunction` task.
      !!}
      module procedure catalogProjectedCorrelationFunctionConstructorParameters
      module procedure catalogProjectedCorrelationFunctionConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function catalogProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskCatalogProjectedCorrelationFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskCatalogProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes        , only : nodeClassHierarchyInitialize
     use :: Input_Parameters        , only : inputParameter              , inputParameters
@@ -262,7 +262,7 @@ contains
 
   function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCountNumber,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
     !!{RST
-    Constructor for the ``taskCatalogProjectedCorrelationFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskCatalogProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: String_Handling, only : operator(//)
     implicit none
@@ -299,7 +299,7 @@ contains
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
     !!{RST
-    Destructor for the ``taskCatalogProjectedCorrelationFunction`` task class.
+    Destructor for the :galacticus-class:`taskCatalogProjectedCorrelationFunction` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

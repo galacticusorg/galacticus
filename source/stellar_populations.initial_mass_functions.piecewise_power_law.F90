@@ -54,7 +54,7 @@
 
   interface initialMassFunctionPiecewisePowerLaw
      !!{RST
-     Constructors for the ``initialMassFunctionPiecewisePowerLaw`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionPiecewisePowerLaw`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function piecewisePowerLawConstructorInternal(mass,exponent) result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionPiecewisePowerLaw`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic, directionIncreasing
     use :: Error          , only : Error_Report

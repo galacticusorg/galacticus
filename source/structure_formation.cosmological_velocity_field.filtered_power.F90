@@ -65,7 +65,7 @@
 
   interface cosmologicalVelocityFieldFilteredPower
      !!{RST
-     Constructors for the ``cosmologicalVelocityFieldFilteredPower`` cosmological velocity field class.
+     Constructors for the :galacticus-class:`cosmologicalVelocityFieldFilteredPower` cosmological velocity field class.
      !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``cosmologicalVelocityFieldFilteredPower`` cosmological velocity field class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`cosmologicalVelocityFieldFilteredPower` cosmological velocity field class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   function filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_) result(self)
     !!{RST
-    Internal constructor for the ``cosmologicalVelocityFieldFilteredPower`` cosmological velocity field class.
+    Internal constructor for the :galacticus-class:`cosmologicalVelocityFieldFilteredPower` cosmological velocity field class.
     !!}
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                        :: self
@@ -140,7 +140,7 @@ contains
 
   subroutine filteredPowerDestructor(self)
     !!{RST
-    Destructor for the ``cosmologicalVelocityFieldFilteredPower`` cosmological velocity field class.
+    Destructor for the :galacticus-class:`cosmologicalVelocityFieldFilteredPower` cosmological velocity field class.
     !!}
     implicit none
     type   (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self

@@ -63,7 +63,7 @@
 
   interface darkMatterProfileScaleRadiusConcentration
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusConcentration` dark matter halo profile scale radius class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentration` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function concentrationConstructorInternal(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentration` dark matter halo profile scale radius class.
     !!}
     implicit none
     type   (darkMatterProfileScaleRadiusConcentration)                        :: self
@@ -168,7 +168,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusConcentration`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentration` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self

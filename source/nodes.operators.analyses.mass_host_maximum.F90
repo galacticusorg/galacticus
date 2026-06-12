@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorMassHostMaximum" docformat="rst">
     <description>
-    A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the ``nodePropertyExtractorMassHostMaximum`` property extractor class to extract these masses for output.
+    A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the :galacticus-class:`nodePropertyExtractorMassHostMaximum` property extractor class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]
@@ -51,7 +51,7 @@
   
   interface nodeOperatorMassHostMaximum
      !!{RST
-     Constructors for the ``nodeOperatorMassHostMaximum`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function massHostMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorMassHostMaximum`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function massHostMaximumConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorMassHostMaximum`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassHostMaximum) :: self
@@ -102,7 +102,7 @@ contains
 
   subroutine massHostMaximumDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorMassHostMaximum`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none

@@ -46,7 +46,7 @@
 
   interface mergerTreeImporterSussingHDF5
      !!{RST
-     Constructors for the ``mergerTreeImporterSussingHDF5`` HDF5 format merger tree importer class.
+     Constructors for the :galacticus-class:`mergerTreeImporterSussingHDF5` HDF5 format merger tree importer class.
      !!}
      module procedure sussingHDF5ConstructorParameters
      module procedure sussingHDF5ConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function sussingHDF5ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeImporterSussingHDF5`` merger tree importer class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeImporterSussingHDF5` merger tree importer class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   subroutine sussingHDF5Destructor(self)
     !!{RST
-    Destructor for the ``mergerTreeImporterSussingHDF5`` HDF5 format merger tree importer class.
+    Destructor for the :galacticus-class:`mergerTreeImporterSussingHDF5` HDF5 format merger tree importer class.
     !!}
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self

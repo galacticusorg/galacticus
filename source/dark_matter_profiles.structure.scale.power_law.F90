@@ -65,7 +65,7 @@
   
   interface darkMatterProfileScaleRadiusPowerLaw
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusPowerLaw`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScalePowerLawConstructorParameters
      module procedure darkMatterProfileScalePowerLawConstructorInternal
@@ -75,7 +75,7 @@ contains
   
   function darkMatterProfileScalePowerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusPowerLaw`` dark matter halo profile scale radius class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -213,7 +213,7 @@ contains
 
   function darkMatterProfileScalePowerLawConstructorInternal(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileScaleRadiusPowerLaw`` dark matter halo profile scale radius class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusPowerLaw)                        :: self
@@ -236,7 +236,7 @@ contains
 
   subroutine darkMatterProfileScalePowerLawDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusPowerLaw`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusPowerLaw), intent(inout) :: self

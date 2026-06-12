@@ -58,7 +58,7 @@
    ``[branchIntervalStep]``
       If ``true``, instead of limiting each time step such that the probability of branching is less than ``mergerTreeBuildCole2000MergeProbability``, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\footnoteNote that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
 
-   The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see ``mergerTreeMassResolution``). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
+   The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see :galacticus-class:`mergerTreeMassResolution`). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
 
    In the original :cite:t:`cole_hierarchical_2000`, when a branch split occurred masses, :math:`M_2` and :math:`M_3`, of the two new halos were selected by first drawing the mass :math:`M_2` from the branching distribution function in the range :math:`M_\mathrm{res}` to :math:`M_1/2` (where :math:`M_1` is the mass of the parent halo, and :math:`M_\mathrm{res}` is the mass resolution being used for the tree), and then setting
 
@@ -134,7 +134,7 @@
 
   interface mergerTreeBuilderCole2000
      !!{RST
-     Constructors for the ``mergerTreeBuilderCole2000`` merger tree builder class.
+     Constructors for the :galacticus-class:`mergerTreeBuilderCole2000` merger tree builder class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -326,7 +326,7 @@ contains
 
   subroutine cole2000Destructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuilderCole2000`` merger tree builder class.
+    Destructor for the :galacticus-class:`mergerTreeBuilderCole2000` merger tree builder class.
     !!}
     implicit none
     type   (mergerTreeBuilderCole2000), intent(inout) :: self

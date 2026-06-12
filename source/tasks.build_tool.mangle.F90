@@ -36,7 +36,7 @@
 
   interface taskBuildToolMangle
      !!{RST
-     Constructors for the ``taskBuildToolMangle`` task.
+     Constructors for the :galacticus-class:`taskBuildToolMangle` task.
      !!}
      module procedure buildToolMangleParameters
   end interface taskBuildToolMangle
@@ -45,7 +45,7 @@ contains
 
   function buildToolMangleParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildToolMangle`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildToolMangle` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

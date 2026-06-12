@@ -46,7 +46,7 @@
 
   interface mergerTreeOutputterAnalyzer
      !!{RST
-     Constructors for the ``mergerTreeOutputterAnalyzer`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterAnalyzer` merger tree outputter.
      !!}
      module procedure analyzerConstructorParameters
      module procedure analyzerConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function analyzerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterAnalyzer`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterAnalyzer` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function analyzerConstructorInternal(outputAnalysis_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOutputterAnalyzer`` merger tree outputter class.
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterAnalyzer` merger tree outputter class.
     !!}
     implicit none
     type (mergerTreeOutputterAnalyzer)                        :: self

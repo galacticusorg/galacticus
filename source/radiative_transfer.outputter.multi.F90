@@ -51,7 +51,7 @@
 
   interface radiativeTransferOutputterMulti
      !!{RST
-     Constructors for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
+     Constructors for the :galacticus-class:`radiativeTransferOutputterMulti` radiative transfer outputter class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferOutputterMulti` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function multiConstructorInternal(outputters) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
+    Internal constructor for the :galacticus-class:`radiativeTransferOutputterMulti` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferOutputterMulti`` radiative transfer outputter class.
+    Destructor for the :galacticus-class:`radiativeTransferOutputterMulti` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterMulti), intent(inout) :: self

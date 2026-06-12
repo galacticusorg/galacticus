@@ -606,9 +606,9 @@ contains
     for black hole spin :math:`j`. This result is derived as follows. Starting from equation (9) in :cite:t:`benson_maximum_2009`:
 
     .. math::
+       :label: eq-massBlackHoleIrreducible
 
        M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
-       \label{eq:massBlackHoleIrreducible}
 
     which we can rearrange to get
 
@@ -639,9 +639,9 @@ contains
     The spin-down rate is then
 
     .. math::
+       :label: eq-blackHoleJetSpinDownRate
 
        \frac{\mathrm{d}j}{\mathrm{d}t} = - \frac{\mathrm{d}j}{\mathrm{d}M_\bullet} \frac{P_\mathrm{jet}}{\mathrm{c}^2} = - 4 \frac{P_\mathrm{jet}}{M_\bullet \mathrm{c}^2} \left(\frac{M_{\bullet,\mathrm{irr}}}{M_\bullet}\right)^2  \frac{(1-j^2)^{1/2}}{j}.
-       \label{eq:blackHoleJetSpinDownRate}
 
     The spin-down parameter is then
 
@@ -649,7 +649,7 @@ contains
 
        s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
 
-    Using equations () and () the above becomes
+    Using equations (:eq:`eq-massBlackHoleIrreducible`) and (:eq:`eq-blackHoleJetSpinDownRate`) the above becomes
 
     .. math::
 

@@ -50,7 +50,7 @@
 
      where :math:`\nu_\mathrm{c} = \delta_\mathrm{c}/\sigma_\mathrm{c}(M)` is the peak height.
 
-     This implementation accepts any ``cosmologicalMassVarianceClass`` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (``powerSpectrumWindowFunctionTopHatGeneralized``) with :math:`\mu_\mathrm{g}=0.2138`.
+     This implementation accepts any :galacticus-class:`cosmologicalMassVarianceClass` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (:galacticus-class:`powerSpectrumWindowFunctionTopHatGeneralized`) with :math:`\mu_\mathrm{g}=0.2138`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_              => null()
@@ -68,7 +68,7 @@
 
   interface darkMatterProfileConcentrationBrown2021
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationBrown2021`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationBrown2021` dark matter halo profile concentration class.
      !!}
      module procedure brown2021ConstructorParameters
      module procedure brown2021ConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function brown2021ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationBrown2021`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationBrown2021` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -160,7 +160,7 @@ contains
 
   subroutine brown2021Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationBrown2021`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationBrown2021` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationBrown2021), intent(inout) :: self

@@ -51,7 +51,7 @@
 
   interface darkMatterProfileShapeGao2008
      !!{RST
-     Constructors for the ``darkMatterProfileShapeGao2008`` dark matter halo profile shape class.
+     Constructors for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function gao2008ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileShapeGao2008`` dark matter halo profile shape class.
+    Constructor for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
     !!}
     implicit none
     type (darkMatterProfileShapeGao2008)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine gao2008Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileShapeGao2008`` dark matter halo profile shape class.
+    Destructor for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeGao2008), intent(inout) :: self

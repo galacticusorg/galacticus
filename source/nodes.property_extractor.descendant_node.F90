@@ -26,7 +26,7 @@ Implements an output analysis property extractor class that extracts a property 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDescendantNode" docformat="rst">
    <description>
-   A property extractor that traverses the merger tree forward in time from the current node and applies a scalar ``nodePropertyExtractorClass`` to the descendant node found at redshift ``redshiftDescendant``. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from ``redshiftDescendant`` via ``cosmologyFunctionsClass``). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.
+   A property extractor that traverses the merger tree forward in time from the current node and applies a scalar :galacticus-class:`nodePropertyExtractorClass` to the descendant node found at redshift ``redshiftDescendant``. The descendant is located by walking the main progenitor line until the node whose time matches the target time (converted from ``redshiftDescendant`` via :galacticus-class:`cosmologyFunctionsClass`). This enables comparison of a galaxy's properties at its observed epoch with those of its descendant at a later redshift within a single output dataset.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -49,7 +49,7 @@ Implements an output analysis property extractor class that extracts a property 
 
   interface nodePropertyExtractorDescendantNode
      !!{RST
-     Constructors for the ``nodePropertyExtractorDescendantNode`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDescendantNode` property extractor class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDescendantNode`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDescendantNode` property extractor class which takes a parameter set as input.
     !!}
     use :: Error              , only : Error_Report
     use :: Input_Parameters   , only : inputParameters
@@ -97,7 +97,7 @@ contains
 
   function descendantNodeConstructorInternal(timeDescendant,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorDescendantNode`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDescendantNode` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorDescendantNode)                        :: self
@@ -114,7 +114,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorDescendantNode`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorDescendantNode` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendantNode), intent(inout) :: self

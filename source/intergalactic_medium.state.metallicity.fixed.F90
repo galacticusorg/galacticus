@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityFixed
      !!{RST
-     Constructors for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class.
+     Constructors for the :galacticus-class:`intergalacticMediumStateMetallicityFixed` :term:`IGM` state class.
      !!}
      module procedure metallicityFixedIGMConstructorParameters
      module procedure metallicityFixedIGMConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function metallicityFixedIGMConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityFixed` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -94,7 +94,7 @@ contains
 
   function metallicityFixedIGMConstructorInternal(metallicity,intergalacticMediumState_) result(self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityFixed`` :term:`IGM` state class.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityFixed` :term:`IGM` state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityFixed)                        :: self

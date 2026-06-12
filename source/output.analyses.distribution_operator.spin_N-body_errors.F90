@@ -45,7 +45,7 @@
 
   interface outputAnalysisDistributionOperatorSpinNBodyErrors
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorSpinNBodyErrors` output analysis distribution operator class.
      !!}
      module procedure spinNBodyErrorsConstructorParameters
      module procedure spinNBodyErrorsConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function spinNBodyErrorsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorSpinNBodyErrors` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function spinNBodyErrorsConstructorInternal(errorTolerant,haloSpinDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorSpinNBodyErrors` output analysis distribution operator class.
     !!}
     use :: Error                  , only : Error_Report
     use :: Halo_Spin_Distributions, only : haloSpinDistributionClass, haloSpinDistributionNbodyErrors
@@ -110,7 +110,7 @@ contains
 
   subroutine spinNBodyErrorsDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorSpinNBodyErrors`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorSpinNBodyErrors` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorSpinNBodyErrors), intent(inout) :: self

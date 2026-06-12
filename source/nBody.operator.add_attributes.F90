@@ -40,7 +40,7 @@ Implements an N-body data operator which adds attributes to the data.
 
   interface nbodyOperatorAddAttributes
      !!{RST
-     Constructors for the ``nbodyOperatorAddAttributes`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorAddAttributes` N-body operator class.
      !!}
      module procedure addAttributesConstructorParameters
      module procedure addAttributesConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function addAttributesConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorAddAttributes`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorAddAttributes` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function addAttributesConstructorInternal(names,values) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorAddAttributes`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorAddAttributes` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self

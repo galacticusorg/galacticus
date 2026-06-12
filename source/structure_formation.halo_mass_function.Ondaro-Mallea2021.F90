@@ -79,7 +79,7 @@ Implements the dark matter halo mass function class of :cite:t:`ondaro-mallea_no
 
   interface haloMassFunctionOndaroMallea2021
      !!{RST
-     Constructors for the ``haloMassFunctionOndaroMallea2021`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
      !!}
      module procedure ondaroMallea2021ConstructorParameters
      module procedure ondaroMallea2021ConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function ondaroMallea2021ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionOndaroMallea2021`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -148,7 +148,7 @@ contains
 
   function ondaroMallea2021ConstructorInternal(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionOndaroMallea2021`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     implicit none
@@ -177,7 +177,7 @@ contains
 
   subroutine ondaroMallea2021Destructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionOndaroMallea2021`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionOndaroMallea2021), intent(inout) :: self

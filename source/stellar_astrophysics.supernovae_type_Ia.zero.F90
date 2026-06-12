@@ -41,7 +41,7 @@
 
   interface supernovaeTypeIaZero
      !!{RST
-     Constructors for the ``supernovaeTypeIaZero`` supernovae type Ia class.
+     Constructors for the :galacticus-class:`supernovaeTypeIaZero` supernovae type Ia class.
      !!}
      module procedure zeroConstructorParameters
   end interface supernovaeTypeIaZero
@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``supernovaeTypeIaZero`` supernovae type Ia class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`supernovaeTypeIaZero` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

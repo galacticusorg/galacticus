@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonicWeak" docformat="rst">
     <description>
-    A dark matter profile heating model builds ``massDistributionHeatingMonotonicWeak`` objects to enforce monotonic heating energy perturbations. This classes enforces a weaker condition (compared to ``darkMatterProfileHeatingMonotonic``).
+    A dark matter profile heating model builds :galacticus-class:`massDistributionHeatingMonotonicWeak` objects to enforce monotonic heating energy perturbations. This classes enforces a weaker condition (compared to :galacticus-class:`darkMatterProfileHeatingMonotonic`).
     </description>
   </darkMatterProfileHeating>
   !!]
@@ -42,7 +42,7 @@
 
   interface darkMatterProfileHeatingMonotonicWeak
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingMonotonicWeak`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingMonotonicWeak`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine monotonicWeakDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileHeatingMonotonicWeak`` dark matter profile heating class.
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self

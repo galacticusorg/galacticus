@@ -54,7 +54,7 @@
 
   interface outputTimesList
      !!{RST
-     Constructors for the ``outputTimesList`` output times class.
+     Constructors for the :galacticus-class:`outputTimesList` output times class.
      !!}
      module procedure listConstructorParameters
      module procedure listConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function listConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesList`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesList` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Sorting          , only : sort
@@ -138,7 +138,7 @@ contains
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the ``outputTimesList`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesList` output times class which takes a parameter set as input.
     !!}
     implicit none
     type            (outputTimesList        )                              :: self
@@ -157,7 +157,7 @@ contains
 
   subroutine listDestructor(self)
     !!{RST
-    Destructor for the ``outputTimesList`` output times class.
+    Destructor for the :galacticus-class:`outputTimesList` output times class.
     !!}
     implicit none
     type(outputTimesList), intent(inout) :: self

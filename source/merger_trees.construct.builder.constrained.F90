@@ -52,7 +52,7 @@
 
   interface mergerTreeBuilderConstrained
      !!{RST
-     Constructors for the ``mergerTreeBuilderConstrained`` merger tree builder class.
+     Constructors for the :galacticus-class:`mergerTreeBuilderConstrained` merger tree builder class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -138,7 +138,7 @@ contains
 
   subroutine constrainedDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuilderConstrained`` merger tree builder class.
+    Destructor for the :galacticus-class:`mergerTreeBuilderConstrained` merger tree builder class.
     !!}
     implicit none
     type(mergerTreeBuilderConstrained), intent(inout) :: self

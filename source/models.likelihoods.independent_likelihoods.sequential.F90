@@ -45,7 +45,7 @@
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodIndpndntLklhdsSqntl`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodIndpndntLklhdsSqntl`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -117,7 +117,7 @@ contains
 
   function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodIndpndntLklhdsSqntl`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self

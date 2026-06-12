@@ -59,7 +59,7 @@
 
   interface satelliteMergingTimescalesPoulton2021
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesPoulton2021`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesPoulton2021` satellite merging timescale class.
      !!}
      module procedure poulton2021ConstructorParameters
      module procedure poulton2021ConstructorInternal
@@ -147,7 +147,7 @@ contains
 
   subroutine poulton2021Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesPoulton2021`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesPoulton2021` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesPoulton2021), intent(inout) :: self

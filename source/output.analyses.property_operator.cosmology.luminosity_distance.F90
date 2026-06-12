@@ -46,7 +46,7 @@ Implements a cosmological luminosity distance corrector analysis property operat
 
   interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
      !!}
      module procedure csmlgyLuminosityDistanceConstructorParameters
      module procedure csmlgyLuminosityDistanceConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -142,7 +142,7 @@ contains
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc`` output analysis property operator class.
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self

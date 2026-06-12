@@ -61,7 +61,7 @@
 
   interface mergerTreeBuildMassDistributionHaloMassFunction
      !!{RST
-     Constructors for the ``mergerTreeBuildMassDistributionHaloMassFunction`` merger tree halo mass function sampling class.
+     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionHaloMassFunction` merger tree halo mass function sampling class.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -146,7 +146,7 @@ contains
 
   subroutine haloMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassDistributionHaloMassFunction`` merger tree halo mass function sampling class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassDistributionHaloMassFunction` merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self

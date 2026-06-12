@@ -44,7 +44,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassISM
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassISM`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassISM` property extractor class.
      !!}
      module procedure massISMConstructorParameters
   end interface nodePropertyExtractorMassISM
@@ -53,7 +53,7 @@ contains
 
   function massISMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassISM`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassISM` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

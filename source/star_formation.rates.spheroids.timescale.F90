@@ -45,7 +45,7 @@
 
   interface starFormationRateSpheroidsTimescale
      !!{RST
-     Constructors for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
+     Constructors for the :galacticus-class:`starFormationRateSpheroidsTimescale` star formation rate in spheroids class.
      !!}
      module procedure timescaleConstructorParameters
      module procedure timescaleConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function timescaleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateSpheroidsTimescale` star formation rate in spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function timescaleConstructorInternal(starFormationActiveMass_,starFormationTimescale_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
+    Internal constructor for the :galacticus-class:`starFormationRateSpheroidsTimescale` star formation rate in spheroids class.
     !!}
     implicit none
     type (starFormationRateSpheroidsTimescale)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine timescaleDestructor(self)
     !!{RST
-    Destructor for the ``starFormationRateSpheroidsTimescale`` star formation rate in spheroids class.
+    Destructor for the :galacticus-class:`starFormationRateSpheroidsTimescale` star formation rate in spheroids class.
     !!}
     implicit none
     type(starFormationRateSpheroidsTimescale), intent(inout) :: self

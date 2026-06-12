@@ -51,7 +51,7 @@
 
   interface outputAnalysisLocalGroupOccupationFraction
      !!{RST
-     Constructors for the ``outputAnalysisLocalGroupOccupationFraction`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLocalGroupOccupationFraction` output analysis class.
      !!}
      module procedure localGroupOccupationFractionConstructorParameters
      module procedure localGroupOccupationFractionConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function localGroupOccupationFractionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupOccupationFraction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupOccupationFraction` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -175,7 +175,7 @@ contains
 
   function localGroupOccupationFractionConstructorInternal(outputTimes_,positionType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,massStellarSystematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupOccupationFraction`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupOccupationFraction` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                          , galacticFilterAll                           , galacticFilterHaloNotIsolated         , galacticFilterHostMassRange                    , &
           &                                                 galacticFilterSurveyGeometry                        , enumerationPositionTypeType
@@ -462,7 +462,7 @@ contains
 
   subroutine localGroupOccupationFractionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLocalGroupOccupationFraction`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLocalGroupOccupationFraction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupOccupationFraction), intent(inout) :: self

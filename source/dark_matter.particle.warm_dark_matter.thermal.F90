@@ -52,7 +52,7 @@ Implements a thermal warm dark matter particle class.
 
   interface darkMatterParticleWDMThermal
      !!{RST
-     Constructors for the ``darkMatterParticleWDMThermal`` dark matter particle class.
+     Constructors for the :galacticus-class:`darkMatterParticleWDMThermal` dark matter particle class.
      !!}
      module procedure wdmThermalConstructorParameters
      module procedure wdmThermalConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function wdmThermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterParticleWDMThermal`` dark matter particle class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterParticleWDMThermal` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterParticleWDMThermal`` dark matter particle class.
+    Internal constructor for the :galacticus-class:`darkMatterParticleWDMThermal` dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleWDMThermal)                        :: self

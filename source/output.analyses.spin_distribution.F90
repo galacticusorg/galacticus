@@ -60,7 +60,7 @@
 
   interface outputAnalysisSpinDistribution
      !!{RST
-     Constructors for the ``outputAnalysisSpinDistribution`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class.
      !!}
      module procedure spinDistributionConstructorParameters
        module procedure spinDistributionConstructorFile
@@ -71,7 +71,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSpinDistribution`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -340,7 +340,7 @@ contains
 
   function spinDistributionConstructorFile(fileName,label,comment,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisSpinDistribution`` output analysis class which reads all required properties from file.
+    Constructor for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: IO_HDF5                          , only : hdf5Object
@@ -405,7 +405,7 @@ contains
 
   function spinDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,spinMinimum,spinMaximum,countSpins,timeRecent,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,outputTimes_,virialDensityContrast_,virialDensityContrastDefinition_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisSpinDistribution`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class.
     !!}
     use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
     use :: Galactic_Filters                        , only : filterList                                       , galacticFilterAll                           , galacticFilterHaloIsolated                    , galacticFilterHaloMassRange                 , &
@@ -726,7 +726,7 @@ contains
 
   subroutine spinDistributionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisSpinDistribution`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSpinDistribution), intent(inout) :: self

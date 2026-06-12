@@ -42,7 +42,7 @@ Implements a merger tree filter which passes if the tree matches the given index
 
   interface mergerTreeFilterTreeIndex
      !!{RST
-     Constructors for the ``mergerTreeFilterTreeIndex`` merger tree filter class.
+     Constructors for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class.
      !!}
      module procedure treeIndexConstructorParameters
      module procedure treeIndexConstructorInternal
@@ -52,7 +52,7 @@ contains
   
   function treeIndexConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeFilterTreeIndex`` merger tree filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function treeIndexConstructorInternal(mergerTreeIndex) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeFilterTreeIndex`` merger tree filter class.
+    Internal constructor for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class.
     !!}
     implicit none
     type   (mergerTreeFilterTreeIndex)                :: self

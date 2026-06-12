@@ -55,7 +55,7 @@
   
   interface nodeOperatorSatelliteMergingSoliton
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMergingSoliton` node operator class.
      !!}
      module procedure satelliteMergingSolitonConstructorParameters
      module procedure satelliteMergingSolitonConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function satelliteMergingSolitonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMergingSoliton` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function satelliteMergingSolitonConstructorInternal(recordMergedSubhaloProperties,recordFirstLevelOnly) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMergingSoliton` node operator class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -152,7 +152,7 @@ contains
 
   subroutine satelliteMergingSolitonDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteMergingSoliton`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMergingSoliton` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

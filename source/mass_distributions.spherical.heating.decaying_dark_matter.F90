@@ -68,7 +68,7 @@
 
   interface massDistributionHeatingDecayingDarkMatter
      !!{RST
-     Constructors for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingDecayingDarkMatter` mass distribution heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingDecayingDarkMatter` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -132,7 +132,7 @@ contains
   
   function decayingDarkMatterConstructorInternal(radiusEscape,time,gamma,includeKickHeating,darkMatterParticle_) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingDecayingDarkMatter`` heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingDecayingDarkMatter` heating class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     use :: Error                , only : Error_Report
@@ -168,7 +168,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionHeatingDecayingDarkMatter`` mass distribution heating class.
+    Destructor for the :galacticus-class:`massDistributionHeatingDecayingDarkMatter` mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingDecayingDarkMatter), intent(inout) :: self

@@ -39,7 +39,7 @@ Implements a random error output analysis distribution operator class.
 
   interface outputAnalysisDistributionOperatorRandomErrorFixed
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorRandomErrorFixed`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class.
      !!}
      module procedure randomErrorFixedConstructorParameters
      module procedure randomErrorFixedConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function randomErrorFixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorRandomErrorFixed`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function randomErrorFixedConstructorInternal(rootVariance_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorRandomErrorFixed`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorFixed)                :: self

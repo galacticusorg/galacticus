@@ -44,7 +44,7 @@
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassAccretionRateBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassAccretionRateBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function massAccretionRateBlackHolesConstructorInternal(blackHoleAccretionRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassAccretionRateBlackHoles`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassAccretionRateBlackHoles)                        :: self

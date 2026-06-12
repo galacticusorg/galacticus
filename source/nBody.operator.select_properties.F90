@@ -41,7 +41,7 @@
 
   interface nbodyOperatorSelectProperties
      !!{RST
-     Constructors for the ``nbodyOperatorSelectProperties`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSelectProperties` N-body operator class.
      !!}
      module procedure selectPropertiesConstructorParameters
      module procedure selectPropertiesConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function selectPropertiesConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSelectProperties`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSelectProperties` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function selectPropertiesConstructorInternal(propertyName,selectedValues) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSelectProperties`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSelectProperties` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSelectProperties)                              :: self

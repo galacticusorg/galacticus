@@ -36,7 +36,7 @@ module Dark_Matter_Profiles
    <name>darkMatterProfile</name>
    <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
    <description>
-   Object providing the full dark matter halo density profile, including any adiabatic contraction or other modifications due to baryonic effects. This class returns a ``massDistributionClass`` object describing the mass distribution within the halo. It is distinct from the dark-matter-only (``darkMatterProfileDMOClass``) profile, which does not account for baryonic back-reaction on the dark matter.
+   Object providing the full dark matter halo density profile, including any adiabatic contraction or other modifications due to baryonic effects. This class returns a :galacticus-class:`massDistributionClass` object describing the mass distribution within the halo. It is distinct from the dark-matter-only (:galacticus-class:`darkMatterProfileDMOClass`) profile, which does not account for baryonic back-reaction on the dark matter.
    </description>
    <default>adiabaticGnedin2004</default>
    <method name="get" >

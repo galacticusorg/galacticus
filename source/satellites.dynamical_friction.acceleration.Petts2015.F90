@@ -54,7 +54,7 @@ contains
 
   function petts2015ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteDynamicalFrictionPetts2015`` satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteDynamicalFrictionPetts2015`` satellite dynamical friction class.
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class.
     !!}
     implicit none
     type   (satelliteDynamicalFrictionPetts2015)                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine petts2015Destructor(self)
     !!{RST
-    Destructor for the ``satelliteDynamicalFrictionPetts2015`` satellite dynamical friction class.
+    Destructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionPetts2015), intent(inout) :: self

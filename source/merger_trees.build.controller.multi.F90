@@ -54,7 +54,7 @@ Implements a merger tree build controller class which applies multiple other con
 
   interface mergerTreeBuildControllerMulti
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerMulti`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerMulti`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function multiConstructorInternal(controllers) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerMulti`` merger tree build controller class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -117,7 +117,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerMulti`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMulti), intent(inout) :: self

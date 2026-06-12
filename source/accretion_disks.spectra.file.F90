@@ -60,7 +60,7 @@
 
   interface accretionDiskSpectraFile
      !!{RST
-     Constructors for the ``accretionDiskSpectraFile`` accretion disk spectra class.
+     Constructors for the :galacticus-class:`accretionDiskSpectraFile` accretion disk spectra class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``accretionDiskSpectraFile`` accretion disk spectra class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`accretionDiskSpectraFile` accretion disk spectra class which takes a parameter set as input.
     !!}
     implicit none
     type (accretionDiskSpectraFile   )                :: self
@@ -104,7 +104,7 @@ contains
 
   function fileConstructorInternal(fileName,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``accretionDiskSpectraFile`` accretion disk spectra class.
+    Internal constructor for the :galacticus-class:`accretionDiskSpectraFile` accretion disk spectra class.
     !!}
     implicit none
     type     (accretionDiskSpectraFile   )                        :: self

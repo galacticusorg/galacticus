@@ -57,7 +57,7 @@
 
   interface posteriorSampleSimulationStochasticDffrntlEvltn
      !!{RST
-     Constructors for the ``posteriorSampleSimulationStochasticDffrntlEvltn`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationStochasticDffrntlEvltn` posterior sampling simulation class.
      !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function stochasticDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationStochasticDffrntlEvltn`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationStochasticDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

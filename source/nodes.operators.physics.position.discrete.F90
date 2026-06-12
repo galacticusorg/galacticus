@@ -39,7 +39,7 @@
   
   interface nodeOperatorPositionDiscrete
      !!{RST
-     Constructors for the ``nodeOperatorPositionDiscrete`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPositionDiscrete` node operator class.
      !!}
      module procedure positionDiscreteConstructorParameters
   end interface nodeOperatorPositionDiscrete
@@ -48,7 +48,7 @@ contains
   
   function positionDiscreteConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionDiscrete`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionDiscrete` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

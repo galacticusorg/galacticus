@@ -45,7 +45,7 @@ Implements an ISM metallicity output analysis property extractor class.
 
   interface nodePropertyExtractorMetallicityStellar
      !!{RST
-     Constructors for the ``nodePropertyExtractorMetallicityStellar`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function metallicityStellarConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMetallicityStellar`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -86,7 +86,7 @@ contains
 
   function metallicityStellarConstructorInternal(indexElement) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMetallicityStellar`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none

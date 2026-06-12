@@ -42,7 +42,7 @@
 
   interface stellarPopulationSelectorDiskSpheroid
      !!{RST
-     Constructors for the ``stellarPopulationSelectorDiskSpheroid`` stellar population selector class.
+     Constructors for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
      !!}
      module procedure diskSpheroidConstructorParameters
      module procedure diskSpheroidConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSelectorDiskSpheroid`` stellar population selector class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
@@ -76,7 +76,7 @@ contains
 
   function diskSpheroidConstructorInternal(stellarPopulationDisk_,stellarPopulationSpheroid_) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationSelectorDiskSpheroid`` stellar population selector class.
+    Internal constructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
     !!}
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine diskSpheroidDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationSelectorDiskSpheroid`` stellar population selector class.
+    Destructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
     !!}
     implicit none
     type(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self

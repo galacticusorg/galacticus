@@ -52,7 +52,7 @@ Implements an N-body data importer for Gadget HDF5 files.
 
   interface nbodyImporterGadgetHDF5
      !!{RST
-     Constructors for the ``nbodyImporterGadgetHDF5`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterGadgetHDF5` N-body importer class.
      !!}
      module procedure gadgetHDF5ConstructorParameters
      module procedure gadgetHDF5ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterGadgetHDF5`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterGadgetHDF5` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -145,7 +145,7 @@ contains
 
   function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterGadgetHDF5`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterGadgetHDF5` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetHDF5 )                        :: self

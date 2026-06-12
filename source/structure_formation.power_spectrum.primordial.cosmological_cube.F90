@@ -52,7 +52,7 @@
 
   interface powerSpectrumPrimordialCosmologicalCube
      !!{RST
-     Constructors for the ``powerSpectrumPrimordialCosmologicalCube`` primordial power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
      !!}
      module procedure cosmologicalCubeConstructorParameters
      module procedure cosmologicalCubeConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function cosmologicalCubeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumPrimordialCosmologicalCube`` primordial power spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class which takes a parameter set as input.
     !!}
     implicit none
     type            (powerSpectrumPrimordialCosmologicalCube)                :: self
@@ -101,7 +101,7 @@ contains
 
   function cosmologicalCubeConstructorInternal(lengthCube,wavenumberMinimumFactor,powerSpectrumPrimordial_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumPrimordialCosmologicalCube`` primordial power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -121,7 +121,7 @@ contains
 
   subroutine cosmologicalCubeDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumPrimordialCosmologicalCube`` primordial power spectrum class.
+    Destructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
     !!}
     implicit none
     type(powerSpectrumPrimordialCosmologicalCube), intent(inout) :: self

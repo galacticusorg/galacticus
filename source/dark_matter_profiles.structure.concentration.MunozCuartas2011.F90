@@ -70,7 +70,7 @@
 
   interface darkMatterProfileConcentrationMunozCuartas2011
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationMunozCuartas2011`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationMunozCuartas2011` dark matter halo profile concentration class.
      !!}
      module procedure munozCuartas2011ConstructorParameters
      module procedure munozCuartas2011ConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function munozCuartas2011ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationMunozCuartas2011`` dark matter halo profile concentration class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationMunozCuartas2011` dark matter halo profile concentration class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function munozCuartas2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationMunozCuartas2011`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationMunozCuartas2011` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
@@ -153,7 +153,7 @@ contains
 
   subroutine munozCuartas2011Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationMunozCuartas2011`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationMunozCuartas2011` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self

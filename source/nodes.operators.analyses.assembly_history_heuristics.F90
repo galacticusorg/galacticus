@@ -55,7 +55,7 @@
   
   interface nodeOperatorAssemblyHistoryHeuristics
      !!{RST
-     Constructors for the ``nodeOperatorAssemblyHistoryHeuristics`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
      !!}
      module procedure assemblyHistoryHeuristicsConstructorParameters
      module procedure assemblyHistoryHeuristicsConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function assemblyHistoryHeuristicsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorAssemblyHistoryHeuristics`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function assemblyHistoryHeuristicsConstructorInternal(exponentGrowth,sigmaThreshold,nbodyHaloMassError_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorAssemblyHistoryHeuristics`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -120,7 +120,7 @@ contains
 
   subroutine assemblyHistoryHeuristicsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorAssemblyHistoryHeuristics`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
     !!}
     implicit none
     type(nodeOperatorAssemblyHistoryHeuristics), intent(inout) :: self

@@ -27,7 +27,7 @@
   !![
   <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" docformat="rst">
    <description>
-   A dark matter halo mass bias class utilizing the algorithm of :cite:t:`tinker_large_2010`. The bias is computed at the appropriate virial overdensity (see ``virialDensityContrast``).
+   A dark matter halo mass bias class utilizing the algorithm of :cite:t:`tinker_large_2010`. The bias is computed at the appropriate virial overdensity (see :galacticus-class:`virialDensityContrast`).
    </description>
   </darkMatterHaloBias>
   !!]
@@ -49,7 +49,7 @@
 
   interface darkMatterHaloBiasTinker2010
      !!{RST
-     Constructors for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
+     Constructors for the :galacticus-class:`darkMatterHaloBiasTinker2010` dark matter halo bias class.
      !!}
      module procedure tinker2010ConstructorParameters
      module procedure tinker2010ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloBiasTinker2010` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function tinker2010ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasTinker2010` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2010 )                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine tinker2010Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloBiasTinker2010`` dark matter halo bias class.
+    Destructor for the :galacticus-class:`darkMatterHaloBiasTinker2010` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2010), intent(inout) :: self

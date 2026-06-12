@@ -43,7 +43,7 @@
   
   interface nodeOperatorTidalMassLossSoliton
      !!{RST
-     Constructors for the ``nodeOperatorTidalMassLossSoliton`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTidalMassLossSoliton` node operator class.
      !!}
      module procedure tidalMassLossSolitonConstructorParameters
      module procedure tidalMassLossSolitonConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function tidalMassLossSolitonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTidalMassLossSoliton`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTidalMassLossSoliton` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function tidalMassLossSolitonConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTidalMassLossSoliton`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossSoliton` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossSoliton) :: self

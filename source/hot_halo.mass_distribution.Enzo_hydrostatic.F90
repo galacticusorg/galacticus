@@ -34,7 +34,7 @@ An implementation of the hot halo mass distribution class which uses the "hydros
       \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
       r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
 
-   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see ``hotHaloMassDistributionCoreRadius``). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
+   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
    </description>
   </hotHaloMassDistribution>
   !!]
@@ -52,7 +52,7 @@ An implementation of the hot halo mass distribution class which uses the "hydros
 
   interface hotHaloMassDistributionEnzoHydrostatic
      !!{RST
-     Constructors for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
+     Constructors for the :galacticus-class:`hotHaloMassDistributionEnzoHydrostatic` hot halo mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionEnzoHydrostatic` hot halo mass distribution class.
     !!}
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionEnzoHydrostatic`` hot halo mass distribution class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionEnzoHydrostatic` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self

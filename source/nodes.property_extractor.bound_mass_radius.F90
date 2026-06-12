@@ -43,7 +43,7 @@ Implements a property extractor class that extracts the radius enclosing the cur
 
   interface nodePropertyExtractorRadiusBoundMass
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusBoundMass`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusBoundMass` property extractor class.
      !!}
      module procedure radiusBoundMassConstructorParameters
   end interface nodePropertyExtractorRadiusBoundMass
@@ -52,7 +52,7 @@ contains
 
   function radiusBoundMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusBoundMass`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusBoundMass` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

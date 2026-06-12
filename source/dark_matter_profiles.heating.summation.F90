@@ -48,7 +48,7 @@
 
   interface darkMatterProfileHeatingSummation
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingSummation` dark matter profile heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingSummation` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function summationConstructorInternal(heatSources) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingSummation` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileHeatingSummation`` dark matter profile heating class.
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingSummation` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingSummation), intent(inout) :: self

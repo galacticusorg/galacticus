@@ -47,7 +47,7 @@ Implements a node property extractor class for absolute magnitudes.
 
   interface nodePropertyExtractorMagnitudesAbsolute
      !!{RST
-     Constructors for the ``nodePropertyExtractorMagnitudesAbsolute`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class.
      !!}
      module procedure magnitudesAbsoluteConstructorParameters
      module procedure magnitudesAbsoluteConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function magnitudesAbsoluteConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMagnitudesAbsolute`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -84,7 +84,7 @@ contains
 
   function magnitudesAbsoluteConstructorInternal(component) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMagnitudesAbsolute`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

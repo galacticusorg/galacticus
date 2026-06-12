@@ -43,7 +43,7 @@
 
   interface massDistributionDiemerKravtsov2014
      !!{RST
-     Constructors for the ``massDistributionDiemerKravtsov2014`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionDiemerKravtsov2014` mass distribution class.
      !!}
      module procedure massDistributionDiemerKravtsov2014ConstructorParameters
      module procedure massDistributionDiemerKravtsov2014ConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function massDistributionDiemerKravtsov2014ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionDiemerKravtsov2014`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionDiemerKravtsov2014` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

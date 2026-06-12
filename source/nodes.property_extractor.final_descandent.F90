@@ -41,7 +41,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorFinalDescendant
      !!{RST
-     Constructors for the ``nodePropertyExtractorFinalDescendant`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorFinalDescendant` property extractor class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant
@@ -50,7 +50,7 @@ contains
 
   function finalDescendantConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorFinalDescendant`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorFinalDescendant` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

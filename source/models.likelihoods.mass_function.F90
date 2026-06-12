@@ -77,7 +77,7 @@
 
   interface posteriorSampleLikelihoodMassFunction
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
      !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
@@ -87,7 +87,7 @@ contains
 
   function massFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -175,7 +175,7 @@ contains
 
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
@@ -265,7 +265,7 @@ contains
 
   subroutine massFunctionDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodMassFunction`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMassFunction), intent(inout) :: self

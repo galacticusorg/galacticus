@@ -72,7 +72,7 @@
   
   interface nodeOperatorDarkMatterProfilePromptCusps
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfilePromptCusps`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class.
      !!}
      module procedure darkMatterProfilePromptCuspsConstructorParameters
      module procedure darkMatterProfilePromptCuspsConstructorInternal
@@ -95,7 +95,7 @@ contains
   
   function darkMatterProfilePromptCuspsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfilePromptCusps`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -212,7 +212,7 @@ contains
 
   function darkMatterProfilePromptCuspsConstructorInternal(nonConvergenceIsFatal,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfilePromptCusps`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -246,7 +246,7 @@ contains
 
   subroutine darkMatterProfilePromptCuspsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDarkMatterProfilePromptCusps`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self

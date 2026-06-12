@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMOutflowReincorporation" docformat="rst">
    <description>
-   A node operator class that reincorporates gas previously ejected by stellar feedback back into the :term:`CGM` hot gas reservoir, using a ``hotHaloOutflowReincorporationClass`` to compute the reincorporation rate. ``includeSatellites`` controls whether satellite halos also have their outflowing gas reincorporated, or whether reincorporation is applied only to central galaxies.
+   A node operator class that reincorporates gas previously ejected by stellar feedback back into the :term:`CGM` hot gas reservoir, using a :galacticus-class:`hotHaloOutflowReincorporationClass` to compute the reincorporation rate. ``includeSatellites`` controls whether satellite halos also have their outflowing gas reincorporated, or whether reincorporation is applied only to central galaxies.
    </description>
   </nodeOperator>
   !!]
@@ -46,7 +46,7 @@
   
   interface nodeOperatorCGMOutflowReincorporation
      !!{RST
-     Constructors for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMOutflowReincorporation` node operator class.
      !!}
      module procedure cgmOutflowReincorporationConstructorParameters
      module procedure cgmOutflowReincorporationConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function cgmOutflowReincorporationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMOutflowReincorporation` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function cgmOutflowReincorporationConstructorInternal(includeSatellites,outflowToColdMode,hotHaloOutflowReincorporation_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMOutflowReincorporation` node operator class.
     !!}
     implicit none
     type   (nodeOperatorCGMOutflowReincorporation)                        :: self
@@ -123,7 +123,7 @@ contains
   
   subroutine cgmOutflowReincorporationDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMOutflowReincorporation`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMOutflowReincorporation` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

@@ -49,7 +49,7 @@ Implements an N-body dark matter halo mass error class in which errors are a pow
 
   interface nbodyHaloMassErrorPowerLaw
      !!{RST
-     Constructors for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorPowerLaw` N-body halo mass error class.
      !!}
      module procedure nbodyHaloMassErrorPowerLawConstructorParameters
      module procedure nbodyHaloMassErrorPowerLawConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function nbodyHaloMassErrorPowerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorPowerLaw` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -155,7 +155,7 @@ contains
 
   function nbodyHaloMassErrorPowerLawConstructorInternal(normalization,exponent,fractionalErrorHighMass,correlationModelTrivial,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
+    Internal constructor for the :galacticus-class:`nbodyHaloMassErrorPowerLaw` N-body halo mass error class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -195,7 +195,7 @@ contains
 
   subroutine powerLawDestructor(self)
     !!{RST
-    Destructor for the ``nbodyHaloMassErrorPowerLaw`` N-body halo mass error class.
+    Destructor for the :galacticus-class:`nbodyHaloMassErrorPowerLaw` N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorPowerLaw), intent(inout) :: self

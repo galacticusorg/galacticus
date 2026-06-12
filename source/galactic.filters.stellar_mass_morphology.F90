@@ -40,7 +40,7 @@ Implements a galactic high-pass filter for stellar mass-weighted morphology (i.e
 
   interface galacticFilterStellarMassMorphology
      !!{RST
-     Constructors for the ``galacticFilterStellarMassMorphology`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStellarMassMorphology` galactic filter class.
      !!}
      module procedure stellarMassMorphologyConstructorParameters
      module procedure stellarMassMorphologyConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function stellarMassMorphologyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStellarMassMorphology`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStellarMassMorphology` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

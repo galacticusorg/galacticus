@@ -47,7 +47,7 @@
 
   interface radiativeTransferSourcePoint
      !!{RST
-     Constructors for the ``radiativeTransferSourcePoint`` radiative transfer source class.
+     Constructors for the :galacticus-class:`radiativeTransferSourcePoint` radiative transfer source class.
      !!}
      module procedure pointConstructorParameters
      module procedure pointConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function pointConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSourcePoint`` radiative transfer source class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSourcePoint` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function pointConstructorInternal(position,label,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSourcePoint`` radiative transfer source class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSourcePoint` radiative transfer source class.
     !!}
     implicit none
     type            (radiativeTransferSourcePoint  )                              :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine pointDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferSourcePoint`` radiative transfer source class.
+    Destructor for the :galacticus-class:`radiativeTransferSourcePoint` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourcePoint), intent(inout) :: self

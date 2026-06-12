@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal" docformat="rst">
    <description>
-   A dark matter profile DMO class in which builds ``massDistributionIsothermal`` objects to implement isothermal density profiles, normalized such that the total mass of the :term:`node` is enclosed with the virial radius.
+   A dark matter profile DMO class in which builds :galacticus-class:`massDistributionIsothermal` objects to implement isothermal density profiles, normalized such that the total mass of the :term:`node` is enclosed with the virial radius.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -43,7 +43,7 @@
 
   interface darkMatterProfileDMOIsothermal
      !!{RST
-     Constructors for the ``darkMatterProfileDMOIsothermal`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function isothermalConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOIsothermal`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type (darkMatterProfileDMOIsothermal)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine isothermalDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOIsothermal`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOIsothermal), intent(inout) :: self

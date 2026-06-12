@@ -29,9 +29,9 @@
    The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the Shakura-Sunyaev and :term:`ADAF` modes, with the :term:`ADAF` fraction being given by:
 
    .. math::
+      :label: eq-SwitchedDiskADAFFraction
 
       f_\mathrm{ADAF} = [1+\exp(y_\mathrm{min})]^{-1} + [1+\exp(y_\mathrm{max})]^{-1},
-      \label{eq:SwitchedDiskADAFFraction}
 
    where
 
@@ -46,7 +46,7 @@
 
       x = \dot{M} / \dot{M}_\mathrm{Eddington}.
 
-   Here, :math:`x_\mathrm{min}=`\ ``[accretionRateThinDiskMinimum]``, :math:`x_\mathrm{max}=`\ ``[accretionRateThinDiskMaximum]``, and :math:`\Delta_{x}`\ =\ ``[accretionRateTransitionWidth]``. If either ``[accretionRateThinDiskMinimum]`` or ``[accretionRateThinDiskMaximum]`` is set to "``none``" then the corresponding term in eqn. () is excluded.
+   Here, :math:`x_\mathrm{min}=`\ ``[accretionRateThinDiskMinimum]``, :math:`x_\mathrm{max}=`\ ``[accretionRateThinDiskMaximum]``, and :math:`\Delta_{x}`\ =\ ``[accretionRateTransitionWidth]``. If either ``[accretionRateThinDiskMinimum]`` or ``[accretionRateThinDiskMaximum]`` is set to "``none``" then the corresponding term in eqn. (:eq:`eq-SwitchedDiskADAFFraction`) is excluded.
 
    Additionally, if ``[scaleADAFRadiativeEfficiency]`` is set to ``true`` then the radiative efficiency of the :term:`ADAF` component is reduced by a factor :math:`x/x_\mathrm{min}` when :math:`x&lt;x_\mathrm{min}`.
    </description>

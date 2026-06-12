@@ -46,7 +46,7 @@
 
   interface distributionFunctionDiscrete1DNegativeBinomial
      !!{RST
-     Constructors for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class.
+     Constructors for the :galacticus-class:`distributionFunctionDiscrete1DNegativeBinomial` 1D discrete distribution function class.
      !!}
      module procedure negativeBinomialConstructorParameters
      module procedure negativeBinomialConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function negativeBinomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DNegativeBinomial` 1D discrete distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function negativeBinomialConstructorInternal(probabilitySuccess,countFailures,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunctionDiscrete1DNegativeBinomial`` 1D discrete distribution function class.
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DNegativeBinomial` 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

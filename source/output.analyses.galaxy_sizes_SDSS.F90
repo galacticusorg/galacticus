@@ -45,7 +45,7 @@ Implements a galaxy size output analysis class for SDSS data.
 
   interface outputAnalysisGalaxySizesSDSS
      !!{RST
-     Constructors for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisGalaxySizesSDSS` output analysis class.
      !!}
      module procedure galaxySizesSDSSConstructorParameters
      module procedure galaxySizesSDSSConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function galaxySizesSDSSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisGalaxySizesSDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,sizeSourceLensing,cosmologyFunctions_,outputTimes_,gravitationalLensing_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisGalaxySizesSDSS` output analysis class.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass                      , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
@@ -498,7 +498,7 @@ contains
 
   subroutine galaxySizesSDSSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisGalaxySizesSDSS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisGalaxySizesSDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisGalaxySizesSDSS), intent(inout) :: self

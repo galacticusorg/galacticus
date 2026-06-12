@@ -43,7 +43,7 @@
   
   interface nodeOperatorTidalMassLossDisks
      !!{RST
-     Constructors for the ``nodeOperatorTidalMassLossDisks`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
      !!}
      module procedure tidalMassLossDisksConstructorParameters
      module procedure tidalMassLossDisksConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function tidalMassLossDisksConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTidalMassLossDisks`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function tidalMassLossDisksConstructorInternal(tidalStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTidalMassLossDisks`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalMassLossDisks)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine tidalMassLossDisksDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorTidalMassLossDisks`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossDisks), intent(inout) :: self

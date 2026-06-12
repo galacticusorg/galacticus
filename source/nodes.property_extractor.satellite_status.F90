@@ -56,7 +56,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorSatelliteStatus
      !!{RST
-     Constructors for the ``nodePropertyExtractorSatelliteStatus`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteStatus` property extractor class.
      !!}
      module procedure satelliteStatusConstructorParameters
      module procedure satelliteStatusConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteStatusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSatelliteStatus`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteStatus` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function satelliteStatusConstructorInternal(discriminator) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSatelliteStatus`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteStatus` property extractor class.
     !!}
     use :: Error           , only : Component_List          , Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent

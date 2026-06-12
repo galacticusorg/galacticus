@@ -40,7 +40,7 @@ Implements a min-max analysis property operator class.
 
   interface outputAnalysisPropertyOperatorMinMax
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMinMax` output analysis property operator class.
      !!}
      module procedure minMaxConstructorParameters
      module procedure minMaxConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function minMaxConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMinMax` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorMinMax`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMinMax` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self

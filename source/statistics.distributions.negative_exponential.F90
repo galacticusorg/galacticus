@@ -42,7 +42,7 @@
 
   interface distributionFunction1DNegativeExponential
      !!{RST
-     Constructors for the ``distributionFunction1DNegativeExponential`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DNegativeExponential` 1D distribution function class.
      !!}
      module procedure negativeExponentialConstructorParameters
      module procedure negativeExponentialConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function negativeExponentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNegativeExponential`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DNegativeExponential` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNegativeExponential`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DNegativeExponential` 1D distribution function class.
     !!}
     type            (distributionFunction1DNegativeExponential)                                  :: self
     double precision                                           , intent(in   )                   :: rate

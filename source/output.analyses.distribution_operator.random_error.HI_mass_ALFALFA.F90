@@ -32,9 +32,10 @@
 
       \sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)-b\over c}\right),
 
-   where :math:`\sigma_\mathrm{obs}` is the error on :math:`\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)`. We find a reasonable fit using values\footnoteThis should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a functional form that roughly describes them, along with conservative errors on the parameters of this function which are included in the priors. of :math:`a=`\ ``a``\ :math:`=0.100 \pm 0.010`, :math:`b=`\ ``b``\ :math:`=5.885 \pm 0.100`, and :math:`c=`\ ``c``\ :math:`=0.505 \pm 0.020` as shown in Fig. . The total random error on the logarithm of each galaxy mass is given by :math:`\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2`, and is used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
+   where :math:`\sigma_\mathrm{obs}` is the error on :math:`\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)`. We find a reasonable fit using values\footnoteThis should not be regarded as a formal good fit. Error estimates are approximate---we have simply found a functional form that roughly describes them, along with conservative errors on the parameters of this function which are included in the priors. of :math:`a=`\ ``a``\ :math:`=0.100 \pm 0.010`, :math:`b=`\ ``b``\ :math:`=5.885 \pm 0.100`, and :math:`c=`\ ``c``\ :math:`=0.505 \pm 0.020` as shown in Fig. :numref:`{number} &lt;fig-ALFALFAErrorModel&gt;`. The total random error on the logarithm of each galaxy mass is given by :math:`\sigma^2 = \sigma_{R_\mathrm{mol}}^2+\sigma_\mathrm{obs}^2`, and is used as the width of the Gaussian kernel when applying each galaxy to the mass function histogram (as described above).
 
    .. figure:: Plots/DataAnalysis/alfalfaHIMassErrorModel.pdf
+      :name: fig-ALFALFAErrorModel
 
       The observational random error in galaxy HI mass as a function of HI mass for the ALFALFA survey. Points show the errors reported by :cite:t:`haynes_arecibo_2011`, while the line shows a simple functional form fit to these errors.
    </description>
@@ -55,7 +56,7 @@
 
   interface outputAnalysisDistributionOperatorRandomErrorALFLF
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorALFLF` output analysis distribution operator class.
      !!}
      module procedure randomErrorHIALFALFAConstructorParameters
      module procedure randomErrorHIALFALFAConstructorInternal
@@ -65,7 +66,7 @@ contains
 
   function randomErrorHIALFALFAConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorALFLF` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -117,7 +118,7 @@ contains
 
   function randomErrorHIALFALFAConstructorInternal(a,b,c,outputAnalysisMolecularRatio_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorALFLF` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorALFLF)                        :: self
@@ -133,7 +134,7 @@ contains
 
   subroutine randomErrorHIALFALFADestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorRandomErrorALFLF`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorALFLF` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self

@@ -24,7 +24,7 @@ Implements a merger tree random number seed in which the seed increases incremen
   !![
   <mergerTreeSeeds name="mergerTreeSeedsIncremental" docformat="rst">
     <description>
-    A merger tree random number seed in which the seed increases incrementally with tree index. Specifically, the seed will be set to the tree index offset by whatever seed was originally specified for the ``randomNumberGeneratorClass`` object in the parameter file. Note that this means that, if tree indices are consecutive, then changing the seed of the ``randomNumberGeneratorClass`` object in the parameter file by incrementing by a small number (e.g. 1, or any number less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider using the ``mergerTreeSeedsRandom`` merger tree seed class to generate seeds instead.
+    A merger tree random number seed in which the seed increases incrementally with tree index. Specifically, the seed will be set to the tree index offset by whatever seed was originally specified for the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file. Note that this means that, if tree indices are consecutive, then changing the seed of the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file by incrementing by a small number (e.g. 1, or any number less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider using the :galacticus-class:`mergerTreeSeedsRandom` merger tree seed class to generate seeds instead.
     </description>
   </mergerTreeSeeds>
   !!]
@@ -39,7 +39,7 @@ Implements a merger tree random number seed in which the seed increases incremen
 
   interface mergerTreeSeedsIncremental
      !!{RST
-     Constructors for the ``mergerTreeSeedsIncremental`` merger tree seed class.
+     Constructors for the :galacticus-class:`mergerTreeSeedsIncremental` merger tree seed class.
      !!}
      module procedure incrementalConstructorParameters
   end interface mergerTreeSeedsIncremental
@@ -48,7 +48,7 @@ contains
 
   function incrementalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeSeedsIncremental`` merger tree seed class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeSeedsIncremental` merger tree seed class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

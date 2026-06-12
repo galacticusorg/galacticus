@@ -48,7 +48,7 @@
   
   interface circumgalacticMediumHeatingSummation
      !!{RST
-     Constructors for the ``circumgalacticMediumHeatingSummation`` circumgalactic medium heating class.
+     Constructors for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``circumgalacticMediumHeatingSummation`` circumgalactic medium heating class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function summationConstructorInternal(heaters) result(self)
     !!{RST
-    Internal constructor for the ``circumgalacticMediumHeatingSummation`` circumgalactic medium heating class.
+    Internal constructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{RST
-    Destructor for the ``circumgalacticMediumHeatingSummation`` circumgalactic medium heating class.
+    Destructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation), intent(inout) :: self

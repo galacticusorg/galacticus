@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorConstrainedStatus
      !!{RST
-     Constructors for the ``nodePropertyExtractorConstrainedStatus`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorConstrainedStatus` property extractor class.
      !!}
      module procedure constrainedStatusConstructorParameters
      module procedure constrainedStatusConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function constrainedStatusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorConstrainedStatus`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorConstrainedStatus` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function constrainedStatusConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorConstrainedStatus`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorConstrainedStatus` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConstrainedStatus) :: self

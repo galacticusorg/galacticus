@@ -41,7 +41,7 @@
 
   interface haloSpinDistributionDeltaFunction
      !!{RST
-     Constructors for the ``haloSpinDistributionDeltaFunction`` dark matter halo spin distribution class.
+     Constructors for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloSpinDistributionDeltaFunction`` dark matter halo spin distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function deltaFunctionConstructorInternal(spin) result(self)
     !!{RST
-    Internal constructor for the ``haloSpinDistributionDeltaFunction`` dark matter halo spin distribution class.
+    Internal constructor for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class.
     !!}
     implicit none
     type            (haloSpinDistributionDeltaFunction)                :: self

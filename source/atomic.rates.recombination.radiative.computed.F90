@@ -45,7 +45,7 @@
 
   interface atomicRecombinationRateRadiativeComputed
      !!{RST
-     Constructors for the ``atomicRecombinationRateRadiativeComputed`` atomic radiative recombination class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeComputed` atomic radiative recombination class.
      !!}
      module procedure computedConstructorParameters
      module procedure computedConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function computedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateRadiativeComputed`` atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeComputed` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function computedConstructorInternal(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_) result(self)
     !!{RST
-    Internal constructor for the ``atomicRecombinationRateRadiativeComputed`` atomic radiative recombination class.
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeComputed` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   subroutine computedDestructor(self)
     !!{RST
-    Destructor for the ``atomicRecombinationRateRadiativeComputed`` atomic radiative recombination class.
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeComputed` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeComputed), intent(inout) :: self

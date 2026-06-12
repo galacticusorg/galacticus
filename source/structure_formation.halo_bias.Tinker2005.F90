@@ -44,7 +44,7 @@
 
   interface darkMatterHaloBiasTinker2005
      !!{RST
-     Constructors for the ``darkMatterHaloBiasTinker2005`` dark matter halo bias class.
+     Constructors for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
      !!}
      module procedure tinker2005ConstructorParameters
      module procedure tinker2005ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function tinker2005ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloBiasTinker2005`` dark matter halo bias class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function tinker2005ConstructorInternal(darkMatterHaloBias_,correlationFunctionTwoPointNonLinear_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloBiasTinker2005`` dark matter halo bias class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2005    )                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine tinker2005Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloBiasTinker2005`` dark matter halo bias class.
+    Destructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2005), intent(inout) :: self

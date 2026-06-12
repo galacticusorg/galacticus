@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorSatelliteMinimumDistance
      !!{RST
-     Constructors for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteMinimumDistance` property extractor class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteMinimumDistance` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSatelliteMinimumDistance`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteMinimumDistance` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteMinimumDistance) :: self

@@ -46,7 +46,7 @@ An implementation of the hot halo mass distribution class which uses the model o
 
   interface hotHaloMassDistributionPatejLoeb2015
      !!{RST
-     Constructors for the ``hotHaloMassDistributionPatejLoeb2015`` hot halo mass distribution class.
+     Constructors for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,radiusShock,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloMassDistributionPatejLoeb2015`` hot halo mass distribution class.
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -155,7 +155,7 @@ contains
 
   subroutine patejLoeb2015Destructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionPatejLoeb2015`` hot halo mass distribution class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self

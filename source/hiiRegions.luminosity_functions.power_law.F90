@@ -61,7 +61,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hiiRegionLuminosityFunctionPowerLaw`` HII region luminosity function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`hiiRegionLuminosityFunctionPowerLaw` HII region luminosity function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function powerLawCumulativeLuminosityConstructorInternal(rateHydrogenIonizingPhotonsMinimum,rateHydrogenIonizingPhotonsMaximum,exponent) result(self)
     !!{RST
-    Internal constructor for the ``hiiRegionLuminosityFunctionPowerLaw`` HII region luminosity function class.
+    Internal constructor for the :galacticus-class:`hiiRegionLuminosityFunctionPowerLaw` HII region luminosity function class.
     !!}
     
     implicit none

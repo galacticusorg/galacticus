@@ -43,7 +43,7 @@
 
   interface mergerProgenitorPropertiesSimple
      !!{RST
-     Constructors for the ``mergerProgenitorPropertiesSimple`` merger progenitor properties class.
+     Constructors for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerProgenitorPropertiesSimple`` merger progenitor properties class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report        , Component_List
@@ -114,7 +114,7 @@ contains
 
  function simpleConstructorInternal(mergerMassMovements_) result(self)
     !!{RST
-    Internal constructor for the ``mergerProgenitorPropertiesSimple`` merger progenitor properties class.
+    Internal constructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesSimple)                        :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{RST
-    Destructor for the ``mergerProgenitorPropertiesSimple`` merger progenitor properties class.
+    Destructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesSimple), intent(inout) :: self

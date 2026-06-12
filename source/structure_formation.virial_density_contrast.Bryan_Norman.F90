@@ -68,7 +68,7 @@
 
   interface virialDensityContrastBryanNorman1998
      !!{RST
-     Constructors for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastBryanNorman1998` dark matter halo virial density contrast class.
      !!}
      module procedure bryanNorman1998ConstructorParameters
      module procedure bryanNorman1998ConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function bryanNorman1998ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialDensityContrastBryanNorman1998` dark matter halo virial density contrast class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function bryanNorman1998ConstructorInternal(allowUnsupportedCosmology,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastBryanNorman1998` dark matter halo virial density contrast class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -151,7 +151,7 @@ contains
 
   subroutine bryanNorman1998Destructor(self)
     !!{RST
-    Destructor for the ``virialDensityContrastBryanNorman1998`` dark matter halo virial density contrast class.
+    Destructor for the :galacticus-class:`virialDensityContrastBryanNorman1998` dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastBryanNorman1998), intent(inout) :: self

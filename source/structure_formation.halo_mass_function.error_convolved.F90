@@ -46,7 +46,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
 
   interface haloMassFunctionErrorConvolved
      !!{RST
-     Constructors for the ``haloMassFunctionErrorConvolved`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
      !!}
      module procedure errorConvolvedConstructorParameters
      module procedure errorConvolvedConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function errorConvolvedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionErrorConvolved`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative,tolerateIntegrationFailure) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionErrorConvolved`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionErrorConvolved)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine errorConvolvedDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionErrorConvolved`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionErrorConvolved), intent(inout) :: self

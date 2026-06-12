@@ -38,7 +38,7 @@
 
        \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
 
-    :math:`F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}`, :math:`\mathcal{F}_\mathrm{tidal}` is the tidal field from the host halo (see ``satelliteTidalField``),
+    :math:`F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}`, :math:`\mathcal{F}_\mathrm{tidal}` is the tidal field from the host halo (see :galacticus-class:`satelliteTidalField`),
 
     .. math::
 
@@ -62,7 +62,7 @@
 
   interface tidalStrippingSimple
      !!{RST
-     Constructors for the ``tidalStrippingSimple`` model of tidal stripping class.
+     Constructors for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``tidalStrippingSimple`` model of tidal stripping class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``tidalStrippingSimple`` model of tidal stripping class.
+    Internal constructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
     !!}
     implicit none
     type            (tidalStrippingSimple    )                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{RST
-    Destructor for the ``tidalStrippingSimple`` model of tidal stripping class.
+    Destructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
     !!}
     implicit none
     type(tidalStrippingSimple), intent(inout) :: self

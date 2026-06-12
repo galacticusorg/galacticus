@@ -74,7 +74,7 @@
 
   interface massDistributionSphericalScaler
      !!{RST
-     Constructors for the ``massDistributionSphericalScaler`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
      !!}
      module procedure sphericalScalerConstructorParameters
      module procedure sphericalScalerConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function sphericalScalerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalScaler`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -126,7 +126,7 @@ contains
   
   function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalScaler`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
@@ -146,7 +146,7 @@ contains
 
   subroutine sphericalScalerDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSphericalScaler`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalScaler), intent(inout) :: self

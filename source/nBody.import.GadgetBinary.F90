@@ -51,7 +51,7 @@ Implements an N-body data importer for Gadget binary files.
 
   interface nbodyImporterGadgetBinary
      !!{RST
-     Constructors for the ``nbodyImporterGadgetBinary`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterGadgetBinary` N-body importer class.
      !!}
      module procedure gadgetBinaryConstructorParameters
      module procedure gadgetBinaryConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterGadgetBinary`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterGadgetBinary` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -152,7 +152,7 @@ contains
 
   function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,setParticleType,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterGadgetBinary`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterGadgetBinary` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterGadgetBinary)                        :: self

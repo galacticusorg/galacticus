@@ -49,7 +49,7 @@
   
   interface nodeOperatorSatelliteDestructionDensityProfileThreshold
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDestructionDensityProfileThreshold` node operator class.
      !!}
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs
      module procedure satelliteDestructionDensityProfileThresholdCnstrctrInternal
@@ -63,7 +63,7 @@ contains
 
   function satelliteDestructionDensityProfileThresholdCnstrctrPrmtrs(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionDensityProfileThreshold` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function satelliteDestructionDensityProfileThresholdCnstrctrInternal(fractionDensityProfileVirialFraction,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionDensityProfileThreshold` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionDensityProfileThreshold)                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine satelliteDestructionDensityProfileThresholdDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteDestructionDensityProfileThreshold`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteDestructionDensityProfileThreshold` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDestructionDensityProfileThreshold), intent(inout) :: self

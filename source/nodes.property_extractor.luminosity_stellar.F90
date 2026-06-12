@@ -54,7 +54,7 @@ Implements a stellar mass output analysis property extractor class.
 
   interface nodePropertyExtractorLuminosityStellar
      !!{RST
-     Constructors for the ``nodePropertyExtractorLuminosityStellar`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
      !!}
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function luminosityStellarConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLuminosityStellar`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -141,7 +141,7 @@ contains
 
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorLuminosityStellar`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -182,7 +182,7 @@ contains
 
   subroutine luminosityStellarDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLuminosityStellar`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self

@@ -59,7 +59,7 @@
 
   interface virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
      !!{RST
-     Constructors for the ``virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
      !!}
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt`` dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(tableStore,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
     !!}
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
     !!{RST
-    Destructor for the ``virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt`` dark matter halo virial density contrast class.
+    Destructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
     !!}
     implicit none
     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self

@@ -47,7 +47,7 @@
 
   interface mergerTreeEvolveTimestepStandard
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepStandard`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepStandard` merger tree evolution timestep class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepStandard`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepStandard` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
@@ -95,7 +95,7 @@ contains
 
   function standardConstructorInternal(cosmologyFunctions_,nodeOperator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolveTimestepStandard`` merger tree evolution timestep class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveTimestepStandard` merger tree evolution timestep class.
     !!}
     implicit none
     type (mergerTreeEvolveTimestepStandard)                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepStandard`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepStandard` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepStandard), intent(inout) :: self

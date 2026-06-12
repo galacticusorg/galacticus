@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorMassAccretionHistory
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassAccretionHistory`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassAccretionHistory` property extractor class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassAccretionHistory`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionHistory` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function massAccretionHistoryConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassAccretionHistory`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionHistory` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassAccretionHistory) :: self

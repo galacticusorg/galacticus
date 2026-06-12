@@ -46,7 +46,7 @@
 
   interface nodePropertyExtractorJetPowerBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorJetPowerBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function jetPowerBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorJetPowerBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorJetPowerBlackHoles`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self

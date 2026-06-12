@@ -63,7 +63,7 @@
 
   interface massDistributionMiyamotoNagai
      !!{RST
-     Constructors for the ``massDistributionMiyamotoNagai`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionMiyamotoNagai` mass distribution class.
      !!}
      module procedure miyamotoNagaiConstructorParameters
      module procedure miyamotoNagaiConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function miyamotoNagaiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionMiyamotoNagai`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionMiyamotoNagai` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

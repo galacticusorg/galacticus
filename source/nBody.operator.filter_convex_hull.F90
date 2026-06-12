@@ -40,7 +40,7 @@ Implements an N-body data operator which filters particles outside of a convex h
 
   interface nbodyOperatorFilterConvexHull
      !!{RST
-     Constructors for the ``nbodyOperatorFilterConvexHull`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorFilterConvexHull` N-body operator class.
      !!}
      module procedure filterConvexHullConstructorParameters
      module procedure filterConvexHullConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function filterConvexHullConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorFilterConvexHull`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorFilterConvexHull` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function filterConvexHullConstructorInternal(hullFromSimulation) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorFilterConvexHull`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorFilterConvexHull` N-body operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

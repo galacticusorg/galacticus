@@ -460,7 +460,7 @@ contains
 
   subroutine odeSolverAssign(to,from)
     !!{RST
-    Assignment operator for ``odeSolver`` objects.
+    Assignment operator for :galacticus-class:`odeSolver` objects.
     !!}
     implicit none
     class(odeSolver), intent(  out) :: to

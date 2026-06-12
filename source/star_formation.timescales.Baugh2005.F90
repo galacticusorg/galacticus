@@ -51,7 +51,7 @@
 
   interface starFormationTimescaleBaugh2005
      !!{RST
-     Constructors for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
+     Constructors for the :galacticus-class:`starFormationTimescaleBaugh2005` timescale for star formation class.
      !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleBaugh2005` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -116,7 +116,7 @@ contains
 
   function baugh2005ConstructorInternal(timescale,exponentVelocity,exponentExpansionFactor,velocityNormalization,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleBaugh2005` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleBaugh2005)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine baugh2005Destructor(self)
     !!{RST
-    Destructor for the ``starFormationTimescaleBaugh2005`` timescale for star formation class.
+    Destructor for the :galacticus-class:`starFormationTimescaleBaugh2005` timescale for star formation class.
     !!}
     implicit none
     type(starFormationTimescaleBaugh2005), intent(inout) :: self

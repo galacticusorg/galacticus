@@ -50,7 +50,7 @@ Implements an orbital velocity output analysis property extractor class.
 
   interface nodePropertyExtractorVelocityOrbital
      !!{RST
-     Constructors for the ``nodePropertyExtractorVelocityOrbital`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorVelocityOrbital` property extractor class.
      !!}
      module procedure velocityOrbitalConstructorParameters
   end interface nodePropertyExtractorVelocityOrbital
@@ -59,7 +59,7 @@ contains
 
   function velocityOrbitalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorVelocityOrbital`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorVelocityOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

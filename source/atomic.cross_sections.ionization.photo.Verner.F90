@@ -39,7 +39,7 @@
 
   interface atomicCrossSectionIonizationPhotoVerner
      !!{RST
-     Constructors for the ``atomicCrossSectionIonizationPhotoVerner`` atomic photoionization cross-section class.
+     Constructors for the :galacticus-class:`atomicCrossSectionIonizationPhotoVerner` atomic photoionization cross-section class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicCrossSectionIonizationPhotoVerner
@@ -1942,7 +1942,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicCrossSectionIonizationPhotoVerner`` atomic photoionization cross-section class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`atomicCrossSectionIonizationPhotoVerner` atomic photoionization cross-section class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

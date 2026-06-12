@@ -48,7 +48,7 @@
 
   interface virialDensityContrastKitayamaSuto1996
      !!{RST
-     Constructors for the ``virialDensityContrastKitayamaSuto1996`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
      !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialDensityContrastKitayamaSuto1996`` dark matter halo virial density contrast class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastKitayamaSuto1996`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -94,7 +94,7 @@ contains
 
   subroutine kitayamaSuto1996Destructor(self)
     !!{RST
-    Destructor for the ``virialDensityContrastKitayamaSuto1996`` dark matter halo virial density contrast class.
+    Destructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self

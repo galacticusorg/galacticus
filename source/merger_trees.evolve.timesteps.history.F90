@@ -98,7 +98,7 @@ Implements a merger tree evolution timestepping class which limits the step the 
 
   interface mergerTreeEvolveTimestepHistory
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepHistory`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -108,7 +108,7 @@ contains
 
   function historyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepHistory`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -165,7 +165,7 @@ contains
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepHistory`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -225,7 +225,7 @@ contains
 
   subroutine historyDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepHistory`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : outputFileCloseEventGlobal
     implicit none

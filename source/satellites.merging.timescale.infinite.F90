@@ -41,7 +41,7 @@
 
   interface satelliteMergingTimescalesInfinite
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesInfinite`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesInfinite` satellite merging timescale class.
      !!}
      module procedure infiniteConstructorParameters
   end interface satelliteMergingTimescalesInfinite

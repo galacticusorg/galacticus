@@ -40,7 +40,7 @@ Implements a filter which passes only the most massive branch halo.
 
   interface galacticFilterBranchMostMassive
      !!{RST
-     Constructors for the ``galacticFilterBranchMostMassive`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterBranchMostMassive`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterBranchMostMassive`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class.
     !!}
     implicit none
     type(galacticFilterBranchMostMassive) :: self

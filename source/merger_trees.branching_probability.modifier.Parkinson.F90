@@ -54,7 +54,7 @@ Implements a merger tree branching probability rate modifier which uses the mode
 
   interface mergerTreeBranchingProbabilityModifierParkinson2008
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityModifierParkinson2008`` merger tree branching probability rate class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierParkinson2008` merger tree branching probability rate class.
      !!}
      module procedure parkinson2008ConstructorParameters
      module procedure parkinson2008ConstructorInternal
@@ -130,7 +130,7 @@ contains
 
   subroutine parkinson2008Destructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBranchingProbabilityModifierParkinson2008`` merger tree branching probability rate class.
+    Destructor for the :galacticus-class:`mergerTreeBranchingProbabilityModifierParkinson2008` merger tree branching probability rate class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self

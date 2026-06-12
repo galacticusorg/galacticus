@@ -43,7 +43,7 @@
 
   interface hotHaloRamPressureTimescaleHaloDynamicalTime
      !!{RST
-     Constructors for the ``hotHaloRamPressureTimescaleHaloDynamicalTime`` hot halo ram pressure timescale class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureTimescaleHaloDynamicalTime`` hot halo ram pressure timescale class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function haloDynamicalTimeConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureTimescaleHaloDynamicalTime`` hot halo ram pressure timescale class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine haloDynamicalTimeDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureTimescaleHaloDynamicalTime`` hot halo ram pressure timescale class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
     !!}
     implicit none
     type(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self

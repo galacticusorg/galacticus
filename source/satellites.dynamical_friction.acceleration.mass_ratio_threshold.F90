@@ -52,7 +52,7 @@ contains
 
   function massRatioThresholdConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteDynamicalFrictionMassRatioThreshold`` satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function massRatioThresholdConstructorInternal(massRatioThreshold,satelliteDynamicalFriction_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteDynamicalFrictionMassRatioThreshold`` satellite dynamical friction class.
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class.
     !!}
     implicit none
     type            (satelliteDynamicalFrictionMassRatioThreshold)                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine massRatioThresholdDestructor(self)
     !!{RST
-    Destructor for the ``satelliteDynamicalFrictionMassRatioThreshold`` satellite dynamical friction class.
+    Destructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionMassRatioThreshold), intent(inout) :: self

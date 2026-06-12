@@ -55,7 +55,7 @@ Provides a class that implements a satellite dynamical time extractor.
 
   interface nodePropertyExtractorSatelliteDynamicalTime
      !!{RST
-     Constructors for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteDynamicalTime` property extractor class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteDynamicalTime` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function dynamicalTimeConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteDynamicalTime` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSatelliteDynamicalTime)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine dynamicalTimeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorSatelliteDynamicalTime`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorSatelliteDynamicalTime` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteDynamicalTime), intent(inout) :: self

@@ -34,9 +34,9 @@ Implements a excursion set first crossing statistics class using the algorithm o
    An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`. For trajectories originating from a point :math:`(S_1,\delta_1)`, the distribution of first crossings of a barrier :math:`B(S)`, :math:`f(S)`, is obtained by finding the solution to the integral equation:
 
    .. math::
+      :label: eq-OldExcursionMethod
 
        1 =  \int_0^S f(\tilde{S})\mathrm{d}\tilde{S} + \int_{-\infty}^{B(S)} P(\delta,S) \mathrm{d} \delta,
-      \label{eq:OldExcursionMethod}
 
    where :math:`P(\delta,S) \mathrm{d} \delta` is the probability for a trajectory to lie between :math:`\delta` and :math:`\delta + \mathrm{d} \delta` at variance :math:`S`, having originated from the point :math:`(S_1,\delta_1)` having not crossed the barrier at any smaller :math:`\tilde{S} &lt; S`. In the absence of a barrier, :math:`P(\delta,S)` would be equal to :math:`P_0(\delta,S)`. However, since some trajectories will have crossed the barrier at :math:`\tilde{S} &lt; S` we must subtract off their contribution to :math:`P_0(\delta,S)`. Writing the distribution of :math:`\delta` at :math:`S` for trajectories originating at some :math:`(\tilde{\delta},\tilde{S})` as :math:`P^\prime(\delta|S,\tilde{\delta},\tilde{S})`, we can therefore write
 
@@ -72,7 +72,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
 
    since the Weiner process is invariant under translations of the starting point.
 
-   Using the above results, we can rewrite eqn. ():
+   Using the above results, we can rewrite eqn. (:eq:`eq-OldExcursionMethod`):
 
    .. math::
 
@@ -90,12 +90,12 @@ Implements a excursion set first crossing statistics class using the algorithm o
    The integral over :math:`\mathrm{d}\delta` can be carried out analytically to give:
 
    .. math::
+      :label: eq-NewExcursionMethod
 
        1 = \int_0^S f(\tilde{S})\mathrm{d}\tilde{S}+ \hbox{erf}\left\{\frac{\Delta \delta [B(S),\delta_1,S,S_1]}{\sqrt{2\Delta S[S,S_1]}}\right\} - \int_{0}^{S} f(\tilde{S})
        \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S [S,\tilde{S}]}}\right\} \mathrm{d}S^{\prime\prime}.
-      \label{eq:NewExcursionMethod}
 
-   We now discretize eqn. (). Specifically, we divide the :math:`S` space into :math:`N` intervals defined by the points:
+   We now discretize eqn. (:eq:`eq-NewExcursionMethod`). Specifically, we divide the :math:`S` space into :math:`N` intervals defined by the points:
 
    .. math::
 
@@ -107,37 +107,37 @@ Implements a excursion set first crossing statistics class using the algorithm o
 
    Note that :math:`f(0)=0` by definition, so :math:`f(S_0)=0` always. We choose :math:`\Delta S_i = S_\mathrm{max}/N` (i.e. uniform spacing in :math:`S`) when computing first crossing distributions, and :math:`\Delta S_i \propto S_i` (i.e. uniform spacing in :math:`\log(S)`) when computing first crossing rates.
 
-   Discretizing the integrals in eqn. () gives:
+   Discretizing the integrals in eqn. (:eq:`eq-NewExcursionMethod`) gives:
 
    .. math::
+      :label: eq-Des1
 
-      \label{eq:Des1}
       \int_0^{S_i} f(\tilde{S})\d \tilde{S} = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j
 
    and:
 
    .. math::
+      :label: eq-Des2
 
-      \label{eq:Des2}
       \int_{0}^{S_i} f(\tilde{S}) \hbox{erf}\left\{\frac{\Delta \delta [B(S),B(\tilde{S}),S,\tilde{S}]}{\sqrt{2 \Delta S[S,\tilde{S}]}}\right\} \d \tilde{S} =
       \sum_{j=0}^{i-1} \frac{1}{2} \left(f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j), S_i, S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
       \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
 
-   We can now rewrite eqn. () in discretized form:
+   We can now rewrite eqn. (:eq:`eq-NewExcursionMethod`) in discretized form:
 
    .. math::
+      :label: eq-DesFinal1
 
-      \label{eq:DesFinal1}
       1 = \sum_{j=0}^{i-1} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j + \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} -
       \frac{1}{2} \sum_{j=0}^{i-1} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} + f(S_{j+1})
       \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S[S_i,S_{j+1}]}}\right\} \right) \Delta S_j.
 
-   Solving eqn. () for :math:`f(S_i)`:
+   Solving eqn. (:eq:`eq-DesFinal1`) for :math:`f(S_i)`:
 
    .. math::
+      :label: eq-DesFinal11
 
-      \label{eq:DesFinal11}
-       \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i), S_i, S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} \right) \Delta S_{i-1}
+      \left( \frac{1}{2} - \frac{1}{2} \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i), S_i, S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} \right) \Delta S_{i-1}
        f(S_i) &amp; = 1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j - \frac{f(S_{i-1})}{2} \Delta S_{i-1} -
        \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S[S_i,S_1]}}\right\} \nonumber \\
       &amp;  + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
@@ -150,12 +150,12 @@ Implements a excursion set first crossing statistics class using the algorithm o
 
       \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_i),S_i,S_i]}{\sqrt{2 \Delta S[S_i,S_i]}}\right\} = 0.
 
-   We can then simplify eqn. ():
+   We can then simplify eqn. (:eq:`eq-DesFinal11`):
 
    .. math::
+      :label: eq-DesFinal2
 
-      \label{eq:DesFinal2}
-         f(S_i) &amp; = {2 \over \Delta S_{i-1}}\left[1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j -
+      f(S_i) &amp; = {2 \over \Delta S_{i-1}}\left[1 - \sum_{j=0}^{i-2} \frac{f(S_j) + f(S_{j+1})}{2} \Delta S_j -
          \frac{f(S_{i-1})}{2} \Delta S_{i-1} - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2 \Delta S [S_i,S_1] }}\right\} \right.  \nonumber \\
       &amp;  + \frac{1}{2} \sum_{j=0}^{i-2} \left( f(S_j) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} +
       f(S_{j+1}) \hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_{j+1}),S_i,S_{j+1}]}{\sqrt{2 \Delta S [S_i,S_{j+1}]}}\right\} \right)\Delta S_j \nonumber \\
@@ -165,8 +165,8 @@ Implements a excursion set first crossing statistics class using the algorithm o
    Consolidating terms in the summations:
 
    .. math::
+      :label: eq-DesFinal2a
 
-      \label{eq:DesFinal2a}
         f(S_i) = {2 \over \Delta S_{i-1}}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S[S_i,S_1]}}\right\} - \sum_{j=0}^{i-1}
         \left( 1-\hbox{erf}\left\{\frac{\Delta \delta [B(S_i) , B(S_j),S_i,S_j]}{\sqrt{2 \Delta S [S_i,S_j]}}\right\} \right) f(S_j) {\Delta S_{j-1} + \Delta S_j
         \over 2} \right].
@@ -174,12 +174,12 @@ Implements a excursion set first crossing statistics class using the algorithm o
    In the case of constant :math:`\Delta S_j(=\Delta S)` this can be simplified further:
 
    .. math::
+      :label: eq-DesFinal3
 
-      \label{eq:DesFinal3}
         f(S_i) = {2 \over \Delta S}\left[1 - \hbox{erf}\left\{\frac{\Delta \delta [B(S_i),\delta_1,S_i,S_1]}{\sqrt{2\Delta S [S_i,S_1]}}\right\}\right] - 2 \sum_{j=0}^{i-1}
         \left(1- \hbox{erf}\left\{\frac{\Delta \delta [B(S_i), B(S_j),S_i,S_j]}{\sqrt{2 \Delta S[S_i,S_j]}}\right\} \right) f(S_j).
 
-   In either case (i.e. eqns.  and ) solution proceeds recursively: :math:`f(S_0)=0` by definition, :math:`f(S_1)` depends only on the known barrier and :math:`f(S_0)`, :math:`f(S_i)` depends only on the known barrier and :math:`f(S_{&lt;i})`.
+   In either case (i.e. eqns. :eq:`eq-DesFinal2a` and :eq:`eq-DesFinal3`) solution proceeds recursively: :math:`f(S_0)=0` by definition, :math:`f(S_1)` depends only on the known barrier and :math:`f(S_0)`, :math:`f(S_i)` depends only on the known barrier and :math:`f(S_{&lt;i})`.
 
    The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the progenitor in the :math:`(\delta,S)` plane, plus a small shift in time. The non-crossing rate, :math:`g(S_\mathrm{max})`, defined as the rate at which trajectories reach the maximum possible variance, :math:`S_\mathrm{max}`, without ever crossing the barrier---is computed directly by integrating over the first crossing rate distribution, i.e. :math:`g(S_\mathrm{max}) = 1 -\int_0^{S_\mathrm{max}} f(\tilde{S}) \mathrm{d}\tilde{S}`. Note that since the numerical integration occurs only up to a finite maximum :math:`S_\mathrm{max}`, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality they should have zero non-crossing rate. As such, use of this method for such barriers is not recommended.
    </description>

@@ -48,7 +48,7 @@ Implements a ratio output analysis property extractor class.
 
   interface nodePropertyExtractorRatio
      !!{RST
-     Constructors for the ``nodePropertyExtractorRatio`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function ratioConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRatio`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRatio`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_C_to_Fortran
@@ -132,7 +132,7 @@ contains
 
   subroutine ratioDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRatio`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self

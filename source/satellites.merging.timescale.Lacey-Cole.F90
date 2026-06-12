@@ -105,7 +105,7 @@ contains
 
   subroutine laceyCole1993Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesLaceyCole1993`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesLaceyCole1993` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self

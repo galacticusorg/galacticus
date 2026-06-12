@@ -42,7 +42,7 @@
   
   interface nodeOperatorTrackOutflowedMass
      !!{RST
-     Constructors for the ``nodeOperatorTrackOutflowedMass`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function trackOutflowedMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTrackOutflowedMass`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function trackOutflowedMassConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTrackOutflowedMass`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
     !!}
     implicit none
     type(nodeOperatorTrackOutflowedMass) :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine trackOutflowedMassDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorTrackOutflowedMass`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent, hotHaloMassInflowEvent, hotHaloMassReincorporationEvent
     implicit none

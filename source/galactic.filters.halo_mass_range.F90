@@ -48,7 +48,7 @@ Implements a galactic filter for halo mass under a given definition.
 
   interface galacticFilterHaloMassRange
      !!{RST
-     Constructors for the ``galacticFilterHaloMassRange`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHaloMassRange` galactic filter class.
      !!}
      module procedure haloMassRangeConstructorParameters
      module procedure haloMassRangeConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function haloMassRangeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHaloMassRange`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHaloMassRange` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function haloMassRangeConstructorInternal(massLow,massHigh,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterHaloMassRange`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterHaloMassRange` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMassRange)                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine haloMassRangeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterHaloMassRange`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterHaloMassRange` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloMassRange), intent(inout) :: self

@@ -41,7 +41,7 @@
 
   interface mergerTreeMassResolutionScaled
      !!{RST
-     Constructors for the ``mergerTreeMassResolutionScaled`` merger tree building mass resolution class.
+     Constructors for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function scaledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeMassResolutionScaled`` merger tree building mass resolution class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeMassResolutionScaled)                :: self
@@ -95,7 +95,7 @@ contains
 
   function scaledConstructorInternal(massResolutionMinimum,massResolutionMaximum,massResolutionFractional) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeMassResolutionScaled`` merger tree building mass resolution class.
+    Internal constructor for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionScaled)                :: self

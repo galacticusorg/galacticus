@@ -44,7 +44,7 @@
 
   interface darkMatterHaloBiasSheth2001
      !!{RST
-     Constructors for the ``darkMatterHaloBiasSheth2001`` dark matter halo bias class.
+     Constructors for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
      !!}
      module procedure sheth2001ConstructorParameters
      module procedure sheth2001ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloBiasSheth2001`` dark matter halo bias class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function sheth2001ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloBiasSheth2001`` dark matter halo bias class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasSheth2001  )                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine sheth2001Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloBiasSheth2001`` dark matter halo bias class.
+    Destructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasSheth2001), intent(inout) :: self

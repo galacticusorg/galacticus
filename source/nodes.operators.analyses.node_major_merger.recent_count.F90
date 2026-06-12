@@ -65,7 +65,7 @@
   
   interface nodeOperatorNodeMajorMergerRecentCount
      !!{RST
-     Constructors for the ``nodeOperatorNodeMajorMergerRecentCount`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorNodeMajorMergerRecentCount`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   function nodeMajorMergerRecentCountConstructorInternal(massRatioMajor,intervalRecent,intervalType,intervalFromInfall,outputTimes_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorNodeMajorMergerRecentCount`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -156,7 +156,7 @@ contains
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorNodeMajorMergerRecentCount`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeMajorMergerRecentCount), intent(inout) :: self

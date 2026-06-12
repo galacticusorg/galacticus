@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorExcursion
      !!{RST
-     Constructors for the ``nodePropertyExtractorExcursion`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function excursionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorExcursion`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function excursionConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorExcursion`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorExcursion) :: self

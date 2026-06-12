@@ -58,7 +58,7 @@
 
   interface outputAnalysisSatelliteVelocityMaximum
      !!{RST
-     Constructors for the ``outputAnalysisSatelliteVelocityMaximum`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class.
      !!}
      module procedure satelliteVelocityMaximumConstructorParameters
      module procedure satelliteVelocityMaximumConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function satelliteVelocityMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisSatelliteVelocityMaximum`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -112,7 +112,7 @@ contains
   
   function satelliteVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSatelliteVelocityMaximum`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -165,7 +165,7 @@ contains
 
   subroutine satelliteVelocityMaximumDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisSatelliteVelocityMaximum`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self

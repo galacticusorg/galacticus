@@ -39,7 +39,7 @@
 
   interface hotHaloRamPressureForceZero
      !!{RST
-     Constructors for the ``hotHaloRamPressureForceZero`` hot halo ram pressure force class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureForceZero` hot halo ram pressure force class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloRamPressureForceZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureForceZero`` hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureForceZero` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

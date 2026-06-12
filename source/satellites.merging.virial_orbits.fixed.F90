@@ -59,7 +59,7 @@
 
   interface virialOrbitFixed
      !!{RST
-     Constructors for the ``virialOrbitFixed`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitFixed` virial orbits class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialOrbitFixed`` virial orbits class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialOrbitFixed` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,7 +121,7 @@ contains
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrastDefinition_,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitFixed`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitFixed` virial orbits class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -142,7 +142,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{RST
-    Destructor for the ``virialOrbitFixed`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitFixed` virial orbits class.
     !!}
     implicit none
     type(virialOrbitFixed), intent(inout) :: self

@@ -72,7 +72,7 @@ Implements a merger tree build controller class which performs subsampling of br
 
   interface mergerTreeBuildControllerSubsample
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerSubsample` merger tree build controller class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function subsampleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerSubsample` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -165,7 +165,7 @@ contains
 
   function subsampleConstructorInternal(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroyStubs,massThreshold,fractionMassThreshold) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerSubsample` merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -191,7 +191,7 @@ contains
 
   subroutine subsampleDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerSubsample`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerSubsample` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerSubsample), intent(inout) :: self

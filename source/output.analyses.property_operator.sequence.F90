@@ -29,7 +29,7 @@ Implements a sequence output analysis property operator class.
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" docformat="rst">
    <description>
-   Applies a sequence of ``outputAnalysisPropertyOperatorClass`` objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.
+   Applies a sequence of :galacticus-class:`outputAnalysisPropertyOperatorClass` objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.
    </description>
    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
   </outputAnalysisPropertyOperator>
@@ -55,7 +55,7 @@ Implements a sequence output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorSequence
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorSequence`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSequence` output analysis property operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorSequence`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSequence` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

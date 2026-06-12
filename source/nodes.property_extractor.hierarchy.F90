@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorHierarchy
      !!{RST
-     Constructors for the ``nodePropertyExtractorHierarchy`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function hierarchyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorHierarchy`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function hierarchyConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorHierarchy`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHierarchy) :: self

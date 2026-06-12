@@ -43,7 +43,7 @@
   
   interface nodeOperatorBlackHolesTripleInteraction
      !!{RST
-     Constructors for the ``nodeOperatorBlackHolesTripleInteraction`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
      !!}
      module procedure blackHolesTripleInteractionConstructorParameters
      module procedure blackHolesTripleInteractionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function blackHolesTripleInteractionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBlackHolesTripleInteraction`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function blackHolesTripleInteractionConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBlackHolesTripleInteraction`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesTripleInteraction)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine blackHolesTripleInteractionDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBlackHolesTripleInteraction`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesTripleInteraction), intent(inout) :: self

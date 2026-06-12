@@ -47,7 +47,7 @@
 
   interface mergerTreeConstructorFilter
      !!{RST
-     Constructors for the ``mergerTreeConstructorFilter`` merger tree constructor class.
+     Constructors for the :galacticus-class:`mergerTreeConstructorFilter` merger tree constructor class.
      !!}
      module procedure filterConstructorParameters
      module procedure filterConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function filterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeConstructorFilter`` merger tree constructor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeConstructorFilter` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function filterConstructorInternal(mergerTreeConstructor_,mergerTreeFilter_,mergerTreeOperator_,nodeOperator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeConstructorFilter`` merger tree constructor class.
+    Internal constructor for the :galacticus-class:`mergerTreeConstructorFilter` merger tree constructor class.
     !!}
     implicit none
     type (mergerTreeConstructorFilter)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine filterDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeConstructorFilter`` merger tree constructor class.
+    Destructor for the :galacticus-class:`mergerTreeConstructorFilter` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorFilter), intent(inout) :: self

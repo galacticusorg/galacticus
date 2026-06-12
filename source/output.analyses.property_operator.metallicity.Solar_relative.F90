@@ -41,7 +41,7 @@
 
   interface outputAnalysisPropertyOperatorMetallicitySolarRelative
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicitySolarRelative` output analysis property operator class.
      !!}
      module procedure metallicitySolarRelativeConstructorParameters
      module procedure metallicitySolarRelativeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function metallicitySolarRelativeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicitySolarRelative` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function metallicitySolarRelativeConstructorInternal(atomicNumberElement) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorMetallicitySolarRelative`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicitySolarRelative` output analysis property operator class.
     !!}
     use :: Atomic_Data, only : Abundance_Pattern_Lookup
     implicit none

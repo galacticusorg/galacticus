@@ -46,7 +46,7 @@
 
   interface supernovaeTypeIaNagashima2005
      !!{RST
-     Constructors for the ``supernovaeTypeIaNagashima2005`` supernovae type Ia class.
+     Constructors for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
      !!}
      module procedure nagashima2005ConstructorParameters
      module procedure nagashima2005ConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function nagashima2005ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``supernovaeTypeIaNagashima2005`` supernovae type Ia class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
     !!{RST
-    Internal constructor for the ``supernovaeTypeIaNagashima2005`` supernovae type Ia class.
+    Internal constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
     !!}
     implicit none
     type (supernovaeTypeIaNagashima2005)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine nagashima2005Destructor(self)
     !!{RST
-    Destructor for the ``supernovaeTypeIaNagashima2005`` supernovae type Ia class.
+    Destructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
     !!}
     implicit none
     type(supernovaeTypeIaNagashima2005), intent(inout) :: self

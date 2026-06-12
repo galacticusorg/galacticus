@@ -49,7 +49,7 @@
 
   interface nbodyOperatorSpinDistributionFunction
      !!{RST
-     Constructors for the ``nbodyOperatorSpinDistributionFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
      !!}
      module procedure spinDistributionFunctionConstructorParameters
      module procedure spinDistributionFunctionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function spinDistributionFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSpinDistributionFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -148,7 +148,7 @@ contains
 
   function spinDistributionFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,spinMinimum,spinMaximum,spinCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSpinDistributionFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSpinDistributionFunction)                        :: self
@@ -167,7 +167,7 @@ contains
   
   subroutine spinDistributionFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSpinDistributionFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSpinDistributionFunction), intent(inout) :: self

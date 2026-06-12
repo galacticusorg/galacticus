@@ -46,7 +46,7 @@
 
   interface initialMassFunctionBPASS
      !!{RST
-     Constructors for the ``initialMassFunctionBPASS`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionBPASS` initial mass function class.
      !!}
      module procedure bpassConstructorParameters
      module procedure bpassConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function bpassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionBPASS`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionBPASS` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function bpassConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionBPASS`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionBPASS` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBPASS):: self

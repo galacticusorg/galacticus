@@ -54,7 +54,7 @@
 
   interface satelliteDecelerationSIDMKummer2018
      !!{RST
-     Constructors for the ``satelliteDecelerationSIDMKummer2018`` satellite deceleration due to dark matter self-interactions class.
+     Constructors for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
      !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteDecelerationSIDMKummer2018`` satellite deceleration due to dark matter self-interactions class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteDecelerationSIDMKummer2018`` satellite deceleration due to dark matter self-interactions class.
+    Internal constructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
     !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                     , milli   , kilo
@@ -122,7 +122,7 @@ contains
 
   subroutine kummer2018Destructor(self)
     !!{RST
-    Destructor for the ``satelliteDecelerationSIDMKummer2018`` satellite deceleration due to dark matter self-interactions class.
+    Destructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
     !!}
     implicit none
     type(satelliteDecelerationSIDMKummer2018), intent(inout) :: self

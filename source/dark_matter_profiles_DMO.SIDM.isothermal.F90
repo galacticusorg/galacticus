@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSIDMIsothermal" docformat="rst">
     <description>
-    Dark matter halo profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023` are built via the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
+    Dark matter halo profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023` are built via the :galacticus-class:`massDistributionSphericalSIDMIsothermal` mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMOSIDMIsothermal
      !!{RST
-     Constructors for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOSIDMIsothermal` dark matter halo profile class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOSIDMIsothermal` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfileDMO_,darkMatterParticle_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOSIDMIsothermal` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -101,7 +101,7 @@ contains
 
   subroutine sidmIsothermalDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOSIDMIsothermal`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOSIDMIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOSIDMIsothermal), intent(inout) :: self

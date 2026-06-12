@@ -43,7 +43,7 @@
   
   interface nodeOperatorTidalMassLossSpheroids
      !!{RST
-     Constructors for the ``nodeOperatorTidalMassLossSpheroids`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
      !!}
      module procedure tidalMassLossSpheroidsConstructorParameters
      module procedure tidalMassLossSpheroidsConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function tidalMassLossSpheroidsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorTidalMassLossSpheroids`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function tidalMassLossSpheroidsConstructorInternal(tidalStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorTidalMassLossSpheroids`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalMassLossSpheroids)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine tidalMassLossSpheroidsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorTidalMassLossSpheroids`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossSpheroids), intent(inout) :: self

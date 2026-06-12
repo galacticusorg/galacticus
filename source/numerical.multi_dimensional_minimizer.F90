@@ -503,7 +503,7 @@ contains
 
   subroutine multiDMinimizerAssign(to,from)
     !!{RST
-    Assignment operator for ``multiDMinimizer`` objects.
+    Assignment operator for :galacticus-class:`multiDMinimizer` objects.
     !!}
     implicit none
     class(multiDMinimizer), intent(  out) :: to

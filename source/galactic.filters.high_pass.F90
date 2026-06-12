@@ -44,7 +44,7 @@ Implements a high-pass filter on any node property.
 
   interface galacticFilterHighPass
      !!{RST
-     Constructors for the ``galacticFilterHighPass`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
      !!}
      module procedure highPassConstructorParameters
      module procedure highPassConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function highPassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHighPass`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -90,7 +90,7 @@ contains
 
   function highPassConstructorInternal(threshold,nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterHighPass`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHighPass     )                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine highPassDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterHighPass`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHighPass), intent(inout) :: self

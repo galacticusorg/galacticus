@@ -94,7 +94,7 @@
   
   interface nodePropertyExtractorSED
      !!{RST
-     Constructors for the ``nodePropertyExtractorSED`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSED` property extractor class.
      !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal
@@ -104,7 +104,7 @@ contains
 
   function sedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSED`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSED` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameters
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
@@ -193,7 +193,7 @@ contains
 
   function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSED`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSED` property extractor class.
     !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -238,7 +238,7 @@ contains
 
   subroutine sedDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorSED`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorSED` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSED), intent(inout) :: self

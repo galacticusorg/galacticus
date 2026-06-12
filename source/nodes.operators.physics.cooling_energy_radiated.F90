@@ -62,7 +62,7 @@
   
   interface nodeOperatorCoolingEnergyRadiated
      !!{RST
-     Constructors for the ``nodeOperatorCoolingEnergyRadiated`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCoolingEnergyRadiated`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCoolingEnergyRadiated`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
     !!}
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
@@ -136,7 +136,7 @@ contains
 
   subroutine coolingEnergyRadiatedDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCoolingEnergyRadiated`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent
     implicit none

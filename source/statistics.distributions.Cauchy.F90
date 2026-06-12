@@ -54,7 +54,7 @@
 
   interface distributionFunction1DCauchy
      !!{RST
-     Constructors for the ``distributionFunction1DCauchy`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
      !!}
      module procedure cauchyConstructorParameters
      module procedure cauchyConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function cauchyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DCauchy`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DCauchy`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
     !!}
     type            (distributionFunction1DCauchy)                                  :: self
     double precision                              , intent(in   )                   :: median                , scale
@@ -115,7 +115,7 @@ contains
 
   function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DCauchy`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self

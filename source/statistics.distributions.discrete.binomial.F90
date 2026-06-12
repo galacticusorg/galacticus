@@ -47,7 +47,7 @@
 
   interface distributionFunctionDiscrete1DBinomial
      !!{RST
-     Constructors for the ``distributionFunctionDiscrete1DBinomial`` 1D discrete distribution function class.
+     Constructors for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class.
      !!}
      module procedure binomialConstructorParameters
      module procedure binomialConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function binomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunctionDiscrete1DBinomial`` 1D discrete distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunctionDiscrete1DBinomial`` 1D discrete distribution function class.
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

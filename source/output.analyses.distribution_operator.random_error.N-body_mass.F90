@@ -43,7 +43,7 @@
 
   interface outputAnalysisDistributionOperatorRndmErrNbodyMass
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorRndmErrNbodyMass`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
      !!}
      module procedure randomErrorNbodyMassConstructorParameters
      module procedure randomErrorNbodyMassConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorRndmErrNbodyMass`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function randomErrorNbodyMassConstructorInternal(nbodyHaloMassError_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorRndmErrNbodyMass`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorRndmErrNbodyMass)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine randomErrorNbodyMassDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorRndmErrNbodyMass`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self

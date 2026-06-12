@@ -32,19 +32,20 @@ Implements the survey geometry of the SDSS sample used by :cite:t:`li_distributi
 
    To estimate the depth of the :cite:t:`li_distribution_2009` sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the :term:`SAM` of :cite:author:`de_lucia_hierarchical_2007` (:cite:year:`de_lucia_hierarchical_2007`; specifically the ``millimil..DeLucia2006a`` and ``millimil..DeLucia2006a_sdss2mass`` tables in the Millennium Database). For each snapshot in the database, we extract the stellar masses and observed-frame SDSS r-band absolute magnitudes (including dust extinction), and determine the median absolute magnitude as a function of stellar mass. Using the limiting apparent magnitude of the :cite:t:`li_distribution_2009` sample, :math:`r=17.6`, we infer the corresponding absolute magnitude at each redshift and, using our derived absolute magnitude--stellar mass relation, infer the corresponding stellar mass.
 
-   The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure  shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the :term:`SAM`, while the line shows a polynomial fit:
+   The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections, evolution, and the effects of dust. Figure :numref:`{number} &lt;fig-SDSSDepthFit&gt;` shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the :term:`SAM`, while the line shows a polynomial fit:
 
    .. math::
+      :label: eq-DepthPolynomial
 
       z(M_\star) &amp; = -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\
       &amp;  + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
-      \label{eq:DepthPolynomial}
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass. We adopt a solid angle of :math:`2.1901993` sr :cite:p:`percival_shape_2007` for the sample.
 
    .. figure:: Plots/DataAnalysis/SDSSMassLuminosityRelation.pdf
+      :name: fig-SDSSDepthFit
 
-      The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`li_distribution_2009`. Points show the results obtained using the :cite:t:`de_lucia_hierarchical_2007` model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn. ).
+      The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`li_distribution_2009`. Points show the results obtained using the :cite:t:`de_lucia_hierarchical_2007` model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-DepthPolynomial`).
    </description>
   </surveyGeometry>
   !!]
@@ -146,7 +147,7 @@ contains
 
   subroutine liWhite2009SDSSDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryLiWhite2009SDSS`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryLiWhite2009SDSS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self

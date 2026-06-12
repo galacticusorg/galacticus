@@ -95,7 +95,7 @@
 
   interface darkMatterHaloMassAccretionHistoryHearin2021Stochastic
      !!{RST
-     Constructors for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class.
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryHearin2021Stochastic` dark matter halo mass accretion history class.
      !!}
      module procedure hearin2021StochasticConstructorParameters
      module procedure hearin2021StochasticConstructorInternal
@@ -227,7 +227,7 @@ contains
 
   function hearin2021StochasticConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryHearin2021Stochastic` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -682,7 +682,7 @@ contains
 
   function hearin2021StochasticConstructorInternal(rateRollOver,fractionLateLow,fractionLateHigh,means,cholesky) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassAccretionHistoryHearin2021Stochastic`` dark matter halo mass accretion history class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryHearin2021Stochastic` dark matter halo mass accretion history class.
     !!}
     implicit none
     type            (darkMatterHaloMassAccretionHistoryHearin2021Stochastic)                                    :: self

@@ -83,7 +83,7 @@
 
   interface blackHoleBinarySeparationGrowthRateStandard
      !!{RST
-     Constructors for the ``blackHoleBinarySeparationGrowthRateStandard`` black hole binary separation growth rate class.
+     Constructors for the :galacticus-class:`blackHoleBinarySeparationGrowthRateStandard` black hole binary separation growth rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinarySeparationGrowthRateStandard`` black hole binary separation growth rate class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`blackHoleBinarySeparationGrowthRateStandard` black hole binary separation growth rate class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -131,7 +131,7 @@ contains
 
   function standardConstructorInternal(stellarDensityChangeBinaryMotion,computeVelocityDispersion,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleBinarySeparationGrowthRateStandard`` black hole binary separation growth rate class.
+    Internal constructor for the :galacticus-class:`blackHoleBinarySeparationGrowthRateStandard` black hole binary separation growth rate class.
     !!}
     implicit none
     type   (blackHoleBinarySeparationGrowthRateStandard)                        :: self
@@ -146,7 +146,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``blackHoleBinarySeparationGrowthRateStandard`` black hole binary separation growth rate class.
+    Destructor for the :galacticus-class:`blackHoleBinarySeparationGrowthRateStandard` black hole binary separation growth rate class.
     !!}
     implicit none
     type(blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self

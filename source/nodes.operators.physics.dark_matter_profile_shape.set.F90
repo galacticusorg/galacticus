@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileShapeSet" docformat="rst">
    <description>
-   Sets the dark matter profile shape parameter for each halo using a ``darkMatterProfileShapeClass`` object, updating this parameter at tree initialization and node promotion events.
+   Sets the dark matter profile shape parameter for each halo using a :galacticus-class:`darkMatterProfileShapeClass` object, updating this parameter at tree initialization and node promotion events.
    </description>
   </nodeOperator>
   !!]
@@ -44,7 +44,7 @@
   
   interface nodeOperatorDarkMatterProfileShapeSet
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeSet` node operator class.
      !!}
      module procedure darkMatterProfileShapeSetConstructorParameters
      module procedure darkMatterProfileShapeSetConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function darkMatterProfileShapeSetConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeSet` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function darkMatterProfileShapeSetConstructorInternal(darkMatterProfileShape_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeSet` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeSet)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine darkMatterProfileShapeSetConstructorDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDarkMatterProfileShapeSet`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeSet` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeSet), intent(inout) :: self

@@ -73,7 +73,7 @@
 
   interface satelliteTidalStrippingZentner2005
      !!{RST
-     Constructors for the ``satelliteTidalStrippingZentner2005`` satellite tidal stripping class.
+     Constructors for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
      !!}
      module procedure zentner2005ConstructorParameters
      module procedure zentner2005ConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function zentner2005ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalStrippingZentner2005`` satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteTidalStrippingZentner2005`` satellite tidal stripping class.
+    Internal constructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
@@ -142,7 +142,7 @@ contains
 
   subroutine zentner2005Destructor(self)
     !!{RST
-    Destructor for the ``satelliteTidalStrippingZentner2005`` satellite tidal stripping class.
+    Destructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self

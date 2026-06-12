@@ -42,7 +42,7 @@
   
   interface radiativeTransferSpectrumAccretionDisk
      !!{RST
-     Constructors for the ``radiativeTransferSpectrumAccretionDisk`` radiative transfer spectrum class.
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
      !!}
      module procedure accretionDiskConstructorParameters
      module procedure accretionDiskConstructorInternal
@@ -52,7 +52,7 @@ contains
       
   function accretionDiskConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSpectrumAccretionDisk`` radiative transfer spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function accretionDiskConstructorInternal(massBlackHole,accretionRateEddington,accretionDiskSpectra_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSpectrumAccretionDisk`` radiative transfer spectrum class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -118,7 +118,7 @@ contains
 
   subroutine accretionDiskDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferSpectrumAccretionDisk`` radiative transfer spectrum class.
+    Destructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumAccretionDisk), intent(inout) :: self

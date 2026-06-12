@@ -130,7 +130,7 @@
 
   interface posteriorSampleLikelihoodGaussianRegression
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodGaussianRegression` posterior sampling likelihood class.
      !!}
      module procedure gaussianRegressionConstructorParameters
      module procedure gaussianRegressionConstructorInternal
@@ -173,7 +173,7 @@ contains
 
   function gaussianRegressionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGaussianRegression` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -291,7 +291,7 @@ contains
 
   function gaussianRegressionConstructorInternal(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,assumeZeroVarianceAtZeroLag,dumpEmulatorFileRoot,dummyEmulator,posteriorSampleLikelihood_,variogram_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodGaussianRegression`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGaussianRegression` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodGaussianRegression)                        :: self

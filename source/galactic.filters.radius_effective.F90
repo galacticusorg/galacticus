@@ -40,7 +40,7 @@ Implements a galactic high-pass filter for stellar mass effective radius.
 
   interface galacticFilterRadiusEffective
      !!{RST
-     Constructors for the ``galacticFilterRadiusEffective`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterRadiusEffective` galactic filter class.
      !!}
      module procedure radiusEffectiveConstructorParameters
      module procedure radiusEffectiveConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function radiusEffectiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterRadiusEffective`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterRadiusEffective` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function radiusEffectiveConstructorInternal(radiusThreshold) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterRadiusEffective`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterRadiusEffective` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterRadiusEffective)                :: self

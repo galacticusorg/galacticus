@@ -47,7 +47,7 @@
 
   interface initialMassFunctionKennicutt1983
      !!{RST
-     Constructors for the ``initialMassFunctionKennicutt1983`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionKennicutt1983` initial mass function class.
      !!}
      module procedure kennicutt1983ConstructorParameters
      module procedure kennicutt1983ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function kennicutt1983ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionKennicutt1983`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionKennicutt1983` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function kennicutt1983ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionKennicutt1983`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionKennicutt1983` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionKennicutt1983):: self

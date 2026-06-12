@@ -48,7 +48,7 @@ Implements a node property extractor class for halo environment.
 
   interface nodePropertyExtractorHaloEnvironment
      !!{RST
-     Constructors for the ``nodePropertyExtractorHaloEnvironment`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
      !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorHaloEnvironment`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorHaloEnvironment`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine haloEnvironmentDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorHaloEnvironment`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self

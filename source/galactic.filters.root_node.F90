@@ -39,7 +39,7 @@ Implements a filter which passes only nodes that are roots of their merger tree.
 
   interface galacticFilterRootNode
      !!{RST
-     Constructors for the ``galacticFilterRootNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterRootNode` galactic filter class.
      !!}
      module procedure rootNodeConstructorParameters
   end interface galacticFilterRootNode
@@ -48,7 +48,7 @@ contains
 
   function rootNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterRootNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterRootNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

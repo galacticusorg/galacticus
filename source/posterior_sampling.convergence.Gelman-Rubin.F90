@@ -83,7 +83,7 @@
 
   interface posteriorSampleConvergenceGelmanRubin
      !!{RST
-     Constructors for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class.
+     Constructors for the :galacticus-class:`posteriorSampleConvergenceGelmanRubin` posterior sampling convergence class.
      !!}
      module procedure gelmanRubinConstructorParameters
      module procedure gelmanRubinConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function gelmanRubinConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleConvergenceGelmanRubin` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: ISO_Varying_String, only : varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -180,7 +180,7 @@ contains
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleConvergenceGelmanRubin`` posterior sampling convergence class.
+    Constructor for the :galacticus-class:`posteriorSampleConvergenceGelmanRubin` posterior sampling convergence class.
     !!}
     use :: Error        , only : Error_Report
     use :: MPI_Utilities, only : mpiSelf

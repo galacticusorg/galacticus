@@ -65,7 +65,7 @@
 
   interface distributionFunction1DNormal
      !!{RST
-     Constructors for the ``distributionFunction1DNormal`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNormal`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -138,7 +138,7 @@ contains
 
   function normalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DNormal`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class.
     !!}
     use :: Error          , only : Error_Report
     use :: Error_Functions, only : Error_Function

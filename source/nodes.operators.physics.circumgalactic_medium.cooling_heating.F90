@@ -34,7 +34,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMCoolingHeating" docformat="rst">
    <description>
-   A node operator class that drives cooling-driven gas infall from the :term:`CGM` into a galaxy component and, optionally, heating-driven gas expulsion. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` specifies whether angular momentum is computed from ``currentNode`` or ``formationNode``; ``excessHeatDrivesOutflow`` enables AGN/stellar heating to expel gas from the :term:`CGM`; ``rateMaximumExpulsion`` caps the outflow rate. Cooling rates and angular momenta are supplied by ``coolingRateClass`` and ``coolingSpecificAngularMomentumClass``.
+   A node operator class that drives cooling-driven gas infall from the :term:`CGM` into a galaxy component and, optionally, heating-driven gas expulsion. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` specifies whether angular momentum is computed from ``currentNode`` or ``formationNode``; ``excessHeatDrivesOutflow`` enables AGN/stellar heating to expel gas from the :term:`CGM`; ``rateMaximumExpulsion`` caps the outflow rate. Cooling rates and angular momenta are supplied by :galacticus-class:`coolingRateClass` and :galacticus-class:`coolingSpecificAngularMomentumClass`.
    </description>
   </nodeOperator>
   !!]
@@ -61,7 +61,7 @@
   
   interface nodeOperatorCGMCoolingHeating
      !!{RST
-     Constructors for the ``nodeOperatorCGMCoolingHeating`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
      !!}
      module procedure cgmCoolingHeatingConstructorParameters
      module procedure cgmCoolingHeatingConstructorInternal
@@ -71,7 +71,7 @@ contains
   
   function cgmCoolingHeatingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMCoolingHeating`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -147,7 +147,7 @@ contains
 
   function cgmCoolingHeatingConstructorInternal(component,coolingFrom,excessHeatDrivesOutflow,rateMaximumExpulsion,coolingRate_,coolingInfallRadius_,coolingSpecificAngularMomentum_,coolingInfallTorque_,circumgalacticMediumHeating_,hotHaloOutflowStripping_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMCoolingHeating`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNone
     use :: Error                     , only : Error_Report
@@ -180,7 +180,7 @@ contains
 
   subroutine cgmCoolingHeatingDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMCoolingHeating`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMCoolingHeating), intent(inout) :: self

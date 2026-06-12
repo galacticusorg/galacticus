@@ -44,7 +44,7 @@
 
   interface atomicRecombinationRateRadiativeCoolingFixed
      !!{RST
-     Constructors for the ``atomicRecombinationRateRadiativeCoolingFixed`` atomic radiative recombination class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateRadiativeCoolingFixed`` atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
   
   function fixedConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
     !!{RST
-    Internal constructor for the ``atomicRecombinationRateRadiativeCoolingFixed`` atomic radiative recombination class.
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -101,7 +101,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{RST
-    Destructor for the ``atomicRecombinationRateRadiativeCoolingFixed`` atomic radiative recombination class.
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingFixed), intent(inout) :: self

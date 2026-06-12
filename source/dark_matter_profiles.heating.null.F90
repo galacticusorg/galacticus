@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingNull" docformat="rst">
     <description>
-    A dark matter profile heating model which constructs ``massDistributionHeatingNull`` objects to provide zero heating.
+    A dark matter profile heating model which constructs :galacticus-class:`massDistributionHeatingNull` objects to provide zero heating.
     </description>
   </darkMatterProfileHeating>
   !!]
@@ -40,7 +40,7 @@
 
   interface darkMatterProfileHeatingNull
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingNull`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingNull` dark matter profile heating class.
      !!}
      module procedure nullConstructorParameters
   end interface darkMatterProfileHeatingNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingNull`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingNull` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

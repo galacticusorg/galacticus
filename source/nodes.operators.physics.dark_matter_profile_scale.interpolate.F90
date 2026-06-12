@@ -43,7 +43,7 @@
   
   interface nodeOperatorDarkMatterProfileScaleInterpolate
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleInterpolate` node operator class.
      !!}
      module procedure dmpScaleInterpolateConstructorParameters
      module procedure dmpScaleInterpolateConstructorInternal
@@ -53,7 +53,7 @@ contains
   
   function dmpScaleInterpolateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function dmpScaleInterpolateConstructorInternal() result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileScaleInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleInterpolate` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate) :: self

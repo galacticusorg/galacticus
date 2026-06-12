@@ -36,7 +36,7 @@
 
   interface taskReport
      !!{RST
-     Constructors for the ``taskReport`` task.
+     Constructors for the :galacticus-class:`taskReport` task.
      !!}
      module procedure reportParameters
   end interface taskReport
@@ -45,7 +45,7 @@ contains
 
   function reportParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskReport`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskReport` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

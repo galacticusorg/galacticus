@@ -43,7 +43,7 @@ Implements a depth-first merger tree walker over all isolated nodes in a given b
 
   interface mergerTreeWalkerIsolatedNodesBranch
      !!{RST
-     Constructors for the ``mergerTreeWalkerIsolatedNodesBranch`` merger tree walker class.
+     Constructors for the :galacticus-class:`mergerTreeWalkerIsolatedNodesBranch` merger tree walker class.
      !!}
      module procedure isolatedNodesBranchParameters
      module procedure isolatedNodesBranchInternal
@@ -53,7 +53,7 @@ contains
 
   function isolatedNodesBranchParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeWalkerIsolatedNodesBranch`` merger tree walker class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeWalkerIsolatedNodesBranch` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -68,7 +68,7 @@ contains
 
   function isolatedNodesBranchInternal(branchHead,timeEarliest) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeWalkerIsolatedNodesBranch`` merger tree walker class.
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerIsolatedNodesBranch` merger tree walker class.
     !!}
     implicit none
     type            (mergerTreeWalkerIsolatedNodesBranch)                          :: self

@@ -43,7 +43,7 @@
 
   interface kinematicsDistributionIsothermal
      !!{RST
-     Constructors for the ``kinematicsDistributionIsothermal`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionIsothermal`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
   
   function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionIsothermal`` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit

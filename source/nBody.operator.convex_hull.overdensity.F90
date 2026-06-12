@@ -47,7 +47,7 @@ Implements an N-body data operator which computes the overdensity within the con
 
   interface nbodyOperatorConvexHullOverdensity
      !!{RST
-     Constructors for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorConvexHullOverdensity` N-body operator class.
      !!}
      module procedure convexHullOverdensityConstructorParameters
      module procedure convexHullOverdensityConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function convexHullOverdensityConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorConvexHullOverdensity` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function convexHullOverdensityConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorConvexHullOverdensity` N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorConvexHullOverdensity)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine convexHullOverdensityDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorConvexHullOverdensity`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorConvexHullOverdensity` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConvexHullOverdensity), intent(inout) :: self

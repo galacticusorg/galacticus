@@ -44,7 +44,7 @@ Implements a last-defined virial radius property extractor class.
 
   interface nodePropertyExtractorRadiusVirialLastDefined
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusVirialLastDefined` property extractor class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusVirialLastDefined` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function radiusVirialLastDefinedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusVirialLastDefined` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusVirialLastDefined) :: self

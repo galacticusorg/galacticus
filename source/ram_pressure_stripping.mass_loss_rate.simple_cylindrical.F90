@@ -34,7 +34,7 @@
       \Sigma_\mathrm{gas}(r_\mathrm{half}) \Sigma_\mathrm{total}(r_\mathrm{half})}, R_\mathrm{maximum}\right) {M_\mathrm{gas,
       disk} \over \tau_\mathrm{dyn, disk}},
 
-   where :math:`\mathcal{F}_\mathrm{hot, host}` is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see ``hotHaloRamPressureForce``), :math:`\Sigma_\mathrm{gas}(r)` is the gas surface density in the disk, :math:`\Sigma_\mathrm{total}(r)` is the total surface density in the disk, :math:`r_\mathrm{half}` is the disk half-mass radius, :math:`M_\mathrm{gas, disk}` is the total gas mass in the disk, :math:`\tau_\mathrm{dyn, disk} = r_\mathrm{disk}/v_\mathrm{disk}` is the dynamical time in the disk, :math:`\beta=`\ ``[beta]`` scales the rate of mass loss, and :math:`R_\mathrm{maximum}=`\ ``[rateFractionalMaximum]`` controls the maximum allowed rate of mass loss.
+   where :math:`\mathcal{F}_\mathrm{hot, host}` is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see :galacticus-class:`hotHaloRamPressureForce`), :math:`\Sigma_\mathrm{gas}(r)` is the gas surface density in the disk, :math:`\Sigma_\mathrm{total}(r)` is the total surface density in the disk, :math:`r_\mathrm{half}` is the disk half-mass radius, :math:`M_\mathrm{gas, disk}` is the total gas mass in the disk, :math:`\tau_\mathrm{dyn, disk} = r_\mathrm{disk}/v_\mathrm{disk}` is the dynamical time in the disk, :math:`\beta=`\ ``[beta]`` scales the rate of mass loss, and :math:`R_\mathrm{maximum}=`\ ``[rateFractionalMaximum]`` controls the maximum allowed rate of mass loss.
    </description>
   </ramPressureStripping>
   !!]
@@ -52,7 +52,7 @@
 
   interface ramPressureStrippingSimpleCylindrical
      !!{RST
-     Constructors for the ``ramPressureStrippingSimpleCylindrical`` model of ram pressure stripping of disks class.
+     Constructors for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
      !!}
      module procedure simpleCylindricalConstructorParameters
      module procedure simpleCylindricalConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function simpleCylindricalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``ramPressureStrippingSimpleCylindrical`` model of ram pressure stripping of disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{RST
-    Internal constructor for the ``ramPressureStrippingSimpleCylindrical`` model of ram pressure stripping of disks class.
+    Internal constructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
@@ -115,7 +115,7 @@ contains
 
   subroutine simpleCylindricalDestructor(self)
     !!{RST
-    Destructor for the ``ramPressureStrippingSimpleCylindrical`` model of ram pressure stripping of disks class.
+    Destructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleCylindrical), intent(inout) :: self
@@ -140,7 +140,7 @@ contains
 
        \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
 
-    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see ``hotHaloRamPressureForce``), and
+    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see :galacticus-class:`hotHaloRamPressureForce`), and
 
     .. math::
 

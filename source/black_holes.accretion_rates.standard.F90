@@ -67,7 +67,7 @@
 
   interface blackHoleAccretionRateStandard
      !!{RST
-     Constructors for the ``blackHoleAccretionRateStandard`` black hole accretion rate class.
+     Constructors for the :galacticus-class:`blackHoleAccretionRateStandard` black hole accretion rate class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleAccretionRateStandard`` black hole accretion rate class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleAccretionRateStandard` black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -162,7 +162,7 @@ contains
 
   function standardConstructorInternal(bondiHoyleAccretionEnhancementHotHalo,bondiHoyleAccretionEnhancementSpheroid,bondiHoyleAccretionEnhancementNuclearStarCluster,bondiHoyleAccretionTemperatureSpheroid,bondiHoyleAccretionTemperatureNuclearStarCluster,bondiHoyleAccretionHotModeOnly,blackHoleBinarySeparationGrowthRate_,hotHaloTemperatureProfile_,accretionDisks_,coolingRadius_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleAccretionRateStandard`` black hole accretion rate class.
+    Internal constructor for the :galacticus-class:`blackHoleAccretionRateStandard` black hole accretion rate class.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none

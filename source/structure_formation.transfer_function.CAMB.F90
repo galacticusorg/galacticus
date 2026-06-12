@@ -123,7 +123,7 @@ contains
 
   function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,cambCountPerDecade) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionCAMB`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionCAMB` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

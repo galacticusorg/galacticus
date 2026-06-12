@@ -40,7 +40,7 @@
 
   interface atomicRecombinationRateRadiativeFixed
      !!{RST
-     Constructors for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeFixed` atomic radiative recombination class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeFixed` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function fixedConstructorInternal(rateCoefficient) result(self)
     !!{RST
-    Internal constructor for the ``atomicRecombinationRateRadiativeFixed`` atomic radiative recombination class.
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeFixed` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorIsPhysicallyPlausible
      !!{RST
-     Constructors for the ``nodePropertyExtractorIsPhysicallyPlausible`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorIsPhysicallyPlausible` property extractor class.
      !!}
      module procedure isPhysicallyPlausibleConstructorParameters
   end interface nodePropertyExtractorIsPhysicallyPlausible
@@ -50,7 +50,7 @@ contains
 
   function isPhysicallyPlausibleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorIsPhysicallyPlausible`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorIsPhysicallyPlausible` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

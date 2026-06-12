@@ -30,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorStarFormationNuclearStarClusters" docformat="rst">
    <description>
-   A node operator class that performs star formation in nuclear star clusters (:term:`NSC`) by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by ``starFormationRateNuclearStarClustersClass`` and applied to evolve the :term:`NSC` gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver.
+   A node operator class that performs star formation in nuclear star clusters (:term:`NSC`) by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by :galacticus-class:`starFormationRateNuclearStarClustersClass` and applied to evolve the :term:`NSC` gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver.
    </description>
   </nodeOperator>
   !!]
@@ -51,7 +51,7 @@
   
   interface nodeOperatorStarFormationNuclearStarClusters
      !!{RST
-     Constructors for the ``nodeOperatorStarFormationNuclearStarClusters`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
      !!}
      module procedure starFormationNuclearStarClustersConstructorParameters
      module procedure starFormationNuclearStarClustersConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function starFormationNuclearStarClustersConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStarFormationNuclearStarClusters`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function starFormationNuclearStarClustersConstructorInternal(luminositiesStellarInactive,starFormationRateNuclearStarClusters_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStarFormationNuclearStarClusters`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationNuclearStarClusters)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine starFormationNuclearStarClustersDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStarFormationNuclearStarClusters`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationNuclearStarClusters), intent(inout) :: self

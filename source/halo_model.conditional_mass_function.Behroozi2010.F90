@@ -63,15 +63,14 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
       {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
       \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
 
-   By default, parameter values are taken from the fit of :cite:t:`leauthaud_new_2011`, specifically their ``SIG_MOD1`` method for their :math:`z_1` sample. These default values, and the Galacticus input parameters which can be used to adjust them are shown in Table . This method assumes that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by requiring
+   By default, parameter values are taken from the fit of :cite:t:`leauthaud_new_2011`, specifically their ``SIG_MOD1`` method for their :math:`z_1` sample. These default values, and the Galacticus input parameters which can be used to adjust them are shown in Table :numref:`{number} &lt;table-Behroozi2010FitParameters&gt;`. This method assumes that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by requiring
 
    .. math::
 
       \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
 
-   Parameters of the :cite:t:`behroozi_comprehensive_2010` conditional stellar mass function model, along with their default values and the corresponding Galacticus input parameters.
-
-   .. list-table::
+   .. list-table:: Parameters of the :cite:t:`behroozi_comprehensive_2010` conditional stellar mass function model, along with their default values and the corresponding Galacticus input parameters.
+      :name: table-Behroozi2010FitParameters
       :header-rows: 1
 
       * - Parameter
@@ -172,7 +171,7 @@ contains
 
   function behroozi2010ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``conditionalMassFunctionBehroozi2010`` conditional mass function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`conditionalMassFunctionBehroozi2010` conditional mass function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

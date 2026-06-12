@@ -39,7 +39,7 @@ Implements a subsampling weight operator class.
 
   interface outputAnalysisWeightOperatorSubsampling
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorSubsampling`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorSubsampling` output analysis weight operator class.
      !!}
      module procedure subsamplingConstructorParameters
   end interface outputAnalysisWeightOperatorSubsampling
@@ -48,7 +48,7 @@ contains
 
   function subsamplingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorSubsampling`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorSubsampling` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

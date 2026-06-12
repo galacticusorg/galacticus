@@ -26,7 +26,7 @@ Implements a property extractor for "in lightcone" status.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone" docformat="rst">
    <description>
-   Extracts a boolean flag (1 or 0) indicating whether a node falls within the observer's past lightcone geometry, accounting for the node's 3D position and cosmic time via the ``geometryLightconeClass`` interface. Enables construction of mock observational catalogs from simulations.
+   Extracts a boolean flag (1 or 0) indicating whether a node falls within the observer's past lightcone geometry, accounting for the node's 3D position and cosmic time via the :galacticus-class:`geometryLightconeClass` interface. Enables construction of mock observational catalogs from simulations.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -45,7 +45,7 @@ Implements a property extractor for "in lightcone" status.
 
   interface nodePropertyExtractorIsInLightcone
      !!{RST
-     Constructors for the ``nodePropertyExtractorIsInLightcone`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
      !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function isInLightconeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorIsInLightcone`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function isInLightconeConstructorInternal(geometryLightcone_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorIsInLightcone`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine isInLightconeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorIsInLightcone`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIsInLightcone), intent(inout) :: self

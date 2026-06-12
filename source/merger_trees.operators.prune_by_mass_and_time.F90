@@ -97,7 +97,7 @@ contains
 
   subroutine pruneByMassAndTimeDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOperatorPruneByMassAndTime`` merger tree operator class.
+    Destructor for the :galacticus-class:`mergerTreeOperatorPruneByMassAndTime` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByMassAndTime), intent(inout) :: self

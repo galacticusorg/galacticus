@@ -44,7 +44,7 @@ Implements an N-body data importer which merges data from other importers.
 
   interface nbodyImporterMerge
      !!{RST
-     Constructors for the ``nbodyImporterMerge`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
      !!}
      module procedure mergeConstructorParameters
      module procedure mergeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function mergeConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterMerge`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function mergeConstructorInternal(label,importers) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterMerge`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge)                         :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine mergeDestructor(self)
     !!{RST
-    Destructor for the ``nbodyImporterMerge`` N-body importer class.
+    Destructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge), intent(inout) :: self

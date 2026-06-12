@@ -39,7 +39,7 @@
 
   interface mergerTreeNodeMergerMultiLevelHierarchy
      !!{RST
-     Constructors for the ``mergerTreeNodeMergerMultiLevelHierarchy`` node merger class.
+     Constructors for the :galacticus-class:`mergerTreeNodeMergerMultiLevelHierarchy` node merger class.
      !!}
      module procedure multiLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerMultiLevelHierarchy
@@ -48,7 +48,7 @@ contains
 
   function multiLevelHierarchyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeNodeMergerMultiLevelHierarchy`` node merger class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeNodeMergerMultiLevelHierarchy` node merger class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

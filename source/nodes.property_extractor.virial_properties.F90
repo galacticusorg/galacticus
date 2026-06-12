@@ -25,7 +25,7 @@
    A node property extractor which extracts the following quantities related to the virialized region of each node:
 
    ``nodeVirialRadius``
-      The virial radius (following whatever definition of virial overdensity is specified by the virial density contrast (see ``virialDensityContrast``)) in units of Mpc;
+      The virial radius (following whatever definition of virial overdensity is specified by the virial density contrast (see :galacticus-class:`virialDensityContrast`)) in units of Mpc;
 
    ``nodeVirialVelocity``
       The circular velocity at the virial radius (in km/s).
@@ -50,7 +50,7 @@
 
   interface nodePropertyExtractorVirialProperties
      !!{RST
-     Constructors for the ``nodePropertyExtractorVirialProperties`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorVirialProperties` property extractor class.
      !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function virialPropertiesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorVirialProperties`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorVirialProperties` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorVirialProperties`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorVirialProperties` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine virialPropertiesDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorVirialProperties`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorVirialProperties` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorVirialProperties), intent(inout) :: self

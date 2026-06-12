@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the PRIMUS survey o
 
   interface outputAnalysisMassFunctionStellarPRIMUS
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarPRIMUS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarPRIMUS` output analysis class.
      !!}
      module procedure massFunctionStellarPRIMUSConstructorParameters
      module procedure massFunctionStellarPRIMUSConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarPRIMUSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarPRIMUS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarPRIMUS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -199,7 +199,7 @@ contains
 
   function massFunctionStellarPRIMUSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarPRIMUS`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarPRIMUS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -390,7 +390,7 @@ contains
 
   subroutine massFunctionStellarPRIMUSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarPRIMUS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarPRIMUS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarPRIMUS), intent(inout) :: self

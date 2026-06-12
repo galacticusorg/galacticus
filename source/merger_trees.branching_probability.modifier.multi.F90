@@ -47,7 +47,7 @@
 
   interface mergerTreeBranchingProbabilityModifierMulti
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityModifierMulti`` merger tree branching probability rate class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierMulti` merger tree branching probability rate class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -108,7 +108,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBranchingProbabilityModifierMulti`` class.
+    Destructor for the :galacticus-class:`mergerTreeBranchingProbabilityModifierMulti` class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierMulti), intent(inout) :: self

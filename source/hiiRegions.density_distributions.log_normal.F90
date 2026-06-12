@@ -51,7 +51,7 @@
 
   interface hiiRegionDensityDistributionLogNormal
      !!{RST
-     Constructors for the ``hiiRegionDensityDistributionLogNormal`` HII region density distribution class.
+     Constructors for the :galacticus-class:`hiiRegionDensityDistributionLogNormal` HII region density distribution class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -124,7 +124,7 @@ contains
 
   function logNormalConstructorInternal(densityHydrogenReference,sigma,densityHydrogenMinimum,densityHydrogenMaximum) result(self)
     !!{RST
-    Internal constructor for the ``hiiRegionDensityDistributionLogNormal`` HII region density distribution class.
+    Internal constructor for the :galacticus-class:`hiiRegionDensityDistributionLogNormal` HII region density distribution class.
     !!}
     implicit none
     type            (hiiRegionDensityDistributionLogNormal)                :: self

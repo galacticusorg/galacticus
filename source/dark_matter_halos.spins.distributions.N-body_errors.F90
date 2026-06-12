@@ -76,7 +76,7 @@
 
   interface haloSpinDistributionNbodyErrors
      !!{RST
-     Constructors for the ``haloSpinDistributionNbodyErrors`` dark matter halo spin distribution class.
+     Constructors for the :galacticus-class:`haloSpinDistributionNbodyErrors` dark matter halo spin distribution class.
      !!}
      module procedure nbodyErrorsConstructorParameters
      module procedure nbodyErrorsConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function nbodyErrorsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloSpinDistributionNbodyErrors`` dark matter halo spin distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`haloSpinDistributionNbodyErrors` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -194,7 +194,7 @@ contains
 
   function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,logNormalRange,time,nbodyHaloMassError_,cosmologyFunctions_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Internal constructor for the ``haloSpinDistributionNbodyErrors`` dark matter halo spin distribution class.
+    Internal constructor for the :galacticus-class:`haloSpinDistributionNbodyErrors` dark matter halo spin distribution class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -794,7 +794,7 @@ contains
 
   subroutine nbodyErrorsDestructor(self)
     !!{RST
-    Destructor for the ``haloSpinDistributionNbodyErrors`` dark matter halo spin distribution class.
+    Destructor for the :galacticus-class:`haloSpinDistributionNbodyErrors` dark matter halo spin distribution class.
     !!}
     implicit none
     type(haloSpinDistributionNbodyErrors), intent(inout) :: self

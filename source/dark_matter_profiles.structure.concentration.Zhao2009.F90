@@ -36,7 +36,7 @@
 
       c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
 
-   where :math:`t` is the time for the halo and :math:`t_\mathrm{form}` is a formation time defined by :cite:t:`zhao_accurate_2009` as the time at which the main branch progenitor of the halo had a mass equal to :math:`0.04` of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected ``darkMatterHaloMassAccretionHistoryClass``.
+   where :math:`t` is the time for the halo and :math:`t_\mathrm{form}` is a formation time defined by :cite:t:`zhao_accurate_2009` as the time at which the main branch progenitor of the halo had a mass equal to :math:`0.04` of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected :galacticus-class:`darkMatterHaloMassAccretionHistoryClass`.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -65,7 +65,7 @@
 
   interface darkMatterProfileConcentrationZhao2009
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationZhao2009`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
      !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationZhao2009`` dark matter halo profile concentration class which takes an input parameter list.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class which takes an input parameter list.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationZhao2009`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
@@ -154,7 +154,7 @@ contains
 
   subroutine zhao2009Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationZhao2009`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self

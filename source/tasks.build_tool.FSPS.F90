@@ -36,7 +36,7 @@
 
   interface taskBuildToolFSPS
      !!{RST
-     Constructors for the ``taskBuildToolFSPS`` task.
+     Constructors for the :galacticus-class:`taskBuildToolFSPS` task.
      !!}
      module procedure buildToolFSPSParameters
   end interface taskBuildToolFSPS
@@ -45,7 +45,7 @@ contains
 
   function buildToolFSPSParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildToolFSPS`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildToolFSPS` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

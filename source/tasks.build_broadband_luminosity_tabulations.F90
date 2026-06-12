@@ -47,7 +47,7 @@
 
   interface taskBuildBroadbandLuminosityTabulations
      !!{RST
-     Constructors for the ``taskBuildBroadbandLuminosityTabulations`` task.
+     Constructors for the :galacticus-class:`taskBuildBroadbandLuminosityTabulations` task.
      !!}
      module procedure buildBroadbandLuminosityTabulationsParameters
      module procedure buildBroadbandLuminosityTabulationsInternal
@@ -57,7 +57,7 @@ contains
 
   function buildBroadbandLuminosityTabulationsParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildBroadbandLuminosityTabulations`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildBroadbandLuminosityTabulations` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -92,7 +92,7 @@ contains
 
   function buildBroadbandLuminosityTabulationsInternal(stellarPopulationBroadBandLuminosities_,stellarPopulation_) result(self)
     !!{RST
-    Constructor for the ``taskBuildBroadbandLuminosityTabulations`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildBroadbandLuminosityTabulations` task class which takes a parameter set as input.
     !!}
     implicit none
     type (taskBuildBroadbandLuminosityTabulations    )                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine buildBroadbandLuminosityTabulationsDestructor(self)
     !!{RST
-    Destructor for the ``taskBuildBroadbandLuminosityTabulations`` task class.
+    Destructor for the :galacticus-class:`taskBuildBroadbandLuminosityTabulations` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

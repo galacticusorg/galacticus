@@ -28,7 +28,7 @@ Implements an excursion set first crossing statistics class using the algorithm 
     <description>
     An excursion set first crossing statistics class using the algorithm of :cite:t:`benson_dark_2012`, but using a midpoint method to perform the integrations :cite:p:`du_substructure_2017`.
 
-    Specifically, in the method used by :cite:t:`benson_dark_2012` the integral equation for :math:`f(S)` (see equation ) is solved using the trapezoidal rule (see ``excursionSetFirstCrossingFarahi`` for complete details):
+    Specifically, in the method used by :cite:t:`benson_dark_2012` the integral equation for :math:`f(S)` (see equation :eq:`eq-OldExcursionMethod`) is solved using the trapezoidal rule (see :galacticus-class:`excursionSetFirstCrossingFarahi` for complete details):
 
     .. math::
 

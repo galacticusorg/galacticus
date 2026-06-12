@@ -47,7 +47,7 @@ Implements a spin parameter output analysis property extractor class.
 
   interface nodePropertyExtractorSpin
      !!{RST
-     Constructors for the ``nodePropertyExtractorSpin`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSpin` property extractor class.
      !!}
      module procedure spinConstructorParameters
      module procedure spinConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function spinConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSpin`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSpin` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function spinConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSpin`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSpin` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorSpin)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine spinDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorSpin`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorSpin` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpin), intent(inout) :: self

@@ -57,7 +57,7 @@
 
   interface variogramSpherical
      !!{RST
-     Constructors for the ``variogramSpherical`` variogram class.
+     Constructors for the :galacticus-class:`variogramSpherical` variogram class.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``variogramSpherical`` variogram class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`variogramSpherical` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function sphericalConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{RST
-    Constructor for the ``variogramSpherical`` variogram class.
+    Constructor for the :galacticus-class:`variogramSpherical` variogram class.
     !!}
     implicit none
     type   (variogramSpherical               )                :: self

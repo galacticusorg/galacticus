@@ -24,7 +24,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTrackOutflowedMass" docformat="rst">
    <description>
-   Extracts the cumulative mass and metal mass of gas that has been outflowed to the circumgalactic medium (:term:`CGM`) via stellar and AGN feedback, as tracked by the ``nodeOperatorTrackOutflowedMass`` operator.
+   Extracts the cumulative mass and metal mass of gas that has been outflowed to the circumgalactic medium (:term:`CGM`) via stellar and AGN feedback, as tracked by the :galacticus-class:`nodeOperatorTrackOutflowedMass` operator.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorTrackOutflowedMass
      !!{RST
-     Constructors for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTrackOutflowedMass` property extractor class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function trackOutflowedMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTrackOutflowedMass` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function trackOutflowedMassConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorTrackOutflowedMass`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTrackOutflowedMass` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTrackOutflowedMass) :: self

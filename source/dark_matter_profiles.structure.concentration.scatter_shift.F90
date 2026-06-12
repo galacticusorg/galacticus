@@ -44,7 +44,7 @@
 
   interface darkMatterProfileConcentrationScatterShift
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationScatterShift`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
      !!}
      module procedure scatterShiftConstructorParameters
      module procedure scatterShiftConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function scatterShiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationScatterShift`` dark matter halo profile concentration class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function scatterShiftConstructorInternal(scatter,sigmaShift,darkMatterProfileConcentration_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationScatterShift`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -107,7 +107,7 @@ contains
 
   subroutine scatterShiftDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationScatterShift`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationScatterShift), intent(inout) :: self

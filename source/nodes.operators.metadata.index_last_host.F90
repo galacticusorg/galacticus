@@ -44,7 +44,7 @@ Implements a node operator class that records the index of the node in which a n
 
   interface nodeOperatorIndexLastHost
      !!{RST
-     Constructors for the ``nodeOperatorIndexLastHost`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorIndexLastHost`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function indexLastHostConstructorInternal() result(self)
     !!{RST
-    Constructor for the ``nodeOperatorIndexLastHost`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorIndexLastHost) :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine indexLastHostDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorIndexLastHost`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none

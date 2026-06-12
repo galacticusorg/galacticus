@@ -47,7 +47,7 @@ contains
 
   function sampledDistributionQuasiRandomConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionQuasiRandom` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function sampledDistributionQuasiRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionQuasiRandom` merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -123,7 +123,7 @@ contains
 
   subroutine sampledDistributionQuasiRandomDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassesSampledDistributionQuasiRandom`` merger tree masses class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionQuasiRandom` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout) :: self

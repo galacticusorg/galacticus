@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorRadiusVirialLastDefined" docformat="rst">
     <description>
-    A node operator class that tracks the last-defined virial radius. Intended to be paired with the ``nodePropertyExtractorRadiusVirialLastDefined`` property extractor class to extract these times for output.
+    A node operator class that tracks the last-defined virial radius. Intended to be paired with the :galacticus-class:`nodePropertyExtractorRadiusVirialLastDefined` property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]
@@ -44,7 +44,7 @@
   
   interface nodeOperatorRadiusVirialLastDefined
      !!{RST
-     Constructors for the ``nodeOperatorRadiusVirialLastDefined`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorRadiusVirialLastDefined`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function radiusVirialLastDefinedConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorRadiusVirialLastDefined`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
     !!}
     implicit none
     type (nodeOperatorRadiusVirialLastDefined)                        :: self
@@ -92,7 +92,7 @@ contains
   
   subroutine radiusVirialLastDefinedDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorRadiusVirialLastDefined`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
     !!}
     implicit none
     type(nodeOperatorRadiusVirialLastDefined), intent(inout) :: self

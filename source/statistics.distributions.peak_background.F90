@@ -50,7 +50,7 @@
 
   interface distributionFunction1DPeakBackground
      !!{RST
-     Constructors for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DPeakBackground` 1D distribution function class.
      !!}
      module procedure peakBackgroundConstructorParameters
      module procedure peakBackgroundConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function peakBackgroundConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DPeakBackground` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DPeakBackground` 1D distribution function class.
     !!}
     use :: Error_Functions, only : Error_Function
     implicit none
@@ -151,7 +151,7 @@ contains
 
   subroutine peakBackgroundDestructor(self)
     !!{RST
-    Destructor for the ``distributionFunction1DPeakBackground`` 1D distribution function class.
+    Destructor for the :galacticus-class:`distributionFunction1DPeakBackground` 1D distribution function class.
     !!}
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self

@@ -47,7 +47,7 @@ Implements an N-body dark matter halo mass error class which implements a model 
 
   interface nbodyHaloMassErrorSOHaloFinder
      !!{RST
-     Constructors for the ``nbodyHaloMassErrorSOHaloFinder`` N-body halo mass error class.
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
      !!}
      module procedure soHaloFinderConstructorParameters
      module procedure soHaloFinderConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function soHaloFinderConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nbodyHaloMassErrorSOHaloFinder`` N-body halo mass error class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function soHaloFinderConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
     !!{RST
-    Internal constructor for the ``nbodyHaloMassErrorSOHaloFinder`` N-body halo mass error class.
+    Internal constructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine soHaloFinderDestructor(self)
     !!{RST
-    Destructor for the ``nbodyHaloMassErrorSOHaloFinder`` N-body halo mass error class.
+    Destructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self

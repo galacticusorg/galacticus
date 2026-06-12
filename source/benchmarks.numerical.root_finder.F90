@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a program to benchmark the ``rootFinder`` class.
+Contains a program to benchmark the :galacticus-class:`rootFinder` class.
 
 Each scenario constructs a ``rootFinder`` configured for a particular solver type and entry point. A precomputed deterministic array of per-call shifts perturbs the underlying function on every call so the optimizer cannot constant-fold the solver chain and the wrapper's endpoint-value cache sees realistic turnover. An inner loop of many ``find()`` calls per timed trial amortizes ``System_Clock`` resolution.
 

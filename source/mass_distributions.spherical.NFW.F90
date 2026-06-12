@@ -73,7 +73,7 @@
   
   interface massDistributionNFW
      !!{RST
-     Constructors for the ``massDistributionNFW`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionNFW` mass distribution class.
      !!}
      module procedure massDistributionNFWConstructorParameters
      module procedure massDistributionNFWConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   function massDistributionNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionNFW`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionNFW` mass distribution class which builds the object from a parameter set.
     !!}
      use :: Input_Parameters          , only : inputParameter                , inputParameters
      use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

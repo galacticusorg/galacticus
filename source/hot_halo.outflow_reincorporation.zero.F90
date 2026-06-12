@@ -39,7 +39,7 @@ An implementation of the hot halo outflow reincorporation class which gives zero
 
   interface hotHaloOutflowReincorporationZero
      !!{RST
-     Constructors for the ``hotHaloOutflowReincorporationZero`` hot halo outflow reincorporation class.
+     Constructors for the :galacticus-class:`hotHaloOutflowReincorporationZero` hot halo outflow reincorporation class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowReincorporationZero

@@ -44,7 +44,7 @@
   
   interface radiativeTransferSpectrumPowerLaw
      !!{RST
-     Constructors for the ``radiativeTransferSpectrumPowerLaw`` radiative transfer spectrum class.
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumPowerLaw` radiative transfer spectrum class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSpectrumPowerLaw`` radiative transfer spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumPowerLaw` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function powerLawConstructorInternal(wavelengthMinimum,wavelengthMaximum,exponent,normalization) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSpectrumPowerLaw`` radiative transfer spectrum class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumPowerLaw` radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumPowerLaw)                :: self

@@ -43,7 +43,7 @@
   
   interface nodeOperatorNodeMajorMergerTime
      !!{RST
-     Constructors for the ``nodeOperatorNodeMajorMergerTime`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorNodeMajorMergerTime` node operator class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function nodeMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorNodeMajorMergerTime`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function nodeMajorMergerTimeConstructorInternal(fractionMassMajorMerger) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorNodeMajorMergerTime`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerTime` node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeMajorMergerTime)                :: self

@@ -50,7 +50,7 @@
 
   interface mergerTreeBranchingProbabilityModifierPCHPlus
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityModifierPCHPlus`` merger tree branching probability rate class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierPCHPlus` merger tree branching probability rate class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal

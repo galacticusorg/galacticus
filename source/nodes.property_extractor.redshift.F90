@@ -47,7 +47,7 @@ Implements a redshift property extractor class.
 
   interface nodePropertyExtractorRedshift
      !!{RST
-     Constructors for the ``nodePropertyExtractorRedshift`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function redshiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRedshift`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function redshiftConstructorInternal(cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRedshift`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshift)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine redshiftDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRedshift`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshift), intent(inout) :: self

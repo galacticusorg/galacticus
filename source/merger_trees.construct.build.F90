@@ -75,7 +75,7 @@
 
   interface mergerTreeConstructorBuild
      !!{RST
-     Constructors for the ``mergerTreeConstructorBuild`` merger tree constructor class.
+     Constructors for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class.
      !!}
      module procedure buildConstructorParameters
      module procedure buildConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function buildConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeConstructorBuild`` merger tree constructor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -216,7 +216,7 @@ contains
 
   subroutine buildDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeConstructorBuild`` merger tree constructor class.
+    Destructor for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorBuild), intent(inout) :: self

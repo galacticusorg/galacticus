@@ -52,7 +52,7 @@
 
   interface geometryLightconeNull
      !!{RST
-     Constructors for the ``geometryLightconeNull`` lightcone geometry distribution class.
+     Constructors for the :galacticus-class:`geometryLightconeNull` lightcone geometry distribution class.
      !!}
      module procedure nullConstructorParameters
   end interface geometryLightconeNull
@@ -61,7 +61,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``geometryLightconeNull`` lightcone geometry distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`geometryLightconeNull` lightcone geometry distribution class which takes a parameter list as input.
     !!}
     implicit none
     type(geometryLightconeNull)                 :: self

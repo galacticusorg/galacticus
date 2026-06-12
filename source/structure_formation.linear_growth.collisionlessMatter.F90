@@ -61,7 +61,7 @@
 
   interface linearGrowthCollisionlessMatter
      !!{RST
-     Constructors for the ``linearGrowthCollisionlessMatter`` linear growth class.
+     Constructors for the :galacticus-class:`linearGrowthCollisionlessMatter` linear growth class.
      !!}
      module procedure collisionlessMatterConstructorParameters
      module procedure collisionlessMatterConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function collisionlessMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``linearGrowthCollisionlessMatter`` linear growth class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`linearGrowthCollisionlessMatter` linear growth class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``linearGrowthCollisionlessMatter`` linear growth class.
+    Internal constructor for the :galacticus-class:`linearGrowthCollisionlessMatter` linear growth class.
     !!}
     implicit none
     type            (linearGrowthCollisionlessMatter)                           :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine collisionlessMatterDestructor(self)
     !!{RST
-    Destructor for the ``linearGrowthCollisionlessMatter`` linear growth class.
+    Destructor for the :galacticus-class:`linearGrowthCollisionlessMatter` linear growth class.
     !!}
     implicit none
     type (linearGrowthCollisionlessMatter), intent(inout) :: self

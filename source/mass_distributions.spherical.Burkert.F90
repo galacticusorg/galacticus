@@ -104,7 +104,7 @@
   
   interface massDistributionBurkert
      !!{RST
-     Constructors for the ``massDistributionBurkert`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionBurkert` mass distribution class.
      !!}
      module procedure massDistributionBurkertConstructorParameters
      module procedure massDistributionBurkertConstructorInternal
@@ -117,7 +117,7 @@ contains
 
   function massDistributionBurkertConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionBurkert`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionBurkert` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

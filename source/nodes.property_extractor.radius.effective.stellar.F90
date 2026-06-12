@@ -43,7 +43,7 @@ Implements a stellar mass effective radius node property extractor class.
 
   interface nodePropertyExtractorRadiusEffectiveStellar
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusEffectiveStellar`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusEffectiveStellar` property extractor class.
      !!}
      module procedure radiusEffectiveStellarConstructorParameters
   end interface nodePropertyExtractorRadiusEffectiveStellar
@@ -52,7 +52,7 @@ contains
 
   function radiusEffectiveStellarConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusEffectiveStellar`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusEffectiveStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

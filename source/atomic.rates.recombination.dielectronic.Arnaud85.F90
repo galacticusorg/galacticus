@@ -41,7 +41,7 @@
 
   interface atomicRecombinationRateDielectronicArnaud1985
      !!{RST
-     Constructors for the ``atomicRecombinationRateDielectronicArnaud1985`` atomic dielectronic recombination rate class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateDielectronicArnaud1985` atomic dielectronic recombination rate class.
      !!}
      module procedure arnaud1985ConstructorParameters
   end interface atomicRecombinationRateDielectronicArnaud1985
@@ -221,7 +221,7 @@ contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateDielectronicArnaud1985`` atomic dielectronic recombination rate class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`atomicRecombinationRateDielectronicArnaud1985` atomic dielectronic recombination rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

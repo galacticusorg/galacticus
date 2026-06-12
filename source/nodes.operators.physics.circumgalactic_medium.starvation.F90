@@ -45,7 +45,7 @@
   
   interface nodeOperatorCGMStarvation
      !!{RST
-     Constructors for the ``nodeOperatorCGMStarvation`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
      !!}
      module procedure cgmStarvationConstructorParameters
      module procedure cgmStarvationConstructorInternal
@@ -55,7 +55,7 @@ contains
   
   function cgmStarvationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMStarvation`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function cgmStarvationConstructorInternal(starveOutflowsOnly,fractionBaryonLimitInNodeMerger,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMStarvation`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
     !!}
     implicit none
     type   (nodeOperatorCGMStarvation)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine cgmStarvationDestructor(self)    
     !!{RST
-    Destructor for the ``nodeOperatorCGMStarvation`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMStarvation), intent(inout) :: self

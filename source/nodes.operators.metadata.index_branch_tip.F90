@@ -40,7 +40,7 @@ Implements a node operator class that records the index of the branch tip for ea
 
   interface nodeOperatorIndexBranchTip
      !!{RST
-     Constructors for the ``nodeOperatorIndexBranchTip`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorIndexBranchTip` node operator class.
      !!}
      module procedure indexBranchTipConstructorParameters
      module procedure indexBranchTipConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function indexBranchTipConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorIndexBranchTip`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorIndexBranchTip` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function indexBranchTipConstructorInternal() result(self)
     !!{RST
-    Constructor for the ``nodeOperatorIndexBranchTip`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorIndexBranchTip` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorIndexBranchTip) :: self

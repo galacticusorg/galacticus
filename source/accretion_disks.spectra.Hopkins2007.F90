@@ -66,7 +66,7 @@
 
   interface accretionDiskSpectraHopkins2007
      !!{RST
-     Constructors for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
+     Constructors for the :galacticus-class:`accretionDiskSpectraHopkins2007` accretion disk spectra class.
      !!}
      module procedure hopkins2007ConstructorParameters
      module procedure hopkins2007ConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function hopkins2007ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
+    Constructor for the :galacticus-class:`accretionDiskSpectraHopkins2007` accretion disk spectra class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function hopkins2007ConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Constructor for the ``accretionDiskSpectraHopkins2007`` accretion disk spectra class.
+    Constructor for the :galacticus-class:`accretionDiskSpectraHopkins2007` accretion disk spectra class.
     !!}
     use :: File_Utilities, only : File_Lock, File_Unlock       , Directory_Make
     use :: Input_Paths   , only : inputPath, pathTypeDataStatic, pathTypeDataDynamic

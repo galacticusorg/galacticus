@@ -105,7 +105,7 @@
 
   interface posteriorSampleSimulationDifferentialEvolution
      !!{RST
-     Constructors for the ``posteriorSampleSimulationDifferentialEvolution`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationDifferentialEvolution` posterior sampling simulation class.
      !!}
      module procedure differentialEvolutionConstructorParameters
      module procedure differentialEvolutionConstructorInternal
@@ -115,7 +115,7 @@ contains
 
   function differentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationDifferentialEvolution`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationDifferentialEvolution` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report

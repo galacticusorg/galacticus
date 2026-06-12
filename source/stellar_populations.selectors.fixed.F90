@@ -42,7 +42,7 @@
 
   interface stellarPopulationSelectorFixed
      !!{RST
-     Constructors for the ``stellarPopulationSelectorFixed`` stellar population selector class.
+     Constructors for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSelectorFixed`` stellar population selector class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
@@ -74,7 +74,7 @@ contains
 
   function fixedConstructorInternal(stellarPopulation_) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationSelectorFixed`` stellar population selector class.
+    Internal constructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
     !!}
     implicit none
     type (stellarPopulationSelectorFixed)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine fixedDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationSelectorFixed`` stellar population selector class.
+    Destructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
     !!}
     implicit none
     type(stellarPopulationSelectorFixed), intent(inout) :: self

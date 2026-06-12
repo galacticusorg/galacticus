@@ -82,7 +82,7 @@
 
   interface darkMatterProfileConcentrationPrada2011
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationPrada2011`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationPrada2011` dark matter halo profile concentration class.
      !!}
      module procedure prada2011ConstructorParameters
      module procedure prada2011ConstructorInternal
@@ -270,7 +270,7 @@ contains
 
   function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationPrada2011`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationPrada2011` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -329,7 +329,7 @@ contains
 
   subroutine prada2011Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationPrada2011`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationPrada2011` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationPrada2011), intent(inout) :: self

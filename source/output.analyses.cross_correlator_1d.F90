@@ -38,7 +38,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
    <description>
    A generic 1D cross-correlator (i.e. the cross-correlation of two weights binned by some property, e.g. a mass function) output analysis class.
 
-   The assumptions used when constructing the covariance matrix are controlled by the parameter ``[covarianceModel]``, and follow the method described for the ``outputAnalysisVolumeFunction1D`` output analysis class.
+   The assumptions used when constructing the covariance matrix are controlled by the parameter ``[covarianceModel]``, and follow the method described for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
    </description>
   </outputAnalysis>
   !!]
@@ -88,7 +88,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
 
   interface outputAnalysisCrossCorrelator1D
      !!{RST
-     Constructors for the ``outputAnalysisCrossCorrelator1D`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class.
      !!}
      module procedure crossCorrelator1DConstructorParameters
      module procedure crossCorrelator1DConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function crossCorrelator1DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisCrossCorrelator1D`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -249,7 +249,7 @@ contains
 
   function crossCorrelator1DConstructorInternal(binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator1_,outputAnalysisWeightOperator2_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,binWidth) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisCrossCorrelator1D`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class for internal use.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -342,7 +342,7 @@ contains
 
   subroutine crossCorrelator1DDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisCrossCorrelator1D`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisCrossCorrelator1D), intent(inout) :: self

@@ -20,7 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorAgesStellarMassWeighted" docformat="rst">
    <description>
-   A node property extractor which extracts stellar mass-weighted ages for disk and spheroid components. Requires the ``nodeOperatorAgesStellarMassWeighted`` node operator to be used to accumulate the relevant integrals for each disk and spheroid.
+   A node property extractor which extracts stellar mass-weighted ages for disk and spheroid components. Requires the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator to be used to accumulate the relevant integrals for each disk and spheroid.
 
    Specifically, the quantities computed by this class are
 
@@ -52,7 +52,7 @@
 
   interface nodePropertyExtractorAgesStellarMassWeighted
      !!{RST
-     Constructors for the ``nodePropertyExtractorAgesStellarMassWeighted`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorAgesStellarMassWeighted`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorAgesStellarMassWeighted`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self

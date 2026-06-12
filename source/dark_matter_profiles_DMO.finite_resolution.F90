@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution" docformat="rst">
     <description>
-    A dark matter profile DMO class which builds ``massDistributionSphericalFiniteResolution`` objects to mimic the effects of finite resolution in an N-body simulation.
+    A dark matter profile DMO class which builds :galacticus-class:`massDistributionSphericalFiniteResolution` objects to mimic the effects of finite resolution in an N-body simulation.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -59,7 +59,7 @@
 
  interface darkMatterProfileDMOFiniteResolution
      !!{RST
-     Constructors for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOFiniteResolution` dark matter halo profile class.
      !!}
      module procedure finiteResolutionConstructorParameters
      module procedure finiteResolutionConstructorInternal
@@ -128,7 +128,7 @@ contains
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOFiniteResolution` dark matter halo profile class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -160,7 +160,7 @@ contains
   
   subroutine finiteResolutionDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOFiniteResolution`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOFiniteResolution` dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -43,7 +43,7 @@
 
   interface hotHaloRamPressureStrippingVirialRadius
      !!{RST
-     Constructors for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureStrippingVirialRadius` hot halo ram pressure stripping class.
      !!}
      module procedure virialRadiusConstructorParameters
      module procedure virialRadiusConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function virialRadiusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureStrippingVirialRadius` hot halo ram pressure stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function virialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureStrippingVirialRadius` hot halo ram pressure stripping class.
     !!}
     implicit none
     type (hotHaloRamPressureStrippingVirialRadius)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine virialRadiusDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureStrippingVirialRadius`` hot halo ram pressure stripping class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureStrippingVirialRadius` hot halo ram pressure stripping class.
     !!}
     implicit none
     type(hotHaloRamPressureStrippingVirialRadius), intent(inout) :: self

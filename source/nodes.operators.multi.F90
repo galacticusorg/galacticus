@@ -29,7 +29,7 @@
   !![
   <nodeOperator name="nodeOperatorMulti" docformat="rst">
    <description>
-   A node operator class that applies a linked list of multiple child ``nodeOperatorClass`` objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.
+   A node operator class that applies a linked list of multiple child :galacticus-class:`nodeOperatorClass` objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.
    </description>
    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
   </nodeOperator>
@@ -67,7 +67,7 @@
 
   interface nodeOperatorMulti
      !!{RST
-     Constructors for the ``nodeOperatorMulti`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorMulti` node operator class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorMulti`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorMulti` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function multiConstructorInternal(processes) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorMulti`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorMulti` node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
@@ -128,7 +128,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorMulti`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorMulti` node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self

@@ -24,7 +24,7 @@ Implements a galactic filter class which is the "any" combination of a set of ot
   !![
   <galacticFilter name="galacticFilterAny" docformat="rst">
    <description>
-   Implements a logical ``OR`` combination of multiple ``galacticFilterClass`` objects, passing nodes that satisfy at least one filter in the list, enabling flexible union-based selection criteria from simpler component filters.
+   Implements a logical ``OR`` combination of multiple :galacticus-class:`galacticFilterClass` objects, passing nodes that satisfy at least one filter in the list, enabling flexible union-based selection criteria from simpler component filters.
    </description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
@@ -53,7 +53,7 @@ contains
 
   function anyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterAny`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterAny` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function anyConstructorInternal(filters) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterAny`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterAny` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine anyDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterAny`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterAny` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny), intent(inout) :: self

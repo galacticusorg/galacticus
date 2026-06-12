@@ -20,7 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRateInterOutput" docformat="rst">
    <description>
-   A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the ``nodeOperatorStarFormationRateInterOutput`` node operator class to compute those rates.
+   A node property extractor which extracts the mean star formation rate between successive outputs. Intended to be paired with the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class to compute those rates.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorStarFormationRateInterOutput
      !!{RST
-     Constructors for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationRateInterOutput` property extractor class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRateInterOutput` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRateInterOutput` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self

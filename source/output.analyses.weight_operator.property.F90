@@ -44,7 +44,7 @@ Implements an analysis weight operator class which weights by a property value.
 
   interface outputAnalysisWeightOperatorProperty
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorProperty`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
      !!}
      module procedure propertyConstructorParameters
      module procedure propertyConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function propertyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorProperty`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function propertyConstructorInternal(extractor_,operator_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisWeightOperatorProperty`` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -103,7 +103,7 @@ contains
 
   subroutine propertyDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisWeightOperatorProperty`` output analysis weight operator class.
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorProperty), intent(inout) :: self

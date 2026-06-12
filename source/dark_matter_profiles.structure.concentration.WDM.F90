@@ -54,7 +54,7 @@
 
   interface darkMatterProfileConcentrationWDM
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationWDM`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationWDM` dark matter halo profile concentration class.
      !!}
      module procedure wdmConstructorParameters
      module procedure wdmConstructorInternal
@@ -103,7 +103,7 @@ contains
 
   subroutine wdmDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationWDM`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationWDM` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDM), intent(inout) :: self

@@ -41,7 +41,7 @@
 
   interface kinematicsDistributionUndecorator
      !!{RST
-     Constructors for the ``kinematicsDistributionUndecorator`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
      !!}
      module procedure undecoratorConstructorParameters
      module procedure undecoratorConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function undecoratorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionUndecorator`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function undecoratorConstructorInternal(kinematicsDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionUndecorator`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionUndecorator)                        :: self
@@ -85,7 +85,7 @@ contains
   
   subroutine undecoratorDestructor(self)
     !!{RST
-    Destructor for the ``kinematicsDistributionUndecorator`` kinematic distribution class.
+    Destructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionUndecorator), intent(inout) :: self

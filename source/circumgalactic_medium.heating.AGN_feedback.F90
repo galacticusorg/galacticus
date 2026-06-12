@@ -43,7 +43,7 @@
   
   interface circumgalacticMediumHeatingAGNFeedback
      !!{RST
-     Constructors for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
+     Constructors for the :galacticus-class:`circumgalacticMediumHeatingAGNFeedback` circumgalactic medium heating class.
      !!}
      module procedure agnFeedbackConstructorParameters
      module procedure agnFeedbackConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function agnFeedbackConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`circumgalacticMediumHeatingAGNFeedback` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function agnFeedbackConstructorInternal(blackHoleCGMHeating_) result(self)
     !!{RST
-    Internal constructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
+    Internal constructor for the :galacticus-class:`circumgalacticMediumHeatingAGNFeedback` circumgalactic medium heating class.
     !!}
     implicit none
     type (circumgalacticMediumHeatingAGNFeedback)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine agnFeedbackDestructor(self)
     !!{RST
-    Destructor for the ``circumgalacticMediumHeatingAGNFeedback`` circumgalactic medium heating class.
+    Destructor for the :galacticus-class:`circumgalacticMediumHeatingAGNFeedback` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingAGNFeedback), intent(inout) :: self

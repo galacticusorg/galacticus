@@ -45,7 +45,7 @@
 
   interface outputTimesLogarithmicSpacingInCriticalOverdensity
      !!{RST
-     Constructors for the ``outputTimesLogarithmicSpacingInCriticalOverdensity`` output times class.
+     Constructors for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class.
      !!}
      module procedure logarithmicSpacingInCriticalOverdensityConstructorParameters
      module procedure logarithmicSpacingInCriticalOverdensityConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function logarithmicSpacingInCriticalOverdensityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesLogarithmicSpacingInCriticalOverdensity`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function logarithmicSpacingInCriticalOverdensityConstructorInternal(redshiftMinimum,redshiftMaximum,countTimes,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``outputTimesLogarithmicSpacingInCriticalOverdensity`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -149,7 +149,7 @@ contains
 
   subroutine logarithmicSpacingInCriticalOverdensityDestructor(self)
     !!{RST
-    Destructor for the ``outputTimesLogarithmicSpacingInCriticalOverdensity`` output times class.
+    Destructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class.
     !!}
     implicit none
     type(outputTimesLogarithmicSpacingInCriticalOverdensity), intent(inout) :: self

@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the ZFOURGE survey 
 
   interface outputAnalysisMassFunctionStellarZFOURGE
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarZFOURGE`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarZFOURGE` output analysis class.
      !!}
      module procedure massFunctionStellarZFOURGEConstructorParameters
      module procedure massFunctionStellarZFOURGEConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarZFOURGEConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarZFOURGE`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarZFOURGE` output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing, only : gravitationalLensingClass
     use :: Input_Parameters     , only : inputParameter           , inputParameters
@@ -200,7 +200,7 @@ contains
 
   function massFunctionStellarZFOURGEConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarZFOURGE`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarZFOURGE` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -401,7 +401,7 @@ contains
 
   subroutine massFunctionStellarZFOURGEDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarZFOURGE`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarZFOURGE` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarZFOURGE), intent(inout) :: self

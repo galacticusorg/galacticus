@@ -33,7 +33,7 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
 
       \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
 
-   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see ``hotHaloMassDistributionCoreRadius``). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
+   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
   </hotHaloMassDistribution>
   !!]
@@ -61,7 +61,7 @@ contains
 
   function betaProfileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloMassDistributionBetaProfile`` hot halo mass distribution class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`hotHaloMassDistributionBetaProfile` hot halo mass distribution class which takes a parameter set as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -121,7 +121,7 @@ contains
 
   function betaProfileConstructorInternal(beta,hotHaloMassDistributionCoreRadius_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloMassDistributionBetaProfile`` hot halo mass distribution class.
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionBetaProfile` hot halo mass distribution class.
     !!}
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                        :: self
@@ -136,7 +136,7 @@ contains
 
   subroutine betaProfileDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionBetaProfile`` hot halo mass distribution class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionBetaProfile` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionBetaProfile), intent(inout) :: self

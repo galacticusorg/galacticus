@@ -65,7 +65,7 @@
 
   interface massDistributionIsothermal
      !!{RST
-     Constructors for the ``massDistributionIsothermal`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionIsothermal` mass distribution class.
      !!}
      module procedure massDistributionIsothermalConstructorParameters
      module procedure massDistributionIsothermalConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massDistributionIsothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionIsothermal`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionIsothermal` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

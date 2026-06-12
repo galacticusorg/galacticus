@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any ``virialDensityContrastClass``.
+  Implements a node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
   !!}
 
   !![
   <nodeOperator name="nodeOperatorBertschingerMass" docformat="rst">
    <description>
-   A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any ``virialDensityContrastClass``.
+   A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBertschingerMass
      !!{RST
-     A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any ``virialDensityContrastClass``.
+     A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
      !!}
      private
      class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_        => null()
@@ -50,7 +50,7 @@
   
   interface nodeOperatorBertschingerMass
      !!{RST
-     Constructors for the ``nodeOperatorBertschingerMass`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
      !!}
      module procedure bertschingerMassConstructorParameters
      module procedure bertschingerMassConstructorInternal
@@ -60,7 +60,7 @@ contains
   
   function bertschingerMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBertschingerMass`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function bertschingerMassConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBertschingerMass`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
     !!}
     implicit none
     type (nodeOperatorBertschingerMass)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine bertschingerMassDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBertschingerMass`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
     !!}
     implicit none
     type(nodeOperatorBertschingerMass), intent(inout) :: self

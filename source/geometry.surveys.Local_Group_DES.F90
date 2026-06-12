@@ -42,7 +42,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
 
   interface surveyGeometryLocalGroupDES
      !!{RST
-     Constructors for the ``surveyGeometryLocalGroupDES`` survey geometry class.
+     Constructors for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
      !!}
      module procedure localGroupDESConstructorParameters
      module procedure localGroupDESConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``surveyGeometryLocalGroupDES`` survey geometry class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
     !!{RST
-    Internal constructor for the ``surveyGeometryLocalGroupDES`` survey geometry class.
+    Internal constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
     !!}
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self

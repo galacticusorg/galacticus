@@ -74,7 +74,7 @@
 
   interface outputAnalysisStarFormingMainSequenceWagner2016
      !!{RST
-     Constructors for the ``outputAnalysisStarFormingMainSequenceWagner2016`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
      !!}
      module procedure starFormingMainSequenceWagner2016ConstructorParameters
      module procedure starFormingMainSequenceWagner2016ConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormingMainSequenceWagner2016`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -198,7 +198,7 @@ contains
 
   function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisStarFormingMainSequenceWagner2016`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -453,7 +453,7 @@ contains
 
   subroutine starFormingMainSequenceWagner2016Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisStarFormingMainSequenceWagner2016`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormingMainSequenceWagner2016), intent(inout) :: self

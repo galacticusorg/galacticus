@@ -44,7 +44,7 @@
 
   interface posteriorSampleStateInitializeLatinHypercube
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializeLatinHypercube`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
      !!}
      module procedure latinHypercubeConstructorParameters
      module procedure latinHypercubeConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function latinHypercubeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeLatinHypercube`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function latinHypercubeConstructorInternal(maximinTrialCount,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeLatinHypercube`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                        :: self
@@ -99,7 +99,7 @@ contains
 
   subroutine latinHypercubeDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleStateInitializeLatinHypercube`` posterior sampling state initialization class.
+    Destructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeLatinHypercube), intent(inout) :: self

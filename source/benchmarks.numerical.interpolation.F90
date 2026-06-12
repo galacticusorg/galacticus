@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a program to benchmark the numerical interpolation primitives provided by the ``interpolator`` and ``interpolator2D`` types.
+Contains a program to benchmark the numerical interpolation primitives provided by the :galacticus-class:`interpolator` and :galacticus-class:`interpolator2D` types.
 
 Each scenario constructs an interpolator, builds a precomputed array of query points (so we measure interpolation, not RNG), and runs an inner loop of many calls inside each timed trial. We report time-per-call rather than time-per-trial: at typical clock resolutions a single ``%interpolate`` call is only a handful of ticks, so timing one call at a time is dominated by noise.
 

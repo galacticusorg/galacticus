@@ -101,7 +101,7 @@
 
   interface outputAnalysisMeanFunction1D
      !!{RST
-     Constructors for the ``outputAnalysisMeanFunction1D`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class.
      !!}
      module procedure meanFunction1DConstructorParameters
      module procedure meanFunction1DConstructorInternal
@@ -111,7 +111,7 @@ contains
 
   function meanFunction1DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisMeanFunction1D`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -507,7 +507,7 @@ contains
 
   function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanQuantity,meanIsComoving,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_,binWidth) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMeanFunction1D`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class for internal use.
     !!}
     use :: Error                                   , only : Error_Report
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
@@ -751,7 +751,7 @@ contains
 
   subroutine meanFunction1DDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMeanFunction1D`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMeanFunction1D), intent(inout) :: self

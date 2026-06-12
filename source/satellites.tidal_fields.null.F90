@@ -50,7 +50,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalFieldNull`` satellite tidal field class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalFieldNull` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

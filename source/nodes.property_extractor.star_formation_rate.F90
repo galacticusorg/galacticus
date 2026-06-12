@@ -54,7 +54,7 @@ Implements a star formation rate property extractor class.
 
   interface nodePropertyExtractorStarFormationRate
      !!{RST
-     Constructors for the ``nodePropertyExtractorStarFormationRate`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorStarFormationRate`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   function starFormationRateConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorStarFormationRate`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -160,7 +160,7 @@ contains
 
   subroutine starFormationRateDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorStarFormationRate`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationRate), intent(inout) :: self

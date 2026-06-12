@@ -51,7 +51,7 @@
 
   interface nodePropertyExtractorBlackHoleSeedingVergara2023
      !!{RST
-     Constructors for the ``nodePropertyExtractorBlackHoleSeedingVergara2023`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorBlackHoleSeedingVergara2023` property extractor class.
      !!}
      module procedure blackHoleSeedingVergara2023ConstructorParameters
      module procedure blackHoleSeedingVergara2023ConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorBlackHoleSeedingVergara2023`` property extractor class.
+    Constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleSeedingVergara2023` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function blackHoleSeedingVergara2023ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorBlackHoleSeedingVergara2023`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleSeedingVergara2023` property extractor class.
     !!}
     implicit none
     type          (nodePropertyExtractorBlackHoleSeedingVergara2023) :: self

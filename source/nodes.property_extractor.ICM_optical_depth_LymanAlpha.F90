@@ -50,7 +50,7 @@
 
   interface nodePropertyExtractorICMOpticalDepthLymanAlpha
      !!{RST
-     Constructors for the ``nodePropertyExtractorICMOpticalDepthLymanAlpha`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMOpticalDepthLymanAlpha` property extractor class.
      !!}
      module procedure icmOpticalDepthLymanAlphaConstructorParameters
      module procedure icmOpticalDepthLymanAlphaConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function icmOpticalDepthLymanAlphaConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorICMOpticalDepthLymanAlpha`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMOpticalDepthLymanAlpha` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function icmOpticalDepthLymanAlphaConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorICMOpticalDepthLymanAlpha`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMOpticalDepthLymanAlpha` property extractor class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
@@ -102,7 +102,7 @@ contains
 
   subroutine icmOpticalDepthLymanAlphaDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorICMOpticalDepthLymanAlpha`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMOpticalDepthLymanAlpha` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMOpticalDepthLymanAlpha), intent(inout) :: self

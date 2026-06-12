@@ -57,7 +57,7 @@
 
   interface massDistributionSphericalDecaying
      !!{RST
-     Constructors for the ``massDistributionSphericalDecaying`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
      !!}
      module procedure sphericalDecayingConstructorParameters
      module procedure sphericalDecayingConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function sphericalDecayingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalDecaying`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -164,7 +164,7 @@ contains
   
   function sphericalDecayingConstructorInternal(toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,radiusEscape,time,darkMatterParticle_,massDistribution_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalDecaying`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     implicit none
@@ -200,7 +200,7 @@ contains
 
   subroutine sphericalDecayingDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSphericalDecaying`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalDecaying), intent(inout) :: self

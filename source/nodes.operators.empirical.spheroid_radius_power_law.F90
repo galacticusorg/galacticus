@@ -56,7 +56,7 @@
   
   interface nodeOperatorSpheroidRadiusPowerLaw
      !!{RST
-     Constructors for the ``nodeOperatorSpheroidRadiusPowerLaw`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSpheroidRadiusPowerLaw` node operator class.
      !!}
      module procedure spheroidRadiusPowerLawConstructorParameters
      module procedure spheroidRadiusPowerLawConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function spheroidRadiusPowerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSpheroidRadiusPowerLaw`` which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSpheroidRadiusPowerLaw` which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function spheroidRadiusPowerLawConstructorInternal(alpha, beta) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSpheroidRadiusPowerLaw`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSpheroidRadiusPowerLaw` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSpheroidRadiusPowerLaw)             :: self

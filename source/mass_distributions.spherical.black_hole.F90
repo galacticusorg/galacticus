@@ -47,7 +47,7 @@
 
   interface massDistributionBlackHole
      !!{RST
-     Constructors for the ``massDistributionBlackHole`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionBlackHole` mass distribution class.
      !!}
      module procedure blackHoleConstructorParameters
      module procedure blackHoleConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function blackHoleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionBlackHole`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionBlackHole` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -114,7 +114,7 @@ contains
   
   function blackHoleConstructorInternal(mass,dimensionless,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionBlackHole`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionBlackHole` mass distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ

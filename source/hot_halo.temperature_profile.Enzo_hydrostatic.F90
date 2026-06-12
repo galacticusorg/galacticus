@@ -96,7 +96,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloTemperatureProfileEnzoHydrostatic`` hot halo temperature profile class.
+    Destructor for the :galacticus-class:`hotHaloTemperatureProfileEnzoHydrostatic` hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self

@@ -39,7 +39,7 @@
 
   interface starFormationActiveMassTotalISM
      !!{RST
-     Constructors for the ``starFormationActiveMassTotalISM`` active mass for star formation class.
+     Constructors for the :galacticus-class:`starFormationActiveMassTotalISM` active mass for star formation class.
      !!}
      module procedure totalISMConstructorParameters
   end interface starFormationActiveMassTotalISM
@@ -48,7 +48,7 @@ contains
 
   function totalISMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationActiveMassTotalISM`` active mass for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationActiveMassTotalISM` active mass for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

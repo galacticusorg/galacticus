@@ -73,7 +73,7 @@
 
   interface posteriorSampleSimulationParticleSwarm
      !!{RST
-     Constructors for the ``posteriorSampleSimulationParticleSwarm`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationParticleSwarm` posterior sampling simulation class.
      !!}
      module procedure particleSwarmConstructorParameters
      module procedure particleSwarmConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function particleSwarmConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationParticleSwarm`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationParticleSwarm` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report

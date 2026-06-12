@@ -26,7 +26,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass" docformat="rst">
    <description>
-   Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a ``outputAnalysisMolecularRatioClass`` object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.
+   Converts ISM (interstellar medium) gas mass to neutral hydrogen (HI) mass using a :galacticus-class:`outputAnalysisMolecularRatioClass` object, accounting for the molecular-to-atomic gas ratio to predict observable HI properties.
    </description>
   </outputAnalysisPropertyOperator>
   !!]
@@ -43,7 +43,7 @@ Implements a conversion of ISM mass to HI mass analysis property operator class.
 
   interface outputAnalysisPropertyOperatorHIMass
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorHIMass` output analysis property operator class.
      !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function hiMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorHIMass` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorHIMass` output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine hiMassDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisPropertyOperatorHIMass`` output analysis property operator class.
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorHIMass` output analysis property operator class.
     !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self

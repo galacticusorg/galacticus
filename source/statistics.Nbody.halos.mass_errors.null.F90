@@ -41,7 +41,7 @@ Implements a null N-body dark matter halo mass error class.
 
   interface nbodyHaloMassErrorNull
      !!{RST
-     Constructors for the ``nbodyHaloMassErrorNull`` N-body halo mass error class.
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorNull` N-body halo mass error class.
      !!}
      module procedure nullConstructorParameters
   end interface nbodyHaloMassErrorNull
@@ -50,7 +50,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nbodyHaloMassErrorNull`` N-body halo mass error class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorNull` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

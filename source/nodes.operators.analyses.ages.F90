@@ -29,7 +29,7 @@
   !![
   <nodeOperator name="nodeOperatorAgesStellarMassWeighted" docformat="rst">
     <description>
-    A node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components. Intended to be paired with the ``nodePropertyExtractorAgesStellarMassWeighted`` property extractor class to extract those ages for output.
+    A node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components. Intended to be paired with the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class to extract those ages for output.
     </description>
   </nodeOperator>
   !!]
@@ -55,7 +55,7 @@
   
   interface nodeOperatorAgesStellarMassWeighted
      !!{RST
-     Constructors for the ``nodeOperatorAgesStellarMassWeighted`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorAgesStellarMassWeighted`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function agesStellarMassWeightedConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,mergerMassMovements_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorAgesStellarMassWeighted`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
     !!}
     implicit none
     type (nodeOperatorAgesStellarMassWeighted      )                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine agesStellarMassWeightedDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorAgesStellarMassWeighted`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
     !!}
     implicit none
     type(nodeOperatorAgesStellarMassWeighted), intent(inout) :: self

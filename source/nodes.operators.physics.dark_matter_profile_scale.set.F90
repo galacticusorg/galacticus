@@ -37,7 +37,7 @@
   !![
   <nodeOperator name="nodeOperatorDarkMatterProfileScaleSet" docformat="rst">
    <description>
-   A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a ``darkMatterProfileScaleRadiusClass`` object. ``factorReset`` controls the multiplicative factor by which a halo mass must grow before its scale radius is recomputed. ``forward`` selects whether scale radii are assigned by walking forward along the branch (until mass exceeds ``factorReset`` times the previously computed value) or backward (until mass falls below :math:`1/`\ ``factorReset`` of the previous value).
+   A node operator class that initializes and maintains the dark matter profile scale radius for each halo using a :galacticus-class:`darkMatterProfileScaleRadiusClass` object. ``factorReset`` controls the multiplicative factor by which a halo mass must grow before its scale radius is recomputed. ``forward`` selects whether scale radii are assigned by walking forward along the branch (until mass exceeds ``factorReset`` times the previously computed value) or backward (until mass falls below :math:`1/`\ ``factorReset`` of the previous value).
    </description>
   </nodeOperator>
   !!]
@@ -58,7 +58,7 @@
   
   interface nodeOperatorDarkMatterProfileScaleSet
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleSet` node operator class.
      !!}
      module procedure darkMatterProfileScaleSetConstructorParameters
      module procedure darkMatterProfileScaleSetConstructorInternal
@@ -68,7 +68,7 @@ contains
   
   function darkMatterProfileScaleSetConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleSet` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
 
   function darkMatterProfileScaleSetConstructorInternal(factorReset,forward,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleSet` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -124,7 +124,7 @@ contains
 
   subroutine darkMatterProfileScaleSetConstructorDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDarkMatterProfileScaleSet`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfileScaleSet` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileScaleSet), intent(inout) :: self

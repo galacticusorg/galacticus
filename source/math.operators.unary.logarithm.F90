@@ -41,7 +41,7 @@
 
   interface operatorUnaryLogarithm
      !!{RST
-     Constructors for the ``operatorUnaryLogarithm`` 1D distribution function class.
+     Constructors for the :galacticus-class:`operatorUnaryLogarithm` 1D distribution function class.
      !!}
      module procedure logarithmConstructorParameters
   end interface operatorUnaryLogarithm
@@ -53,7 +53,7 @@ contains
 
   function logarithmConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``operatorUnaryLogarithm`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`operatorUnaryLogarithm` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

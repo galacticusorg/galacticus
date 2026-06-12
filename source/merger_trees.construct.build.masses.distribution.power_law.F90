@@ -53,7 +53,7 @@
 
   interface mergerTreeBuildMassDistributionPowerLaw
      !!{RST
-     Constructors for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class.
+     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionPowerLaw` merger tree halo mass function sampling class.
      !!}
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassDistributionPowerLaw` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function powerLawConstructorInternal(exponent) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassDistributionPowerLaw`` merger tree halo mass function sampling class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassDistributionPowerLaw` merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionPowerLaw)                :: self

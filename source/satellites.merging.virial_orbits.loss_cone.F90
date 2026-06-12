@@ -104,7 +104,7 @@
 
   interface virialOrbitLossCone
      !!{RST
-     Constructors for the ``virialOrbitLossCone`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
      !!}
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
@@ -136,7 +136,7 @@ contains
 
   function lossConeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialOrbitLossCone`` virial orbits class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -263,7 +263,7 @@ contains
 
   function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitLossCone`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -315,7 +315,7 @@ contains
 
   subroutine lossConeDestructor(self)
     !!{RST
-    Destructor for the ``virialOrbitLossCone`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
     !!}
     implicit none
     type(virialOrbitLossCone), intent(inout) :: self

@@ -42,7 +42,7 @@ Implements a host index output analysis property extractor class.
 
   interface nodePropertyExtractorIndicesHost
      !!{RST
-     Constructors for the ``nodePropertyExtractorIndicesHost`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function indicesHostConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorIndicesHost`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function indicesHostConstructorInternal(topLevel) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorIndicesHost`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self

@@ -41,7 +41,7 @@
 
   interface starFormationRateSpheroidsCentralsOnly
      !!{RST
-     Constructors for the ``starFormationRateSpheroidsCentralsOnly`` star formation rate in spheroids class.
+     Constructors for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateSpheroidsCentralsOnly`` star formation rate in spheroids class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function centralsOnlyConstructorInternal(starFormationRateSpheroids_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateSpheroidsCentralsOnly`` star formation rate in spheroids class.
+    Internal constructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
     !!}
     implicit none
     type (starFormationRateSpheroidsCentralsOnly)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine centralsOnlyDestructor(self)
     !!{RST
-    Destructor for the ``starFormationRateSpheroidsCentralsOnly`` star formation rate in spheroids class.
+    Destructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
     !!}
     implicit none
     type(starFormationRateSpheroidsCentralsOnly), intent(inout) :: self

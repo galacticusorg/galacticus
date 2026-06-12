@@ -41,7 +41,7 @@
 
   interface starFormationRateDisksCentralsOnly
      !!{RST
-     Constructors for the ``starFormationRateDisksCentralsOnly`` star formation rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateDisksCentralsOnly`` star formation rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function centralsOnlyConstructorInternal(starFormationRateDisks_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateDisksCentralsOnly`` star formation rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
     !!}
     implicit none
     type (starFormationRateDisksCentralsOnly)                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine centralsOnlyDestructor(self)
     !!{RST
-    Destructor for the ``starFormationRateDisksCentralsOnly`` star formation rate in disks class.
+    Destructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksCentralsOnly), intent(inout) :: self

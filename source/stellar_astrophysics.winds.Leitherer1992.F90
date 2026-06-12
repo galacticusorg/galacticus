@@ -45,7 +45,7 @@
 
   interface stellarWindsLeitherer1992
      !!{RST
-     Constructors for the ``stellarWindsLeitherer1992`` stellar winds class.
+     Constructors for the :galacticus-class:`stellarWindsLeitherer1992` stellar winds class.
      !!}
      module procedure leitherer1992ConstructorParameters
      module procedure leitherer1992ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function leitherer1992ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarWindsLeitherer1992`` stellar winds class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarWindsLeitherer1992` stellar winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function leitherer1992ConstructorInternal(stellarTracks_) result(self)
     !!{RST
-    Internal constructor for the ``stellarWindsLeitherer1992`` stellar winds class.
+    Internal constructor for the :galacticus-class:`stellarWindsLeitherer1992` stellar winds class.
     !!}
     implicit none
     type (stellarWindsLeitherer1992)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine leitherer1992Destructor(self)
     !!{RST
-    Destructor for the ``stellarWindsLeitherer1992`` stellar winds class.
+    Destructor for the :galacticus-class:`stellarWindsLeitherer1992` stellar winds class.
     !!}
     implicit none
     type(stellarWindsLeitherer1992), intent(inout) :: self

@@ -61,7 +61,7 @@
 
   interface darkMatterProfileConcentrationBullock2001
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationBullock2001`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
      !!}
      module procedure bullock2001ConstructorParameters
      module procedure bullock2001ConstructorInternal
@@ -128,7 +128,7 @@ contains
 
   function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationBullock2001`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
@@ -180,7 +180,7 @@ contains
 
   subroutine bullock2001Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationBullock2001`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationBullock2001), intent(inout) :: self

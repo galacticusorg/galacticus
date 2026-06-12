@@ -69,7 +69,7 @@
 
   interface computationalDomainSpherical
      !!{RST
-     Constructors for the ``computationalDomainSpherical`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainSpherical` computational domain.
      !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
@@ -94,7 +94,7 @@ contains
 
   function sphericalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainSpherical`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainSpherical` computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -162,7 +162,7 @@ contains
 
   function sphericalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{RST
-    Constructor for the ``computationalDomainSpherical`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainSpherical` computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -188,7 +188,7 @@ contains
 
   subroutine sphericalDestructor(self)
     !!{RST
-    Destructor for the ``computationalDomainSpherical`` computational domain class.
+    Destructor for the :galacticus-class:`computationalDomainSpherical` computational domain class.
     !!}
     implicit none
     type(computationalDomainSpherical), intent(inout) :: self

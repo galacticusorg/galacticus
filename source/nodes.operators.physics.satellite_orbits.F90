@@ -55,7 +55,7 @@
   
   interface nodeOperatorSatelliteOrbit
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteOrbit`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class.
      !!}
      module procedure satelliteOrbitConstructorParameters
      module procedure satelliteOrbitConstructorInternal
@@ -73,7 +73,7 @@ contains
 
   function satelliteOrbitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteOrbit`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
   
   function satelliteOrbitConstructorInternal(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteOrbit`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -163,7 +163,7 @@ contains
 
   subroutine satelliteOrbitDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteOrbit`` node operator function class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator function class.
     !!}
     use :: Events_Hooks, only : subhaloOrbitInitializationEvent
     implicit none

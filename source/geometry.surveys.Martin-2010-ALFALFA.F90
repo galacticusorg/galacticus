@@ -30,12 +30,12 @@ Implements the survey geometry used by :cite:t:`martin_arecibo_2010`.
 
    For the angular mask we use the three disjoint regions defined by 07\ :math:`^\mathrm{h}`\ 30\ :math:`^\mathrm{m}` :math:`&lt;` R.A. :math:`&lt;` 16\ :math:`^\mathrm{h}`\ 30\ :math:`^\mathrm{m}`, +04\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +16\ :math:`^\circ`, and +24\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +28\ :math:`^\circ` and 22\ :math:`^\mathrm{h}` :math:`&lt;` R.A. :math:`&lt;` 03\ :math:`^\mathrm{h}`, +14\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +16\ :math:`^\circ`, and +24\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +32\ :math:`^\circ` corresponding to the sample of :cite:t:`martin_arecibo_2010`. When the survey window function is needed we generate randomly distributed points within this angular mask and out to the survey depth. These points are used to determine which elements of a 3D grid fall within the window function.
 
-   To estimate the depth of the :cite:t:`martin_arecibo_2010` sample as a function of galaxy HI mass we first infer the median line width corresponding to that mass. To do so, we have fit the median line width-mass relation from the :math:`\alpha.40` sample with power-law function as shown in Fig. . We find that the median line width can be approximated by
+   To estimate the depth of the :cite:t:`martin_arecibo_2010` sample as a function of galaxy HI mass we first infer the median line width corresponding to that mass. To do so, we have fit the median line width-mass relation from the :math:`\alpha.40` sample with power-law function as shown in Fig. :numref:`{number} &lt;fig-ALFALFALineWidthMassRelation&gt;`. We find that the median line width can be approximated by
 
    .. math::
+      :label: eq-ALFALFALineWidthMassRelation
 
       \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/\mathrm{M}_\odot),
-      \label{eq:ALFALFALineWidthMassRelation}
 
    with :math:`c_0=-0.770` and :math:`c_1=0.315`. Given the line width, the corresponding integrated flux limit, :math:`S_\mathrm{int}`, for a signal-to-noise of :math:`6.5` is inferred using equation (A1) of :cite:t:`haynes_arecibo_2011`. Finally, this integrated flux limit is converted to maximum distance at which the source could be detected using the expression given in the text of section 2.2 of :cite:t:`martin_arecibo_2010`:
 
@@ -44,8 +44,9 @@ Implements the survey geometry used by :cite:t:`martin_arecibo_2010`.
       M_\mathrm{HI} = 2.356\times10^5 \left({D\over \hbox{Mpc}}\right)^2 \left({S_\mathrm{int}\over\hbox{Jy km s}^{-1}}\right).
 
    .. figure:: Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf
+      :name: fig-ALFALFALineWidthMassRelation
 
-      HI line width vs. HI mass as measured from the :math:`\alpha.40` survey of :cite:t:`martin_arecibo_2010`. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn. ().
+      HI line width vs. HI mass as measured from the :math:`\alpha.40` survey of :cite:t:`martin_arecibo_2010`. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn. (:eq:`eq-ALFALFALineWidthMassRelation`).
    </description>
   </surveyGeometry>
   !!]
@@ -114,7 +115,7 @@ contains
 
   subroutine martin2010ALFALFADestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryMartin2010ALFALFA`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryMartin2010ALFALFA` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self

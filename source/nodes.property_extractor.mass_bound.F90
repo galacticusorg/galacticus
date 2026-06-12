@@ -43,7 +43,7 @@ Implements an output analysis property extractor class that extracts the bound m
 
   interface nodePropertyExtractorMassBound
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBound`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBound` property extractor class.
      !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound
@@ -52,7 +52,7 @@ contains
 
   function massBoundConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBound`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBound` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

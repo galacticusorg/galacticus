@@ -33,7 +33,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFWHeated" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionSolitonNFWHeated`` objects to implement the :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFWHeated` objects to implement the :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionHeated_"/>
@@ -103,7 +103,7 @@ contains
 
   function solitonNFWHeatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOSolitonNFWHeated`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
@@ -226,7 +226,7 @@ contains
 
   function solitonNFWHeatedConstructorInternal(nonAnalyticSolver,darkMatterHaloScale_,darkMatterParticle_,darkMatterProfileHeating_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional) result(self)
     !!{RST
-    Generic constructor for the ``darkMatterProfileDMOSolitonNFWHeated`` dark matter halo profile class.
+    Generic constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter halo profile class.
     !!}
     use :: Mass_Distributions          , only : enumerationNonAnalyticSolversIsValid
     use :: Error                       , only : Component_List                      , Error_Report

@@ -60,7 +60,7 @@ Implements a :cite:t:`despali_universality_2015` dark matter halo mass function 
 
   interface haloMassFunctionDespali2015
      !!{RST
-     Constructors for the ``haloMassFunctionDespali2015`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionDespali2015` halo mass function class.
      !!}
      module procedure despali2015ConstructorParameters
      module procedure despali2015ConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function despali2015ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionDespali2015`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionDespali2015` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function despali2015ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionDespali2015`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionDespali2015` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionDespali2015  )                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine despali2015Destructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionDespali2015`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionDespali2015` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionDespali2015), intent(inout) :: self

@@ -33,7 +33,7 @@ module NBody_Operators
    <name>nbodyOperator</name>
    <descriptiveName>N-Body Simulation Data Operators</descriptiveName>
    <description>
-   Class providing operators that act on data from N-body simulations---post-processing transformations applied sequentially to the ``nBodyData`` objects imported by ``nbodyImporterClass``. Typical operations include computing halo masses, spin parameters, concentrations, merger histories, or galaxy occupation fractions from the raw particle data. Multiple operators can be chained to build a complete analysis pipeline, with the null operator leaving the data unchanged for pass-through use cases.
+   Class providing operators that act on data from N-body simulations---post-processing transformations applied sequentially to the ``nBodyData`` objects imported by :galacticus-class:`nbodyImporterClass`. Typical operations include computing halo masses, spin parameters, concentrations, merger histories, or galaxy occupation fractions from the raw particle data. Multiple operators can be chained to build a complete analysis pipeline, with the null operator leaving the data unchanged for pass-through use cases.
    </description>
    <default>null</default>
    <method name="operate" >

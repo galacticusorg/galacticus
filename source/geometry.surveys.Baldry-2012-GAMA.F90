@@ -30,19 +30,20 @@ Implements the geometry of the GAMA survey used by :cite:t:`baldry_galaxy_2012`.
 
    For the angular mask we use the specifications of the G09, G12, and G15 fields given by :cite:t:`driver_galaxy_2011` to construct  mangle polygon files.
 
-   To determine the depth as a function of stellar mass, we make use of the publicly available tabulated mass function, :math:`\phi`, and number of galaxies per bin, :math:`N`. The effective volume of each bin is found as :math:`V_i = N_i/\phi_i\Delta\log_{10}M_\star`, where :math:`\Delta\log_{10}M_\star` is the width of the bin. The GAMA survey consists of three fields, each of the same solid angle, but with differing depths. We assume that the relative depths in terms of stellar mass scale with the depth in terms of flux. Given this assumption, these volumes are converted to maximum distances in each field using the solid angle quoted above. The resulting mass vs. distance relation in each field is fit with a :math:`1^\mathrm{st}`-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed :math:`z=0.06` upper limit to redshift. Figure  shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from GAMA, while the line shows a polynomial fit:
+   To determine the depth as a function of stellar mass, we make use of the publicly available tabulated mass function, :math:`\phi`, and number of galaxies per bin, :math:`N`. The effective volume of each bin is found as :math:`V_i = N_i/\phi_i\Delta\log_{10}M_\star`, where :math:`\Delta\log_{10}M_\star` is the width of the bin. The GAMA survey consists of three fields, each of the same solid angle, but with differing depths. We assume that the relative depths in terms of stellar mass scale with the depth in terms of flux. Given this assumption, these volumes are converted to maximum distances in each field using the solid angle quoted above. The resulting mass vs. distance relation in each field is fit with a :math:`1^\mathrm{st}`-order polynomial in log-log space over the range where the maximum volume is limited by the survey depth and not by the imposed :math:`z=0.06` upper limit to redshift. Figure :numref:`{number} &lt;fig-BaldryGAMADepthFit&gt;` shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from GAMA, while the line shows a polynomial fit:
 
    .. math::
+      :label: eq-BaldryDepthPolynomial
 
       \log_{10} \left[ {D_\mathrm{max}(M_\star) \over \hbox{Mpc}}\right] = \left\{ \begin{array}{ll} -0.521 + 0.319m &amp;
       \hbox{fields G09/G15} \\ -0.361 + 0.319m &amp; \hbox{field G12} \end{array} \right.
-      \label{eq:BaldryDepthPolynomial}
 
    where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
 
    .. figure:: Plots/DataAnalysis/BaldryGAMAMassDistanceRelation.pdf
+      :name: fig-BaldryGAMADepthFit
 
-      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`baldry_galaxy_2012`. Points show the results obtained from data provided by Baldry, while the lines shows a polynomial fit to these results (given in eqn. ). Note that above :math:`10^9\mathrm{M}_\odot` the distance is limited by the imposed upper limit of :math:`z=0.06` in the GAMA sample---the polynomial fit does not consider these points.
+      The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`baldry_galaxy_2012`. Points show the results obtained from data provided by Baldry, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-BaldryDepthPolynomial`). Note that above :math:`10^9\mathrm{M}_\odot` the distance is limited by the imposed upper limit of :math:`z=0.06` in the GAMA sample---the polynomial fit does not consider these points.
    </description>
   </surveyGeometry>
   !!]
@@ -119,7 +120,7 @@ contains
 
   subroutine baldry2012GAMADestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryBaldry2012GAMA`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryBaldry2012GAMA` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryBaldry2012GAMA), intent(inout) :: self

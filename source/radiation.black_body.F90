@@ -49,7 +49,7 @@
 
   interface radiationFieldBlackBody
      !!{RST
-     Constructors for the ``radiationFieldBlackBody`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldBlackBody` radiation field class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function blackBodyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldBlackBody`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldBlackBody` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function blackBodyConstructorInternal(temperature_) result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldBlackBody`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldBlackBody` radiation field class.
     !!}
     implicit none
     type            (radiationFieldBlackBody)                :: self

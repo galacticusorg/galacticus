@@ -66,7 +66,7 @@
 
   interface transferFunctionEisensteinHu1999
      !!{RST
-     Constructors for the ``transferFunctionEisensteinHu1999`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class.
      !!}
      module procedure eisensteinHu1999ConstructorParameters
      module procedure eisensteinHu1999ConstructorInternal
@@ -76,7 +76,7 @@ contains
 
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionEisensteinHu1999`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionEisensteinHu1999`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

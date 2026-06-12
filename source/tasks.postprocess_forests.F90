@@ -34,7 +34,7 @@
   !![
   <task name="taskPostprocessForests" docformat="rst">
     <description>
-    A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with raw forest data written to file using the ``mergerTreeOutputterFullState`` merger tree outputter class. The name of that file is specified via the ``fileName`` parameter. Forests data will be re-read, and re-output. Note that you should use the *exact same* parameter file (other than changing the ``task``, and possibly removing the use of the ``mergerTreeOutputterFullState`` outputter) as was used to run the original model. This ensures that the raw data structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is recommend to run the postprocessing after setting the environment variable ``OMP_NUM_THREADS=1``.
+    A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with raw forest data written to file using the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class. The name of that file is specified via the ``fileName`` parameter. Forests data will be re-read, and re-output. Note that you should use the *exact same* parameter file (other than changing the ``task``, and possibly removing the use of the :galacticus-class:`mergerTreeOutputterFullState` outputter) as was used to run the original model. This ensures that the raw data structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is recommend to run the postprocessing after setting the environment variable ``OMP_NUM_THREADS=1``.
     </description>
   </task>
   !!]
@@ -67,7 +67,7 @@
 
   interface taskPostprocessForests
      !!{RST
-     Constructors for the ``taskPostprocessForests`` task.
+     Constructors for the :galacticus-class:`taskPostprocessForests` task.
      !!}
      module procedure postprocessForestsConstructorParameters
      module procedure postprocessForestsConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function postprocessForestsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskPostprocessForests`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskPostprocessForests` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -180,7 +180,7 @@ contains
 
   function postprocessForestsConstructorInternal(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{RST
-    Internal constructor for the ``taskPostprocessForests`` task class.
+    Internal constructor for the :galacticus-class:`taskPostprocessForests` task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -208,7 +208,7 @@ contains
 
   subroutine postprocessForestsDestructor(self)
     !!{RST
-    Destructor for the ``taskPostprocessForests`` task class.
+    Destructor for the :galacticus-class:`taskPostprocessForests` task class.
     !!}
     use :: Node_Components , only : Node_Components_Uninitialize
     use :: Galacticus_Nodes, only : nodeClassHierarchyFinalize

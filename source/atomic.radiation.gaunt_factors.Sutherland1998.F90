@@ -43,7 +43,7 @@
 
   interface gauntFactorSutherland1998
      !!{RST
-     Constructors for the ``gauntFactorSutherland1998`` gaunt factor class.
+     Constructors for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
      !!}
      module procedure sutherland1998ConstructorParameters
      module procedure sutherland1998ConstructorInternal
@@ -121,7 +121,7 @@ contains
 
   function sutherland1998ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``gauntFactorSutherland1998`` gaunt factor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -142,7 +142,7 @@ contains
 
   function sutherland1998ConstructorInternal(atomicIonizationPotential_) result(self)
     !!{RST
-    Internal constructor for the ``gauntFactorSutherland1998`` gaunt factor class.
+    Internal constructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
     !!}
     implicit none
     type (gauntFactorSutherland1998     )                        :: self
@@ -156,7 +156,7 @@ contains
 
   subroutine sutherland1998Destructor(self)
     !!{RST
-    Destructor for the ``gauntFactorSutherland1998`` gaunt factor class.
+    Destructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
     !!}
     implicit none
     type(gauntFactorSutherland1998), intent(inout) :: self

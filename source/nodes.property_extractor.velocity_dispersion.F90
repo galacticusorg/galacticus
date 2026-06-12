@@ -61,7 +61,7 @@
 
   interface nodePropertyExtractorVelocityDispersion
      !!{RST
-     Constructors for the ``nodePropertyExtractorVelocityDispersion`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorVelocityDispersion` property extractor class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function velocityDispersionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorVelocityDispersion`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorVelocityDispersion` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -141,7 +141,7 @@ contains
 
   function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,integrationFailureIsFatal,toleranceRelative,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorVelocityDispersion`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorVelocityDispersion` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -176,7 +176,7 @@ contains
 
   subroutine velocityDispersionDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorVelocityDispersion`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorVelocityDispersion` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorVelocityDispersion), intent(inout) :: self
@@ -728,24 +728,24 @@ contains
     Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
 
     .. math::
+       :label: eq-velocityDispersionDensityIntegral
 
        \int_{r_\mathrm{i}}^{r_\mathrm{o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_\mathrm{i}^2}} \mathrm{d}r,
-       \label{eq:velocityDispersionDensityIntegral}
 
     where :math:`r_\mathrm{i}` is the impact parameter, :math:`r_\mathrm{o}` is an outer radius at which we assume :math:`\rho(r_\mathrm{ o})\sigma^2(r_\mathrm{o}) = 0` (i.e. it is the radius at which we begin integrating the Jeans equation), :math:`\rho(r)` is density, and :math:`\sigma(r)` is the velocity dispersion at radius :math:`r`. Assuming spherical symmetry and isotropic velocity dispersion, the Jeans equation tells us
 
     .. math::
+       :label: eq-sphericalIsotropicJeans
 
        \rho(r) \sigma^2(r) = \int^{r_\mathrm{o}}_r {\mathrm{G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) \mathrm{d}r^\prime,
-       \label{eq:sphericalIsotropicJeans}
 
-    where :math:`\mathrm{G}` is the gravitational constant, and :math:`M(<r)` is the total mass contained within radius :math:`r`. Equation () can then be simplified using integration by parts to give:
+    where :math:`\mathrm{G}` is the gravitational constant, and :math:`M(<r)` is the total mass contained within radius :math:`r`. Equation (:eq:`eq-velocityDispersionDensityIntegral`) can then be simplified using integration by parts to give:
 
     .. math::
 
        \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
 
-    The first term is zero at both limits (due to the constraint :math:`\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0` at :math:`r_\mathrm{o}` and due to :math:`\sqrt{r^2-r_\mathrm{i}^2}=0` at :math:`r_\mathrm{i}`), and the second term can be simplified using eqn. () to give
+    The first term is zero at both limits (due to the constraint :math:`\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0` at :math:`r_\mathrm{o}` and due to :math:`\sqrt{r^2-r_\mathrm{i}^2}=0` at :math:`r_\mathrm{i}`), and the second term can be simplified using eqn. (:eq:`eq-sphericalIsotropicJeans`) to give
 
     .. math::
 

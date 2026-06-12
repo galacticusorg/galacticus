@@ -42,7 +42,7 @@
   
   interface nodeOperatorCosmicTime
      !!{RST
-     Constructors for the ``nodeOperatorCosmicTime`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCosmicTime` node operator class.
      !!}
      module procedure cosmicTimeConstructorParameters
   end interface nodeOperatorCosmicTime
@@ -51,7 +51,7 @@ contains
   
   function cosmicTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCosmicTime`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCosmicTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -57,7 +57,7 @@
 
   interface outputAnalysisMassSizeRelationShen2003
      !!{RST
-     Constructors for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassSizeRelationShen2003` output analysis class.
      !!}
      module procedure massSizeRelationShen2003ConstructorParameters
      module procedure massSizeRelationShen2003ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function massSizeRelationShen2003ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassSizeRelationShen2003` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
   
   function massSizeRelationShen2003ConstructorInternal(cosmologyFunctions_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassSizeRelationShen2003` output analysis class for internal use.
     !!}
     implicit none
     type (outputAnalysisMassSizeRelationShen2003)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine massSizeRelationShen2003Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassSizeRelationShen2003`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassSizeRelationShen2003` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassSizeRelationShen2003), intent(inout) :: self

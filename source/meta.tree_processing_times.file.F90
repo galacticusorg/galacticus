@@ -59,7 +59,7 @@ Implements a merger tree processing time estimator using a polynomial relation r
 
   interface metaTreeProcessingTimeFile
      !!{RST
-     Constructors for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator.
+     Constructors for the :galacticus-class:`metaTreeProcessingTimeFile` merger tree processing time estimator.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`metaTreeProcessingTimeFile` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !!{RST
-    Internal constructor for the ``metaTreeProcessingTimeFile`` merger tree processing time estimator class.
+    Internal constructor for the :galacticus-class:`metaTreeProcessingTimeFile` merger tree processing time estimator class.
     !!}
     use :: FoX_DOM           , only : node
     use :: Error             , only : Error_Report

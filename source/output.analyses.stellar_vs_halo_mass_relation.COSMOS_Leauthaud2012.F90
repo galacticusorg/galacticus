@@ -59,7 +59,7 @@
 
   interface outputAnalysisStellarVsHaloMassRelationLeauthaud2012
      !!{RST
-     Constructors for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelationLeauthaud2012` output analysis class.
      !!}
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
      module procedure stellarVsHaloMassRelationLeauthaud2012ConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelationLeauthaud2012` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -179,7 +179,7 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelationLeauthaud2012` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
@@ -624,7 +624,7 @@ contains
 
   subroutine stellarVsHaloMassRelationLeauthaud2012Destructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisStellarVsHaloMassRelationLeauthaud2012`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelationLeauthaud2012` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout) :: self

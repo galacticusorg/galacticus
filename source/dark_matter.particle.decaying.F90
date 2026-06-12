@@ -53,7 +53,7 @@ Implements a decaying dark matter particle class.
 
   interface darkMatterParticleDecayingDarkMatter
      !!{RST
-     Constructors for the ``darkMatterParticleDecayingDarkMatter`` dark matter particle class.
+     Constructors for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
      !!}
      module procedure decayingDMConstructorParameters
      module procedure decayingDMConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function decayingDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterParticleDecayingDarkMatter`` dark matter particle class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -123,7 +123,7 @@ contains
 
   function decayingDMConstructorInternal(darkMatterParticle_,lifetime,massSplitting,velocityKick) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterParticleDecayingDarkMatter`` dark matter particle class.
+    Internal constructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : speedLight
@@ -157,7 +157,7 @@ contains
 
   subroutine decayingDMDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterParticleDecayingDarkMatter`` dark matter particle class.
+    Destructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleDecayingDarkMatter), intent(inout) :: self

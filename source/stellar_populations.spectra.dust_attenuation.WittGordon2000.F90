@@ -53,7 +53,7 @@
 
   interface stellarSpectraDustAttenuationWittGordon2000
      !!{RST
-     Constructors for the ``stellarSpectraDustAttenuationWittGordon2000`` stellar spectra dust attenuation class.
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationWittGordon2000` stellar spectra dust attenuation class.
      !!}
      module procedure wittGordon2003ConstructorParameters
      module procedure wittGordon2003ConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function wittGordon2003ConstructorInternal(model) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationWittGordon2000`` stellar spectra dust attenuation class.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationWittGordon2000` stellar spectra dust attenuation class.
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
     use :: Error                           , only : Error_Report

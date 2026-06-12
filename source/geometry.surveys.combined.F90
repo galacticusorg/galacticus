@@ -56,7 +56,7 @@ contains
 
   function combinedConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``surveyGeometryCombined`` survey geometry class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`surveyGeometryCombined` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

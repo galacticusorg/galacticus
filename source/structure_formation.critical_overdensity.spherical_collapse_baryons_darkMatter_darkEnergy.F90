@@ -75,7 +75,7 @@
 
   interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
      !!{RST
-     Constructors for the ``criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy`` critical overdensity for collapse class.
+     Constructors for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
@@ -169,7 +169,7 @@ contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization,countTimeCollapsePerUnit) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
@@ -208,7 +208,7 @@ contains
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy`` critical overdensity for collapse class.
+    Destructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self

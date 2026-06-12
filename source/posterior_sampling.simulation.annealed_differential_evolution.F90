@@ -64,7 +64,7 @@
 
   interface posteriorSampleSimulationAnnealedDffrntlEvltn
      !!{RST
-     Constructors for the ``posteriorSampleSimulationAnnealedDffrntlEvltn`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationAnnealedDffrntlEvltn`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

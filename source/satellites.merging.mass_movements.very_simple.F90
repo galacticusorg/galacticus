@@ -46,7 +46,7 @@
 
   interface mergerMassMovementsVerySimple
      !!{RST
-     Constructors for the ``mergerMassMovementsVerySimple`` merger mass movements class.
+     Constructors for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class.
      !!}
      module procedure verySimpleConstructorParameters
      module procedure verySimpleConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function verySimpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerMassMovementsVerySimple`` merger mass movements class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
     !!{RST
-    Internal constructor for the ``mergerMassMovementsVerySimple`` merger mass movements.
+    Internal constructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements.
     !!}
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine verySimpleDestructor(self)
     !!{RST
-    Destructor for the ``mergerMassMovementsVerySimple`` merger mass movements class.
+    Destructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none

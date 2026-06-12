@@ -56,7 +56,7 @@
   
   interface nodeOperatorSatelliteSubsampling
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteSubsampling`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
      !!}
      module procedure satelliteSubsamplingConstructorParameters
      module procedure satelliteSubsamplingConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function satelliteSubsamplingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteSubsampling`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -127,7 +127,7 @@ contains
 
   function satelliteSubsamplingConstructorInternal(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteSubsampling`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Error           , only : Error_Report
@@ -150,7 +150,7 @@ contains
 
   subroutine satelliteSubsamplingDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteSubsampling`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteSubsampling), intent(inout) :: self

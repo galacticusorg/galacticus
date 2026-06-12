@@ -24,7 +24,7 @@ Implements a null filter.
   !![
   <galacticFilter name="galacticFilterNull" docformat="rst">
    <description>
-   A filter which simply returns the result of another filter. This is intended for use in filter pipelines where it may be useful to optionally switch in this filter or a ``galacticFilterNull`` filter (for example).
+   A filter which simply returns the result of another filter. This is intended for use in filter pipelines where it may be useful to optionally switch in this filter or a :galacticus-class:`galacticFilterNull` filter (for example).
    </description>
   </galacticFilter>
   !!]
@@ -41,7 +41,7 @@ Implements a null filter.
 
   interface galacticFilterNull
      !!{RST
-     Constructors for the ``galacticFilterNull`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterNull` galactic filter class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterNull`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterNull` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
 
   function nullConstructorInternal(galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterNull`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterNull` galactic filter class.
     !!}
     implicit none
     type (galacticFilterNull )                        :: self
@@ -86,7 +86,7 @@ contains
 
   subroutine nullDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterNull`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterNull` galactic filter class.
     !!}
     implicit none
     type(galacticFilterNull), intent(inout) :: self

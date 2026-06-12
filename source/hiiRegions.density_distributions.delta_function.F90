@@ -48,7 +48,7 @@
 
   interface hiiRegionDensityDistributionDeltaFunction
      !!{RST
-     Constructors for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
+     Constructors for the :galacticus-class:`hiiRegionDensityDistributionDeltaFunction` HII region density distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
+    Constructor for the :galacticus-class:`hiiRegionDensityDistributionDeltaFunction` HII region density distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function deltaFunctionConstructorInternal(densityHydrogen) result(self)
     !!{RST
-    Internal constructor for the ``hiiRegionDensityDistributionDeltaFunction`` HII region density distribution class.
+    Internal constructor for the :galacticus-class:`hiiRegionDensityDistributionDeltaFunction` HII region density distribution class.
     !!}
     
     implicit none

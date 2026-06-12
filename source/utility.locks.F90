@@ -234,7 +234,7 @@ module Locks
 
   interface mutex
      !!{RST
-     Constructors for the ``mutex`` class.
+     Constructors for the :galacticus-class:`mutex` class.
      !!}
      module procedure mutexConstructor
   end interface mutex
@@ -689,7 +689,7 @@ contains
 
   function mutexConstructor(recursiveLock) result(self)
     !!{RST
-    Construct a ``mutex`` object.
+    Construct a :galacticus-class:`mutex` object.
     !!}
     implicit none
     type   (mutex)                          :: self
@@ -708,7 +708,7 @@ contains
 
   subroutine mutexDestructor(self)
     !!{RST
-    Destroy a ``mutex`` object.
+    Destroy a :galacticus-class:`mutex` object.
     !!}
     implicit none
     type   (mutex), intent(inout) :: self
@@ -729,7 +729,7 @@ contains
 
   subroutine mutexAssign(self,from)
     !!{RST
-    Assign a ``mutex`` object.
+    Assign a :galacticus-class:`mutex` object.
     !!}
     implicit none
     class(mutex), intent(  out) :: self

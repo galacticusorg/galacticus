@@ -43,7 +43,7 @@
 
   interface haloMassFunctionRodriguezPuebla2016
      !!{RST
-     Constructors for the ``haloMassFunctionRodriguezPuebla2016`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
      !!}
      module procedure rodriguezPuebla2016ConstructorParameters
      module procedure rodriguezPuebla2016ConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function rodriguezPuebla2016ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionRodriguezPuebla2016`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function rodriguezPuebla2016ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionRodriguezPuebla2016`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -109,7 +109,7 @@ contains
 
   subroutine rodriguezPuebla2016Destructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionRodriguezPuebla2016`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionRodriguezPuebla2016), intent(inout) :: self

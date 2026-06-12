@@ -43,7 +43,7 @@
   
   interface nodeOperatorRamPressureMassLossSpheroids
      !!{RST
-     Constructors for the ``nodeOperatorRamPressureMassLossSpheroids`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
      !!}
      module procedure ramPressureMassLossSpheroidsConstructorParameters
      module procedure ramPressureMassLossSpheroidsConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function ramPressureMassLossSpheroidsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorRamPressureMassLossSpheroids`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function ramPressureMassLossSpheroidsConstructorInternal(ramPressureStripping_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorRamPressureMassLossSpheroids`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorRamPressureMassLossSpheroids)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine ramPressureMassLossSpheroidsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorRamPressureMassLossSpheroids`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorRamPressureMassLossSpheroids), intent(inout) :: self

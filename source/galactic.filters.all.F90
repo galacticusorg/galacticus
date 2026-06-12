@@ -24,7 +24,7 @@ Implements a galactic filter class which is the "all" combination of a set of ot
   !![
   <galacticFilter name="galacticFilterAll" docformat="rst">
    <description>
-   Implements a logical ``AND`` combination of multiple ``galacticFilterClass`` objects, passing only nodes that satisfy every filter in the list, enabling construction of complex selection criteria by composing simpler filters.
+   Implements a logical ``AND`` combination of multiple :galacticus-class:`galacticFilterClass` objects, passing only nodes that satisfy every filter in the list, enabling construction of complex selection criteria by composing simpler filters.
    </description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
@@ -52,7 +52,7 @@ contains
 
   function allConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterAll`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterAll` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function allConstructorInternal(filters) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterAll`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterAll` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAll)                        :: self

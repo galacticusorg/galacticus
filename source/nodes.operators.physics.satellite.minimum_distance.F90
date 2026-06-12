@@ -64,7 +64,7 @@
   
   interface nodeOperatorSatelliteMinimumDistance
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteMinimumDistance`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteMinimumDistance`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function satelliteMinimumDistanceConstructorInternal(relativeTo) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteMinimumDistance`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMinimumDistance)                :: self
@@ -132,7 +132,7 @@ contains
 
   subroutine satelliteMinimumDistanceDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteMinimumDistance`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none

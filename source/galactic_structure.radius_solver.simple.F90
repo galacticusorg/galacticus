@@ -52,7 +52,7 @@
 
   interface galacticStructureSolverSimple
      !!{RST
-     Constructors for the ``galacticStructureSolverSimple`` galactic structure solver class.
+     Constructors for the :galacticus-class:`galacticStructureSolverSimple` galactic structure solver class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticStructureSolverSimple`` galactic structure solver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticStructureSolverSimple` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function simpleConstructorInternal(useFormationHalo,solveForInactiveProperties,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``galacticStructureSolverSimple`` galactic structure solver class.
+    Internal constructor for the :galacticus-class:`galacticStructureSolverSimple` galactic structure solver class.
     !!}
     implicit none
     type   (galacticStructureSolverSimple)                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{RST
-    Destructor for the ``galacticStructureSolverSimple`` galactic structure solver class.
+    Destructor for the :galacticus-class:`galacticStructureSolverSimple` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

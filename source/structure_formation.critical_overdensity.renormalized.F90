@@ -58,7 +58,7 @@ Implements a critical overdensity class which renormalizes another class based o
 
   interface criticalOverdensityRenormalize
      !!{RST
-     Constructors for the ``criticalOverdensityRenormalize`` critical overdensity class.
+     Constructors for the :galacticus-class:`criticalOverdensityRenormalize` critical overdensity class.
      !!}
      module procedure renormalizeConstructorParameters
      module procedure renormalizeConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function renormalizeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensityRenormalize`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensityRenormalize` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -114,7 +114,7 @@ contains
 
   function renormalizeConstructorInternal(criticalOverdensity_,cosmologyFunctions_,cosmologicalMassVariance_,cosmologicalMassVarianceReference_,linearGrowth_,massMatch) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensityRenormalize`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensityRenormalize` critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityRenormalize)                          :: self
@@ -142,7 +142,7 @@ contains
 
   subroutine renormalizeDestructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensityRenormalize`` critical overdensity class.
+    Destructor for the :galacticus-class:`criticalOverdensityRenormalize` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityRenormalize), intent(inout) :: self

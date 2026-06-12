@@ -36,7 +36,7 @@
 
   interface taskBuildToolCloudy
      !!{RST
-     Constructors for the ``taskBuildToolCloudy`` task.
+     Constructors for the :galacticus-class:`taskBuildToolCloudy` task.
      !!}
      module procedure buildToolCloudyParameters
   end interface taskBuildToolCloudy
@@ -45,7 +45,7 @@ contains
 
   function buildToolCloudyParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskBuildToolCloudy`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskBuildToolCloudy` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

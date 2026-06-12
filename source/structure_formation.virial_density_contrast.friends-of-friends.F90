@@ -53,7 +53,7 @@
 
   interface virialDensityContrastFriendsOfFriends
      !!{RST
-     Constructors for the ``virialDensityContrastFriendsOfFriends`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastFriendsOfFriends` dark matter halo virial density contrast class.
      !!}
      module procedure friendsOfFriendsConstructorParameters
      module procedure friendsOfFriendsConstructorInternal
@@ -101,7 +101,7 @@ contains
 
   function friendsOfFriendsConstructorInternal(linkingLength,densityRatio) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastFriendsOfFriends`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastFriendsOfFriends` dark matter halo virial density contrast class.
     !!}
     implicit none
     type            (virialDensityContrastFriendsOfFriends), target        :: self

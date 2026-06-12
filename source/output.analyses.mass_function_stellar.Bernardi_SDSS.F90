@@ -44,7 +44,7 @@ Implements an output analysis class for the :cite:t:`bernardi_massive_2013` stel
 
   interface outputAnalysisMassFunctionStellarBernardi2013SDSS
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarBernardi2013SDSS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class.
      !!}
      module procedure massFunctionStellarBernardi2013SDSSConstructorParameters
      module procedure massFunctionStellarBernardi2013SDSSConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarBernardi2013SDSS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -170,7 +170,7 @@ contains
 
   function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarBernardi2013SDSS`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -319,7 +319,7 @@ contains
 
   subroutine massFunctionStellarBernardi2013SDSSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarBernardi2013SDSS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarBernardi2013SDSS), intent(inout) :: self

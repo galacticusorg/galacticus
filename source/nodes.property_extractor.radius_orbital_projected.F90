@@ -51,7 +51,7 @@
 
   interface nodePropertyExtractorRadiusOrbitalProjected
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusOrbitalProjected` property extractor class.
      !!}
      module procedure radiusOrbitalProjectedConstructorParameters
      module procedure radiusOrbitalProjectedConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function radiusOrbitalProjectedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusOrbitalProjected` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function radiusOrbitalProjectedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusOrbitalProjected` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected) :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine radiusOrbitalProjectedDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusOrbitalProjected`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusOrbitalProjected` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusOrbitalProjected), intent(inout) :: self

@@ -43,7 +43,7 @@ Implements a node branch tip index property extractor.
 
   interface nodePropertyExtractorUniqueIDBranchTip
      !!{RST
-     Constructors for the ``nodePropertyExtractorUniqueIDBranchTip`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorUniqueIDBranchTip`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function uniqueIDBranchTipConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorUniqueIDBranchTip`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorUniqueIDBranchTip) :: self

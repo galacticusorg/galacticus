@@ -44,7 +44,7 @@
 
   interface darkMatterProfileScaleRadiusBinary
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusBinary`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
      !!}
      module procedure binaryConstructorParameters
      module procedure binaryConstructorInternal
@@ -83,7 +83,7 @@ contains
 
   function binaryConstructorInternal(darkMatterProfileScaleRadiusAccept_,darkMatterProfileScaleRadiusReject_,galacticFilter_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusBinary`` dark matter halo profile scale radius class.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
     !!}
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine binaryDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusBinary`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusBinary), intent(inout) :: self

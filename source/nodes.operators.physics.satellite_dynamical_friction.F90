@@ -43,7 +43,7 @@
   
   interface nodeOperatorSatelliteDynamicalFriction
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDynamicalFriction` node operator class.
      !!}
      module procedure satelliteDynamicalFrictionConstructorParameters
      module procedure satelliteDynamicalFrictionConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function satelliteDynamicalFrictionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDynamicalFriction` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function satelliteDynamicalFrictionConstructorInternal(satelliteDynamicalFriction_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDynamicalFriction` node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDynamicalFriction)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine satelliteDynamicalFrictionDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteDynamicalFriction`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteDynamicalFriction` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDynamicalFriction), intent(inout) :: self

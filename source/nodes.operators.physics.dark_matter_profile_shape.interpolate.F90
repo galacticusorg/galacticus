@@ -47,7 +47,7 @@
   
   interface nodeOperatorDarkMatterProfileShapeInterpolate
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileShapeInterpolate`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class.
      !!}
      module procedure dmpShapeInterpolateConstructorParameters
      module procedure dmpShapeInterpolateConstructorInternal
@@ -57,7 +57,7 @@ contains
   
   function dmpShapeInterpolateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileShapeInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function dmpShapeInterpolateConstructorInternal(darkMatterProfileShape_) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileShapeInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeInterpolate)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine dmpShapeInterpolateConstructorDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDarkMatterProfileShapeInterpolate`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self

@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassBertschinger
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBertschinger`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBertschinger` property extractor class.
      !!}
      module procedure massBertschingerConstructorParameters
      module procedure massBertschingerConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massBertschingerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBertschinger`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBertschinger` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massBertschingerConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassBertschinger`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassBertschinger` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassBertschinger) :: self

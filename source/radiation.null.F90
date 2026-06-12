@@ -43,7 +43,7 @@
 
   interface radiationFieldNull
      !!{RST
-     Constructors for the ``radiationFieldNull`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldNull` radiation field class.
      !!}
      module procedure nullConstructorParameters
      module procedure nullConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldNull`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldNull` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,7 +69,7 @@ contains
 
   function nullConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldNull`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldNull` radiation field class.
     !!}
     implicit none
     type(radiationFieldNull) :: self

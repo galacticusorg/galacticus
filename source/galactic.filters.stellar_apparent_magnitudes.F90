@@ -44,7 +44,7 @@ Implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent ma
 
   interface galacticFilterStellarApparentMagnitudes
      !!{RST
-     Constructors for the ``galacticFilterStellarApparentMagnitudes`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStellarApparentMagnitudes` galactic filter class.
      !!}
      module procedure stellarApparentMagnitudesConstructorParameters
      module procedure stellarApparentMagnitudesConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function stellarApparentMagnitudesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStellarApparentMagnitudes`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStellarApparentMagnitudes` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter         , inputParameters
@@ -92,7 +92,7 @@ contains
 
   function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterStellarApparentMagnitudes`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterStellarApparentMagnitudes` galactic filter class.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : Stellar_Luminosities_Parameter_Map, unitStellarLuminosities
@@ -116,7 +116,7 @@ contains
 
   subroutine stellarApparentMagnitudesDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterStellarApparentMagnitudes`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterStellarApparentMagnitudes` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStellarApparentMagnitudes), intent(inout) :: self

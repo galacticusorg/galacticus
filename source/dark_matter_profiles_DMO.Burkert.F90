@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOBurkert" docformat="rst">
    <description>
-   A dark matter only profile class which builds ``massDistributionBurkert`` objects to compute the :cite:p:`burkert_structure_1995` density profile.
+   A dark matter only profile class which builds :galacticus-class:`massDistributionBurkert` objects to compute the :cite:p:`burkert_structure_1995` density profile.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -43,7 +43,7 @@
 
   interface darkMatterProfileDMOBurkert
      !!{RST
-     Constructors for the ``darkMatterProfileDMOBurkert`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
      !!}
      module procedure burkertConstructorParameters
      module procedure burkertConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function burkertConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOBurkert`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -101,7 +101,7 @@ contains
 
   subroutine burkertDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOBurkert`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOBurkert), intent(inout) :: self

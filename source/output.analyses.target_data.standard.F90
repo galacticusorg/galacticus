@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements the standard ``outputAnalysisTargetDataClass`` class --- a plain struct of axis-labelling and target-dataset fields, with all fields optional at construction.
+  Implements the standard :galacticus-class:`outputAnalysisTargetDataClass` class --- a plain struct of axis-labelling and target-dataset fields, with all fields optional at construction.
   !!}
 
   !![
   <outputAnalysisTargetData name="outputAnalysisTargetDataStandard" docformat="rst">
    <description>
-   The standard ``outputAnalysisTargetDataClass`` class --- a simple struct holding axis labels, log-scale flags, and target value/covariance arrays.  All fields are optional at construction; omitted axis labels default to ``'x'``/``'y'``, omitted target/log-scale flags default to empty/false, and the target arrays remain unallocated.
+   The standard :galacticus-class:`outputAnalysisTargetDataClass` class --- a simple struct holding axis labels, log-scale flags, and target value/covariance arrays.  All fields are optional at construction; omitted axis labels default to ``'x'``/``'y'``, omitted target/log-scale flags default to empty/false, and the target arrays remain unallocated.
    </description>
   </outputAnalysisTargetData>
   !!]
   type, extends(outputAnalysisTargetDataClass) :: outputAnalysisTargetDataStandard
      !!{RST
-     The standard ``outputAnalysisTargetDataClass`` class.
+     The standard :galacticus-class:`outputAnalysisTargetDataClass` class.
      !!}
      type            (varying_string)                              :: xAxisLabel
      type            (varying_string)                              :: yAxisLabel
@@ -45,7 +45,7 @@
 
   interface outputAnalysisTargetDataStandard
      !!{RST
-     Constructors for the ``outputAnalysisTargetDataStandard`` output analysis target data class.
+     Constructors for the :galacticus-class:`outputAnalysisTargetDataStandard` output analysis target data class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisTargetDataStandard`` output analysis target data class which takes a parameter set as input.  Each field has its own ``<inputParameter>``; absent parameters fall back to the same defaults the inline constructor uses.
+    Constructor for the :galacticus-class:`outputAnalysisTargetDataStandard` output analysis target data class which takes a parameter set as input.  Each field has its own ``<inputParameter>``; absent parameters fall back to the same defaults the inline constructor uses.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -155,7 +155,7 @@ contains
 
   function standardConstructorInternal(xAxisLabel,yAxisLabel,targetLabel,xAxisIsLog,yAxisIsLog,valueTarget,covarianceTarget) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisTargetDataStandard`` output analysis target data class. All arguments are optional --- omitted axis labels default to ``'x'`` / ``'y'``, omitted log-scale flags default to ``.false.``, and omitted target arrays simply remain unallocated.  These defaults match the per-argument defaults used by the outer 1D function output-analysis constructors when ``targetData_`` itself is absent.
+    Internal constructor for the :galacticus-class:`outputAnalysisTargetDataStandard` output analysis target data class. All arguments are optional --- omitted axis labels default to ``'x'`` / ``'y'``, omitted log-scale flags default to ``.false.``, and omitted target arrays simply remain unallocated.  These defaults match the per-argument defaults used by the outer 1D function output-analysis constructors when ``targetData_`` itself is absent.
     !!}
     implicit none
     type            (outputAnalysisTargetDataStandard)                                          :: self

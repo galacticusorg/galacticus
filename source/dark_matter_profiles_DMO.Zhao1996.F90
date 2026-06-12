@@ -24,7 +24,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOZhao1996" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionZhao1996`` objects.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionZhao1996` objects.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -53,7 +53,7 @@
 
   interface darkMatterProfileDMOZhao1996
      !!{RST
-     Constructors for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOZhao1996` dark matter halo profile class.
      !!}
      module procedure zhao1996ConstructorParameters
      module procedure zhao1996ConstructorInternal
@@ -107,7 +107,7 @@ contains
 
   function zhao1996ConstructorInternal(alpha,beta,gamma,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOZhao1996` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOZhao1996)                        :: self
@@ -187,7 +187,7 @@ contains
 
   subroutine zhao1996Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOZhao1996`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOZhao1996` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOZhao1996), intent(inout) :: self

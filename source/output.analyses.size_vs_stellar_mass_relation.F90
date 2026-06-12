@@ -102,7 +102,7 @@
 
   interface outputAnalysisSizeVsStellarMassRelation
      !!{RST
-     Constructors for the ``outputAnalysisSizeVsStellarMassRelation`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class.
      !!}
      module procedure sizeVsStellarMassRelationConstructorParameters
      module procedure sizeVsStellarMassRelationConstructorInternal
@@ -112,7 +112,7 @@ contains
 
   function sizeVsStellarMassRelationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSizeVsStellarMassRelation`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -263,7 +263,7 @@ contains
 
   function sizeVsStellarMassRelationConstructorInternal(fileNameTarget,sample,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassStellarPolynomialCoefficient,randomErrorMassStellarPolynomialCoefficient,randomErrorMassStellarMinimum,randomErrorMassStellarMaximum,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisSizeVsStellarMassRelation`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                                       , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                                      , cosmologyParametersSimple
@@ -764,7 +764,7 @@ contains
 
   subroutine sizeVsStellarMassRelationDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisSizeVsStellarMassRelation`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSizeVsStellarMassRelation), intent(inout) :: self

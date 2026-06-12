@@ -80,7 +80,7 @@
 
   interface virialDensityContrastPercolation
      !!{RST
-     Constructors for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
+     Constructors for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class.
      !!}
      module procedure percolationConstructorParameters
      module procedure percolationConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   recursive function percolationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Functions_Global   , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
@@ -134,7 +134,7 @@ contains
 
   recursive function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_) result(self)
     !!{RST
-    Internal constructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
+    Internal constructor for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
@@ -173,7 +173,7 @@ contains
 
   subroutine percolationDestructor(self)
     !!{RST
-    Destructor for the ``virialDensityContrastPercolation`` dark matter halo virial density contrast class.
+    Destructor for the :galacticus-class:`virialDensityContrastPercolation` dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none

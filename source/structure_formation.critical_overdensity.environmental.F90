@@ -48,7 +48,7 @@ Implements an environmental critical overdensity class.
 
   interface criticalOverdensityEnvironmental
      !!{RST
-     Constructors for the ``criticalOverdensityEnvironmental`` critical overdensity class.
+     Constructors for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function environmentalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensityEnvironmental`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensityEnvironmental`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityEnvironmental)                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine environmentalDestructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensityEnvironmental`` critical overdensity class.
+    Destructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityEnvironmental), intent(inout) :: self

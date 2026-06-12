@@ -72,7 +72,7 @@
 
   interface mergerProgenitorPropertiesCole2000
      !!{RST
-     Constructors for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
+     Constructors for the :galacticus-class:`mergerProgenitorPropertiesCole2000` merger progenitor properties class.
      !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
@@ -91,7 +91,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerProgenitorPropertiesCole2000` merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -156,7 +156,7 @@ contains
 
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
     !!{RST
-    Internal constructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
+    Internal constructor for the :galacticus-class:`mergerProgenitorPropertiesCole2000` merger progenitor properties class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -181,7 +181,7 @@ contains
 
   subroutine cole2000Destructor(self)
     !!{RST
-    Destructor for the ``mergerProgenitorPropertiesCole2000`` merger progenitor properties class.
+    Destructor for the :galacticus-class:`mergerProgenitorPropertiesCole2000` merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesCole2000), intent(inout) :: self

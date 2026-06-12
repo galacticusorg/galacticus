@@ -59,7 +59,7 @@
 
   interface satelliteTidalStrippingRadiusKing1962
      !!{RST
-     Constructors for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
+     Constructors for the :galacticus-class:`satelliteTidalStrippingRadiusKing1962` satellite tidal stripping class.
      !!}
      module procedure king1962ConstructorParameters
      module procedure king1962ConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function king1962ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalStrippingRadiusKing1962` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -114,7 +114,7 @@ contains
 
   function king1962ConstructorInternal(efficiencyCentrifugal,applyPreInfall,cosmologyParameters_,darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
+    Internal constructor for the :galacticus-class:`satelliteTidalStrippingRadiusKing1962` satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
@@ -138,7 +138,7 @@ contains
 
   subroutine king1962Destructor(self)
     !!{RST
-    Destructor for the ``satelliteTidalStrippingRadiusKing1962`` satellite tidal stripping class.
+    Destructor for the :galacticus-class:`satelliteTidalStrippingRadiusKing1962` satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingRadiusKing1962), intent(inout) :: self

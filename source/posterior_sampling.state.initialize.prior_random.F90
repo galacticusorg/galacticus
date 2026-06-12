@@ -39,7 +39,7 @@
 
   interface posteriorSampleStateInitializePriorRandom
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializePriorRandom`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializePriorRandom` posterior sampling state initialization class.
      !!}
      module procedure priorRandomConstructorParameters
   end interface posteriorSampleStateInitializePriorRandom
@@ -48,7 +48,7 @@ contains
 
   function priorRandomConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializePriorRandom`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializePriorRandom` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

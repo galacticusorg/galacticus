@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionCollisionlessTabulated
      !!{RST
-     Constructors for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionCollisionlessTabulated` kinematic distribution class.
      !!}
      module procedure collisionlessTabulatedConstructorParameters
      module procedure collisionlessTabulatedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function collisionlessTabulatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionCollisionlessTabulated` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function collisionlessTabulatedConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCollisionlessTabulated` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCollisionlessTabulated)                          :: self
@@ -99,7 +99,7 @@ contains
   
   function collisionlessTabulatedConstructorDecorated(kinematicsDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionCollisionlessTabulated`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCollisionlessTabulated` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCollisionlessTabulated)                :: self

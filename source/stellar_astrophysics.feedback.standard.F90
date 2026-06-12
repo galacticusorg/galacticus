@@ -50,7 +50,7 @@
 
   interface stellarFeedbackStandard
      !!{RST
-     Constructors for the ``stellarFeedbackStandard`` stellar feedback class.
+     Constructors for the :galacticus-class:`stellarFeedbackStandard` stellar feedback class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarFeedbackStandard`` stellar feedback class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarFeedbackStandard` stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters                , only : inputParameter, inputParameters
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -119,7 +119,7 @@ contains
 
   function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
     !!{RST
-    Constructor for the ``stellarFeedbackStandard`` stellar feedback class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarFeedbackStandard` stellar feedback class which takes a parameter list as input.
     !!}
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine standardDestructor(self)
    !!{RST
-   Destructor for the ``stellarFeedbackStandard`` stellar feedback class.
+   Destructor for the :galacticus-class:`stellarFeedbackStandard` stellar feedback class.
    !!}
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self

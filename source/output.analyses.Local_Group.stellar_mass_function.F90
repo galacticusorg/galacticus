@@ -68,7 +68,7 @@
 
   interface outputAnalysisLocalGroupStellarMassFunction
      !!{RST
-     Constructors for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLocalGroupStellarMassFunction` output analysis class.
      !!}
      module procedure localGroupStellarMassFunctionConstructorParameters
      module procedure localGroupStellarMassFunctionConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function localGroupStellarMassFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupStellarMassFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters            , only : inputParameter               , inputParameters
     use :: Output_Times                , only : outputTimes                  , outputTimesClass
@@ -209,7 +209,7 @@ contains
 
   function localGroupStellarMassFunctionConstructorInternal(outputTimes_,positionType,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,logLikelihoodZero) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisLocalGroupStellarMassFunction` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
           &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry       , enumerationPositionTypeType
@@ -541,7 +541,7 @@ contains
 
   subroutine localGroupStellarMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLocalGroupStellarMassFunction`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLocalGroupStellarMassFunction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLocalGroupStellarMassFunction), intent(inout) :: self

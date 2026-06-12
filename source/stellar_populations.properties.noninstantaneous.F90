@@ -71,7 +71,7 @@
 
   interface stellarPopulationPropertiesNoninstantaneous
      !!{RST
-     Constructors for the ``stellarPopulationPropertiesNoninstantaneous`` stellar population properties class.
+     Constructors for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
      !!}
      module procedure noninstantaneousConstructorParameters
      module procedure noninstantaneousConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function noninstantaneousConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationPropertiesNoninstantaneous`` stellar population properties class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -117,7 +117,7 @@ contains
 
   function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationPropertiesNoninstantaneous`` stellar population properties class.
+    Internal constructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
@@ -147,7 +147,7 @@ contains
 
   subroutine noninstantaneousDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationPropertiesNoninstantaneous`` stellar population properties class.
+    Destructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self

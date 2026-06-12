@@ -113,7 +113,7 @@ contains
 
   function axionCambConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,redshift,countPerDecade) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionAxionCAMB`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionAxionCAMB` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleFuzzyDarkMatter

@@ -48,7 +48,7 @@
 
   interface kinematicsDistributionEnzoHydrostatic
      !!{RST
-     Constructors for the ``kinematicsDistributionEnzoHydrostatic`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionEnzoHydrostatic` kinematic distribution class.
      !!}
      module procedure enzoHydrostaticKinematicsConstructorParameters
      module procedure enzoHydrostaticKinematicsConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function enzoHydrostaticKinematicsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionEnzoHydrostatic`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionEnzoHydrostatic` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
   
   function enzoHydrostaticKinematicsConstructorInternal(massDistribution_) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionEnzoHydrostatic`` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionEnzoHydrostatic` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionEnzoHydrostatic)                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine enzoHydrostaticDestructor(self)
     !!{RST
-    Destructor for the ``kinematicsDistributionEnzoHydrostatic`` kinematic distribution class.
+    Destructor for the :galacticus-class:`kinematicsDistributionEnzoHydrostatic` kinematic distribution class.
     !!}
     type(kinematicsDistributionEnzoHydrostatic), intent(inout) :: self
     implicit none

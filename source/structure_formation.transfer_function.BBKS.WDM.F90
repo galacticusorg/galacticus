@@ -50,7 +50,7 @@ Implements a transfer function class based on the :term:`WDM` modifier of :cite:
 
   interface transferFunctionBBKSWDM
      !!{RST
-     Constructors for the ``transferFunctionBBKSWDM`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionBBKSWDM` transfer function class.
      !!}
      module procedure bbksWDMConstructorParameters
      module procedure bbksWDMConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function bbksWDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionBBKSWDM`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionBBKSWDM` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionBBKSWDM`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionBBKSWDM` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
@@ -134,7 +134,7 @@ contains
 
   subroutine bbksWDMDestructor(self)
     !!{RST
-    Destructor for the ``transferFunctionBBKSWDM`` transfer function class.
+    Destructor for the :galacticus-class:`transferFunctionBBKSWDM` transfer function class.
     !!}
     implicit none
     type(transferFunctionBBKSWDM), intent(inout) :: self

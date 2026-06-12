@@ -42,7 +42,7 @@
 
   interface nodePropertyExtractorBranchMostMassive
      !!{RST
-     Constructors for the ``nodePropertyExtractorBranchMostMassive`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorBranchMostMassive` property extractor class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorBranchMostMassive`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorBranchMostMassive` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorBranchMostMassive`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorBranchMostMassive` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBranchMostMassive) :: self

@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolutionNFW" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionSphericalFiniteResolutionNFW`` objects to mimic a finite resolution to an NFW density profile.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSphericalFiniteResolutionNFW` objects to mimic a finite resolution to an NFW density profile.
    </description>
 
   </darkMatterProfileDMO>
@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMOFiniteResolutionNFW
      !!{RST
-     Constructors for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOFiniteResolutionNFW` dark matter halo profile class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -111,7 +111,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOFiniteResolutionNFW` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     implicit none
@@ -144,7 +144,7 @@ contains
   
   subroutine finiteResolutionNFWDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOFiniteResolutionNFW`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOFiniteResolutionNFW` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOFiniteResolutionNFW), intent(inout) :: self

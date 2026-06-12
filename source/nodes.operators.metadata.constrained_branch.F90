@@ -40,7 +40,7 @@ Implements a node operator class that shifts node constrained branch status at n
 
   interface nodeOperatorConstrainedBranch
      !!{RST
-     Constructors for the ``nodeOperatorConstrainedBranch`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorConstrainedBranch` node operator class.
      !!}
      module procedure constrainedBranchConstructorParameters
      module procedure constrainedBranchConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function constrainedBranchConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorConstrainedBranch`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorConstrainedBranch` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function constrainedBranchConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorConstrainedBranch`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorConstrainedBranch` node operator class.
     !!}
     implicit none
     type(nodeOperatorConstrainedBranch) :: self

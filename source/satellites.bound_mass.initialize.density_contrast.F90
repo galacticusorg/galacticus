@@ -28,7 +28,7 @@
   !![
   <satelliteMassBoundInitializor name="satelliteMassBoundInitializorDensityContrast" docformat="rst">
    <description>
-   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the mass enclosed within the radius defined by a given density contrast. The density contrast is evaluated using the ``virialDensityContrastClass`` object specified by ``[virialDensityContrastDefinition]``, and the mass is computed using the ``Dark_Matter_Profile_Mass_Definition`` function, which accounts for the halo density profile.
+   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo to the mass enclosed within the radius defined by a given density contrast. The density contrast is evaluated using the :galacticus-class:`virialDensityContrastClass` object specified by ``[virialDensityContrastDefinition]``, and the mass is computed using the ``Dark_Matter_Profile_Mass_Definition`` function, which accounts for the halo density profile.
    </description>
   </satelliteMassBoundInitializor>
   !!]
@@ -48,7 +48,7 @@
 
   interface satelliteMassBoundInitializorDensityContrast
      !!{RST
-     Constructors for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
+     Constructors for the :galacticus-class:`satelliteMassBoundInitializorDensityContrast` satellite bound mass initializor class.
      !!}
      module procedure densityContrastConstructorParameters
      module procedure densityContrastConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function densityContrastConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteMassBoundInitializorDensityContrast` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function densityContrastConstructorInternal(cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
+    Internal constructor for the :galacticus-class:`satelliteMassBoundInitializorDensityContrast` satellite bound mass initializor class.
     !!}
     implicit none
     type (satelliteMassBoundInitializorDensityContrast)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine densityContrastDestructor(self)
     !!{RST
-    Destructor for the ``satelliteMassBoundInitializorDensityContrast`` satellite bound mass initializor class.
+    Destructor for the :galacticus-class:`satelliteMassBoundInitializorDensityContrast` satellite bound mass initializor class.
     !!}
     implicit none
     type(satelliteMassBoundInitializorDensityContrast), intent(inout) :: self

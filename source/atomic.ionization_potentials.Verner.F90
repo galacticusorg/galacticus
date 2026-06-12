@@ -41,7 +41,7 @@ Implements an atomic ionization potential class, which provides potentials for a
 
   interface atomicIonizationPotentialVerner
      !!{RST
-     Constructors for the ``atomicIonizationPotentialVerner`` atomic ionization potential class.
+     Constructors for the :galacticus-class:`atomicIonizationPotentialVerner` atomic ionization potential class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicIonizationPotentialVerner
@@ -524,7 +524,7 @@ contains
 
   function vernerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicIonizationPotentialVerner`` atomic ionization potential class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`atomicIonizationPotentialVerner` atomic ionization potential class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

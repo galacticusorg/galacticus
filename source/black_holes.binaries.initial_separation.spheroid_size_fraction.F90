@@ -40,7 +40,7 @@ Implements a class for black hole binary initial separation in which the radius 
 
   interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
      !!{RST
-     Constructors for the ``blackHoleBinaryInitialSeparationSpheroidRadiusFraction`` black hole binary initial separation class.
+     Constructors for the :galacticus-class:`blackHoleBinaryInitialSeparationSpheroidRadiusFraction` black hole binary initial separation class.
      !!}
      module procedure spheroidRadiusFractionConstructorParameters
      module procedure spheroidRadiusFractionConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryInitialSeparationSpheroidRadiusFraction`` black hole binary initial separation class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationSpheroidRadiusFraction` black hole binary initial separation class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryInitialSeparationSpheroidRadiusFraction`` black hole binary initial separation class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationSpheroidRadiusFraction` black hole binary initial separation class which takes a parameter list as input.
     !!}
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self

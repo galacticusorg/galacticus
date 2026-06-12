@@ -122,7 +122,7 @@ contains
 
   subroutine pruneByTimeDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOperatorPruneByTime`` merger tree operator class.
+    Destructor for the :galacticus-class:`mergerTreeOperatorPruneByTime` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByTime), intent(inout) :: self

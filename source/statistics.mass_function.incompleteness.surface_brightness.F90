@@ -42,7 +42,7 @@
 
   interface massFunctionIncompletenessSurfaceBrightness
      !!{RST
-     Constructors for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class.
+     Constructors for the :galacticus-class:`massFunctionIncompletenessSurfaceBrightness` incompleteness class.
      !!}
      module procedure surfaceBrightnessConstructorParameters
      module procedure surfaceBrightnessConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function surfaceBrightnessConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`massFunctionIncompletenessSurfaceBrightness` incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function surfaceBrightnessConstructorInternal(limit,zeroPoint,slope,offset,scatter) result(self)
     !!{RST
-    Internal constructor for the ``massFunctionIncompletenessSurfaceBrightness`` incompleteness class.
+    Internal constructor for the :galacticus-class:`massFunctionIncompletenessSurfaceBrightness` incompleteness class.
     !!}
     implicit none
     type            (massFunctionIncompletenessSurfaceBrightness)                :: self

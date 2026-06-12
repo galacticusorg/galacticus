@@ -44,7 +44,7 @@
 
   interface satelliteMassBoundInitializorMaximumRadius
      !!{RST
-     Constructors for the ``satelliteMassBoundInitializorMaximumRadius`` satellite bound mass initializor class.
+     Constructors for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
      !!}
      module procedure maximumRadiusConstructorParameters
      module procedure maximumRadiusConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function maximumRadiusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteMassBoundInitializorMaximumRadius`` satellite bound mass initializor class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -86,7 +86,7 @@ contains
 
   function maximumRadiusConstructorInternal(radiusMaximumOverRadiusVirial,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteMassBoundInitializorMaximumRadius`` satellite bound mass initializor class.
+    Internal constructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
     !!}
     implicit none
     type            (satelliteMassBoundInitializorMaximumRadius)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine maximumRadiusDestructor(self)
     !!{RST
-    Destructor for the ``satelliteMassBoundInitializorMaximumRadius`` satellite bound mass initializor class.
+    Destructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
     !!}
     implicit none
     type(satelliteMassBoundInitializorMaximumRadius), intent(inout) :: self

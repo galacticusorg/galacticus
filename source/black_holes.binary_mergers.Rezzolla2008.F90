@@ -39,7 +39,7 @@
 
   interface blackHoleBinaryMergerRezzolla2008
      !!{RST
-     Constructors for the ``blackHoleBinaryMergerRezzolla2008`` black hole binary merger class.
+     Constructors for the :galacticus-class:`blackHoleBinaryMergerRezzolla2008` black hole binary merger class.
      !!}
      module procedure rezzolla2008ConstructorParameters
   end interface blackHoleBinaryMergerRezzolla2008
@@ -48,7 +48,7 @@ contains
 
   function rezzolla2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinaryMergerRezzolla2008`` black hole binary merger class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleBinaryMergerRezzolla2008` black hole binary merger class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

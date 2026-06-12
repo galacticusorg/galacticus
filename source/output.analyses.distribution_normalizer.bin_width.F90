@@ -39,7 +39,7 @@
 
   interface outputAnalysisDistributionNormalizerBinWidth
      !!{RST
-     Constructors for the ``outputAnalysisDistributionNormalizerBinWidth`` output analysis distribution normalizer class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerBinWidth` output analysis distribution normalizer class.
      !!}
      module procedure binWidthConstructorParameters
   end interface outputAnalysisDistributionNormalizerBinWidth
@@ -48,7 +48,7 @@ contains
 
   function binWidthConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionNormalizerBinWidth`` output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerBinWidth` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -63,7 +63,7 @@ contains
 
   function internalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateInternal`` :term:`IGM` state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`intergalacticMediumStateInternal` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``intergalacticMediumStateInternal`` :term:`IGM` state class.
+    Internal constructor for the :galacticus-class:`intergalacticMediumStateInternal` :term:`IGM` state class.
     !!}
     implicit none
     type (intergalacticMediumStateInternal)                        :: self

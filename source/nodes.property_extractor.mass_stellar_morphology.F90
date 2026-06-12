@@ -43,7 +43,7 @@ Implements a stellar mass-weighted morphology output analysis property extractor
 
   interface nodePropertyExtractorMassStellarMorphology
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassStellarMorphology`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassStellarMorphology` property extractor class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology
@@ -52,7 +52,7 @@ contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassStellarMorphology`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassStellarMorphology` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

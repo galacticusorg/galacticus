@@ -43,7 +43,7 @@ Implements a cosmic time output analysis property extractor class.
 
   interface nodePropertyExtractorTime
      !!{RST
-     Constructors for the ``nodePropertyExtractorTime`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTime` property extractor class.
      !!}
      module procedure timeConstructorParameters
   end interface nodePropertyExtractorTime
@@ -52,7 +52,7 @@ contains
 
   function timeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTime`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTime` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

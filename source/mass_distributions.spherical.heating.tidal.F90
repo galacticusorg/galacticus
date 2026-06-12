@@ -50,7 +50,7 @@
 
   interface massDistributionHeatingTidal
      !!{RST
-     Constructors for the ``massDistributionHeatingTidal`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingTidal`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
   
   function tidalConstructorInternal(heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingTidal`` mass distribution heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTidal)                :: self
@@ -191,7 +191,7 @@ contains
 
   subroutine tidalSpecificEnergyTerms(self,radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
     !!{RST
-    Compute the first and second order perturbations to the energy. The optional ``densityLogSlope`` and ``velocityDispersion1D`` arguments return intermediate quantities used to compute the second-order term, allowing callers (e.g.\ ``massDistributionHeatingTidal:specificEnergyGradient``) to avoid recomputing them.
+    Compute the first and second order perturbations to the energy. The optional ``densityLogSlope`` and ``velocityDispersion1D`` arguments return intermediate quantities used to compute the second-order term, allowing callers (e.g.\ :galacticus-class:`massDistributionHeatingTidal:specificEnergyGradient`) to avoid recomputing them.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none

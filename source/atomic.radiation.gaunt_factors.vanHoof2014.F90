@@ -43,7 +43,7 @@
 
   interface gauntFactorVanHoof2014
      !!{RST
-     Constructors for the ``gauntFactorVanHoof2014`` gaunt factor class.
+     Constructors for the :galacticus-class:`gauntFactorVanHoof2014` gaunt factor class.
      !!}
      module procedure vanHoof2014ConstructorParameters
      module procedure vanHoof2014ConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function vanHoof2014ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``gauntFactorVanHoof2014`` gaunt factor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`gauntFactorVanHoof2014` gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function vanHoof2014ConstructorInternal(atomicIonizationPotential_) result(self)
     !!{RST
-    Internal constructor for the ``gauntFactorVanHoof2014`` gaunt factor class.
+    Internal constructor for the :galacticus-class:`gauntFactorVanHoof2014` gaunt factor class.
     !!}
     implicit none
     type (gauntFactorVanHoof2014        )                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine vanHoof2014Destructor(self)
     !!{RST
-    Destructor for the ``gauntFactorVanHoof2014`` gaunt factor class.
+    Destructor for the :galacticus-class:`gauntFactorVanHoof2014` gaunt factor class.
     !!}
     implicit none
     type(gauntFactorVanHoof2014), intent(inout) :: self

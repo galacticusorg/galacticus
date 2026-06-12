@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorLabels
      !!{RST
-     Constructors for the ``nodePropertyExtractorLabels`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLabels` property extractor class.
      !!}
      module procedure labelsConstructorParameters
   end interface nodePropertyExtractorLabels
@@ -49,7 +49,7 @@ contains
 
   function labelsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLabels`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLabels` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

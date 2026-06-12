@@ -44,7 +44,7 @@
 
   interface posteriorSampleStoppingCriterionCorrelationLength
      !!{RST
-     Constructors for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
+     Constructors for the :galacticus-class:`posteriorSampleStoppingCriterionCorrelationLength` posterior sampling stopping class.
      !!}
      module procedure correlationLengthConstructorParameters
      module procedure correlationLengthConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function correlationLengthConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStoppingCriterionCorrelationLength` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function correlationLengthConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
     !!{RST
-    Internal constructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
+    Internal constructor for the :galacticus-class:`posteriorSampleStoppingCriterionCorrelationLength` posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionCorrelationLength)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine correlationLengthDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleStoppingCriterionCorrelationLength`` posterior sampling stopping class.
+    Destructor for the :galacticus-class:`posteriorSampleStoppingCriterionCorrelationLength` posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionCorrelationLength), intent(inout) :: self

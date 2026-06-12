@@ -39,7 +39,7 @@ Implements an identity analysis weight operator class.
 
   interface outputAnalysisWeightOperatorIdentity
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorIdentity`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorIdentity` output analysis weight operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisWeightOperatorIdentity
@@ -48,7 +48,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorIdentity`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorIdentity` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -41,7 +41,7 @@ Implements a node operator class that shifts preset named properties at node pro
 
   interface nodeOperatorPresetNamedShift
      !!{RST
-     Constructors for the ``nodeOperatorPresetNamedShift`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPresetNamedShift` node operator class.
      !!}
      module procedure presetNamedShiftConstructorParameters
      module procedure presetNamedShiftConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function presetNamedShiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPresetNamedShift`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPresetNamedShift` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function presetNamedShiftConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorPresetNamedShift`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorPresetNamedShift` node operator class.
     !!}
     implicit none
     type(nodeOperatorPresetNamedShift) :: self

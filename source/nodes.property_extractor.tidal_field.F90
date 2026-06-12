@@ -48,7 +48,7 @@ Implements a tidal field property extractor class.
 
   interface nodePropertyExtractorTidalField
      !!{RST
-     Constructors for the ``nodePropertyExtractorTidalField`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTidalField` property extractor class.
      !!}
      module procedure tidalFieldConstructorParameters
      module procedure tidalFieldConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function tidalFieldConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTidalField`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTidalField` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function tidalFieldConstructorInternal(satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorTidalField`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTidalField` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidalField)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine tidalFieldDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorTidalField`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorTidalField` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidalField), intent(inout) :: self

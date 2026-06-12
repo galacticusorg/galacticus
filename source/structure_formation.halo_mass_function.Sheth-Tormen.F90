@@ -55,7 +55,7 @@ Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function cla
 
   interface haloMassFunctionShethTormen
      !!{RST
-     Constructors for the ``haloMassFunctionShethTormen`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionShethTormen` halo mass function class.
      !!}
      module procedure shethTormenConstructorParameters
      module procedure shethTormenConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function shethTormenConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionShethTormen`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionShethTormen` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function shethTormenConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionShethTormen`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionShethTormen` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionShethTormen  )                        :: self
@@ -140,7 +140,7 @@ contains
 
   subroutine shethTormenDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionShethTormen`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionShethTormen` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionShethTormen), intent(inout) :: self

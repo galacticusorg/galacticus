@@ -46,7 +46,7 @@
   
   interface nodeOperatorMassCooled
      !!{RST
-     Constructors for the ``nodeOperatorMassCooled`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorMassCooled` node operator class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function massCooledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorMassCooled`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorMassCooled` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function massCooledConstructorInternal(coolingRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorMassCooled`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorMassCooled` node operator class.
     !!}
     implicit none
     type (nodeOperatorMassCooled)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine massCooledDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorMassCooled`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorMassCooled` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassCooled), intent(inout) :: self

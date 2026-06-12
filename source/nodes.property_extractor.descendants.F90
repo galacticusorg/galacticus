@@ -28,7 +28,7 @@ Implements an ISM mass output analysis property extractor class.
    <description>
    A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will belong at the next output time (i.e. the :term:`forward descendant`). To clarify, this will be the index of the node into which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node merges with another, the index will be of that node and so on).
 
-   Note that, to operate correctly, information about which node a given node may merge with (and when this merger will happen) must be available. This is typically available in merger trees read from file (i.e. using the "``read``" ``mergerTreeConstructorClass``) providing ``[presetMergerNodes]`` and ``[presetMergerTimes]`` are both set to ``true``. When using randomly assigned satellite orbits and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong to at the next output (in such cases, the fallback assumption is no merging).
+   Note that, to operate correctly, information about which node a given node may merge with (and when this merger will happen) must be available. This is typically available in merger trees read from file (i.e. using the "``read``" :galacticus-class:`mergerTreeConstructorClass`) providing ``[presetMergerNodes]`` and ``[presetMergerTimes]`` are both set to ``true``. When using randomly assigned satellite orbits and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong to at the next output (in such cases, the fallback assumption is no merging).
    </description>
   </nodePropertyExtractor>
   !!]
@@ -47,7 +47,7 @@ Implements an ISM mass output analysis property extractor class.
 
   interface nodePropertyExtractorDescendants
      !!{RST
-     Constructors for the ``nodePropertyExtractorDescendants`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
      !!}
      module procedure descendantsConstructorParameters
      module procedure descendantsConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function descendantsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDescendants`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function descendantsConstructorInternal(outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorDescendants`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDescendants)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine descendantsDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorDescendants`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendants), intent(inout) :: self

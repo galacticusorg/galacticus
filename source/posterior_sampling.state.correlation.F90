@@ -56,7 +56,7 @@
 
   interface posteriorSampleStateCorrelation
      !!{RST
-     Constructors for the ``posteriorSampleStateCorrelation`` posterior sampling state class.
+     Constructors for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class.
      !!}
      module procedure correlationConstructorParameters
      module procedure correlationConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function correlationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateCorrelation`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function correlationConstructorInternal(acceptedStateCount) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateCorrelation`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none

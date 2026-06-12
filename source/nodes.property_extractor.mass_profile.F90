@@ -62,7 +62,7 @@
 
   interface nodePropertyExtractorMassProfile
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassProfile`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassProfile` property extractor class.
      !!}
      module procedure massProfileConstructorParameters
      module procedure massProfileConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function massProfileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassProfile`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassProfile` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,7 +113,7 @@ contains
 
   function massProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassProfile`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassProfile` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -153,7 +153,7 @@ contains
 
   subroutine massProfileDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorMassProfile`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorMassProfile` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassProfile), intent(inout) :: self

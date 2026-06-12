@@ -61,7 +61,7 @@
 
   interface posteriorSampleLikelihoodMultivariateNormal
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodMultivariateNormal`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMultivariateNormal`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMultivariateNormal`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none

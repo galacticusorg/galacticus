@@ -39,7 +39,7 @@
 
   interface satelliteMergingTimescalesPreset
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesPreset`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesPreset` satellite merging timescale class.
      !!}
      module procedure presetConstructorParameters
   end interface satelliteMergingTimescalesPreset

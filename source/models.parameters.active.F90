@@ -62,7 +62,7 @@
 
   interface modelParameterActive
      !!{RST
-     Constructors for the ``modelParameterActive`` model parameter class.
+     Constructors for the :galacticus-class:`modelParameterActive` model parameter class.
      !!}
      module procedure activeConstructorParameters
      module procedure activeConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function activeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``modelParameterActive`` model parameter class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`modelParameterActive` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -116,7 +116,7 @@ contains
 
   function activeConstructorInternal(name_,slow,prior,perturber,mapper) result(self)
     !!{RST
-    Internal constructor for the ``modelParameterActive`` model parameter class.
+    Internal constructor for the :galacticus-class:`modelParameterActive` model parameter class.
     !!}
     implicit none
     type   (modelParameterActive       )                        :: self
@@ -133,7 +133,7 @@ contains
 
   subroutine activeDestructor(self)
     !!{RST
-    Destructor for ``modelParameterActive`` model parameter class.
+    Destructor for :galacticus-class:`modelParameterActive` model parameter class.
     !!}
     implicit none
     type(modelParameterActive), intent(inout) :: self

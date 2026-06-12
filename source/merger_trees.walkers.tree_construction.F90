@@ -50,7 +50,7 @@
 
   interface mergerTreeWalkerTreeConstruction
      !!{RST
-     Constructors for the ``mergerTreeWalkerTreeConstruction`` merger tree walker class.
+     Constructors for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class.
      !!}
      module procedure treeConstructionParameters
      module procedure treeConstructionInternal
@@ -60,7 +60,7 @@ contains
 
   function treeConstructionParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeWalkerTreeConstruction`` merger tree walker class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -75,7 +75,7 @@ contains
 
   function treeConstructionInternal(tree) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeWalkerTreeConstruction`` merger tree walker class.
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerTreeConstruction)                        :: self

@@ -56,7 +56,7 @@
   
   interface darkMatterProfileScaleRadiusRandomWalk
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusRandomWalk` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleRandomWalkConstructorParameters
      module procedure darkMatterProfileScaleRandomWalkConstructorInternal
@@ -73,7 +73,7 @@ contains
   
   function darkMatterProfileScaleRandomWalkConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusRandomWalk` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function darkMatterProfileScaleRandomWalkConstructorInternal(energyVarianceSpecific,darkMatterProfileScaleRadius_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusRandomWalk` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusRandomWalk)                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine darkMatterProfileScaleRandomWalkDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusRandomWalk`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusRandomWalk` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusRandomWalk), intent(inout) :: self

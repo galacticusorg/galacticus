@@ -40,7 +40,7 @@
 
   interface stellarPopulationSpectraPostprocessorIdentity
      !!{RST
-     Constructors for the ``stellarPopulationSpectraPostprocessorIdentity`` stellar population spectra postprocessor class.
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorIdentity` stellar population spectra postprocessor class.
      !!}
      module procedure identityConstructorParameters
   end interface stellarPopulationSpectraPostprocessorIdentity
@@ -49,7 +49,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorIdentity`` stellar population spectra postprocessor class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorIdentity` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

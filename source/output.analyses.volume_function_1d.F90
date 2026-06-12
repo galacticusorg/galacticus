@@ -131,7 +131,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
 
   interface outputAnalysisVolumeFunction1D
      !!{RST
-     Constructors for the ``outputAnalysisVolumeFunction1D`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
      !!}
      module procedure volumeFunction1DConstructorParameters
      module procedure volumeFunction1DConstructorInternal
@@ -141,7 +141,7 @@ contains
 
   function volumeFunction1DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisVolumeFunction1D`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -520,7 +520,7 @@ contains
 
   function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionQuantity,distributionIsComoving,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_,binWidth) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisVolumeFunction1D`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class for internal use.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -656,7 +656,7 @@ contains
 
   subroutine volumeFunction1DDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisVolumeFunction1D`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self

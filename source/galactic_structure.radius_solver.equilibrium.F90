@@ -50,7 +50,7 @@
 
   interface galacticStructureSolverEquilibrium
      !!{RST
-     Constructors for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
+     Constructors for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
      !!}
      module procedure equilibriumConstructorParameters
      module procedure equilibriumConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function equilibriumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -135,7 +135,7 @@ contains
 
   function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
+    Internal constructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
     !!}
     implicit none
     type            (galacticStructureSolverEquilibrium)                        :: self
@@ -171,7 +171,7 @@ contains
 
   subroutine equilibriumDestructor(self)
     !!{RST
-    Destructor for the ``galacticStructureSolverEquilibrium`` galactic structure solver class.
+    Destructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

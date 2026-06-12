@@ -41,7 +41,7 @@ Implements a high-pass filter analysis property operator class.
 
   interface outputAnalysisPropertyOperatorFilterHighPass
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorFilterHighPass` output analysis property operator class.
      !!}
      module procedure filterHighPassConstructorParameters
      module procedure filterHighPassConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorFilterHighPass` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold,filterWidth,normalized) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorFilterHighPass`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorFilterHighPass` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                          :: self

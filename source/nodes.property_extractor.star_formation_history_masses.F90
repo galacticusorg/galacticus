@@ -53,7 +53,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryMass
      !!{RST
-     Constructors for the ``nodePropertyExtractorStarFormationHistoryMass`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` property extractor class.
      !!}
      module procedure starFormationHistoryMassConstructorParameters
      module procedure starFormationHistoryMassConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function starFormationHistoryMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorStarFormationHistoryMass`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -96,7 +96,7 @@ contains
 
   function starFormationHistoryMassConstructorInternal(component,starFormationHistory_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorStarFormationHistoryMass`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster, componentTypeAll
     use :: Error                     , only : Error_Report
@@ -123,7 +123,7 @@ contains
 
   subroutine starFormationHistoryMassDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorStarFormationHistoryMass`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self

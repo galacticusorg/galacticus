@@ -24,7 +24,7 @@
   !![
   <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence" docformat="rst">
    <description>
-   An output analysis distribution normalizer class that applies a linked list of child ``outputAnalysisDistributionNormalizerClass`` objects in sequence, enabling composite normalization pipelines (e.g.\ bin-width division followed by volume normalization).
+   An output analysis distribution normalizer class that applies a linked list of child :galacticus-class:`outputAnalysisDistributionNormalizerClass` objects in sequence, enabling composite normalization pipelines (e.g.\ bin-width division followed by volume normalization).
    </description>
    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
   </outputAnalysisDistributionNormalizer>

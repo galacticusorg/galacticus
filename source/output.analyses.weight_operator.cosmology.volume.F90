@@ -45,7 +45,7 @@ Implements a cosmological volume corrector analysis weight operator class.
 
   interface outputAnalysisWeightOperatorCsmlgyVolume
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorCsmlgyVolume`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
      !!}
      module procedure csmlgyVolumeConstructorParameters
      module procedure csmlgyVolumeConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function csmlgyVolumeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorCsmlgyVolume`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function csmlgyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisWeightOperatorCsmlgyVolume`` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
     !!}
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine csmlgyVolumeDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisWeightOperatorCsmlgyVolume`` output analysis weight operator class.
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self

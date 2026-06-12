@@ -55,7 +55,7 @@
 
   interface outputAnalysisTidalTracksVelocityMaximum
      !!{RST
-     Constructors for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisTidalTracksVelocityMaximum` output analysis class.
      !!}
      module procedure tidalTracksVelocityMaximumConstructorParameters
      module procedure tidalTracksVelocityMaximumConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function tidalTracksVelocityMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisTidalTracksVelocityMaximum` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
   
   function tidalTracksVelocityMaximumConstructorInternal(mu,eta,darkMatterProfileDMO_,darkMatterProfileDMOUnheated) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisTidalTracksVelocityMaximum` output analysis class for internal use.
     !!}
     implicit none
     type            (outputAnalysisTidalTracksVelocityMaximum)                         :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine tidalTracksVelocityMaximumDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisTidalTracksVelocityMaximum`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisTidalTracksVelocityMaximum` output analysis class.
     !!}
     implicit none
     type(outputAnalysisTidalTracksVelocityMaximum), intent(inout) :: self

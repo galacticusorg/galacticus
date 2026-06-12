@@ -80,7 +80,7 @@
 
   interface starFormationRateNuclearStarClustersKrumholz2009
      !!{RST
-     Constructors for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC`.
+     Constructors for the :galacticus-class:`starFormationRateNuclearStarClustersKrumholz2009` star formation rate law for galactic :term:`NSC`.
      !!}
      module procedure krumholz2009ConstructorParameters
      module procedure krumholz2009ConstructorInternal
@@ -90,7 +90,7 @@ contains
 
   function krumholz2009ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC` which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateNuclearStarClustersKrumholz2009` star formation rate law for galactic :term:`NSC` which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -120,7 +120,7 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateNuclearStarClustersKrumholz2009`` star formation rate law for galactic :term:`NSC`.
+    Internal constructor for the :galacticus-class:`starFormationRateNuclearStarClustersKrumholz2009` star formation rate law for galactic :term:`NSC`.
     !!}
     implicit none
     type            (starFormationRateNuclearStarClustersKrumholz2009)                 :: self

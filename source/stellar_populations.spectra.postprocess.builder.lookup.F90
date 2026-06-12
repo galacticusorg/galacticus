@@ -57,7 +57,7 @@
 
   interface stellarPopulationSpectraPostprocessorBuilderLookup
      !!{RST
-     Constructors for the ``stellarPopulationSpectraPostprocessorBuilderLookup`` stellar population spectra postprocessor builder class.
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder class.
      !!}
      module procedure lookupConstructorParameters
      module procedure lookupConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function lookupConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationSpectraPostprocessorBuilderLookup`` stellar population spectra postprocessor builder class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder class which takes a parameter list as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -118,7 +118,7 @@ contains
 
   function lookupConstructorInternal(names,postprocessors) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationSpectraPostprocessorBuilderLookup`` stellar population spectra postprocessor builder.
+    Internal constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -143,7 +143,7 @@ contains
 
   subroutine lookupDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationSpectraPostprocessorBuilderLookup`` stellar population spectra postprocessor builder.
+    Destructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder.
     !!}
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self

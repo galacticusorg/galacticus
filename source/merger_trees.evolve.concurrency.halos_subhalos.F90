@@ -42,7 +42,7 @@
 
   interface mergerTreeEvolveConcurrencyHalosSubhalos
      !!{RST
-     Constructors for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model.
+     Constructors for the :galacticus-class:`mergerTreeEvolveConcurrencyHalosSubhalos` merger tree evolution concurrency model.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function threadedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveConcurrencyHalosSubhalos` merger tree evolution concurrency model class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function threadedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolveConcurrencyHalosSubhalos`` merger tree evolution concurrency model class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveConcurrencyHalosSubhalos` merger tree evolution concurrency model class.
     !!}
     implicit none
     type(mergerTreeEvolveConcurrencyHalosSubhalos) :: self

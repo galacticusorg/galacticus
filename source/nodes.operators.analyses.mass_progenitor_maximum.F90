@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorMassProgenitorMaximum" docformat="rst">
     <description>
-    A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the ``nodePropertyExtractorMassProgenitorMaximum`` property extractor class to extract those ages for output.
+    A node operator class that tracks the maximum progenitor halo mass of a node. Intended to be paired with the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class to extract those ages for output.
     </description>
   </nodeOperator>
   !!]
@@ -41,7 +41,7 @@
   
   interface nodeOperatorMassProgenitorMaximum
      !!{RST
-     Constructors for the ``nodeOperatorMassProgenitorMaximum`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorMassProgenitorMaximum` node operator class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function massProgenitorMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorMassProgenitorMaximum`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorMassProgenitorMaximum` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function massProgenitorMaximumConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorMassProgenitorMaximum`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorMassProgenitorMaximum` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassProgenitorMaximum) :: self

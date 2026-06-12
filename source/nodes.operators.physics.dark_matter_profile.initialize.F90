@@ -39,7 +39,7 @@
   
   interface nodeOperatorDarkMatterProfileInitialize
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileInitialize`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileInitialize` node operator class.
      !!}
      module procedure darkMatterProfileInitializeConstructorParameters
   end interface nodeOperatorDarkMatterProfileInitialize
@@ -48,7 +48,7 @@ contains
   
   function darkMatterProfileInitializeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileInitialize`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileInitialize` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

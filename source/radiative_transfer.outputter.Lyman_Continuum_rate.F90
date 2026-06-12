@@ -42,7 +42,7 @@
 
   interface radiativeTransferOutputterLymanContinuumRate
      !!{RST
-     Constructors for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class.
+     Constructors for the :galacticus-class:`radiativeTransferOutputterLymanContinuumRate` radiative transfer outputter class.
      !!}
      module procedure lymanContinuumRateConstructorParameters
      module procedure lymanContinuumRateConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function lymanContinuumRateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferOutputterLymanContinuumRate` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
   
   function lymanContinuumRateConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferOutputterLymanContinuumRate`` radiative transfer outputter class.
+    Internal constructor for the :galacticus-class:`radiativeTransferOutputterLymanContinuumRate` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate) :: self

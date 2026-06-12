@@ -44,7 +44,7 @@ Implements a node property extractor class for parameters of the :cite:t:`hearin
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassAccretionHistoryHearin2021`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassAccretionHistoryHearin2021` property extractor class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -53,7 +53,7 @@ contains
 
   function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassAccretionHistoryHearin2021`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionHistoryHearin2021` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

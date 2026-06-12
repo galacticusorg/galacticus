@@ -46,7 +46,7 @@
 
   interface satelliteMergingTimescalesBoylanKolchin2008
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesBoylanKolchin2008`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesBoylanKolchin2008` satellite merging timescale class.
      !!}
      module procedure boylanKolchin2008ConstructorParameters
      module procedure boylanKolchin2008ConstructorInternal
@@ -105,7 +105,7 @@ contains
 
   subroutine boylanKolchin2008Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesBoylanKolchin2008`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesBoylanKolchin2008` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self

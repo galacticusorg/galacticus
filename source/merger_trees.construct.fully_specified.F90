@@ -147,7 +147,7 @@
 
   interface mergerTreeConstructorFullySpecified
      !!{RST
-     Constructors for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
+     Constructors for the :galacticus-class:`mergerTreeConstructorFullySpecified` merger tree constructor class.
      !!}
      module procedure fullySpecifiedConstructorParameters
      module procedure fullySpecifiedConstructorInternal
@@ -157,7 +157,7 @@ contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeConstructorFullySpecified` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -198,7 +198,7 @@ contains
 
   function fullySpecifiedConstructorInternal(fileName,countRealizations,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
+    Internal constructor for the :galacticus-class:`mergerTreeConstructorFullySpecified` merger tree constructor class.
     !!}
     use :: Error             , only : Error_Report
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, XML_Parse
@@ -254,7 +254,7 @@ contains
 
   subroutine fullySpecifiedDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeConstructorFullySpecified`` merger tree constructor class.
+    Destructor for the :galacticus-class:`mergerTreeConstructorFullySpecified` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self

@@ -89,7 +89,7 @@
 
   interface outputAnalysisStellarVsHaloMassRelation
      !!{RST
-     Constructors for the ``outputAnalysisStellarVsHaloMassRelation`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class.
      !!}
      module procedure stellarVsHaloMassRelationConstructorParameters
      module procedure stellarVsHaloMassRelationConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   function stellarVsHaloMassRelationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStellarVsHaloMassRelation`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -225,7 +225,7 @@ contains
 
   function stellarVsHaloMassRelationConstructorInternal(fileNameTarget,redshiftInterval,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStellarVsHaloMassRelation`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                                       , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                                      , cosmologyParametersSimple
@@ -718,7 +718,7 @@ contains
 
   subroutine stellarVsHaloMassRelationDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisStellarVsHaloMassRelation`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStellarVsHaloMassRelation), intent(inout) :: self

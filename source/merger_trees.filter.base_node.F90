@@ -43,7 +43,7 @@ Implements a merger tree filter which passes if the base node in the tree passes
 
   interface mergerTreeFilterBaseNode
      !!{RST
-     Constructors for the ``mergerTreeFilterBaseNode`` merger tree filter class.
+     Constructors for the :galacticus-class:`mergerTreeFilterBaseNode` merger tree filter class.
      !!}
      module procedure baseNodeConstructorParameters
      module procedure baseNodeConstructorInternal
@@ -53,7 +53,7 @@ contains
   
   function baseNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeFilterBaseNode`` merger tree filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeFilterBaseNode` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function baseNodeConstructorInternal(galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeFilterBaseNode`` merger tree filter class.
+    Internal constructor for the :galacticus-class:`mergerTreeFilterBaseNode` merger tree filter class.
     !!}
     implicit none
     type (mergerTreeFilterBaseNode)                        :: self
@@ -87,7 +87,7 @@ contains
 
   subroutine baseNodeDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeFilterBaseNode`` merger tree filter class.
+    Destructor for the :galacticus-class:`mergerTreeFilterBaseNode` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterBaseNode), intent(inout) :: self

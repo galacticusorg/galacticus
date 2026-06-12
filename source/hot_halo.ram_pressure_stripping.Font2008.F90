@@ -37,7 +37,7 @@
       \alpha_\mathrm{rp} {\mathrm{G} M_\mathrm{satellite}(r_\mathrm{rp}) \rho_\mathrm{hot, satellite}(r_\mathrm{rp}) \over
       r_\mathrm{rp} } = \mathcal{F}_\mathrm{ram, hot, host},
 
-   where :math:`M_\mathrm{satellite}(r)` is the total mass of the satellite within radius :math:`r`, :math:`\mathcal{F}_\mathrm{ram, hot, host}` is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see ``hotHaloRamPressureForce``). The parameter :math:`\alpha_\mathrm{rp}=`\ ``[formFactor]`` is a geometric factor of order unity.
+   where :math:`M_\mathrm{satellite}(r)` is the total mass of the satellite within radius :math:`r`, :math:`\mathcal{F}_\mathrm{ram, hot, host}` is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see :galacticus-class:`hotHaloRamPressureForce`). The parameter :math:`\alpha_\mathrm{rp}=`\ ``[formFactor]`` is a geometric factor of order unity.
    </description>
   </hotHaloRamPressureStripping>
   !!]
@@ -60,7 +60,7 @@
 
   interface hotHaloRamPressureStrippingFont2008
      !!{RST
-     Constructors for the ``hotHaloRamPressureStrippingFont2008`` hot halo ram pressure stripping class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureStrippingFont2008` hot halo ram pressure stripping class.
      !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function font2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureStrippingFont2008`` hot halo ram pressure stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureStrippingFont2008` hot halo ram pressure stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function font2008ConstructorInternal(formFactor,solverFailureIsFatal,darkMatterHaloScale_,hotHaloRamPressureForce_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureStrippingFont2008`` hot halo ram pressure stripping class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureStrippingFont2008` hot halo ram pressure stripping class.
     !!}
     implicit none
     type            (hotHaloRamPressureStrippingFont2008)                        :: self
@@ -143,7 +143,7 @@ contains
 
   subroutine font2008Destructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureStrippingFont2008`` hot halo ram pressure stripping class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureStrippingFont2008` hot halo ram pressure stripping class.
     !!}
     implicit none
     type(hotHaloRamPressureStrippingFont2008), intent(inout) :: self

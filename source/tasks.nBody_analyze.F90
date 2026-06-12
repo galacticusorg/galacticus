@@ -45,7 +45,7 @@
 
   interface taskNBodyAnalyze
      !!{RST
-     Constructors for the ``taskNBodyAnalyze`` task.
+     Constructors for the :galacticus-class:`taskNBodyAnalyze` task.
      !!}
      module procedure nbodyAnalyzeConstructorParameters
      module procedure nbodyAnalyzeConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function nbodyAnalyzeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskNBodyAnalyze`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskNBodyAnalyze` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -105,7 +105,7 @@ contains
 
   function nbodyAnalyzeConstructorInternal(storeBackToImported,nbodyImporter_,nbodyOperator_,parameters) result(self)
     !!{RST
-    Constructor for the ``taskNBodyAnalyze`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskNBodyAnalyze` task class which takes a parameter set as input.
     !!}
     implicit none
     type   (taskNBodyAnalyze  )                        :: self
@@ -124,7 +124,7 @@ contains
 
   subroutine nbodyAnalyzeDestructor(self)
     !!{RST
-    Destructor for the ``taskNBodyAnalyze`` task class.
+    Destructor for the :galacticus-class:`taskNBodyAnalyze` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

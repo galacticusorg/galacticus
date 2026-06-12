@@ -50,7 +50,7 @@ contains
 
   function sampledDistributionPseudoRandomConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesSampledDistributionPseudoRandom`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesSampledDistributionPseudoRandom`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -130,7 +130,7 @@ contains
 
   subroutine sampledDistributionPseudoRandomDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassesSampledDistributionPseudoRandom`` merger tree masses class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self

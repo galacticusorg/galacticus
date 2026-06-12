@@ -39,7 +39,7 @@ Implements a null N-body data operator.
 
   interface nbodyOperatorNull
      !!{RST
-     Constructors for the ``nbodyOperatorNull`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorNull` N-body operator class.
      !!}
      module procedure nullConstructorParameters
   end interface nbodyOperatorNull
@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorNull`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorNull` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

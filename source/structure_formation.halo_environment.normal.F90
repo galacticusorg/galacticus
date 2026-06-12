@@ -88,7 +88,7 @@ Implements a normally-distributed halo environment.
 
   interface haloEnvironmentNormal
      !!{RST
-     Constructors for the ``haloEnvironmentNormal`` halo environment class.
+     Constructors for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloEnvironmentNormal`` halo environment class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -162,7 +162,7 @@ contains
 
   function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
     !!{RST
-    Internal constructor for the ``haloEnvironmentNormal`` halo environment class.
+    Internal constructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
@@ -259,7 +259,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{RST
-    Destructor for the ``haloEnvironmentNormal`` halo environment class.
+    Destructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -67,7 +67,7 @@
 
   interface darkMatterHaloMassAccretionHistoryWechsler2002
      !!{RST
-     Constructors for the ``darkMatterHaloMassAccretionHistoryWechsler2002`` dark matter halo mass accretion history class.
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
      !!}
      module procedure wechsler2002ConstructorParameters
      module procedure wechsler2002ConstructorInternal
@@ -129,7 +129,7 @@ contains
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassAccretionHistoryWechsler2002`` dark matter halo mass accretion history class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -161,7 +161,7 @@ contains
   
   subroutine wechsler2002Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloMassAccretionHistoryWechsler2002`` dark matter halo mass accretion history class.
+    Destructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

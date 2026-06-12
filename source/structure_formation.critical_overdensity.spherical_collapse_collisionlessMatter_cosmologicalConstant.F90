@@ -62,7 +62,7 @@
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
      !!{RST
-     Constructors for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity for collapse class.
+     Constructors for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization,countTimeCollapsePerUnit) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -172,7 +172,7 @@ contains
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt`` critical overdensity for collapse class.
+    Destructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt` critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self

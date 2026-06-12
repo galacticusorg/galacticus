@@ -42,7 +42,7 @@ Implements a node property extractor for the index of the last host node.
 
   interface nodePropertyExtractorIndexLastHost
      !!{RST
-     Constructors for the ``nodePropertyExtractorIndexLastHost`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorIndexLastHost` property extractor class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorIndexLastHost`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorIndexLastHost` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +68,7 @@ contains
 
   function indexLastHostConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorIndexLastHost`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorIndexLastHost` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIndexLastHost) :: self

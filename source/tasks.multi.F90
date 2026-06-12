@@ -25,7 +25,7 @@
   !![
   <task name="taskMulti" docformat="rst">
    <description>
-   A task which sequentially performs multiple other tasks, iterating through a linked list of ``taskClass`` objects and calling each one's ``perform`` method in order. This allows combining several independent computations (e.g., evolving forests plus computing a power spectrum) into a single Galacticus run.
+   A task which sequentially performs multiple other tasks, iterating through a linked list of :galacticus-class:`taskClass` objects and calling each one's ``perform`` method in order. This allows combining several independent computations (e.g., evolving forests plus computing a power spectrum) into a single Galacticus run.
    </description>
    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
   </task>
@@ -44,7 +44,7 @@
 
   interface taskMulti
      !!{RST
-     Constructors for the ``taskMulti`` task.
+     Constructors for the :galacticus-class:`taskMulti` task.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskMulti`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskMulti` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function multiConstructorInternal(tasks) result(self)
     !!{RST
-    Internal constructor for the ``taskMulti`` task class.
+    Internal constructor for the :galacticus-class:`taskMulti` task class.
     !!}
     implicit none
     type(taskMulti    )                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``taskMulti`` task class.
+    Destructor for the :galacticus-class:`taskMulti` task class.
     !!}
     implicit none
     type(taskMulti    ), intent(inout) :: self

@@ -126,7 +126,7 @@
 
   interface mergerTreeOutputterStandard
      !!{RST
-     Constructors for the ``mergerTreeOutputterStandard`` merger tree outputter.
+     Constructors for the :galacticus-class:`mergerTreeOutputterStandard` merger tree outputter.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -136,7 +136,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOutputterStandard`` merger tree outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOutputterStandard` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -181,7 +181,7 @@ contains
 
   function standardConstructorInternal(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOutputterStandard`` merger tree outputter class.
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterStandard` merger tree outputter class.
     !!}
     implicit none
     type   (mergerTreeOutputterStandard)                        :: self
@@ -219,7 +219,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOutputterStandard`` merger tree outputter class.
+    Destructor for the :galacticus-class:`mergerTreeOutputterStandard` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self

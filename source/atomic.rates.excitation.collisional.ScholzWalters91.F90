@@ -41,7 +41,7 @@
 
   interface atomicExcitationRateCollisionalScholzWalters1991
      !!{RST
-     Constructors for the ``atomicExcitationRateCollisionalScholzWalters1991`` atomic collisional excitation class.
+     Constructors for the :galacticus-class:`atomicExcitationRateCollisionalScholzWalters1991` atomic collisional excitation class.
      !!}
      module procedure scholzWalters1991ConstructorParameters
   end interface atomicExcitationRateCollisionalScholzWalters1991
@@ -50,7 +50,7 @@ contains
 
   function scholzWalters1991ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicExcitationRateCollisionalScholzWalters1991`` atomic collisional excitation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicExcitationRateCollisionalScholzWalters1991` atomic collisional excitation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

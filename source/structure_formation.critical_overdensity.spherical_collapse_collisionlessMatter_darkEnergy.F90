@@ -37,7 +37,7 @@
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
      !!{RST
-     Constructors for the ``criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy`` critical overdensity for collapse class.
+     Constructors for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
@@ -47,7 +47,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticle, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -111,7 +111,7 @@ contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization,countTimeCollapsePerUnit) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
     use :: Error                     , only : Error_Report

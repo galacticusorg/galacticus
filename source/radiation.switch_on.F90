@@ -49,7 +49,7 @@
 
   interface radiationFieldSwitchOn
      !!{RST
-     Constructors for the ``radiationFieldSwitchOn`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldSwitchOn` radiation field class.
      !!}
      module procedure switchOnConstructorParameters
      module procedure switchOnConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function switchOnConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldSwitchOn`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldSwitchOn` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
     <inputParameter docformat="rst">
       <name>redshiftSwitchOn</name>
       <description>
-      The redshift at which the wrapped radiation field is switched on; at cosmic times corresponding to higher redshifts (earlier times) the field returns zero flux, and at later times it returns the flux of the underlying ``radiationFieldClass`` object.
+      The redshift at which the wrapped radiation field is switched on; at cosmic times corresponding to higher redshifts (earlier times) the field returns zero flux, and at later times it returns the flux of the underlying :galacticus-class:`radiationFieldClass` object.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -91,7 +91,7 @@ contains
 
   function switchOnConstructorInternal(timeSwitchOn,radiationField_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldSwitchOn`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldSwitchOn` radiation field class.
     !!}
     implicit none
     type            (radiationFieldSwitchOn )                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine switchOnDestructor(self)
     !!{RST
-    Destructor for the ``radiationFieldSwitchOn`` radiation field class.
+    Destructor for the :galacticus-class:`radiationFieldSwitchOn` radiation field class.
     !!}
     implicit none
     type(radiationFieldSwitchOn), intent(inout) :: self

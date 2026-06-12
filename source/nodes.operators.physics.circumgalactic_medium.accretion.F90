@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMAccretion" docformat="rst">
    <description>
-   A node operator class that drives the inflow of gas from the :term:`IGM` into the circumgalactic medium (:term:`CGM`) at each ODE timestep, using a ``accretionHaloClass`` object to compute the mass and angular momentum accretion rates. ``allowNegativeCGMMass`` controls whether the :term:`CGM` gas mass is permitted to go negative (rates driving it negative are optionally truncated to zero). ``angularMomentumAlwaysGrows`` forces :term:`CGM` angular momentum to only increase, preventing reversal from negative accretion rates.
+   A node operator class that drives the inflow of gas from the :term:`IGM` into the circumgalactic medium (:term:`CGM`) at each ODE timestep, using a :galacticus-class:`accretionHaloClass` object to compute the mass and angular momentum accretion rates. ``allowNegativeCGMMass`` controls whether the :term:`CGM` gas mass is permitted to go negative (rates driving it negative are optionally truncated to zero). ``angularMomentumAlwaysGrows`` forces :term:`CGM` angular momentum to only increase, preventing reversal from negative accretion rates.
    </description>
   </nodeOperator>
   !!]
@@ -49,7 +49,7 @@
   
   interface nodeOperatorCGMAccretion
      !!{RST
-     Constructors for the ``nodeOperatorCGMAccretion`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
      !!}
      module procedure cgmAccretionConstructorParameters
      module procedure cgmAccretionConstructorInternal
@@ -59,7 +59,7 @@ contains
   
   function cgmAccretionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMAccretion`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function cgmAccretionConstructorInternal(allowNegativeCGMMass,angularMomentumAlwaysGrows,accretionHalo_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMAccretion`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     implicit none
@@ -128,7 +128,7 @@ contains
   
   subroutine cgmAccretionDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMAccretion`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

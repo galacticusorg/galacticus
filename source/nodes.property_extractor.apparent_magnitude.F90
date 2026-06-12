@@ -27,7 +27,7 @@ Implements a node property extractor class for apparent magnitudes.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMagnitudesApparent" docformat="rst">
    <description>
-   A property extractor that returns stellar apparent magnitudes (AB system) in all broadband filters currently activated in the stellar luminosities structure, for a specified galaxy ``component`` (disk or spheroid). The distance modulus is computed from the luminosity distance (from ``cosmologyFunctionsClass``) with a :math:`+2.5\log_{10}(1+z)` K-correction for photon frequency compression. Output dataset names follow the pattern ``componentMagnitudeApparentStellar:filterName:filterType``.
+   A property extractor that returns stellar apparent magnitudes (AB system) in all broadband filters currently activated in the stellar luminosities structure, for a specified galaxy ``component`` (disk or spheroid). The distance modulus is computed from the luminosity distance (from :galacticus-class:`cosmologyFunctionsClass`) with a :math:`+2.5\log_{10}(1+z)` K-correction for photon frequency compression. Output dataset names follow the pattern ``componentMagnitudeApparentStellar:filterName:filterType``.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -50,7 +50,7 @@ Implements a node property extractor class for apparent magnitudes.
 
   interface nodePropertyExtractorMagnitudesApparent
      !!{RST
-     Constructors for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMagnitudesApparent` property extractor class.
      !!}
      module procedure magnitudesApparentConstructorParameters
      module procedure magnitudesApparentConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function magnitudesApparentConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesApparent` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -90,7 +90,7 @@ contains
 
   function magnitudesApparentConstructorInternal(component,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesApparent` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
   
   subroutine magnitudesApparentDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorMagnitudesApparent`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorMagnitudesApparent` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMagnitudesApparent), intent(inout) :: self

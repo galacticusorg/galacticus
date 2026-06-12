@@ -20,7 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassBoundMaximum" docformat="rst">
    <description>
-   A node property extractor which extracts the maximum bound mass of the node. Requires the ``nodeOperatorMassBoundMaximum`` node operator to be used to track the maximum bound mass.
+   A node property extractor which extracts the maximum bound mass of the node. Requires the :galacticus-class:`nodeOperatorMassBoundMaximum` node operator to be used to track the maximum bound mass.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassBoundMaximum
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBoundMaximum` property extractor class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massBoundMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBoundMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massBoundMaximumConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassBoundMaximum`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassBoundMaximum` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassBoundMaximum) :: self

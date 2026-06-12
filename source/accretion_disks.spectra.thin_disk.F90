@@ -99,7 +99,7 @@
 
   interface accretionDiskSpectraThinDisk
      !!{RST
-     Constructors for the ``accretionDiskSpectraThinDisk`` accretion disk spectra class.
+     Constructors for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
      !!}
      module procedure thinDiskConstructorParameters
      module procedure thinDiskConstructorInternal
@@ -109,7 +109,7 @@ contains
 
   function thinDiskConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``accretionDiskSpectraThinDisk`` accretion disk spectra class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -241,7 +241,7 @@ contains
 
   function thinDiskConstructorInternal(fractionHot,fractionWarm,temperatureHot,temperatureWarm,spectralIndexHot,spectralIndexWarm,energyMinimumHot,energyMinimumWarm,massBlackHoleFiducial,spinBlackHoleFiducial,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``accretionDiskSpectraThinDisk`` accretion disk spectra class.
+    Internal constructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
     !!}
     use :: Gamma_Functions             , only : Gamma_Function_Incomplete_Unnormalized
     use :: Numerical_Constants_Physical, only : plancksConstant                       , speedLight
@@ -317,7 +317,7 @@ contains
 
   subroutine thinDiskDestructor(self)
     !!{RST
-    Destructor for the ``accretionDiskSpectraThinDisk`` accretion disk spectra class.
+    Destructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

@@ -40,7 +40,7 @@
 
   interface mergerTreeMassResolutionFixed
      !!{RST
-     Constructors for the ``mergerTreeMassResolutionFixed`` merger tree building mass resolution class.
+     Constructors for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeMassResolutionFixed`` merger tree building mass resolution class which reads parameters from a provided parameter list.
+    Constructor for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: self
@@ -76,7 +76,7 @@ contains
 
   function fixedConstructorInternal(massResolution) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeMassResolutionFixed`` merger tree building mass resolution class.
+    Internal constructor for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: self

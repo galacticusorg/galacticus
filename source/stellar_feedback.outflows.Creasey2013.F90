@@ -118,7 +118,7 @@ contains
 
   function creasey2013ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
     !!{RST
-    Internal constructor for the ``stellarFeedbackOutflowsCreasey2013`` stellar feedback class.
+    Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
     implicit none
     type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine creasey2013Destructor(self)
     !!{RST
-    Destructor for the ``stellarFeedbackOutflowsCreasey2013`` stellar feedback class.
+    Destructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsCreasey2013), intent(inout) :: self

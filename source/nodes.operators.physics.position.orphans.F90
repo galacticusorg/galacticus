@@ -40,7 +40,7 @@
   
   interface nodeOperatorPositionOrphans
      !!{RST
-     Constructors for the ``nodeOperatorPositionOrphans`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
      !!}
      module procedure positionOrphansConstructorParameters
      module procedure positionOrphansConstructorInternal
@@ -50,7 +50,7 @@ contains
   
   function positionOrphansConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionOrphans`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function positionOrphansConstructorInternal(satelliteOrphanDistribution_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorPositionOrphans`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionOrphans     )                        :: self
@@ -85,7 +85,7 @@ contains
 
   subroutine positionOrphansDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorPositionOrphans`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionOrphans), intent(inout) :: self

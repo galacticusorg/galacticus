@@ -24,7 +24,7 @@ Implements an N-body data operator which applies some other operator to a select
   !![
   <nbodyOperator name="nbodyOperatorSimulationSelector" docformat="rst">
    <description>
-   An N-body data operator which applies a delegate ``nbodyOperatorClass`` to a single element of the simulation array identified by ``[indexSimulation]``, leaving all other simulations unchanged.
+   An N-body data operator which applies a delegate :galacticus-class:`nbodyOperatorClass` to a single element of the simulation array identified by ``[indexSimulation]``, leaving all other simulations unchanged.
    </description>
   </nbodyOperator>
   !!]
@@ -42,7 +42,7 @@ Implements an N-body data operator which applies some other operator to a select
 
   interface nbodyOperatorSimulationSelector
      !!{RST
-     Constructors for the ``nbodyOperatorSimulationSelector`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
      !!}
      module procedure simulationSelectorConstructorParameters
      module procedure simulationSelectorConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function simulationSelectorConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSimulationSelector`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function simulationSelectorConstructorInternal(indexSimulation,nbodyOperator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSimulationSelector`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSimulationSelector)                        :: self
@@ -96,7 +96,7 @@ contains
 
   subroutine simulationSelectorDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSimulationSelector`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSimulationSelector), intent(inout) :: self

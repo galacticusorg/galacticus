@@ -39,7 +39,7 @@ Implements an identity output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorIdentity
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorIdentity`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorIdentity` output analysis property operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisPropertyOperatorIdentity
@@ -48,7 +48,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorIdentity`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorIdentity` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

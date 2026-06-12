@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorGalaxyMergerTreePhysical
      !!{RST
-     Constructors for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreePhysical` property extractor class.
      !!}
      module procedure galaxyMergerTreePhysicalConstructorParameters
      module procedure galaxyMergerTreePhysicalConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function galaxyMergerTreePhysicalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreePhysical` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function galaxyMergerTreePhysicalConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorGalaxyMergerTreePhysical`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreePhysical` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreePhysical) :: self

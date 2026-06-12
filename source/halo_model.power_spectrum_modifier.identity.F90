@@ -36,7 +36,7 @@ Implements a identity modifier for power spectra in the halo model of clustering
 
   interface haloModelPowerSpectrumModifierIdentity
      !!{RST
-     Constructors for the ``haloModelPowerSpectrumModifierIdentity`` halo model power spectrum modifier class.
+     Constructors for the :galacticus-class:`haloModelPowerSpectrumModifierIdentity` halo model power spectrum modifier class.
      !!}
      module procedure identityConstructorParameters
   end interface haloModelPowerSpectrumModifierIdentity

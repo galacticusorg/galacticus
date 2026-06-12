@@ -71,7 +71,7 @@
 
   interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
      !!{RST
-     Constructors for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class.
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnProposalSizeAdaptive` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnProposalSizeAdaptive` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -194,7 +194,7 @@ contains
 
   function adaptiveConstructorInternal(logFileName,gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate,appendLog,restoreFromLog,flushLog) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnProposalSizeAdaptive`` posterior sampling differential evolution random jump class.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnProposalSizeAdaptive` posterior sampling differential evolution random jump class.
     !!}
     use :: MPI_Utilities, only : mpiSelf, mpiBarrier
     implicit none

@@ -47,7 +47,7 @@ Implements an N-body data operator which computes the velocity dispersion in a s
 
   interface nbodyOperatorVelocityDispersion
      !!{RST
-     Constructors for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorVelocityDispersion` N-body operator class.
      !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function velocityDispersionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorVelocityDispersion` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorVelocityDispersion` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -131,7 +131,7 @@ contains
 
   subroutine velocityDispersionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorVelocityDispersion`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorVelocityDispersion` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVelocityDispersion), intent(inout) :: self

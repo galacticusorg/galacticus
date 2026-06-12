@@ -50,7 +50,7 @@
 
   interface powerSpectrumWindowFunctionTopHat
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionTopHat` power spectrum window function class.
      !!}
      module procedure topHatConstructorParameters
      module procedure topHatConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function topHatConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHat` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function topHatConstructorInternal(cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHat` power spectrum window function class.
     !!}
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                        :: self
@@ -95,7 +95,7 @@ contains
 
   subroutine topHatDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionTopHat`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHat` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHat), intent(inout) :: self

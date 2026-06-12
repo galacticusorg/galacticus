@@ -24,7 +24,7 @@ Implements a galactic filter which applies another filter to the isolated host n
   !![
   <galacticFilter name="galacticFilterIsolatedHostNode" docformat="rst">
    <description>
-   Evaluates a wrapped ``galacticFilterClass`` on the isolated (top-level) host halo of the current node rather than on the node itself, enabling selection of satellites based on properties of their ultimate host environment.
+   Evaluates a wrapped :galacticus-class:`galacticFilterClass` on the isolated (top-level) host halo of the current node rather than on the node itself, enabling selection of satellites based on properties of their ultimate host environment.
    </description>
   </galacticFilter>
   !!]
@@ -41,7 +41,7 @@ Implements a galactic filter which applies another filter to the isolated host n
 
   interface galacticFilterIsolatedHostNode
      !!{RST
-     Constructors for the ``galacticFilterIsolatedHostNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
      !!}
      module procedure isolatedHostNodeConstructorParameters
      module procedure isolatedHostNodeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function isolatedHostNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterIsolatedHostNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,7 +72,7 @@ contains
   
   function isolatedHostNodeConstructorInternal(galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterIsolatedHostNode`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
     !!}
     implicit none
     type (galacticFilterIsolatedHostNode)                        :: self
@@ -86,7 +86,7 @@ contains
   
   subroutine isolatedHostNodeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterIsolatedHostNode`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterIsolatedHostNode), intent(inout) :: self

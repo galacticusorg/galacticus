@@ -40,7 +40,7 @@ Implements a filter which passes only halos that have always been isolated.
 
   interface galacticFilterHaloAlwaysIsolated
      !!{RST
-     Constructors for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHaloAlwaysIsolated` galactic filter class.
      !!}
      module procedure haloAlwaysIsolatedConstructorParameters
      module procedure haloAlwaysIsolatedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function haloAlwaysIsolatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHaloAlwaysIsolated` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function haloAlwaysIsolatedConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterHaloAlwaysIsolated`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterHaloAlwaysIsolated` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloAlwaysIsolated) :: self

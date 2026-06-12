@@ -49,7 +49,7 @@
 
   interface haloSpinDistributionBett2007
      !!{RST
-     Constructors for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
+     Constructors for the :galacticus-class:`haloSpinDistributionBett2007` dark matter halo spin distribution class.
      !!}
      module procedure bett2007ConstructorParameters
      module procedure bett2007ConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function bett2007ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`haloSpinDistributionBett2007` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function bett2007ConstructorInternal(lambda0,alpha,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
+    Internal constructor for the :galacticus-class:`haloSpinDistributionBett2007` dark matter halo spin distribution class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function      , Gamma_Function_Incomplete_Complementary
     use :: Table_Labels   , only : extrapolationTypeFix
@@ -177,7 +177,7 @@ contains
 
   subroutine bett2007Destructor(self)
     !!{RST
-    Destructor for the ``haloSpinDistributionBett2007`` dark matter halo spin distribution class.
+    Destructor for the :galacticus-class:`haloSpinDistributionBett2007` dark matter halo spin distribution class.
     !!}
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self

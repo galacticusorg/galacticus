@@ -56,7 +56,7 @@
 
   interface darkMatterProfileConcentrationWDMBose2016
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationWDMBose2016` dark matter halo profile concentration class.
      !!}
      module procedure wdmBose2016ConstructorParameters
      module procedure wdmBose2016ConstructorInternal
@@ -93,7 +93,7 @@ contains
 
   function wdmBose2016ConstructorInternal(cdmConcentration,transferFunction_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationWDMBose2016` dark matter halo profile concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationWDMBose2016)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine wdmBose2016Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationWDMBose2016`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationWDMBose2016` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationWDMBose2016), intent(inout) :: self

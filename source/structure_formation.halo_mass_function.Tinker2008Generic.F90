@@ -45,7 +45,7 @@
 
   interface haloMassFunctionTinker2008Generic
      !!{RST
-     Constructors for the ``haloMassFunctionTinker2008Generic`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
      !!}
      module procedure tinker2008GenericConstructorParameters
      module procedure tinker2008GenericConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function tinker2008GenericConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionTinker2008Generic`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -140,7 +140,7 @@ contains
 
   function tinker2008GenericConstructorInternal(normalization,a,b,c,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionTinker2008Generic`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionTinker2008Generic)                             :: self
@@ -165,7 +165,7 @@ contains
 
   subroutine tinker2008GenericDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionTinker2008Generic`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionTinker2008Generic), intent(inout) :: self

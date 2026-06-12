@@ -51,7 +51,7 @@
 
   interface taskHaloSpinDistribution
      !!{RST
-     Constructors for the ``taskHaloSpinDistribution`` task.
+     Constructors for the :galacticus-class:`taskHaloSpinDistribution` task.
      !!}
      module procedure haloSpinDistributionConstructorParameters
      module procedure haloSpinDistributionConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function haloSpinDistributionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskHaloSpinDistribution`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloSpinDistribution` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -155,7 +155,7 @@ contains
 
   function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,darkMatterHaloScale_,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
     !!{RST
-    Constructor for the ``taskHaloSpinDistribution`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloSpinDistribution` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloSpinDistribution )                        :: self
@@ -177,7 +177,7 @@ contains
 
   subroutine haloSpinDistributionDestructor(self)
     !!{RST
-    Destructor for the ``taskHaloSpinDistribution`` task class.
+    Destructor for the :galacticus-class:`taskHaloSpinDistribution` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

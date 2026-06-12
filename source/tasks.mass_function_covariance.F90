@@ -105,7 +105,7 @@
 
   interface taskMassFunctionCovariance
      !!{RST
-     Constructors for the ``taskMassFunctionCovariance`` task.
+     Constructors for the :galacticus-class:`taskMassFunctionCovariance` task.
      !!}
      module procedure massFunctionCovarianceConstructorParameters
      module procedure massFunctionCovarianceConstructorInternal
@@ -119,7 +119,7 @@ contains
 
   function massFunctionCovarianceConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskMassFunctionCovariance`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskMassFunctionCovariance` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -257,7 +257,7 @@ contains
 
   function massFunctionCovarianceConstructorInternal(massFunctionFileName,surveyRedshiftMinimum,surveyRedshiftMaximum,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,countMassBins,sizeGridFFT,includePoisson,includeHalo,includeLSS,cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_) result(self)
     !!{RST
-    Internal constructor for the ``taskMassFunctionCovariance`` task class.
+    Internal constructor for the :galacticus-class:`taskMassFunctionCovariance` task class.
     !!}
     implicit none
     type            (taskMassFunctionCovariance  )                        :: self
@@ -283,7 +283,7 @@ contains
 
   subroutine massFunctionCovarianceDestructor(self)
     !!{RST
-    Destructor for the ``taskMassFunctionCovariance`` task class.
+    Destructor for the :galacticus-class:`taskMassFunctionCovariance` task class.
     !!}
     implicit none
     type(taskMassFunctionCovariance), intent(inout) :: self

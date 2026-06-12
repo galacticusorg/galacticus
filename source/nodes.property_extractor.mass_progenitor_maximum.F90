@@ -20,7 +20,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassProgenitorMaximum" docformat="rst">
    <description>
-   A node property extractor which extracts the mass of the most massive progenitor of a node. Requires the ``nodeOperatorMassProgenitorMaximum`` node operator to be used to track the maximum progenitor mass.
+   A node property extractor which extracts the mass of the most massive progenitor of a node. Requires the :galacticus-class:`nodeOperatorMassProgenitorMaximum` node operator to be used to track the maximum progenitor mass.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorMassProgenitorMaximum
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassProgenitorMaximum`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function massProgenitorMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassProgenitorMaximum`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function massProgenitorMaximumConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassProgenitorMaximum`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none

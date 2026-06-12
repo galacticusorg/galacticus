@@ -44,7 +44,7 @@
 
   interface initialMassFunctionSalpeter1955
      !!{RST
-     Constructors for the ``initialMassFunctionSalpeter1955`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionSalpeter1955` initial mass function class.
      !!}
      module procedure salpeter1955ConstructorParameters
      module procedure salpeter1955ConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function salpeter1955ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionSalpeter1955`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionSalpeter1955` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function salpeter1955ConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionSalpeter1955`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionSalpeter1955` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionSalpeter1955):: self

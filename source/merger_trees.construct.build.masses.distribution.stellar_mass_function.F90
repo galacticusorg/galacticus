@@ -52,9 +52,9 @@
    To clarify, :math:`P(N|M_\star,M;\delta \ln M_\star;\delta \ln M_\star)` is the probability\footnoteTo put it another way, :math:`P(N|M_\star,M;\delta \ln M_\star)` is closely related to the commonly used Halo Occupation Distribution. to find :math:`N` galaxies of mass between :math:`M_\star` in a bin of width :math:`\delta \ln M_\star` in a halo of mass :math:`M`. The usual conditional stellar mass function is simply the first moment of this distribution:
 
    .. math::
+      :label: eq-cSMFdefinition
 
       \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
-      \label{eq:cSMFdefinition}
 
    The model estimate of the stellar mass function :math:`\Phi(M_\star)` (defined per unit :math:`\ln M_\star`) is
 
@@ -140,7 +140,7 @@
 
    The values of :math:`\lambda` and :math:`\delta \ln M_\star`, and the normalization of :math:`t(M)` are unimportant here since we merely want to find the optimal shape of the :math:`\gamma(M)` function---we can then scale it up or down to use the available time.
 
-   Figure  shows the function :math:`\gamma(M)` obtained by adopting a model conditional stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of :cite:t:`leauthaud_new_2011` which is constrained to match observations from the COSMOS survey. In their model\footnoteThis integral form of the conditional stellar mass function is convenient here since it allows for easy calculation of the number of galaxies expected in the finite-width bins of the observed stellar mass function.:
+   Figure :numref:`{number} &lt;fig-optimalSamplingStellarMassFunction&gt;` shows the function :math:`\gamma(M)` obtained by adopting a model conditional stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of :cite:t:`leauthaud_new_2011` which is constrained to match observations from the COSMOS survey. In their model\footnoteThis integral form of the conditional stellar mass function is convenient here since it allows for easy calculation of the number of galaxies expected in the finite-width bins of the observed stellar mass function.:
 
    .. math::
 
@@ -177,11 +177,10 @@
       {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
       \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
 
-   We use the best fit parameters from the ``SIG_MOD1`` method of :cite:t:`leauthaud_new_2011` for their :math:`z_1` sample, but apply a shift of :math:`-0.2` dex in masses to bring the fit into line with the :math:`z=0.07` mass function of :cite:t:`li_distribution_2009`. The resulting parameter values are shown in Table .
+   We use the best fit parameters from the ``SIG_MOD1`` method of :cite:t:`leauthaud_new_2011` for their :math:`z_1` sample, but apply a shift of :math:`-0.2` dex in masses to bring the fit into line with the :math:`z=0.07` mass function of :cite:t:`li_distribution_2009`. The resulting parameter values are shown in Table :numref:`{number} &lt;tb-z0SMFFitParameters&gt;`.
 
-   Parameters of the conditional stellar mass function fit.
-
-   .. list-table::
+   .. list-table:: Parameters of the conditional stellar mass function fit.
+      :name: tb-z0SMFFitParameters
       :header-rows: 1
 
       * - Parameter
@@ -209,15 +208,15 @@
       * - :math:`\beta_\mathrm{sat}`
         - 0.859
 
-   We assume that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by the constraint of eqn. (), and the assumed forms for :math:`\phi_\mathrm{c}` and :math:`\phi_\mathrm{s}`.
+   We assume that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by the constraint of eqn. (:eq:`eq-cSMFdefinition`), and the assumed forms for :math:`\phi_\mathrm{c}` and :math:`\phi_\mathrm{s}`.
 
-   The errors in the :cite:t:`li_distribution_2009` observed stellar mass function are well fit by (see Fig. ):
+   The errors in the :cite:t:`li_distribution_2009` observed stellar mass function are well fit by (see Fig. :numref:`{number} &lt;fig-stellarMassFunctionErrors&gt;`):
 
    .. math::
+      :label: eq-stellarMassFunctionErrorsFit
 
       \alpha(M_\star) = 10^{-3} \left({M_\star\over 4.5\times 10^{10}\mathrm{M}_\odot}\right)^{-0.3} \exp\left(-{M_\star\over 4.5\times
       10^{10}\mathrm{M}_\odot}\right) + 10^{-7},
-      \label{eq:stellarMassFunctionErrorsFit}
 
    and the tree processing time in Galacticus can be described by:
 
@@ -227,13 +226,15 @@
 
    with :math:`C_0=-0.73`, :math:`C_1=-0.20` and :math:`C_2=0.035`.
 
-   The resulting optimal sampling density curve is shown in Fig.  and is compared to weighting by the halo mass function (i.e. the result of sampling halos at random from a representative volume). Optimal sampling gives less weight to low mass halos (since a sufficient accuracy can be obtained without the need to run many tens of thousands of such halos) and to high mass halos which are computationally expensive.
+   The resulting optimal sampling density curve is shown in Fig. :numref:`{number} &lt;fig-optimalSamplingStellarMassFunction&gt;` and is compared to weighting by the halo mass function (i.e. the result of sampling halos at random from a representative volume). Optimal sampling gives less weight to low mass halos (since a sufficient accuracy can be obtained without the need to run many tens of thousands of such halos) and to high mass halos which are computationally expensive.
 
    .. figure:: ../plots/stellarMassFunctionErrors_z01.pdf
+      :name: fig-stellarMassFunctionErrors
 
-      Errors on the :cite:t:`li_distribution_2009` stellar mass function (points) and the fitting function (line) given by eqn. ().
+      Errors on the :cite:t:`li_distribution_2009` stellar mass function (points) and the fitting function (line) given by eqn. (:eq:`eq-stellarMassFunctionErrorsFit`).
 
    .. figure:: ../plots/optimalSamplingStellarMassFunction.pdf
+      :name: fig-optimalSamplingStellarMassFunction
 
       Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.
    </description>
@@ -258,7 +259,7 @@
 
   interface mergerTreeBuildMassDistributionStllrMssFnctn
      !!{RST
-     Constructors for the ``mergerTreeBuildMassDistributionStllrMssFnctn`` merger tree halo mass function sampling class.
+     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
      !!}
      module procedure stellarMassFunctionConstructorParameters
      module procedure stellarMassFunctionConstructorInternal
@@ -268,7 +269,7 @@ contains
 
   function stellarMassFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassDistributionStllrMssFnctn`` merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -355,7 +356,7 @@ contains
 
   function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassDistributionStllrMssFnctn`` merger tree halo mass function sampling class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
     !!}
    implicit none
     type            (mergerTreeBuildMassDistributionStllrMssFnctn)                        :: self
@@ -375,7 +376,7 @@ contains
 
   subroutine stellarMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassDistributionStllrMssFnctn`` merger tree halo mass function sampling class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassDistributionStllrMssFnctn` merger tree halo mass function sampling class.
     !!}
     implicit none
     type(mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self

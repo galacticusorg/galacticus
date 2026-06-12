@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMOuterRadiusVirialRadius" docformat="rst">
    <description>
-   Sets the outer boundary of the circumgalactic medium (:term:`CGM`) equal to the halo virial radius as computed by a ``darkMatterHaloScaleClass`` object, analytically enforcing this constraint during differential evolution.
+   Sets the outer boundary of the circumgalactic medium (:term:`CGM`) equal to the halo virial radius as computed by a :galacticus-class:`darkMatterHaloScaleClass` object, analytically enforcing this constraint during differential evolution.
    </description>
   </nodeOperator>
   !!]
@@ -46,7 +46,7 @@
   
   interface nodeOperatorCGMOuterRadiusVirialRadius
      !!{RST
-     Constructors for the ``nodeOperatorCGMOuterRadiusVirialRadius`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
      !!}
      module procedure cgmOuterRadiusVirialRadiusConstructorParameters
      module procedure cgmOuterRadiusVirialRadiusConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function cgmOuterRadiusVirialRadiusConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMOuterRadiusVirialRadius`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function cgmOuterRadiusVirialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMOuterRadiusVirialRadius`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
     !!}
     implicit none
     type (nodeOperatorCGMOuterRadiusVirialRadius)                        :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine cgmOuterRadiusVirialRadiusDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMOuterRadiusVirialRadius`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMOuterRadiusVirialRadius), intent(inout) :: self

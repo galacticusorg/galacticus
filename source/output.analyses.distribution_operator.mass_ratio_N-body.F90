@@ -55,7 +55,7 @@ contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorMassRatioNBody`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function massRatioNBodyConstructorInternal(massParentMinimum,massParentMaximum,timeParent,nbodyHaloMassError_,galacticFilter_) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorMassRatioNBody`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -120,7 +120,7 @@ contains
 
   subroutine massRatioNBodyDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorMassRatioNBody`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 

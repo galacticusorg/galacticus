@@ -41,9 +41,10 @@ Implements a property extractor for basic node indices.
    ``nodeIsIsolated``
       Will be :math:`0` for a node which is a subhalo inside some other node (i.e. a satellite galaxy) or :math:`1` for a node that is an isolated halo (i.e. a central galaxy).
 
-   The ``nodeIndex`` property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their ``nodeIndex`` value. By use of the node operator ``\textless nodeOperator value="indexShift"/\textgreater`` this behavior can be changed such that the value of ``nodeIndex`` will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution. These two alternative algorithms for propagating node indices are illustrated in Figure .
+   The ``nodeIndex`` property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their ``nodeIndex`` value. By use of the node operator ``\textless nodeOperator value="indexShift"/\textgreater`` this behavior can be changed such that the value of ``nodeIndex`` will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution. These two alternative algorithms for propagating node indices are illustrated in Figure :numref:`{number} &lt;fig-NodePromotionIndexAlgorithms&gt;`.
 
    .. figure:: Diagrams/NodePromotionIndices.pdf
+      :name: fig-NodePromotionIndexAlgorithms
 
       Illustration of  options for the propagation  of node indices during  node promotion events.  Two identical trees (top row) are evolved without (left column) and one with (right column) the node operator ``\textless nodeOperator value="indexShift"/\textgreater`` The middle and lower rows indicate the resulting node indices after two stages of tree evolution.
    </description>
@@ -65,7 +66,7 @@ Implements a property extractor for basic node indices.
 
   interface nodePropertyExtractorNodeIndices
      !!{RST
-     Constructors for the ``nodePropertyExtractorNodeIndices`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeIndices` property extractor class.
      !!}
      module procedure nodeIndicesConstructorParameters
   end interface nodePropertyExtractorNodeIndices
@@ -74,7 +75,7 @@ contains
 
   function nodeIndicesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorNodeIndices`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeIndices` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -67,7 +67,7 @@
 
   interface taskHaloModelProjectedCorrelationFunction
      !!{RST
-     Constructors for the ``taskHaloModelProjectedCorrelationFunction`` task.
+     Constructors for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task.
      !!}
      module procedure haloModelProjectedCorrelationFunctionConstructorParameters
      module procedure haloModelProjectedCorrelationFunctionConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskHaloModelProjectedCorrelationFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -222,7 +222,7 @@ contains
 
   function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parameters) result(self)
     !!{RST
-    Constructor for the ``taskHaloModelProjectedCorrelationFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -257,7 +257,7 @@ contains
 
   subroutine haloModelProjectedCorrelationFunctionDestructor(self)
     !!{RST
-    Destructor for the ``taskHaloModelProjectedCorrelationFunction`` task class.
+    Destructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none

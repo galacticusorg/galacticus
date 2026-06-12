@@ -27,7 +27,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorOutputStructure" docformat="rst">
    <description>
-   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in the dump are controlled by a ``nodePropertyExtractorClass`` object provided to this class.  Structures are written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called ``mergerTreeN`` where ``N`` is the merger tree index. Each such group will contain datasets corresponding to all extracted properties.
+   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in the dump are controlled by a :galacticus-class:`nodePropertyExtractorClass` object provided to this class.  Structures are written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called ``mergerTreeN`` where ``N`` is the merger tree index. Each such group will contain datasets corresponding to all extracted properties.
    </description>
   </mergerTreeOperator>
   !!]
@@ -45,7 +45,7 @@
 
   interface mergerTreeOperatorOutputStructure
      !!{RST
-     Constructors for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
+     Constructors for the :galacticus-class:`mergerTreeOperatorOutputStructure` merger tree operator class.
      !!}
      module procedure outputStructureConstructorParameters
      module procedure outputStructureConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function outputStructureConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOperatorOutputStructure` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function outputStructureConstructorInternal(nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorOutputStructure` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorOutputStructure)                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine outputStructureDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOperatorOutputStructure`` merger tree operator class.
+    Destructor for the :galacticus-class:`mergerTreeOperatorOutputStructure` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputStructure), intent(inout) :: self

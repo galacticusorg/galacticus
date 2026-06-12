@@ -52,7 +52,7 @@
 
   interface powerSpectrumWindowFunctionHyperbolicTangent
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionHyperbolicTangent` power spectrum window function class.
      !!}
      module procedure hyperbolicTangentConstructorParameters
      module procedure hyperbolicTangentConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function hyperbolicTangentConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionHyperbolicTangent` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function hyperbolicTangentConstructorInternal(cosmologyParameters_,c,beta) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionHyperbolicTangent` power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -116,7 +116,7 @@ contains
 
   subroutine hyperbolicTangentDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionHyperbolicTangent`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionHyperbolicTangent` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionHyperbolicTangent), intent(inout) :: self

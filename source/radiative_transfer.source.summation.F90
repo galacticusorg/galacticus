@@ -52,7 +52,7 @@
 
   interface radiativeTransferSourceSummation
      !!{RST
-     Constructors for the ``radiativeTransferSourceSummation`` radiative transfer source class.
+     Constructors for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSourceSummation`` radiative transfer source class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -99,7 +99,7 @@ contains
 
   function summationConstructorInternal(radiativeTransferSources,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSourceSummation`` radiative transfer source class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -136,7 +136,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferSourceSummation`` radiative transfer source class.
+    Destructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceSummation), intent(inout) :: self

@@ -42,7 +42,7 @@ Implements a galactic filter which applies another filter to a child node of the
 
   interface galacticFilterChildNode
      !!{RST
-     Constructors for the ``galacticFilterChildNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
      !!}
      module procedure childNodeConstructorParameters
      module procedure childNodeConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function childNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterChildNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
   
   function childNodeConstructorInternal(childRank,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterChildNode`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterChildNode)                        :: self
@@ -96,7 +96,7 @@ contains
   
   subroutine childNodeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterChildNode`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterChildNode), intent(inout) :: self

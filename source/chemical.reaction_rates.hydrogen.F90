@@ -100,7 +100,7 @@
 
   interface chemicalReactionRateHydrogenNetwork
      !!{RST
-     Constructors for the ``chemicalReactionRateHydrogenNetwork`` chemical reaction rates class.
+     Constructors for the :galacticus-class:`chemicalReactionRateHydrogenNetwork` chemical reaction rates class.
      !!}
      module procedure hydrogenNetworkConstructorParameters
      module procedure hydrogenNetworkConstructorInternal
@@ -122,7 +122,7 @@ contains
 
   function hydrogenNetworkConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``chemicalReactionRateHydrogenNetwork`` chemical reaction rates class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`chemicalReactionRateHydrogenNetwork` chemical reaction rates class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -166,7 +166,7 @@ contains
 
   function hydrogenNetworkConstructorInternal(fast,includeSelfShielding,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
     !!{RST
-    Constructor for the ``chemicalReactionRateHydrogenNetwork`` chemical reaction rates class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`chemicalReactionRateHydrogenNetwork` chemical reaction rates class which takes a parameter set as input.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
@@ -193,7 +193,7 @@ contains
 
   subroutine hydrogenNetworkDestructor(self)
     !!{RST
-    Destructor for the ``chemicalReactionRateHydrogenNetwork`` chemical reaction rates class.
+    Destructor for the :galacticus-class:`chemicalReactionRateHydrogenNetwork` chemical reaction rates class.
     !!}
     implicit none
     type(chemicalReactionRateHydrogenNetwork), intent(inout) :: self

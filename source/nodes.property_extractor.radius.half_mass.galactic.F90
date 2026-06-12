@@ -43,7 +43,7 @@ Implements a half-galactic mass radius output analysis property extractor class.
 
   interface nodePropertyExtractorRadiusHalfMassGalactic
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusHalfMassGalactic`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusHalfMassGalactic` property extractor class.
      !!}
      module procedure radiusHalfMassGalacticConstructorParameters
   end interface nodePropertyExtractorRadiusHalfMassGalactic
@@ -52,7 +52,7 @@ contains
 
   function radiusHalfMassGalacticConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusHalfMassGalactic`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusHalfMassGalactic` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

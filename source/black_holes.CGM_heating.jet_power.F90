@@ -46,7 +46,7 @@
   
   interface blackHoleCGMHeatingJetPower
      !!{RST
-     Constructors for the ``blackHoleCGMHeatingJetPower`` black hole winds class.
+     Constructors for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class.
      !!}
      module procedure jetPowerConstructorParameters
      module procedure jetPowerConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function jetPowerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleCGMHeatingJetPower`` black hole winds class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function jetPowerConstructorInternal(efficiencyRadioMode,blackHoleAccretionRate_,accretionDisks_) result(self)
     !!{RST
-    Internal constructor for the ``blackHoleCGMHeatingJetPower`` black hole winds class.
+    Internal constructor for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingJetPower)                        :: self

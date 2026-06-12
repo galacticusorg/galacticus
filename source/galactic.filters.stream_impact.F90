@@ -54,7 +54,7 @@ Implements a filter for subhalos that could impact a stream during the timestep.
 
   interface galacticFilterStreamImpact
      !!{RST
-     Constructors for the ``galacticFilterStreamImpact`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
      !!}
      module procedure streamImpactConstructorParameters
      module procedure streamImpactConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function streamImpactConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterStreamImpact`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function streamImpactConstructorInternal(radiusOrbitalStream,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterStreamImpact`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStreamImpact)                        :: self
@@ -108,7 +108,7 @@ contains
 
   subroutine streamImpactDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterStreamImpact`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStreamImpact), intent(inout) :: self

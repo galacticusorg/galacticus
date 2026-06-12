@@ -40,7 +40,7 @@
 
   interface nbodyOperatorSetBoxSize
      !!{RST
-     Constructors for the ``nbodyOperatorSetBoxSize`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSetBoxSize` N-body operator class.
      !!}
      module procedure setBoxSizeConstructorParameters
      module procedure setBoxSizeConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function setBoxSizeConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSetBoxSize`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSetBoxSize` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function setBoxSizeConstructorInternal(boxSize) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSetBoxSize`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSetBoxSize` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSetBoxSize)                :: self

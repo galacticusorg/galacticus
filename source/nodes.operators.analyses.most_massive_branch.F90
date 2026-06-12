@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorBranchMostMassive" docformat="rst">
     <description>
-    A node operator class that determines if a node is on the most massive branch of its tree. Intended to be paired with the ``nodePropertyExtractorBranchMostMassive`` property extractor class to extract this meta-data for output.
+    A node operator class that determines if a node is on the most massive branch of its tree. Intended to be paired with the :galacticus-class:`nodePropertyExtractorBranchMostMassive` property extractor class to extract this meta-data for output.
     </description>
   </nodeOperator>
   !!]
@@ -40,7 +40,7 @@
   
   interface nodeOperatorBranchMostMassive
      !!{RST
-     Constructors for the ``nodeOperatorBranchMostMassive`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBranchMostMassive` node operator class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBranchMostMassive`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBranchMostMassive` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function branchMostMassiveConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBranchMostMassive`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBranchMostMassive` node operator class.
     !!}
     implicit none
     type(nodeOperatorBranchMostMassive) :: self

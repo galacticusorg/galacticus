@@ -39,7 +39,7 @@
 
   interface atomicRecombinationRateDielectronicZero
      !!{RST
-     Constructors for the ``atomicRecombinationRateDielectronicZero`` atomic dielectronic recombination rate class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateDielectronicZero` atomic dielectronic recombination rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicRecombinationRateDielectronicZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateDielectronicZero`` atomic dielectronic recombination rate class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`atomicRecombinationRateDielectronicZero` atomic dielectronic recombination rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

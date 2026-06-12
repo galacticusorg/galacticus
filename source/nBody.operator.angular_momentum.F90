@@ -46,7 +46,7 @@ Implements an N-body data operator which determines the mean angular momentum of
 
   interface nbodyOperatorAngularMomentum
      !!{RST
-     Constructors for the ``nbodyOperatorAngularMomentum`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
      !!}
      module procedure angularMomentumConstructorParameters
      module procedure angularMomentumConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function angularMomentumConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorAngularMomentum`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function angularMomentumConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorAngularMomentum`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorAngularMomentum)                        :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine angularMomentumDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorAngularMomentum`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorAngularMomentum), intent(inout) :: self

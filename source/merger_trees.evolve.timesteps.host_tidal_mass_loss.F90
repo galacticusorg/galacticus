@@ -48,7 +48,7 @@
 
   interface mergerTreeEvolveTimestepHostTidalMassLoss
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepHostTidalMassLoss`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class.
      !!}
      module procedure hostTidalMassLossConstructorParameters
      module procedure hostTidalMassLossConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function hostTidalMassLossConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepHostTidalMassLoss`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function hostTidalMassLossConstructorInternal(timeStepRelative,fractionTimestepMinimum,satelliteTidalStripping_) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepHostTidalMassLoss`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepHostTidalMassLoss)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine hostTidalMassLossDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepHostTidalMassLoss`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepHostTidalMassLoss), intent(inout) :: self

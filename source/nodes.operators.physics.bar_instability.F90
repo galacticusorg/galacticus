@@ -47,7 +47,7 @@
 
   interface nodeOperatorBarInstability
      !!{RST
-     Constructors for the ``nodeOperatorBarInstability`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBarInstability` node operator class.
      !!}
      module procedure barInstabilityConstructorParameters
      module procedure barInstabilityConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function barInstabilityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBarInstability`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBarInstability` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function barInstabilityConstructorInternal(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBarInstability`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBarInstability` node operator class.
     !!}
     implicit none
     type   (nodeOperatorBarInstability         )                        :: self
@@ -106,7 +106,7 @@ contains
 
   subroutine barInstabilityDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBarInstability`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBarInstability` node operator class.
     !!}
     implicit none
     type(nodeOperatorBarInstability), intent(inout) :: self

@@ -33,7 +33,7 @@
       \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}} + \hbox{max}(\mathcal{T},0) }
       \right) &lt; \epsilon_\mathrm{c},
 
-   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), :math:`M_\mathrm{disk}` is the mass of the disk, :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk), :math:`\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2` is the external driving specific torque, and :math:`\mathcal{F}` is the external tidal field (evaluated using the selected method; see ``satelliteTidalField``). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``stabilityThresholdStellar`` and ``stabilityThresholdGaseous`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), :math:`M_\mathrm{disk}` is the mass of the disk, :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk), :math:`\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2` is the external driving specific torque, and :math:`\mathcal{F}` is the external tidal field (evaluated using the selected method; see :galacticus-class:`satelliteTidalField`). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``stabilityThresholdStellar`` and ``stabilityThresholdGaseous`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
 
    .. math::
 
@@ -64,7 +64,7 @@
 
   interface galacticDynamicsBarInstabilityEfstathiou1982Tidal
      !!{RST
-     Constructors for the ``galacticDynamicsBarInstabilityEfstathiou1982Tidal`` model for galactic disk bar instability class.
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982Tidal` model for galactic disk bar instability class.
      !!}
      module procedure efstathiou1982TidalConstructorParameters
      module procedure efstathiou1982TidalConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function efstathiou1982TidalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticDynamicsBarInstabilityEfstathiou1982Tidal`` model for galactic disk bar instability class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982Tidal` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -102,7 +102,7 @@ contains
 
   function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk_,fractionAngularMomentumRetainedSpheroid_,massThresholdHarrassment,satelliteTidalField_) result(self)
     !!{RST
-    Internal constructor for the ``galacticDynamicsBarInstabilityEfstathiou1982Tidal`` model for galactic disk bar instability class.
+    Internal constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982Tidal` model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982Tidal)                        :: self
@@ -120,7 +120,7 @@ contains
 
   subroutine efstathiou1982Destructor(self)
     !!{RST
-    Destructor for the ``galacticDynamicsBarInstabilityEfstathiou1982Tidal`` model for galactic disk bar instability class.
+    Destructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982Tidal` model for galactic disk bar instability class.
     !!}
     implicit none
     type(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self

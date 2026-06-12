@@ -29,7 +29,7 @@ Implements a sequence output analysis weight operator class.
   !![
   <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence" docformat="rst">
    <description>
-   Applies a sequence of ``outputAnalysisWeightOperatorClass`` objects in order to a weight value, enabling construction of complex multi-step weighting schemes from composable weight operators.
+   Applies a sequence of :galacticus-class:`outputAnalysisWeightOperatorClass` objects in order to a weight value, enabling construction of complex multi-step weighting schemes from composable weight operators.
    </description>
    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
   </outputAnalysisWeightOperator>
@@ -53,7 +53,7 @@ Implements a sequence output analysis weight operator class.
 
   interface outputAnalysisWeightOperatorSequence
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorSequence`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorSequence` output analysis weight operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorSequence`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorSequence` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

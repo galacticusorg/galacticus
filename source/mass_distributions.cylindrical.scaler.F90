@@ -75,7 +75,7 @@
 
   interface massDistributionCylindricalScaler
      !!{RST
-     Constructors for the ``massDistributionCylindricalScaler`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
      !!}
      module procedure cylindricalScalerConstructorParameters
      module procedure cylindricalScalerConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function cylindricalScalerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionCylindricalScaler`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -127,7 +127,7 @@ contains
 
   function cylindricalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
     !!{RST
-    Internal constructor for ``massDistributionCylindricalScaler`` mass distribution class.
+    Internal constructor for :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionCylindricalScaler)                        :: self
@@ -144,7 +144,7 @@ contains
 
   subroutine cylindricalScalerDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionCylindricalScaler`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
     !!}
     implicit none
     type(massDistributionCylindricalScaler), intent(inout) :: self

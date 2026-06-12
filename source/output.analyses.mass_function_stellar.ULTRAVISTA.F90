@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the ULTRAVISTA surv
 
   interface outputAnalysisMassFunctionStellarULTRAVISTA
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarULTRAVISTA`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarULTRAVISTA` output analysis class.
      !!}
      module procedure massFunctionStellarULTRAVISTAConstructorParameters
      module procedure massFunctionStellarULTRAVISTAConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarULTRAVISTAConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarULTRAVISTA`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarULTRAVISTA` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -199,7 +199,7 @@ contains
 
   function massFunctionStellarULTRAVISTAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarULTRAVISTA`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarULTRAVISTA` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -388,7 +388,7 @@ contains
 
   subroutine massFunctionStellarULTRAVISTADestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarULTRAVISTA`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarULTRAVISTA` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarULTRAVISTA), intent(inout) :: self

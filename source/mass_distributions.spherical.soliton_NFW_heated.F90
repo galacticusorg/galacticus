@@ -52,7 +52,7 @@
   
   interface massDistributionSolitonNFWHeated
      !!{RST
-     Constructors for the ``massDistributionSolitonNFWHeated`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSolitonNFWHeated` mass distribution class.
      !!}
      module procedure massDistributionSolitonNFWHeatedConstructorParameters
      module procedure massDistributionSolitonNFWHeatedConstructorInternal
@@ -62,7 +62,7 @@ contains
   
   function massDistributionSolitonNFWHeatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSolitonNFWHeated`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSolitonNFWHeated` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -146,7 +146,7 @@ contains
 
   function massDistributionSolitonNFWHeatedConstructorInternal(radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,massDistributionHeated_,componentType,massType) result(self)
     !!{RST
-    Internal constructor for the ``massDistributionSolitonNFWHeated`` mass distribution class.
+    Internal constructor for the :galacticus-class:`massDistributionSolitonNFWHeated` mass distribution class.
     !!}
      use :: Error                     , only : Error_Report
      use :: Galactic_Structure_Options, only : componentTypeDarkHalo
@@ -225,7 +225,7 @@ contains
 
   subroutine solitonNFWHeatedDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSolitonNFWHeated`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSolitonNFWHeated` mass distribution class.
     !!}
     implicit none
     type(massDistributionSolitonNFWHeated), intent(inout) :: self

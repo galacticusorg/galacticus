@@ -39,7 +39,7 @@
 
   interface darkMatterProfileScaleRadiusZero
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusZero`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusZero` dark matter halo profile scale radius class.
      !!}
      module procedure zeroConstructorParameters
   end interface darkMatterProfileScaleRadiusZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusZero`` dark matter halo profile scale radius class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusZero` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

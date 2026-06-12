@@ -40,7 +40,7 @@ Implements a cold dark matter particle class.
 
   interface darkMatterParticleCDM
      !!{RST
-     Constructors for the ``darkMatterParticleCDM`` dark matter particle class.
+     Constructors for the :galacticus-class:`darkMatterParticleCDM` dark matter particle class.
      !!}
      module procedure CDMConstructorParameters
   end interface darkMatterParticleCDM
@@ -49,7 +49,7 @@ contains
 
   function CDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterParticleCDM`` dark matter particle class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterParticleCDM` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

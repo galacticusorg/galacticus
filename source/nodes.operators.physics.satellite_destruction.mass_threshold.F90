@@ -48,7 +48,7 @@
   
   interface nodeOperatorSatelliteDestructionMassThreshold
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteDestructionMassThreshold`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class.
      !!}
      module procedure satelliteDestructionMassThresholdConstructorParameters
      module procedure satelliteDestructionMassThresholdConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function satelliteDestructionMassThresholdConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteDestructionMassThreshold`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction,mergeOnDestruction) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteDestructionMassThreshold`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self

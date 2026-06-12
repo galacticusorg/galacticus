@@ -52,7 +52,7 @@
   
   interface nodeOperatorBlackHolesRadialMigration
      !!{RST
-     Constructors for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesRadialMigration` node operator class.
      !!}
      module procedure blackHolesRadialMigrationConstructorParameters
      module procedure blackHolesRadialMigrationConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function blackHolesRadialMigrationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesRadialMigration` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,7 +100,7 @@ contains
 
   function blackHolesRadialMigrationConstructorInternal(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,blackHoleSeeds_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesRadialMigration` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesRadialMigration   )                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine blackHolesRadialMigrationDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBlackHolesRadialMigration`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesRadialMigration` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesRadialMigration), intent(inout) :: self

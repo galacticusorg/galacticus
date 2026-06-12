@@ -36,12 +36,12 @@ module Stellar_Population_Selectors
    <name>stellarPopulationSelector</name>
    <descriptiveName>Stellar Population Selectors</descriptiveName>
    <description>
-   Class providing selectors for stellar populations---algorithms that choose the appropriate ``stellarPopulationClass`` object to associate with a star formation event given the current star formation rate, the component metallicity, and the galaxy component. Different implementations may always return the same (fixed) stellar population, or may select a metal-poor population at low metallicities to represent Population III stars or a starburst population at high star formation rates, allowing heterogeneous stellar populations within a single galaxy.
+   Class providing selectors for stellar populations---algorithms that choose the appropriate :galacticus-class:`stellarPopulationClass` object to associate with a star formation event given the current star formation rate, the component metallicity, and the galaxy component. Different implementations may always return the same (fixed) stellar population, or may select a metal-poor population at low metallicities to represent Population III stars or a starburst population at high star formation rates, allowing heterogeneous stellar populations within a single galaxy.
    </description>
    <default>fixed</default>
    <method name="select" >
     <description>
-    Return the appropriate ``stellarPopulationClass`` object for a star formation event given the current star formation rate, the elemental abundances of the fuel, and the galaxy component type (disk, spheroid, etc.).
+    Return the appropriate :galacticus-class:`stellarPopulationClass` object for a star formation event given the current star formation rate, the elemental abundances of the fuel, and the galaxy component type (disk, spheroid, etc.).
     </description>
     <type>class(stellarPopulationClass)</type>
     <pass>yes</pass>

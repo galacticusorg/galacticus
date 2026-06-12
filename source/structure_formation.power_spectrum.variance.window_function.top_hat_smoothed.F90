@@ -53,7 +53,7 @@
 
   interface powerSpectrumWindowFunctionTopHatSmoothed
      !!{RST
-     Constructors for the ``powerSpectrumWindowFunctionTopHatSmoothed`` power spectrum window function class.
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
      !!}
      module procedure topHatSmoothedConstructorParameters
      module procedure topHatSmoothedConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function topHatSmoothedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumWindowFunctionTopHatSmoothed`` power spectrum window function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function topHatSmoothedConstructorInternal(cosmologyParameters_,sigma) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumWindowFunctionTopHatSmoothed`` power spectrum window function class.
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSmoothed)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine topHatSmoothedDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumWindowFunctionTopHatSmoothed`` power spectrum window function class.
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self

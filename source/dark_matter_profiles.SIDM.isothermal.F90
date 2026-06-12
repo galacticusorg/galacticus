@@ -26,7 +26,7 @@
   !![
   <darkMatterProfile name="darkMatterProfileSIDMIsothermal" docformat="rst">
     <description>
-    A dark matter halo profile class that builds ``massDistributionSphericalSIDMIsothermalBaryons`` objects for isothermal SIDM profiles containing baryons.
+    A dark matter halo profile class that builds :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` objects for isothermal SIDM profiles containing baryons.
     </description>
   </darkMatterProfile>
   !!]
@@ -44,7 +44,7 @@
 
   interface darkMatterProfileSIDMIsothermal
      !!{RST
-     Constructors for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileSIDMIsothermal` dark matter halo profile class.
      !!}
      module procedure sidmIsothermalConstructorParameters
      module procedure sidmIsothermalConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileSIDMIsothermal` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileSIDMIsothermal` dark matter halo profile class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -101,7 +101,7 @@ contains
 
   subroutine sidmIsothermalDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileSIDMIsothermal`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileSIDMIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileSIDMIsothermal), intent(inout) :: self

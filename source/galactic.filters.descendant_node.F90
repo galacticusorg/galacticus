@@ -26,7 +26,7 @@ Implements a galactic filter which applies another filter to a descendant node o
   !![
   <galacticFilter name="galacticFilterDescendantNode" docformat="rst">
    <description>
-   Evaluates a wrapped ``galacticFilterClass`` not on the current node but on its descendant node, enabling selection criteria based on the future state of a halo's evolution rather than its current properties.
+   Evaluates a wrapped :galacticus-class:`galacticFilterClass` not on the current node but on its descendant node, enabling selection criteria based on the future state of a halo's evolution rather than its current properties.
    </description>
   </galacticFilter>
   !!]
@@ -46,7 +46,7 @@ Implements a galactic filter which applies another filter to a descendant node o
 
   interface galacticFilterDescendantNode
      !!{RST
-     Constructors for the ``galacticFilterDescendantNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterDescendantNode` galactic filter class.
      !!}
      module procedure descendantNodeConstructorParameters
      module procedure descendantNodeConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function descendantNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterDescendantNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterDescendantNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter         , inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
   
   function descendantNodeConstructorInternal(timeDescendant,allowSelf,cosmologyFunctions_,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterDescendantNode`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterDescendantNode` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterDescendantNode)                        :: self
@@ -114,7 +114,7 @@ contains
   
   subroutine descendantNodeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterDescendantNode`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterDescendantNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterDescendantNode), intent(inout) :: self

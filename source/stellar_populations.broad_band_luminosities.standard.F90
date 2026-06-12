@@ -69,7 +69,7 @@
 
   interface stellarPopulationBroadBandLuminositiesStandard
      !!{RST
-     Constructors for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class.
+     Constructors for the :galacticus-class:`stellarPopulationBroadBandLuminositiesStandard` stellar population broad band luminosities class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -89,7 +89,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarPopulationBroadBandLuminositiesStandard` stellar population broad band luminosities class which takes a parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
@@ -152,7 +152,7 @@ contains
 
   function standardConstructorInternal(integrationToleranceRelative,integrationToleranceDegrade,maximumAgeExceededIsFatal,storeToFile,storeDirectory) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationBroadBandLuminositiesStandard`` stellar population broad band luminosities class.
+    Internal constructor for the :galacticus-class:`stellarPopulationBroadBandLuminositiesStandard` stellar population broad band luminosities class.
     !!}
     implicit none
     type            (stellarPopulationBroadBandLuminositiesStandard)                :: self

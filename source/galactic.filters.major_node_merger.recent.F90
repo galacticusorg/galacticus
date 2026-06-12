@@ -41,7 +41,7 @@ Implements a galactic low-pass filter for time since the last major node merger.
 
   interface galacticFilterNodeMajorMergerRecent
      !!{RST
-     Constructors for the ``galacticFilterNodeMajorMergerRecent`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterNodeMajorMergerRecent` galactic filter class.
      !!}
      module procedure nodeMajorMergerRecentConstructorParameters
      module procedure nodeMajorMergerRecentConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function nodeMajorMergerRecentConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterNodeMajorMergerRecent`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterNodeMajorMergerRecent` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function nodeMajorMergerRecentConstructorInternal(timeRecent) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterNodeMajorMergerRecent`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterNodeMajorMergerRecent` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterNodeMajorMergerRecent)                :: self

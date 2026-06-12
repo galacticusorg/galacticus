@@ -39,7 +39,7 @@ Implements an log10 output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorLog10
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorLog10`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorLog10` output analysis property operator class.
      !!}
      module procedure log10ConstructorParameters
   end interface outputAnalysisPropertyOperatorLog10
@@ -48,7 +48,7 @@ contains
 
   function log10ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorLog10`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorLog10` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -73,7 +73,7 @@
 
   interface virialOrbitWetzel2010
      !!{RST
-     Constructors for the ``virialOrbitWetzel2010`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitWetzel2010` virial orbits class.
      !!}
      module procedure wetzel2010ConstructorParameters
      module procedure wetzel2010ConstructorInternal
@@ -100,7 +100,7 @@ contains
 
   function wetzel2010ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``virialOrbitWetzel2010`` virial orbits class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`virialOrbitWetzel2010` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -137,7 +137,7 @@ contains
 
   function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitWetzel2010`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitWetzel2010` virial orbits class.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_1F1
     implicit none
@@ -200,7 +200,7 @@ contains
 
   subroutine wetzel2010Destructor(self)
     !!{RST
-    Destructor for the ``virialOrbitWetzel2010`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitWetzel2010` virial orbits class.
     !!}
     implicit none
     type(virialOrbitWetzel2010), intent(inout) :: self

@@ -49,7 +49,7 @@
 
   interface starFormationTimescaleDynamicalTime
      !!{RST
-     Constructors for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class.
+     Constructors for the :galacticus-class:`starFormationTimescaleDynamicalTime` timescale for star formation class.
      !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleDynamicalTime` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleDynamicalTime`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleDynamicalTime` timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent, defaultNSCComponent
     implicit none

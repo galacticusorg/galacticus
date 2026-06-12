@@ -39,7 +39,7 @@
 
   interface outputAnalysisDistributionNormalizerIdentity
      !!{RST
-     Constructors for the ``outputAnalysisDistributionNormalizerIdentity`` output analysis distribution normalizer class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerIdentity` output analysis distribution normalizer class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionNormalizerIdentity
@@ -48,7 +48,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionNormalizerIdentity`` output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerIdentity` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

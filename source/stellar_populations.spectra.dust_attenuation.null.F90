@@ -39,7 +39,7 @@
 
   interface stellarSpectraDustAttenuationZero
      !!{RST
-     Constructors for the ``stellarSpectraDustAttenuationZero`` stellar spectra dust attenuation class.
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationZero` stellar spectra dust attenuation class.
      !!}
      module procedure zeroConstructorParameters
   end interface stellarSpectraDustAttenuationZero

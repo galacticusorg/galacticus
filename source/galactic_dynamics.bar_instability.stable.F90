@@ -39,7 +39,7 @@
 
   interface galacticDynamicsBarInstabilityStable
      !!{RST
-     Constructors for the ``galacticDynamicsBarInstabilityStable`` model for galactic disk bar instability class.
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityStable` model for galactic disk bar instability class.
      !!}
      module procedure stableConstructorParameters
   end interface galacticDynamicsBarInstabilityStable
@@ -48,7 +48,7 @@ contains
 
   function stableConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticDynamicsBarInstabilityStable`` model for galactic disk bar instability class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityStable` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

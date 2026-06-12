@@ -50,7 +50,7 @@
 
   interface massDistributionSphericalFiniteResolution
      !!{RST
-     Constructors for the ``massDistributionSphericalFiniteResolution`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalFiniteResolution` mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionConstructorParameters
      module procedure sphericalFiniteResolutionConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function sphericalFiniteResolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalFiniteResolution`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalFiniteResolution` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -121,7 +121,7 @@ contains
   
   function sphericalFiniteResolutionConstructorInternal(lengthResolution,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalFiniteResolution`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalFiniteResolution` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalFiniteResolution)                          :: self
@@ -140,7 +140,7 @@ contains
 
   subroutine sphericalFiniteResolutionDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalFiniteResolution`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalFiniteResolution` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalFiniteResolution), intent(inout) :: self

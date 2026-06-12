@@ -42,7 +42,7 @@
 
   interface posteriorSampleStateInitializeMaximumLikelihood
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeMaximumLikelihood` posterior sampling state initialization class.
      !!}
      module procedure maximumLikelihoodConstructorParameters
      module procedure maximumLikelihoodConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function maximumLikelihoodConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeMaximumLikelihood` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function maximumLikelihoodConstructorInternal(logFileRoot) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeMaximumLikelihood`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeMaximumLikelihood` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeMaximumLikelihood)                :: self

@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorNuclearStarClusterGrowth" docformat="rst">
     <description>
-    Computes and applies the gas inflow rate onto the nuclear star cluster (:term:`NSC`) from spheroid gas, driving growth of the :term:`NSC` via differential evolution using a ``nuclearStarClusterGrowthRatesClass`` object.
+    Computes and applies the gas inflow rate onto the nuclear star cluster (:term:`NSC`) from spheroid gas, driving growth of the :term:`NSC` via differential evolution using a :galacticus-class:`nuclearStarClusterGrowthRatesClass` object.
     </description>
   </nodeOperator>
   !!]
@@ -46,7 +46,7 @@
   
   interface nodeOperatorNuclearStarClusterGrowth
      !!{RST
-     Constructors for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorNuclearStarClusterGrowth` node operator class.
      !!}
      module procedure nuclearStarClusterGrowthConstructorParameters
      module procedure nuclearStarClusterGrowthConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function nuclearStarClusterGrowthConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorNuclearStarClusterGrowth` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
   
   function nuclearStarClusterGrowthConstructorInternal(nuclearStarClusterGrowthRates_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorNuclearStarClusterGrowth` node operator class.
     !!}
     implicit none
     type (nodeOperatorNuclearStarClusterGrowth)                        :: self
@@ -91,7 +91,7 @@ contains
   
   subroutine nuclearStarClusterGrowthDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorNuclearStarClusterGrowth`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorNuclearStarClusterGrowth` node operator class.
     !!}
     implicit none
     type(nodeOperatorNuclearStarClusterGrowth), intent(inout) :: self

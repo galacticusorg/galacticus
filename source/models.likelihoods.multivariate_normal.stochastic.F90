@@ -58,7 +58,7 @@
 
   interface posteriorSampleLikelihoodMltiVrtNormalStochastic
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodMltiVrtNormalStochastic`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
      !!}
      module procedure multivariateNormalStochasticConstructorParameters
      module procedure multivariateNormalStochasticConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function multivariateNormalStochasticConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMltiVrtNormalStochastic`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -122,7 +122,7 @@ contains
 
   function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodMltiVrtNormalStochastic`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
     !!}
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means
@@ -139,7 +139,7 @@ contains
 
   subroutine multivariateNormalStochasticDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodMltiVrtNormalStochastic`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self

@@ -49,7 +49,7 @@ Implements an N-body data operator which computes subhalo radial distribution fu
 
   interface nbodyOperatorSubhaloRadiusFunction
      !!{RST
-     Constructors for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSubhaloRadiusFunction` N-body operator class.
      !!}
      module procedure subhaloRadiusFunctionConstructorParameters
      module procedure subhaloRadiusFunctionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function subhaloRadiusFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSubhaloRadiusFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -141,7 +141,7 @@ contains
 
   function subhaloRadiusFunctionConstructorInternal(massMinimum,radiusVirialHost,radiusRatioMinimum,radiusRatioMaximum,radiusCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSubhaloRadiusFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloRadiusFunction)                        :: self
@@ -160,7 +160,7 @@ contains
   
   subroutine subhaloRadiusFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSubhaloRadiusFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSubhaloRadiusFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloRadiusFunction), intent(inout) :: self

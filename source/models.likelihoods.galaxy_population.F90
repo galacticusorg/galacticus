@@ -52,7 +52,7 @@
 
   interface posteriorSampleLikelihoodGalaxyPopulation
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodGalaxyPopulation`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class.
      !!}
      module procedure galaxyPopulationConstructorParameters
      module procedure galaxyPopulationConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodGalaxyPopulation`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
     use :: Input_Parameters, only : inputParameter  , inputParameters
@@ -198,7 +198,7 @@ contains
 
   function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodGalaxyPopulation`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class.
     !!}
     use :: MPI_Utilities     , only : mpiSelf
     use :: Error             , only : Error_Report

@@ -39,7 +39,7 @@ Implements a node operator class that shifts node indices at node promotion.
 
   interface nodeOperatorIndexShift
      !!{RST
-     Constructors for the ``nodeOperatorIndexShift`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorIndexShift` node operator class.
      !!}
      module procedure indexShiftConstructorParameters
   end interface nodeOperatorIndexShift
@@ -48,7 +48,7 @@ contains
 
   function indexShiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorIndexShift`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorIndexShift` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

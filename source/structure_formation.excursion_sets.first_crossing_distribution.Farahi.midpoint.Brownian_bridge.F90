@@ -51,7 +51,7 @@ Implements an excursion set first crossing statistics class using the algorithm 
 
        \mathrm{Cov}(S_\mathrm{a},S_\mathrm{b}) = \frac{(S_2-S_\mathrm{b})(S_\mathrm{a}-S_1)}{S_2-S_1}.
 
-    Therefore, the same approach to solving for the first crossing distribution as was utilized by :cite:t:`benson_dark_2012` and improved by :cite:p:`du_substructure_2017` can be used (see ``excursionSetFirstCrossingFarahi`` and ``excursionSetFirstCrossingFarahiMidpoint`` for details), with just the appropriate change in the effective offset, :math:`\Delta \delta`, and residual variance, :math:`\Delta S`.
+    Therefore, the same approach to solving for the first crossing distribution as was utilized by :cite:t:`benson_dark_2012` and improved by :cite:p:`du_substructure_2017` can be used (see :galacticus-class:`excursionSetFirstCrossingFarahi` and :galacticus-class:`excursionSetFirstCrossingFarahiMidpoint` for details), with just the appropriate change in the effective offset, :math:`\Delta \delta`, and residual variance, :math:`\Delta S`.
 
     Considering two points :math:`(S,\delta)` and :math:`(\tilde{S},\tilde{\delta})` the effective offset is just the difference in their offsets relative to their local means:
 

@@ -32,7 +32,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMulti" docformat="rst">
    <description>
-   Combines multiple individual property extractors into a single extractor, iterating through a list of ``nodePropertyExtractorClass`` objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.
+   Combines multiple individual property extractors into a single extractor, iterating through a list of :galacticus-class:`nodePropertyExtractorClass` objects and collecting their outputs together, enabling extraction of diverse properties in a single pass through the node tree.
    </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
@@ -74,7 +74,7 @@
 
   interface nodePropertyExtractorMulti
      !!{RST
-     Constructors for the ``nodePropertyExtractorMulti`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMulti` property extractor class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMulti`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMulti` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -127,7 +127,7 @@ contains
 
   function multiConstructorInternal(extractors) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMulti`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMulti` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti)                         :: self
@@ -147,7 +147,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorMulti`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorMulti` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMulti), intent(inout) :: self

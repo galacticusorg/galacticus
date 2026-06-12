@@ -54,7 +54,7 @@
   
   interface massDistributionCuspNFW
      !!{RST
-     Constructors for the ``massDistributionCuspNFW`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionCuspNFW` mass distribution class.
      !!}
      module procedure cuspNFWConstructorParameters
      module procedure cuspNFWConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function cuspNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionCuspNFW`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionCuspNFW` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -187,7 +187,7 @@ contains
 
   function cuspNFWConstructorInternal(radiusScale,y,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
     !!{RST
-    Internal constructor for ``massDistributionCuspNFW`` mass distribution class.
+    Internal constructor for :galacticus-class:`massDistributionCuspNFW` mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi

@@ -34,7 +34,7 @@
 
   interface radiativeTransferOutputterNull
      !!{RST
-     Constructors for the ``radiativeTransferOutputterNull`` radiative transfer outputter class.
+     Constructors for the :galacticus-class:`radiativeTransferOutputterNull` radiative transfer outputter class.
      !!}
      module procedure nullConstructorParameters
   end interface radiativeTransferOutputterNull
@@ -43,7 +43,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferOutputterNull`` radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferOutputterNull` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

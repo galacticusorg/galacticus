@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOEinasto" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionEinasto`` objects to compute the Einasto density profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see ``darkMatterProfileConcentration``). The shape parameter, :math:`\alpha`, is set using the density profile shape method (see ``darkMatterProfileShape``).
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionEinasto` objects to compute the Einasto density profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`). The shape parameter, :math:`\alpha`, is set using the density profile shape method (see :galacticus-class:`darkMatterProfileShape`).
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -42,7 +42,7 @@
 
   interface darkMatterProfileDMOEinasto
      !!{RST
-     Constructors for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class.
      !!}
      module procedure einastoConstructorParameters
      module procedure einastoConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function einastoConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -112,7 +112,7 @@ contains
 
   subroutine einastoDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOEinasto`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self

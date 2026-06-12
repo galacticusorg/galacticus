@@ -50,7 +50,7 @@ Implements a star formation histories class which records *in situ* star formati
 
   interface starFormationHistoryInSitu
      !!{RST
-     Constructors for the ``starFormationHistoryInSitu`` star formation history class.
+     Constructors for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
      !!}
      module procedure inSituConstructorParameters
      module procedure inSituConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function inSituConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationHistoryInSitu`` star formation history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
 
   function inSituConstructorInternal(starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationHistoryInSitu`` star formation history class.
+    Internal constructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
     !!}
     implicit none
     type (starFormationHistoryInSitu)                        :: self
@@ -107,7 +107,7 @@ contains
 
   subroutine inSituDestructor(self)
     !!{RST
-    Destructor for the ``starFormationHistoryInSitu`` star formation history class.
+    Destructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryInSitu), intent(inout) :: self

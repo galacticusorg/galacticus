@@ -32,7 +32,7 @@ Implements a :cite:t:`press_formation_1974` dark matter halo mass function class
 
       n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
 
-   where :math:`\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M` and :math:`f[S]` is the excursion set barrier first crossing distribution for variance :math:`S(M)=\sigma^2(M)`, computed using the selected ``excursionSetFirstCrossingClass``.
+   where :math:`\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M` and :math:`f[S]` is the excursion set barrier first crossing distribution for variance :math:`S(M)=\sigma^2(M)`, computed using the selected :galacticus-class:`excursionSetFirstCrossingClass`.
    </description>
   </haloMassFunction>
   !!]
@@ -50,7 +50,7 @@ Implements a :cite:t:`press_formation_1974` dark matter halo mass function class
 
   interface haloMassFunctionPressSchechter
      !!{RST
-     Constructors for the ``haloMassFunctionPressSchechter`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionPressSchechter` halo mass function class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionPressSchechter`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionPressSchechter` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionPressSchechter`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionPressSchechter` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
@@ -103,7 +103,7 @@ contains
 
   subroutine pressSchechterDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionPressSchechter`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionPressSchechter` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionPressSchechter), intent(inout) :: self

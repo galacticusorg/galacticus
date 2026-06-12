@@ -36,7 +36,7 @@
 
   interface taskAGNSpectraHopkins2008BuildFile
      !!{RST
-     Constructors for the ``taskAGNSpectraHopkins2008BuildFile`` task.
+     Constructors for the :galacticus-class:`taskAGNSpectraHopkins2008BuildFile` task.
      !!}
      module procedure agnSpectraHopkins2008BuildFileParameters
   end interface taskAGNSpectraHopkins2008BuildFile
@@ -45,7 +45,7 @@ contains
 
   function agnSpectraHopkins2008BuildFileParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskAGNSpectraHopkins2008BuildFile`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskAGNSpectraHopkins2008BuildFile` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

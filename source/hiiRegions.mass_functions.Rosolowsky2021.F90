@@ -54,7 +54,7 @@
 
   interface hiiRegionMassFunctionRosolowsky2021
      !!{RST
-     Constructors for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class.
+     Constructors for the :galacticus-class:`hiiRegionMassFunctionRosolowsky2021` HII region stellar mass function class.
      !!}
      module procedure rosolowsky2021CumulativeMassConstructorParameters
      module procedure rosolowsky2021CumulativeMassConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function rosolowsky2021CumulativeMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`hiiRegionMassFunctionRosolowsky2021` HII region stellar mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function rosolowsky2021CumulativeMassConstructorInternal(massMinimum,massMaximum,massCutOff,exponent,epsilon) result(self)
     !!{RST
-    Internal constructor for the ``hiiRegionMassFunctionRosolowsky2021`` HII region stellar mass function class.
+    Internal constructor for the :galacticus-class:`hiiRegionMassFunctionRosolowsky2021` HII region stellar mass function class.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
     implicit none

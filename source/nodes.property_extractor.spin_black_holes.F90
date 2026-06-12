@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorSpinBlackHoles
      !!{RST
-     Constructors for the ``nodePropertyExtractorSpinBlackHoles`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSpinBlackHoles` property extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles
@@ -49,7 +49,7 @@ contains
 
   function spinBlackHolesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSpinBlackHoles`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSpinBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

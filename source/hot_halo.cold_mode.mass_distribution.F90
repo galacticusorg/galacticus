@@ -35,7 +35,7 @@ module Hot_Halo_Cold_Mode_Mass_Distributions
    <name>hotHaloColdModeMassDistribution</name>
    <descriptiveName>Hot Halo Cold Mode Mass Distributions</descriptiveName>
    <description>
-   Class providing the radial mass distribution of cold-mode gas in the hot halo, returned as a ``massDistributionClass`` object. In massive halos at high redshift, a fraction of the infalling gas may remain in dense, cold filaments rather than shock-heating to the virial temperature. This class models the spatial distribution of that cold-mode component, which can be compared with the hot halo profile to determine the rate of cold-mode accretion onto the central galaxy.
+   Class providing the radial mass distribution of cold-mode gas in the hot halo, returned as a :galacticus-class:`massDistributionClass` object. In massive halos at high redshift, a fraction of the infalling gas may remain in dense, cold filaments rather than shock-heating to the virial temperature. This class models the spatial distribution of that cold-mode component, which can be compared with the hot halo profile to determine the rate of cold-mode accretion onto the central galaxy.
    </description>
    <default>betaProfile</default>
    <method name="get" >

@@ -44,7 +44,7 @@ Implements a stellar mass function output analysis class.
 
   interface outputAnalysisLuminosityFunctionGunawardhana2013SDSS
      !!{RST
-     Constructors for the ``outputAnalysisLuminosityFunctionGunawardhana2013SDSS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class.
      !!}
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorParameters
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunctionGunawardhana2013SDSS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
@@ -189,7 +189,7 @@ contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunctionGunawardhana2013SDSS`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -348,7 +348,7 @@ contains
 
   subroutine luminosityFunctionGunawardhana2013SDSSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLuminosityFunctionGunawardhana2013SDSS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionGunawardhana2013SDSS), intent(inout) :: self

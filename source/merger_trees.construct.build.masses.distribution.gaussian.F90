@@ -40,7 +40,7 @@
 
   interface mergerTreeBuildMassDistributionGaussian
      !!{RST
-     Constructors for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class.
+     Constructors for the :galacticus-class:`mergerTreeBuildMassDistributionGaussian` merger tree halo mass function sampling class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function gaussianConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassDistributionGaussian` merger tree halo mass function sampling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function gaussianConstructorInternal(mean,rootVariance) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassDistributionGaussian`` merger tree halo mass function sampling class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassDistributionGaussian` merger tree halo mass function sampling class.
     !!}
     implicit none
     type            (mergerTreeBuildMassDistributionGaussian)                :: self

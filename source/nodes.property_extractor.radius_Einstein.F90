@@ -30,7 +30,7 @@ Implements an output analysis property extractor class that extracts the Einstei
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusEinstein" docformat="rst">
    <description>
-   A property extractor that computes the Einstein radius (in arcseconds) of the dark matter halo for gravitational lensing, given a background source at redshift ``redshiftSource``. The Einstein radius is determined numerically by finding the projected impact parameter at which the mean projected surface mass density enclosed within that radius equals the critical surface density :math:`\Sigma_\mathrm{cr} = \mathrm{c}^2 D_\mathrm{s} / (4\pi \mathrm{G} D_\mathrm{l} D_\mathrm{ls})`, where :math:`D_\mathrm{s}`, :math:`D_\mathrm{l}`, and :math:`D_\mathrm{ls}` are the angular diameter distances to the source, lens, and from lens to source, respectively. Numerical integration over the line-of-sight and impact parameter is performed using the halo mass distribution from ``massDistributionClass``.
+   A property extractor that computes the Einstein radius (in arcseconds) of the dark matter halo for gravitational lensing, given a background source at redshift ``redshiftSource``. The Einstein radius is determined numerically by finding the projected impact parameter at which the mean projected surface mass density enclosed within that radius equals the critical surface density :math:`\Sigma_\mathrm{cr} = \mathrm{c}^2 D_\mathrm{s} / (4\pi \mathrm{G} D_\mathrm{l} D_\mathrm{ls})`, where :math:`D_\mathrm{s}`, :math:`D_\mathrm{l}`, and :math:`D_\mathrm{ls}` are the angular diameter distances to the source, lens, and from lens to source, respectively. Numerical integration over the line-of-sight and impact parameter is performed using the halo mass distribution from :galacticus-class:`massDistributionClass`.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -55,7 +55,7 @@ Implements an output analysis property extractor class that extracts the Einstei
 
   interface nodePropertyExtractorRadiusEinstein
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusEinstein`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusEinstein` property extractor class.
      !!}
      module procedure radiusEinsteinConstructorParameters
      module procedure radiusEinsteinConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function radiusEinsteinConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusEinstein`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusEinstein` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function radiusEinsteinConstructorInternal(timeSource,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusEinstein`` node property extractor.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusEinstein` node property extractor.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -145,7 +145,7 @@ contains
 
   subroutine radiusEinsteinDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusEinstein`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusEinstein` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusEinstein), intent(inout) :: self

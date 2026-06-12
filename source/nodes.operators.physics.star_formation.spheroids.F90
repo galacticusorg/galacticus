@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorStarFormationSpheroids" docformat="rst">
    <description>
-   A node operator class that performs star formation in galactic spheroids by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by ``starFormationRateSpheroidsClass`` and applied to evolve the spheroid gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).
+   A node operator class that performs star formation in galactic spheroids by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by :galacticus-class:`starFormationRateSpheroidsClass` and applied to evolve the spheroid gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver (set true for performance when luminosities are not needed during evolution).
    </description>
   </nodeOperator>
   !!]
@@ -49,7 +49,7 @@
   
   interface nodeOperatorStarFormationSpheroids
      !!{RST
-     Constructors for the ``nodeOperatorStarFormationSpheroids`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationSpheroids` node operator class.
      !!}
      module procedure starFormationSpheroidsConstructorParameters
      module procedure starFormationSpheroidsConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function starFormationSpheroidsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStarFormationSpheroids`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function starFormationSpheroidsConstructorInternal(luminositiesStellarInactive,starFormationRateSpheroids_,stellarPopulationProperties_,starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStarFormationSpheroids`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationSpheroids` node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationSpheroids)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine starFormationSpheroidsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStarFormationSpheroids`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationSpheroids), intent(inout) :: self

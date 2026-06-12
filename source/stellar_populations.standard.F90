@@ -69,7 +69,7 @@
   !![
   <stellarPopulation name="stellarPopulationStandard" docformat="rst">
     <description>
-    A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and rates. These rates are determined from the ``stellarPopulationClass`` object provided by a ``stellarPopulationSelectorClass``.
+    A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and rates. These rates are determined from the :galacticus-class:`stellarPopulationClass` object provided by a :galacticus-class:`stellarPopulationSelectorClass`.
 
     It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
 
@@ -167,7 +167,7 @@
 
   interface stellarPopulationStandard
      !!{RST
-     Constructors for the ``stellarPopulationStandard`` stellar population class.
+     Constructors for the :galacticus-class:`stellarPopulationStandard` stellar population class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -199,7 +199,7 @@ contains
 
   function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative,instantaneousApproximation) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationStandard`` stellar population class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationStandard` stellar population class which takes a parameter list as input.
     !!}
     implicit none
     type            (populationTable)                :: self
@@ -217,7 +217,7 @@ contains
 
   function standardConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarPopulationStandard`` stellar population class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarPopulationStandard` stellar population class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -327,7 +327,7 @@ contains
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,instantaneousYieldApproximation,instantaneousEnergyInputApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationStandard`` stellar population.
+    Internal constructor for the :galacticus-class:`stellarPopulationStandard` stellar population.
     !!}
     use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
@@ -376,7 +376,7 @@ contains
 
   subroutine standardDestructor(self)
     !!{RST
-    Destructor for the ``stellarPopulationStandard`` stellar population class.
+    Destructor for the :galacticus-class:`stellarPopulationStandard` stellar population class.
     !!}
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self
@@ -393,7 +393,7 @@ contains
 
   subroutine populationTableAssign(to,from)
     !!{RST
-    Assignment operator for ``populationTable`` objects.
+    Assignment operator for :galacticus-class:`populationTable` objects.
     !!}
     implicit none
     class(populationTable), intent(  out) :: to

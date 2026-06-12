@@ -41,7 +41,7 @@
 
   interface galacticDynamicsBarInstabilityFixedTimescale
      !!{RST
-     Constructors for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class.
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityFixedTimescale` model for galactic disk bar instability class.
      !!}
      module procedure fixedTimescaleConstructorParameters
      module procedure fixedTimescaleConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function fixedTimescaleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityFixedTimescale` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function fixedTimescaleConstructorInternal(timescale_,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
     !!{RST
-    Internal constructor for the ``galacticDynamicsBarInstabilityFixedTimescale`` model for galactic disk bar instability class.
+    Internal constructor for the :galacticus-class:`galacticDynamicsBarInstabilityFixedTimescale` model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityFixedTimescale)                :: self

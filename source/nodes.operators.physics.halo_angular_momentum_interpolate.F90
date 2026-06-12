@@ -42,7 +42,7 @@
   
   interface nodeOperatorHaloAngularMomentumInterpolate
      !!{RST
-     Constructors for the ``nodeOperatorHaloAngularMomentumInterpolate`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumInterpolate` node operator class.
      !!}
      module procedure haloAngMomInterpolateConstructorParameters
   end interface nodeOperatorHaloAngularMomentumInterpolate
@@ -51,7 +51,7 @@ contains
   
   function haloAngMomInterpolateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHaloAngularMomentumInterpolate`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

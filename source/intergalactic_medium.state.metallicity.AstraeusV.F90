@@ -48,7 +48,7 @@
 
   interface intergalacticMediumStateMetallicityAstraeusV
      !!{RST
-     Constructors for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class.
+     Constructors for the :galacticus-class:`intergalacticMediumStateMetallicityAstraeusV` :term:`IGM` state class.
      !!}
      module procedure metallicityAstraeusVIGMConstructorParameters
      module procedure metallicityAstraeusVIGMConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function metallicityAstraeusVIGMConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityAstraeusV` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function metallicityAstraeusVIGMConstructorInternal(cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityAstraeusV`` :term:`IGM` state class.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityAstraeusV` :term:`IGM` state class.
     !!}
     implicit none
     type (intergalacticMediumStateMetallicityAstraeusV)                        :: self

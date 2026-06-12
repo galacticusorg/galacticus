@@ -57,7 +57,7 @@
 
   interface variogramGaussian
      !!{RST
-     Constructors for the ``variogramGaussian`` variogram class.
+     Constructors for the :galacticus-class:`variogramGaussian` variogram class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function gaussianConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``variogramGaussian`` variogram class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`variogramGaussian` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function gaussianConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{RST
-    Constructor for the ``variogramGaussian`` variogram class.
+    Constructor for the :galacticus-class:`variogramGaussian` variogram class.
     !!}
     implicit none
     type   (variogramGaussian                )                :: self

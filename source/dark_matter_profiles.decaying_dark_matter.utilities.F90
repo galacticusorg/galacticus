@@ -305,16 +305,16 @@ contains
     where :math:`v_\mathrm{k}` is the scale-free kick velocity, and :math:`H(x) = 1` if :math:`x` is true, and 0 otherwise. Solving the inequality for the velocity, :math:`v`, that will remain bound as a function of :math:`\theta`, gives :math:`v_\mathrm{max|min}(\theta) = \pm \left( v_\mathrm{e}^2 - v_\mathrm{k}^2 \sin^2\theta \right)^{1/2} - v_\mathrm{k} \cos \theta`, so:
 
     .. math::
+       :label: eq-decayingDMRetainedEnergy
 
        \epsilon =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v \frac{1}{2} \left( v_\mathrm{k}^2 + 2 v v_\mathrm{k} \cos\theta \right) p(v,\theta|s).
-       \label{eq:decayingDMRetainedEnergy}
 
     Similarly, the retained fraction of particles is simply
 
     .. math::
+       :label: eq-decayingDMRetainedFraction
 
        f =  \int_{-1}^{+_1} \mathrm{d}\cos\theta \int_{v_\mathrm{min}(\theta)}^{v_\mathrm{max}(\theta)} \mathrm{d}v p(v,\theta|s).
-       \label{eq:decayingDMRetainedFraction}
     !!}
     use :: Display                 , only : displayCounter, displayCounterClear          , displayIndent                , displayUnindent          , &
          &                                  displayMessage, verbosityLevelStandard
@@ -551,7 +551,7 @@ contains
 
     double precision function fractionRetainedIntegrandIndefinite(velocityScaleFree) result(integrand)
       !!{RST
-      The indefinite integral over velocity of the retained fraction of particles (note that the normalization factor is not included here; see eqn. ):
+      The indefinite integral over velocity of the retained fraction of particles (note that the normalization factor is not included here; see eqn. :eq:`eq-decayingDMRetainedFraction`):
 
       .. math::
 
@@ -567,7 +567,7 @@ contains
     
     double precision function energyRetainedIntegrandIndefinite(cosTheta,velocityScaleFree) result(integrand)
       !!{RST
-      The indefinite integral over velocity of the retained energy of particles (note that the normalization factor is not included here; see eqn. ):
+      The indefinite integral over velocity of the retained energy of particles (note that the normalization factor is not included here; see eqn. :eq:`eq-decayingDMRetainedEnergy`):
 
       .. math::
 

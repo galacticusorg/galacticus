@@ -65,7 +65,7 @@
 
   interface massDistributionHeatingMonotonic
      !!{RST
-     Constructors for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingMonotonic` mass distribution heating class.
      !!}
      module procedure monotonicConstructorParameters
      module procedure monotonicConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function monotonicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonic` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
   
   function monotonicConstructorInternal(massDistributionHeating_) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonic` mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonic)                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine monotonicDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionHeatingMonotonic`` mass distribution heating class.
+    Destructor for the :galacticus-class:`massDistributionHeatingMonotonic` mass distribution heating class.
     !!}
     implicit none
     type(massDistributionHeatingMonotonic), intent(inout) :: self

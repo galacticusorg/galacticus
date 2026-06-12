@@ -42,7 +42,7 @@
 
   interface galacticFilterPrimaryDescendantNode
      !!{RST
-     Constructors for the ``galacticFilterPrimaryDescendantNode`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
      !!}
      module procedure primaryDescendantNodeConstructorParameters
      module procedure primaryDescendantNodeConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function primaryDescendantNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterPrimaryDescendantNode`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,7 +81,7 @@ contains
   
   function primaryDescendantNodeConstructorInternal(allowSelf,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterPrimaryDescendantNode`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterPrimaryDescendantNode)                        :: self
@@ -96,7 +96,7 @@ contains
   
   subroutine primaryDescendantNodeDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterPrimaryDescendantNode`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterPrimaryDescendantNode), intent(inout) :: self

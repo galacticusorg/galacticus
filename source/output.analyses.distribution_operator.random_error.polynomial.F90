@@ -42,7 +42,7 @@
 
   interface outputAnalysisDistributionOperatorRandomErrorPlynml
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorRandomErrorPlynml`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
      !!}
      module procedure randomErrorPolynomialConstructorParameters
      module procedure randomErrorPolynomialConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function randomErrorPolynomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorRandomErrorPlynml`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,zeroPoint,coefficient) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorRandomErrorPlynml`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self

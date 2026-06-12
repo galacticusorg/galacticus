@@ -61,7 +61,7 @@
 
   interface mergerTreeEvolveProfilerSimple
      !!{RST
-     Constructors for the ``mergerTreeEvolveProfilerSimple`` merger tree evolve profiler class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveProfilerSimple` merger tree evolve profiler class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -71,7 +71,7 @@ contains
   
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveProfilerSimple`` merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveProfilerSimple` merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

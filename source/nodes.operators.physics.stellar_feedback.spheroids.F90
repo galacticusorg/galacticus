@@ -47,7 +47,7 @@
   
   interface nodeOperatorStellarFeedbackSpheroids
      !!{RST
-     Constructors for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStellarFeedbackSpheroids` node operator class.
      !!}
      module procedure stellarFeedbackSpheroidsConstructorParameters
      module procedure stellarFeedbackSpheroidsConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function stellarFeedbackSpheroidsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStellarFeedbackSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function stellarFeedbackSpheroidsConstructorInternal(starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStellarFeedbackSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackSpheroids)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine stellarFeedbackSpheroidsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStellarFeedbackSpheroids`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStellarFeedbackSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackSpheroids), intent(inout) :: self

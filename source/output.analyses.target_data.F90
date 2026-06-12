@@ -23,7 +23,7 @@ Contains a module which provides a class that packages the shared "target data" 
 
 module Output_Analysis_Target_Data
   !!{RST
-  Provides a class that packages the shared "target data" arguments used by the various 1D function output analyses (``outputAnalysisMeanFunction1D``, ``outputAnalysisScatterFunction1D``, ``outputAnalysisVolumeFunction1D``).  These fields are conceptually coupled --- a comparison dataset for a 1D function output --- so wrapping them into a single object both clarifies intent at call sites and collapses what would otherwise be a :math:`2^N` presence-combination explosion in the Python wrapper's optional-argument branching down to a single optional object argument on each outer constructor.
+  Provides a class that packages the shared "target data" arguments used by the various 1D function output analyses (:galacticus-class:`outputAnalysisMeanFunction1D`, :galacticus-class:`outputAnalysisScatterFunction1D`, :galacticus-class:`outputAnalysisVolumeFunction1D`).  These fields are conceptually coupled --- a comparison dataset for a 1D function output --- so wrapping them into a single object both clarifies intent at call sites and collapses what would otherwise be a :math:`2^N` presence-combination explosion in the Python wrapper's optional-argument branching down to a single optional object argument on each outer constructor.
   !!}
   use :: ISO_Varying_String, only : varying_string
   private

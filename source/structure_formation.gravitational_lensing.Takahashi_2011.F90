@@ -128,7 +128,7 @@ contains
 
   subroutine takahashi2011Destructor(self)
     !!{RST
-    Destructor for the ``gravitationalLensingTakahashi2011`` gravitational lensing class.
+    Destructor for the :galacticus-class:`gravitationalLensingTakahashi2011` gravitational lensing class.
     !!}
     implicit none
     type(gravitationalLensingTakahashi2011), intent(inout) :: self

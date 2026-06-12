@@ -52,7 +52,7 @@
 
   interface nuclearStarClusterGrowthRatesAntonini2015
      !!{RST
-     Constructors for the ``nuclearStarClusterGrowthRatesAntonini2015`` gas inflow rate in :term:`NSC` class.
+     Constructors for the :galacticus-class:`nuclearStarClusterGrowthRatesAntonini2015` gas inflow rate in :term:`NSC` class.
      !!}
      module procedure antonini2015ConstructorParameters
      module procedure antonini2015ConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function antonini2015ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nuclearStarClusterGrowthRatesAntonini2015`` gas inflow rate in :term:`NSC` class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nuclearStarClusterGrowthRatesAntonini2015` gas inflow rate in :term:`NSC` class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function antonini2015ConstructorInternal(efficiency,starFormationRateSpheroids_) result(self)
     !!{RST
-    Internal constructor for the ``nuclearStarClusterGrowthRatesAntonini2015`` gas inflow rate in :term:`NSC` class.
+    Internal constructor for the :galacticus-class:`nuclearStarClusterGrowthRatesAntonini2015` gas inflow rate in :term:`NSC` class.
     !!}
     implicit none
     type            (nuclearStarClusterGrowthRatesAntonini2015)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine antonini2015Destructor(self)
     !!{RST
-    Destructor for the ``nuclearStarClusterGrowthRatesAntonini2015`` gas inflow rate in :term:`NSC` class
+    Destructor for the :galacticus-class:`nuclearStarClusterGrowthRatesAntonini2015` gas inflow rate in :term:`NSC` class
     !!}
     implicit none
     type(nuclearStarClusterGrowthRatesAntonini2015), intent(inout) :: self

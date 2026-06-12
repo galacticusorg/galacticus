@@ -59,7 +59,7 @@
 
   interface posteriorSampleSimulationGrid
      !!{RST
-     Constructors for the ``posteriorSampleSimulationGrid`` posterior sampling simulation class.
+     Constructors for the :galacticus-class:`posteriorSampleSimulationGrid` posterior sampling simulation class.
      !!}
      module procedure gridConstructorParameters
      module procedure gridConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function gridConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleSimulationGrid`` posterior sampling simulation class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleSimulationGrid` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report

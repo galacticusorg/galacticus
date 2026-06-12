@@ -49,7 +49,7 @@
 
   interface modelParameterInactive
      !!{RST
-     Constructors for the ``modelParameterInactive`` model parameter class.
+     Constructors for the :galacticus-class:`modelParameterInactive` model parameter class.
      !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function inactiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``modelParameterInactive`` model parameter class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`modelParameterInactive` model parameter class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function inactiveConstructorInternal(name_) result(self)
     !!{RST
-    Internal constructor for the ``modelParameterInactive`` model parameter class.
+    Internal constructor for the :galacticus-class:`modelParameterInactive` model parameter class.
     !!}
     implicit none
     type (modelParameterInactive)                :: self

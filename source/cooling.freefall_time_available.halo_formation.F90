@@ -57,7 +57,7 @@ contains
 
   function haloFormationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``freefallTimeAvailableHaloFormation`` freefall time available class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`freefallTimeAvailableHaloFormation` freefall time available class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters  , only : inputParameters
     implicit none
@@ -73,7 +73,7 @@ contains
 
   function haloFormationConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``freefallTimeAvailableHaloFormation`` freefall time available class.
+    Internal constructor for the :galacticus-class:`freefallTimeAvailableHaloFormation` freefall time available class.
     !!}
     implicit none
     type(freefallTimeAvailableHaloFormation) :: self

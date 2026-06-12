@@ -39,7 +39,7 @@
 
   interface posteriorSampleStoppingCriterionNever
      !!{RST
-     Constructors for the ``posteriorSampleStoppingCriterionNever`` posterior sampling stopping class.
+     Constructors for the :galacticus-class:`posteriorSampleStoppingCriterionNever` posterior sampling stopping class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleStoppingCriterionNever
@@ -48,7 +48,7 @@ contains
 
   function neverConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStoppingCriterionNever`` posterior sampling stopping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStoppingCriterionNever` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

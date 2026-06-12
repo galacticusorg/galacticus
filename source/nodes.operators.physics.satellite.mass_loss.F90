@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteMassLoss" docformat="rst">
    <description>
-   A node operator class that evolves the bound dark matter mass of satellite halos at each ODE timestep using a ``darkMatterHaloMassLossRateClass`` to compute the mass loss rate. ``massBoundIsInactive`` controls whether the bound mass is treated as an inactive ODE variable (set true for improved performance when mass loss is negligible or prescribed externally).
+   A node operator class that evolves the bound dark matter mass of satellite halos at each ODE timestep using a :galacticus-class:`darkMatterHaloMassLossRateClass` to compute the mass loss rate. ``massBoundIsInactive`` controls whether the bound mass is treated as an inactive ODE variable (set true for improved performance when mass loss is negligible or prescribed externally).
    </description>
   </nodeOperator>
   !!]
@@ -54,7 +54,7 @@
   
   interface nodeOperatorSatelliteMassLoss
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteMassLoss`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
      !!}
      module procedure satelliteMassLossConstructorParameters
      module procedure satelliteMassLossConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function satelliteMassLossConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteMassLoss`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function satelliteMassLossConstructorInternal(massBoundIsInactive,darkMatterHaloMassLossRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteMassLoss`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMassLoss  )                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine satelliteMassLossDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteMassLoss`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none

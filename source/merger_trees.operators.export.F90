@@ -29,7 +29,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorExport" docformat="rst">
    <description>
-   This operator will export merger trees to a file specified by the ``[outputFileName]`` using the format specified by ``[exportFormat]``. Currently, node indices (plus host indices, which are assumed identical to the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If ``IRATE``-format output is requested then "snapshot" numbers will be assigned to nodes based on the time at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted from an N-body simulation, or if trees were re-gridded onto such a time grid; see ``mergerTreeOperatorRegridTimes``). Export happens during the merger tree pre-evolution phase.
+   This operator will export merger trees to a file specified by the ``[outputFileName]`` using the format specified by ``[exportFormat]``. Currently, node indices (plus host indices, which are assumed identical to the node indices), descendant indices, masses and redshifts are exported. Positions and velocities are exported if available. If ``IRATE``-format output is requested then "snapshot" numbers will be assigned to nodes based on the time at which they exist. This usually only makes sense if the nodes are defined on a time grid (i.e. if merger trees were extracted from an N-body simulation, or if trees were re-gridded onto such a time grid; see :galacticus-class:`mergerTreeOperatorRegridTimes`). Export happens during the merger tree pre-evolution phase.
 
    Node positions and velocities will be exported if they are available.
 

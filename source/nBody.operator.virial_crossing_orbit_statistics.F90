@@ -57,7 +57,7 @@ Implements an N-body data operator which computes virial crossing orbit statisti
 
   interface nbodyOperatorVirialCrossingOrbitStatistics
      !!{RST
-     Constructors for the ``nbodyOperatorVirialCrossingOrbitStatistics`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
      !!}
      module procedure virialCrossingOrbitStatisticsConstructorParameters
      module procedure virialCrossingOrbitStatisticsConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function virialCrossingOrbitStatisticsConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorVirialCrossingOrbitStatistics`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter
@@ -203,7 +203,7 @@ contains
 
   function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorVirialCrossingOrbitStatistics`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                        :: self
@@ -229,7 +229,7 @@ contains
 
   subroutine virialCrossingOrbitStatisticsDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorVirialCrossingOrbitStatistics`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVirialCrossingOrbitStatistics), intent(inout) :: self

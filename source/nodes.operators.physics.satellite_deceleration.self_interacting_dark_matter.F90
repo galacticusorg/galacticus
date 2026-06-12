@@ -43,7 +43,7 @@
   
   interface nodeOperatorSatelliteDecelerationSIDM
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteDecelerationSIDM`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
      !!}
      module procedure satelliteDecelerationSIDMConstructorParameters
      module procedure satelliteDecelerationSIDMConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function satelliteDecelerationSIDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteDecelerationSIDM`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function satelliteDecelerationSIDMConstructorInternal(satelliteDecelerationSIDM_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorSatelliteDecelerationSIDM`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDecelerationSIDM)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine satelliteDecelerationSIDMDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteDecelerationSIDM`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDecelerationSIDM), intent(inout) :: self

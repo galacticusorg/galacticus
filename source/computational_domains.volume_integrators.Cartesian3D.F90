@@ -40,7 +40,7 @@
 
   interface computationalDomainVolumeIntegratorCartesian3D
      !!{RST
-     Constructors for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainVolumeIntegratorCartesian3D` computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain volume integrator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCartesian3D` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function cartesian3DConstructorInternal(boundaries) result(self)
     !!{RST
-    Internal constructor for the ``computationalDomainVolumeIntegratorCartesian3D`` computational domain volume integrator class.
+    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCartesian3D` computational domain volume integrator class.
     !!}
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                                :: self

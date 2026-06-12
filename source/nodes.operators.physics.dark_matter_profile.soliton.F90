@@ -57,7 +57,7 @@
   
   interface nodeOperatorDarkMatterProfileSoliton
      !!{RST
-     Constructors for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileSoliton` node operator class.
      !!}
      module procedure darkMatterProfileSolitonConstructorParameters
      module procedure darkMatterProfileSolitonConstructorInternal
@@ -71,7 +71,7 @@ contains
 
   function darkMatterProfileSolitonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileSoliton` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function darkMatterProfileSolitonConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileSoliton` node operator class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -139,7 +139,7 @@ contains
 
   subroutine darkMatterProfileSolitonDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorDarkMatterProfileSoliton`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfileSoliton` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileSoliton), intent(inout) :: self

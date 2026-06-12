@@ -47,7 +47,7 @@ Implements a cooling rate property extractor class.
 
   interface nodePropertyExtractorRateCooling
      !!{RST
-     Constructors for the ``nodePropertyExtractorRateCooling`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRateCooling` property extractor class.
      !!}
      module procedure rateCoolingConstructorParameters
      module procedure rateCoolingConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function rateCoolingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRateCooling`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRateCooling` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function rateCoolingConstructorInternal(coolingRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRateCooling`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRateCooling` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateCooling)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine rateCoolingDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRateCooling`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRateCooling` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateCooling), intent(inout) :: self

@@ -35,7 +35,7 @@ module Hot_Halo_Mass_Distributions
    <name>hotHaloMassDistribution</name>
    <descriptiveName>Hot Halo Mass Distributions</descriptiveName>
    <description>
-   Class providing the radial mass distribution of hot (virialized) gas in the halo, returned as a ``massDistributionClass`` object. The density profile of the hot atmosphere sets the local cooling rate and pressure support, and determines the ram pressure experienced by satellite galaxies. Common profiles include the :math:`\beta`-model and hydrostatic equilibrium solutions. The distribution can be weighted by mass or by other quantities for use in different physical calculations.
+   Class providing the radial mass distribution of hot (virialized) gas in the halo, returned as a :galacticus-class:`massDistributionClass` object. The density profile of the hot atmosphere sets the local cooling rate and pressure support, and determines the ram pressure experienced by satellite galaxies. Common profiles include the :math:`\beta`-model and hydrostatic equilibrium solutions. The distribution can be weighted by mass or by other quantities for use in different physical calculations.
    </description>
    <default>betaProfile</default>
    <method name="get" >

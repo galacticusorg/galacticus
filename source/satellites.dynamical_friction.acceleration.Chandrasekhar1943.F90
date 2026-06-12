@@ -71,7 +71,7 @@ contains
 
   function chandrasekhar1943ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteDynamicalFrictionChandrasekhar1943`` satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionChandrasekhar1943` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,7 +104,7 @@ contains
 
   function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteDynamicalFrictionChandrasekhar1943`` satellite dynamical friction class.
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionChandrasekhar1943` satellite dynamical friction class.
     !!}
     implicit none
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self

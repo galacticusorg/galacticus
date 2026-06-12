@@ -39,7 +39,7 @@ Implements a galactic filter which always passes.
 
   interface galacticFilterAlways
      !!{RST
-     Constructors for the ``galacticFilterAlways`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterAlways` galactic filter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface galacticFilterAlways
@@ -48,7 +48,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterAlways`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterAlways` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

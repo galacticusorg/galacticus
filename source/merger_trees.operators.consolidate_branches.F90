@@ -40,7 +40,7 @@
 
   interface mergerTreeOperatorConsolidateBranches
      !!{RST
-     Constructors for the ``mergerTreeOperatorConsolidateBranches`` merger tree operator class.
+     Constructors for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class.
      !!}
      module procedure consolidateBranchesConstructorParameters
      module procedure consolidateBranchesConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function consolidateBranchesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOperatorConsolidateBranches`` merger tree operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function consolidateBranchesConstructorInternal(fractionGrowthMass,fractionGrowthTime) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOperatorConsolidateBranches`` merger tree operator class.
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class.
     !!}
     implicit none
     type            (mergerTreeOperatorConsolidateBranches)                :: self

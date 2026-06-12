@@ -33,7 +33,7 @@
       \Lambda = {4 \sigma_\mathrm{T} \mathrm{a} \mathrm{k}_\mathrm{B} n_\mathrm{e } \over m_\mathrm{e} \clight} T_\mathrm{CMB}^4
       \left( T - T_\mathrm{CMB} \right),
 
-   where :math:`\sigma_\mathrm{T}` is the Thompson cross-section, :math:`a` is the radiation constant, :math:`\mathrm{k}_\mathrm{B}` is Boltzmann's constant, :math:`n_\mathrm{e}` is the number density of electrons, :math:`m_\mathrm{e}` is the electron mass, :math:`\clight` is the speed of light, :math:`T_\mathrm{CMB}` is the :term:`CMB` temperature at the current cosmic epoch and :math:`T` is the temperature of the gas. The electron density is computed from the selected chemical state method (see ``chemicalState``).
+   where :math:`\sigma_\mathrm{T}` is the Thompson cross-section, :math:`a` is the radiation constant, :math:`\mathrm{k}_\mathrm{B}` is Boltzmann's constant, :math:`n_\mathrm{e}` is the number density of electrons, :math:`m_\mathrm{e}` is the electron mass, :math:`\clight` is the speed of light, :math:`T_\mathrm{CMB}` is the :term:`CMB` temperature at the current cosmic epoch and :math:`T` is the temperature of the gas. The electron density is computed from the selected chemical state method (see :galacticus-class:`chemicalState`).
    </description>
   </coolingFunction>
   !!]
@@ -53,7 +53,7 @@
 
   interface coolingFunctionCMBCompton
      !!{RST
-     Constructors for the ``coolingFunctionCMBCompton`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
      !!}
      module procedure cmbComptonConstructorParameters
      module procedure cmbComptonConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function cmbComptonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionCMBCompton`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function cmbComptonConstructorInternal(chemicalState_) result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionCMBCompton`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
     !!}
     implicit none
     type (coolingFunctionCMBCompton)                        :: self
@@ -98,7 +98,7 @@ contains
 
   subroutine cmbComptonDestructor(self)
     !!{RST
-    Destructor for the ``coolingFunctionCMBCompton`` cooling function class.
+    Destructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
     !!}
     implicit none
     type(coolingFunctionCMBCompton), intent(inout) :: self

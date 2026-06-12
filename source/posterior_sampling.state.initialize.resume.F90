@@ -43,7 +43,7 @@
 
   interface posteriorSampleStateInitializeResume
      !!{RST
-     Constructors for the ``posteriorSampleStateInitializeResume`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
      !!}
      module procedure resumeConstructorParameters
      module procedure resumeConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function resumeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeResume`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function resumeConstructorInternal(logFileRoot,restoreState) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateInitializeResume`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self

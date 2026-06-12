@@ -49,7 +49,7 @@
 
   interface nodePropertyExtractorRadiusVelocityMaximum
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusVelocityMaximum`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function radiusVelocityMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusVelocityMaximum`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function radiusVelocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusVelocityMaximum`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusVelocityMaximum)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine radiusVelocityMaximumDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusVelocityMaximum`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self

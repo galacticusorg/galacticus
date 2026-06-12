@@ -48,7 +48,7 @@ Implements a depth-first merger tree walker over all all nodes in a given branch
 
   interface mergerTreeWalkerAllNodesBranch
      !!{RST
-     Constructors for the ``mergerTreeWalkerAllNodesBranch`` merger tree walker class.
+     Constructors for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class.
      !!}
      module procedure allNodesBranchParameters
      module procedure allNodesBranchInternal
@@ -58,7 +58,7 @@ contains
 
   function allNodesBranchParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeWalkerAllNodesBranch`` merger tree walker class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -73,7 +73,7 @@ contains
 
   function allNodesBranchInternal(branchHead) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeWalkerAllNodesBranch`` merger tree walker class.
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class.
     !!}
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                          :: self

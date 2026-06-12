@@ -55,7 +55,7 @@ Implements the ETHOS :cite:p:`cyr-racine_ethoseffective_2016` transfer function,
 
   interface transferFunctionETHOSDM
      !!{RST
-     Constructors for the ``transferFunctionETHOSDM`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
      !!}
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
@@ -70,7 +70,7 @@ contains
   
   function ETHOSDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionETHOSDM`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -180,7 +180,7 @@ contains
   
   function ETHOSDMConstructorInternal(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionETHOSDM`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Error               , only : Error_Report
@@ -204,7 +204,7 @@ contains
 
   subroutine ETHOSDMDestructor(self)
     !!{RST
-    Destructor for the ``transferFunctionETHOSDM`` transfer function class.
+    Destructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
     !!}
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self

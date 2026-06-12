@@ -52,7 +52,7 @@
 
   interface powerSpectrumPrimordialTransferredSimple
      !!{RST
-     Constructors for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialTransferredSimple` transferred primordial power spectrum class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredSimple` transferred primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function simpleConstructorInternal(powerSpectrumPrimordial_,transferFunction_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredSimple` transferred primordial power spectrum class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine simpleDestructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumPrimordialTransferredSimple`` transferred primordial power spectrum class.
+    Destructor for the :galacticus-class:`powerSpectrumPrimordialTransferredSimple` transferred primordial power spectrum class.
     !!}
     implicit none
     type(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self

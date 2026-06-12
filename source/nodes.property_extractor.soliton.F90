@@ -45,7 +45,7 @@
 
   interface nodePropertyExtractorSoliton
      !!{RST
-     Constructors for the ``nodePropertyExtractorSoliton`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorSoliton` property extractor class.
      !!}
      module procedure solitonConstructorParameters
      module procedure solitonConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function solitonConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorSoliton`` property extractor class.
+    Constructor for the :galacticus-class:`nodePropertyExtractorSoliton` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +71,7 @@ contains
 
   function solitonConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorSoliton`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSoliton` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSoliton) :: self

@@ -32,7 +32,7 @@ module Power_Spectra_Primordial
    <name>powerSpectrumPrimordial</name>
    <descriptiveName>Primordial Power Spectrum</descriptiveName>
    <description>
-   Class providing the primordial power spectrum. The late-time power spectrum is typically computed from the specified primordial power spectrum and the ``transferFunction`` and normalized to a value of :math:`\sigma_8`.
+   Class providing the primordial power spectrum. The late-time power spectrum is typically computed from the specified primordial power spectrum and the :galacticus-class:`transferFunction` and normalized to a value of :math:`\sigma_8`.
    </description>
    <default>powerLaw</default>
    <method name="power" >

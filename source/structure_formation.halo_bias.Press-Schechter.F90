@@ -44,7 +44,7 @@
 
   interface darkMatterHaloBiasPressSchechter
      !!{RST
-     Constructors for the ``darkMatterHaloBiasPressSchechter`` dark matter halo bias class.
+     Constructors for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloBiasPressSchechter`` dark matter halo bias class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function pressSchechterConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloBiasPressSchechter`` dark matter halo bias class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasPressSchechter)                        :: self
@@ -93,7 +93,7 @@ contains
 
   subroutine pressSchechterDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloBiasPressSchechter`` dark matter halo bias class.
+    Destructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasPressSchechter), intent(inout) :: self

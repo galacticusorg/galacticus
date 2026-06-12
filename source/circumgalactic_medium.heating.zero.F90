@@ -39,7 +39,7 @@
   
   interface circumgalacticMediumHeatingZero
      !!{RST
-     Constructors for the ``circumgalacticMediumHeatingZero`` circumgalactic medium heating class.
+     Constructors for the :galacticus-class:`circumgalacticMediumHeatingZero` circumgalactic medium heating class.
      !!}
      module procedure zeroConstructorParameters
   end interface circumgalacticMediumHeatingZero
@@ -48,7 +48,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``circumgalacticMediumHeatingZero`` circumgalactic medium heating class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`circumgalacticMediumHeatingZero` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

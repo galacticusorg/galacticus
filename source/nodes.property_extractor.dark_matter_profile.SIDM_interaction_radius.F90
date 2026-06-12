@@ -47,7 +47,7 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
      !!{RST
-     Constructors for the ``nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorInternal(darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM)                        :: self
@@ -91,7 +91,7 @@ contains
 
   subroutine darkMatterProfileRadiusInteractionSIDMDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout) :: self

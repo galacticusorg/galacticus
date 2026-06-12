@@ -30,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorStarFormationRateInterOutput" docformat="rst">
     <description>
-    A node operator class that tracks the mean star formation rate between successive outputs. Intended to be paired with the ``nodePropertyExtractorStarFormationRateInterOutput`` property extractor class to extract those rates for output.
+    A node operator class that tracks the mean star formation rate between successive outputs. Intended to be paired with the :galacticus-class:`nodePropertyExtractorStarFormationRateInterOutput` property extractor class to extract those rates for output.
     </description>
   </nodeOperator>
   !!]
@@ -56,7 +56,7 @@
   
   interface nodeOperatorStarFormationRateInterOutput
      !!{RST
-     Constructors for the ``nodeOperatorStarFormationRateInterOutput`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorStarFormationRateInterOutput`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function starFormationRateInterOutputConstructorInternal(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorStarFormationRateInterOutput`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
     !!}
     implicit none
     type (nodeOperatorStarFormationRateInterOutput )                        :: self
@@ -124,7 +124,7 @@ contains
 
   subroutine starFormationRateInterOutputDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorStarFormationRateInterOutput`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationRateInterOutput), intent(inout) :: self

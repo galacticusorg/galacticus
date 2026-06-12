@@ -39,7 +39,7 @@
 
   interface mergerRemnantSizeNull
      !!{RST
-     Constructors for the ``mergerRemnantSizeNull`` merger remnant size class.
+     Constructors for the :galacticus-class:`mergerRemnantSizeNull` merger remnant size class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerRemnantSizeNull
@@ -48,7 +48,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerRemnantSizeNull`` merger remnant size class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`mergerRemnantSizeNull` merger remnant size class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

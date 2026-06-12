@@ -40,7 +40,7 @@ Implements a merger tree processing time estimator that provides no estimates.
 
   interface metaTreeProcessingTimeNull
      !!{RST
-     Constructors for the ``metaTreeProcessingTimeNull`` merger tree processing time estimator.
+     Constructors for the :galacticus-class:`metaTreeProcessingTimeNull` merger tree processing time estimator.
      !!}
      module procedure nullConstructorParameters
   end interface metaTreeProcessingTimeNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``metaTreeProcessingTimeNull`` merger tree processing time estimator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`metaTreeProcessingTimeNull` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingDecayingDarkMatter" docformat="rst">
    <description>
-   A dark matter profile heating class that constructs ``massDistributionHeatingDecayingDarkMatter`` objects to compute heating due to decaying dark matter.
+   A dark matter profile heating class that constructs :galacticus-class:`massDistributionHeatingDecayingDarkMatter` objects to compute heating due to decaying dark matter.
    </description>
   </darkMatterProfileHeating>
   !!]
@@ -47,7 +47,7 @@
 
   interface darkMatterProfileHeatingDecayingDarkMatter
      !!{RST
-     Constructors for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingDecayingDarkMatter` dark matter profile heating class.
      !!}
      module procedure decayingDarkMatterConstructorParameters
      module procedure decayingDarkMatterConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function decayingDarkMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingDecayingDarkMatter` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function decayingDarkMatterConstructorInternal(gamma,includeKickHeating,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingDecayingDarkMatter` dark matter profile heating class.
     !!}
     implicit none
     type (darkMatterProfileHeatingDecayingDarkMatter)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine decayingDarkMatterDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileHeatingDecayingDarkMatter`` dark matter profile heating class.
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingDecayingDarkMatter` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingDecayingDarkMatter), intent(inout) :: self

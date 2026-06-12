@@ -54,7 +54,7 @@
 
   interface hotHaloMassDistributionCoreRadiusGrowing
      !!{RST
-     Constructors for the ``hotHaloMassDistributionCoreRadiusGrowing`` hot halo mass distribution core radius class.
+     Constructors for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class.
      !!}
      module procedure growingConstructorParameters
      module procedure growingConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function growingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloMassDistributionCoreRadiusGrowing`` hot halo mass distribution core radius class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -141,7 +141,7 @@ contains
 
   subroutine growingDestructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionCoreRadiusGrowing`` hot halo mass distribution core radius class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self

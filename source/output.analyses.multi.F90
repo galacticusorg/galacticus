@@ -29,7 +29,7 @@
   !![
   <outputAnalysis name="outputAnalysisMulti" docformat="rst">
    <description>
-   Combines multiple ``outputAnalysisClass`` objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.
+   Combines multiple :galacticus-class:`outputAnalysisClass` objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.
    </description>
    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
   </outputAnalysis>
@@ -51,7 +51,7 @@
 
   interface outputAnalysisMulti
      !!{RST
-     Constructors for the ``outputAnalysisMulti`` merger tree analysis.
+     Constructors for the :galacticus-class:`outputAnalysisMulti` merger tree analysis.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisMulti`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMulti` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function multiConstructorInternal(analyses) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisMulti`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisMulti` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMulti`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMulti` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti), intent(inout) :: self

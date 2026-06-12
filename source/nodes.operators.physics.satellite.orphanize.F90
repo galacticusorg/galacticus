@@ -41,7 +41,7 @@
   
   interface nodeOperatorSatelliteOrphanize
      !!{RST
-     Constructors for the ``nodeOperatorSatelliteOrphanize`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteOrphanize` node operator class.
      !!}
      module procedure satelliteOrphanizeConstructorParameters
   end interface nodeOperatorSatelliteOrphanize
@@ -50,7 +50,7 @@ contains
 
   function satelliteOrphanizeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorSatelliteOrphanize`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteOrphanize` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   subroutine satelliteOrphanizeDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorSatelliteOrphanize`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteOrphanize` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent
     implicit none

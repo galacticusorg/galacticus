@@ -57,7 +57,7 @@
 
   interface variogramExponential
      !!{RST
-     Constructors for the ``variogramExponential`` variogram class.
+     Constructors for the :galacticus-class:`variogramExponential` variogram class.
      !!}
      module procedure exponentialConstructorParameters
      module procedure exponentialConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function exponentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``variogramExponential`` variogram class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`variogramExponential` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function exponentialConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
     !!{RST
-    Constructor for the ``variogramExponential`` variogram class.
+    Constructor for the :galacticus-class:`variogramExponential` variogram class.
     !!}
     implicit none
     type   (variogramExponential             )                :: self

@@ -54,7 +54,7 @@ contains
 
   function unionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesUnion`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function unionConstructorInternal(mergerTreeBuildMasses_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesUnion`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesUnion)                        :: self

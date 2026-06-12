@@ -38,7 +38,7 @@
   
   interface radiativeTransferConvergenceLycEscape
      !!{RST
-     Constructors for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class.
+     Constructors for the :galacticus-class:`radiativeTransferConvergenceLycEscape` radiative transfer matter class.
      !!}
      module procedure lycEscapeConstructorParameters
      module procedure lycEscapeConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function lycEscapeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferConvergenceLycEscape` radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function lycEscapeConstructorInternal(toleranceRelative) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferConvergenceLycEscape`` radiative transfer matter class.
+    Internal constructor for the :galacticus-class:`radiativeTransferConvergenceLycEscape` radiative transfer matter class.
     !!}
     implicit none
     type            (radiativeTransferConvergenceLycEscape)                :: self

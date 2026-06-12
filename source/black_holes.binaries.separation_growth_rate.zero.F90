@@ -41,7 +41,7 @@
 
   interface blackHoleBinarySeparationGrowthRateZero
      !!{RST
-     Constructors for the ``blackHoleBinarySeparationGrowthRateZero`` black hole binary separation growth rate class.
+     Constructors for the :galacticus-class:`blackHoleBinarySeparationGrowthRateZero` black hole binary separation growth rate class.
      !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinarySeparationGrowthRateZero
@@ -50,7 +50,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``blackHoleBinarySeparationGrowthRateZero`` black hole binary separation growth rate class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`blackHoleBinarySeparationGrowthRateZero` black hole binary separation growth rate class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

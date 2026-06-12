@@ -41,7 +41,7 @@
 
   interface kinematicsDistributionZhao1996
      !!{RST
-     Constructors for the ``kinematicsDistributionZhao1996`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionZhao1996` kinematic distribution class.
      !!}
      module procedure zhao1996ConstructorParameters
   end interface kinematicsDistributionZhao1996
@@ -50,7 +50,7 @@ contains
 
   function zhao1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionZhao1996`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionZhao1996` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

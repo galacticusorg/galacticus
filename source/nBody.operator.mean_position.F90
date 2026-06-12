@@ -46,7 +46,7 @@ Implements an N-body data operator which determines the mean position and veloci
 
   interface nbodyOperatorMeanPosition
      !!{RST
-     Constructors for the ``nbodyOperatorMeanPosition`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorMeanPosition` N-body operator class.
      !!}
      module procedure meanPositionConstructorParameters
      module procedure meanPositionConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function meanPositionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorMeanPosition`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorMeanPosition` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorMeanPosition`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorMeanPosition` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorMeanPosition)                         :: self
@@ -110,7 +110,7 @@ contains
 
   subroutine meanPositionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorMeanPosition`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorMeanPosition` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMeanPosition), intent(inout) :: self

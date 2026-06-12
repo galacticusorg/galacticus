@@ -48,7 +48,7 @@ Implements an N-body data operator which computes pair counts in bins of separat
 
   interface nbodyOperatorPairCounts
      !!{RST
-     Constructors for the ``nbodyOperatorPairCounts`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
      !!}
      module procedure pairCountsConstructorParameters
      module procedure pairCountsConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function pairCountsConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorPairCounts`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -136,7 +136,7 @@ contains
 
   function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorPairCounts`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPairCounts)                           :: self
@@ -154,7 +154,7 @@ contains
 
   subroutine pairCountsDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorPairCounts`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPairCounts), intent(inout) :: self

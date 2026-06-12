@@ -26,7 +26,7 @@
   !![
   <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" docformat="rst">
    <description>
-   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see ``coolingRadius``).
+   A cooling infall radius class that assumes that the infall radius equals the cooling radius (see :galacticus-class:`coolingRadius`).
    </description>
   </coolingInfallRadius>
   !!]

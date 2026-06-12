@@ -49,7 +49,7 @@
 
   interface nbodyOperatorConcentrationDistributionFunction
      !!{RST
-     Constructors for the ``nbodyOperatorConcentrationDistributionFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorConcentrationDistributionFunction` N-body operator class.
      !!}
      module procedure concentrationDistributionFunctionConstructorParameters
      module procedure concentrationDistributionFunctionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function concentrationDistributionFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorConcentrationDistributionFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorConcentrationDistributionFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -148,7 +148,7 @@ contains
 
   function concentrationDistributionFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorConcentrationDistributionFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorConcentrationDistributionFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorConcentrationDistributionFunction)                        :: self
@@ -167,7 +167,7 @@ contains
   
   subroutine concentrationDistributionFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorConcentrationDistributionFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorConcentrationDistributionFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorConcentrationDistributionFunction), intent(inout) :: self

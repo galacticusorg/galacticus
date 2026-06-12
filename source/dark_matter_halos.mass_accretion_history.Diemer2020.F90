@@ -47,7 +47,7 @@
 
   interface darkMatterHaloMassAccretionHistoryDiemer2020
      !!{RST
-     Constructors for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryDiemer2020` dark matter halo mass accretion history class.
      !!}
      module procedure diemer2020ConstructorParameters
      module procedure diemer2020ConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function diemer2020ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryDiemer2020` dark matter halo mass accretion history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function diemer2020ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryDiemer2020` dark matter halo mass accretion history class.
     !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryDiemer2020)                        :: self
@@ -100,7 +100,7 @@ contains
 
   subroutine diemer2020Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloMassAccretionHistoryDiemer2020`` dark matter halo mass accretion history class.
+    Destructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryDiemer2020` dark matter halo mass accretion history class.
     !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self

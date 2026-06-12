@@ -70,7 +70,7 @@
 
   interface darkMatterProfileConcentrationGao2008
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationGao2008`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function gao2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationGao2008`` dark matter halo profile concentration class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,7 +113,7 @@ contains
 
   function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileConcentrationGao2008`` dark matter halo profile concentration class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -166,7 +166,7 @@ contains
 
   subroutine gao2008Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationGao2008`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationGao2008), intent(inout) :: self

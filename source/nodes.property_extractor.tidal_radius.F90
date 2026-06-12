@@ -47,7 +47,7 @@ Implements a tidal radius property extractor class.
 
   interface nodePropertyExtractorRadiusTidal
      !!{RST
-     Constructors for the ``nodePropertyExtractorRadiusTidal`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function radiusTidalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRadiusTidal`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function radiusTidalConstructorInternal(satelliteTidalStrippingRadius_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRadiusTidal`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusTidal  )                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine radiusTidalDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRadiusTidal`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusTidal), intent(inout) :: self

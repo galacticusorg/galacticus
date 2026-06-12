@@ -43,7 +43,7 @@ Implements a merger tree weight property extractor class.
 
   interface nodePropertyExtractorTreeWeight
      !!{RST
-     Constructors for the ``nodePropertyExtractorTreeWeight`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorTreeWeight` property extractor class.
      !!}
      module procedure treeWeightConstructorParameters
   end interface nodePropertyExtractorTreeWeight
@@ -52,7 +52,7 @@ contains
 
   function treeWeightConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorTreeWeight`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorTreeWeight` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

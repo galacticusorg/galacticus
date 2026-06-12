@@ -57,7 +57,7 @@
   
   interface nodeOperatorPositionTraceDarkMatter
      !!{RST
-     Constructors for the ``nodeOperatorPositionTraceDarkMatter`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
      !!}
      module procedure positionTraceDarkMatterConstructorParameters
      module procedure positionTraceDarkMatterConstructorInternal
@@ -67,7 +67,7 @@ contains
   
   function positionTraceDarkMatterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorPositionTraceDarkMatter`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function positionTraceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorPositionTraceDarkMatter`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionTraceDarkMatter)                        :: self
@@ -118,7 +118,7 @@ contains
 
   subroutine positionTraceDarkMatterDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorPositionTraceDarkMatter`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none

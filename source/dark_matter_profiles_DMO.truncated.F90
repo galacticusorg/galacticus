@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOTruncated" docformat="rst">
     <description>
-    Truncated dark matter halo profiles are built via the ``massDistributionSphericalTruncated`` mass distribution class.
+    Truncated dark matter halo profiles are built via the :galacticus-class:`massDistributionSphericalTruncated` mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
@@ -47,7 +47,7 @@
 
   interface darkMatterProfileDMOTruncated
      !!{RST
-     Constructors for the ``darkMatterProfileDMOTruncated`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function truncatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOTruncated`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters  , only : inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -108,7 +108,7 @@ contains
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOTruncated`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -129,7 +129,7 @@ contains
 
   subroutine truncatedDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOTruncated`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self

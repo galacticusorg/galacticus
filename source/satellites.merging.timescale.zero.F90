@@ -39,7 +39,7 @@
 
   interface satelliteMergingTimescalesZero
      !!{RST
-     Constructors for the ``satelliteMergingTimescalesZero`` satellite merging timescale class.
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesZero` satellite merging timescale class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteMergingTimescalesZero

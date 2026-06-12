@@ -29,7 +29,7 @@ Implements a concentration output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorConcentration" docformat="rst">
    <description>
-   A property extractor that returns the concentration parameter :math:`c = r_\mathrm{vir}/r_\mathrm{s}` of the dark-matter-only halo profile, where :math:`r_\mathrm{vir}` is defined by the supplied ``virialDensityContrastClass`` object and :math:`r_\mathrm{s}` is the NFW scale radius from the ``darkMatterProfileDMOClass`` object. If ``useLastIsolatedTime`` is ``true``, the virial radius is evaluated using the density contrast at the halo's last isolated time rather than the current time, matching the conventional definition of concentration used in fitting functions.
+   A property extractor that returns the concentration parameter :math:`c = r_\mathrm{vir}/r_\mathrm{s}` of the dark-matter-only halo profile, where :math:`r_\mathrm{vir}` is defined by the supplied :galacticus-class:`virialDensityContrastClass` object and :math:`r_\mathrm{s}` is the NFW scale radius from the :galacticus-class:`darkMatterProfileDMOClass` object. If ``useLastIsolatedTime`` is ``true``, the virial radius is evaluated using the density contrast at the halo's last isolated time rather than the current time, matching the conventional definition of concentration used in fitting functions.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -54,7 +54,7 @@ Implements a concentration output analysis property extractor class.
 
   interface nodePropertyExtractorConcentration
      !!{RST
-     Constructors for the ``nodePropertyExtractorConcentration`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorConcentration` property extractor class.
      !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorConcentration`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorConcentration` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function concentrationConstructorInternal(useLastIsolatedTime,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorConcentration`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorConcentration` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorConcentration)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine concentrationDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorConcentration`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorConcentration` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorConcentration), intent(inout) :: self

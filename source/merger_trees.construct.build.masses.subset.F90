@@ -51,7 +51,7 @@ contains
 
   function subsetConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesSubset` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function subsetConstructorInternal(subsetBegin,subsetEnd,mergerTreeBuildMasses_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesSubset` merger tree masses class.
     !!}
     implicit none
     type   (mergerTreeBuildMassesSubset)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine subsetDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildMassesSubset`` merger tree masses class.
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesSubset` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSubset), intent(inout) :: self

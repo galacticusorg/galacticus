@@ -41,7 +41,7 @@
 
   interface nodePropertyExtractorGalaxyMergerTreeMergerIndices
      !!{RST
-     Constructors for the ``nodePropertyExtractorGalaxyMergerTreeMergerIndices`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeMergerIndices` property extractor class.
      !!}
      module procedure galaxyMergerTreeMergerIndicesConstructorParameters
      module procedure galaxyMergerTreeMergerIndicesConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorGalaxyMergerTreeMergerIndices`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeMergerIndices` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,7 +67,7 @@ contains
 
   function galaxyMergerTreeMergerIndicesConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorGalaxyMergerTreeMergerIndices`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeMergerIndices` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeMergerIndices) :: self

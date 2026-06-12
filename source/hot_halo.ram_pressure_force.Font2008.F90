@@ -49,7 +49,7 @@
 
   interface hotHaloRamPressureForceFont2008
      !!{RST
-     Constructors for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
+     Constructors for the :galacticus-class:`hotHaloRamPressureForceFont2008` hot halo ram pressure force class.
      !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function font2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`hotHaloRamPressureForceFont2008` hot halo ram pressure force class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,7 +80,7 @@ contains
 
   function font2008ConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureForceFont2008` hot halo ram pressure force class.
     !!}
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
@@ -94,7 +94,7 @@ contains
 
   subroutine font2008Destructor(self)
     !!{RST
-    Destructor for the ``hotHaloRamPressureForceFont2008`` hot halo ram pressure force class.
+    Destructor for the :galacticus-class:`hotHaloRamPressureForceFont2008` hot halo ram pressure force class.
     !!}
     implicit none
     type(hotHaloRamPressureForceFont2008), intent(inout) :: self

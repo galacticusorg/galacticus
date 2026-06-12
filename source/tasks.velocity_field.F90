@@ -48,7 +48,7 @@
 
   interface taskVelocityField
      !!{RST
-     Constructors for the ``taskVelocityField`` task.
+     Constructors for the :galacticus-class:`taskVelocityField` task.
      !!}
      module procedure velocityFieldConstructorParameters
      module procedure velocityFieldConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function velocityFieldConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskVelocityField`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskVelocityField` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function velocityFieldConstructorInternal(massMinimum,massMaximum,pointsPerDecade,outputGroup,cosmologyFunctions_,cosmologicalVelocityField_,darkMatterHaloScale_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``taskVelocityField`` task class.
+    Internal constructor for the :galacticus-class:`taskVelocityField` task class.
     !!}
     implicit none
     type            (taskVelocityField             )                        :: self
@@ -143,7 +143,7 @@ contains
 
   subroutine velocityFieldDestructor(self)
     !!{RST
-    Destructor for the ``taskVelocityField`` task class.
+    Destructor for the :galacticus-class:`taskVelocityField` task class.
     !!}
     implicit none
     type(taskVelocityField), intent(inout) :: self

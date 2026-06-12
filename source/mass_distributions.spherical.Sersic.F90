@@ -67,7 +67,7 @@
 
   interface massDistributionSersic
      !!{RST
-     Constructors for the ``massDistributionSersic`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSersic` mass distribution class.
      !!}
      module procedure sersicConstructorParameters
      module procedure sersicConstructorInternal
@@ -84,7 +84,7 @@ contains
 
   function sersicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSersic`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSersic` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

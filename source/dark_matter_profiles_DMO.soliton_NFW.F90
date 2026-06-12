@@ -32,7 +32,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFW" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionSolitonNFW`` objects to implement the :term:`FDM` profile. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFW` objects to implement the :term:`FDM` profile. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -89,7 +89,7 @@ contains
 
   function solitonNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOSolitonNFW`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFW` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -148,7 +148,7 @@ contains
 
   function solitonNFWConstructorInternal(darkMatterHaloScale_,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,scatterFractional) result(self)
     !!{RST
-    Generic constructor for the ``darkMatterProfileDMOSolitonNFW`` dark matter halo profile class.
+    Generic constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFW` dark matter halo profile class.
     !!}
     use :: Error                         , only : Component_List                   , Error_Report
     use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter

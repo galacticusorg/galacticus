@@ -59,7 +59,7 @@
 
   interface nodePropertyExtractorPromptCusps
      !!{RST
-     Constructors for the ``nodePropertyExtractorPromptCusps`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorPromptCusps` property extractor class.
      !!}
      module procedure promptCuspsConstructorParameters
      module procedure promptCuspsConstructorInternal
@@ -69,7 +69,7 @@ contains
 
   function promptCuspsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
+    Constructor for the :galacticus-class:`nodePropertyExtractorPromptCusps` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function promptCuspsConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPromptCusps` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPromptCusps)                        :: self
@@ -122,7 +122,7 @@ contains
 
   subroutine promptCuspsDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorPromptCusps`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorPromptCusps` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorPromptCusps), intent(inout) :: self

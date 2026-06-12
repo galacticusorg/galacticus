@@ -47,7 +47,7 @@ Implements an N-body data operator which applies a sequence of other operators.
 
   interface nbodyOperatorSequence
      !!{RST
-     Constructors for the ``nbodyOperatorSequence`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSequence` N-body operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSequence`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSequence` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function sequenceConstructorInternal(operators) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSequence`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSequence` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSequence)                        :: self

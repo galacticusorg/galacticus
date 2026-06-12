@@ -63,7 +63,7 @@
 
   interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
      !!{RST
-     Constructors for the ``sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt`` spherical collapse solver class.
+     Constructors for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
      !!}
      module procedure cllsnlssMttCsmlgclCnstntConstructorParameters
      module procedure cllsnlssMttCsmlgclCnstntConstructorInternal
@@ -113,7 +113,7 @@ contains
 
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt`` spherical collapse solver class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -137,7 +137,7 @@ contains
 
   function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt`` spherical collapse solver class.
+    Internal constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -178,7 +178,7 @@ contains
 
   subroutine cllsnlssMttCsmlgclCnstntDestructor(self)
     !!{RST
-    Destructor for the ``sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt`` spherical collapse solver class.
+    Destructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self

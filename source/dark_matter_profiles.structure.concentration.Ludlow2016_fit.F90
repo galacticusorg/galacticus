@@ -59,7 +59,7 @@
 
   interface darkMatterProfileConcentrationLudlow2016Fit
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationLudlow2016Fit`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
      !!}
      module procedure ludlow2016FitConstructorParameters
      module procedure ludlow2016FitConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function ludlow2016FitConstructorInternal(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationLudlow2016Fit`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -148,7 +148,7 @@ contains
 
   subroutine ludlow2016FitDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationLudlow2016Fit`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self

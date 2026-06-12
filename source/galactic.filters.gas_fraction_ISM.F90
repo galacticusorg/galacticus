@@ -40,7 +40,7 @@ Implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass t
 
   interface galacticFilterGasFractionISM
      !!{RST
-     Constructors for the ``galacticFilterGasFractionISM`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterGasFractionISM` galactic filter class.
      !!}
      module procedure gasFractionISMConstructorParameters
      module procedure gasFractionISMConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function gasFractionISMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterGasFractionISM`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterGasFractionISM` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function gasFractionISMConstructorInternal(fractionGasThreshold) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterGasFractionISM`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterGasFractionISM` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterGasFractionISM)                :: self

@@ -47,7 +47,7 @@
 
   interface distributionFunction1DBeta
      !!{RST
-     Constructors for the ``distributionFunction1DBeta`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DBeta` 1D distribution function class.
      !!}
      module procedure betaConstructorParameters
      module procedure betaConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function betaConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DBeta`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DBeta` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,7 +98,7 @@ contains
 
   function betaConstructorInternal(alpha,beta,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DBeta`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DBeta` 1D distribution function class.
     !!}
     type            (distributionFunction1DBeta)                                  :: self
     double precision                            , intent(in   )                   :: alpha                        , beta

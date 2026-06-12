@@ -69,7 +69,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
 
   interface nodePropertyExtractorICMSZ
      !!{RST
-     Constructors for the ``nodePropertyExtractorICMSZ`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
      !!}
      module procedure icmSZConstructorParameters
      module procedure icmSZConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function icmSZConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorICMSZ`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
@@ -147,7 +147,7 @@ contains
 
   function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorICMSZ`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
     !!}
     use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode, enumerationDensityCosmologicalType
     use :: ISO_Varying_String , only : char
@@ -194,7 +194,7 @@ contains
 
   subroutine icmSZDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorICMSZ`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMSZ), intent(inout) :: self

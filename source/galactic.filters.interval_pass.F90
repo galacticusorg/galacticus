@@ -44,7 +44,7 @@ Implements an interval pass filter on any node property.
 
   interface galacticFilterIntervalPass
      !!{RST
-     Constructors for the ``galacticFilterIntervalPass`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
      !!}
      module procedure intervalPassConstructorParameters
      module procedure intervalPassConstructorInternal
@@ -54,7 +54,7 @@ contains
   
   function intervalPassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterIntervalPass`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -97,7 +97,7 @@ contains
 
   function intervalPassConstructorInternal(thresholdLow,thresholdHigh,nodePropertyExtractor_) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterIntervalPass`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterIntervalPass )                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine intervalPassDestructor(self)
     !!{RST
-    Destructor for the ``galacticFilterIntervalPass`` galactic filter class.
+    Destructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterIntervalPass), intent(inout) :: self

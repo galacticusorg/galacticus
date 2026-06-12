@@ -51,7 +51,7 @@
 
   interface galacticStructureSolverLinear
      !!{RST
-     Constructors for the ``galacticStructureSolverLinear`` galactic structure solver class.
+     Constructors for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
      !!}
      module procedure linearConstructorParameters
      module procedure linearConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function linearConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticStructureSolverLinear`` galactic structure solver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   function linearConstructorInternal(darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``galacticStructureSolverLinear`` galactic structure solver class.
+    Internal constructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
     !!}
     implicit none
     type   (galacticStructureSolverLinear)                        :: self
@@ -114,7 +114,7 @@ contains
 
   subroutine linearDestructor(self)
     !!{RST
-    Destructor for the ``galacticStructureSolverLinear`` galactic structure solver class.
+    Destructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

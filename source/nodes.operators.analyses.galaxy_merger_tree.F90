@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorGalaxyMergerTree" docformat="rst">
    <description>
-   A node operator class that outputs a time-series of galaxy properties along each merger tree branch at regular intervals of ``timeStep`` Gyr, enabling reconstruction of complete evolutionary histories for post-processing. The set of properties to record is specified via a list of ``nodePropertyExtractorClass`` objects. Node indices, branch identifiers, and merger information are also recorded to allow reconstruction of the full tree topology.
+   A node operator class that outputs a time-series of galaxy properties along each merger tree branch at regular intervals of ``timeStep`` Gyr, enabling reconstruction of complete evolutionary histories for post-processing. The set of properties to record is specified via a list of :galacticus-class:`nodePropertyExtractorClass` objects. Node indices, branch identifiers, and merger information are also recorded to allow reconstruction of the full tree topology.
    </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass" module="Node_Property_Extractors"/>
   </nodeOperator>
@@ -60,7 +60,7 @@
   
   interface nodeOperatorGalaxyMergerTree
      !!{RST
-     Constructors for the ``nodeOperatorGalaxyMergerTree`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
      !!}
      module procedure galaxyMergerTreeConstructorParameters
      module procedure galaxyMergerTreeConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function galaxyMergerTreeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorGalaxyMergerTree`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function galaxyMergerTreeConstructorInternal(timeStep,extractors) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorGalaxyMergerTree`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
     !!}
     implicit none
     type            (nodeOperatorGalaxyMergerTree)                         :: self
@@ -178,7 +178,7 @@ contains
   
   subroutine galaxyMergerTreeDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorGalaxyMergerTree`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

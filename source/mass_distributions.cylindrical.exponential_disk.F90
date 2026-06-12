@@ -94,7 +94,7 @@
 
   interface massDistributionExponentialDisk
      !!{RST
-     Constructors for the ``massDistributionExponentialDisk`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionExponentialDisk` mass distribution class.
      !!}
      module procedure exponentialDiskConstructorParameters
      module procedure exponentialDiskConstructorInternal
@@ -113,7 +113,7 @@ contains
 
   function exponentialDiskConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionExponentialDisk`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionExponentialDisk` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode

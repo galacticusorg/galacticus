@@ -122,7 +122,7 @@ contains
 
   function classCDMConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_,transferFunctionType,redshift,countPerDecade) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionCLASSCDM`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionCLASSCDM` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM

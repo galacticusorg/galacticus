@@ -48,7 +48,7 @@ Implements a polynomial systematic shift output analysis property operator class
 
   interface outputAnalysisPropertyOperatorSystmtcPolynomial
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorSystmtcPolynomial`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class.
      !!}
      module procedure systmtcPolynomialConstructorParameters
      module procedure systmtcPolynomialConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function systmtcPolynomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorSystmtcPolynomial`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function systmtcPolynomialConstructorInternal(zeroPoint,coefficient) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisPropertyOperatorSystmtcPolynomial`` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self

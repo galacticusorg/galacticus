@@ -38,7 +38,7 @@ Implements a null node operator class.
 
   interface nodeOperatorNull
      !!{RST
-     Constructors for the ``nodeOperatorNull`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorNull` node operator class.
      !!}
      module procedure nullConstructorParameters
   end interface nodeOperatorNull
@@ -47,7 +47,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorNull`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorNull` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

@@ -39,7 +39,7 @@
 
   interface atomicIonizationRateCollisionalVerner1996
      !!{RST
-     Constructors for the ``atomicIonizationRateCollisionalVerner1996`` atomic collisional ionization class.
+     Constructors for the :galacticus-class:`atomicIonizationRateCollisionalVerner1996` atomic collisional ionization class.
      !!}
      module procedure verner1996ConstructorParameters
   end interface atomicIonizationRateCollisionalVerner1996
@@ -460,7 +460,7 @@ contains
 
   function verner1996ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicIonizationRateCollisionalVerner1996`` atomic collisional ionization class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicIonizationRateCollisionalVerner1996` atomic collisional ionization class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

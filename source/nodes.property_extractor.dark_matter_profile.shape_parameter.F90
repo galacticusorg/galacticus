@@ -43,7 +43,7 @@ Implements a dark matter profile scale radius output analysis property extractor
 
   interface nodePropertyExtractorDarkMatterProfileShapeParameter
      !!{RST
-     Constructors for the ``nodePropertyExtractorDarkMatterProfileShapeParameter`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileShapeParameter` property extractor class.
      !!}
      module procedure darkMatterProfileShapeParameterConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileShapeParameter
@@ -52,7 +52,7 @@ contains
 
   function darkMatterProfileShapeParameterConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDarkMatterProfileShapeParameter`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileShapeParameter` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

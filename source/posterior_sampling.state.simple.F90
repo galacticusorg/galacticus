@@ -55,7 +55,7 @@
 
   interface posteriorSampleStateSimple
      !!{RST
-     Constructors for the ``posteriorSampleStateSimple`` posterior sampling state class.
+     Constructors for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateSimple`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +92,7 @@ contains
 
   function simpleConstructorInternal(acceptedStateCount) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleStateSimple`` posterior sampling state class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none

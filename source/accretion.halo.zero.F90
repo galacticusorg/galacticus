@@ -49,7 +49,7 @@
 
   interface accretionHaloZero
      !!{RST
-     Constructors for the ``accretionHaloZero`` halo accretion class.
+     Constructors for the :galacticus-class:`accretionHaloZero` halo accretion class.
      !!}
      module procedure zeroConstructorParameters
   end interface accretionHaloZero
@@ -58,7 +58,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``accretionHaloZero`` halo accretion class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`accretionHaloZero` halo accretion class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

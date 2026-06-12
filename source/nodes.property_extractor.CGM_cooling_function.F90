@@ -28,7 +28,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorCGMCoolingFunction" docformat="rst">
    <description>
-   A property extractor that returns the radiative cooling function :math:`\Lambda(T,n_\mathrm{H},Z)` (in erg cm\ :math:`^3` s\ :math:`^{-1}`) of the circumgalactic medium at a user-specified set of radii in the hot halo, evaluated using the supplied ``coolingFunctionClass`` object with local density, temperature, and metallicity. The ``radiusSpecifiers`` parameter defines the radii; ``includeRadii`` and ``includeDensity`` optionally add the radius (Mpc) and hydrogen number density (cm\ :math:`^{-3}`) columns to the output. The ``label`` suffix distinguishes multiple instances of this extractor.
+   A property extractor that returns the radiative cooling function :math:`\Lambda(T,n_\mathrm{H},Z)` (in erg cm\ :math:`^3` s\ :math:`^{-1}`) of the circumgalactic medium at a user-specified set of radii in the hot halo, evaluated using the supplied :galacticus-class:`coolingFunctionClass` object with local density, temperature, and metallicity. The ``radiusSpecifiers`` parameter defines the radii; ``includeRadii`` and ``includeDensity`` optionally add the radius (Mpc) and hydrogen number density (cm\ :math:`^{-3}`) columns to the output. The ``label`` suffix distinguishes multiple instances of this extractor.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -72,7 +72,7 @@
 
   interface nodePropertyExtractorCGMCoolingFunction
      !!{RST
-     Constructors for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
      !!}
      module procedure cgmCoolingFunctionConstructorParameters
      module procedure cgmCoolingFunctionConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function cgmCoolingFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -144,7 +144,7 @@ contains
 
   function cgmCoolingFunctionConstructorInternal(radiusSpecifiers,includeRadii,includeDensity,label,cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
     !!}
     use :: Abundances_Structure                , only : Abundances_Property_Count
     use :: Chemical_Abundances_Structure       , only : Chemicals_Property_Count
@@ -199,7 +199,7 @@ contains
 
   subroutine cgmCoolingFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorCGMCoolingFunction`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorCGMCoolingFunction), intent(inout) :: self

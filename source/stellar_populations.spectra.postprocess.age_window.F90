@@ -83,7 +83,7 @@ contains
 
   function ageWindowConstructorInternal(ageMinimum,ageMaximum) result(self)
     !!{RST
-    Internal constructor for the ``stellarPopulationSpectraPostprocessorAgeWindow`` stellar population spectra postprocessor class.
+    Internal constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorAgeWindow` stellar population spectra postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorAgeWindow)                :: self

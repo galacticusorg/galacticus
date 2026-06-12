@@ -40,7 +40,7 @@
 
   interface evolveForestsWorkShareCyclic
      !!{RST
-     Constructors for the ``evolveForestsWorkShareCyclic`` forest evolution work sharing class.
+     Constructors for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class.
      !!}
      module procedure cyclicConstructorParameters
      module procedure cyclicConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function cyclicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``evolveForestsWorkShareCyclic`` forest evolution work sharing class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function cyclicConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``evolveForestsWorkShareCyclic`` forest evolution work sharing class.
+    Internal constructor for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareCyclic) :: self

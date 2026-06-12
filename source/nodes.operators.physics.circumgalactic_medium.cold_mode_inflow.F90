@@ -27,7 +27,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMColdModeInflow" docformat="rst">
    <description>
-   A node operator class that transfers cold-mode infalling gas from the :term:`CGM` into a galaxy component at each ODE timestep, using a ``coldModeInfallRateClass`` to compute the mass flux and a ``coolingInfallTorqueClass`` for the associated angular momentum. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` selects whether the angular momentum of infalling gas is computed from the ``currentNode`` or the ``formationNode``.
+   A node operator class that transfers cold-mode infalling gas from the :term:`CGM` into a galaxy component at each ODE timestep, using a :galacticus-class:`coldModeInfallRateClass` to compute the mass flux and a :galacticus-class:`coolingInfallTorqueClass` for the associated angular momentum. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` selects whether the angular momentum of infalling gas is computed from the ``currentNode`` or the ``formationNode``.
    </description>
   </nodeOperator>
   !!]
@@ -47,7 +47,7 @@
   
   interface nodeOperatorCGMColdModeInflow
      !!{RST
-     Constructors for the ``nodeOperatorCGMColdModeInflow`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMColdModeInflow` node operator class.
      !!}
      module procedure cgmColdModeInflowConstructorParameters
      module procedure cgmColdModeInflowConstructorInternal
@@ -57,7 +57,7 @@ contains
   
   function cgmColdModeInflowConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMColdModeInflow`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMColdModeInflow` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -100,7 +100,7 @@ contains
 
   function cgmColdModeInflowConstructorInternal(component,coolingFrom,coldModeInfallRate_,coolingInfallTorque_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMColdModeInflow`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMColdModeInflow` node operator class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNone
     use :: Error                     , only : Error_Report
@@ -126,7 +126,7 @@ contains
 
   subroutine cgmColdModeInflowDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMColdModeInflow`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMColdModeInflow` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMColdModeInflow), intent(inout) :: self

@@ -35,7 +35,7 @@
 
   interface outputTimesUniformSpacingInRedshift
      !!{RST
-     Constructors for the ``outputTimesUniformSpacingInRedshift`` output times class.
+     Constructors for the :galacticus-class:`outputTimesUniformSpacingInRedshift` output times class.
      !!}
      module procedure uniformSpacingInRedshiftConstructorParameters
      module procedure uniformSpacingInRedshiftConstructorInternal
@@ -45,7 +45,7 @@ contains
 
   function uniformSpacingInRedshiftConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputTimesUniformSpacingInRedshift`` output times class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputTimesUniformSpacingInRedshift` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function uniformSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``outputTimesUniformSpacingInRedshift`` output times class.
+    Internal constructor for the :galacticus-class:`outputTimesUniformSpacingInRedshift` output times class.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none

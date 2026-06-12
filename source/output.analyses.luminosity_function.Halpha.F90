@@ -51,7 +51,7 @@ Implements a luminosity function output analysis class.
 
   interface outputAnalysisLuminosityFunctionHalpha
      !!{RST
-     Constructors for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class.
      !!}
      module procedure luminosityFunctionHalphaConstructorParameters
      module procedure luminosityFunctionHalphaConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function luminosityFunctionHalphaConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                         , only : Error_Report
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
@@ -233,7 +233,7 @@ contains
 
   function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which reads bin information from a standard format file.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                   , only : hdf5Access
     use :: IO_HDF5                       , only : hdf5Object
@@ -295,7 +295,7 @@ contains
 
   function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
@@ -499,7 +499,7 @@ contains
 
   subroutine luminosityFunctionHalphaDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisLuminosityFunctionHalpha`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class.
     !!}
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
 

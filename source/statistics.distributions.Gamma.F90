@@ -45,7 +45,7 @@
 
   interface distributionFunction1DGamma
      !!{RST
-     Constructors for the ``distributionFunction1DGamma`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class.
      !!}
      module procedure gammaConstructorParameters
      module procedure gammaConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function gammaConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DGamma`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DGamma`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none

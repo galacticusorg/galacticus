@@ -40,7 +40,7 @@
 
   interface posteriorSamplesPriorGrid
      !!{RST
-     Constructors for the ``posteriorSamplesPriorGrid`` posterior sampling state initialization class.
+     Constructors for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
      !!}
      module procedure priorGridConstructorParameters
      module procedure priorGridConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function priorGridConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSamplesPriorGrid`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function priorGridConstructorInternal(countGrid) result(self)
     !!{RST
-    Constructor for the ``posteriorSamplesPriorGrid`` posterior sampling state initialization class.
+    Constructor for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSamplesPriorGrid)                :: self

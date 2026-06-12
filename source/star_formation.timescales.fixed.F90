@@ -40,7 +40,7 @@
 
   interface starFormationTimescaleFixed
      !!{RST
-     Constructors for the ``starFormationTimescaleFixed`` timescale for star formation.
+     Constructors for the :galacticus-class:`starFormationTimescaleFixed` timescale for star formation.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleFixed`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleFixed` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function fixedConstructorInternal(timescale) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleFixed`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleFixed` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleFixed)                :: self

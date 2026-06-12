@@ -43,7 +43,7 @@
 
   interface darkMatterProfileDMOMultiple
      !!{RST
-     Constructors for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOMultiple` dark matter halo profile class.
      !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function multipleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMOMultiple` dark matter halo profile class which takes a parameter set as input.
     !!}
     implicit none
     type   (darkMatterProfileDMOMultiple)                :: self
@@ -75,7 +75,7 @@ contains
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOMultiple` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine multipleDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOMultiple`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOMultiple` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOMultiple), intent(inout) :: self

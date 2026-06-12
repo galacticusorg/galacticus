@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorFiltered" docformat="rst">
    <description>
-   A node operator class that applies a collection of child ``nodeOperatorClass`` objects only to nodes that pass a ``galacticFilterClass`` test, enabling conditional application of physical processes based on node properties.
+   A node operator class that applies a collection of child :galacticus-class:`nodeOperatorClass` objects only to nodes that pass a :galacticus-class:`galacticFilterClass` test, enabling conditional application of physical processes based on node properties.
    </description>
   </nodeOperator>
   !!]
@@ -43,7 +43,7 @@
 
   interface nodeOperatorFiltered
      !!{RST
-     Constructors for the ``nodeOperatorFiltered`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorFiltered` node operator class.
      !!}
      module procedure filteredConstructorParameters
      module procedure filteredConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function filteredConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorFiltered`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorFiltered` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Error           , only : Error_Report
@@ -73,7 +73,7 @@ contains
 
   function filteredConstructorInternal(processes,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorFiltered`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorFiltered` node operator class.
     !!}
     implicit none
     type (nodeOperatorFiltered)                        :: self
@@ -89,7 +89,7 @@ contains
 
   subroutine filteredDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorFiltered`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorFiltered` node operator class.
     !!}
     implicit none
     type(nodeOperatorFiltered), intent(inout) :: self

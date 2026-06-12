@@ -40,7 +40,7 @@
 
   interface evolveForestsWorkShareFCFS
      !!{RST
-     Constructors for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class.
+     Constructors for the :galacticus-class:`evolveForestsWorkShareFCFS` forest evolution work sharing class.
      !!}
      module procedure fcfsConstructorParameters
      module procedure fcfsConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function fcfsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`evolveForestsWorkShareFCFS` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function fcfsConstructorInternal(doPing,reportWaitTime,activeProcessRanks) result(self)
     !!{RST
-    Internal constructor for the ``evolveForestsWorkShareFCFS`` forest evolution work sharing class.
+    Internal constructor for the :galacticus-class:`evolveForestsWorkShareFCFS` forest evolution work sharing class.
     !!}
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf

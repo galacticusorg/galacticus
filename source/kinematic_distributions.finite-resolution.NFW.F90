@@ -52,7 +52,7 @@
 
   interface kinematicsDistributionFiniteResolutionNFW
      !!{RST
-     Constructors for the ``kinematicsDistributionFiniteResolutionNFW`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionFiniteResolutionNFW`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -97,7 +97,7 @@ contains
 
   function finiteResolutionNFWConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionFiniteResolutionNFW`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionFiniteResolutionNFW) :: self

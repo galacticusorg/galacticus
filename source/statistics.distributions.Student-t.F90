@@ -64,7 +64,7 @@
 
   interface distributionFunction1DStudentT
      !!{RST
-     Constructors for the ``distributionFunction1DStudentT`` 1D distribution function class.
+     Constructors for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class.
      !!}
      module procedure studentTConstructorParameters
      module procedure studentTConstructorInternal
@@ -121,7 +121,7 @@ contains
 
   function studentTConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DStudentT`` 1D distribution function class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -150,7 +150,7 @@ contains
 
   function studentTConstructorInternal(degreesOfFreedom,randomNumberGenerator_) result(self)
     !!{RST
-    Constructor for the ``distributionFunction1DStudentT`` 1D distribution function class.
+    Constructor for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class.
     !!}
     type            (distributionFunction1DStudentT)                                  :: self
     double precision                                , intent(in   )                   :: degreesOfFreedom

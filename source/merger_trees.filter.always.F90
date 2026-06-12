@@ -39,7 +39,7 @@ Implements a merger tree filter which always passes.
 
   interface mergerTreeFilterAlways
      !!{RST
-     Constructors for the ``mergerTreeFilterAlways`` merger tree filter class.
+     Constructors for the :galacticus-class:`mergerTreeFilterAlways` merger tree filter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface mergerTreeFilterAlways
@@ -48,7 +48,7 @@ contains
 
   function alwaysConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeFilterAlways`` merger tree filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeFilterAlways` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

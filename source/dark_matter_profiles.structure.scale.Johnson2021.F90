@@ -87,7 +87,7 @@
 
        f_\mathrm{orb} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \left[\frac{M}{M_0}\right]^{2/3} \right).
 
-    We next estimate the mean and root-variance, :math:`\bar{E}_\mathrm{unres}` and :math:`\sigma_\mathrm{unres}`, respectively, of the energy of a halo of mass :math:`M_\mathrm{unres}` via a Monte Carlo approach. We generate :math:`N_\mathrm{MC}=`\ ``[countSampleEnergyUnresolved]`` such halos, each with scale radii set using the fall-back ``darkMatterHaloScaleClass`` object with an added scatter of :math:`\sigma^\prime=`\ ``[scatter]`` dex, and a randomly selected orbit. For each such halo, the energy is computed as
+    We next estimate the mean and root-variance, :math:`\bar{E}_\mathrm{unres}` and :math:`\sigma_\mathrm{unres}`, respectively, of the energy of a halo of mass :math:`M_\mathrm{unres}` via a Monte Carlo approach. We generate :math:`N_\mathrm{MC}=`\ ``[countSampleEnergyUnresolved]`` such halos, each with scale radii set using the fall-back :galacticus-class:`darkMatterHaloScaleClass` object with an added scatter of :math:`\sigma^\prime=`\ ``[scatter]`` dex, and a randomly selected orbit. For each such halo, the energy is computed as
 
     .. math::
 
@@ -123,7 +123,7 @@
 
     The scale radius which corresponds to this energy is then solved for.
 
-    For halos with mass less than :math:`f_\mathrm{res} M_\mathrm{res}`, where :math:`f_\mathrm{res}=`\ ``[factorMassResolution]`` and :math:`M_\mathrm{res}` is the mass resolution of the merger tree, and for any halo which has no progenitors (a leaf node), the scale radius is instead computed using an alternative method\footnoteFor leaf nodes, there are no progenitors for which to apply the above energy calculation, and for halos sufficiently close to the mass resolution the energy calculation may not be reliable due to the poorly-resolved formation history of the node.. In these cases, the entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first assigned a scale radius from a fall-back ``darkMatterHaloScaleClass`` object which should be configured to return a *scatter-free* scale radius for halos of given mass and redshift\footnoteAs scatter will be added directly by the present class. Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That is, the scale radius of the :math:`i^\mathrm{th}` node in such a sub-branch will be :math:`r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}` where :math:`x_i` is a normally-distributed random variate with mean zero and dispersion :math:`\sigma^\prime=`\ ``[scatter]``. The deviates :math:`x_i` are assumed to be correlated with correlation matrix:
+    For halos with mass less than :math:`f_\mathrm{res} M_\mathrm{res}`, where :math:`f_\mathrm{res}=`\ ``[factorMassResolution]`` and :math:`M_\mathrm{res}` is the mass resolution of the merger tree, and for any halo which has no progenitors (a leaf node), the scale radius is instead computed using an alternative method\footnoteFor leaf nodes, there are no progenitors for which to apply the above energy calculation, and for halos sufficiently close to the mass resolution the energy calculation may not be reliable due to the poorly-resolved formation history of the node.. In these cases, the entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first assigned a scale radius from a fall-back :galacticus-class:`darkMatterHaloScaleClass` object which should be configured to return a *scatter-free* scale radius for halos of given mass and redshift\footnoteAs scatter will be added directly by the present class. Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That is, the scale radius of the :math:`i^\mathrm{th}` node in such a sub-branch will be :math:`r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}` where :math:`x_i` is a normally-distributed random variate with mean zero and dispersion :math:`\sigma^\prime=`\ ``[scatter]``. The deviates :math:`x_i` are assumed to be correlated with correlation matrix:
 
     .. math::
 
@@ -162,7 +162,7 @@
   
   interface darkMatterProfileScaleRadiusJohnson2021
      !!{RST
-     Constructors for the ``darkMatterProfileScaleRadiusJohnson2021`` dark matter halo profile scale radius class.
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleJohnson2021ConstructorParameters
      module procedure darkMatterProfileScaleJohnson2021ConstructorInternal
@@ -179,7 +179,7 @@ contains
   
   function darkMatterProfileScaleJohnson2021ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileScaleRadiusJohnson2021`` dark matter halo profile scale radius class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -350,7 +350,7 @@ contains
 
   function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileScaleRadiusJohnson2021`` dark matter halo profile scale radius class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self
@@ -379,7 +379,7 @@ contains
 
   subroutine darkMatterProfileScaleJohnson2021Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileScaleRadiusJohnson2021`` dark matter halo profile scale radius class.
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusJohnson2021), intent(inout) :: self

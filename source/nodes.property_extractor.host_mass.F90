@@ -43,7 +43,7 @@ Implements a massHost property extractor class.
 
   interface nodePropertyExtractorMassHost
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassHost`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassHost` property extractor class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost
@@ -52,7 +52,7 @@ contains
 
   function massHostConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassHost`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassHost` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

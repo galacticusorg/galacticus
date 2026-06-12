@@ -44,7 +44,7 @@ Implements an N-body data operator which determines the acceleration of self-bou
 
   interface nbodyOperatorSelfFrictionAcceleration
      !!{RST
-     Constructors for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSelfFrictionAcceleration` N-body operator class.
      !!}
      module procedure selfFrictionAccelerationConstructorParameters
      module procedure selfFrictionAccelerationConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function selfFrictionAccelerationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSelfFrictionAcceleration` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,7 +90,7 @@ contains
 
   function selfFrictionAccelerationConstructorInternal(bootstrapSampleCount,thetaTolerance) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class
+    Internal constructor for the :galacticus-class:`nbodyOperatorSelfFrictionAcceleration` N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfFrictionAcceleration)                :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine selfFrictionAccelerationDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSelfFrictionAcceleration`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSelfFrictionAcceleration` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfFrictionAcceleration), intent(inout) :: self

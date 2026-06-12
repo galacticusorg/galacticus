@@ -104,7 +104,7 @@
 
   interface massDistributionSphericalSIDMIsothermal
      !!{RST
-     Constructors for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalSIDMIsothermal` mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalConstructorParameters
      module procedure sphericalSIDMIsothermalConstructorInternal
@@ -123,7 +123,7 @@ contains
 
   function sphericalSIDMIsothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermal` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -187,7 +187,7 @@ contains
 
   function sphericalSIDMIsothermalConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{RST
-    Internal constructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
+    Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermal` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -218,7 +218,7 @@ contains
 
   subroutine sphericalSIDMIsothermalDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSphericalSIDMIsothermal`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermal` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermal), intent(inout) :: self

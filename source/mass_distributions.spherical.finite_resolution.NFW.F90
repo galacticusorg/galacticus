@@ -103,7 +103,7 @@
 
   interface massDistributionSphericalFiniteResolutionNFW
      !!{RST
-     Constructors for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalFiniteResolutionNFW` mass distribution class.
      !!}
      module procedure sphericalFiniteResolutionNFWConstructorParameters
      module procedure sphericalFiniteResolutionNFWConstructorInternal
@@ -165,7 +165,7 @@ contains
 
   function sphericalFiniteResolutionNFWConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalFiniteResolutionNFW` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -231,7 +231,7 @@ contains
   
   function sphericalFiniteResolutionNFWConstructorInternal(lengthResolution,radiusScale,radiusVirial,mass,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalFiniteResolutionNFW`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalFiniteResolutionNFW` mass distribution class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

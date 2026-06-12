@@ -44,7 +44,7 @@
 
   interface initialMassFunctionBaugh2005TopHeavy
      !!{RST
-     Constructors for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function class.
+     Constructors for the :galacticus-class:`initialMassFunctionBaugh2005TopHeavy` initial mass function class.
      !!}
      module procedure baugh2005TopHeavyConstructorParameters
      module procedure baugh2005TopHeavyConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function baugh2005TopHeavyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`initialMassFunctionBaugh2005TopHeavy` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,7 +70,7 @@ contains
 
   function baugh2005TopHeavyConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``initialMassFunctionBaugh2005TopHeavy`` initial mass function.
+    Internal constructor for the :galacticus-class:`initialMassFunctionBaugh2005TopHeavy` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy):: self

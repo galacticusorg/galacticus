@@ -56,7 +56,7 @@
 
   interface taskConditionalMassFunction
      !!{RST
-     Constructors for the ``taskConditionalMassFunction`` task.
+     Constructors for the :galacticus-class:`taskConditionalMassFunction` task.
      !!}
      module procedure conditionalMassFunctionConstructorParameters
      module procedure conditionalMassFunctionConstructorInternal
@@ -66,7 +66,7 @@ contains
 
   function conditionalMassFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskConditionalMassFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskConditionalMassFunction` task class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -263,7 +263,7 @@ contains
 
   function conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_,countMass,massMinimum,massMaximum,massBinCenters,massLogarithmDelta,massHalo,massHaloMinimum,massHaloMaximum) result(self)
     !!{RST
-    Constructor for the ``taskConditionalMassFunction`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskConditionalMassFunction` task class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -315,7 +315,7 @@ contains
 
   subroutine conditionalMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``taskConditionalMassFunction`` task class.
+    Destructor for the :galacticus-class:`taskConditionalMassFunction` task class.
     !!}
     implicit none
     type(taskConditionalMassFunction), intent(inout) :: self

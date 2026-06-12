@@ -91,7 +91,7 @@
 
   interface accretionHaloColdMode
      !!{RST
-     Constructors for the ``accretionHaloColdMode`` halo accretion class.
+     Constructors for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
      !!}
      module procedure coldModeConstructorParameters
      module procedure coldModeConstructorInternal
@@ -143,7 +143,7 @@ contains
 
   function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
     !!{RST
-    Internal constructor for the ``accretionHaloColdMode`` halo accretion class.
+    Internal constructor for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
     !!}
     implicit none
     type            (accretionHaloColdMode        )                        :: self
@@ -192,7 +192,7 @@ contains
 
   subroutine coldModeDestructor(self)
     !!{RST
-    Destructor for the ``accretionHaloColdMode`` halo accretion class.
+    Destructor for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

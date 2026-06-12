@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOHeated" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionSphericalHeated`` objects to account for heating of some other dark matter profile.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSphericalHeated` objects to account for heating of some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -50,7 +50,7 @@
 
   interface darkMatterProfileDMOHeated
      !!{RST
-     Constructors for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMOHeated` dark matter halo profile class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -179,7 +179,7 @@ contains
 
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOHeated` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -205,7 +205,7 @@ contains
 
   subroutine heatedDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMOHeated`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMOHeated` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self

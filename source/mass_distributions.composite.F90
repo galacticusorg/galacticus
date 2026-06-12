@@ -87,7 +87,7 @@
 
   interface massDistributionComposite
      !!{RST
-     Constructors for the ``massDistributionComposite`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionComposite` mass distribution class.
      !!}
      module procedure compositeConstructorParameters
      module procedure compositeConstructorInternal
@@ -97,7 +97,7 @@ contains
 
   function compositeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionComposite`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionComposite` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

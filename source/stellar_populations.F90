@@ -37,7 +37,7 @@ module Stellar_Populations
    <name>stellarPopulation</name>
    <descriptiveName>Stellar Populations</descriptiveName>
    <description>
-   Class providing stellar populations---composite descriptions of a coeval group of stars formed with a given initial mass function, metallicity, and age. For a given population, implementations return the mass recycled back to the :term:`ISM` per unit stellar mass formed, the metal yield, and the energy input rate from stellar evolution as a function of age interval. Both explicit (time-resolved) and instantaneous recycling approximations are supported. The spectra method returns the associated ``stellarPopulationSpectraClass`` object for computing integrated luminosities.
+   Class providing stellar populations---composite descriptions of a coeval group of stars formed with a given initial mass function, metallicity, and age. For a given population, implementations return the mass recycled back to the :term:`ISM` per unit stellar mass formed, the metal yield, and the energy input rate from stellar evolution as a function of age interval. Both explicit (time-resolved) and instantaneous recycling approximations are supported. The spectra method returns the associated :galacticus-class:`stellarPopulationSpectraClass` object for computing integrated luminosities.
    </description>
    <default>standard</default>
    <method name="rateRecycling" >
@@ -95,7 +95,7 @@ module Stellar_Populations
    </method>
    <method name="spectra" >
     <description>
-    Return the ``stellarPopulationSpectraClass`` object associated with this stellar population, which provides methods to compute the integrated spectral energy distribution as a function of wavelength and age.
+    Return the :galacticus-class:`stellarPopulationSpectraClass` object associated with this stellar population, which provides methods to compute the integrated spectral energy distribution as a function of wavelength and age.
     </description>
     <type>class(stellarPopulationSpectraClass)</type>
     <pass>yes</pass>

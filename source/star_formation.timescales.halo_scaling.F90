@@ -65,7 +65,7 @@
 
   interface starFormationTimescaleHaloScaling
      !!{RST
-     Constructors for the ``starFormationTimescaleHaloScaling`` timescale for star formation class.
+     Constructors for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
      !!}
      module procedure haloScalingConstructorParameters
      module procedure haloScalingConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function haloScalingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationTimescaleHaloScaling`` timescale for star formation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -127,7 +127,7 @@ contains
 
   function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``starFormationTimescaleHaloScaling`` timescale for star formation class.
+    Internal constructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleHaloScaling)                        :: self
@@ -166,7 +166,7 @@ contains
 
   subroutine haloScalingDestructor(self)
     !!{RST
-    Destructor for the ``starFormationTimescaleHaloScaling`` timescale for star formation class.
+    Destructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none

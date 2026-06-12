@@ -58,7 +58,7 @@
 
   interface nodePropertyExtractorProjectedDensity
      !!{RST
-     Constructors for the ``nodePropertyExtractorProjectedDensity`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function projectedDensityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorProjectedDensity`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorProjectedDensity`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -153,7 +153,7 @@ contains
 
   subroutine projectedDensityDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorProjectedDensity`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedDensity), intent(inout) :: self

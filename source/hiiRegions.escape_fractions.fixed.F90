@@ -52,7 +52,7 @@ contains
 
   function escapeFractionFixedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``hiiRegionEscapeFractionFixed`` HII region escape fraction class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`hiiRegionEscapeFractionFixed` HII region escape fraction class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function escapeFractionFixedConstructorInternal(escapeFraction_,ageLimit) result(self)
     !!{RST
-    Internal constructor for the ``hiiRegionEscapeFractionFixed``
+    Internal constructor for the :galacticus-class:`hiiRegionEscapeFractionFixed`
     !!}
     
     implicit none

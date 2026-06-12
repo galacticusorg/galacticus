@@ -34,7 +34,7 @@
 
    where :math:`\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)` is the peak height of the halo. The truncation at :math:`\alpha = 0.3` is included since :cite:t:`brown_towards_2022`'s fits do not probe this region and extremely large values of :math:`\alpha` are numerically troublesome.
 
-   This implementation accepts any ``cosmologicalMassVarianceClass`` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (``powerSpectrumWindowFunctionTopHatGeneralized``) with :math:`\mu_\mathrm{g}=0.01`.
+   This implementation accepts any :galacticus-class:`cosmologicalMassVarianceClass` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (:galacticus-class:`powerSpectrumWindowFunctionTopHatGeneralized`) with :math:`\mu_\mathrm{g}=0.01`.
    </description>
   </darkMatterProfileShape>
   !!]
@@ -52,7 +52,7 @@
 
   interface darkMatterProfileShapeBrown2021
      !!{RST
-     Constructors for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
+     Constructors for the :galacticus-class:`darkMatterProfileShapeBrown2021` dark matter halo profile shape class.
      !!}
      module procedure brown2021ConstructorParameters
      module procedure brown2021ConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function brown2021ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
+    Constructor for the :galacticus-class:`darkMatterProfileShapeBrown2021` dark matter halo profile shape class.
     !!}
     implicit none
     type (darkMatterProfileShapeBrown2021)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine brown2021Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileShapeBrown2021`` dark matter halo profile shape class.
+    Destructor for the :galacticus-class:`darkMatterProfileShapeBrown2021` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeBrown2021), intent(inout) :: self

@@ -27,7 +27,7 @@
   !![
   <nodeOperator name="nodeOperatorGalaxyMajorMergerTime" docformat="rst">
    <description>
-   A node operator class that records the cosmic time of each galaxy--galaxy major merger event as a meta-property of the basic node component. A merger is classified as major based on the stellar mass movements determined by ``mergerMassMovementsClass``. ``countTimesMaximum`` caps the number of merger times accumulated per node, enabling targeted study of the recent major merger history of galaxies.
+   A node operator class that records the cosmic time of each galaxy--galaxy major merger event as a meta-property of the basic node component. A merger is classified as major based on the stellar mass movements determined by :galacticus-class:`mergerMassMovementsClass`. ``countTimesMaximum`` caps the number of merger times accumulated per node, enabling targeted study of the recent major merger history of galaxies.
    </description>
   </nodeOperator>
   !!]
@@ -46,7 +46,7 @@
   
   interface nodeOperatorGalaxyMajorMergerTime
      !!{RST
-     Constructors for the ``nodeOperatorGalaxyMajorMergerTime`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorGalaxyMajorMergerTime` node operator class.
      !!}
      module procedure galaxyMajorMergerTimeConstructorParameters
      module procedure galaxyMajorMergerTimeConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorGalaxyMajorMergerTime`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorGalaxyMajorMergerTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function galaxyMajorMergerTimeConstructorInternal(countTimesMaximum,mergerMassMovements_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorGalaxyMajorMergerTime`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorGalaxyMajorMergerTime` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -119,7 +119,7 @@ contains
   
   subroutine galaxyMajorMergerTimeDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorGalaxyMajorMergerTime`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorGalaxyMajorMergerTime` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

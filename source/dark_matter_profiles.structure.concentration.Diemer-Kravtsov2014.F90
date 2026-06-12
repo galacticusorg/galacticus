@@ -76,7 +76,7 @@
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationDiemerKravtsov2014`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
      !!}
      module procedure diemerKravtsov2014ConstructorParameters
      module procedure diemerKravtsov2014ConstructorInternal
@@ -195,7 +195,7 @@ contains
 
   function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationDiemerKravtsov2014`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -257,7 +257,7 @@ contains
 
   subroutine diemerKravtsov2014Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationDiemerKravtsov2014`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self

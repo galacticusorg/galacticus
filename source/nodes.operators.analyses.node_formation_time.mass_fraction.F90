@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorNodeFormationTimeMassFraction" docformat="rst">
    <description>
-   A node operator class that records the halo formation time as the epoch when the main-branch progenitor first assembled a fraction ``fractionMassFormation`` (default 0.5) of the final halo mass, using the mass accretion history from ``darkMatterHaloMassAccretionHistoryClass``. ``assumeMonotonicGrowth`` enables a faster algorithm that assumes monotonic mass growth along each branch.
+   A node operator class that records the halo formation time as the epoch when the main-branch progenitor first assembled a fraction ``fractionMassFormation`` (default 0.5) of the final halo mass, using the mass accretion history from :galacticus-class:`darkMatterHaloMassAccretionHistoryClass`. ``assumeMonotonicGrowth`` enables a faster algorithm that assumes monotonic mass growth along each branch.
    </description>
   </nodeOperator>
   !!]
@@ -47,7 +47,7 @@
   
   interface nodeOperatorNodeFormationTimeMassFraction
      !!{RST
-     Constructors for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorNodeFormationTimeMassFraction` node operator class.
      !!}
      module procedure nodeFormationTimeMassFractionConstructorParameters
      module procedure nodeFormationTimeMassFractionConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function nodeFormationTimeMassFractionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorNodeFormationTimeMassFraction` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function nodeFormationTimeMassFractionConstructorInternal(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorNodeFormationTimeMassFraction` node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeFormationTimeMassFraction)                        :: self
@@ -115,7 +115,7 @@ contains
 
   subroutine nodeFormationTimeMassFractionDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorNodeFormationTimeMassFraction`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorNodeFormationTimeMassFraction` node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeFormationTimeMassFraction), intent(inout) :: self

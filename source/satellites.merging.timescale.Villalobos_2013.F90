@@ -113,7 +113,7 @@ contains
 
   subroutine villalobos2013Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesVillalobos2013`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesVillalobos2013` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesVillalobos2013), intent(inout) :: self

@@ -48,7 +48,7 @@
 
   interface radiativeTransferOutputterContinuuaRates
      !!{RST
-     Constructors for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
+     Constructors for the :galacticus-class:`radiativeTransferOutputterContinuuaRates` radiative transfer outputter class.
      !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function continuuaRatesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferOutputterContinuuaRates` radiative transfer outputter class which takes a parameter set as input.
     !!}
     use :: Atomic_Data     , only : Atom_Lookup
     use :: Input_Parameters, only : inputParameters
@@ -98,7 +98,7 @@ contains
 
   function continuuaRatesConstructorInternal(elementIndices,atomicIonizationPotential_) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
+    Internal constructor for the :galacticus-class:`radiativeTransferOutputterContinuuaRates` radiative transfer outputter class.
     !!}
     use :: Atomic_Data                 , only : Atomic_Number, Atomic_Short_Label
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
@@ -143,7 +143,7 @@ contains
 
   subroutine continuuaRatesDestructor(self)
     !!{RST
-    Destructor for the ``radiativeTransferOutputterContinuuaRates`` radiative transfer outputter class.
+    Destructor for the :galacticus-class:`radiativeTransferOutputterContinuuaRates` radiative transfer outputter class.
     !!}
     implicit none
     type(radiativeTransferOutputterContinuuaRates), intent(inout) :: self

@@ -46,7 +46,7 @@ Implements a merger tree build controller class which builds trees containing on
 
   interface mergerTreeBuildControllerMainBranch
      !!{RST
-     Constructors for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerMainBranch` merger tree build controller class.
      !!}
      module procedure mainBranchConstructorParameters
      module procedure mainBranchConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function mainBranchConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerMainBranch` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,7 +86,7 @@ contains
 
   function mainBranchConstructorInternal(massFraction,mergerTreeBranchingProbability_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerMainBranch` merger tree build controller class.
     !!}
     implicit none
     type            (mergerTreeBuildControllerMainBranch)                        :: self
@@ -101,7 +101,7 @@ contains
 
   subroutine mainBranchDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeBuildControllerMainBranch`` merger tree build controller class.
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerMainBranch` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMainBranch), intent(inout) :: self

@@ -34,7 +34,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMChemistry" docformat="rst">
     <description>
-    A node operator class solves for chemical evolution in the :term:`CGM`. Chemical abundances are evolved according to a ``chemicalReactionRateClass`` object, with the option of the ionization state of atomic hydrogen being set to equilibrium values. This can be advantageous as the timescales for the reactions controlling the ionization state of atomic hydrogen can become extremely small, resulting in extremely slow evolution of the ODE system.
+    A node operator class solves for chemical evolution in the :term:`CGM`. Chemical abundances are evolved according to a :galacticus-class:`chemicalReactionRateClass` object, with the option of the ionization state of atomic hydrogen being set to equilibrium values. This can be advantageous as the timescales for the reactions controlling the ionization state of atomic hydrogen can become extremely small, resulting in extremely slow evolution of the ODE system.
 
     The parameter ``fractionTimescaleEquilibrium`` controls when the equilibrium assumption should be made. Specifically, equilibrium is assume if:
 
@@ -94,7 +94,7 @@
 
   interface nodeOperatorCGMChemistry
      !!{RST
-     Constructors for the ``nodeOperatorCGMChemistry`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorCGMChemistry` node operator class.
      !!}
      module procedure cgmChemistryConstructorParameters
      module procedure cgmChemistryConstructorInternal
@@ -121,7 +121,7 @@ contains
 
   function cgmChemistryConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorCGMChemistry`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorCGMChemistry` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Radiation_Fields, only : radiationFieldNull
@@ -183,7 +183,7 @@ contains
 
   function cgmChemistryConstructorInternal(fractionTimescaleEquilibrium,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_,chemicalReactionRate_,darkMatterHaloScale_,cosmologyFunctions_,radiation_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorCGMChemistry`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMChemistry` node operator class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index, Chemicals_Property_Count
     implicit none
@@ -218,7 +218,7 @@ contains
   
   subroutine cgmChemistryDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorCGMChemistry`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorCGMChemistry` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMChemistry), intent(inout) :: self

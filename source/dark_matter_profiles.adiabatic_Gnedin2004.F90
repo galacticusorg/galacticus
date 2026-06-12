@@ -29,7 +29,7 @@
   !![
   <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004" docformat="rst">
    <description>
-   A non-dark-matter-only dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of :cite:t:`gnedin_response_2004`, building ``massDistributionSphericalAdiabaticGnedin2004`` objects. The shape of the contraction is governed by parameters ``[A]``, ``[omega]``, and the pivot radius ``[radiusFractionalPivot]``, with numerical accuracy controlled by ``[toleranceRelative]``.
+   A non-dark-matter-only dark matter profile class which applies adiabatic contraction to dark matter profiles using the model of :cite:t:`gnedin_response_2004`, building :galacticus-class:`massDistributionSphericalAdiabaticGnedin2004` objects. The shape of the contraction is governed by parameters ``[A]``, ``[omega]``, and the pivot radius ``[radiusFractionalPivot]``, with numerical accuracy controlled by ``[toleranceRelative]``.
    </description>
   </darkMatterProfile>
   !!]
@@ -52,7 +52,7 @@
 
   interface darkMatterProfileAdiabaticGnedin2004
      !!{RST
-     Constructors for the ``darkMatterProfileAdiabaticGnedin2004`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileAdiabaticGnedin2004` dark matter halo profile class.
      !!}
      module procedure adiabaticGnedin2004ConstructorParameters
      module procedure adiabaticGnedin2004ConstructorInternal
@@ -106,7 +106,7 @@ contains
       </defaultSource>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The pivot radius (in units of the virial radius), :math:`r_0`, appearing in equation ().
+      The pivot radius (in units of the virial radius), :math:`r_0`, appearing in equation (:eq:`eq-adiabaticContractionGnedinPowerLaw`).
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -142,7 +142,7 @@ contains
 
   function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileAdiabaticGnedin2004`` non-dark-matter-only dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileAdiabaticGnedin2004` non-dark-matter-only dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -169,7 +169,7 @@ contains
 
   subroutine adiabaticGnedin2004Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileAdiabaticGnedin2004`` non-dark-matter-only dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileAdiabaticGnedin2004` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self

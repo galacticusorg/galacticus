@@ -41,7 +41,7 @@
 
   interface taskComovingDistances
      !!{RST
-     Constructors for the ``taskComovingDistances`` task.
+     Constructors for the :galacticus-class:`taskComovingDistances` task.
      !!}
      module procedure comovingDistancesConstructorParameters
      module procedure comovingDistancesConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function comovingDistancesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskComovingDistances`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskComovingDistances` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,7 +75,7 @@ contains
 
   function comovingDistancesConstructorInternal(cosmologyFunctions_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``taskComovingDistances`` task class.
+    Internal constructor for the :galacticus-class:`taskComovingDistances` task class.
     !!}
     implicit none
     type (taskComovingDistances  )                        :: self
@@ -90,7 +90,7 @@ contains
 
   subroutine comovingDistancesDestructor(self)
     !!{RST
-    Destructor for the ``taskComovingDistances`` task class.
+    Destructor for the :galacticus-class:`taskComovingDistances` task class.
     !!}
     implicit none
     type(taskComovingDistances), intent(inout) :: self

@@ -49,7 +49,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
 
   interface haloMassFunctionSimpleSystematic
      !!{RST
-     Constructors for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionSimpleSystematic` halo mass function class.
      !!}
      module procedure simpleSystematicConstructorParameters
      module procedure simpleSystematicConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function simpleSystematicConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionSimpleSystematic` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,7 +101,7 @@ contains
 
   function simpleSystematicConstructorInternal(alpha,beta,cosmologyParameters_,referenceMassFunction) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionSimpleSystematic` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionSimpleSystematic)                        :: self
@@ -117,7 +117,7 @@ contains
 
   subroutine simpleSystematicDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionSimpleSystematic`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionSimpleSystematic` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionSimpleSystematic), intent(inout) :: self

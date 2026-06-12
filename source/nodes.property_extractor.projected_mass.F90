@@ -58,7 +58,7 @@
 
   interface nodePropertyExtractorProjectedMass
      !!{RST
-     Constructors for the ``nodePropertyExtractorProjectedMass`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorProjectedMass` property extractor class.
      !!}
      module procedure projectedMassConstructorParameters
      module procedure projectedMassConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function projectedMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorProjectedMass`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorProjectedMass` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
 
   function projectedMassConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorProjectedMass`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorProjectedMass` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -145,7 +145,7 @@ contains
 
   subroutine projectedMassDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorProjectedMass`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorProjectedMass` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedMass), intent(inout) :: self

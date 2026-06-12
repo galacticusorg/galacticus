@@ -53,11 +53,11 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods" docformat="rst">
     <description>
-    A posterior sampling likelihood class which combines likelihoods from one or more other ``posteriorSampleLikelihoodClass`` classes that are assumed to be independent (i.e. the :math:`\log \mathcal{L}` of the models are simply summed to find the final likelihood).
+    A posterior sampling likelihood class which combines likelihoods from one or more other :galacticus-class:`posteriorSampleLikelihoodClass` classes that are assumed to be independent (i.e. the :math:`\log \mathcal{L}` of the models are simply summed to find the final likelihood).
 
-    Since each ``posteriorSampleLikelihoodClass`` class may require a different set of parameters a ``[parameterMap]`` parameter may be specified. If present, the number of ``[parameterMap]`` parameters must equal the number of ``[posteriorSampleLikelihood]`` parameters. Each such parameter should give a (space-separated) list of the names of parameters (as defined in the ``modelParameterActive`` model parameter class) which should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterMap]`` parameters are given then all parameters are passed to each ``posteriorSampleLikelihoodClass`` class.
+    Since each :galacticus-class:`posteriorSampleLikelihoodClass` class may require a different set of parameters a ``[parameterMap]`` parameter may be specified. If present, the number of ``[parameterMap]`` parameters must equal the number of ``[posteriorSampleLikelihood]`` parameters. Each such parameter should give a (space-separated) list of the names of parameters (as defined in the :galacticus-class:`modelParameterActive` model parameter class) which should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterMap]`` parameters are given then all parameters are passed to each :galacticus-class:`posteriorSampleLikelihoodClass` class.
 
-    Similarly, a set of ``parameterInactiveMap`` parameters may be given, to specify which (if any, an empty ``value`` is permissible) of the inactive parameters specified by ``modelParameterInactive`` should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterInactiveMap]`` then no inactive parameters are passed to any of the ``[posteriorSampleLikelihood]`` classes.
+    Similarly, a set of ``parameterInactiveMap`` parameters may be given, to specify which (if any, an empty ``value`` is permissible) of the inactive parameters specified by :galacticus-class:`modelParameterInactive` should be passed to the corresponding ``[posteriorSampleLikelihood]``. If no ``[parameterInactiveMap]`` then no inactive parameters are passed to any of the ``[posteriorSampleLikelihood]`` classes.
 
     Optionally, a parameter ``[logLikelihoodAccept]`` may be specified. Once the likelihood of a chain reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely that it is "acceptable".
     </description>
@@ -82,7 +82,7 @@
 
   interface posteriorSampleLikelihoodIndependentLikelihoods
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoods` posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
@@ -92,7 +92,7 @@ contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoods` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter                         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters, &
@@ -230,7 +230,7 @@ contains
 
   function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept,report,orderRotation) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoods` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
@@ -247,7 +247,7 @@ contains
 
   subroutine independentLikelihoodsDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodIndependentLikelihoods`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodIndependentLikelihoods` posterior sampling likelihood class.
     !!}
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self

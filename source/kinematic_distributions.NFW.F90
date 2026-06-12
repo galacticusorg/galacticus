@@ -40,7 +40,7 @@
 
   interface kinematicsDistributionNFW
      !!{RST
-     Constructors for the ``kinematicsDistributionNFW`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function nfwConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionNFW`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function nfwConstructorInternal(useSeriesApproximation) result(self)
     !!{RST
-    Internal constructor for the ``kinematicsDistributionNFW`` kinematic distribution class.
+    Internal constructor for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class.
     !!}
     implicit none
     type   (kinematicsDistributionNFW)                :: self

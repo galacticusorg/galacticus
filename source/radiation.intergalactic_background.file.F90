@@ -87,7 +87,7 @@
 
   interface radiationFieldIntergalacticBackgroundFile
      !!{RST
-     Constructors for the ``radiationFieldIntergalacticBackgroundFile`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
      !!}
      module procedure intergalacticBackgroundFileConstructorParameters
      module procedure intergalacticBackgroundFileConstructorInternal
@@ -100,7 +100,7 @@ contains
 
   function intergalacticBackgroundFileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldIntergalacticBackgroundFile`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -129,7 +129,7 @@ contains
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldIntergalacticBackgroundFile`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
     use :: FoX_DOM        , only : destroy                          , extractDataContent   , node
@@ -248,7 +248,7 @@ contains
 
   subroutine intergalacticBackgroundFileDestructor(self)
     !!{RST
-    Destructor for the ``radiationFieldIntergalacticBackgroundFile`` radiation field class.
+    Destructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
     !!}
     implicit none
     type(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self

@@ -67,7 +67,7 @@
 
   interface massDistributionSphericalShellOverdensities
      !!{RST
-     Constructors for the ``massDistributionSphericalShellOverdensities`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
      !!}
      module procedure sphericalShellOverdensitiesConstructorParameters
      module procedure sphericalShellOverdensitiesConstructorInternal
@@ -77,7 +77,7 @@ contains
 
   function sphericalShellOverdensitiesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalShellOverdensities`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -159,7 +159,7 @@ contains
   
   function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalShellOverdensities`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
     !!}
     use :: Sorting      , only : sort
 #ifdef USEMPI
@@ -235,7 +235,7 @@ contains
   
   subroutine sphericalShellOverdensitiesDestructor(self)
     !!{RST
-    Destructor for the ``massDistributionSphericalShellOverdensities`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalShellOverdensities), intent(inout) :: self

@@ -40,7 +40,7 @@ Implements a merger tree evolve profiler that does nothing.
 
   interface mergerTreeEvolveProfilerNull
      !!{RST
-     Constructors for the ``mergerTreeEvolveProfilerNull`` merger tree evolve profiler class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveProfilerNull` merger tree evolve profiler class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeEvolveProfilerNull
@@ -49,7 +49,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveProfilerNull`` merger tree evolve profiler class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveProfilerNull` merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

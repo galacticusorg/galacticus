@@ -49,7 +49,7 @@
 
   interface intergalacticMediumStateMetallicityPolynomial
      !!{RST
-     Constructors for the ``intergalacticMediumStateMetallicityPolynomial`` :term:`IGM` state class.
+     Constructors for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class.
      !!}
      module procedure metallicityPolynomialIGMConstructorParameters
      module procedure metallicityPolynomialIGMConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function metallicityPolynomialIGMConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityPolynomial`` :term:`IGM` state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function metallicityPolynomialIGMConstructorInternal(coefficients,cosmologyFunctions_,intergalacticMediumState_) result(self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateMetallicityPolynomial`` :term:`IGM` state class.
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityPolynomial)                        :: self

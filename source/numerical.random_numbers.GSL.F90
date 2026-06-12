@@ -70,7 +70,7 @@
 
   interface randomNumberGeneratorGSL
      !!{RST
-     Constructors for the ``randomNumberGeneratorGSL`` random number generator class.
+     Constructors for the :galacticus-class:`randomNumberGeneratorGSL` random number generator class.
      !!}
      module procedure gslConstructorParameters
      module procedure gslConstructorInternal
@@ -213,7 +213,7 @@ contains
   
   function gslConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``randomNumberGeneratorGSL`` random number generator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`randomNumberGeneratorGSL` random number generator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -257,7 +257,7 @@ contains
 
   function gslConstructorInternal(seed_,ompThreadOffset,mpiRankOffset) result(self)
     !!{RST
-    Internal constructor for the ``randomNumberGeneratorGSL`` random number generator class.
+    Internal constructor for the :galacticus-class:`randomNumberGeneratorGSL` random number generator class.
     !!}
 #ifdef USEMPI
     use    :: MPI_F08, only : MPI_Comm_Rank     , MPI_Comm_World
@@ -317,7 +317,7 @@ contains
   
   subroutine gslRandomNumberGeneratorWrapperDestructor(self)
     !!{RST
-    Destructor for the ``gslRandomNumberGeneratorWrapper`` random number generator class.
+    Destructor for the :galacticus-class:`gslRandomNumberGeneratorWrapper` random number generator class.
     !!}
     implicit none
     type(gslRandomNumberGeneratorWrapper), intent(inout) :: self

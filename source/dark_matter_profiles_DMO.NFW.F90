@@ -26,7 +26,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMONFW" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionNFW`` objects to implement the :term:`NFW` density profile :cite:p:`navarro_universal_1997`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see ``darkMatterProfileConcentration``).
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionNFW` objects to implement the :term:`NFW` density profile :cite:p:`navarro_universal_1997`, normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the scale length :math:`r_\mathrm{s} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`).
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -44,7 +44,7 @@
 
   interface darkMatterProfileDMONFW
      !!{RST
-     Constructors for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMONFW` dark matter halo profile class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -54,7 +54,7 @@ contains
 
   function nfwConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterProfileDMONFW` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function nfwConstructorInternal(velocityDispersionUseSeriesExpansion,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMONFW` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -112,7 +112,7 @@ contains
 
   subroutine nfwDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMONFW`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMONFW` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMONFW), intent(inout) :: self

@@ -211,7 +211,7 @@ contains
 
   subroutine integratorAssign(to,from)
     !!{RST
-    Assignment operator for ``integrator`` objects.
+    Assignment operator for :galacticus-class:`integrator` objects.
     !!}
     implicit none
     class(integrator), intent(  out) :: to

@@ -26,7 +26,7 @@
   !![
   <massDistributionHeating name="massDistributionHeatingMonotonicWeak" docformat="rst">
     <description>
-    A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation. This class enforces a weaker condition (compared to ``massDistributionHeatingMonotonic``):
+    A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation. This class enforces a weaker condition (compared to :galacticus-class:`massDistributionHeatingMonotonic`):
 
     .. math::
 
@@ -65,7 +65,7 @@
 
   interface massDistributionHeatingMonotonicWeak
      !!{RST
-     Constructors for the ``massDistributionHeatingMonotonicWeak`` mass distribution heating class.
+     Constructors for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingMonotonicWeak`` mass distribution heating class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
   
   function monotonicWeakConstructorInternal(toleranceShellCrossing,massDistributionHeating_) result(self)
     !!{RST
-    Constructor for the ``massDistributionHeatingMonotonicWeak`` mass distribution heating class.
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonicWeak)                        :: self

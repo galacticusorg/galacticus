@@ -39,7 +39,7 @@
 
   interface mergerTreeNodeMergerSingleLevelHierarchy
      !!{RST
-     Constructors for the ``mergerTreeNodeMergerSingleLevelHierarchy`` merger tree evolver.
+     Constructors for the :galacticus-class:`mergerTreeNodeMergerSingleLevelHierarchy` merger tree evolver.
      !!}
      module procedure singleLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerSingleLevelHierarchy
@@ -48,7 +48,7 @@ contains
 
   function singleLevelHierarchyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeNodeMergerSingleLevelHierarchy`` node merger class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeNodeMergerSingleLevelHierarchy` node merger class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

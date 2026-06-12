@@ -44,7 +44,7 @@ Implements a black hole mass property extractor class.
 
   interface nodePropertyExtractorMassBlackHole
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassBlackHole`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBlackHole` property extractor class.
      !!}
      module procedure massBlackHoleConstructorParameters
   end interface nodePropertyExtractorMassBlackHole
@@ -53,7 +53,7 @@ contains
 
   function massBlackHoleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassBlackHole`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBlackHole` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

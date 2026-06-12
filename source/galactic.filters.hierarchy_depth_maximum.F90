@@ -40,7 +40,7 @@ Implements a filter which passes only halos below a specified hierarchy depth.
 
   interface galacticFilterHierarchyDepthMaximum
      !!{RST
-     Constructors for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterHierarchyDepthMaximum` galactic filter class.
      !!}
      module procedure hierarchyDepthMaximumConstructorParameters
      module procedure hierarchyDepthMaximumConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function hierarchyDepthMaximumConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterHierarchyDepthMaximum` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function hierarchyDepthMaximumConstructorInternal(depthHierarchyLargest) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterHierarchyDepthMaximum`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterHierarchyDepthMaximum` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterHierarchyDepthMaximum)                :: self

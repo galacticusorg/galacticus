@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorBlackHolesSeed" docformat="rst">
    <description>
-   A node operator class that initializes black hole seeds in newly formed nodes using a ``blackHoleSeedsClass`` object to set the initial black hole mass, enabling subsequent growth through accretion and merger channels.
+   A node operator class that initializes black hole seeds in newly formed nodes using a :galacticus-class:`blackHoleSeedsClass` object to set the initial black hole mass, enabling subsequent growth through accretion and merger channels.
    </description>
   </nodeOperator>
   !!]
@@ -48,7 +48,7 @@
   
   interface nodeOperatorBlackHolesSeed
      !!{RST
-     Constructors for the ``nodeOperatorBlackHolesSeed`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
      !!}
      module procedure blackHolesSeedConstructorParameters
      module procedure blackHolesSeedConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function blackHolesSeedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBlackHolesSeed`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function blackHolesSeedConstructorInternal(blackHoleSeeds_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBlackHolesSeed`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesSeed)                        :: self
@@ -113,7 +113,7 @@ contains
 
   subroutine blackHolesSeedDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBlackHolesSeed`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
     !!}
     use :: Events_Hooks, only : blackHoleMergerEvent
     implicit none

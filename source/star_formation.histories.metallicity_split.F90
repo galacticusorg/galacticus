@@ -65,7 +65,7 @@ Implements a star formation histories class which records star formation split b
 
   interface starFormationHistoryMetallicitySplit
      !!{RST
-     Constructors for the ``starFormationHistoryMetallicitySplit`` star formation history class.
+     Constructors for the :galacticus-class:`starFormationHistoryMetallicitySplit` star formation history class.
      !!}
      module procedure metallicitySplitConstructorParameters
      module procedure metallicitySplitConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function metallicitySplitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationHistoryMetallicitySplit`` star formation history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationHistoryMetallicitySplit` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -193,7 +193,7 @@ contains
 
   function metallicitySplitConstructorInternal(outputTimes_,timeStep,timeStepFine,timeFine,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{RST
-    Internal constructor for the ``starFormationHistoryMetallicitySplit`` star formation history class.
+    Internal constructor for the :galacticus-class:`starFormationHistoryMetallicitySplit` star formation history class.
     !!}
     use :: Error           , only : Error_Report
     use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
@@ -251,7 +251,7 @@ contains
 
   subroutine metallicitySplitDestructor(self)
     !!{RST
-    Destructor for the ``starFormationHistoryMetallicitySplit`` star formation history class.
+    Destructor for the :galacticus-class:`starFormationHistoryMetallicitySplit` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryMetallicitySplit), intent(inout) :: self

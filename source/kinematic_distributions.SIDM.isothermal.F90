@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionSIDMIsothermal
      !!{RST
-     Constructors for the ``kinematicsDistributionSIDMIsothermal`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionSIDMIsothermal` kinematic distribution class.
      !!}
      module procedure sidmIsothermalConstructorParameters
   end interface kinematicsDistributionSIDMIsothermal
@@ -48,7 +48,7 @@ contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionSIDMIsothermal`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionSIDMIsothermal` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

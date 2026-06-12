@@ -46,7 +46,7 @@
 
   interface kinematicsDistributionLocal
      !!{RST
-     Constructors for the ``kinematicsDistributionLocal`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionLocal` kinematic distribution class.
      !!}
      module procedure localConstructorParameters
      module procedure localConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function localConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionLocal`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionLocal` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
   
   function localConstructorInternal(alpha) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionLocal`` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionLocal` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLocal)                :: self

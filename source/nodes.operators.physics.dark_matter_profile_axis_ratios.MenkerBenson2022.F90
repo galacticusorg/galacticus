@@ -60,7 +60,7 @@
   
   interface nodeOperatorHaloAxisRatiosMenkerBenson2022
      !!{RST
-     Constructors for the ``nodeOperatorHaloAxisRatiosMenkerBenson2022`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
      !!}
      module procedure haloAxisRatiosMenkerBenson2022ConstructorParameters
      module procedure haloAxisRatiosMenkerBenson2022ConstructorInternal
@@ -70,7 +70,7 @@ contains
   
   function haloAxisRatiosMenkerBenson2022ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHaloAxisRatiosMenkerBenson2022`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -128,7 +128,7 @@ contains
 
   function haloAxisRatiosMenkerBenson2022ConstructorInternal(timescaleSphericalizationFractional,energyBoost,exponentMass,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorHaloAxisRatiosMenkerBenson2022`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
     !!}
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
     use :: Error                   , only : Error_Report
@@ -158,7 +158,7 @@ contains
 
   subroutine haloAxisRatiosMenkerBenson2022Destructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorHaloAxisRatiosMenkerBenson2022`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout) :: self

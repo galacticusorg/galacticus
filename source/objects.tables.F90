@@ -844,7 +844,7 @@ contains
 
   elemental subroutine table1dGenericObjectsDestructor(self)
     !!{RST
-    Destructor for ``table1dGenericObjects`` objects.
+    Destructor for :galacticus-class:`table1dGenericObjects` objects.
     !!}
     implicit none
     type(table1dGenericObjects), intent(inout) :: self
@@ -855,7 +855,7 @@ contains
   
   subroutine table1dGenericObjectsAssignment(to,from)
     !!{RST
-    Assignment operator for ``table1dGenericObjects`` objects.
+    Assignment operator for :galacticus-class:`table1dGenericObjects` objects.
     !!}
     implicit none
     class(table1dGenericObjects), intent(inout) :: to

@@ -49,7 +49,7 @@ module Radiative_Transfer_Matters
    <default>atomic</default>
    <method name="propertyClass" >
     <description>
-    Allocate and return the concrete ``radiativeTransferPropertiesMatter`` object used to store per-cell matter properties (density, temperature, ionization fractions) in the computational domain.
+    Allocate and return the concrete :galacticus-class:`radiativeTransferPropertiesMatter` object used to store per-cell matter properties (density, temperature, ionization fractions) in the computational domain.
     </description>
     <type>void</type>
     <pass>yes</pass>

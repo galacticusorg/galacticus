@@ -27,7 +27,7 @@
   !![
   <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall" docformat="rst">
    <description>
-   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and freefall radii (see ``coolingRadius`` and ``freefallRadius``).
+   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and freefall radii (see :galacticus-class:`coolingRadius` and :galacticus-class:`freefallRadius`).
    </description>
   </coolingInfallRadius>
   !!]

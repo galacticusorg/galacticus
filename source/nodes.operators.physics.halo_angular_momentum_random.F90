@@ -27,7 +27,7 @@
   !![
   <nodeOperator name="nodeOperatorHaloAngularMomentumRandom" docformat="rst">
    <description>
-   A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a ``haloSpinDistributionClass`` (e.g.\ a log-normal distribution). ``factorReset`` specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.
+   A node operator class that initializes the angular momentum of each dark matter halo by drawing a random spin parameter from a :galacticus-class:`haloSpinDistributionClass` (e.g.\ a log-normal distribution). ``factorReset`` specifies the multiplicative mass growth factor required before the spin parameter is redrawn, allowing halos that have undergone significant mass growth to acquire a new spin appropriate to their new mass.
    </description>
   </nodeOperator>
   !!]
@@ -46,7 +46,7 @@
   
   interface nodeOperatorHaloAngularMomentumRandom
      !!{RST
-     Constructors for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` node operator class.
      !!}
      module procedure haloAngularMomentumRandomConstructorParameters
      module procedure haloAngularMomentumRandomConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function haloAngularMomentumRandomConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -89,7 +89,7 @@ contains
 
   function haloAngularMomentumRandomConstructorInternal(factorReset,haloSpinDistribution_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandom)                        :: self
@@ -105,7 +105,7 @@ contains
 
   subroutine haloAngularMomentumRandomDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorHaloAngularMomentumRandom`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandom` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandom), intent(inout) :: self

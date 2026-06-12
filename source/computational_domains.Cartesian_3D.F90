@@ -71,7 +71,7 @@
 
   interface computationalDomainCartesian3D
      !!{RST
-     Constructors for the ``computationalDomainCartesian3D`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainCartesian3D` computational domain.
      !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
@@ -96,7 +96,7 @@ contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainCartesian3D`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainCartesian3D` computational domain class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -185,7 +185,7 @@ contains
 
   function cartesian3DConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
     !!{RST
-    Constructor for the ``computationalDomainCartesian3D`` computational domain class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainCartesian3D` computational domain class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
@@ -218,7 +218,7 @@ contains
 
   subroutine cartesian3DDestructor(self)
     !!{RST
-    Destructor for the ``computationalDomainCartesian3D`` computational domain class.
+    Destructor for the :galacticus-class:`computationalDomainCartesian3D` computational domain class.
     !!}
     implicit none
     type(computationalDomainCartesian3D), intent(inout) :: self

@@ -67,7 +67,7 @@
 
   interface mergerTreeOperatorTreeProcessingTimer
      !!{RST
-     Constructors for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
+     Constructors for the :galacticus-class:`mergerTreeOperatorTreeProcessingTimer` merger tree operator class.
      !!}
      module procedure treeProcessingTimerConstructorParameters
      module procedure treeProcessingTimerConstructorInternal
@@ -80,7 +80,7 @@ contains
 
   function treeProcessingTimerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeOperatorTreeProcessingTimer` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -107,7 +107,7 @@ contains
 
   function treeProcessingTimerConstructorInternal(collectMemoryUsageData) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorTreeProcessingTimer` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorTreeProcessingTimer)                :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine treeProcessingTimerDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeOperatorTreeProcessingTimer`` merger tree operator class.
+    Destructor for the :galacticus-class:`mergerTreeOperatorTreeProcessingTimer` merger tree operator class.
     !!}
     use :: Events_Hooks, only : postEvolveEvent
     implicit none

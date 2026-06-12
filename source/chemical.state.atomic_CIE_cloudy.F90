@@ -49,7 +49,7 @@
 
   interface chemicalStateAtomicCIECloudy
      !!{RST
-     Constructors for the ``chemicalStateAtomicCIECloudy`` chemical state class.
+     Constructors for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``chemicalStateAtomicCIECloudy`` chemical state class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function atomicCIECloudyConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``chemicalStateAtomicCIECloudy`` chemical state class.
+    Internal constructor for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none

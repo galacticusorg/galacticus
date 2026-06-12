@@ -49,7 +49,7 @@ Implements an N-body data operator which computes correlations between mass func
 
   interface nbodyOperatorMassFunctionCorrelation
      !!{RST
-     Constructors for the ``nbodyOperatorMassFunctionCorrelation`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
      !!}
      module procedure massFunctionCorrelationConstructorParameters
      module procedure massFunctionCorrelationConstructorInternal
@@ -68,7 +68,7 @@ contains
 
   function massFunctionCorrelationConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorMassFunctionCorrelation`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -151,7 +151,7 @@ contains
 
   function massFunctionCorrelationConstructorInternal(massMinimum,massMaximum,massCountPerDecade,countBootstraps,missingRootHalosAreFatal,description,simulationReference,simulationURL,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorMassFunctionCorrelation`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMassFunctionCorrelation)                        :: self
@@ -170,7 +170,7 @@ contains
   
   subroutine massFunctionCorrelationDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorMassFunctionCorrelation`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMassFunctionCorrelation), intent(inout) :: self

@@ -65,7 +65,7 @@
 
   interface powerSpectrumPrimordialPiecewisePowerLaw
      !!{RST
-     Constructors for the ``powerSpectrumPrimordialPiecewisePowerLaw`` primordial power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumPrimordialPiecewisePowerLaw`` primordial power spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -151,7 +151,7 @@ contains
 
   function piecewisePowerLawConstructorInternal(index_,running,runningRunning,wavenumberReference) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumPrimordialPiecewisePowerLaw`` primordial power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class.
     !!}
     use :: Error, only : Error_Report
     implicit none

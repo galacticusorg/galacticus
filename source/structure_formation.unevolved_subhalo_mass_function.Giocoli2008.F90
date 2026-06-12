@@ -45,7 +45,7 @@ Implements a :cite:t:`giocoli_population_2008` unevolved dark matter subhalo mas
 
   interface unevolvedSubhaloMassFunctionGiocoli2008
      !!{RST
-     Constructors for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class.
+     Constructors for the :galacticus-class:`unevolvedSubhaloMassFunctionGiocoli2008` halo mass function class.
      !!}
      module procedure giocoli2008ConstructorParameters
      module procedure giocoli2008ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function giocoli2008ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`unevolvedSubhaloMassFunctionGiocoli2008` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -99,7 +99,7 @@ contains
 
   function giocoli2008ConstructorInternal(normalization,exponent) result(self)
     !!{RST
-    Internal constructor for the ``unevolvedSubhaloMassFunctionGiocoli2008`` halo mass function class.
+    Internal constructor for the :galacticus-class:`unevolvedSubhaloMassFunctionGiocoli2008` halo mass function class.
     !!}
     implicit none
     type            (unevolvedSubhaloMassFunctionGiocoli2008)                :: self

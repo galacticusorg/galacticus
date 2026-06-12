@@ -39,7 +39,7 @@ Implements an N-body data operator which computes the total mass of particles.
 
   interface nbodyOperatorMassTotal
      !!{RST
-     Constructors for the ``nbodyOperatorMassTotal`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorMassTotal` N-body operator class.
      !!}
      module procedure convexHullMassTotalConstructorParameters
   end interface nbodyOperatorMassTotal
@@ -48,7 +48,7 @@ contains
 
   function convexHullMassTotalConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorMassTotal`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorMassTotal` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

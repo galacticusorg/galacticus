@@ -51,7 +51,7 @@ An implementation of the hot halo mass distribution class which uses the model o
 
   interface hotHaloMassDistributionRicotti2000
      !!{RST
-     Constructors for the ``hotHaloMassDistributionRicotti2000`` hot halo mass distribution class.
+     Constructors for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
      !!}
      module procedure ricotti2000ConstructorParameters
      module procedure ricotti2000ConstructorInternal
@@ -85,7 +85,7 @@ contains
 
   function ricotti2000ConstructorInternal(darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``hotHaloMassDistributionRicotti2000`` hot halo mass distribution class.
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -146,7 +146,7 @@ contains
 
   subroutine ricotti2000Destructor(self)
     !!{RST
-    Destructor for the ``hotHaloMassDistributionRicotti2000`` hot halo mass distribution class.
+    Destructor for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionRicotti2000), intent(inout) :: self

@@ -67,7 +67,7 @@ Implements a gravitational lensing output analysis distribution operator class.
 
   interface outputAnalysisDistributionOperatorGrvtnlLnsng
      !!{RST
-     Constructors for the ``outputAnalysisDistributionOperatorGrvtnlLnsng`` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
      !!}
      module procedure grvtnlLnsngConstructorParameters
      module procedure grvtnlLnsngConstructorInternal
@@ -82,7 +82,7 @@ contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionOperatorGrvtnlLnsng`` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -125,7 +125,7 @@ contains
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisDistributionOperatorGrvtnlLnsng`` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -149,7 +149,7 @@ contains
 
   subroutine grvtnlLnsngDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisDistributionOperatorGrvtnlLnsng`` output analysis distribution operator class.
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self

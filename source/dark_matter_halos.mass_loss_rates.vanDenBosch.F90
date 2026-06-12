@@ -69,7 +69,7 @@ contains
 
   function vanDenBoschConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterHaloMassLossRateVanDenBosch`` dark matter halo mass loss rate class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`darkMatterHaloMassLossRateVanDenBosch` dark matter halo mass loss rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function vanDenBoschConstructorInternal(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterHaloMassLossRateVanDenBosch`` dark matter halo mass loss rate class.
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassLossRateVanDenBosch` dark matter halo mass loss rate class.
     !!}
     implicit none
     type            (darkMatterHaloMassLossRateVanDenBosch)                        :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine vanDenBoschDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterHaloMassLossRateVanDenBosch`` dark matter halo mass loss rate class.
+    Destructor for the :galacticus-class:`darkMatterHaloMassLossRateVanDenBosch` dark matter halo mass loss rate class.
     !!}
     implicit none
     type(darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self

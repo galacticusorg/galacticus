@@ -39,7 +39,7 @@
 
   interface computationalDomainVolumeIntegratorCylindrical
      !!{RST
-     Constructors for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain.
+     Constructors for the :galacticus-class:`computationalDomainVolumeIntegratorCylindrical` computational domain.
      !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
@@ -49,7 +49,7 @@ contains
 
   function cylindricalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain volume integrator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCylindrical` computational domain volume integrator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,7 +87,7 @@ contains
 
   function cylindricalConstructorInternal(boundaries) result(self)
     !!{RST
-    Internal constructor for the ``computationalDomainVolumeIntegratorCylindrical`` computational domain volume integrator class.
+    Internal constructor for the :galacticus-class:`computationalDomainVolumeIntegratorCylindrical` computational domain volume integrator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

@@ -52,7 +52,7 @@
 
   interface outputAnalysisStarFormingMainSequence
      !!{RST
-     Constructors for the ``outputAnalysisStarFormingMainSequence`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisStarFormingMainSequence` output analysis class.
      !!}
      module procedure starFormingMainSequenceConstructorParameters
      module procedure starFormingMainSequenceConstructorFile
@@ -63,7 +63,7 @@ contains
 
   function starFormingMainSequenceConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequence` output analysis class which takes a parameter set as input.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -262,7 +262,7 @@ contains
 
   function starFormingMainSequenceConstructorFile(fileName,label,comment,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class which reads all required properties from file.
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequence` output analysis class which reads all required properties from file.
     !!}
     use :: IO_HDF5    , only : hdf5Object
     use :: HDF5_Access, only : hdf5Access
@@ -319,7 +319,7 @@ contains
 
   function starFormingMainSequenceConstructorInternal(label,comment,massesStellar,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputTimes_,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisWeightPropertyOperator_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,targetLabel,meanValueTarget,meanCovarianceTarget,massesStellarBinWidthLogarithmic) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisStarFormingMainSequence`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequence` output analysis class.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Galactic_Filters                      , only : galacticFilterClass

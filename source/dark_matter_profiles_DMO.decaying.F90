@@ -27,7 +27,7 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMODecaying" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds ``massDistributionSphericalDecaying`` objects to account for dark matter particle decays in some other dark matter profile.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSphericalDecaying` objects to account for dark matter particle decays in some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -50,7 +50,7 @@
 
   interface darkMatterProfileDMODecaying
      !!{RST
-     Constructors for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
+     Constructors for the :galacticus-class:`darkMatterProfileDMODecaying` dark matter halo profile class.
      !!}
      module procedure decayingConstructorParameters
      module procedure decayingConstructorInternal
@@ -139,7 +139,7 @@ contains
 
   function decayingConstructorInternal(toleranceRelativePotential,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMODecaying` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -161,7 +161,7 @@ contains
 
   subroutine decayingDestructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileDMODecaying`` dark matter halo profile class.
+    Destructor for the :galacticus-class:`darkMatterProfileDMODecaying` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMODecaying), intent(inout) :: self

@@ -118,7 +118,7 @@ Implements a generic two-point correlation function output analysis class.
 
   interface outputAnalysisCorrelationFunction
      !!{RST
-     Constructors for the ``outputAnalysisCorrelationFunction`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisCorrelationFunction` output analysis class.
      !!}
      module procedure correlationFunctionConstructorParameters
      module procedure correlationFunctionConstructorFile
@@ -129,7 +129,7 @@ contains
 
   function correlationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisCorrelationFunction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisCorrelationFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -381,7 +381,7 @@ contains
 
   function correlationFunctionConstructorFile(label,comment,fileName,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,wavenumberCount,wavenumberMinimum,wavenumberMaximum,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisCorrelationFunction`` output analysis class which reads bin information from a standard format file.
+    Constructor for the :galacticus-class:`outputAnalysisCorrelationFunction` output analysis class which reads bin information from a standard format file.
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters, only : cosmologyParametersSimple
@@ -443,7 +443,7 @@ contains
 
   function correlationFunctionConstructorInternal(label,comment,separations,massMinima,massMaxima,massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,integralConstraint,wavenumberCount,wavenumberMinimum,wavenumberMaximum,depthLineOfSight,halfIntegral,galacticFilter_,surveyGeometry_,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_,massDistributionOperator_,massPropertyOperator_,separationPropertyOperator_,massPropertyExtractor_,targetLabel,binnedProjectedCorrelationTarget,binnedProjectedCorrelationCovarianceTarget) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisCorrelationFunction`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisCorrelationFunction` output analysis class for internal use.
     !!}
     use, intrinsic :: ISO_C_Binding            , only : c_size_t
     use            :: Numerical_Ranges         , only : Make_Range                                 , rangeTypeLogarithmic
@@ -530,7 +530,7 @@ contains
 
   subroutine correlationFunctionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisCorrelationFunction`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisCorrelationFunction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisCorrelationFunction), intent(inout) :: self

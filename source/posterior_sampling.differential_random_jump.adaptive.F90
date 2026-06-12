@@ -26,7 +26,7 @@
   !![
   <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive" docformat="rst">
    <description>
-   The random jumps are drawn from the distributions specified in the ``random`` element of each ``modelParameterClass`` object and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the parameter over all current chain states minus the minimum value of each parameter over all current chain states).
+   The random jumps are drawn from the distributions specified in the ``random`` element of each :galacticus-class:`modelParameterClass` object and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the parameter over all current chain states minus the minimum value of each parameter over all current chain states).
    </description>
   </posteriorSampleDffrntlEvltnRandomJump>
   !!]
@@ -43,7 +43,7 @@
 
   interface posteriorSampleDffrntlEvltnRandomJumpAdaptive
      !!{RST
-     Constructors for the ``posteriorSampleDffrntlEvltnRandomJumpAdaptive`` posterior sampling differential evolution random jump class.
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpAdaptive` posterior sampling differential evolution random jump class.
      !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function adaptiveConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnRandomJumpAdaptive`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpAdaptive` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

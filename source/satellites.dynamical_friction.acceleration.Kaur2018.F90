@@ -71,7 +71,7 @@ contains
 
   function kaur2018ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteDynamicalFrictionKaur2018`` satellite dynamical friction class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionKaur2018` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,7 +95,7 @@ contains
 
   function kaur2018ConstructorInternal(satelliteDynamicalFriction_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``satelliteDynamicalFrictionKaur2018`` satellite dynamical friction class.
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionKaur2018` satellite dynamical friction class.
     !!}
     use :: Table_Labels, only : extrapolationTypeExtrapolate
     implicit none

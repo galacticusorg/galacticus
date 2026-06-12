@@ -43,7 +43,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   interface outputAnalysisWeightOperatorNbodyMass
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorNbodyMass`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
      !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function nbodyMassConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorNbodyMass`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisWeightOperatorNbodyMass`` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -121,7 +121,7 @@ contains
 
   subroutine nbodyMassDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisWeightOperatorNbodyMass`` output analysis weight operator class.
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
 

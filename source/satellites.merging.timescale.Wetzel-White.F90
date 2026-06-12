@@ -101,7 +101,7 @@ contains
 
   subroutine wetzelWhite2010Destructor(self)
     !!{RST
-    Destructor for the ``satelliteMergingTimescalesWetzelWhite2010`` satellite merging timescale class.
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesWetzelWhite2010` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self

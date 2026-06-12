@@ -38,7 +38,7 @@
   
   interface radiativeTransferSpectrumBlackBody
      !!{RST
-     Constructors for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class.
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumBlackBody` radiative transfer spectrum class.
      !!}
      module procedure blackBodyConstructorParameters
      module procedure blackBodyConstructorInternal
@@ -48,7 +48,7 @@ contains
 
   function blackBodyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumBlackBody` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function blackBodyConstructorInternal(temperature,luminosityBolometric) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferSpectrumBlackBody`` radiative transfer spectrum class.
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumBlackBody` radiative transfer spectrum class.
     !!}
     use :: Thermodynamics_Radiation, only : Blackbody_Radiance
     implicit none

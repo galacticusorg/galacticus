@@ -181,7 +181,7 @@ contains
 
   recursive subroutine modelParameterListAssign(self,from)
     !!{RST
-    Perform assignment for the ``modelParameterList`` class.
+    Perform assignment for the :galacticus-class:`modelParameterList` class.
     !!}
     implicit none
     class(modelParameterList), intent(  out) :: self

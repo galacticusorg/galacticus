@@ -46,7 +46,7 @@
 
   interface atomicRecombinationRateRadiativeCoolingHummer
      !!{RST
-     Constructors for the ``atomicRecombinationRateRadiativeCoolingHummer`` atomic radiative recombination class.
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
      !!}
      module procedure hummerConstructorParameters
      module procedure hummerConstructorInternal
@@ -81,7 +81,7 @@ contains
 
   function hummerConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``atomicRecombinationRateRadiativeCoolingHummer`` atomic radiative recombination class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -111,7 +111,7 @@ contains
   
   function hummerConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
     !!{RST
-    Internal constructor for the ``atomicRecombinationRateRadiativeCoolingHummer`` atomic radiative recombination class.
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -135,7 +135,7 @@ contains
 
   subroutine hummerDestructor(self)
     !!{RST
-    Destructor for the ``atomicRecombinationRateRadiativeCoolingHummer`` atomic radiative recombination class.
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingHummer), intent(inout) :: self

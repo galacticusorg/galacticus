@@ -79,7 +79,7 @@
 
   interface starFormationHistoryFixedAges
      !!{RST
-     Constructors for the ``starFormationHistoryFixedAges`` star formation history class.
+     Constructors for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
      !!}
      module procedure fixedAgesConstructorParameters
      module procedure fixedAgesConstructorInternal
@@ -92,7 +92,7 @@ contains
 
   recursive function fixedAgesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationHistoryFixedAges`` star formation history class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -194,7 +194,7 @@ contains
 
   recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
     !!{RST
-    Internal constructor for the ``starFormationHistoryFixedAges`` star formation history class.
+    Internal constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -266,7 +266,7 @@ contains
 
   subroutine fixedAgesDestructor(self)
     !!{RST
-    Destructor for the ``starFormationHistoryFixedAges`` star formation history class.
+    Destructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryFixedAges), intent(inout) :: self

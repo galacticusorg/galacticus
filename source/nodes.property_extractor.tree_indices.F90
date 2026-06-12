@@ -42,7 +42,7 @@ Implements merger tree index property extractor class.
 
   interface nodePropertyExtractorIndicesTree
      !!{RST
-     Constructors for the ``nodePropertyExtractorIndicesTree`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorIndicesTree` property extractor class.
      !!}
      module procedure indicesTreeConstructorParameters
   end interface nodePropertyExtractorIndicesTree
@@ -51,7 +51,7 @@ contains
 
   function indicesTreeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorIndicesTree`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorIndicesTree` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

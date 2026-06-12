@@ -88,7 +88,7 @@
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
      !!{RST
-     Constructors for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
      !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
@@ -98,7 +98,7 @@ contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -179,7 +179,7 @@ contains
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
@@ -228,7 +228,7 @@ contains
 
   subroutine projectedCorrelationFunctionDestructor(self)
     !!{RST
-    Destructor for the ``posteriorSampleLikelihoodPrjctdCorrelationFunction`` posterior sampling likelihood class.
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodPrjctdCorrelationFunction` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self

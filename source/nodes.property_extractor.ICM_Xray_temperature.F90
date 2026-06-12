@@ -51,7 +51,7 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 
   interface nodePropertyExtractorICMXRayTemperature
      !!{RST
-     Constructors for the ``nodePropertyExtractorICMXRayTemperature`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function icmXRayTemperatureConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorICMXRayTemperature`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,7 +88,7 @@ contains
 
   function icmXRayTemperatureConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorICMXRayTemperature`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorICMXRayTemperature)                        :: self
@@ -104,7 +104,7 @@ contains
 
   subroutine icmXRayTemperatureDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorICMXRayTemperature`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self

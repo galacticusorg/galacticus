@@ -24,7 +24,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorAppendSuffix" docformat="rst">
    <description>
-   A wrapper property extractor that delegates extraction to one or more child ``nodePropertyExtractorClass`` objects and appends a user-specified ``suffix`` string to all output dataset names. This is useful for disambiguating otherwise identically named properties when, for example, the same extractor is used with different parameter settings, different galaxy components, or at different epochs, and the outputs need to coexist in the same output file.
+   A wrapper property extractor that delegates extraction to one or more child :galacticus-class:`nodePropertyExtractorClass` objects and appends a user-specified ``suffix`` string to all output dataset names. This is useful for disambiguating otherwise identically named properties when, for example, the same extractor is used with different parameter settings, different galaxy components, or at different epochs, and the outputs need to coexist in the same output file.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorAppendSuffix
      !!{RST
-     Constructors for the ``nodePropertyExtractorAppendSuffix`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorAppendSuffix` property extractor class.
      !!}
      module procedure appendSuffixConstructorParameters
      module procedure appendSuffixConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function appendSuffixConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorAppendSuffix`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorAppendSuffix` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function appendSuffixConstructorInternal(suffix,extractors) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorAppendSuffix`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorAppendSuffix` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAppendSuffix)                :: self

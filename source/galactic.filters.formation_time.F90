@@ -41,7 +41,7 @@ Implements a galactic filter which removes recently-formed halos.
 
   interface galacticFilterFormationTime
      !!{RST
-     Constructors for the ``galacticFilterFormationTime`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterFormationTime` galactic filter class.
      !!}
      module procedure formationTimeConstructorParameters
      module procedure formationTimeConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function formationTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterFormationTime`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterFormationTime` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function formationTimeConstructorInternal(timeRecent) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterFormationTime`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterFormationTime` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterFormationTime)                :: self

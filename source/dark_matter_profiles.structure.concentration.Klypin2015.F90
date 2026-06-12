@@ -119,7 +119,7 @@
 
   interface darkMatterProfileConcentrationKlypin2015
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationKlypin2015`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -166,7 +166,7 @@ contains
 
   function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationKlypin2015`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Table_Labels           , only : extrapolationTypeFix
@@ -727,7 +727,7 @@ contains
 
   subroutine klypin2015Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationKlypin2015`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self

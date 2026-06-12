@@ -88,7 +88,7 @@ contains
 
   subroutine gunawardhana2013SDSSDestructor(self)
     !!{RST
-    Destructor for the ``surveyGeometryGunawardhana2013SDSS`` survey geometry class.
+    Destructor for the :galacticus-class:`surveyGeometryGunawardhana2013SDSS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryGunawardhana2013SDSS), intent(inout) :: self

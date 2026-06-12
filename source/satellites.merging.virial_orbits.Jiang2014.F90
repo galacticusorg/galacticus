@@ -82,7 +82,7 @@
 
   interface virialOrbitJiang2014
      !!{RST
-     Constructors for the ``virialOrbitJiang2014`` virial orbits class.
+     Constructors for the :galacticus-class:`virialOrbitJiang2014` virial orbits class.
      !!}
      module procedure jiang2014ConstructorParameters
      module procedure jiang2014ConstructorInternal
@@ -99,7 +99,7 @@ contains
 
   function jiang2014ConstructorParameters(parameters) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitJiang2014`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitJiang2014` virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -232,7 +232,7 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
     !!{RST
-    Internal constructor for the ``virialOrbitJiang2014`` virial orbits class.
+    Internal constructor for the :galacticus-class:`virialOrbitJiang2014` virial orbits class.
     !!}
     use :: Numerical_Integration   , only : GSL_Integ_Gauss61           , integrator
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -465,7 +465,7 @@ contains
 
   subroutine jiang2014Destructor(self)
     !!{RST
-    Destructor for the ``virialOrbitJiang2014`` virial orbits class.
+    Destructor for the :galacticus-class:`virialOrbitJiang2014` virial orbits class.
     !!}
     implicit none
     type(virialOrbitJiang2014), intent(inout) :: self

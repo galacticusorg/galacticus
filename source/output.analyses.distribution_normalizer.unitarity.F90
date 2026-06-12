@@ -39,7 +39,7 @@
 
   interface outputAnalysisDistributionNormalizerUnitarity
      !!{RST
-     Constructors for the ``outputAnalysisDistributionNormalizerUnitarity`` output analysis distribution normalizer class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerUnitarity` output analysis distribution normalizer class.
      !!}
      module procedure unitarityConstructorParameters
   end interface outputAnalysisDistributionNormalizerUnitarity
@@ -48,7 +48,7 @@ contains
 
   function unitarityConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisDistributionNormalizerUnitarity`` output analysis distribution normalizer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerUnitarity` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

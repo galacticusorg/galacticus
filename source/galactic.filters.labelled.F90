@@ -41,7 +41,7 @@ Implements a galactic filter which tests whether the given node has a specified 
 
   interface galacticFilterLabelled
      !!{RST
-     Constructors for the ``galacticFilterLabelled`` galactic filter class.
+     Constructors for the :galacticus-class:`galacticFilterLabelled` galactic filter class.
      !!}
      module procedure labelledConstructorParameters
      module procedure labelledConstructorInternal
@@ -51,7 +51,7 @@ contains
 
   function labelledConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticFilterLabelled`` galactic filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticFilterLabelled` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
   
   function labelledConstructorInternal(label) result(self)
     !!{RST
-    Internal constructor for the ``galacticFilterLabelled`` galactic filter class.
+    Internal constructor for the :galacticus-class:`galacticFilterLabelled` galactic filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none

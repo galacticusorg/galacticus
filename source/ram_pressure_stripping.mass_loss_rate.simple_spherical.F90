@@ -62,7 +62,7 @@
 
   interface ramPressureStrippingSimpleSpherical
      !!{RST
-     Constructors for the ``ramPressureStrippingSimpleSpherical`` model of ram pressure stripping of spheroids class.
+     Constructors for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
      !!}
      module procedure simpleSphericalConstructorParameters
      module procedure simpleSphericalConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function simpleSphericalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``ramPressureStrippingSimpleSpherical`` model of ram pressure stripping of spheroids class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,7 +110,7 @@ contains
 
   function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
     !!{RST
-    Internal constructor for the ``ramPressureStrippingSimpleSpherical`` model of ram pressure stripping of spheroids class.
+    Internal constructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                        :: self
@@ -125,7 +125,7 @@ contains
 
   subroutine simpleSphericalDestructor(self)
     !!{RST
-    Destructor for the ``ramPressureStrippingSimpleSpherical`` model of ram pressure stripping of spheroids class.
+    Destructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleSpherical), intent(inout) :: self
@@ -150,7 +150,7 @@ contains
 
        \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
 
-    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see ``hotHaloRamPressureForce``), and
+    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see :galacticus-class:`hotHaloRamPressureForce`), and
 
     .. math::
 

@@ -46,7 +46,7 @@ Implements a merger tree filter which passes if any node in the tree passes the 
 
   interface mergerTreeFilterAnyNode
      !!{RST
-     Constructors for the ``mergerTreeFilterAnyNode`` merger tree filter class.
+     Constructors for the :galacticus-class:`mergerTreeFilterAnyNode` merger tree filter class.
      !!}
      module procedure anyNodeConstructorParameters
      module procedure anyNodeConstructorInternal
@@ -56,7 +56,7 @@ contains
   
   function anyNodeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeFilterAnyNode`` merger tree filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeFilterAnyNode` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function anyNodeConstructorInternal(label,labelBranch,labelDescription,galacticFilter_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeFilterAnyNode`` merger tree filter class.
+    Internal constructor for the :galacticus-class:`mergerTreeFilterAnyNode` merger tree filter class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -131,7 +131,7 @@ contains
 
   subroutine anyNodeDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeFilterAnyNode`` merger tree filter class.
+    Destructor for the :galacticus-class:`mergerTreeFilterAnyNode` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAnyNode), intent(inout) :: self

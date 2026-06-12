@@ -55,7 +55,7 @@
 
   interface mergerTreeEvolveTimestepMulti
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepMulti`` mergerTreeEvolveTimestep.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepMulti` mergerTreeEvolveTimestep.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function multiConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepMulti` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -96,7 +96,7 @@ contains
 
   function multiConstructorInternal(mergerTreeEvolveTimesteps) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveTimestepMulti` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
@@ -116,7 +116,7 @@ contains
 
   subroutine multiDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepMulti`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepMulti` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self

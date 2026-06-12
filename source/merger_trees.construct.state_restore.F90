@@ -71,7 +71,7 @@
 
   interface mergerTreeConstructorStateRestored
      !!{RST
-     Constructors for the ``mergerTreeConstructorStateRestored`` merger tree constructor class.
+     Constructors for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
      !!}
      module procedure stateRestoredConstructorParameters
      module procedure stateRestoredConstructorInternal
@@ -86,7 +86,7 @@ contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeConstructorStateRestored`` merger tree constructor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function stateRestoredConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeConstructorStateRestored`` merger tree constructor class.
+    Internal constructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
     !!}
     implicit none
     type (mergerTreeConstructorStateRestored)                        :: self
@@ -135,7 +135,7 @@ contains
 
   subroutine stateRestoredDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeConstructorStateRestored`` merger tree constructor class.
+    Destructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorStateRestored), intent(inout) :: self

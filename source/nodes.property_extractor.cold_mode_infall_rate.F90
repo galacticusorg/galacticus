@@ -47,7 +47,7 @@ Implements a cold mode infall rate property extractor class.
 
   interface nodePropertyExtractorRateInfallColdMode
      !!{RST
-     Constructors for the ``nodePropertyExtractorRateInfallColdMode`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
      !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function rateInfallColdModeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorRateInfallColdMode`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function rateInfallColdModeConstructorInternal(coldModeInfallRate_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorRateInfallColdMode`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine rateInfallColdModeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorRateInfallColdMode`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self

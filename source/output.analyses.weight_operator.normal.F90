@@ -53,7 +53,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
 
   interface outputAnalysisWeightOperatorNormal
      !!{RST
-     Constructors for the ``outputAnalysisWeightOperatorNormal`` output analysis weight operator class.
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -63,7 +63,7 @@ contains
 
   function normalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisWeightOperatorNormal`` output analysis weight operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,7 +112,7 @@ contains
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !!{RST
-    Internal constructor for the ``outputAnalysisWeightOperatorNormal`` output analysis weight operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -137,7 +137,7 @@ contains
 
   subroutine normalDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisWeightOperatorNormal`` output analysis weight operator class.
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNormal), intent(inout) :: self
 

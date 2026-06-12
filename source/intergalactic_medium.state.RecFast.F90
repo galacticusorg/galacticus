@@ -42,7 +42,7 @@
 
   interface intergalacticMediumStateRecFast
      !!{RST
-     Constructors for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
+     Constructors for the :galacticus-class:`intergalacticMediumStateRecFast` :term:`IGM` state class.
      !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function recFastConstructorParameters(parameters) result(self)
     !!{RST
-    Default constructor for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
+    Default constructor for the :galacticus-class:`intergalacticMediumStateRecFast` :term:`IGM` state class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !!{RST
-    Constructor for the ``intergalacticMediumStateRecFast`` :term:`IGM` state class.
+    Constructor for the :galacticus-class:`intergalacticMediumStateRecFast` :term:`IGM` state class.
     !!}
     use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time

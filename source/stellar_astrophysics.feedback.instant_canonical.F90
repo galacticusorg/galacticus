@@ -39,7 +39,7 @@
 
   interface stellarFeedbackInstantCanonical
      !!{RST
-     Constructors for the ``stellarFeedbackInstantCanonical`` stellar feedback class.
+     Constructors for the :galacticus-class:`stellarFeedbackInstantCanonical` stellar feedback class.
      !!}
      module procedure instantCanonicalConstructorParameters
   end interface stellarFeedbackInstantCanonical
@@ -48,7 +48,7 @@ contains
 
   function instantCanonicalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarFeedbackInstantCanonical`` stellar feedback class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`stellarFeedbackInstantCanonical` stellar feedback class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none

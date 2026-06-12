@@ -72,7 +72,7 @@
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
      !!{RST
-     Constructors for the ``nodePropertyExtractorLmnstyEmssnLineAGN`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
      !!}
      module procedure lmnstyEmssnLineAGNConstructorParameters
      module procedure lmnstyEmssnLineAGNConstructorInternal
@@ -95,7 +95,7 @@
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorLmnstyEmssnLineAGN`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -177,7 +177,7 @@ contains
 
   function lmnstyEmssnLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorLmnstyEmssnLineAGN`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
@@ -297,7 +297,7 @@ contains
 
   subroutine lmnstyEmssnLineAGNDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorLmnstyEmssnLineAGN`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self

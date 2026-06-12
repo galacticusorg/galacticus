@@ -47,7 +47,7 @@ Implements an peak-background split critical overdensity class.
 
   interface criticalOverdensityPeakBackgroundSplit
      !!{RST
-     Constructors for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
+     Constructors for the :galacticus-class:`criticalOverdensityPeakBackgroundSplit` critical overdensity class.
      !!}
      module procedure peakBackgroundSplitConstructorParameters
      module procedure peakBackgroundSplitConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function peakBackgroundSplitConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`criticalOverdensityPeakBackgroundSplit` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
+    Internal constructor for the :galacticus-class:`criticalOverdensityPeakBackgroundSplit` critical overdensity class.
     !!}
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
@@ -109,7 +109,7 @@ contains
 
   subroutine peakBackgroundSplitDestructor(self)
     !!{RST
-    Destructor for the ``criticalOverdensityPeakBackgroundSplit`` critical overdensity class.
+    Destructor for the :galacticus-class:`criticalOverdensityPeakBackgroundSplit` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self

@@ -45,7 +45,7 @@ Implements an N-body data operator which determines the environmental overdensit
 
   interface nbodyOperatorEnvironmentalOverdensity
      !!{RST
-     Constructors for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorEnvironmentalOverdensity` N-body operator class.
      !!}
      module procedure environmentalOverdensityConstructorParameters
      module procedure environmentalOverdensityConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function environmentalOverdensityConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorEnvironmentalOverdensity` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,7 +115,7 @@ contains
 
   function environmentalOverdensityConstructorInternal(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorEnvironmentalOverdensity`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorEnvironmentalOverdensity` N-body operator class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

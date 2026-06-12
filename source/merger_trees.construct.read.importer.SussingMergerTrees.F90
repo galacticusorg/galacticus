@@ -139,7 +139,7 @@ contains
 
   function sussingConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeImporterSussing`` format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeImporterSussing` format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -259,7 +259,7 @@ contains
 
   function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeImporterSussing`` format :cite:p:`srisawat_sussing_2013` merger tree importer class.
+    Internal constructor for the :galacticus-class:`mergerTreeImporterSussing` format :cite:p:`srisawat_sussing_2013` merger tree importer class.
     !!}
     implicit none
     type            (mergerTreeImporterSussing         )                              :: self

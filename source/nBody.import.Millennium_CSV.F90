@@ -49,7 +49,7 @@ Implements an N-body data importer for Millennium database CSV files.
 
   interface nbodyImporterMillenniumCSV
      !!{RST
-     Constructors for the ``nbodyImporterMillenniumCSV`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterMillenniumCSV` N-body importer class.
      !!}
      module procedure millenniumCSVConstructorParameters
      module procedure millenniumCSVConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function millenniumCSVConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterMillenniumCSV`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterMillenniumCSV` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -119,7 +119,7 @@ contains
 
   function millenniumCSVConstructorInternal(fileName,label,time,cosmologyParameters_,cosmologyFunctions_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterMillenniumCSV`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterMillenniumCSV` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
@@ -137,7 +137,7 @@ contains
 
   subroutine millenniumCSVDestructor(self)
     !!{RST
-    Destructor for the ``nbodyImporterMillenniumCSV`` N-body importer class.
+    Destructor for the :galacticus-class:`nbodyImporterMillenniumCSV` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self

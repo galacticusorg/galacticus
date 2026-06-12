@@ -55,7 +55,7 @@
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
      !!{RST
-     Constructors for the ``nodePropertyExtractorStellarFeedbackOutflowRate`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
@@ -65,7 +65,7 @@ contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorStellarFeedbackOutflowRate`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -103,7 +103,7 @@ contains
 
   function stellarFeedbackOutflowRateConstructorInternal(component,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorStellarFeedbackOutflowRate`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -135,7 +135,7 @@ contains
 
   subroutine stellarFeedbackOutflowRateDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorStellarFeedbackOutflowRate`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self

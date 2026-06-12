@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Module providing root-callback functions and shared state for the ``rootFinder`` benchmark program. Kept separate from the program unit so the callbacks can be passed as ``procedure(...)`` actual arguments to ``rootFinder`` without running into Fortran restrictions on procedure pointers to internal procedures.
+Module providing root-callback functions and shared state for the ``rootFinder`` benchmark program. Kept separate from the program unit so the callbacks can be passed as ``procedure(...)`` actual arguments to :galacticus-class:`rootFinder` without running into Fortran restrictions on procedure pointers to internal procedures.
 !!}
 
 module Benchmark_Root_Finder_Functions
   !!{RST
-  Callbacks and shared state for the ``rootFinder`` benchmark.
+  Callbacks and shared state for the :galacticus-class:`rootFinder` benchmark.
 
   The functions read a single module-level shift, ``bmShift``, which is rewritten by the benchmark driver before every call. This perturbs the problem (so the optimizer cannot constant-fold the solver chain) and keeps the cache state of ``rootFinder``'s wrapper realistic from one call to the next.
   !!}

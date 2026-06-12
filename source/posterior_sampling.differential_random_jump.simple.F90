@@ -24,7 +24,7 @@
   !![
   <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple" docformat="rst">
    <description>
-   In this class, the random jumps are drawn directly from the distributions specified in the ``random`` object of each ``modelParameterClass`` object.
+   In this class, the random jumps are drawn directly from the distributions specified in the ``random`` object of each :galacticus-class:`modelParameterClass` object.
    </description>
   </posteriorSampleDffrntlEvltnRandomJump>
   !!]
@@ -39,7 +39,7 @@
 
   interface posteriorSampleDffrntlEvltnRandomJumpSimple
      !!{RST
-     Constructors for the ``posteriorSampleDffrntlEvltnRandomJumpSimple`` posterior sampling differential evolution random jump class.
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpSimple` posterior sampling differential evolution random jump class.
      !!}
      module procedure simpleConstructorParameters
   end interface posteriorSampleDffrntlEvltnRandomJumpSimple
@@ -48,7 +48,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleDffrntlEvltnRandomJumpSimple`` posterior sampling differential evolution random jump class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpSimple` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

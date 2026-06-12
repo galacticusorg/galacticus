@@ -63,7 +63,7 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
 
   interface powerSpectrumNonlinearSmith2003
      !!{RST
-     Constructors for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumNonlinearSmith2003` nonlinear power spectrum class.
      !!}
      module procedure smith2003ConstructorParameters
      module procedure smith2003ConstructorInternal
@@ -135,7 +135,7 @@ contains
 
   function smith2003ConstructorInternal(includePeacockCorrection,includeQuasiLinearPower,includeHaloPower,cosmologyParameters_,cosmologyFunctions_,powerSpectrum_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumNonlinearSmith2003` nonlinear power spectrum class.
     !!}
     implicit none
     type   (powerSpectrumNonlinearSmith2003)                        :: self
@@ -154,7 +154,7 @@ contains
 
   subroutine smith2003Destructor(self)
     !!{RST
-    Destructor for the ``powerSpectrumNonlinearSmith2003`` nonlinear power spectrum class.
+    Destructor for the :galacticus-class:`powerSpectrumNonlinearSmith2003` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearSmith2003), intent(inout) :: self

@@ -24,7 +24,7 @@
   !![
   <coolingFunction name="coolingFunctionSummation" docformat="rst">
     <description>
-    Computes the total cooling function as a sum over multiple ``coolingFunctionClass`` objects, enabling construction of composite cooling functions from individual contributions (e.g., atomic cooling plus CMB Compton scattering).
+    Computes the total cooling function as a sum over multiple :galacticus-class:`coolingFunctionClass` objects, enabling construction of composite cooling functions from individual contributions (e.g., atomic cooling plus CMB Compton scattering).
     </description>
     <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
   </coolingFunction>
@@ -51,7 +51,7 @@
 
   interface coolingFunctionSummation
      !!{RST
-     Constructors for the ``coolingFunctionSummation`` cooling function class.
+     Constructors for the :galacticus-class:`coolingFunctionSummation` cooling function class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -61,7 +61,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``coolingFunctionSummation`` cooling function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`coolingFunctionSummation` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function summationConstructorInternal(coolants) result(self)
     !!{RST
-    Internal constructor for the ``coolingFunctionSummation`` cooling function class.
+    Internal constructor for the :galacticus-class:`coolingFunctionSummation` cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation)                        :: self
@@ -111,7 +111,7 @@ contains
 
   subroutine summationDestructor(self)
     !!{RST
-    Destructor for the ``coolingFunctionSummation`` cooling function class.
+    Destructor for the :galacticus-class:`coolingFunctionSummation` cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self

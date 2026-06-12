@@ -52,7 +52,7 @@ contains
 
   function allConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeFilterAll`` merger tree filter class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeFilterAll` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function allConstructorInternal(filters) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeFilterAll`` merger tree filter class.
+    Internal constructor for the :galacticus-class:`mergerTreeFilterAll` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAll)                        :: self

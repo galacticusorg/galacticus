@@ -43,7 +43,7 @@
   
   interface nodeOperatorBlackHolesWinds
      !!{RST
-     Constructors for the ``nodeOperatorBlackHolesWinds`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
      !!}
      module procedure blackHolesWindsConstructorParameters
      module procedure blackHolesWindsConstructorInternal
@@ -53,7 +53,7 @@ contains
 
   function blackHolesWindsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorBlackHolesWinds`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,7 +74,7 @@ contains
 
   function blackHolesWindsConstructorInternal(blackHoleWind_) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorBlackHolesWinds`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesWinds)                        :: self
@@ -88,7 +88,7 @@ contains
 
   subroutine blackHolesWindsDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorBlackHolesWinds`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesWinds), intent(inout) :: self

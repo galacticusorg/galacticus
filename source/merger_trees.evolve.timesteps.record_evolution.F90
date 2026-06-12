@@ -69,7 +69,7 @@ Implements a merger tree evolution timestepping class which limits the step to t
 
   interface mergerTreeEvolveTimestepRecordEvolution
      !!{RST
-     Constructors for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepRecordEvolution` merger tree evolution timestep class.
      !!}
      module procedure recordEvolutionConstructorParameters
      module procedure recordEvolutionConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function recordEvolutionConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepRecordEvolution` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -133,7 +133,7 @@ contains
 
   function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveTimestepRecordEvolution` merger tree evolution timestep class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -176,7 +176,7 @@ contains
 
   subroutine recordEvolutionDestructor(self)
     !!{RST
-    Destructor for the ``mergerTreeEvolveTimestepRecordEvolution`` merger tree evolution timestep class.
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepRecordEvolution` merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : mergerTreeExtraOutputEvent
     implicit none

@@ -27,7 +27,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes" docformat="rst">
     <description>
-    A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy ``component`` (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by ``nodePropertyExtractorStarFormationHistoryMass``. The number of returned times depends on the specific ``starFormationHistoryClass`` implementation.
+    A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy ``component`` (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass`. The number of returned times depends on the specific :galacticus-class:`starFormationHistoryClass` implementation.
     </description>
   </nodePropertyExtractor>
   !!]
@@ -50,7 +50,7 @@
   
   interface nodePropertyExtractorStarFormationHistoryTimes
      !!{RST
-     Constructors for the ``nodePropertyExtractorStarFormationHistoryTimes`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal
@@ -60,7 +60,7 @@ contains
 
   function starFormationHistoryTimesConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorStarFormationHistoryTimes`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -90,7 +90,7 @@ contains
 
   function starFormationHistoryTimesConstructorInternal(component,starFormationHistory_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorStarFormationHistoryTimes`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                     , only : Error_Report
@@ -114,7 +114,7 @@ contains
 
   subroutine starFormationHistoryTimesDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorStarFormationHistoryTimes`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self

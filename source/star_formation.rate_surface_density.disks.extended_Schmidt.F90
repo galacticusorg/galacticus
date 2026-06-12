@@ -60,7 +60,7 @@
 
   interface starFormationRateSurfaceDensityDisksExtendedSchmidt
      !!{RST
-     Constructors for the ``starFormationRateSurfaceDensityDisksExtendedSchmidt`` star formation surface density rate in disks class.
+     Constructors for the :galacticus-class:`starFormationRateSurfaceDensityDisksExtendedSchmidt` star formation surface density rate in disks class.
      !!}
      module procedure extendedSchmidtConstructorParameters
      module procedure extendedSchmidtConstructorInternal
@@ -70,7 +70,7 @@ contains
 
   function extendedSchmidtConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``starFormationRateSurfaceDensityDisksExtendedSchmidt`` star formation surface density rate in disks class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksExtendedSchmidt` star formation surface density rate in disks class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -123,7 +123,7 @@ contains
 
   function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
     !!{RST
-    Internal constructor for the ``starFormationRateSurfaceDensityDisksExtendedSchmidt`` star formation surface density rate in disks class.
+    Internal constructor for the :galacticus-class:`starFormationRateSurfaceDensityDisksExtendedSchmidt` star formation surface density rate in disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none

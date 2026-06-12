@@ -82,9 +82,10 @@
       A &amp; = A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
       B &amp; = B_1+B_2 z.
 
-   The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[duttonMaccio2014FitType]`` parameter, as described in Table .
+   The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[duttonMaccio2014FitType]`` parameter, as described in Table :numref:`{number} &lt;tb-DuttonMaccioConcentrationCoefficients&gt;`.
 
-   .. list-table::
+   .. list-table:: Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[duttonMaccio2014FitType]`` parameter.
+      :name: tb-DuttonMaccioConcentrationCoefficients
       :header-rows: 1
 
       * - Fit type
@@ -123,8 +124,6 @@
         - :math:`+1.303`
         - :math:`-0.130`
         - :math:`+0.029`
-
-   Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[duttonMaccio2014FitType]`` parameter.
    </description>
   </darkMatterProfileConcentration>
   !!]
@@ -158,7 +157,7 @@
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
      !!{RST
-     Constructors for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class.
      !!}
      module procedure duttonMaccio2014ConstructorParameters
      module procedure duttonMaccio2014ConstructorInternalType
@@ -253,7 +252,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -302,7 +301,7 @@ contains
 
   function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class with user defined parameters.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class with user defined parameters.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
@@ -417,7 +416,7 @@ contains
 
   subroutine duttonMaccio2014Destructor(self)
     !!{RST
-    Destructor for the ``darkMatterProfileConcentrationDuttonMaccio2014`` dark matter halo profile concentration class.
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self

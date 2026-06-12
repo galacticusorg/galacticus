@@ -103,7 +103,7 @@
 
   interface taskEvolveForests
      !!{RST
-     Constructors for the ``taskEvolveForests`` task.
+     Constructors for the :galacticus-class:`taskEvolveForests` task.
      !!}
      module procedure evolveForestsConstructorParameters
      module procedure evolveForestsConstructorInternal
@@ -122,7 +122,7 @@ contains
 
   function evolveForestsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``taskEvolveForests`` task class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`taskEvolveForests` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -289,7 +289,7 @@ contains
 
   function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{RST
-    Internal constructor for the ``taskEvolveForests`` task class.
+    Internal constructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -426,7 +426,7 @@ contains
 
   subroutine evolveForestsDestructor(self)
     !!{RST
-    Destructor for the ``taskEvolveForests`` task class.
+    Destructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
     use :: Events_Hooks, only : stateRestoreEventGlobal, stateStoreEventGlobal
     implicit none

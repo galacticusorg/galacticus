@@ -49,7 +49,7 @@ Implements an N-body data operator which computes subhalo mass functions.
 
   interface nbodyOperatorSubhaloMassFunction
      !!{RST
-     Constructors for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorSubhaloMassFunction` N-body operator class.
      !!}
      module procedure subhaloMassFunctionConstructorParameters
      module procedure subhaloMassFunctionConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function subhaloMassFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorSubhaloMassFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -134,7 +134,7 @@ contains
 
   function subhaloMassFunctionConstructorInternal(massHost,massRatioMinimum,massRatioMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorSubhaloMassFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSubhaloMassFunction)                        :: self
@@ -153,7 +153,7 @@ contains
   
   subroutine subhaloMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``nbodyOperatorSubhaloMassFunction`` N-body operator class.
+    Destructor for the :galacticus-class:`nbodyOperatorSubhaloMassFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubhaloMassFunction), intent(inout) :: self

@@ -57,7 +57,7 @@
 
   interface massDistributionPatejLoeb2015
      !!{RST
-     Constructors for the ``massDistributionPatejLoeb2015`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -67,7 +67,7 @@ contains
 
   function patejLoeb2015ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionPatejLoeb2015`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -155,7 +155,7 @@ contains
 
   function patejLoeb2015ConstructorInternal(gamma,massDistribution_,densityNormalization,mass,radiusOuter,radiusShock,truncateAtOuterRadius,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionPatejLoeb2015`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -200,7 +200,7 @@ contains
 
   subroutine patejLoeb2015Destructor(self)
     !!{RST
-    Destructor for the ``massDistributionPatejLoeb2015`` mass distribution class.
+    Destructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
     !!}
     type(massDistributionPatejLoeb2015), intent(inout) :: self
     implicit none

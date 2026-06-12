@@ -46,7 +46,7 @@ Implements a fuzzy dark matter particle class.
 
   interface darkMatterParticleFuzzyDarkMatter
      !!{RST
-     Constructors for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class.
+     Constructors for the :galacticus-class:`darkMatterParticleFuzzyDarkMatter` dark matter particle class.
      !!}
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`darkMatterParticleFuzzyDarkMatter` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +93,7 @@ contains
 
   function fuzzyDMConstructorInternal(mass,densityFraction) result(self)
     !!{RST
-    Internal constructor for the ``darkMatterParticleFuzzyDarkMatter`` dark matter particle class.
+    Internal constructor for the :galacticus-class:`darkMatterParticleFuzzyDarkMatter` dark matter particle class.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none

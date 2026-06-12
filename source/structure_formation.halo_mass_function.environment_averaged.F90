@@ -46,7 +46,7 @@ Implements a dark matter halo mass function class which averages another (presum
 
   interface haloMassFunctionEnvironmentAveraged
      !!{RST
-     Constructors for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
+     Constructors for the :galacticus-class:`haloMassFunctionEnvironmentAveraged` halo mass function class.
      !!}
      module procedure environmentAveragedConstructorParameters
      module procedure environmentAveragedConstructorInternal
@@ -56,7 +56,7 @@ contains
 
   function environmentAveragedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloMassFunctionEnvironmentAveraged` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,7 +94,7 @@ contains
 
   function environmentAveragedConstructorInternal(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{RST
-    Internal constructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
+    Internal constructor for the :galacticus-class:`haloMassFunctionEnvironmentAveraged` halo mass function class.
     !!}
     implicit none
     type   (haloMassFunctionEnvironmentAveraged)                        :: self
@@ -112,7 +112,7 @@ contains
 
   subroutine environmentAveragedDestructor(self)
     !!{RST
-    Destructor for the ``haloMassFunctionEnvironmentAveraged`` halo mass function class.
+    Destructor for the :galacticus-class:`haloMassFunctionEnvironmentAveraged` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionEnvironmentAveraged), intent(inout) :: self

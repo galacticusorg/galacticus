@@ -26,7 +26,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorOutputSelector" docformat="rst">
    <description>
-   A wrapper property extractor that delegates extraction to one or more child ``nodePropertyExtractorClass`` objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by ``toleranceRelative``); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.
+   A wrapper property extractor that delegates extraction to one or more child :galacticus-class:`nodePropertyExtractorClass` objects but restricts output to a user-specified subset of output times. At each output time, the extractor checks whether that time matches one of the allowed output times (within a relative tolerance set by ``toleranceRelative``); non-matching times return zero-size datasets. This is useful when different properties need to be extracted at different output epochs without running separate simulations.
    </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass"/>
   </nodePropertyExtractor>
@@ -54,7 +54,7 @@
 
   interface nodePropertyExtractorOutputSelector
      !!{RST
-     Constructors for the ``nodePropertyExtractorOutputSelector`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorOutputSelector` property extractor class.
      !!}
      module procedure outputSelectorConstructorParameters
      module procedure outputSelectorConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function outputSelectorConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorOutputSelector`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorOutputSelector` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -108,7 +108,7 @@ contains
 
   function outputSelectorConstructorInternal(extractors,outputTimes_,toleranceRelative) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorOutputSelector`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorOutputSelector` property extractor class.
     !!}
     implicit none
     type            (nodePropertyExtractorOutputSelector)                         :: self
@@ -134,7 +134,7 @@ contains
 
   subroutine outputSelectorDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorOutputSelector`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorOutputSelector` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorOutputSelector), intent(inout) :: self

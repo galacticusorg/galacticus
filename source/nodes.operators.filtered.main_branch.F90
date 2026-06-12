@@ -24,7 +24,7 @@
   !![
   <nodeOperator name="nodeOperatorFilteredMainBranch" docformat="rst">
     <description>
-    A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to determine main branch status, so is more efficient that using the ``nodeOperatorFiltered`` node operator class along with a ``galacticFilterMainBranch`` filter.
+    A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to determine main branch status, so is more efficient that using the :galacticus-class:`nodeOperatorFiltered` node operator class along with a :galacticus-class:`galacticFilterMainBranch` filter.
     </description>
   </nodeOperator>
   !!]
@@ -42,7 +42,7 @@
 
   interface nodeOperatorFilteredMainBranch
      !!{RST
-     Constructors for the ``nodeOperatorFilteredMainBranch`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class.
      !!}
      module procedure filteredMainBranchConstructorParameters
      module procedure filteredMainBranchConstructorInternal
@@ -52,7 +52,7 @@ contains
 
   function filteredMainBranchConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorFilteredMainBranch`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,7 +79,7 @@ contains
 
   function filteredMainBranchConstructorInternal(processes,invertFilter) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorFilteredMainBranch`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class.
     !!}
     implicit none
     type   (nodeOperatorFilteredMainBranch)                        :: self

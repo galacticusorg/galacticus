@@ -45,7 +45,7 @@
   
   interface nodeOperatorGalaxyGasMajorMergerTime
      !!{RST
-     Constructors for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
+     Constructors for the :galacticus-class:`nodeOperatorGalaxyGasMajorMergerTime` node operator class.
      !!}
      module procedure galaxyGasMajorMergerTimeConstructorParameters
      module procedure galaxyGasMajorMergerTimeConstructorInternal
@@ -55,7 +55,7 @@ contains
 
   function galaxyGasMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodeOperatorGalaxyGasMajorMergerTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function galaxyGasMajorMergerTimeConstructorInternal(countTimesMaximum,ratioGasMajorMerger) result(self)
     !!{RST
-    Internal constructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
+    Internal constructor for the :galacticus-class:`nodeOperatorGalaxyGasMajorMergerTime` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -124,7 +124,7 @@ contains
   
   subroutine galaxyGasMajorMergerTimeDestructor(self)
     !!{RST
-    Destructor for the ``nodeOperatorGalaxyGasMajorMergerTime`` node operator class.
+    Destructor for the :galacticus-class:`nodeOperatorGalaxyGasMajorMergerTime` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none

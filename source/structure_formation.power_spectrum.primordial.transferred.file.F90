@@ -149,7 +149,7 @@
 
   interface powerSpectrumPrimordialTransferredFile
      !!{RST
-     Constructors for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class.
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power spectrum class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -162,7 +162,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -192,7 +192,7 @@ contains
 
   function fileConstructorInternal(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``powerSpectrumPrimordialTransferredFile`` transferred primordial power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power spectrum class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredFile)                        :: self

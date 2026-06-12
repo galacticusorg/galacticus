@@ -64,7 +64,7 @@
 
   interface massDistributionSphericalTruncated
      !!{RST
-     Constructors for the ``massDistributionSphericalTruncated`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalTruncated` mass distribution class.
      !!}
      module procedure sphericalTruncatedConstructorParameters
      module procedure sphericalTruncatedConstructorInternal
@@ -74,7 +74,7 @@ contains
 
   function sphericalTruncatedConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalTruncated`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalTruncated` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -142,7 +142,7 @@ contains
   
   function sphericalTruncatedConstructorInternal(radiusTruncateMinimum,radiusTruncateMaximum,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalTruncated`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalTruncated` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalTruncated)                          :: self
@@ -163,7 +163,7 @@ contains
 
   subroutine sphericalTruncatedDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalTruncated`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalTruncated` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncated), intent(inout) :: self

@@ -40,7 +40,7 @@ Implements an N-body data operator which identifies flyby halos following the al
 
   interface nbodyOperatorIdentifyFlybysMansfieldKravtsov2020
      !!{RST
-     Constructors for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorIdentifyFlybysMansfieldKravtsov2020` N-body operator class.
      !!}
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorParameters
      module procedure identifyFlybysMansfieldKravtsov2020ConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function identifyFlybysMansfieldKravtsov2020ConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorIdentifyFlybysMansfieldKravtsov2020` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,7 +76,7 @@ contains
 
   function identifyFlybysMansfieldKravtsov2020ConstructorInternal(missingHostsAreFatal) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorIdentifyFlybysMansfieldKravtsov2020`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorIdentifyFlybysMansfieldKravtsov2020` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorIdentifyFlybysMansfieldKravtsov2020)                :: self

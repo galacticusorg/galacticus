@@ -79,7 +79,7 @@
 
   interface outputAnalysisProgenitorMassFunction
      !!{RST
-     Constructors for the ``outputAnalysisProgenitorMassFunction`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
      !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorFile
@@ -90,7 +90,7 @@ contains
   
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisProgenitorMassFunction`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter            , inputParameters
@@ -455,7 +455,7 @@ contains
   
   function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisProgenitorMassFunction`` output analysis class which reads all required properties from file.
+    Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
@@ -543,7 +543,7 @@ contains
 
   function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget) result(self)
     !!{RST
-    Internal constructor for the ``outputAnalysisProgenitorMassFunction`` output analysis class.
+    Internal constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
     !!}
     use :: Error                                   , only : Error_Report
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
@@ -861,7 +861,7 @@ contains
 
   subroutine progenitorMassFunctionDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisProgenitorMassFunction`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisProgenitorMassFunction), intent(inout) :: self

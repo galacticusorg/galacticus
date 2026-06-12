@@ -55,7 +55,7 @@
 
   interface transferFunctionHalfModeSlope
      !!{RST
-     Constructors for the ``transferFunctionHalfModeSlope`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class.
      !!}
      module procedure halfModeSlopeConstructorParameters
      module procedure halfModeSlopeConstructorInternal
@@ -65,7 +65,7 @@ contains
   
   function halfModeSlopeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionHalfModeSlope`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -121,7 +121,7 @@ contains
 
   function halfModeSlopeConstructorInternal(transferFunctionCDM,massHalfMode,slopeHalfMode,time,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionHalfModeSlope`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

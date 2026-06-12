@@ -47,7 +47,7 @@ Implements a hot mode accretion fraction rate property extractor class.
 
   interface nodePropertyExtractorFractionAccretionHotMode
      !!{RST
-     Constructors for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorFractionAccretionHotMode` property extractor class.
      !!}
      module procedure fractionAccretionHotModeConstructorParameters
      module procedure fractionAccretionHotModeConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function fractionAccretionHotModeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorFractionAccretionHotMode` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,7 +78,7 @@ contains
 
   function fractionAccretionHotModeConstructorInternal(accretionHalo_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorFractionAccretionHotMode` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorFractionAccretionHotMode)                        :: self
@@ -92,7 +92,7 @@ contains
 
   subroutine fractionAccretionHotModeDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorFractionAccretionHotMode`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorFractionAccretionHotMode` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFractionAccretionHotMode), intent(inout) :: self

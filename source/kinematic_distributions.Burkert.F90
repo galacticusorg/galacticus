@@ -39,7 +39,7 @@
 
   interface kinematicsDistributionBurkert
      !!{RST
-     Constructors for the ``kinematicsDistributionBurkert`` kinematic distribution class.
+     Constructors for the :galacticus-class:`kinematicsDistributionBurkert` kinematic distribution class.
      !!}
      module procedure burkertConstructorParameters
   end interface kinematicsDistributionBurkert
@@ -48,7 +48,7 @@ contains
 
   function burkertConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``kinematicsDistributionBurkert`` kinematic distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`kinematicsDistributionBurkert` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

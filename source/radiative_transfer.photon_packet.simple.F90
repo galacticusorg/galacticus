@@ -52,7 +52,7 @@
 
   interface radiativeTransferPhotonPacketSimple
      !!{RST
-     Constructors for the ``radiativeTransferPhotonPacketSimple`` radiative transfer photon packet class.
+     Constructors for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -62,7 +62,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiativeTransferPhotonPacketSimple`` radiative transfer photon packet class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -114,7 +114,7 @@ contains
 
   function simpleConstructorInternal(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity) result(self)
     !!{RST
-    Internal constructor for the ``radiativeTransferPhotonPacketSimple`` radiative transfer photon packet class.
+    Internal constructor for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class.
     !!}
     implicit none
     type            (radiativeTransferPhotonPacketSimple)                :: self

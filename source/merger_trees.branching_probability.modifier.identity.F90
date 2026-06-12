@@ -39,7 +39,7 @@ Implements a merger tree branching probability rate modifier which always return
 
   interface mergerTreeBranchingProbabilityModifierIdentity
      !!{RST
-     Constructors for the ``mergerTreeBranchingProbabilityModifierIdentity`` merger tree branching probability rate class.
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierIdentity` merger tree branching probability rate class.
      !!}
      module procedure identityConstructorParameters
   end interface mergerTreeBranchingProbabilityModifierIdentity

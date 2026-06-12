@@ -47,7 +47,7 @@ Implements an N-body data importer which generates random points.
 
   interface nbodyImporterRandom
      !!{RST
-     Constructors for the ``nbodyImporterRandom`` N-body importer class.
+     Constructors for the :galacticus-class:`nbodyImporterRandom` N-body importer class.
      !!}
      module procedure randomConstructorParameters
      module procedure randomConstructorInternal
@@ -57,7 +57,7 @@ contains
   
   function randomConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyImporterRandom`` N-body importer class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyImporterRandom` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -109,7 +109,7 @@ contains
 
   function randomConstructorInternal(countPoints,xRange,yRange,zRange,randomNumberGenerator_) result (self)
     !!{RST
-    Internal constructor for the ``nbodyImporterRandom`` N-body importer class.
+    Internal constructor for the :galacticus-class:`nbodyImporterRandom` N-body importer class.
     !!}
     implicit none
     type            (nbodyImporterRandom       )                              :: self
@@ -126,7 +126,7 @@ contains
 
   subroutine randomDestructor(self)
     !!{RST
-    Destructor for the ``nbodyImporterRandom`` N-body importer class.
+    Destructor for the :galacticus-class:`nbodyImporterRandom` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterRandom), intent(inout) :: self

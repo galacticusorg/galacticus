@@ -47,7 +47,7 @@
 
   interface posteriorSampleConvergenceLikelihoodThreshold
      !!{RST
-     Constructors for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class.
+     Constructors for the :galacticus-class:`posteriorSampleConvergenceLikelihoodThreshold` posterior sampling convergence class.
      !!}
      module procedure likelihoodThresholdConstructorParameters
      module procedure likelihoodThresholdConstructorInternal
@@ -57,7 +57,7 @@ contains
 
   function likelihoodThresholdConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`posteriorSampleConvergenceLikelihoodThreshold` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,7 +84,7 @@ contains
 
   function likelihoodThresholdConstructorInternal(likelihoodThreshold) result(self)
     !!{RST
-    Internal constructor for the ``posteriorSampleConvergenceLikelihoodThreshold`` posterior sampling convergence class.
+    Internal constructor for the :galacticus-class:`posteriorSampleConvergenceLikelihoodThreshold` posterior sampling convergence class.
     !!}
     use :: MPI_Utilities    , only : mpiSelf
     implicit none

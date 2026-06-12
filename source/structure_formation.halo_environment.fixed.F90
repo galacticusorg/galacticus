@@ -69,7 +69,7 @@ Implements a fixed halo environment.
 
   interface haloEnvironmentFixed
      !!{RST
-     Constructors for the ``haloEnvironmentFixed`` halo environment class.
+     Constructors for the :galacticus-class:`haloEnvironmentFixed` halo environment class.
      !!}
      module procedure fixedHEConstructorParameters
      module procedure fixedHEConstructorInternal
@@ -79,7 +79,7 @@ contains
 
   function fixedHEConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloEnvironmentFixed`` halo environment class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`haloEnvironmentFixed` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -130,7 +130,7 @@ contains
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
     !!{RST
-    Internal constructor for the ``haloEnvironmentFixed`` halo environment class.
+    Internal constructor for the :galacticus-class:`haloEnvironmentFixed` halo environment class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -174,7 +174,7 @@ contains
 
   subroutine fixedHEDestructor(self)
     !!{RST
-    Destructor for the ``haloEnvironmentFixed`` halo environment class.
+    Destructor for the :galacticus-class:`haloEnvironmentFixed` halo environment class.
     !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self

@@ -62,7 +62,7 @@
 
   interface massDistributionSphericalTruncatedExponential
      !!{RST
-     Constructors for the ``massDistributionSphericalTruncatedExponential`` mass distribution class.
+     Constructors for the :galacticus-class:`massDistributionSphericalTruncatedExponential` mass distribution class.
      !!}
      module procedure sphericalTruncatedExponentialConstructorParameters
      module procedure sphericalTruncatedExponentialConstructorInternal
@@ -72,7 +72,7 @@ contains
 
   function sphericalTruncatedExponentialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalTruncatedExponential`` mass distribution class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`massDistributionSphericalTruncatedExponential` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -140,7 +140,7 @@ contains
   
   function sphericalTruncatedExponentialConstructorInternal(radiusTruncateMinimum,radiusTruncateDecay,nonAnalyticSolver,massDistribution_,componentType,massType) result(self)
     !!{RST
-    Constructor for the ``massDistributionSphericalTruncatedExponential`` mass distribution class.
+    Constructor for the :galacticus-class:`massDistributionSphericalTruncatedExponential` mass distribution class.
     !!}
     use :: Coordinates    , only : coordinateSpherical                   , assignment(=)
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
@@ -187,7 +187,7 @@ contains
 
   subroutine sphericalTruncatedExponentialDestructor(self)
     !!{RST
-    Destructor for the abstract ``massDistributionSphericalTruncatedExponential`` mass distribution class.
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalTruncatedExponential` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalTruncatedExponential), intent(inout) :: self

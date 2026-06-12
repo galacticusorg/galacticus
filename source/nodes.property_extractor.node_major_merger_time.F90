@@ -40,7 +40,7 @@
 
   interface nodePropertyExtractorNodeMajorMergerTime
      !!{RST
-     Constructors for the ``nodePropertyExtractorNodeMajorMergerTime`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function nodeMajorMergerTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorNodeMajorMergerTime`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
 
   function nodeMajorMergerTimeConstructorInternal() result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorNodeMajorMergerTime`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerTime) :: self

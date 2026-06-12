@@ -51,7 +51,7 @@
 
   interface transferFunctionBBKS
      !!{RST
-     Constructors for the ``transferFunctionBBKS`` transfer function class.
+     Constructors for the :galacticus-class:`transferFunctionBBKS` transfer function class.
      !!}
      module procedure constructorParameters
      module procedure constructorInternal
@@ -64,7 +64,7 @@ contains
 
   function constructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``transferFunctionBBKS`` transfer function class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`transferFunctionBBKS` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +91,7 @@ contains
 
   function constructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Internal constructor for the ``transferFunctionBBKS`` transfer function class.
+    Internal constructor for the :galacticus-class:`transferFunctionBBKS` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -137,7 +137,7 @@ contains
 
   subroutine destructor(self)
     !!{RST
-    Destructor for the ``transferFunctionBBKS`` transfer function class.
+    Destructor for the :galacticus-class:`transferFunctionBBKS` transfer function class.
     !!}
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self

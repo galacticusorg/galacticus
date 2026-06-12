@@ -93,7 +93,7 @@
 
   interface radiationFieldIntergalacticBackgroundInternal
      !!{RST
-     Constructors for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
+     Constructors for the :galacticus-class:`radiationFieldIntergalacticBackgroundInternal` radiation field class.
      !!}
      module procedure intergalacticBackgroundInternalConstructorParameters
      module procedure intergalacticBackgroundInternalConstructorInternal
@@ -115,7 +115,7 @@ contains
 
   function intergalacticBackgroundInternalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundInternal` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter                , inputParameters
     use :: Functions_Global, only : accretionDiskSpectraConstruct_, accretionDiskSpectraDestruct_
@@ -212,7 +212,7 @@ contains
 
   function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_) result(self)
     !!{RST
-    Internal constructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
+    Internal constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundInternal` radiation field class.
     !!}
     use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
     use :: Table_Labels    , only : extrapolationTypeFix, extrapolationTypeZero
@@ -326,7 +326,7 @@ contains
 
   subroutine intergalacticBackgroundInternalDestructor(self)
     !!{RST
-    Destructor for the ``radiationFieldIntergalacticBackgroundInternal`` radiation field class.
+    Destructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundInternal` radiation field class.
     !!}
     use :: Events_Hooks    , only : universePreEvolveEventGlobal
     use :: Functions_Global, only : accretionDiskSpectraDestruct_

@@ -65,7 +65,7 @@ Implements a stellar mass function output analysis class for the VIPERS survey o
 
   interface outputAnalysisMassFunctionStellarVIPERS
      !!{RST
-     Constructors for the ``outputAnalysisMassFunctionStellarVIPERS`` output analysis class.
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarVIPERS` output analysis class.
      !!}
      module procedure massFunctionStellarVIPERSConstructorParameters
      module procedure massFunctionStellarVIPERSConstructorInternal
@@ -75,7 +75,7 @@ contains
 
   function massFunctionStellarVIPERSConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarVIPERS`` output analysis class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarVIPERS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -199,7 +199,7 @@ contains
 
   function massFunctionStellarVIPERSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !!{RST
-    Constructor for the ``outputAnalysisMassFunctionStellarVIPERS`` output analysis class for internal use.
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarVIPERS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -368,7 +368,7 @@ contains
 
   subroutine massFunctionStellarVIPERSDestructor(self)
     !!{RST
-    Destructor for the ``outputAnalysisMassFunctionStellarVIPERS`` output analysis class.
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarVIPERS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarVIPERS), intent(inout) :: self

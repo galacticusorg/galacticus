@@ -41,7 +41,7 @@
 
   interface galacticStructureSolverNull
      !!{RST
-     Constructors for the ``galacticStructureSolverNull`` galactic structure solver class.
+     Constructors for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class.
      !!}
      module procedure nullConstructorParameters
   end interface galacticStructureSolverNull
@@ -50,7 +50,7 @@ contains
 
   function nullConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``galacticStructureSolverNull`` galactic structure solver class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,7 +82,7 @@ contains
 
   subroutine nullDestructor(self)
     !!{RST
-    Destructor for the ``galacticStructureSolverNull`` galactic structure solver class.
+    Destructor for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none

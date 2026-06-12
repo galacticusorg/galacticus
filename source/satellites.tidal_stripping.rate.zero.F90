@@ -42,7 +42,7 @@
 
   interface satelliteTidalStrippingZero
      !!{RST
-     Constructors for the ``satelliteTidalStrippingZero`` satellite tidal stripping class.
+     Constructors for the :galacticus-class:`satelliteTidalStrippingZero` satellite tidal stripping class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteTidalStrippingZero
@@ -51,7 +51,7 @@ contains
 
   function zeroConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``satelliteTidalStrippingZero`` satellite tidal stripping class which builds the object from a parameter set.
+    Constructor for the :galacticus-class:`satelliteTidalStrippingZero` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

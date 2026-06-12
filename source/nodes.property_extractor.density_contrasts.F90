@@ -63,7 +63,7 @@ Implements a property extractor class for the mass and radii of spheres are spec
 
   interface nodePropertyExtractorDensityContrasts
      !!{RST
-     Constructors for the ``nodePropertyExtractorDensityContrasts`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal
@@ -78,7 +78,7 @@ contains
 
   function densityContrastsConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorDensityContrasts`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
@@ -133,7 +133,7 @@ contains
 
   function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorDensityContrasts`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : massTypeAll              , massTypeDark
     use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -173,7 +173,7 @@ contains
 
   subroutine densityContrastsDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorDensityContrasts`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrasts), intent(inout) :: self

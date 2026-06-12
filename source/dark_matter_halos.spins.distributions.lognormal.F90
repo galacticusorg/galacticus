@@ -49,7 +49,7 @@
 
   interface haloSpinDistributionLogNormal
      !!{RST
-     Constructors for the ``haloSpinDistributionLogNormal`` dark matter halo spin distribution class.
+     Constructors for the :galacticus-class:`haloSpinDistributionLogNormal` dark matter halo spin distribution class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -59,7 +59,7 @@ contains
 
   function logNormalConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``haloSpinDistributionLogNormal`` dark matter halo spin distribution class which takes a parameter list as input.
+    Constructor for the :galacticus-class:`haloSpinDistributionLogNormal` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -106,7 +106,7 @@ contains
 
   function logNormalConstructorInternal(median,sigma,darkMatterHaloScale_) result(self)
     !!{RST
-    Internal constructor for the ``haloSpinDistributionLogNormal`` dark matter halo spin distribution class.
+    Internal constructor for the :galacticus-class:`haloSpinDistributionLogNormal` dark matter halo spin distribution class.
     !!}
     implicit none
     type            (haloSpinDistributionLogNormal)                        :: self
@@ -121,7 +121,7 @@ contains
 
   subroutine lognormalDestructor(self)
     !!{RST
-    Destructor for the ``haloSpinDistributionLogNormal`` dark matter halo spin distribution class.
+    Destructor for the :galacticus-class:`haloSpinDistributionLogNormal` dark matter halo spin distribution class.
     !!}
     implicit none
     type(haloSpinDistributionLognormal), intent(inout) :: self

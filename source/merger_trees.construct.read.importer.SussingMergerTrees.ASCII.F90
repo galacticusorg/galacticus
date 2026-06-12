@@ -106,7 +106,7 @@
 
   interface mergerTreeImporterSussingASCII
      !!{RST
-     Constructors for the ``mergerTreeImporterSussingASCII`` merger tree importer class.
+     Constructors for the :galacticus-class:`mergerTreeImporterSussingASCII` merger tree importer class.
      !!}
      module procedure sussingASCIIConstructorParameters
      module procedure sussingASCIIConstructorInternal
@@ -129,7 +129,7 @@ contains
 
   function sussingASCIIConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``mergerTreeImporterSussingASCII`` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
+    Constructor for the :galacticus-class:`mergerTreeImporterSussingASCII` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -202,7 +202,7 @@ contains
 
   function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{RST
-    Internal constructor for the ``mergerTreeImporterSussingASCII`` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer.
+    Internal constructor for the :galacticus-class:`mergerTreeImporterSussingASCII` ASCII format :cite:p:`srisawat_sussing_2013` merger tree importer.
     !!}
     implicit none
     type            (mergerTreeImporterSussingASCII    )                              :: self

@@ -39,7 +39,7 @@ Implements an anti-:math:`\log_{10}()` output analysis property operator class.
 
   interface outputAnalysisPropertyOperatorAntiLog10
      !!{RST
-     Constructors for the ``outputAnalysisPropertyOperatorAntiLog10`` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorAntiLog10` output analysis property operator class.
      !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10
@@ -48,7 +48,7 @@ contains
 
   function antiLog10ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``outputAnalysisPropertyOperatorAntiLog10`` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorAntiLog10` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none

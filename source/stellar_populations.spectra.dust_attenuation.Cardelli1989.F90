@@ -48,7 +48,7 @@
 
   interface stellarSpectraDustAttenuationCardelli1989
      !!{RST
-     Constructors for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class.
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationCardelli1989` stellar spectra dust attenuation class.
      !!}
      module procedure cardelli1989ConstructorParameters
      module procedure cardelli1989ConstructorInternal
@@ -58,7 +58,7 @@ contains
 
   function cardelli1989ConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationCardelli1989` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function cardelli1989ConstructorInternal(Rv) result(self)
     !!{RST
-    Constructor for the ``stellarSpectraDustAttenuationCardelli1989`` stellar spectra dust attenuation class.
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationCardelli1989` stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self

@@ -54,7 +54,7 @@ Implements a halo mass output analysis property extractor class.
 
   interface nodePropertyExtractorMassHalo
      !!{RST
-     Constructors for the ``nodePropertyExtractorMassHalo`` property extractor class.
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassHalo` property extractor class.
      !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
@@ -64,7 +64,7 @@ contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``nodePropertyExtractorMassHalo`` property extractor class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassHalo` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,7 +105,7 @@ contains
 
   function massHaloConstructorInternal(useLastIsolatedTime,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{RST
-    Internal constructor for the ``nodePropertyExtractorMassHalo`` property extractor class.
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassHalo` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassHalo)                        :: self
@@ -123,7 +123,7 @@ contains
 
   subroutine massHaloDestructor(self)
     !!{RST
-    Destructor for the ``nodePropertyExtractorMassHalo`` property extractor class.
+    Destructor for the :galacticus-class:`nodePropertyExtractorMassHalo` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorMassHalo), intent(inout) :: self

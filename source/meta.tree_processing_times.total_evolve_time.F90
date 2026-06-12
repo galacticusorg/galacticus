@@ -40,7 +40,7 @@ Implements a merger tree processing time estimator that estimates times based on
 
   interface metaTreeProcessingTimeTotalEvolveTime
      !!{RST
-     Constructors for the ``metaTreeProcessingTimeTotalEvolveTime`` merger tree processing time estimator.
+     Constructors for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator.
      !!}
      module procedure totalEvolveTimeConstructorParameters
      module procedure totalEvolveTimeConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function totalEvolveTimeConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the ``metaTreeProcessingTimeTotalEvolveTime`` merger tree processing time estimator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +85,7 @@ contains
 
   function totalEvolveTimeConstructorInternal(exponentTime,updateInterval) result(self)
     !!{RST
-    Internal constructor for the ``metaTreeProcessingTimeTotalEvolveTime`` merger tree processing time estimator class.
+    Internal constructor for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator class.
     !!}
     implicit none
     type            (metaTreeProcessingTimeTotalEvolveTime)                :: self

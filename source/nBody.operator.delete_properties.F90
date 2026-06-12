@@ -40,7 +40,7 @@ Implements an N-body data operator which deletes named properties from the simul
 
   interface nbodyOperatorDeleteProperties
      !!{RST
-     Constructors for the ``nbodyOperatorDeleteProperties`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorDeleteProperties` N-body operator class.
      !!}
      module procedure deletePropertiesConstructorParameters
      module procedure deletePropertiesConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function deletePropertiesConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorDeleteProperties`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorDeleteProperties` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,7 +77,7 @@ contains
 
   function deletePropertiesConstructorInternal(propertyNames) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorDeleteProperties`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorDeleteProperties` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self

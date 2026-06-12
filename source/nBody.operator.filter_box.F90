@@ -40,7 +40,7 @@ Implements an N-body data operator which filters particles outside a cuboid regi
 
   interface nbodyOperatorFilterBox
      !!{RST
-     Constructors for the ``nbodyOperatorFilterBox`` N-body operator class.
+     Constructors for the :galacticus-class:`nbodyOperatorFilterBox` N-body operator class.
      !!}
      module procedure filterBoxConstructorParameters
      module procedure filterBoxConstructorInternal
@@ -50,7 +50,7 @@ contains
 
   function filterBoxConstructorParameters(parameters) result (self)
     !!{RST
-    Constructor for the ``nbodyOperatorFilterBox`` N-body operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`nbodyOperatorFilterBox` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,7 +83,7 @@ contains
 
   function filterBoxConstructorInternal(boundLow,boundHigh) result (self)
     !!{RST
-    Internal constructor for the ``nbodyOperatorFilterBox`` N-body operator class.
+    Internal constructor for the :galacticus-class:`nbodyOperatorFilterBox` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
