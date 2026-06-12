@@ -300,7 +300,20 @@ def scan_source(source_dir: str):
         cls = class_by_file.get(m['file'])
         m['classRef'] = cls if cls in paged else None
     modules.sort(key=lambda m: m['name'].lower())
-    workarounds.sort(key=lambda w: (str(w.get('type')), str(w.get('pr'))))
+    # The same compiler workaround is applied at many call sites with identical
+    # text; collapse to one entry per (type, PR, description), unioning seeAlso.
+    deduped: dict[tuple, dict] = {}
+    for w in workarounds:
+        key = (w.get('type'), w.get('pr'),
+               ' '.join((w.get('description') or '').split()))
+        entry = deduped.setdefault(key, {**w, 'seeAlso': []})
+        have = {(s.get('type'), s.get('pr'), s.get('url'))
+                for s in entry['seeAlso']}
+        for s in w.get('seeAlso') or []:
+            if (s.get('type'), s.get('pr'), s.get('url')) not in have:
+                entry['seeAlso'].append(s)
+    workarounds = sorted(deduped.values(),
+                         key=lambda w: (str(w.get('type')), str(w.get('pr'))))
     return (families, implementations, params_by_file, methods_by_file,
             enumerations, modules, workarounds)
 
