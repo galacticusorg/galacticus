@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a critical overdensity for collapse using the :term:`FDM` modifier of :cite:t:`marsh_warmAndFuzzy_2016`.
+  Implements a critical overdensity for collapse using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
   !!}
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
@@ -27,13 +27,13 @@
   !![
   <criticalOverdensity name="criticalOverdensityMarsh2016FDM" docformat="rst">
    <description>
-   A critical overdensity for collapse class based on the :term:`FDM` modifier of :cite:t:`marsh_warmAndFuzzy_2016` applied to some other, :term:`CDM` critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
+   A critical overdensity for collapse class based on the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016` applied to some other, :term:`CDM` critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
 
    .. math::
 
       h_\mathrm{F}(x) \exp [a_3 x^{-a_4}]+[1-h_\mathrm{F}(x)]\exp [a_5 x^{-a_6}],
 
-   where :math:`x=M/M_J` with :math:`M` the mass in question, :math:`M_\mathrm{J}` the effective Jeans mass of the fuzzy dark matter as defined by :cite:author:`marsh_warmAndFuzzy_2016` [:cite:year:`marsh_warmAndFuzzy_2016`; their eqn. 18]:
+   where :math:`x=M/M_J` with :math:`M` the mass in question, :math:`M_\mathrm{J}` the effective Jeans mass of the fuzzy dark matter as defined by :cite:author:`marsh_warmandfuzzy_2016` [:cite:year:`marsh_warmandfuzzy_2016`; their eqn. 18]:
 
    .. math::
 
@@ -51,7 +51,7 @@
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityMarsh2016FDM
      !!{RST
-     A critical overdensity for collapse class which modifies another transfer function using the :term:`FDM` modifier of :cite:t:`marsh_warmAndFuzzy_2016`.
+     A critical overdensity for collapse class which modifies another transfer function using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
      !!}
      private
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM => null()
@@ -223,7 +223,7 @@ contains
 
   double precision function marsh2016FDMValue(self,time,expansionFactor,collapsing,mass,node)
     !!{RST
-    Returns a mass scaling for critical overdensities based on the results of :cite:t:`marsh_warmAndFuzzy_2016`. This method assumes that their results for the critical overdensity scale with the Jeans mass of the fuzzy dark matter particle as computed using their eqn. (18).
+    Returns a mass scaling for critical overdensities based on the results of :cite:t:`marsh_warmandfuzzy_2016`. This method assumes that their results for the critical overdensity scale with the Jeans mass of the fuzzy dark matter particle as computed using their eqn. (18).
     !!}
     use :: Error, only : Error_Report
     implicit none

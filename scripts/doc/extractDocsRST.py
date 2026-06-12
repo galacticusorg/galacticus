@@ -370,8 +370,10 @@ def main() -> int:
 
     with open(os.path.join(out_dir, 'references.rst'), 'w',
               encoding='utf-8') as fh:
+        # Only the works actually cited in the documentation — not the whole
+        # (400+ entry) Galacticus.bib database.
         fh.write(_heading('References', '=') +
-                 '\n.. bibliography::\n   :all:\n')
+                 '\n.. bibliography::\n   :filter: cited\n')
 
     n_impl = sum(len(v) for v in implementations.values())
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
