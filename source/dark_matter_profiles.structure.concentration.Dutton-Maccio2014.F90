@@ -84,6 +84,46 @@
 
    The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[duttonMaccio2014FitType]`` parameter, as described in Table .
 
+   .. list-table::
+      :header-rows: 1
+
+      * - Fit type
+        - Profile
+        - :math:`\Delta_\mathrm{vir}`
+        - :math:`A_1`
+        - :math:`A_2`
+        - :math:`A_3`
+        - :math:`A_4`
+        - :math:`B_1`
+        - :math:`B_2`
+      * - ``nfwVirial``
+        - :term:`NFW`
+        - Top-hat
+        - :math:`+0.537`
+        - :math:`+1.025`
+        - :math:`-0.718`
+        - :math:`+1.080`
+        - :math:`-0.097`
+        - :math:`+0.024`
+      * - ``nfw200``
+        - :term:`NFW`
+        - 200
+        - :math:`+0.520`
+        - :math:`+0.905`
+        - :math:`-0.617`
+        - :math:`+1.210`
+        - :math:`-0.101`
+        - :math:`+0.026`
+      * - ``einasto200``
+        - Einasto
+        - 200
+        - :math:`+0.459`
+        - :math:`+0.977`
+        - :math:`-0.490`
+        - :math:`+1.303`
+        - :math:`-0.130`
+        - :math:`+0.029`
+
    Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[duttonMaccio2014FitType]`` parameter.
    </description>
   </darkMatterProfileConcentration>

@@ -70,6 +70,46 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
       \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
 
    Parameters of the :cite:t:`behroozi_comprehensive_2010` conditional stellar mass function model, along with their default values and the corresponding Galacticus input parameters.
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Parameter
+        - Default
+        - Galacticus name
+      * - :math:`\alpha_\mathrm{sat}`
+        - 1.0
+        - ``[conditionalStellarMassFunctionBehrooziAlphaSatellite]``
+      * - :math:`\log_{10} M_1`
+        - 12.520
+        - ``[conditionalStellarMassFunctionBehrooziLog10M1]``
+      * - :math:`\log_{10} M_{\star,0}`
+        - 10.916
+        - ``[conditionalStellarMassFunctionBehrooziLog10Mstar0]``
+      * - :math:`\beta`
+        - 0.457
+        - ``[conditionalStellarMassFunctionBehrooziBeta]``
+      * - :math:`\delta`
+        - 0.5666
+        - ``[conditionalStellarMassFunctionBehrooziDelta]``
+      * - :math:`\gamma`
+        - 1.53
+        - ``[conditionalStellarMassFunctionBehrooziGamma]``
+      * - :math:`\sigma_{\log M_\star}`
+        - 0.206
+        - ``[conditionalStellarMassFunctionBehrooziSigmaLogMstar]``
+      * - :math:`B_\mathrm{cut}`
+        - 1.47
+        - ``[conditionalStellarMassFunctionBehrooziBCut]``
+      * - :math:`B_\mathrm{sat}`
+        - 10.62
+        - ``[conditionalStellarMassFunctionBehrooziBSatellite]``
+      * - :math:`\beta_\mathrm{cut}`
+        - :math:`-`\ 0.13
+        - ``[conditionalStellarMassFunctionBehrooziBetaCut]``
+      * - :math:`\beta_\mathrm{sat}`
+        - 0.859
+        - ``[conditionalStellarMassFunctionBehrooziBetaSatellite]``
    </description>
   </conditionalMassFunction>
   !!]

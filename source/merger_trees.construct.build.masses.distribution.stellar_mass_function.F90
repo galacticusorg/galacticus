@@ -181,6 +181,34 @@
 
    Parameters of the conditional stellar mass function fit.
 
+   .. list-table::
+      :header-rows: 1
+
+      * - Parameter
+        - Value
+      * - :math:`\alpha_\mathrm{sat}`
+        - 1.0
+      * - :math:`\log_{10} M_1`
+        - 12.120
+      * - :math:`\log_{10} M_{\star,0}`
+        - 10.516
+      * - :math:`\beta`
+        - 0.430
+      * - :math:`\delta`
+        - 0.5666
+      * - :math:`\gamma`
+        - 1.53
+      * - :math:`\sigma_{\log M_\star}`
+        - 0.206
+      * - :math:`B_\mathrm{cut}`
+        - 0.744
+      * - :math:`B_\mathrm{sat}`
+        - 8.00
+      * - :math:`\beta_\mathrm{cut}`
+        - :math:`-`\ 0.13
+      * - :math:`\beta_\mathrm{sat}`
+        - 0.859
+
    We assume that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by the constraint of eqn. (), and the assumed forms for :math:`\phi_\mathrm{c}` and :math:`\phi_\mathrm{s}`.
 
    The errors in the :cite:t:`li_distribution_2009` observed stellar mass function are well fit by (see Fig. ):

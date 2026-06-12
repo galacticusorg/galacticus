@@ -118,15 +118,15 @@ def _kv_value(body: str, key: str) -> str:
 # LaTeX font-switch wrappers that should collapse to their inner text.
 _FONT_GROUP_RE = re.compile(
     r'\{\s*\\(?:normalfont|scshape|itshape|bfseries|ttfamily|rmfamily|sffamily|'
-    r'sc|it|bf|tt|rm|sf|em)\b\s*([^{}]*)\}'
+    r'boldmath|unboldmath|sc|it|bf|tt|rm|sf|em)\b\s*([^{}]*)\}'
 )
 
 
 # Bare (brace-less) font-switch declarations, e.g. ``\scshape`` in
-# ``{\normalfont \scshape GraphViz}``.
+# ``{\normalfont \scshape GraphViz}`` or ``\boldmath`` before a math cell.
 _FONT_DECL_RE = re.compile(
     r'\\(?:normalfont|scshape|itshape|bfseries|ttfamily|rmfamily|sffamily|'
-    r'sc|it|bf|tt|rm|sf|em)\b')
+    r'boldmath|unboldmath|sc|it|bf|tt|rm|sf|em)\b')
 
 
 def _clean_name(name: str) -> str:
@@ -451,12 +451,14 @@ def _convert_lists(text: str, glsmap: dict[str, str]) -> str:
 def _strip_float_envs(text: str) -> str:
     """Convert figure/table floats.
 
-    Each figure becomes ``@@FIGURE@@<image path>@@`` followed by its caption (a
-    placeholder finalised into a ``.. figure::`` by :func:`_finalise_figures`
-    once the caption has been converted); a figure with no ``\\includegraphics``
-    and any table float collapse to the caption text only.
+    A ``figure`` becomes ``@@FIGURE@@<image path>@@`` + caption (finalised into a
+    ``.. figure::`` by :func:`_finalise_figures` once the caption is converted),
+    or just the caption if it has no ``\\includegraphics``.  A ``table`` is
+    *unwrapped* — the float markers/label are removed but the inner content (a
+    list-table from :func:`_convert_tabular`) is kept, with its caption as a
+    paragraph.
     """
-    for env in ('figure', 'figure*', 'table', 'table*'):
+    for env in ('figure', 'figure*'):
         begin_re = re.compile(r'\\begin\{' + re.escape(env) + r'\}(?:\[[^\]]*\])?')
         end_re = re.compile(r'\\end\{' + re.escape(env) + r'\}')
         while True:
@@ -474,13 +476,18 @@ def _strip_float_envs(text: str) -> str:
                 caption = (arg or '').strip()
             image = ''
             im = re.search(r'\\includegraphics(?:\[[^\]]*\])?\s*\{', inner)
-            if im and env.startswith('figure'):
+            if im:
                 image, _ = extract_braced(inner, im.end() - 1)
             if image.strip():
                 replacement = f'\n\n@@FIGURE@@{image.strip()}@@\n\n{caption}\n\n'
             else:
                 replacement = f'\n\n{caption}\n\n' if caption else '\n\n'
             text = text[:b.start()] + replacement + text[e.end():]
+    # Unwrap table floats (keep the list-table + caption inside them).
+    for env in ('table', 'table*'):
+        text = re.sub(r'\\begin\{' + re.escape(env) + r'\}(?:\[[^\]]*\])?', '', text)
+        text = re.sub(r'\\end\{' + re.escape(env) + r'\}', '', text)
+    text = _convert_command(text, 'caption', lambda a: '\n\n' + a.strip() + '\n\n')
     return text
 
 
@@ -500,45 +507,116 @@ def _finalise_figures(text: str) -> str:
     return text
 
 
-def _tabular_cell(c: str) -> str:
-    """Light conversion of a single tabular cell (kept inside a vaulted block,
-    so the main pipeline does not process it)."""
-    c = c.strip()
-    c = re.sub(r'\\(?:mono|texttt|refClass|refPhysics)\{([^{}]*)\}', r'``\1``', c)
-    c = re.sub(r'(?<!\\)\$([^$]+)\$', r':math:`\1`', c)
-    c = c.replace(r'\glc', 'Galacticus')
-    for src, dst in _ESCAPE_REPLACEMENTS:
-        c = c.replace(src, dst)
-    return c.strip()
+def _conv_cell(text: str, glsmap: dict) -> str:
+    """Convert one tabular cell to inline RST by running the full pipeline on
+    the fragment (handles ``\\mono``, ``\\gls``, ``$math$``, font/boldmath …)."""
+    return re.sub(r'\s+', ' ', latex_to_rst(text, glsmap)).strip()
 
 
-def _convert_tabular(text: str, vault: '_Vault') -> str:
-    """Convert ``\\begin{tabular}{spec} … \\end{tabular}`` to an RST
-    ``list-table`` (vaulted as a block).  Rows before the first internal
-    ``\\hline`` are treated as the header."""
-    tab_re = re.compile(
-        r'\\begin\{tabular\}\s*(?:\{[^{}]*\})?(.*?)\\end\{tabular\}', re.DOTALL)
+def _parse_colspec(spec: str):
+    """Parse a tabular column spec into ``(n_logical, phys_to_logical,
+    phys_sep)``.  Physical columns joined by ``@{sep}`` (e.g. the ``r@{.}l`` of
+    a decimal-aligned number) collapse to one logical column."""
+    seps, pending, i = [], '', 0
+    while i < len(spec):
+        ch = spec[i]
+        if ch in 'lcrLCR':
+            seps.append(pending); pending = ''; i += 1
+        elif ch in 'pmb' and i + 1 < len(spec) and spec[i + 1] == '{':
+            _, i = extract_braced(spec, i + 1)
+            seps.append(pending); pending = ''
+        elif ch == '@' and i + 1 < len(spec) and spec[i + 1] == '{':
+            pending, i = extract_braced(spec, i + 1)
+        else:
+            i += 1
+    phys_to_logical, phys_sep, logical = [], [], -1
+    for sep in seps:
+        if sep == '':
+            logical += 1
+        phys_to_logical.append(logical)
+        phys_sep.append(sep)
+    return logical + 1, phys_to_logical, phys_sep
 
-    def repl(m: re.Match) -> str:
-        segments = re.split(r'\\hline', m.group(1))
-        seg_rows = [[r.strip() for r in re.split(r'\\\\', s) if r.strip()]
-                    for s in segments]
-        nonempty = [rs for rs in seg_rows if rs]
-        if not nonempty:
-            return ''
-        all_rows = [r for rs in nonempty for r in rs]
-        header = len(nonempty[0]) if len(nonempty) >= 2 else 0
-        lines = ['.. list-table::']
-        if header:
-            lines.append(f'   :header-rows: {header}')
-        lines.append('')
-        for row in all_rows:
-            cells = [_tabular_cell(c) for c in row.split('&amp;')]
-            for i, cell in enumerate(cells):
-                lines.append(('   * - ' if i == 0 else '     - ') + cell)
-        return vault.stash('\n\n' + '\n'.join(lines) + '\n\n', block=True)
 
-    return tab_re.sub(repl, text)
+_MULTICOL_RE = re.compile(r'^\s*\\multicolumn\s*\{(\d+)\}\s*\{[^{}]*\}\s*\{')
+
+
+def _row_cells(row, n_logical, phys_to_logical, phys_sep, glsmap):
+    logical = [''] * n_logical
+    phys = 0
+    for raw in row.split('&amp;'):
+        mc = _MULTICOL_RE.match(raw)
+        if mc:
+            content, _ = extract_braced(raw, mc.end() - 1)
+            span = int(mc.group(1))
+        else:
+            content, span = raw, 1
+        lc = phys_to_logical[phys] if phys < len(phys_to_logical) else n_logical - 1
+        conv = _conv_cell(content, glsmap)
+        if logical[lc]:
+            sep = phys_sep[phys] if phys < len(phys_sep) and phys_sep[phys] else ' '
+            logical[lc] += sep + conv
+        elif conv:
+            logical[lc] = conv
+        phys += span
+    return logical
+
+
+def _convert_tabular(text: str, vault: '_Vault', glsmap: dict) -> str:
+    """Convert ``\\begin{tabular}{spec} … \\end{tabular}`` to an RST list-table.
+
+    Handles ``@{.}`` decimal-aligned columns, ``\\multicolumn`` spans, multi-row
+    headers (the first ``\\hline``-delimited group), and per-cell markup.
+    Vaulted as a block so the reflow/list passes leave it intact.
+    """
+    out, i = [], 0
+    while True:
+        b = text.find(r'\begin{tabular}', i)
+        if b == -1:
+            out.append(text[i:])
+            break
+        j = b + len(r'\begin{tabular}')
+        while j < len(text) and text[j] in ' \t\n':
+            j += 1
+        spec, body_start = (extract_braced(text, j) if j < len(text)
+                            and text[j] == '{' else ('', j))
+        e = text.find(r'\end{tabular}', body_start)
+        if e == -1:
+            out.append(text[i:])
+            break
+        out.append(text[i:b])
+        out.append(_build_listtable(spec, text[body_start:e], vault, glsmap))
+        i = e + len(r'\end{tabular}')
+    return ''.join(out)
+
+
+def _build_listtable(spec, body, vault, glsmap):
+    n_logical, p2l, psep = _parse_colspec(spec)
+    if n_logical == 0:
+        n_logical, p2l, psep = 1, [0], ['']
+    segments = re.split(r'\\hline', body)
+    seg_rows = [[r.strip() for r in re.split(r'\\\\', s) if r.strip()]
+                for s in segments]
+    nonempty = [rs for rs in seg_rows if rs]
+    if not nonempty:
+        return ''
+    rows = [_row_cells(r, n_logical, p2l, psep, glsmap)
+            for rs in nonempty for r in rs]
+    # Drop trailing columns empty in every row (e.g. an unused decimal column).
+    while n_logical > 1 and all(not r[n_logical - 1] for r in rows):
+        n_logical -= 1
+        rows = [r[:n_logical] for r in rows]
+    header = len(nonempty[0]) if len(nonempty) >= 2 else 0
+    lines = ['.. list-table::']
+    if header:
+        lines.append(f'   :header-rows: {header}')
+    lines.append('')
+    for row in rows:
+        for k in range(n_logical):
+            cell = row[k] if k < len(row) else ''
+            lines.append(('   * - ' if k == 0 else '     - ')
+                         + (cell or '​'))      # zero-width space for empties
+    return vault.stash('\n\n' + '\n'.join(lines) + '\n\n', block=True)
 
 
 # One step of a ``\noindent\hspace{N mm} $\rightarrow$ \parbox[..]{W}{TEXT}``
@@ -614,13 +692,14 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
     text = textwrap.dedent(text.replace('\r\n', '\n')).strip('\n')
     vault = _Vault()
 
-    # --- Float environments (figure/table) -> caption only ----------------
-    # Keep the \caption text (converted with everything else below) and drop
-    # the float wrapper, \includegraphics, etc.
-    text = _strip_float_envs(text)
-
     # --- tabular -> list-table (vaulted block) ---------------------------
-    text = _convert_tabular(text, vault)
+    # Before float handling, so a tabular inside a ``table`` float survives.
+    text = _convert_tabular(text, vault, glsmap)
+
+    # --- Float environments ----------------------------------------------
+    # figure -> ".. figure::" (image + caption); table -> unwrapped, keeping the
+    # list-table above plus its caption.
+    text = _strip_float_envs(text)
 
     # --- \noindent\hspace{N} $\rightarrow$ \parbox{…} decision trees -----
     # Rewrite into nested \begin{itemize} so the normal list machinery renders

@@ -39,6 +39,26 @@
    where the coefficients :math:`C_{0-2}` are given in Table .
 
    Coefficients of H\ :math:`_2^+` cooling functions as appearing in the fitting function, eq. .
+
+   .. list-table::
+      :header-rows: 2
+
+      * - ​
+        - Coefficient
+        - ​
+        - ​
+      * - Interaction
+        - :math:`C_0`
+        - :math:`C_1`
+        - :math:`C_2`
+      * - H\ :math:`_2^+`--e\ :math:`^-`
+        - -33.33
+        - 5.565
+        - -0.4675
+      * - H--H\ :math:`_2^+`
+        - -35.28
+        - 5.862
+        - -0.5124
    </description>
   </coolingFunction>
   !!]
