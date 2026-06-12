@@ -191,12 +191,18 @@ def scan_source(source_dir: str):
     * ``params_by_file``: ``{file_base: [{name, default, description}, …]}``.
     * ``methods_by_file``: ``{file_base: [{name, description}, …]}`` — the
       type-bound methods declared in that file's ``<methods>`` block(s).
+    * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
+      documented module (``classRef`` links class modules to their page).
+    * ``workarounds``: ``[{type, pr, url, description, seeAlso, file}, …]``.
     """
     families: dict[str, dict] = {}
     by_root: dict[str, list[dict]] = {}
     params_by_file: dict[str, list[dict]] = {}
     methods_by_file: dict[str, list[dict]] = {}
     enumerations: list[dict] = []
+    modules: list[dict] = []
+    workarounds: list[dict] = []
+    class_by_file: dict[str, str] = {}
 
     for root, _dirs, files in os.walk(source_dir):
         for fn in sorted(files):
@@ -206,8 +212,16 @@ def scan_source(source_dir: str):
             with open(os.path.join(root, fn), encoding='utf-8',
                       errors='replace') as fh:
                 text = fh.read()
-            mmod = re.search(r'(?im)^\s*module\s+([a-z0-9_]+)\s*$', text)
+            mmod = re.search(r'(?im)^[ \t]*module[ \t]+([a-z0-9_]+)[ \t]*$', text)
             module_name = mmod.group(1) if mmod else base
+            # Module-level description: the !!{RST …!!} block right after the
+            # ``module`` line (already RST; not XML-escaped like <description>).
+            if mmod:
+                md = re.match(r'\s*!!\{RST\b(.*?)!!\}',
+                              text[mmod.end():mmod.end() + 800], re.DOTALL)
+                if md and md.group(1).strip():
+                    modules.append({'name': module_name, 'file': base,
+                                    'description': md.group(1).strip()})
             tmeths = _extract_type_methods(text)
             if tmeths:
                 methods_by_file[base] = tmeths
@@ -232,6 +246,22 @@ def scan_source(source_dir: str):
                         'default':         _child(block, 'default'),
                         'methods':         _extract_methods(block),
                     }
+                    class_by_file[base] = name
+                elif rtype == 'workaround':
+                    if desc_raw is None:
+                        continue
+                    workarounds.append({
+                        'type':        _attr(attrs, 'type'),
+                        'pr':          _attr(attrs, 'PR'),
+                        'url':         _attr(attrs, 'url'),
+                        'description': desc_raw,
+                        'seeAlso':     [{'type': _attr(s, 'type'),
+                                         'pr':   _attr(s, 'PR'),
+                                         'url':  _attr(s, 'url')}
+                                        for s in re.findall(
+                                            r'<seeAlso\b([^>]*?)/?>', block)],
+                        'file':        base,
+                    })
                 elif rtype == 'enumeration':
                     name = _child(block, 'name')
                     if not name:
@@ -263,8 +293,16 @@ def scan_source(source_dir: str):
 
     implementations = {fam: by_root[fam] for fam in by_root if fam in families}
     enumerations.sort(key=lambda e: e['name'].lower())
+    # Tag each module that is a (page-bearing) functionClass file so the modules
+    # index can link to its physics page.
+    paged = set(implementations)
+    for m in modules:
+        cls = class_by_file.get(m['file'])
+        m['classRef'] = cls if cls in paged else None
+    modules.sort(key=lambda m: m['name'].lower())
+    workarounds.sort(key=lambda w: (str(w.get('type')), str(w.get('pr'))))
     return (families, implementations, params_by_file, methods_by_file,
-            enumerations)
+            enumerations, modules, workarounds)
 
 
 # ---------------------------------------------------------------------------
@@ -403,6 +441,47 @@ def render_enumerations(enumerations: list[dict], glsmap: dict) -> str:
     return '\n'.join(out) + '\n'
 
 
+def render_modules(modules: list[dict]) -> str:
+    """A reference index of every documented source module + its summary."""
+    out = [_heading('Modules', '='),
+           'Every documented Fortran module in the Galacticus source, with the '
+           'summary from its embedded documentation.  Modules implementing a '
+           'pluggable physics class link to that class.\n']
+    for m in modules:
+        desc = re.sub(r'\s*\n\s*', ' ',
+                      textwrap.dedent(m['description']).strip()).strip()
+        body = desc or '—'
+        if m.get('classRef'):
+            body += f'\n\nSee :ref:`physics-{m["classRef"]}`.'
+        out.append(f'``{m["name"]}``')
+        out.append(textwrap.indent(body, '   '))
+        out.append('')
+    return '\n'.join(out) + '\n'
+
+
+def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
+    """A developer reference of the compiler workarounds documented in source."""
+    def link(typ, pr, url):
+        label = ' '.join(x for x in (typ, f'PR {pr}' if pr else None) if x)
+        label = label or 'reference'
+        url = html.unescape(url) if url else None
+        return f'`{label} <{url}>`_' if url else label
+
+    out = [_heading('Source-Code Workarounds', '='),
+           'Workarounds for compiler bugs and limitations, documented inline in '
+           'the Galacticus source.\n']
+    for w in workarounds:
+        body = textwrap.dedent(_desc_to_rst(w.get('description'), glsmap)).strip()
+        body = body or '—'
+        for s in w.get('seeAlso') or []:
+            body += ('\n\nSee also: '
+                     + link(s.get('type'), s.get('pr'), s.get('url')) + '.')
+        out.append(link(w.get('type'), w.get('pr'), w.get('url')))
+        out.append(textwrap.indent(body, '   '))
+        out.append('')
+    return '\n'.join(out) + '\n'
+
+
 def render_physics_index(families: dict, implementations: dict) -> str:
     fams = sorted((f for f in families if f in implementations),
                   key=lambda f: families[f].get('descriptiveName', f).lower())
@@ -432,8 +511,8 @@ def main() -> int:
     glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
     glsmap = glossary_display_map(glossary)
 
-    families, implementations, params_by_file, methods_by_file, enumerations = \
-        scan_source(source_dir)
+    (families, implementations, params_by_file, methods_by_file, enumerations,
+     modules, workarounds) = scan_source(source_dir)
 
     physics_dir = os.path.join(out_dir, 'physics')
     os.makedirs(physics_dir, exist_ok=True)
@@ -464,13 +543,22 @@ def main() -> int:
         fh.write(_heading('References', '=') +
                  '\n.. bibliography::\n   :filter: cited\n')
 
+    with open(os.path.join(out_dir, 'modules.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_modules(modules))
+
+    with open(os.path.join(out_dir, 'workarounds.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_workarounds(workarounds, glsmap))
+
     n_impl = sum(len(v) for v in implementations.values())
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
     impl_files = {i.get('file') for v in implementations.values() for i in v}
     n_tmeth = sum(len(m) for f, m in methods_by_file.items() if f in impl_files)
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
           f'implementations, {n_meth} interface + {n_tmeth} type methods), '
-          f'{len(enumerations)} enumerations, glossary '
+          f'{len(enumerations)} enumerations, {len(modules)} modules, '
+          f'{len(workarounds)} workarounds, glossary '
           f'({len(glossary)} entries), references.', file=sys.stderr)
     return 0
 
