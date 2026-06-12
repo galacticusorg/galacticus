@@ -9,7 +9,7 @@
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO value="heatedMonotonic">
     <darkMatterProfileDMO value="SIDMIsothermal">
-      <darkMatterParticle value="selfInteractingDarkMatter">
+      <darkMatterParticle value="selfInteractingDarkMatterConstant">
         <crossSectionSelfInteraction value="1.0"/>
         <darkMatterParticle value="CDM"/>
       </darkMatterParticle>
