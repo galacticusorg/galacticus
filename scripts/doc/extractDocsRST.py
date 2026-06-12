@@ -40,8 +40,13 @@ _BLOCK_RE = re.compile(r'^[ \t]*!!\[(.*?)^[ \t]*!!\]', re.DOTALL | re.MULTILINE)
 # Root (first) element opening tag of a block.
 _ROOT_RE = re.compile(r'<([A-Za-z][\w]*)((?:\s+[\w:]+="[^"]*")*)\s*/?>')
 # First <description>…</description> inside a block (the class/family/parameter
-# description — method descriptions, which come later, are not extracted here).
+# description; nested method/entry descriptions are handled separately).
 _DESC_RE = re.compile(r'<description>(.*?)</description>', re.DOTALL)
+# A <method …>…</method> inside a functionClass block.
+_METHOD_RE = re.compile(r'<method\b([^>]*?)>(.*?)</method>', re.DOTALL)
+# An <entry label="…" [description="…"]/> inside an enumeration block.
+_ENTRY_RE = re.compile(r'<entry\b([^>]*?)/?>')
+_ARG_RE = re.compile(r'<argument>(.*?)</argument>', re.DOTALL)
 
 
 def _attr(attrs: str, name: str) -> str | None:
@@ -52,6 +57,38 @@ def _attr(attrs: str, name: str) -> str | None:
 def _child(block: str, tag: str) -> str | None:
     m = re.search(rf'<{tag}>(.*?)</{tag}>', block, re.DOTALL)
     return m.group(1).strip() if m else None
+
+
+def _extract_methods(block: str) -> list[dict]:
+    """Extract the ``<method>`` entries (name, description, type, arguments)
+    that a ``functionClass`` directive declares for its class interface."""
+    methods = []
+    for m in _METHOD_RE.finditer(block):
+        name = _attr(m.group(1), 'name')
+        if not name:
+            continue
+        inner = m.group(2)
+        dm = _DESC_RE.search(inner)
+        methods.append({
+            'name':        name,
+            'description': dm.group(1) if dm else None,
+            'type':        _child(inner, 'type'),
+            'arguments':   [re.sub(r'\s+', ' ', a).strip()
+                            for a in _ARG_RE.findall(inner)],
+        })
+    return methods
+
+
+def _extract_entries(block: str) -> list[dict]:
+    """Extract ``<entry label="…" description="…"/>`` items of an enumeration."""
+    entries = []
+    for m in _ENTRY_RE.finditer(block):
+        label = _attr(m.group(1), 'label')
+        if label is None:
+            continue
+        entries.append({'label': label,
+                        'description': _attr(m.group(1), 'description')})
+    return entries
 
 
 def _desc_to_rst(raw: str | None, glsmap: dict) -> str:
@@ -91,6 +128,7 @@ def scan_source(source_dir: str):
     families: dict[str, dict] = {}
     by_root: dict[str, list[dict]] = {}
     params_by_file: dict[str, list[dict]] = {}
+    enumerations: list[dict] = []
 
     for root, _dirs, files in os.walk(source_dir):
         for fn in sorted(files):
@@ -100,6 +138,8 @@ def scan_source(source_dir: str):
             with open(os.path.join(root, fn), encoding='utf-8',
                       errors='replace') as fh:
                 text = fh.read()
+            mmod = re.search(r'(?im)^\s*module\s+([a-z0-9_]+)\s*$', text)
+            module_name = mmod.group(1) if mmod else base
             for bm in _BLOCK_RE.finditer(text):
                 block = bm.group(1)
                 if 'docformat="rst"' not in block:
@@ -119,7 +159,18 @@ def scan_source(source_dir: str):
                         'descriptiveName': _child(block, 'descriptiveName') or name,
                         'description':     desc_raw,
                         'default':         _child(block, 'default'),
+                        'methods':         _extract_methods(block),
                     }
+                elif rtype == 'enumeration':
+                    name = _child(block, 'name')
+                    if not name:
+                        continue
+                    enumerations.append({
+                        'name':        name,
+                        'description': desc_raw,
+                        'entries':     _extract_entries(block),
+                        'module':      module_name,
+                    })
                 elif rtype == 'inputParameter':
                     name = _child(block, 'name')
                     if not name:
@@ -140,7 +191,8 @@ def scan_source(source_dir: str):
                     })
 
     implementations = {fam: by_root[fam] for fam in by_root if fam in families}
-    return families, implementations, params_by_file
+    enumerations.sort(key=lambda e: e['name'].lower())
+    return families, implementations, params_by_file, enumerations
 
 
 # ---------------------------------------------------------------------------
@@ -173,6 +225,23 @@ def render_family(fam: str, families: dict, implementations: dict,
     if default:
         target = f'{fam}{default[:1].upper()}{default[1:]}'
         out.append(f'**Default implementation:** ``{target}``\n')
+
+    methods = directive.get('methods') or []
+    if methods:
+        out.append(_heading('Methods', '-'))
+        for meth in methods:
+            sig = f'``{meth["name"]}``'
+            rtype = (meth.get('type') or '').strip()
+            if rtype:
+                sig += f' → ``{rtype}``'
+            mdesc = re.sub(r'\s*\n\s*', ' ',
+                           _desc_to_rst(meth.get('description'), glsmap)).strip()
+            body = mdesc or '—'
+            for arg in meth.get('arguments') or []:
+                body += f'\n\n* ``{arg}``'
+            out.append(sig)
+            out.append(textwrap.indent(body, '   '))
+            out.append('')
 
     impls = sorted(implementations.get(fam, []),
                    key=lambda d: str(d.get('name', '')).lower())
@@ -217,6 +286,38 @@ def render_glossary(glossary: dict, glsmap: dict) -> str:
     return '\n'.join(out) + '\n'
 
 
+def render_enumerations(enumerations: list[dict], glsmap: dict) -> str:
+    out = [_heading('Enumerations', '='),
+           'Enumerated types defined in the Galacticus source code.\n']
+    # Enumeration names are not globally unique (several modules define their
+    # own e.g. ``propertyType``); disambiguate any repeated name by appending
+    # its defining module so the headings (and Sphinx anchors) stay distinct.
+    name_counts: dict[str, int] = {}
+    for en in enumerations:
+        name_counts[en['name']] = name_counts.get(en['name'], 0) + 1
+    for en in enumerations:
+        title = f'``{en["name"]}``'
+        if name_counts[en['name']] > 1:
+            title += f' ({en.get("module") or "?"})'
+        out.append(_heading(title, '-'))
+        desc = re.sub(r'\s*\n\s*', ' ',
+                      _desc_to_rst(en.get('description'), glsmap)).strip()
+        if desc:
+            out.append(desc + '\n')
+        entries = en.get('entries') or []
+        if entries:
+            out.append('**Values**\n')
+            for e in entries:
+                ed = e.get('description')
+                if ed:
+                    ed = re.sub(r'\s*\n\s*', ' ', latex_to_rst(ed, glsmap)).strip()
+                    out.append(f'* ``{e["label"]}`` — {ed}')
+                else:
+                    out.append(f'* ``{e["label"]}``')
+            out.append('')
+    return '\n'.join(out) + '\n'
+
+
 def render_physics_index(families: dict, implementations: dict) -> str:
     fams = sorted((f for f in families if f in implementations),
                   key=lambda f: families[f].get('descriptiveName', f).lower())
@@ -242,7 +343,8 @@ def main() -> int:
     glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
     glsmap = glossary_display_map(glossary)
 
-    families, implementations, params_by_file = scan_source(source_dir)
+    families, implementations, params_by_file, enumerations = \
+        scan_source(source_dir)
 
     physics_dir = os.path.join(out_dir, 'physics')
     os.makedirs(physics_dir, exist_ok=True)
@@ -262,14 +364,20 @@ def main() -> int:
               encoding='utf-8') as fh:
         fh.write(render_glossary(glossary, glsmap))
 
+    with open(os.path.join(out_dir, 'enumerations.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_enumerations(enumerations, glsmap))
+
     with open(os.path.join(out_dir, 'references.rst'), 'w',
               encoding='utf-8') as fh:
         fh.write(_heading('References', '=') +
                  '\n.. bibliography::\n   :all:\n')
 
     n_impl = sum(len(v) for v in implementations.values())
+    n_meth = sum(len(f.get('methods') or []) for f in families.values())
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
-          f'implementations), glossary ({len(glossary)} entries), references.',
+          f'implementations, {n_meth} methods), {len(enumerations)} '
+          f'enumerations, glossary ({len(glossary)} entries), references.',
           file=sys.stderr)
     return 0
 

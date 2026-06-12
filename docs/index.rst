@@ -10,6 +10,7 @@ generated directly from the documentation embedded in the source code.
    :caption: Contents
 
    physics/index
+   enumerations
    glossary
    references
 

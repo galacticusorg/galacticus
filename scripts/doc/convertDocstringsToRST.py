@@ -231,6 +231,9 @@ def main() -> int:
                     help='source files or directories (default: source)')
     ap.add_argument('--dry-run', action='store_true',
                     help='print a unified diff instead of writing')
+    ap.add_argument('--check', action='store_true',
+                    help='do not write; exit non-zero if any file would change '
+                         '(for CI: enforces that all docstrings are already RST)')
     ap.add_argument('--report', action='store_true',
                     help='list files with constructs needing manual review')
     ap.add_argument('--glossary', default='doc/Glossary.tex',
@@ -240,7 +243,9 @@ def main() -> int:
     glsmap = glossary_display_map(parse_glossary(args.glossary))
 
     paths = args.paths or ['source']
+    write = not (args.dry_run or args.check)
     n_changed = 0
+    changed_files: list[str] = []
     review: dict[str, list[str]] = {}
     for path in iter_source_files(paths):
         with open(path, encoding='utf-8', errors='replace') as fh:
@@ -252,24 +257,33 @@ def main() -> int:
         if converted == original:
             continue
         n_changed += 1
+        changed_files.append(path)
         if args.dry_run:
             diff = difflib.unified_diff(
                 original.splitlines(keepends=True),
                 converted.splitlines(keepends=True),
                 fromfile=path, tofile=path + ' (RST)')
             sys.stdout.writelines(diff)
-        else:
+        elif write:
             with open(path, 'w', encoding='utf-8') as fh:
                 fh.write(converted)
             print(f'converted: {path}')
 
-    print(f'\n{n_changed} file(s) {"would be " if args.dry_run else ""}changed.',
-          file=sys.stderr)
+    verb = 'would be ' if (args.dry_run or args.check) else ''
+    print(f'\n{n_changed} file(s) {verb}changed.', file=sys.stderr)
     if args.report and review:
         print(f'\n{len(review)} file(s) contain constructs needing manual '
               f'review:', file=sys.stderr)
         for path in sorted(review):
             print(f'  {path}: {", ".join(sorted(review[path]))}', file=sys.stderr)
+
+    if args.check and changed_files:
+        print('\nThe following files contain old-style (LaTeX) docstrings; run '
+              '`scripts/doc/convertDocstringsToRST.py source` to convert them:',
+              file=sys.stderr)
+        for path in changed_files:
+            print(f'  {path}', file=sys.stderr)
+        return 1
     return 0
 
 
