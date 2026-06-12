@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780589241660,
+  "lastUpdate": 1781276953959,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7bf1d7b675aafd209d24545cb43cf4d877b912c7",
-          "message": "Merge pull request #628 from sachiwee/Galacticus_Msigma\n\nOutput analyses class for black hole mass- velocity dispersion relation",
-          "timestamp": "2024-06-17T22:44:04Z",
-          "tree_id": "89d5cafae9e3ee828ce5550823dc48bf4048198b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7bf1d7b675aafd209d24545cb43cf4d877b912c7"
-        },
-        "date": 1718682308350,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": 40.9680494100607,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 22.3962454301193,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 20.3906767774734,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b9b0b4917d1fcb2b05e0bb45212bc73419651e5e"
         },
         "date": 1780589241093,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 40.84984017835755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 22.39818529582424,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 20.39086331323446,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8c2f8ff09d7d756ee144289d9ed7dada25eb30f5",
+          "message": "Merge pull request #1157 from galacticusorg/claude/optimize-simulations-analysis-6C8sT\n\nAdd halo formation/crossing-time operators and hierarchical simulation-analysis layout",
+          "timestamp": "2026-06-12T02:40:09Z",
+          "tree_id": "403582a518c0c064c361ee28af6e8d0c88e62c67",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8c2f8ff09d7d756ee144289d9ed7dada25eb30f5"
+        },
+        "date": 1781276952832,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
