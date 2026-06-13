@@ -54,7 +54,7 @@ module Points_Convex_Hull
      double precision                   , dimension(:,:), allocatable :: pointsSubsample
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign convex hull objects."                              />
        <method method="volume"        description="Return the volume of the convex hull."                    />
        <method method="pointIsInHull" description="Return true if the given point is inside the convex hull."/>

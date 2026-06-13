@@ -72,7 +72,7 @@
           &                                                                   time                                                       , ratioRadiusTurnaroundVirial
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Solve for the structure of the accretion flow." method="solve" />
      </methods>
      !!]

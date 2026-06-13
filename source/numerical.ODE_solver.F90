@@ -229,7 +229,7 @@ module Numerical_ODE_Solvers
      logical                                                     :: integratorErrorTolerant
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Solve the ODE system."                            method="solve"        />
        <method description="Return estimates of the errors in ODE variables." method="errors"       />
        <method description="Assign ODE solver objects."                       method="assignment(=)"/>

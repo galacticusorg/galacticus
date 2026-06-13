@@ -40,10 +40,10 @@ Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function cla
           &                                                      normalization_
    contains
      !![
-     <methods>
-       <method description="Return the parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="a" />
-       <method description="Return the parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="p" />
-       <method description="Return the parameter $A$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit." method="normalization" />
+     <methods docformat="rst">
+       <method description="Return the parameter :math:`a` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit." method="a" />
+       <method description="Return the parameter :math:`p` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit." method="p" />
+       <method description="Return the parameter :math:`A` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit." method="normalization" />
      </methods>
      !!]
      final     ::                  shethTormenDestructor

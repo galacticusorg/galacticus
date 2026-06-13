@@ -57,7 +57,7 @@ Implements a merger tree evolution timestepping class which limits the step to t
      type            (interpolator           )                            :: interpolator_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset the record of galaxy evolution." method="reset" />
      </methods>
      !!]

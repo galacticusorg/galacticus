@@ -50,8 +50,8 @@
           &                                                           axis3
    contains
      !![
-     <methods>
-       <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal"     />
+     <methods docformat="rst">
+       <method description="Compute the density on the isodensity surface defined by the parameter :math:`m^2`\ 2." method="densityEllipsoidal"     />
        <method description="Tabulate the gravitational acceleration due to the ellipsoid."                  method="accelerationTabulate"   />
        <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."  method="accelerationInterpolate"/>
        <method description="(Re)initialize the structural properties of the Gaussian ellispoid."            method="initialize"             />

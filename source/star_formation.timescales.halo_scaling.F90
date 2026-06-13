@@ -53,7 +53,7 @@
      integer         (kind_int8                        ) :: lastUniqueID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]

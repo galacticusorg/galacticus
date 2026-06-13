@@ -207,11 +207,11 @@ module Numerical_Interpolation
      double precision                                  , allocatable, dimension(:) :: x                              , y
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Interpolate in the tabulated function."                                                 method="interpolate"         />
        <method description="Interpolate the derivative in the tabulated function."                                  method="derivative"          />
        <method description="Interpolate the second derivative in the tabulated function."                           method="secondDerivative"    />
-       <method description="Locate the position in the array corresponding to the given \mono{x}."                  method="locate"              />
+       <method description="Locate the position in the array corresponding to the given ``x``."                  method="locate"              />
        <method description="Return factors required to perform a linear interpolation."                             method="linearFactors"       />
        <method description="Return weights required to perform a linear interpolation."                             method="linearWeights"       />
        <method description="Allocate GSL objects."                                                                  method="gslAllocate"         />
@@ -279,7 +279,7 @@ module Numerical_Interpolation
      double precision                       , allocatable, dimension(:,:) :: z
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Interpolate in the tabulated function." method="interpolate"  />
        <method description="Allocate GSL objects."                  method="gslAllocate"  />
        <method description="Reallocate GSL objects."                method="gslReallocate"/>

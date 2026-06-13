@@ -67,9 +67,9 @@
      logical                          , allocatable, dimension(:) :: chainMask
    contains
      !![
-     <methods>
-       <method description="Return the current convergence measure, $\hat{R}$." method="convergenceMeasure" />
-       <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
+     <methods docformat="rst">
+       <method description="Return the current convergence measure, :math:`\hat{R}`." method="convergenceMeasure" />
+       <method description="Return the target convergence measure, :math:`\hat{R}`." method="convergenceMeasureTarget" />
      </methods>
      !!]
      procedure :: isConverged              => gelmanRubinIsConverged

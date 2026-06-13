@@ -61,7 +61,7 @@ module Chemical_Structures
    contains
      ! Data methods.
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Get a chemical from the database."                   method="retrieve"/>
        <method description="Write a chemical structure to a CML file."           method="export"  />
        <method description="Return the charge of a chemical."                    method="charge"  />

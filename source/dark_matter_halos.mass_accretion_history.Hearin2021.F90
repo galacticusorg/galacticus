@@ -37,10 +37,10 @@
           &              rateRollOver      , timeMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Return the power law index at the given time."                      method="powerLawIndex"          />
       <method description="Return the derivative of the power law index with respect to time." method="powerLawIndexDerivative"/>
-      <method description="Return the $\log_{10}(t_0)$ parameter."                             method="timeZeroLogarithmic"    />
+      <method description="Return the :math:`\log_{10}(t_0)` parameter."                             method="timeZeroLogarithmic"    />
       <method description="Return the maximum mass in the mass accretion history."             method="massMaximum"            />
       <method description="The sigmoid interpolation function."                                method="sigmoid"                />
       <method description="Return the early-time power law index."                             method="powerLawIndexEarly_"    />

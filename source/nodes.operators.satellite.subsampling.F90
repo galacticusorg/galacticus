@@ -45,7 +45,7 @@
      logical          :: applyOrbitCriterion
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the sampling rate." method="samplingRate" />
      </methods>
      !!]

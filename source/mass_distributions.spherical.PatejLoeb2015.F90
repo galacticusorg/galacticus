@@ -39,7 +39,7 @@
           &                                              mass
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusDarkMatter"      description="Return the corresponding radius in the dark matter profile."     />
        <method method="coordinatesDarkMatter" description="Return the corresponding coordinates in the dark matter profile."/>
        </methods>

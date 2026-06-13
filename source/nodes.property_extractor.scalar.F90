@@ -34,8 +34,8 @@
      private
    contains
      !![
-     <methods>
-       <method method="extract"     description="Extract the property from the given \mono{node}."              />
+     <methods docformat="rst">
+       <method method="extract"     description="Extract the property from the given ``node``."              />
        <method method="name"        description="Return the name of the property extracted."                    />
        <method method="description" description="Return a description of the property extracted."               />
        <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."  />

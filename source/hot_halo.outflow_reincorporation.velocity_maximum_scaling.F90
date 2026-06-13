@@ -64,7 +64,7 @@ An implementation of the hot halo outflow reincorporation class which uses simpl
      type            (fastExponentiator         )         :: velocityExponentiator            , expansionFactorExponentiator
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]

@@ -89,7 +89,7 @@
      type            (resourceManager            )          :: nodeComponentsManager                   , nodeHierarchyManager
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Suspend a tree (to memory or to file)." method="suspendTree"/>
        <method description="Restore a suspended tree."              method="resumeTree" />
      </methods>

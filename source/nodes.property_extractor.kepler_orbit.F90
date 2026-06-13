@@ -39,9 +39,9 @@
      type            (varying_string            )                            :: prefix
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the properties to be extracted." method="initialize" />
-       <method description="Extract properties from a \mono{keplerOrbit} object." method="extractFromOrbit" />
+       <method description="Extract properties from a ``keplerOrbit`` object." method="extractFromOrbit" />
      </methods>
      !!]
      procedure :: initialize       => keplerOrbitInitialize

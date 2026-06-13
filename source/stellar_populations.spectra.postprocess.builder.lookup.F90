@@ -46,7 +46,7 @@
      type(stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: postprocessors
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
      </methods>
      !!]

@@ -79,7 +79,7 @@
      double precision                                                                     :: fractionTimescaleEquilibrium
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="atomicEquilibrium" description="Determine if equilibrium should be assumed for atomic abundances."/>
        <method method="computeState"      description="Compute the state of the chemical system."                        />
      </methods>

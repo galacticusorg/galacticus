@@ -141,8 +141,8 @@ Implements a class for the conditional mass functions using the :cite:t:`behrooz
      class           (table1D                 ), allocatable  :: fMassHaloTable
    contains
      !![
-     <methods>
-       <method description="Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$." method="compute" />
+     <methods docformat="rst">
+       <method description="Compute the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})`." method="compute" />
      </methods>
      !!]
      final     ::                         behroozi2010Destructor

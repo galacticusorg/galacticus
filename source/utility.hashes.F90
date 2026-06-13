@@ -67,12 +67,12 @@ module Hashes
      type   (varying_string       )                            :: keyPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the hash."                                                                      method="initialize"   />
        <method description="Set the value of a key in the hash."                                                       method="set"          />
        <method description="Delete a key from the hash."                                                               method="delete"       />
        <method description="Return the value for the given key."                                                       method="value"        />
-       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the hash."                  method="key"          />
+       <method description="Return the key of the ``indexValue``\ :math:`^\mathrm{th}` entry in the hash."                  method="key"          />
        <method description="Return an array of all keys in the hash."                                                  method="keys"         />
        <method description="Return an array of all values in the hash."                                                method="values"       />
        <method description="Return true if the specified key exists in the hash."                                      method="exists"       />

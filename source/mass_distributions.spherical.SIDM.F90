@@ -39,7 +39,7 @@
      double precision                                   :: timeAge
   contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusInteraction" description="Computes the characteristic interaction radius of the halo."/>
      </methods>
      !!]

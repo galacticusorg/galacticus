@@ -65,7 +65,7 @@
      type            (varying_string          )          :: normalization
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the radii of the components of the window function." method="radii" />
      </methods>
      !!]

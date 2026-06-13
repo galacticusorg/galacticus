@@ -101,7 +101,7 @@ module IO_HDF5
      type   (hdf5Object     ), pointer :: parentObject     => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Write an attribute to an HDF5 object." method="writeAttribute" />
        <method description="Write a dataset to an HDF5 group." method="writeDataset" />
        <method description="Read an attribute from an HDF5 object." method="readAttribute" />

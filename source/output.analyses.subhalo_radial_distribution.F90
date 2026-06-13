@@ -61,7 +61,7 @@
      logical                                                                       :: finalized                                  , thresholdIsRatio
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Finalize analysis." method="finalizeAnalysis" />
      </methods>
      !!]

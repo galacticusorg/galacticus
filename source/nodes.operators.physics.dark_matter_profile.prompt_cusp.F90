@@ -58,8 +58,8 @@
           &                                                                     promptCuspNFWGrowthRateID            , promptCuspNFWDensityID
    contains
      !![
-     <methods>
-       <method method="sigma" description="Evaluate $\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}$ where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum."/>
+     <methods docformat="rst">
+       <method method="sigma" description="Evaluate :math:`\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}` where :math:`\mathcal{P}(k) = k^3 P(k) / 2 \pi^2` is the dimensionless form of the power spectrum."/>
      </methods>
      !!]
      final     ::                                        darkMatterProfilePromptCuspsDestructor

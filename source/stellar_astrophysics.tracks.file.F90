@@ -74,9 +74,9 @@
      logical                                                         :: initialized
    contains
      !![
-     <methods>
-       <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
-       <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin" method="interpolate" />
+     <methods docformat="rst">
+       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argout, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argout, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argout, &lt;double(2)&gt; interpolationFactorsMetallicity\argout, &lt;double(2,2)&gt; interpolationFactorsMass\argout, &lt;double(2,2,2)&gt; interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
+       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argin, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argin, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argin, &lt;double(2)&gt; interpolationFactorsMetallicity\argin, &lt;double(2,2)&gt; interpolationFactorsMass\argin, &lt;double(2,2,2)&gt; interpolationFactorsAge\argin, &lt;double(:,:,:)&gt; stellarTracks\argin" method="interpolate" />
        <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]

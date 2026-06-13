@@ -44,7 +44,7 @@ Implements a dark matter halo mass function class which accelerates another mass
           &                                                                time
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="tabulate" description="Tabualte the mass function."/>
      </methods>
      !!]

@@ -36,7 +36,7 @@ module Timers
      double precision :: timeStart, timeStop
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Start the timer."                                      method="start"     />
        <method description="Stop the timer."                                       method="stop"      />
        <method description="Report the time recorded as a double precision value." method="report"    />

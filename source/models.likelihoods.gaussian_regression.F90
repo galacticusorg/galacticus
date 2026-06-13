@@ -111,7 +111,7 @@
      integer                                                                      :: binCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="separation" description="Determine the separation between two state vectors."/>
        <method method="emulate"    description="Evaluate the model emulator."                       />
      </methods>
@@ -147,12 +147,12 @@
      integer, allocatable, dimension(:) :: indices
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset the iterator object to the start of its sequence."                                                                                       method="reset"       />
        <method description="Move to the next iteration of polynomial coefficient indices. Returns true if successful. If no more iterations are available, returns false." method="iterate"     />
-       <method description="Return the $i^\mathrm{th}$ index of the polynomial coefficient."                                                                               method="index"       />
+       <method description="Return the :math:`i^\mathrm{th}` index of the polynomial coefficient."                                                                               method="index"       />
        <method description="Return the current order of the polynomial coefficient."                                                                                       method="currentOrder"/>
-       <method description="Return an incremental counter (i.e. begins at $0$ and increases by $1$ on each iteration)."                                                    method="counter"     />
+       <method description="Return an incremental counter (i.e. begins at :math:`0` and increases by :math:`1` on each iteration)."                                                    method="counter"     />
      </methods>
      !!]
      procedure :: index        => polynomialIteratorIndex

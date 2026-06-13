@@ -42,7 +42,7 @@ Implements a sequence output analysis property operator class.
      type(propertyOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of property operators." method="prepend" />
        <method description="Apppend an operator to a sequence of property operators." method="apppend" />
      </methods>

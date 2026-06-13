@@ -60,7 +60,7 @@
           &                                                     zetaID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="computeProperties" description="Compute properties of the mass distribution."/>
        <method method="calculationReset"  description="Reset memoized calculations."                />
      </methods>

@@ -47,7 +47,7 @@
      double precision                                 :: radiusTransition
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="transitionFunction" description="The transition function between halo and accretion flow."/>
      </methods>
      !!]

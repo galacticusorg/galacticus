@@ -35,7 +35,7 @@ Implements a random error output analysis distribution operator class.
      type(outputAnalysisDistributionOperatorIdentity) :: identity=outputAnalysisDistributionOperatorIdentity()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
      </methods>
      !!]

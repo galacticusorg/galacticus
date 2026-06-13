@@ -36,7 +36,7 @@
      integer :: massHostMaximumID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the maximum host mass of this node."/>
      </methods>
      !!]

@@ -38,7 +38,7 @@
      double precision                 :: massIntervalFractional
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the halo masses, and, optionally, weights, from file." method="read"/>
      </methods>
      !!]

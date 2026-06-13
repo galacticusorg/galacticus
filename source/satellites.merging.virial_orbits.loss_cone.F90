@@ -79,7 +79,7 @@
           &                                                                                    haloMassFunctionNormalization
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Tabulate the orbital velocity distribution."                                method="tabulate"    />
       <method description="Compute interpolating factors in the orbital velocity distribution tables." method="interpolants"/>
       <method description="Restore a tabulated solution from file."                                    method="restoreTable"/>

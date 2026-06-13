@@ -84,7 +84,7 @@ module Interface_Local_Group_DB
      double precision, dimension(3) :: x
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method method="operator(==)"   description="Test equality of two 3D vectors."         />
       <method method="operator(&lt;)" description="Less than operator for two 3D vectors."   />
       <method method="operator(&gt;)" description="Greater than operator for two 3D vectors."/>
@@ -118,7 +118,7 @@ module Interface_Local_Group_DB
      type   (resourceManager)                            :: databaseManager
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="getProperty" description="Return an array of values of the named property for the current selection."                />
        <method method="select"      description="Select all galaxies in the current selection where the named property has the given value."/>
        <method method="selectAll"   description="Select all galaxies in the database."                                                      />

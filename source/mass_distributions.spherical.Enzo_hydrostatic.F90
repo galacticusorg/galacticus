@@ -45,7 +45,7 @@
      logical          :: truncateAtOuterRadius, normalizationDensityComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the normalization of the density profile." method="normalizationDensity" />
      </methods>
      !!]

@@ -44,7 +44,7 @@
      integer                                                              :: coefficientsID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="interpolate" description="Perform the interpolation."/>
      </methods>
      !!]

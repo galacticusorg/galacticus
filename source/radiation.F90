@@ -50,7 +50,7 @@ module Radiation_Fields
      type            (interpolator                )                       :: interpolator_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Perform deep copy actions on interpolators." method="interpolatorDeepCopy" />
      </methods>
      !!]

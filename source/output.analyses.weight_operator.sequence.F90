@@ -42,7 +42,7 @@ Implements a sequence output analysis weight operator class.
      type(weightOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
      </methods>
      !!]

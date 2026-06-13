@@ -60,7 +60,7 @@
      integer                                                     :: densityContrastTableRemakeCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the virial density contrast as a function of mass and time." method="tabulate"    />
        <method description="Restore a tabulated solution from file."                              method="restoreTable"/>
        <method description="Store a tabulated solution to file."                                  method="storeTable"  />

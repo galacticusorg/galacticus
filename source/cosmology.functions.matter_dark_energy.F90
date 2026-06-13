@@ -51,8 +51,8 @@
      type            (rootFinder) :: finderDomination           , finderEquality
    contains
      !![
-     <methods>
-       <method description="Set a module-scope pointer to \mono{self}."                         method="targetSelf"                  />
+     <methods docformat="rst">
+       <method description="Set a module-scope pointer to ``self``."                         method="targetSelf"                  />
        <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative"/>
      </methods>
      !!]

@@ -128,8 +128,8 @@
      double precision :: timeMinimumPrevious, timeMaximumPrevious
    contains
      !![
-     <methods>
-       <method description="Initialize the high order \cite{zhang_random_2006} class." method="initialize" />
+     <methods docformat="rst">
+       <method description="Initialize the high order :cite:t:`zhang_random_2006` class." method="initialize" />
      </methods>
      !!]
      procedure :: initialize  => zhangHuiHighOrderInitialize

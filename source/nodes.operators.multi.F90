@@ -42,8 +42,8 @@
      type(multiProcessList), pointer :: processes => null()
    contains
      !![
-     <methods>
-	<method method="isActive" description="Return true if the operators are active for the given \mono{node}."/>
+     <methods docformat="rst">
+	<method method="isActive" description="Return true if the operators are active for the given ``node``."/>
      </methods>
      !!]
      final     ::                                        multiDestructor

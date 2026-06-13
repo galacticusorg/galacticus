@@ -188,7 +188,7 @@
      type            (varying_string         )                                      :: nameGroupOutput
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute weights for a halo in each bin of the mass function." method="binWeights" />
        <method description="Compute weights for a halo in each bin of a 2D mass function." method="binWeights2D" />
      </methods>

@@ -82,10 +82,10 @@
     type            (table1DLinearLinear), allocatable :: interpolatorCoolingFunctionCommon
    contains
      !![
-     <methods>
-       <method description="Compute the cooling function due to H--H$_2$."       method="coolingFunctionH_H2"           />
-       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron"/>
-       <method description="Compute the cooling function due to H--H$_2^+$."     method="coolingFunctionH_H2Plus"       />
+     <methods docformat="rst">
+       <method description="Compute the cooling function due to H--H\ :math:`_2`."       method="coolingFunctionH_H2"           />
+       <method description="Compute the cooling function due to H\ :math:`_2^+`--e\ :math:`^-`." method="coolingFunctionH2Plus_Electron"/>
+       <method description="Compute the cooling function due to H--H\ :math:`_2^+`."     method="coolingFunctionH_H2Plus"       />
        <method description="Compute common factors."                             method="commonFactors"                 />
      </methods>
      !!]

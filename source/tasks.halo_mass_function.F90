@@ -85,7 +85,7 @@
      type            (inputParameters                        ), pointer                   :: parameters                          => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
      </methods>
      !!]

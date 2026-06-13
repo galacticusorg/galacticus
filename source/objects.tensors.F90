@@ -64,7 +64,7 @@ module Tensors
      double precision :: x00,x01,x02,x11,x12,x22
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the enumerated element." method="element" />
        <method description="Return true if a tensor object is zero." method="isZero" />
        <method description="Destroy a tensor object." method="destroy" />
@@ -86,9 +86,9 @@ module Tensors
        <method description="Increment the tensor object." method="increment" />
        <method description="Construct a matrix from a tensor object." method="toMatrix" />
        <method description="Construct a matrix from a tensor object." method="fromMatrix" />
-       <method description="Contract a tensor, returning $\mathbf{T}^i_i$." method="contract" />
-       <method description="Return the double contraction of two tensors, $\mathbf{A}^i_j \mathbf{B}^j_i$." method="doubleContract" />
-       <method description="Return the projection of a tensor/vector dot product onto the same vector, $\sum_{i=1}^3 \sum_{j=1}^3 \mathbf{A}^i_j x_i x_j$." method="vectorProject" />
+       <method description="Contract a tensor, returning :math:`\mathbf{T}^i_i`." method="contract" />
+       <method description="Return the double contraction of two tensors, :math:`\mathbf{A}^i_j \mathbf{B}^j_i`." method="doubleContract" />
+       <method description="Return the projection of a tensor/vector dot product onto the same vector, :math:`\sum_{i=1}^3 \sum_{j=1}^3 \mathbf{A}^i_j x_i x_j`." method="vectorProject" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
      !!]

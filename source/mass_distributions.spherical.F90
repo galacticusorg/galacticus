@@ -49,7 +49,7 @@
      logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Returns the radius enclosing half of the mass of the mass distribution."                               method="radiusHalfMass"                     />
        <method description="Compute the potential energy of mass distribution."                                                    method="energyPotential"                    />
        <method description="Compute the kinetic energy of the mass distribution."                                                  method="energyKinetic"                      />

@@ -106,7 +106,7 @@
      class           (*                                      ), pointer                                                   :: initializationSelf           => null(), initializationArgument      => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set baryonic components in the mass distribution."                        method="setBaryonicComponent"       />
        <method description="Compute factors needed for solving adiabatic contraction."                method="computeFactors"             />
        <method description="Compute the orbit-averaged radius for dark matter."                       method="radiusOrbitalMean"          />

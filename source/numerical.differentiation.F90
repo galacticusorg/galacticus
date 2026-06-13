@@ -44,8 +44,8 @@ module Numerical_Differentiation
      type(gslFunctionWrapper), pointer :: wrapper => null()
    contains
      !![
-     <methods>
-       <method description="Returns the derivative of the function at argument \mono{x}." method="derivative" />
+     <methods docformat="rst">
+       <method description="Returns the derivative of the function at argument ``x``." method="derivative" />
      </methods>
      !!]
      procedure :: derivative => differentiatorDerivative

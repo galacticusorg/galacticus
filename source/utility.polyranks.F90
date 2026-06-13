@@ -45,7 +45,7 @@ module Poly_Ranks
      {Type¦intrinsic}          , allocatable, dimension(:) :: data
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the rank of the data."  method="rank"  />
        <method description="Return the shape of the data." method="shape" />
      </methods>

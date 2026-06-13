@@ -43,7 +43,7 @@
      logical                                            :: finalized
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="finalizeAnalysis" description="Finalize the analysis of this function."/>
      </methods>
      !!]

@@ -65,7 +65,7 @@ module Stellar_Population_Spectra_Postprocess
      class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign postprocessor list objects."/>
      </methods>
      !!]

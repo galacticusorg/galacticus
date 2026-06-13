@@ -67,7 +67,7 @@
      logical                                        :: scaleADAFRadiativeEfficiency
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the fraction of the accretion flow to be represented as an ADAF."                        method="fractionADAF"                  />
        <method description="Return the scaling of radiative efficiency of the ADAF component in a switched accretion disk." method="efficiencyRadiativeScalingADAF"/>
      </methods>

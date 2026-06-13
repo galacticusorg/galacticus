@@ -64,7 +64,7 @@
           &                                                         lengthResolutionScaleFreePrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusEnclosingDensityTabulate" description="Tabulate the radius enclosing a given density as a function of density and core radius."           />
        <method method="radiusEnclosingMassTabulate"    description="Tabulate the radius enclosing a given mass as a function of density and core radius."              />
        <method method="energyTabulate"                 description="Tabulate the energy as a function of concentration and core radius."                               />

@@ -39,7 +39,7 @@ module Resource_Manager
      logical                            :: reportOn_ =  .false.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
         <method method="assignment(=)" description="Assign the reference manager, incrementing the reference count of the managed resource."/>
         <method method="release"       description="Release the managed object."                                                            />
         <method method="count"         description="Return the current reference count to the managed object."                              />

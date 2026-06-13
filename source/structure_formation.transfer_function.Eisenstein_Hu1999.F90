@@ -51,8 +51,8 @@
           &                                                 time
    contains
      !![
-     <methods>
-       <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
+     <methods docformat="rst">
+       <method description="Compute common factors needed by :cite:t:`eisenstein_power_1999` transfer function calculations." method="computeFactors" />
      </methods>
      !!]
      final     ::                          eisensteinHu1999Destructor

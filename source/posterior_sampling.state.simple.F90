@@ -38,7 +38,7 @@
      integer                                     :: acceptedStateCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the state count." method="countSet" />
      </methods>
      !!]

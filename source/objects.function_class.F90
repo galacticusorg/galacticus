@@ -38,7 +38,7 @@ module Function_Classes
      integer :: referenceCount  =0
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="referenceCountReset"     description="Reset the reference count to this object to 0."                                  />
        <method method="referenceCountIncrement" description="Increment the reference count to this object."                                   />
        <method method="referenceCountDecrement" description="Decrement the reference count to this object and return the new reference count."/>

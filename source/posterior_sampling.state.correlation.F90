@@ -39,7 +39,7 @@
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the current correlation length in the chains." method="correlationLength" />
        <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
        <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />

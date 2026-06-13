@@ -102,7 +102,7 @@ Implements a generic two-point correlation function output analysis class.
      integer                                                                                  :: countSatellites                                      , massHaloBinsPerDecade
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Accumulate a node to the correlation function." method="accumulateNode" />
        <method description="Accumulate a halo to the correlation function." method="accumulateHalo" />
      </methods>

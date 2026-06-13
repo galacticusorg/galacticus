@@ -51,8 +51,8 @@ module Regular_Expressions
      type(regExWrapper   ), pointer :: r            => null()
    contains
      !![
-     <methods>
-       <method method="matches" description="Return true if a regular expression matches the supplied \mono{string}."/>
+     <methods docformat="rst">
+       <method method="matches" description="Return true if a regular expression matches the supplied ``string``."/>
      </methods>
      !!]
      procedure :: matches => Regular_Expression_Match

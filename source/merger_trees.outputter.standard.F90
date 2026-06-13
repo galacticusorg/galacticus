@@ -39,7 +39,7 @@
      type   (enumerationOutputGroupTypeType) :: type_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign outputGroup objects."/>
      </methods>
      !!]
@@ -96,10 +96,10 @@
      class           (nodePropertyExtractorClass  ), pointer                   :: nodePropertyExtractor_  => null()
    contains
      !![
-     <methods>
-       <method description="Make an group in the \glc\ file in which to store \mono{tree}." method="makeGroup"             />
-       <method description="Dump the contents of the integer properties buffer to the \glc\ output file."    method="dumpIntegerBuffer"     />
-       <method description="Dump the contents of the double properties buffer to the \glc\ output file."     method="dumpDoubleBuffer"      />
+     <methods docformat="rst">
+       <method description="Make an group in the Galacticus file in which to store ``tree``." method="makeGroup"             />
+       <method description="Dump the contents of the integer properties buffer to the Galacticus output file."    method="dumpIntegerBuffer"     />
+       <method description="Dump the contents of the double properties buffer to the Galacticus output file."     method="dumpDoubleBuffer"      />
        <method description="Extend the size of the integer buffer."                                          method="extendIntegerBuffer"   />
        <method description="Extend the size of the double buffer."                                           method="extendDoubleBuffer"    />
        <method description="Count up the number of properties that will be output."                          method="propertiesCount"       />

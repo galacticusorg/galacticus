@@ -143,17 +143,17 @@ module Root_Finder
      procedure       (rootFunctionBothTemplate            ), nopass, pointer :: finderFunctionBoth
    contains
      !![
-     <methods>
-       <method description="Set the function that evaluates $f(x)$ to use in a \mono{rootFinder} object."                                          method="rootFunction"          />
-       <method description="Set the functions that evaluate $f(x)$ and derivatives to use in a \mono{rootFinder} object."                          method="rootFunctionDerivative"/>
-       <method description="Set the type of algorithm to use in a \mono{rootFinder} object."                                                       method="type"                  />
-       <method description="Set the tolerance to use in a \mono{rootFinder} object."                                                               method="tolerance"             />
-       <method description="Specify how the initial range will be expanded in a \mono{rootFinder} object to bracket the root."                     method="rangeExpand"           />
+     <methods docformat="rst">
+       <method description="Set the function that evaluates :math:`f(x)` to use in a ``rootFinder`` object."                                          method="rootFunction"          />
+       <method description="Set the functions that evaluate :math:`f(x)` and derivatives to use in a ``rootFinder`` object."                          method="rootFunctionDerivative"/>
+       <method description="Set the type of algorithm to use in a ``rootFinder`` object."                                                       method="type"                  />
+       <method description="Set the tolerance to use in a ``rootFinder`` object."                                                               method="tolerance"             />
+       <method description="Specify how the initial range will be expanded in a ``rootFinder`` object to bracket the root."                     method="rangeExpand"           />
        <method description="Wrapper function to find the root of the function given an initial guess or range."                                                     method="find"                  />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFLower"        />
        <method description="Wrapper function to find the root of the function given an initial guess or range plus the function value at the low end of the range." method="findWithFUpper"        />
        <method description="Find the root of the function given an initial guess or range."                                                                         method="find_"                 />
-       <method description="Return the initialization state of a \mono{rootFinder} object."                                                        method="isInitialized"         />
+       <method description="Return the initialization state of a ``rootFinder`` object."                                                        method="isInitialized"         />
        <method description="Return true if the solver type is valid."                                                                                               method="solverTypeIsValid"     />
      </methods>
      !!]

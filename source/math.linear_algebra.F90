@@ -53,12 +53,12 @@ module Linear_Algebra
      integer(c_size_t       )          :: size_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the magnitude of a vector."                                                method="magnitude"        />
-       <method description="Compute \mono{vector1} $\cdot$ \mono{vector2}."  method="operator(.dot.)"  />
-       <method description="Compute \mono{vector1}-\mono{vector2}."          method="operator(-)"      />
-       <method description="Compute \mono{vector1}+\mono{vector2}."          method="operator(+)"      />
-       <method description="Compute \mono{vector1} $\times$ \mono{vector2}." method="operator(.cross.)"/>
+       <method description="Compute ``vector1`` :math:`\cdot` ``vector2``."  method="operator(.dot.)"  />
+       <method description="Compute ``vector1``-``vector2``."          method="operator(-)"      />
+       <method description="Compute ``vector1``\ +\ ``vector2``."          method="operator(+)"      />
+       <method description="Compute ``vector1`` :math:`\times` ``vector2``." method="operator(.cross.)"/>
        <method description="Return a C pointer to the GSL vector object."                                      method="gslObject"        />
        <method description="Assign vector objects."                                                            method="assignment(=)"    />
      </methods>
@@ -110,7 +110,7 @@ module Linear_Algebra
           &                                       hasZeroRowColumns
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the product of two matrices."                                                              method="operator(*)"           />
        <method description="Compute the sum of two matrices."                                                                  method="operator(+)"           />
        <method description="Compute and return the determinant of the matrix."                                                 method="determinant"           />
@@ -118,8 +118,8 @@ module Linear_Algebra
        <method description="Compute and return the sign of the determinant of the matrix."                                     method="signDeterminant"       />
        <method description="Compute and return the matrix inverse."                                                            method="inverse"               />
        <method description="Return the transpose of a matrix."                                                                 method="transpose"             />
-       <method description="Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct"     />
-       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector."     method="linearSystemSolve"     />
+       <method description="Compute :math:`y C^{-1} y^\mathrm{T}` as appears in likelihood functions utilizing covariance matrices." method="covarianceProduct"     />
+       <method description="Solve the linear system :math:`y = A \cdot x` where :math:`A` is ourself and :math:`y` is the specified vector."     method="linearSystemSolve"     />
        <method description="Compute eigenvectors and eigenvalues of the matrix."                                               method="eigenSystem"           />
        <method description="Compute the Cholesky decomposition of the matrix in place."                                        method="choleskyDecomposition" />
        <method description="Assign matrix objects."                                                                            method="assignment(=)"         />
@@ -171,8 +171,8 @@ module Linear_Algebra
      integer(c_int             )          :: decompositionSign
    contains
      !![
-     <methods>
-       <method description="Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector." method="squareSystemSolve" />
+     <methods docformat="rst">
+       <method description="Solve the linear system :math:`y = A \cdot x` where :math:`A` is ourself and :math:`y` is the specified vector." method="squareSystemSolve" />
      </methods>
      !!]
      procedure :: squareSystemSolve => matrixLUSquareSystemSolve

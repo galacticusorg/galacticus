@@ -45,7 +45,7 @@
      double precision                     :: timeStep
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize galaxy merger tree meta-properties."/>
        <method method="record"     description="Record a step in the merger tree."             />
      </methods>

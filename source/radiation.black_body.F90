@@ -36,7 +36,7 @@
      double precision :: temperature_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the temperature of the black-body radiation field." method="temperature" />
      </methods>
      !!]

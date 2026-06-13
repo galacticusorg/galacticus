@@ -95,7 +95,7 @@
      type   (varying_string) :: forestFile
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize the object after construction."/>
      </methods>
      !!]

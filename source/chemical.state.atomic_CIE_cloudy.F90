@@ -36,8 +36,8 @@
      logical :: initialized
    contains
      !![
-     <methods>
-       <method description="Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary." method="tabulate" />
+     <methods docformat="rst">
+       <method description="Run Cloudy to tabulate chemical state as necessary." method="tabulate" />
      </methods>
      !!]
      procedure :: tabulate                           => atomicCIECloudyTabulate

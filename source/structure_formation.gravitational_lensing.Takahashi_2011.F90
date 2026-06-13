@@ -48,7 +48,7 @@ Implements the gravitational lensing distributions of :cite:t:`takahashi_probabi
           &                                                    scaleSourcePrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Construct the gravitational lensing distribution functions for the specified redshift and source scale." method="lensingDistributionConstruct" />
        <method description="Returns the gravitational lensing convergence probability density function at the given convergence." method="convergenceDistribution" />
      </methods>

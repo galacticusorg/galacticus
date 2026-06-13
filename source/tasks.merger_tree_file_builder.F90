@@ -261,7 +261,7 @@
      character       (len=1                          )                            :: columnSeparator
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
      </methods>
      !!]

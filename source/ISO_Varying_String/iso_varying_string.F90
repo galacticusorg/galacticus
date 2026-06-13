@@ -54,7 +54,7 @@ module iso_varying_string
      character(LEN=1), dimension(:), allocatable :: chars
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
        <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
        <method method="stateStore"   description="Store the state of a varying string to file."         />

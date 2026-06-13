@@ -87,7 +87,7 @@
      double precision                             , dimension(0:1  ) :: factorsXi
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="tabulateSolutions" description="Tabulate solutions for the isothermal core of a SIDM halo."/>
        <method method="computeSolution"   description="Compute a solution for the isothermal core of a SIDM halo."/>
      </methods>

@@ -38,8 +38,8 @@ module Geometry_Mangle
      double precision               :: c
    contains
      !![
-     <methods>
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
+     <methods docformat="rst">
+       <method description="Return true if the given point lives inside the mangle cap." method="pointIncluded" />
      </methods>
      !!]
     procedure :: pointIncluded => capPointIncluded
@@ -54,8 +54,8 @@ module Geometry_Mangle
      type            (cap), dimension(:), allocatable :: caps
    contains
      !![
-     <methods>
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
+     <methods docformat="rst">
+       <method description="Return true if the given point lives inside the mangle polygon." method="pointIncluded" />
      </methods>
      !!]
      procedure :: pointIncluded => polygonPointIncluded
@@ -70,9 +70,9 @@ module Geometry_Mangle
      integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
      !![
-     <methods>
-       <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
+     <methods docformat="rst">
+       <method description="Read the specified mangle polygon file."                        method="read"         />
+       <method description="Return true if the given point lives inside the mangle window." method="pointIncluded"/>
      </methods>
      !!]
      procedure :: read          => windowRead

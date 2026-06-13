@@ -43,7 +43,7 @@
      logical                                            :: potentialEscapeComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the density reduction factor." method="decayingFactor"/>
      </methods>
      !!]

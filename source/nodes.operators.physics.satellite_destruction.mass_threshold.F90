@@ -38,7 +38,7 @@
      logical          :: mergeOnDestruction
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the mass at which the satellite will be destroyed." method="massDestroy" />
      </methods>
      !!]

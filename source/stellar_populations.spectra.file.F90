@@ -47,7 +47,7 @@
           &                                                           interpolatorWavelength
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy"/>
        <method description="Assign spectral table objects."              method="assignment(=)"        />
      </methods>
@@ -89,7 +89,7 @@
      type   (varying_string) :: fileName
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named stellar population spectra file." method="readFile" />
      </methods>
      !!]

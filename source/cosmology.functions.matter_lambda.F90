@@ -70,7 +70,7 @@
      logical                                                               :: enableRangeChecks
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
        <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
      </methods>

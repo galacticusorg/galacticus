@@ -42,7 +42,7 @@ Implements a radiation field class which sums over other radiation fields.
      type(radiationFieldList), pointer :: radiationFields => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return a list of all sub-components." method="list" />
      </methods>
      !!]

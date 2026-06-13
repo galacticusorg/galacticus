@@ -35,7 +35,7 @@
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Returns the cylindrical radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"/>
      </methods>
      !!]

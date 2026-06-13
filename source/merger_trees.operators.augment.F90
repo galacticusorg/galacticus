@@ -49,7 +49,7 @@
      class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_          => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Build a merger tree starting from the given node." method="buildTreeFromNode" />
        <method description="Determine if a newly built tree is an acceptable match." method="acceptTree" />
        <method description="Graft new branches onto all end-nodes of a newly built tree." method="extendNonOverlapNodes" />

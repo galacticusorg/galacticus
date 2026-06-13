@@ -68,7 +68,7 @@
      type            (enumerationFrameType                      )                            :: frame
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateTime"      />
        <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
        <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />

@@ -56,7 +56,7 @@
           &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulates the potential for an exponential disk mass distribution."                            method="tabulate"                         />
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve."          method="besselFactorRotationCurve"        />
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient"/>

@@ -62,7 +62,7 @@
      logical                                                                       :: initialized
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the posterior-as-prior likelihood." method="initialize" />
      </methods>
      !!]

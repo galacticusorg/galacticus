@@ -41,7 +41,7 @@
      double precision                                              :: toleranceRelative
    contains
      !![
-     <methods>
+     <methods docformat="rst">
         <method method="initialize"  description="Initialize the object after construction."                                             />
         <method method="timeMatches" description="Return true if the current time matches a time for which we should extract properties."/>
      </methods>

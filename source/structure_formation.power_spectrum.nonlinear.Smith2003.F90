@@ -52,7 +52,7 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
           &                                                 f3
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the fitting function coefficients at the given time." method="coefficients" />
      </methods>
      !!]

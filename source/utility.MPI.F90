@@ -49,7 +49,7 @@ module MPI_Utilities
      integer                , allocatable, dimension(:) :: allRanks         , nodeAffinities
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if this is the master process (i.e. rank-0 process)." method="isMaster" />
        <method description="Return true if MPI is active." method="isActive" />
        <method description="Return the rank of this process." method="rank" />
@@ -60,18 +60,18 @@ module MPI_Utilities
        <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
        <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
        <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
-       <method description="Request the content of \mono{array} from each processes listed in \mono{requestFrom}." method="requestData" />
-       <method description="Broadcast the content of \mono{array} from the \mono{sendFrom} processes to all other processes." method="broadcastData" />
+       <method description="Request the content of ``array`` from each processes listed in ``requestFrom``." method="requestData" />
+       <method description="Broadcast the content of ``array`` from the ``sendFrom`` processes to all other processes." method="broadcastData" />
        <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
-       <method description="Return the average of \mono{array} over all processes." method="average" />
-       <method description="Return the median of \mono{array} over all processes." method="median" />
-       <method description="Return the sum of \mono{array} over all processes." method="sum" />
-       <method description="Return the maximum value of \mono{array} over all processes." method="maxval" />
-       <method description="Return the rank of the process with the maximum value of \mono{array} over all processes." method="maxloc" />
-       <method description="Return the minimum value of \mono{array} over all processes." method="minval" />
-       <method description="Return true if any of \mono{scalar} is true over all processes." method="any" />
-       <method description="Return true if every \mono{scalar} is true over all processes." method="all" />
-       <method description="Return the rank of the process with the minimum value of \mono{array} over all processes." method="minloc" />
+       <method description="Return the average of ``array`` over all processes." method="average" />
+       <method description="Return the median of ``array`` over all processes." method="median" />
+       <method description="Return the sum of ``array`` over all processes." method="sum" />
+       <method description="Return the maximum value of ``array`` over all processes." method="maxval" />
+       <method description="Return the rank of the process with the maximum value of ``array`` over all processes." method="maxloc" />
+       <method description="Return the minimum value of ``array`` over all processes." method="minval" />
+       <method description="Return true if any of ``scalar`` is true over all processes." method="any" />
+       <method description="Return true if every ``scalar`` is true over all processes." method="all" />
+       <method description="Return the rank of the process with the minimum value of ``array`` over all processes." method="minloc" />
        <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
        <method description="Create a new communicator and push onto the stack." method="communicatorPush" />
        <method description="Pop a communicator off of the stack, restoring the previous communicator." method="communicatorPop" />
@@ -183,7 +183,7 @@ module MPI_Utilities
      !$ type(ompLock        )          :: ompLock_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Increment the counter and return the new value." method="increment"/>
        <method description="Decrement the counter and return the new value." method="decrement"/>
        <method description="Get the current value of the counter."           method="get"      />

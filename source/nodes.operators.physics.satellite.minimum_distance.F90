@@ -51,7 +51,7 @@
      type   (enumerationRelativeToType) :: relativeTo
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="distanceRelative" description="Compute the distance to the center of the relevant host halo."/>
      </methods>
      !!]

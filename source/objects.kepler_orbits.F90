@@ -91,12 +91,12 @@ module Kepler_Orbits
    contains
      ! Orbit methods.
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Build a Kepler orbit from an XML definition." method="builder" />
        <method description="Dump an orbit." method="dump" />
        <method description="Dump an orbit in binary." method="dumpRaw" />
        <method description="Read an orbit in binary." method="readRaw" />
-       <method description="Resets orbit properties. If the optional \mono{keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
+       <method description="Resets orbit properties. If the optional ``keep`` argument is provided and listed properties will *not* be reset." method="reset" />
        <method description="Destroys an orbit." method="destroy" />
        <method description="Returns true if an orbit is fully defined." method="isDefined" />
        <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
@@ -105,9 +105,9 @@ module Kepler_Orbits
        <method description="Sets the radial velocity of an orbit." method="velocityRadialSet" />
        <method description="Sets the masses of satellite and host objects." method="massesSet" />
        <method description="Sets the radius of an orbit." method="radiusSet" />
-       <method description="Sets the angle $\theta$ of an orbit." method="thetaSet" />
-       <method description="Sets the angle $\phi$ of an orbit." method="phiSet" />
-       <method description="Sets the angle $\epsilon$ of an orbit." method="epsilonSet" />
+       <method description="Sets the angle :math:`\theta` of an orbit." method="thetaSet" />
+       <method description="Sets the angle :math:`\phi` of an orbit." method="phiSet" />
+       <method description="Sets the angle :math:`\epsilon` of an orbit." method="epsilonSet" />
        <method description="Sets the pericenter radius of an orbit." method="radiusPericenterSet" />
        <method description="Sets the apocenter radius of an orbit." method="radiusApocenterSet" />
        <method description="Sets the tangential velocity of an orbit." method="velocityTangentialSet" />
@@ -118,11 +118,11 @@ module Kepler_Orbits
        <method description="Returns the host mass of an orbit." method="massHost" />
        <method description="Returns the satellite mass of an orbit." method="massSatellite" />
        <method description="Returns the velocity scale of an orbit." method="velocityScale" />
-       <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
+       <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, :math:`\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})`) of the orbit." method="specificReducedMass" />
        <method description="Returns the radius of an orbit." method="radius" />
-       <method description="Returns the angle $\theta$ of an orbit." method="theta" />
-       <method description="Returns the angle $\phi$ of an orbit." method="phi" />
-       <method description="Returns the angle $\epsilon$ of an orbit." method="epsilon" />
+       <method description="Returns the angle :math:`\theta` of an orbit." method="theta" />
+       <method description="Returns the angle :math:`\phi` of an orbit." method="phi" />
+       <method description="Returns the angle :math:`\epsilon` of an orbit." method="epsilon" />
        <method description="Returns the pericenter radius of an orbit." method="radiusPericenter" />
        <method description="Returns the apocenter radius of an orbit." method="radiusApocenter" />
        <method description="Returns the radial velocity of an orbit." method="velocityRadial" />

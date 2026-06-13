@@ -81,7 +81,7 @@
           &                                                                    readDone
   contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read stellar astrophysics data from file." method="read" />
      </methods>
      !!]

@@ -47,8 +47,8 @@ module Merger_Tree_Read_Importers
      integer          :: hubbleExponent, scaleFactorExponent
    contains
      !![
-     <methods>
-       <method description="Multiply by another \mono{importerUnits} object." method="operator(*)" />
+     <methods docformat="rst">
+       <method description="Multiply by another ``importerUnits`` object." method="operator(*)" />
        <method description="Raise to the given integer power."                                 method="operator(**)"/>
        <method description="Return true if the provided units are equal."                      method="operator(==)"/>
        <method description="Return true if the provided units are not equal."                  method="operator(/=)"/>

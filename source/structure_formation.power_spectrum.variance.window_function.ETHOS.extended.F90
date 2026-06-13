@@ -58,7 +58,7 @@
      type            (interpolator                           ), allocatable               :: powerSpectrumSmoothed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="powerSpectrumSlopeSmoothed" description="Compute the slope of the smoothed power spectrum."/>
      </methods>
      !!]

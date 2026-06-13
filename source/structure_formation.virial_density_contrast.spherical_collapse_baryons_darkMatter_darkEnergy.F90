@@ -61,7 +61,7 @@
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
        <method description="Tabulate spherical collapse turnaround radius." method="retabulateTurnaround" />
      </methods>

@@ -60,7 +60,7 @@
      type            (linearGrowthCollisionlessMatter), pointer :: linearGrowthCollisionlessMatter_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate linear growth factor."              method="retabulate" />
        <method description="Read the tabulated mass variance from file." method="fileWrite"  />
        <method description="Read the tabulated mass variance from file." method="fileRead"   />

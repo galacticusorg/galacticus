@@ -79,7 +79,7 @@ module Stellar_Luminosities_Structure
      type            (enumerationFrameType)                            :: frame
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
        <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
        <method description="Add two stellarLuminosities." method="operator(+)" />
@@ -96,18 +96,18 @@ module Stellar_Luminosities_Structure
        <method description="Dump a stellar luminosities object to binary." method="dumpRaw" />
        <method description="Read a stellar luminosities object from binary." method="readRaw" />
        <method description="Set a stellar luminosities object to unity." method="setToUnity" />
-       <method description="Return the $i^\mathrm{th}$ luminosity." method="luminosity" />
+       <method description="Return the :math:`i^\mathrm{th}` luminosity." method="luminosity" />
        <method description="Store a stellar luminosities object in the output buffers." method="output" />
        <method description="Store a stellar luminosities object in the output buffers." method="postOutput" />
        <method description="Return the number of luminosities to be output at the given time." method="luminosityOutputCount" />
        <method description="Specify the count of a stellar luminosities object for output." method="outputCount" />
        <method description="Specify the names of stellar luminosities object properties for output." method="outputNames" />
-       <method description="Return the total number of luminosities tracked. If \mono{unmapped} is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
+       <method description="Return the total number of luminosities tracked. If ``unmapped`` is true, then the number of luminosities prior to mapping is returned." method="luminosityCount" />
        <method description="Set the luminosities using a single stellar population." method="setLuminosities" />
        <method description="Return true if the indexed luminosity is to be output at the given time." method="isOutput" />
        <method description="Return the index to a luminosity specified by name or properties." method="index" />
        <method description="Return the name of a luminosity specified by index." method="name" />
-       <method description="Truncate the number of stellar luminosities stored to match that in the given \mono{templateLuminosities}." method="truncate" />
+       <method description="Truncate the number of stellar luminosities stored to match that in the given ``templateLuminosities``." method="truncate" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
      !!]

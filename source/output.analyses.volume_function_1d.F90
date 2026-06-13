@@ -113,7 +113,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
      !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the volume function operator." method="results"         />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
        <method description="Activate/deactivate reporting."                      method="setReporting"    />

@@ -41,8 +41,8 @@ module Math_Exponentiation
      logical                               :: abortOutsideRange
    contains
      !![
-     <methods>
-       <method description="Evaluate \mono{x}$^y$ using table look-up." method="exponentiate" />
+     <methods docformat="rst">
+       <method description="Evaluate ``x``\ :math:`^y` using table look-up." method="exponentiate" />
      </methods>
      !!]
      procedure :: exponentiate => fastExponentiatorExponentiate

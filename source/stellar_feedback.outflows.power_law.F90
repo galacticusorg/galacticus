@@ -43,7 +43,7 @@
      double precision :: velocityCharacteristic_, exponent
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the characteristic velocity for power law feedback models." method="velocityCharacteristic" />
      </methods>
      !!]

@@ -38,7 +38,7 @@ Implements a decaying dark matter particle class.
           &                                                velocityKick_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the lifetime of the dark matter particle." method="lifetime"     />
        <method description="Return the mass splitting of the decay."          method="massSplitting"/>
        <method description="Return the velocity kick imparted by the decay."  method="velocityKick" />

@@ -110,7 +110,7 @@
      double precision                                                                       :: toleranceResolutionSelf                           , toleranceResolutionParent
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Build a branch of the merger tree."                    method="buildBranch"                   />
        <method description="Set the critical overdensity object."                  method="criticalOverdensityUpdate"     />
        <method description="Convert from critical overdensity to time for a node." method="convertTimeNode"               />

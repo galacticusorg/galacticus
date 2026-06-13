@@ -42,7 +42,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
           &                                                             rootVariance_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the root-variance to use in the weight operator." method="rootVariance" />
      </methods>
      !!]

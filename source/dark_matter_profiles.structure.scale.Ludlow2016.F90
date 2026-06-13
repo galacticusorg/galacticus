@@ -50,7 +50,7 @@
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Evaluate a function which goes to zero at the formation time of the tree."          method="formationTimeRoot"           />
        <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
        <method description="Specifies if a branch history is required for application of the algorithm."        method="requireBranchHistory"        />

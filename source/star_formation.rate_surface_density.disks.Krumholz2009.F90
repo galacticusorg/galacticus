@@ -92,7 +92,7 @@
      procedure       (double precision   ), nopass, pointer :: molecularFractionFunction
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."              method="calculationReset"      />
        <method description="Compute constant factors required."        method="computeFactors"        />
        <method description="Compute surface density factors required." method="surfaceDensityFactors" />

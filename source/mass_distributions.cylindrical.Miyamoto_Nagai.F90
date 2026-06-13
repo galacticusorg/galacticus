@@ -42,7 +42,7 @@
      type            (table1DLogarithmicLinear) :: surfaceDensityTable      , massEnclosedTable
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate"/>
        <method description="Initialize the enclosed mass tabulation."   method="massEnclosedTabulate"  />
      </methods>

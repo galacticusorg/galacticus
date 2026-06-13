@@ -57,7 +57,7 @@
      type            (interpolator), allocatable :: timeFreefallScaleFree_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free Einasto mass distribution."/>
        <method method="timeFreefallMinimum"  description="Compute the minimum freefall time in a scale-free Einasto mass distribution."                 />
      </methods>

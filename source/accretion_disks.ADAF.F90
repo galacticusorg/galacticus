@@ -163,7 +163,7 @@
           &                                                          jetPowerDiskFromBlackHoleStored
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the dimensionless height of the ADAF at a given radius." method="height" />
        <method description="Return the dimensionless velocity of the ADAF at a given radius." method="velocity" />
        <method description="Return the dimensionless temperature of the ADAF at a given radius." method="temperature" />
@@ -173,7 +173,7 @@
        <method description="Return the radial part of the relativistic boost factor in the ADAF at a given radius." method="gammaRadial" />
        <method description="Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius." method="gammaAzimuthal" />
        <method description="Return the relativistic boost factor in the ADAF at a given radius." method="gamma" />
-       <method description="Return the viscosity parameter, $\alpha$, in the ADAF." method="viscosityParameter" />
+       <method description="Return the viscosity parameter, :math:`\alpha`, in the ADAF." method="viscosityParameter" />
        <method description="Return the dimensionless angular velocity of the ADAF fluid at the given radius." method="fluidAngularVelocity" />
        <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
        <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />

@@ -79,7 +79,7 @@
      double precision, dimension(2,2,3,3) :: cholesky
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Sample parameters for the given node from the distribution function." method="sample"      />
       <method description="Return the fraction of late-forming halos."                           method="fractionLate"/>
      </methods>

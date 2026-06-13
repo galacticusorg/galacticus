@@ -39,7 +39,7 @@
      double precision                                    :: timescaleMultiplier
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the mass-dependent part of the time (in Gyr) until the satellite will merge with its host." method="timeUntilMergingMassDependence" />
      </methods>
      !!]

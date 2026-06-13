@@ -83,7 +83,7 @@
      integer         (c_size_t                                    )                              :: bufferCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the mean function operator." method="results"         />
        <method description="Finalize analysis of the mean function operator."  method="finalizeAnalysis"/>
        <method description="Activate/deactivate reporting."                    method="setReporting"    />

@@ -52,7 +52,7 @@
      double precision, allocatable, dimension(:) :: temperatures
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the object." method="initialize" />
      </methods>
      !!]

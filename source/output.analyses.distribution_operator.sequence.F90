@@ -42,7 +42,7 @@ Implements a sequence output analysis distribution operator class.
      type(distributionOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
      </methods>
      !!]

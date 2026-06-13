@@ -43,7 +43,7 @@
      double precision                                       :: factorScalingLength          , factorScalingMass
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="unscaled" description="Return a pointer to the unscaled mass distribution."/>
      </methods>
      !!]

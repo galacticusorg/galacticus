@@ -74,7 +74,7 @@
           &                                                                                         massFilteringComposite
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
      </methods>
      !!]

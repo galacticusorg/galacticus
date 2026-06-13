@@ -60,7 +60,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]

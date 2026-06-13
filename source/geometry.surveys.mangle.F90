@@ -38,10 +38,10 @@ Implements an abstract survey geometry using :term:`mangle` polygons.
      type            (window)                              :: mangleWindow
    contains
      !![
-     <methods>
-       <method description="Return the directory containing \gls{mangle} files for this survey geometry." method="mangleDirectory" />
-       <method description="Return array of \gls{mangle} filenames for this survey geometry." method="mangleFiles" />
-       <method description="Initialize an instance of the \gls{mangle} survey geometry class." method="initialize" />
+     <methods docformat="rst">
+       <method description="Return the directory containing :term:`mangle` files for this survey geometry." method="mangleDirectory" />
+       <method description="Return array of :term:`mangle` filenames for this survey geometry." method="mangleFiles" />
+       <method description="Initialize an instance of the :term:`mangle` survey geometry class." method="initialize" />
      </methods>
      !!]
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable

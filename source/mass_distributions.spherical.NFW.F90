@@ -46,7 +46,7 @@
      double precision :: enclosedMassRadiusPrevious, enclosedMassPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free NFW mass distribution."/>
      </methods>
      !!]

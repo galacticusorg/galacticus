@@ -49,7 +49,7 @@ module Chemical_Abundances_Structure
      double precision, allocatable, dimension(:) :: chemicalValue
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Multiply a chemical abundance by a scalar." method="operator(*)" />
        <method description="Multiply (in-place) a chemical abundance by a scalar." method="scale" />
        <method description="Divide a chemical abundance by a scalar." method="operator(/)" />

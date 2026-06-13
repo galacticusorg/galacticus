@@ -38,7 +38,7 @@
      type(distributionFunction1DNormal) :: normalDistribution
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the radius enclosing the given fraction of the orphan satellite population." method="inverseCumulativeMassFunctionRadial" />
        <method description="Return the 1-D velocity dispersion of the orphan satellite population." method="velocityDispersion" />
        <method description="Initialize the class." method="initialize" />

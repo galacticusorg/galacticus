@@ -43,11 +43,11 @@
           &                                                      massFunction
    contains
      !![
-     <methods>
-       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a"             />
-       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b"             />
-       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c"             />
-       <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
+     <methods docformat="rst">
+       <method description="Return the parameter :math:`a` in the :cite:t:`tinker_towardhalo_2008` halo mass function fit." method="a"             />
+       <method description="Return the parameter :math:`b` in the :cite:t:`tinker_towardhalo_2008` halo mass function fit." method="b"             />
+       <method description="Return the parameter :math:`c` in the :cite:t:`tinker_towardhalo_2008` halo mass function fit." method="c"             />
+       <method description="Return the parameter :math:`A` in the :cite:t:`tinker_towardhalo_2008` halo mass function fit." method="normalization" />
      </methods>
      !!]
      procedure                                    :: differential  => tinker2008FormDifferential

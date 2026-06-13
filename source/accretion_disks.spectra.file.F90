@@ -47,7 +47,7 @@
      type            (interpolator               )                              :: interpolatorLuminosity           , interpolatorWavelength
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Load a file of AGN spectra." method="loadFile" />
      </methods>
      !!]

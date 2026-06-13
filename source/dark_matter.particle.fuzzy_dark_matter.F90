@@ -36,7 +36,7 @@ Implements a fuzzy dark matter particle class.
      double precision :: massValue, densityFractionValue
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the density fraction of the fuzzy dark matter with respect to the total dark matter density." method="densityFraction" />
      </methods>
      !!]

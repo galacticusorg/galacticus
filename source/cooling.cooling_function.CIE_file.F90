@@ -160,7 +160,7 @@
           &                                                                               coolingFunctionPrevious         , coolingFunctionSlopePrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named cooling function file."                         method="readFile"            />
        <method description="Compute interpolating factors in a CIE cooling function file." method="interpolatingFactors"/>
        <method description="Interpolate in the cooling function."                          method="interpolate"         />

@@ -37,7 +37,7 @@
      double precision :: velocityDispersion1DRadiusPrevious, velocityDispersion1DPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="velocityDispersion1DTabulate"   description="Tabulate the enclosed mass as a function of radius and core radius."                          />
        <method method="storeVelocityDispersionTable"   description="Store the tabulated velocity dispersion to file."                                             />
        <method method="restoreVelocityDispersionTable" description="Attempt to restore the tabulated velocity dispersion from file, returning true if successful."/>

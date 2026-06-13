@@ -45,10 +45,10 @@
      double precision                                    :: cW_                           , beta_
    contains
      !![
-     <methods>
-       <method method="cW"                      description="Compute the parameter $c_\mathrm{W}$ in the ETHOS window function."  />
-       <method method="beta"                    description="Compute the parameter $\beta$ in the ETHOS window function."         />
-       <method method="wavenumberScaledMinimum" description="Compute the parameter $x_\mathrm{min}$ in the ETHOS window function."/>
+     <methods docformat="rst">
+       <method method="cW"                      description="Compute the parameter :math:`c_\mathrm{W}` in the ETHOS window function."  />
+       <method method="beta"                    description="Compute the parameter :math:`\beta` in the ETHOS window function."         />
+       <method method="wavenumberScaledMinimum" description="Compute the parameter :math:`x_\mathrm{min}` in the ETHOS window function."/>
      </methods>
      !!]
      final     ::                            ETHOSDestructor

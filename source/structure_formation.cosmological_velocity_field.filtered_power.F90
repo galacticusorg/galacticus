@@ -50,9 +50,9 @@
      double precision                                            :: wavenumberMaximum
    contains
      !![
-     <methods>
-      <method description="Compute the function $\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]$, e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}."                    method="sigmaJ"        />
-      <method description="Compute the peak correction term for the velocity dispersion of halos of given \mono{mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
+     <methods docformat="rst">
+      <method description="Compute the function :math:`\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]`, e.g. :cite:t:`sheth_peculiar_2001`."                    method="sigmaJ"        />
+      <method description="Compute the peak correction term for the velocity dispersion of halos of given ``mass``, e.g. :cite:t:`sheth_peculiar_2001`, and :cite:t:`bardeen_statistics_1986`." method="peakCorrection"/>
      </methods>
      !!]
      final     ::                                     filteredPowerDestructor

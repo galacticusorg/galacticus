@@ -64,7 +64,7 @@
      logical                                                                 :: computeTreeWeights
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Construct the set of tree masses to be built." method="constructMasses" />
      </methods>
      !!]

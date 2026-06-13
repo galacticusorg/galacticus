@@ -51,7 +51,7 @@
      logical                                                          :: computed         , instantaneousApproximation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign postprocessor list objects."/>       
      </methods>
      !!]
@@ -149,7 +149,7 @@
      type            (populationTable              ), allocatable, dimension(:) :: yield
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age." method="starIsEvolved" />
        <method description="Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages." method="interpolate" />
      </methods>

@@ -56,7 +56,7 @@
 
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="hotModeFraction" description="Compute the fraction of a halo which is in the hot accretion mode."/>
      </methods>
      !!]

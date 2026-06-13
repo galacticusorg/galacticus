@@ -54,8 +54,8 @@
      type            (varying_string               )          :: fileName
    contains
      !![
-     <methods>
-       <method description="Tabulate the filtering mass to encompass at least the given \mono{time}." method="tabulate" />
+     <methods docformat="rst">
+       <method description="Tabulate the filtering mass to encompass at least the given ``time``." method="tabulate" />
        <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
        <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />

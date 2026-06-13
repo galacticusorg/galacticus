@@ -45,7 +45,7 @@
      integer         (kind_int8                        )          :: lastUniqueID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the resolution length in physical units." method="lengthResolutionPhysical"/>
        <method description="Reset memoized calculations."                    method="calculationReset"        />
      </methods>

@@ -88,11 +88,11 @@ module Galacticus_Nodes
    contains
      ! Tree creation/destruction.
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
        <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
-       <method description="Create a \mono{treeEvent} object in this tree." method="createEvent" />
-       <method description="Remove a \mono{treeEvent} from this tree." method="removeEvent" />
+       <method description="Create a ``treeEvent`` object in this tree." method="createEvent" />
+       <method description="Remove a ``treeEvent`` from this tree." method="removeEvent" />
        <method description="Return the earliest time in a merger tree." method="earliestTime" />
        <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
        <method description="Return the latest time in a merger tree." method="latestTime" />
@@ -151,11 +151,11 @@ module Galacticus_Nodes
      type   (ompLock       ), allocatable         :: lock
    contains
      !![
-     <methods>
-       <method description="Create a \mono{treeEvent} object in this universe." method="createEvent"  />
-       <method description="Remove a \mono{treeEvent} from this universe."      method="removeEvent"  />
-       <method description="Pop a \mono{mergerTree} from this universe."        method="popTree"      />
-       <method description="Pop a \mono{mergerTree} from this universe."        method="pushTree"     />
+     <methods docformat="rst">
+       <method description="Create a ``treeEvent`` object in this universe." method="createEvent"  />
+       <method description="Remove a ``treeEvent`` from this universe."      method="removeEvent"  />
+       <method description="Pop a ``mergerTree`` from this universe."        method="popTree"      />
+       <method description="Pop a ``mergerTree`` from this universe."        method="pushTree"     />
        <method description="Assign universe objects."                                            method="assignment(=)"/>
      </methods>
      !!]

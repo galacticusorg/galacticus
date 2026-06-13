@@ -64,11 +64,11 @@
      logical                                         :: coldFractionComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize after construction."                                                           method="initialize"      />
        <method description="Reset memoized calculations."                                                             method="calculationReset"/>
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses"  />
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction"/>
+       <method description="Returns the total accretion rate from the :term:`IGM` onto a halo (including dark matter)." method="chemicalMasses"  />
+       <method description="Returns the total accretion rate from the :term:`IGM` onto a halo (including dark matter)." method="coldModeFraction"/>
      </methods>
      !!]
      final     ::                              coldModeDestructor

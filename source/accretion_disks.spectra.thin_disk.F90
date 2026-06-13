@@ -83,7 +83,7 @@
      double precision                             , allocatable, dimension(:  ) :: lastSED
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="calculationReset" description="Reset the cached SED."                                          />
        <method method="computeSED"       description="Compute the SED for given BH properties and populate the cache."/>
      </methods>

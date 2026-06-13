@@ -56,11 +56,11 @@
           &                                                                     timeIntegrand                          , varianceIntegrand
    contains
      !![
-     <methods>
-       <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
-       <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
-       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
-       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
+     <methods docformat="rst">
+       <method description="Returns the function :math:`g_1(S)` :cite:p:`zhang_random_2006`." method="g1" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` :cite:p:`zhang_random_2006`." method="g2" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` integrated over a range :math:`\Delta S` :cite:p:`zhang_random_2006`." method="g2Integrated" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` integrated over a range :math:`\Delta S` :cite:p:`zhang_random_2006`." method="delta" />
      </methods>
      !!]
      final     ::                    zhangHuiDestructor

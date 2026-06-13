@@ -158,7 +158,7 @@
      double precision                                     , allocatable, dimension(:) :: wavenumbersLocalMinima_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named transfer function file." method="readFile" />
      </methods>
      !!]

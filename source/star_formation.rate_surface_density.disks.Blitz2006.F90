@@ -88,7 +88,7 @@
      type            (varying_string        )                                :: filenameTable
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."                                                                       method="calculationReset"          />
        <method description="Compute various factors."                                                                           method="computeFactors"            />
        <method description="Compute the pressure ratio."                                                                        method="pressureRatio"             />

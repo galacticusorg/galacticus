@@ -62,8 +62,8 @@
      logical                                                         :: propagateOrbits
    contains
      !![
-     <methods>
-       <method description="Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function." method="eta"/>
+     <methods docformat="rst">
+       <method description="Evaluate the :math:`\eta` parameter of the :cite:t:`li_orbital_2020` virial orbit distribution function." method="eta"/>
      </methods>
      !!]
      final     ::                                    li2020Destructor

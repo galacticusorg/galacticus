@@ -223,12 +223,12 @@
      type            (varying_string                            ), allocatable, dimension(:) :: timingLabels
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
-       <method description="Return the location in the original array of the given \mono{nodeIndex}." method="nodeLocation" />
-       <method description="Return the sort index of the given \mono{descendantIndex}." method="descendantNodeSortIndex" />
+       <method description="Return the location in the original array of the given ``nodeIndex``." method="nodeLocation" />
+       <method description="Return the sort index of the given ``descendantIndex``." method="descendantNodeSortIndex" />
        <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
        <method description="Builds pointers from each node to its descendant node." method="buildDescendantPointers" />
        <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
@@ -245,13 +245,13 @@
        <method description="Record timing data." method="timingRecord" />
        <method description="Report on time taken in various steps of processing merger trees read from file." method="timingReport" />
        <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
-       <method description="Return true if the given node is on the current ``push-to'' list of nodes for split forests." method="isOnPushList" />
-       <method description="Return true if the given node is on the current ``pull-from'' list of nodes for split forests." method="isOnPullList" />
-       <method description="Return the index of the given node in the ``push-to'' list of nodes for split forests." method="pushListIndex" />
-       <method description="Return the index of the given node in the ``pull-from'' list of nodes for split forests." method="pullListIndex" />
-       <method description="Return the number of the given node in the ``pull-from'' list of nodes for split forests." method="pullListCount" />
+       <method description="Return true if the given node is on the current &quot;push-to&quot; list of nodes for split forests." method="isOnPushList" />
+       <method description="Return true if the given node is on the current &quot;pull-from&quot; list of nodes for split forests." method="isOnPullList" />
+       <method description="Return the index of the given node in the &quot;push-to&quot; list of nodes for split forests." method="pushListIndex" />
+       <method description="Return the index of the given node in the &quot;pull-from&quot; list of nodes for split forests." method="pullListIndex" />
+       <method description="Return the number of the given node in the &quot;pull-from&quot; list of nodes for split forests." method="pullListCount" />
        <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
-       <method description="Returns true if \mono{node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
+       <method description="Returns true if ``node`` undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
        <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
      </methods>
      !!]
@@ -304,7 +304,7 @@
      type   (mergerTreeConstructorRead), pointer :: constructor        => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the target descendant node and initialize the iterator." method="descendantSet" />
        <method description="Move to the next progenitor. Returns true if the next progenitor exists, false otherwise." method="next" />
        <method description="Return the index of the current progenitor." method="index" />

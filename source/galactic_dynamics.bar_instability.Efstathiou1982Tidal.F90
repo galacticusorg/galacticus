@@ -52,7 +52,7 @@
      double precision                                    :: massThresholdHarrassment
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the radial term of the tidal tensor." method="tidalTensorRadial" />
      </methods>
      !!]

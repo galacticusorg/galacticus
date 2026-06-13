@@ -43,7 +43,7 @@
      Implementation of a heated spherical mass distribution.
      !!}
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the object."                                                                                          method="initialize"            />
        <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"         />
        <method description="Return true if the no shell crossing assumption is valid locally."                                               method="noShellCrossingIsValid"/>
@@ -56,7 +56,7 @@
      type            (rootFinder                  )          :: finder
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusInitial"          description="Compute the initial radius corresponding to a given final radius in a heated mass distribution."/>
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
      </methods>

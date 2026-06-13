@@ -68,7 +68,7 @@ Implements a transfer function class based on the thermal :term:`WDM` modifier o
      class           (darkMatterParticleClass        ), pointer :: darkMatterParticle_  => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Compute the wavenumber at which the transfer function is suppressed by the given factor relative to the large-scale value." method="wavenumberAtSuppression"/>
      </methods>
      !!]

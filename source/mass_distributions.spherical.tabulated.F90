@@ -37,7 +37,7 @@
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="parameters"           description="Return parameters of the current mass distribution."                  />
        <method method="factoryTabulation"    description="Return an instance of the class with the given tabulation parameters."/>
        <method method="suffix"               description="Return a suffix to append to table file names."                       />
@@ -127,7 +127,7 @@
      type            (massDistributionTabulation)                            :: velocityDispersion1D      =massDistributionTabulation(quantityVelocityDispersion1D      ,.true. ,.false.,0.0d0,0.0d0,0.0d0,null(),null(),null(),0_c_size_t,0_c_size_t,null(),null(),null())
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize"      description="Initialize the container (specifically the number of parameters)."/>
        <method method="nameParameter"   description="Return the name of the index parameter for a given tabulation."   />
        <method method="countParameters" description="Return the number of parameters for a given tabulation."          />

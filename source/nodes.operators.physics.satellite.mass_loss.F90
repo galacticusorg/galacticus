@@ -39,7 +39,7 @@
      logical                                           :: massBoundIsInactive
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="massBoundSet" description="Set the time of merging for a satellite node."/>
      </methods>
      !!]

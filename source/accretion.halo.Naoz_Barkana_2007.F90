@@ -74,13 +74,13 @@
      class           (virialDensityContrastClass           ), pointer :: virialDensityContrast_            => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."                                                                                                    method="calculationReset"       />
        <method description="Initialize the object after construction."                                                                                       method="initialize"             />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded."                                     method="filteredFraction"       />
-       <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds."                                 method="filteredFractionRate"   />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
-       <method description="Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
+       <method description="Returns the fraction of potential accretion onto a halo from the :term:`IGM` which succeeded."                                     method="filteredFraction"       />
+       <method description="Returns the fraction of potential accretion rate onto a halo from the :term:`IGM` which succeeds."                                 method="filteredFractionRate"   />
+       <method description="Returns the fraction of potential accretion onto a halo from the :term:`IGM` which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
+       <method description="Compute the rate (in units of Gyr\ :math:`^{-1}`) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
      </methods>
      !!]
      final     ::                              naozBarkana2007Destructor

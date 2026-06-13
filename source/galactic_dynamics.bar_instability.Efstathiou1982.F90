@@ -51,8 +51,8 @@
           &              timescaleMinimum
    contains
      !![
-     <methods>
-       <method description="Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability." method="estimator" />
+     <methods docformat="rst">
+       <method description="Compute the stability estimator for the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability." method="estimator" />
      </methods>
      !!]
      procedure :: timescale => efstathiou1982Timescale

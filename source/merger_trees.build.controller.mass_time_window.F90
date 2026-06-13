@@ -43,7 +43,7 @@ Implements a merger tree build controller class which follows branches only if t
           & massMinimum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="passes" description="Returns true if the given node lies within the allowed window."/>
      </methods>
      !!]

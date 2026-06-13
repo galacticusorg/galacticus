@@ -136,7 +136,7 @@
      type            (interpolator            )                              :: interpolatorWavenumber          , interpolatorTime
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named power spectrum file." method="readFile" />
      </methods>
      !!]

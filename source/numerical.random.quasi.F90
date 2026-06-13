@@ -99,7 +99,7 @@ module Numerical_Quasi_Random_Sequences
      integer                               :: qrngType
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Get numbers from the sequence." method="get" />
      </methods>
      !!]

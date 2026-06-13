@@ -60,8 +60,8 @@
      type   (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
    contains
      !![
-     <methods>
-       <method method="scaling"                     description="Compute the scaling of \textsc{UniverseMachine} parameters with redshift."/>
+     <methods docformat="rst">
+       <method method="scaling"                     description="Compute the scaling of **UniverseMachine** parameters with redshift."/>
        <method method="stellarMassHaloMassRelation" description="Evaluate the stellar mass--halo mass relation."                           />
        <method method="update"                      description="Update the stellar mass of the galaxy."                                   />
      </methods>

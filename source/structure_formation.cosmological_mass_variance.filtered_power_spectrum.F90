@@ -96,7 +96,7 @@
           &                                                                                  storeTabulations                                   , warnedNonIncreasing
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate cosmological mass variance."        method="retabulate"      />
        <method description="Compute the interpolating factors in time."  method="interpolantsTime"/>
        <method description="Write the tabulated mass variance to file."  method="fileWrite"       />

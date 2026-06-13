@@ -38,7 +38,7 @@
           &              heatSpecificNormalized
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the first and second order energy perturbations." method="specificEnergyTerms"/>
      </methods>
      !!]

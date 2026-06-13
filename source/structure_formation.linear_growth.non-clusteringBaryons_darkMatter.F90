@@ -45,7 +45,7 @@
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate linear growth factor." method="retabulate" />
      </methods>
      !!]

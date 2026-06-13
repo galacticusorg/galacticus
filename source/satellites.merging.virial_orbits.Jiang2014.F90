@@ -64,7 +64,7 @@
           &                                                          muRatioLow                                 , muRatioIntermediate           , muRatioHigh
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Select the parameter set to use for this satellite/host pairing." method="parametersSelect" />
      </methods>
      !!]

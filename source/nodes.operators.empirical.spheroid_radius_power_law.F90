@@ -44,7 +44,7 @@
      double precision :: alpha, beta
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the spheroid radius to be consistent with its stellar mass."/>
      </methods>
      !!]

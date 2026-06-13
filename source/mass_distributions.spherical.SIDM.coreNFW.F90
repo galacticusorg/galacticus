@@ -42,7 +42,7 @@
      double precision :: factorRadiusCore
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusCore" description="Computes the core radius of halo."/>
      </methods>
      !!]

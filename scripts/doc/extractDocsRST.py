@@ -83,7 +83,7 @@ def _extract_methods(block: str) -> list[dict]:
 # A ``<methods>`` block of type-bound procedures (one per implementation), each
 # ``<method method="…" description="…"/>``.  Unlike the functionClass
 # ``<method name=…>`` interface, the description is a still-LaTeX attribute.
-_TYPE_METHODS_RE = re.compile(r'<methods>(.*?)</methods>', re.DOTALL)
+_TYPE_METHODS_RE = re.compile(r'<methods\b[^>]*>(.*?)</methods>', re.DOTALL)
 _TYPE_METHOD_RE = re.compile(r'<method\b([^>]*?)/?>')
 
 
@@ -385,11 +385,11 @@ def render_family(fam: str, families: dict, implementations: dict,
         if imethods:
             out.append('**Methods**\n')
             for meth in imethods:
-                # The description is a still-LaTeX attribute; convert it here.
+                # The description attribute is already RST (converted in source);
+                # just unescape the XML entities, as for <description> elements.
                 mdesc = re.sub(
                     r'\s*\n\s*', ' ',
-                    latex_to_rst(html.unescape(meth.get('description') or ''),
-                                 glsmap)).strip()
+                    html.unescape(meth.get('description') or '')).strip()
                 out.append(f'* ``{meth["name"]}`` — {mdesc}' if mdesc
                            else f'* ``{meth["name"]}``')
             out.append('')

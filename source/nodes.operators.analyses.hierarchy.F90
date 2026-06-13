@@ -38,7 +38,7 @@
      double precision :: factorMassReset
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="increment" description="Increment the hierarchy level of a node."    />
        <method method="reset"     description="Reset the maximum hierarchy level of a node."/>
      </methods>

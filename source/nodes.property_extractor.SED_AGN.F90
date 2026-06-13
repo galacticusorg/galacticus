@@ -44,7 +44,7 @@
      type            (enumerationFrameType     )                            :: frame
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"/>
      </methods>
      !!]

@@ -53,8 +53,8 @@
      double precision                                               :: massFractionFormation
    contains
      !![
-     <methods>
-     <method method="concentrationCompute" description="Compute the concentration for the given \mono{node}"/>
+     <methods docformat="rst">
+     <method method="concentrationCompute" description="Compute the concentration for the given ``node``"/>
      </methods>
      !!]
     final     ::                                   schneider2015Destructor

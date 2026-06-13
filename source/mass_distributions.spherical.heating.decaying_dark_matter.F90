@@ -55,7 +55,7 @@
           &                                                time
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute memoized factors." method="computeFactors"/>
      </methods>
      !!]

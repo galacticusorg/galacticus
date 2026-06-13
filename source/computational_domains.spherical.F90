@@ -83,7 +83,7 @@
      type(multiCounter) :: counter_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Move to the next cell in the domain." method="next" />
      </methods>
      !!]

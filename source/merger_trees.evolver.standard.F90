@@ -116,7 +116,7 @@
      type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initializeTree"     description="Initialize the tree(s)."                      />
        <method method="nodeIsEvolvable"    description="Determine if a node is evolvable."            />
        <method method="timeEvolveTo"       description="Find the time to which a node can be evolved."/>

@@ -66,7 +66,7 @@
      class           (*                                        ), pointer             :: initializationSelf        => null(), initializationArgument => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="setBaryonicComponent" description="Set baryonic components in the mass distribution."         />
        <method method="computeSolution"      description="Compute a solution for the isothermal core of a SIDM halo."/>
      </methods>

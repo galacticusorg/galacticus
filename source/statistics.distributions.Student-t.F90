@@ -50,7 +50,7 @@
      double precision :: degreesOfFreedom
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="The upper-tail cumulative distribution function." method="cumulativeUpper" />
        <method description="The upper-tail inverse cumulative distribution function." method="inverseUpper" />
      </methods>

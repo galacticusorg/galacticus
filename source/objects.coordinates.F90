@@ -43,7 +43,7 @@ module Coordinates
      double precision :: position(3)
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the coordinates in a Cartesian system as a 3-element array."          method="toCartesian"      />
        <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian"    />
        <method description="Return the cylindrical radial coordinate."                                   method="rCylindrical"     />
@@ -74,13 +74,13 @@ module Coordinates
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $x$-coordinate." method="x"   />
-       <method description="Get the $y$-coordinate." method="y"   />
-       <method description="Get the $z$-coordinate." method="z"   />
-       <method description="set the $x$-coordinate." method="xSet"/>
-       <method description="set the $y$-coordinate." method="ySet"/>
-       <method description="set the $z$-coordinate." method="zSet"/>
+     <methods docformat="rst">
+       <method description="Get the :math:`x`-coordinate." method="x"   />
+       <method description="Get the :math:`y`-coordinate." method="y"   />
+       <method description="Get the :math:`z`-coordinate." method="z"   />
+       <method description="set the :math:`x`-coordinate." method="xSet"/>
+       <method description="set the :math:`y`-coordinate." method="ySet"/>
+       <method description="set the :math:`z`-coordinate." method="zSet"/>
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian
@@ -103,13 +103,13 @@ module Coordinates
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $r$-coordinate."      method="r"       />
-       <method description="Get the $\theta$-coordinate." method="theta"   />
-       <method description="Get the $\phi$-coordinate."   method="phi"     />
-       <method description="set the $r$-coordinate."      method="rSet"    />
-       <method description="set the $\theta$-coordinate." method="thetaSet"/>
-       <method description="set the $\phi$-coordinate."   method="phiSet"  />
+     <methods docformat="rst">
+       <method description="Get the :math:`r`-coordinate."      method="r"       />
+       <method description="Get the :math:`\theta`-coordinate." method="theta"   />
+       <method description="Get the :math:`\phi`-coordinate."   method="phi"     />
+       <method description="set the :math:`r`-coordinate."      method="rSet"    />
+       <method description="set the :math:`\theta`-coordinate." method="thetaSet"/>
+       <method description="set the :math:`\phi`-coordinate."   method="phiSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
@@ -133,13 +133,13 @@ module Coordinates
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $r$-coordinate."    method="r"     />
-       <method description="Get the $\phi$-coordinate." method="phi"   />
-       <method description="Get the $z$-coordinate."    method="z"     />
-       <method description="set the $r$-coordinate."    method="rSet"  />
-       <method description="set the $\phi$-coordinate." method="phiSet"/>
-       <method description="set the $z$-coordinate."    method="zSet"  />
+     <methods docformat="rst">
+       <method description="Get the :math:`r`-coordinate."    method="r"     />
+       <method description="Get the :math:`\phi`-coordinate." method="phi"   />
+       <method description="Get the :math:`z`-coordinate."    method="z"     />
+       <method description="set the :math:`r`-coordinate."    method="rSet"  />
+       <method description="set the :math:`\phi`-coordinate." method="phiSet"/>
+       <method description="set the :math:`z`-coordinate."    method="zSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian

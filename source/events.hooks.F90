@@ -96,7 +96,7 @@ module Events_Hooks
      type(regEx) :: regEx_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign regular expression dependency objects."/>
      </methods>
      !!]
@@ -159,7 +159,7 @@ module Events_Hooks
      type               (hookList        ), allocatable, dimension(:), public :: hooks_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return a count of the number of hooks into this event."  method="count"              />
        <method description="Reorder hooked functions to resolved any dependencies."  method="resolveDependencies"/>
        <method description="Filter events to match the current OpenMP thread/level." method="filter"             />
@@ -192,7 +192,7 @@ module Events_Hooks
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Attach a hook to the event."                          method="attach"    />
        <method description="Return true if the object is attached to this event." method="isAttached"/>
        <method description="Detach a hook from the event."                        method="detach"    />

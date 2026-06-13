@@ -45,7 +45,7 @@
           &                                                      timePrevious                       , varianceBackgroundPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the variance of the background at this time." method="varianceBackground" />
      </methods>
      !!]

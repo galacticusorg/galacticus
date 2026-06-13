@@ -38,7 +38,7 @@
      type(outputTimesUnionList), pointer :: outputTimesUnion_=> null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize the set of output times."/>
      </methods>
      !!]

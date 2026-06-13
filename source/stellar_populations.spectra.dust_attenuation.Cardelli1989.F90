@@ -36,9 +36,9 @@
      double precision :: Rv
    contains
      !![
-     <methods>
-       <method description="Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="a" />
-       <method description="Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="b" />
+     <methods docformat="rst">
+       <method description="Return fitting function :math:`a(x)` for the dust attenuation model of :cite:t:`cardelli_relationship_1989`." method="a" />
+       <method description="Return fitting function :math:`b(x)` for the dust attenuation model of :cite:t:`cardelli_relationship_1989`." method="b" />
      </methods>
      !!]
      procedure :: attenuation => cardelli1989Attenuation

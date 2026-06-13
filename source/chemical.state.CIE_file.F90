@@ -161,7 +161,7 @@
           &                                                                             electronChemicalIndex
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named chemical state file."                         method="readFile"            />
        <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors"/>
        <method description="Interpolate in the given density table."                     method="interpolate"         />

@@ -44,7 +44,7 @@ module Histories
      integer                                       :: rangeType
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Addition operator." method="operator(+)" />
        <method description="Subtraction operator." method="operator(-)" />
        <method description="Division operator." method="operator(/)" />
@@ -58,7 +58,7 @@ module Histories
        <method description="Clone a history object." method="clone" />
        <method description="Destroys a history object." method="destroy" />
        <method description="Removes any times in a history which have become outdated." method="trim" />
-       <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+       <method description="Removes any times in a history *after* the given time. Optionally returns a history object with the removed history." method="trimForward" />
        <method description="Adds two histories, possibly with different time series." method="increment" />
        <method description="Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values." method="interpolatedIncrement" />
        <method description="Extends the time range of a history to encompass the specified limits." method="extend" />
@@ -117,7 +117,7 @@ module Histories
      integer                                                       :: rangeType
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Creates a history object with a specified range of times." method="create" />
        <method description="Build a history object from an XML definition." method="builder" />
        <method description="Dump a history object." method="dump" />
@@ -126,7 +126,7 @@ module Histories
        <method description="Clone a history object." method="clone" />
        <method description="Destroys a history object." method="destroy" />
        <method description="Removes any times in a history which have become outdated." method="trim" />
-       <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+       <method description="Removes any times in a history *after* the given time. Optionally returns a history object with the removed history." method="trimForward" />
        <method description="Resets all entries in a history to zero." method="reset" />
        <method description="Returns true if the given history has been created." method="exists" />
        <method description="Append a history or single instant onto the end of a history." method="append" />

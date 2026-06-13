@@ -111,6 +111,44 @@ def _xml_escape(text: str) -> str:
     return text.replace('<', '&lt;').replace('>', '&gt;')
 
 
+def _xml_escape_attr(text: str) -> str:
+    """Like :func:`_xml_escape`, but also escape ``"`` for an attribute value."""
+    return _xml_escape(text).replace('"', '&quot;')
+
+
+# A ``<methods>`` block of type-bound procedures whose ``<method …/>`` carry a
+# (LaTeX) ``description="…"`` attribute rather than a ``<description>`` element.
+_METHODS_RE = re.compile(r'(<methods\b[^>]*>)(.*?)(</methods>)', re.DOTALL)
+
+
+def _convert_method_descriptions(block_body: str,
+                                 glsmap: dict[str, str]) -> tuple[str, bool]:
+    """Convert the LaTeX ``description="…"`` attributes inside ``<methods>``
+    blocks to (single-line) RST, marking the block ``docformat="rst"``.
+
+    Returns ``(new_body, changed)``.
+    """
+    changed = False
+
+    def methods_repl(mb: re.Match) -> str:
+        nonlocal changed
+        open_tag, inner, close = mb.group(1), mb.group(2), mb.group(3)
+        if 'docformat=' in open_tag:
+            return mb.group(0)                         # already converted
+
+        def desc_repl(dm: re.Match) -> str:
+            nonlocal changed
+            rst = _xml_escape_attr(latex_to_rst(dm.group(1), glsmap))
+            rst = re.sub(r'\s+', ' ', rst).strip()
+            changed = True
+            return f'description="{rst}"'
+
+        new_inner = re.sub(r'description="([^"]*)"', desc_repl, inner)
+        return f'{open_tag[:-1]} docformat="rst">{new_inner}{close}'
+
+    return _METHODS_RE.sub(methods_repl, block_body), changed
+
+
 def _convert_descriptions(block_body: str, glsmap: dict[str, str]) -> tuple[str, bool]:
     """Convert every ``<description>`` / ``<defaultSource>`` in a directive body.
 
@@ -197,12 +235,20 @@ def _convert_xml_block(m: re.Match, glsmap: dict[str, str]) -> str:
     body = m.group('body')
     if 'docformat="rst"' in body:
         return m.group(0)                          # already converted (idempotent)
-    if '<description>' not in body and '<defaultSource>' not in body:
+    has_desc = '<description>' in body or '<defaultSource>' in body
+    has_methods = '<methods' in body
+    if not has_desc and not has_methods:
         return m.group(0)                          # nothing to convert
-    new_body, changed = _convert_descriptions(body, glsmap)
+    new_body, changed = body, False
+    if has_desc:
+        new_body, changed = _convert_descriptions(new_body, glsmap)
+        if changed:
+            new_body = _add_docformat(new_body)
+    if has_methods:
+        new_body, mchanged = _convert_method_descriptions(new_body, glsmap)
+        changed = changed or mchanged
     if not changed:
         return m.group(0)
-    new_body = _add_docformat(new_body)
     return f'{indent}!![{new_body}!!]'
 
 

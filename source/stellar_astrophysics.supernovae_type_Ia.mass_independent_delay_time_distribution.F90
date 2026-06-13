@@ -35,7 +35,7 @@
      private
    contains    
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="numberCumulative" description="Return the cumulative number of type Ia supernovae per Solar mass of stars formed at a given population age and metallicity."/>
      </methods>
      !!]

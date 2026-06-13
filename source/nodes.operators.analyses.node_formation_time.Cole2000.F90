@@ -38,7 +38,7 @@
      double precision :: massFactorReformation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="reform" description="Implements a halo reformation event."/>
      </methods>
      !!]

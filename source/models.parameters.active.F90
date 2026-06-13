@@ -42,7 +42,7 @@
      logical                                       :: slow
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="isSlow" description="Return true if changes in this paper may lead to slow likelihood evaluation."/>
      </methods>
      !!]

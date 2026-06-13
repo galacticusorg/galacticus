@@ -99,7 +99,7 @@ Implements a merger tree branching probability class using a generalized Press-S
      double precision                                                       :: timeNow
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute common factors needed for the calculations." method="computeCommonFactors"/>
        <method description="Compute common factors needed for the calculations." method="excursionSetTest"    />
      </methods>

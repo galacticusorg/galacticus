@@ -144,7 +144,7 @@
      type            (enumerationDuttonMaccio2014FitTypeType              )          :: fitType
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Establish definitions for virial density contrast and dark matter halo profile." method="definitions" />
      </methods>
      !!]

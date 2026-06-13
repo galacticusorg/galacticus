@@ -61,7 +61,7 @@
           &                                                                                                    massParameters
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Evaluate hyper-parameters needed for the fitting function." method="parametersEvaluate" />
      </methods>
      !!]

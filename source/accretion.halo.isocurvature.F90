@@ -75,7 +75,7 @@
      type            (interpolator                     )          :: correlation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="fraction" description="Returns the fraction of baryons for halos of this mass, relative to the universal baryon fraction."/>
      </methods>
      !!]

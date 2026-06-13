@@ -43,7 +43,7 @@
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the deceleration factor." method="tabulate" />
      </methods>
      !!]

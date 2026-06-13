@@ -84,7 +84,7 @@ module Multidimensional_Minimizer
      procedure(gslMultiminFunctionFDFTemplate), pointer, nopass :: minimizeFunctionBoth
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the initial state of the minimizer."                                  method="set"          />
        <method description="Iterate the minimizer."                                                   method="iterate"      />
        <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient" />

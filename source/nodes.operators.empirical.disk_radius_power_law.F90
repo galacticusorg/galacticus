@@ -43,7 +43,7 @@
           &              gamma, massPivot
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the disk radius to be consistent with its stellar mass."/>
      </methods>
      !!]

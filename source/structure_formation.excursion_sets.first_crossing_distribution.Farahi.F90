@@ -230,7 +230,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
      integer         (c_size_t                     )                                :: iTimeRate                                  , iVarianceRate
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Interpolate in the tabulated excursion set barrier crossing rates."                                            method="rateInterpolate"           />
        <method description="Interpolate in the tabulated excursion set barrier non-crossing rates."                                        method="rateNonCrossingInterpolate"/>
        <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"              />

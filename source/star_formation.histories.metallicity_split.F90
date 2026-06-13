@@ -48,7 +48,7 @@ Implements a star formation histories class which records star formation split b
      logical                                                       :: metallicityTableWritten
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Make the star formation history." method="make" />
      </methods>
      !!]

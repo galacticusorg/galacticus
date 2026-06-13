@@ -41,7 +41,7 @@ Implements the gravitational lensing distribution by modifying another distribut
           &                                                  redshiftPrevious                 , scaleSourcePrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Renormalize the gravitational lensing magnification distribution function." method="renormalize" />
      </methods>
      !!]

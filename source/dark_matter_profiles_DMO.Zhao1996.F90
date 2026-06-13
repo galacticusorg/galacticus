@@ -38,7 +38,7 @@
           &                                                   gamma
    contains   
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="exponents"     description="Compute the exponents for the density profile."   />
        <method method="scaleRadius"   description="Compute the scale radius for the density profile."/>
        <method method="normalization" description="Compute the normalization of the density profile."/>

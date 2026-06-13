@@ -46,8 +46,8 @@
      type   (varying_string                )                        :: logFileRoot
    contains
      !![
-     <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given \mono{simulationState}."/>
+     <methods docformat="rst">
+       <method method="posterior"         description="Return the log of posterior probability for the given ``simulationState``."/>
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
      </methods>
      !!]

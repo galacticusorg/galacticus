@@ -45,7 +45,7 @@
      integer                                              :: ellipsoidEigenvaluesID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="energyTensorEigenvalues" description="Compute the energy tensor eigenvalues of a given node."/>
        <method method="energyTensor"            description="Compute the energy tensor of a given node."            />
        <method method="energyTensorOrbital"     description="Compute the orbital energy tensor of a given node."    />

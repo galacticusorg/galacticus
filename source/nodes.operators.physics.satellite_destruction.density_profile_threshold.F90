@@ -38,7 +38,7 @@
      double precision                                     :: fractionDensityProfileVirialFraction
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if the node should be destroyed." method="shouldDestroy"/>
      </methods>
      !!]

@@ -65,7 +65,7 @@ Implements a normally-distributed halo environment.
      type            (varying_string                                   )          :: propertyName
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]

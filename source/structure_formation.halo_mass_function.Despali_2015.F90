@@ -47,8 +47,8 @@ Implements a :cite:t:`despali_universality_2015` dark matter halo mass function 
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
      !![
-     <methods>
-       <method description="Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit." method="x" />
+     <methods docformat="rst">
+       <method description="Return the parameter :math:`x` in the :cite:t:`despali_universality_2015` halo mass function fit." method="x" />
      </methods>
      !!]
      final     ::                  despali2015Destructor

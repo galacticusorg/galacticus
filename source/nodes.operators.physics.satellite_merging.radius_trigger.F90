@@ -42,7 +42,7 @@
      integer                                             :: mergedSubhaloIDs             (keplerOrbitCount)          , nodeHierarchyLevelMaximumID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the radius at which the satellite will be merged." method="radiusMerge" />
      </methods>
      !!]

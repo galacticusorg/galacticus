@@ -80,13 +80,13 @@
      type            (varying_string                              )                            :: logFileRoot                                       , interactionRoot
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="logging"           description="Return true if the simulator is currently logging state."                                           />
-       <method method="posterior"         description="Return the log of posterior probability for the given \mono{posteriorSampleState}."/>
-       <method method="update"            description="Update the simulator to the new \mono{stateVector} after a step."                  />
+       <method method="posterior"         description="Return the log of posterior probability for the given ``posteriorSampleState``."/>
+       <method method="update"            description="Update the simulator to the new ``stateVector`` after a step."                  />
        <method method="temperature"       description="Return the current temperature."                                                                    />
        <method method="acceptProposal"    description="Return true if the proposed state should be accepted."                                              />
-       <method method="stepSize"          description="Return the step size parameter, $\gamma$, for the differential evolution proposal vector."          />
+       <method method="stepSize"          description="Return the step size parameter, :math:`\gamma`, for the differential evolution proposal vector."          />
        <method method="chainSelect"       description="Select a chain."                                                                                    />
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                                />
      </methods>

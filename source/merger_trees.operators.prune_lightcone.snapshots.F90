@@ -46,7 +46,7 @@
           &                                                splitTrees
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="processNode"   description="Return true if the current node is to be processed for intersection with the lightcone."/>
        <method method="timeIntersect" description="Return the latest time at which the current node intersects the lightcone."             />
      </methods>

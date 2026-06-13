@@ -43,7 +43,7 @@ Implements a transfer function class using the CAMB code.
      integer                                            :: cambCountPerDecade
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Check that the provided wavenumber is within the tabulated range of the transfer function." method="checkRange" />
      </methods>
      !!]

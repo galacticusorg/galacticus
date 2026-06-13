@@ -60,14 +60,14 @@ module Abundances_Structure
      double precision, allocatable, dimension(:) :: elementalValue
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Multiply an abundance by a scalar." method="operator(*)" />
        <method description="Divide an abundance by a scalar." method="operator(/)" />
        <method description="Add two abundances." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Returns the metallicity." method="metallicity" />
-       <method description="Sets the metallicity to \mono{metallicity}." method="metallicitySet" />
-       <method description="Converts abundance masses to mass fractions by dividing by the given \mono{mass} while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
+       <method description="Sets the metallicity to ``metallicity``." method="metallicitySet" />
+       <method description="Converts abundance masses to mass fractions by dividing by the given ``mass`` while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
        <method description="Increment an abundances object." method="increment" />
        <method description="Return a count of the number of properties in a serialized abundances object." method="serializeCount" />
        <method description="Serialize an abundances object to an array." method="serialize" />

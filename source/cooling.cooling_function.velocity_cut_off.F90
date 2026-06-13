@@ -59,7 +59,7 @@
      logical                                              :: useFormationNode
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Returns true if the cooling function is cut off." method="isCutOff"/>
      </methods>
      !!]

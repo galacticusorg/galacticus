@@ -43,7 +43,7 @@
           &                                     fileNameRadiusTurnaround             , fileNameNonLinearMap
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Get the requested table."                method="getTable"    />
        <method description="Restore a tabulated solution from file." method="restoreTable"/>
        <method description="Store a tabulated solution to file."     method="storeTable"  />

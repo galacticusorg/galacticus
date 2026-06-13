@@ -58,7 +58,7 @@
      logical                                                       :: maximumAgeExceededIsFatal
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate broad band stellar luminosities." method="tabulate" />
      </methods>
      !!]

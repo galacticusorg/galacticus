@@ -40,13 +40,13 @@ module IO_IRATE
      class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      !![
-     <methods>
-       <method method="readHalos"       description="Read a snapshot from the \gls{irate} format file."                                                />
-       <method method="writeHalos"      description="Write a snapshot to a \gls{irate} format file."                                                   />
-       <method method="readSimulation"  description="Read the requested properties of the simulation from an \gls{irate} format file."                 />
-       <method method="writeSimulation" description="Write the requested properties of the simulation from an \gls{irate} format file."                />
-       <method method="copySimulation"  description="Copy ``\mono{SimulationProperties}'' group from one \gls{irate} file to another."/>
-       <method method="copyCosmology"   description="Copy ``\mono{Cosmology}'' group from one \gls{irate} file to another."           />
+     <methods docformat="rst">
+       <method method="readHalos"       description="Read a snapshot from the :term:`IRATE` format file."                                                />
+       <method method="writeHalos"      description="Write a snapshot to a :term:`IRATE` format file."                                                   />
+       <method method="readSimulation"  description="Read the requested properties of the simulation from an :term:`IRATE` format file."                 />
+       <method method="writeSimulation" description="Write the requested properties of the simulation from an :term:`IRATE` format file."                />
+       <method method="copySimulation"  description="Copy &quot;``SimulationProperties``&quot; group from one :term:`IRATE` file to another."/>
+       <method method="copyCosmology"   description="Copy &quot;``Cosmology``&quot; group from one :term:`IRATE` file to another."           />
      </methods>
      !!]
      procedure :: readHalos       => irateReadHalos

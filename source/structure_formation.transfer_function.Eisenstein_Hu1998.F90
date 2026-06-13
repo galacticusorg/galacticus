@@ -51,8 +51,8 @@
           &                                                 distanceSoundHorizon              , wavenumberPrevious
    contains
      !![
-     <methods>
-       <method description="Compute common factors needed by \cite{eisenstein_baryonic_1998} transfer function calculations." method="computeFactors" />
+     <methods docformat="rst">
+       <method description="Compute common factors needed by :cite:t:`eisenstein_baryonic_1998` transfer function calculations." method="computeFactors" />
      </methods>
      !!]
      final     ::                          eisensteinHu1998Destructor

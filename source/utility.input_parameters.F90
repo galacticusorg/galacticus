@@ -89,7 +89,7 @@ module Input_Parameters
           &                                                     activeEvaluated =  .false.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if this is a valid parameter node." method="isParameter" />
        <method description="Return true the object corresponding to this parameter has been created." method="objectCreated" />
        <method description="Return a pointer to the object corresponding to this parameter." method="objectGet" />
@@ -147,18 +147,18 @@ module Input_Parameters
      type   (resourceManager)                  :: lockManager
    contains
      !![
-     <methods>
-       <method description="Build a tree of \mono{inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
-       <method description="Resolve references in the tree of \mono{inputParameter} objects." method="resolveReferences" />
-       <method description="Evaluate conditionals in the tree of \mono{inputParameter} objects." method="evaluateConditionals" />
+     <methods docformat="rst">
+       <method description="Build a tree of ``inputParameter`` objects from the structure of an XML parameter file." method="buildTree" />
+       <method description="Resolve references in the tree of ``inputParameter`` objects." method="resolveReferences" />
+       <method description="Evaluate conditionals in the tree of ``inputParameter`` objects." method="evaluateConditionals" />
        <method description="Return the HDF5 group to which this parameters content will be written." method="parametersGroup" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
        <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
        <method description="Return the XML node containing the named parameter." method="node" />
        <method description="Return true if the named parameter is present in the set." method="isPresent" />
-       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="copiesCount" />
-       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="count" />
+       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless ``zeroIfNotPresent`` is set to ``true``, in which case a result of 0 is returned." method="copiesCount" />
+       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless ``zeroIfNotPresent`` is set to ``true``, in which case a result of 0 is returned." method="count" />
        <method description="Return the set of subparameters of the named parameter." method="subParameters" />
        <method description="Return the parent parameters given the path to a parameter" method="findParent"/>
        <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
@@ -220,7 +220,7 @@ module Input_Parameters
      type   (varying_string), allocatable, dimension(:) :: name , value
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Serialize a list of input parameters to an XML document." method="serializeToXML"/>
        <method description="Add a parameter and value to the list."                   method="add"           />
      </methods>

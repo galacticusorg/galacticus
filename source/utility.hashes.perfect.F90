@@ -41,7 +41,7 @@ module Hashes_Perfect
      integer(c_size_t), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Create a perfect hash." method="create" />
        <method description="Destroy a perfect hash." method="destroy" />
        <method description="Test if a key is present in a perfect hash." method="isPresent" />

@@ -47,7 +47,7 @@
      double precision :: temperatureScale
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the object." method="initialize" />
      </methods>
      !!]

@@ -37,7 +37,7 @@ Implements survey geometries defined by random points.
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize arrays of random points to define the survey angular geometry." method="randomsInitialize" />
      </methods>
      !!]

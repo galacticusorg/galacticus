@@ -92,11 +92,11 @@
      double precision                                                               :: treeSampleRate
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Load the halo data." method="load" />
-       <method description="Return true if the given \mono{x,y,z} position lies within the current subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume" />
-       <method description="Return true if the given \mono{x} position lies within the \mono{iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume1D" />
-       <method description="Return true if the given \mono{x} value is bad." method="valueIsBad" />
+       <method description="Return true if the given ``x,y,z`` position lies within the current subvolume (plus the buffer region if ``buffered`` is true." method="inSubvolume" />
+       <method description="Return true if the given ``x`` position lies within the ``iSubvolume``\ :math:`^\mathrm{th}` subvolume (plus the buffer region if ``buffered`` is true." method="inSubvolume1D" />
+       <method description="Return true if the given ``x`` value is bad." method="valueIsBad" />
      </methods>
      !!]
      final     ::                                  sussingDestructor

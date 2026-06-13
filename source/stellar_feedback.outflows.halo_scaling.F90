@@ -44,7 +44,7 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_    => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="node" description="Get the node from which to compute halo properties."/>
      </methods>
      !!]

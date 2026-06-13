@@ -79,7 +79,7 @@
           &                                                                                         xAxisIsLog                                     , yAxisIsLog
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the scatter function operator." method="results"         />
        <method description="Finalize analysis of the scatter function operator."  method="finalizeAnalysis"/>
      </methods>

@@ -57,7 +57,7 @@
      type(lockDescriptor) :: fileLock
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Build the tabulation file containing AGN spectra." method="buildFile" />
      </methods>
      !!]

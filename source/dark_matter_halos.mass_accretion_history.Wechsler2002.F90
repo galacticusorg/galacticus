@@ -52,7 +52,7 @@
      double precision                                         :: timeFormationPrevious     =  -huge(0.0d0      ), massPrevious=-huge(0.0d0)
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."            method="calculationReset"          />
        <method description="Compute the formation expansion factor." method="expansionFactorAtFormation"/>
      </methods>

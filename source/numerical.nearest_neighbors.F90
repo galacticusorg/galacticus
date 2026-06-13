@@ -39,7 +39,7 @@ module Nearest_Neighbors
      type(c_ptr) :: ANNkd_tree=C_Null_Ptr
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
        <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
      </methods>

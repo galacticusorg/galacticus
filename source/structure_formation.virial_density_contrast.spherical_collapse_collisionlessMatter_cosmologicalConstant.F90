@@ -46,7 +46,7 @@
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
      </methods>
      !!]

@@ -37,7 +37,7 @@
      class(massDistributionSpherical        ), pointer :: massDistribution_ => null()
   contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="massEnclosedBySphereNonAnalytic"              description="Compute mass enclosed by a sphere for non-analytic cases."                                />
        <method method="radiusEnclosingMassNonAnalytic"               description="Compute radius enclosing a mass for non-analytic cases."                                  />
        <method method="densityGradientRadialNonAnalytic"             description="Compute radial density gradient for non-analytic cases."                                  />

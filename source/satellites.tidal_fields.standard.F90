@@ -38,7 +38,7 @@
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="factors"        description="Compute factors needed for tidal tensor calculation."/>
        <method method="tidalTensorGet" description="Get the tidal tensor."                               />
      </methods>

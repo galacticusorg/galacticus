@@ -37,7 +37,7 @@ Implements a depth-first merger tree walker over all all nodes in a given branch
      logical                    :: nodesRemain_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
      </methods>
      !!]

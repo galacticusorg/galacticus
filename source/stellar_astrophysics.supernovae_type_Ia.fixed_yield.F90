@@ -38,7 +38,7 @@
      logical                                     :: initialized
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize yield data."/>
      </methods>
      !!]

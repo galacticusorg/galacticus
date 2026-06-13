@@ -67,7 +67,7 @@
      class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Return the current tempering level."/>
        <method method="level"      description="Return the current tempering level."/>
      </methods>

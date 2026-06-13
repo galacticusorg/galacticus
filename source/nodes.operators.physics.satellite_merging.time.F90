@@ -43,7 +43,7 @@
      logical                                           :: resetOnHaloFormation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeMergingSet" description="Set the time of merging for a satellite node."/>
      </methods>
      !!]

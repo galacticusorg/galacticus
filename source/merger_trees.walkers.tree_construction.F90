@@ -39,7 +39,7 @@
      logical                      :: nodesRemain_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the walker to the given node." method="setNode"/>
      </methods>
      !!]

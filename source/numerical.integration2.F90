@@ -66,7 +66,7 @@ module Numerical_Integration2
      double precision :: toleranceAbsolute, toleranceRelative
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
      </methods>
      !!]
@@ -82,7 +82,7 @@ module Numerical_Integration2
      procedure       (integrand1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -112,7 +112,7 @@ module Numerical_Integration2
      integer :: iterationsMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
      </methods>
      !!]
@@ -140,7 +140,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the integrator." method="initialize" />
        <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
      </methods>
@@ -159,7 +159,7 @@ module Numerical_Integration2
      procedure       (integrandVectorized1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
      </methods>
      !!]
@@ -190,7 +190,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: d
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -209,7 +209,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed, and the order of the integrator." method="initialize" />
        <method description="Evaluate the integral." method="evaluate" />
        <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
@@ -228,7 +228,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: toleranceAbsolute, toleranceRelative
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set tolerances to use in this integrator." method="tolerancesSet" />
      </methods>
      !!]
@@ -246,7 +246,7 @@ module Numerical_Integration2
      procedure(integrandMulti1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -282,7 +282,7 @@ module Numerical_Integration2
      procedure(integrandMultiVectorized1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
      </methods>
      !!]
@@ -317,7 +317,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of intervals allowed, and the order of the integrator." method="initialize" />
        <method description="Evaluate the integrals." method="evaluate" />
        <method description="Evaluate the integrals over an interval and also return errors on the integrals." method="evaluateInterval" />
@@ -337,7 +337,7 @@ module Numerical_Integration2
      integer :: intervalsMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of intervals allowed." method="initialize" />
        <method description="Evaluate the integrals." method="evaluate" />
      </methods>

@@ -63,7 +63,7 @@
      logical                                                    :: reportFileName            =  .false., reportState             =.false.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize pointers into the base parameters object."/>
        <method method="update"     description="Update values in the base parameters object."        />
      </methods>

@@ -245,7 +245,7 @@ module Merger_Tree_Data_Structure
      type            (treeMetaData               ), allocatable, dimension(               :               ) :: metaData
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset the data structure." method="reset" />
        <method description="Set the total number of forests in the data structure." method="forestCountSet" />
        <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />

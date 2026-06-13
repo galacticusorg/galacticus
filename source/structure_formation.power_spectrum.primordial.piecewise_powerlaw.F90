@@ -52,7 +52,7 @@
           &                                         normalization
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="indexEffective" description="Compute the local effective index of the power spectrum."  />
        <method method="indices"        description="Compute the indices corresponding to the given wavenumber."/>
      </methods>

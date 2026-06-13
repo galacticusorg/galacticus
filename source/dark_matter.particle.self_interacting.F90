@@ -37,9 +37,9 @@ Implements a selfInteracting dark matter particle class.
      double precision                                   :: crossSectionSelfInteraction_
    contains
      !![
-     <methods>
-       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                     method="crossSectionSelfInteraction"            />
-       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential"/>
+     <methods docformat="rst">
+       <method description="Return the self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                     method="crossSectionSelfInteraction"            />
+       <method description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\Omega`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`." method="crossSectionSelfInteractionDifferential"/>
      </methods>
      !!]
      final     ::                                            selfInteractingDMDestructor

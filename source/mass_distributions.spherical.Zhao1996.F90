@@ -83,7 +83,7 @@
      type            (interpolator              ), allocatable :: timeFreefallScaleFree_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free Zhao1996 mass distribution."/>
      </methods>
      !!]

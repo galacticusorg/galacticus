@@ -48,7 +48,7 @@
      logical                                               :: normalizationComputed, logNormalizationComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="cumulativeMonteCarlo" description="Compute the cumulative distribution function used Monte Carlo methods."/>
      </methods>
      !!]

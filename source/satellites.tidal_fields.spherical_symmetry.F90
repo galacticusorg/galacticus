@@ -46,7 +46,7 @@
      double precision                                    :: factorBoost
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="factors" description="Compute factors needed for tidal tensor calculation."/>
      </methods>
      !!]

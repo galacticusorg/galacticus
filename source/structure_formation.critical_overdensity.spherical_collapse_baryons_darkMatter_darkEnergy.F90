@@ -59,7 +59,7 @@
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null() , sphericalCollapseSolverUnclustered_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
      </methods>
      !!]

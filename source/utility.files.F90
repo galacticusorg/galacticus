@@ -241,7 +241,7 @@ module File_Utilities
      integer                 , pointer :: unit        => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assignment operator."/>
      </methods>
      !!]

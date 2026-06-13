@@ -45,7 +45,7 @@ module Octree_Data_Structure
      type(octreeNode), pointer :: rootNode => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Build an octree given the particle coordinates and weights." method="build"/>
       <method description="Destroy the octree object." method="destroy"/>
       <method description="Make a copy of the octree data structure." method="copy"/>

@@ -121,7 +121,7 @@ module Model_Parameters
      class(modelParameterClass), public, pointer :: modelParameter_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign postprocessor list objects."/>
      </methods>
      !!]

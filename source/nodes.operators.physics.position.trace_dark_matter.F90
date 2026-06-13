@@ -45,7 +45,7 @@
      type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignPosition" description="Assign a position to a node such that it traces the dark matter of its host."/>
      </methods>
      !!]

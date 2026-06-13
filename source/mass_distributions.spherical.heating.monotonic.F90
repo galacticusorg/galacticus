@@ -48,7 +48,7 @@
      logical                                                 :: shellCrossingAllRadii
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if the no shell crossing assumption is valid locally." method="noShellCrossingIsValid"    />
        <method description="Compute the radius where shell crossing happens."                  method="computeRadiusShellCrossing"/>
        <method description="Root function used in finding the radius of shell crossing."       method="radiusShellCrossingRoot"   />

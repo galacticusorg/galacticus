@@ -86,7 +86,7 @@ module Numerical_Integration
      logical                                                           :: hasSingularities
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Evaluate the integral."                    method="integrate"    />
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
        <method description="Allocate GSL objects."                     method="gslAllocate"  />

@@ -49,7 +49,7 @@
      type            (interpolator)                            :: tableInterpolator
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the Sersic profile." method="tabulate" />
        <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
      </methods>

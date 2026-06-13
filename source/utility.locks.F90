@@ -46,7 +46,7 @@ module Locks
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Obtain a lock on the object."                                                              method="set"           />
        <method description="Attempt to obtain a lock on the object, returning false (without blocking) if this fails." method="setNonBlocking"/>
        <method description="Release a lock on the object."                                                             method="unset"         />
@@ -69,7 +69,7 @@ module Locks
      integer                              :: ownerThread =  -1
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if the current thread already owns this lock." method="ownedByThread"/>
        <method description="Assign the lock."                                          method="assignment(=)"/>
      </methods>
@@ -102,11 +102,11 @@ module Locks
      !$ logical                 , allocatable, dimension(:) :: owns
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Obtain a read (non-blocking) lock on the object." method="setRead" />
        <method description="Release a read (non-blocking) lock on the object." method="unsetRead" />
-       <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set \mono{haveReadLock=.true.} when calling this function." method="setWrite" />
-       <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set \mono{haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
+       <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set ``haveReadLock=.true.`` when calling this function." method="setWrite" />
+       <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set ``haveReadLock=.true.`` when calling this function to ensure that read locked is retained." method="unsetWrite" />
        <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
        <method description="Return true if the current thread owns this lock." method="owned" />
        <method description="Assign the lock." method="assignment(=)"/>
@@ -140,7 +140,7 @@ module Locks
      integer   (c_size_t       )          :: lockValue
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Obtain a lock on the object." method="set" />
        <method description="Release a lock on the object." method="unset" />
        <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
@@ -219,7 +219,7 @@ module Locks
      integer       , pointer :: referenceCount => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="set"           description="Set the lock."  />
        <method method="unset"         description="Unset the lock."/>
        <method method="assignment(=)" description="Assign a mutex."/>

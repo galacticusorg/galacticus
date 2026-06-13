@@ -60,7 +60,7 @@
 
    contains
      !![
-     <methods>
+     <methods docformat="rst">
         <method description="Compute a solution for the heated profile." method="computeSolution" />
      </methods>
      !!]

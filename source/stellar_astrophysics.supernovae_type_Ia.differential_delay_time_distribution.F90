@@ -35,7 +35,7 @@
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="numberDifferential" description="Return the number of type Ia supernovae per Solar mass of stars formed per unit time at a given population age and metallicity."/>
        <method method="timeDelayMinimum"   description="Return the minimum time in the type Ia supernovae delay time distribution."                                                     />
        <method method="timeDelayMaximum"   description="Return the maximum time in the type Ia supernovae delay time distribution."                                                     />

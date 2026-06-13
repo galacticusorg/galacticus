@@ -42,13 +42,13 @@
           &                                                      b_                                 , c_
    contains
      !![
-     <methods>
-       <method description="Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="a" />
-       <method description="Return the parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="c" />
-       <method description="Return the parameter $\bar{c}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="b" />
-       <method description="Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="p" />
-       <method description="Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="q" />
-       <method description="Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="normalization" />
+     <methods docformat="rst">
+       <method description="Return the parameter :math:`\bar{a}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="a" />
+       <method description="Return the parameter :math:`\bar{b}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="c" />
+       <method description="Return the parameter :math:`\bar{c}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="b" />
+       <method description="Return the parameter :math:`\bar{p}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="p" />
+       <method description="Return the parameter :math:`\bar{q}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="q" />
+       <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization" />
      </methods>
      !!]
      final     ::                  bhattacharya2011Destructor

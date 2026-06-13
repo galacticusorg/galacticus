@@ -36,7 +36,7 @@
      integer :: massBoundMaximumID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the maximum bound mass of this node."/>
      </methods>
      !!]

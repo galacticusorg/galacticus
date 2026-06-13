@@ -77,7 +77,7 @@ module Tables
      !!}
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method method="destroy" description="Destroy the table."/>
      </methods>
      !!]
@@ -105,19 +105,19 @@ module Tables
      double precision                                  , allocatable, dimension(:,:) :: yv
    contains
      !![
-     <methods>
-       <method description="Interpolate to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Interpolate the gradient to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolateGradient" />
-       <method description="Reverse the table (i.e. swap $x$ and $y$ components) and return in \mono{reversedSelf}. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional \mono{precise} argument is set to \mono{true} then the reversal must be precisely invertible---if this is not possible the method will abort." method="reverse" />
-       <method description="Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the \mono{direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional \mono{allowEqual} argument. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="isMonotonic" />
-       <method description="Return the size (i.e. number of $x$-values) in the table." method="size" />
-       <method description="Return the \mono{i}$^\mathrm{th}$ $x$-value." method="x" />
-       <method description="Return the \mono{i}$^\mathrm{th}$ $y$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
-       <method description="Return an array of all $x$-values." method="xs" />
-       <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
-       <method description="Return the effective value of $x$ to use in table interpolations." method="xEffective"/>
-       <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between \mono{x0} and \mono{x1}." method="integrationWeights" />
-       <method description="Assign \mono{table1d} objects." method="assignment(=)" />
+     <methods docformat="rst">
+       <method description="Interpolate to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
+       <method description="Interpolate the gradient to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolateGradient" />
+       <method description="Reverse the table (i.e. swap :math:`x` and :math:`y` components) and return in ``reversedSelf``. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used. If the optional ``precise`` argument is set to ``true`` then the reversal must be precisely invertible---if this is not possible the method will abort." method="reverse" />
+       <method description="Return true if the table :math:`y`-values are monotonic. Optionally, the direction of monotonicity can be specified via the ``direction`` argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional ``allowEqual`` argument. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="isMonotonic" />
+       <method description="Return the size (i.e. number of :math:`x`-values) in the table." method="size" />
+       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value." method="x" />
+       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="y" />
+       <method description="Return an array of all :math:`x`-values." method="xs" />
+       <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
+       <method description="Return the effective value of :math:`x` to use in table interpolations." method="xEffective"/>
+       <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between ``x0`` and ``x1``." method="integrationWeights" />
+       <method description="Assign ``table1d`` objects." method="assignment(=)" />
      </methods>
      !!]
      procedure(Table1D_Interpolate ), deferred :: interpolate
@@ -158,8 +158,8 @@ module Tables
      logical                            :: interpolatorInitialized
    contains
      !![
-     <methods>
-       <method method="assignment(=)" description="Assign \refClass{table1dGenericObjects}."/>
+     <methods docformat="rst">
+       <method method="assignment(=)" description="Assign :galacticus-class:`table1dGenericObjects`."/>
      </methods>
      !!]
      final     ::                  table1dGenericObjectsDestructor
@@ -186,9 +186,9 @@ module Tables
      integer                                               :: interpolationType
    contains
      !![
-     <methods>
-       <method description="Create the object with the specified \mono{x} values, and with \mono{tableCount} tables." method="create" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
+     <methods docformat="rst">
+       <method description="Create the object with the specified ``x`` values, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
        <method description="Deep copy the interpolators." method="interpolatorDeepCopy" />
        <method description="Initialize the interpolator." method="interpolatorInitialize" />
@@ -219,9 +219,9 @@ module Tables
      integer          :: dTablePrevious, tablePrevious
    contains
      !![
-     <methods>
-       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
+     <methods docformat="rst">
+       <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Linear_1D_Create
@@ -274,9 +274,9 @@ module Tables
           &                                           dxPrevious    , dyPrevious   , xPrevious    , yPrevious
    contains
      !![
-     <methods>
-       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
+     <methods docformat="rst">
+       <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Linear_CSpline_1D_Create
@@ -343,9 +343,9 @@ module Tables
           &                                           dxPrevious    , dyPrevious   , xPrevious    , yPrevious
    contains
      !![
-     <methods>
-       <method description="Create the object with \mono{xCount} points, and with \mono{tableCount} tables." method="create" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
+     <methods docformat="rst">
+       <method description="Create the object with ``xCount`` points, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
      </methods>
      !!]
      procedure :: create              => Table_Monotone_CSpline_1D_Create
@@ -374,13 +374,13 @@ module Tables
      type            (interpolator)                                :: interpolatorX, interpolatorY
    contains
      !![
-     <methods>
-       <method description="Create the object with the specified \mono{x} and \mono{y} values, and with \mono{tableCount} tables." method="create" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the indices, \mono{i}, \mono{j}, of the element to set must also be specified." method="populate" />
-       <method description="Interpolate to \mono{x}, \mono{y} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Return an array of all \mono{x} values." method="xs" />
-       <method description="Return an array of all \mono{y} values." method="ys" />
-       <method description="Return an array of all \mono{z} values." method="zs" />
+     <methods docformat="rst">
+       <method description="Create the object with the specified ``x`` and ``y`` values, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the indices, ``i``, ``j``, of the element to set must also be specified." method="populate" />
+       <method description="Interpolate to ``x``, ``y`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
+       <method description="Return an array of all ``x`` values." method="xs" />
+       <method description="Return an array of all ``y`` values." method="ys" />
+       <method description="Return an array of all ``z`` values." method="zs" />
        <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
      </methods>
      !!]
@@ -415,20 +415,20 @@ module Tables
      double precision                                  , allocatable, dimension(:,:,:) :: zv
    contains
      !![
-     <methods>
-       <method description="Compute and store interpolation factors to \mono{(x,y)}." method="interpolationFactors" />
-       <method description="Interpolate to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolate" />
-       <method description="Interpolate the gradient to \mono{x} in the \mono{table}$^\mathrm{th}$ table." method="interpolateGradient" />
-       <method description="Return the size (i.e. number of $x$ or $y$-values) in the table of the given dimension." method="size" />
-       <method description="Return the \mono{i}$^\mathrm{th}$ $x$-value." method="x" />
-       <method description="Return the \mono{i}$^\mathrm{th}$ $y$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="y" />
-       <method description="Return the \mono{(i,j)}$^\mathrm{th}$ $z$-value. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="z" />
-       <method description="Return an array of all $x$-values." method="xs" />
-       <method description="Return an array of all $y$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used." method="ys" />
-       <method description="Return an array of all $z$-values. If \mono{table} is specified then the \mono{table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used." method="zs" />
+     <methods docformat="rst">
+       <method description="Compute and store interpolation factors to ``(x,y)``." method="interpolationFactors" />
+       <method description="Interpolate to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
+       <method description="Interpolate the gradient to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolateGradient" />
+       <method description="Return the size (i.e. number of :math:`x` or :math:`y`-values) in the table of the given dimension." method="size" />
+       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value." method="x" />
+       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="y" />
+       <method description="Return the ``(i,j)``\ :math:`^\mathrm{th}` :math:`z`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`z`-values, otherwise the first table is used." method="z" />
+       <method description="Return an array of all :math:`x`-values." method="xs" />
+       <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
+       <method description="Return an array of all :math:`z`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`z`-values, otherwise the first table is used." method="zs" />
        <method description="Return true if the table is initialized (this means the table is created, it may not yet have been populated)." method="isInitialized" />
-       <method description="Populate the \mono{table}$^\mathrm{th}$ table with elements \mono{y}. If \mono{y} is a scalar, then the index, \mono{i}, of the element to set must also be specified." method="populate" />
-       <method description="Create the object with $x$-values spanning the range \mono{xMinimum} to \mono{xMaximum} in \mono{xCount} steps, and with \mono{tableCount} tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
+       <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, and with ``tableCount`` tables." method="create" />
      </methods>
      !!]
      procedure :: create                            => Table_2DLogLogLin_Create

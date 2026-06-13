@@ -62,7 +62,7 @@
      type            (table1DLogarithmicLinear                          )          :: densityMeanTable
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]

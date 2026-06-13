@@ -49,7 +49,7 @@
           &              massAtTruncation     , massTotal_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="truncationFunction" description="Compute the truncation fraction (and related quantities) from the radius."/>
      </methods>
      !!]

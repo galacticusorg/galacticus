@@ -60,10 +60,10 @@
      double precision                                   , allocatable, dimension(:,:) :: distributionTable
    contains
      !![
-     <methods>
-       <method description="Return the spin distribution function averaged over all halos above the given \mono{massLimit}." method="distributionAveraged" />
+     <methods docformat="rst">
+       <method description="Return the spin distribution function averaged over all halos above the given ``massLimit``." method="distributionAveraged" />
        <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
-       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the \mono{massRequired} and \mono{spinRequireed} if provided." method="tabulate" />
+       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the ``massRequired`` and ``spinRequireed`` if provided." method="tabulate" />
      </methods>
      !!]
      final     ::                           nbodyErrorsDestructor

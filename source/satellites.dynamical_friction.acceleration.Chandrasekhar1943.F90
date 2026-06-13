@@ -50,8 +50,8 @@
      double precision                                     :: logarithmCoulomb
    contains
      !![
-     <methods>
-       <method description="Compute the Coulomb logarithm, $\log \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} dynamical friction equation." method="coulombLogarithm" />
+     <methods docformat="rst">
+       <method description="Compute the Coulomb logarithm, :math:`\log \Lambda`, appearing in the :cite:t:`chandrasekhar_dynamical_1943` dynamical friction equation." method="coulombLogarithm" />
      </methods>
      !!]
      final     ::                     chandrasekhar1943Destructor
