@@ -52,8 +52,8 @@ bibtex_bibfiles = ['../doc/Galacticus.bib']
 bibtex_default_style = 'plain'
 bibtex_reference_style = 'author_year_round'
 
-# Custom math macros mirroring those defined in ``doc/commands.tex`` so the
-# embedded equations render identically under MathJax.
+# Custom math macros (formerly defined in the retired ``doc/commands.tex``) so
+# the embedded equations render identically under MathJax.
 mathjax3_config = {
     'tex': {
         'macros': {
