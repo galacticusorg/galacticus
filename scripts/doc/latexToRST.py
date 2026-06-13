@@ -200,13 +200,36 @@ _VERBATIM_ENVS     = ('verbatim', 'lstlisting')
 # Simple, argument-less text replacements applied late (outside math/literals).
 _SYMBOL_REPLACEMENTS = [
     (r'\textgreater', '>'), (r'\textless', '<'),
+    (r'\textbrokenbar', '¦'),
+    (r'\textasteriskcentered', '*'),
+    (r'\newline', ' '),
     (r'\textbackslash', '\\'),
     (r'\textasciitilde', '~'),
+    (r'\LaTeX', 'LaTeX'), (r'\TeX', 'TeX'),
+    (r'\AA', 'Å'),
     (r'\ldots', '…'), (r'\dots', '…'),
     (r'\S', 'Section '),
     (r'\copyright', '©'),
     (r'\,', ' '), (r'\;', ' '), (r'\:', ' '), (r'\!', ''),
 ]
+
+
+def _apply_symbols(s: str) -> str:
+    """Apply ``_SYMBOL_REPLACEMENTS``.  For control-word macros (alphabetic
+    name) also consume the spaces LaTeX swallows after them — so
+    ``\\textless fraction`` becomes ``<fraction``, not ``< fraction`` — while
+    the trailing ``(?![A-Za-z])`` avoids clipping a longer name (e.g.
+    ``\\Sigma``).  A lambda replacement keeps ``dst`` literal (backslashes)."""
+    for src, dst in _SYMBOL_REPLACEMENTS:
+        if src[-1].isalpha():
+            # ``\cmd{}`` first (the empty group preserves the following space),
+            # then ``\cmd`` followed by the spaces LaTeX would swallow.
+            s = re.sub(re.escape(src) + r'\{\}', lambda m, d=dst: d, s)
+            s = re.sub(re.escape(src) + r'(?![A-Za-z])[ \t]*',
+                       lambda m, d=dst: d, s)
+        else:
+            s = s.replace(src, dst)
+    return s
 
 _ESCAPE_REPLACEMENTS = [
     (r'\%', '%'), (r'\_', '_'), (r'\&', '&'), (r'\#', '#'),
@@ -454,6 +477,41 @@ def _sanitize_label(name: str) -> str:
     ``table:`` prefix is kept so equation/figure/table namespaces stay distinct;
     the original keys are already globally unique."""
     return re.sub(r'[^A-Za-z0-9]+', '-', name.strip()).strip('-')
+
+
+# Sectioning commands -> a fixed RST underline character per level.  (Heading
+# levels in RST are by order of first appearance; a consistent char per level
+# keeps the hierarchy stable across a document.)
+_SECTION_LEVELS = {
+    'chapter': '=', 'section': '-', 'subsection': '~',
+    'subsubsection': '^', 'paragraph': '"',
+}
+_SECTION_RE = re.compile(r'\\(' + '|'.join(_SECTION_LEVELS) + r')\*?\s*\{')
+
+
+def _convert_sections(text: str, vault: '_Vault', glsmap: dict) -> str:
+    """Convert ``\\chapter``/``\\section``/… (with an optional trailing
+    ``\\label{…}``) into vaulted RST heading blocks so the prose reflow leaves
+    them intact.  The title is converted recursively, then underlined."""
+    out, i = [], 0
+    while True:
+        m = _SECTION_RE.search(text, i)
+        if not m:
+            out.append(text[i:])
+            break
+        out.append(text[i:m.start()])
+        char = _SECTION_LEVELS[m.group(1)]
+        title_raw, p = extract_braced(text, m.end() - 1)
+        target = ''
+        lm = re.match(r'[ \t]*\\label\{([^}]*)\}', text[p:])
+        if lm:
+            target = '.. _' + _sanitize_label('manual-' + lm.group(1)) + ':\n\n'
+            p += lm.end()
+        title = re.sub(r'\s+', ' ', latex_to_rst(title_raw, glsmap)).strip()
+        block = target + title + '\n' + char * max(len(title), 3)
+        out.append(vault.stash('\n\n' + block + '\n\n', block=True))
+        i = p
+    return ''.join(out)
 
 
 def _strip_float_envs(text: str, vault: '_Vault', glsmap: dict) -> str:
@@ -731,6 +789,29 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
     text = textwrap.dedent(text.replace('\r\n', '\n')).strip('\n')
     vault = _Vault()
 
+    # --- Sectioning -> RST heading blocks (vaulted) ---------------------
+    text = _convert_sections(text, vault, glsmap)
+
+    # --- Footnotes: capture bodies now (so they are not processed inline);
+    # the definitions are converted and appended at the very end. -----------
+    footnotes: list[str] = []
+
+    def _footnote_repl(text_in: str) -> str:
+        out, i = [], 0
+        while True:
+            fm = re.compile(r'\\footnote\s*\{').search(text_in, i)
+            if not fm:
+                out.append(text_in[i:])
+                break
+            body, p = extract_braced(text_in, fm.end() - 1)
+            out.append(text_in[i:fm.start()])
+            footnotes.append(body)
+            out.append(vault.stash('[#]_'))
+            i = p
+        return ''.join(out)
+
+    text = _footnote_repl(text)
+
     # --- tabular -> list-table (vaulted block) ---------------------------
     # Before float handling, so a tabular inside a ``table`` float survives.
     text = _convert_tabular(text, vault, glsmap)
@@ -806,6 +887,18 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
             return vault.stash('\n\n' + block + '\n\n', block=True)
 
         text = env_re.sub(repl_verb, text)
+
+    # \lstset{…} is listings configuration with no rendered output.
+    text = _convert_command(text, 'lstset', lambda a: '')
+    # Drop \index{…} now (brace-balanced, so a nested \mono in an index key like
+    # ``\index{foo@\mono{foo}}`` goes too) — before \mono is turned into a
+    # literal that the later, single-level drop could not reach into.
+    text = _convert_command(text, 'index', lambda a: '')
+    # \verb<delim>code<delim> -> inline literal (delimiter is any char).
+    text = re.sub(
+        r'\\verb\*?(\S)(.*?)\1',
+        lambda m: vault.stash('``' + m.group(2).replace('`', "'") + '``'),
+        text)
 
     # --- Protect inline math ---------------------------------------------
     def repl_inline(m: re.Match) -> str:
@@ -912,6 +1005,9 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         a = re.sub(r'\x00(\d+)\x00', _resolve, a)
         a = re.sub(r'\\[a-zA-Z]+\*?\s*\{([^{}]*)\}', r'\1', a)
         a = _FONT_DECL_RE.sub('', a)
+        # Resolve bare symbol macros (e.g. \textless inside \mono{<fraction>}),
+        # which the brace-flatten above leaves untouched.
+        a = _apply_symbols(a)
         for src, dst in _ESCAPE_REPLACEMENTS:
             a = a.replace(src, dst)
         return vault.stash('``' + a.replace('`', "'").strip() + '``')
@@ -969,8 +1065,8 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         text = _convert_command(text, cmd, refclass_repl)
 
     # \ref{eq:…} -> ``:eq:`` (equation number); \ref{fig:…}/\ref{tb:…}/
-    # \ref{table:…} -> ``:numref:`` ("Fig. N"/"Table N"); others (e.g. \ref{sec:…}
-    # into the PDF manuals) are dropped.
+    # \ref{table:…} -> ``:numref:`` ("Fig. N"/"Table N"); \ref{sec:…} -> ``:ref:``
+    # to the manual section anchor; others are dropped.
     def ref_repl(a: str) -> str:
         # The source prose already supplies the leading word ("Table~\ref{…}",
         # "Figure~\ref{…}"), so ``:numref:`` emits just the number ("{number}")
@@ -980,9 +1076,21 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
             return vault.stash(':eq:`' + _sanitize_label(key) + '`')
         if re.match(r'(?:fig|tb|table):', key):
             return vault.stash(':numref:`{number} <' + _sanitize_label(key) + '>`')
+        if key.startswith('sec:'):
+            return vault.stash(':ref:`' + _sanitize_label('manual-' + key) + '`')
         return ''
 
-    text = _convert_command(text, 'label', lambda a: '')
+    # A leftover \label (one not consumed by a heading or a math/figure env);
+    # keep ``sec:`` ones as targets so cross-references still resolve.
+    def label_repl(a: str) -> str:
+        key = a.strip()
+        if key.startswith('sec:'):
+            return vault.stash(
+                '\n\n.. _' + _sanitize_label('manual-' + key) + ':\n\n',
+                block=True)
+        return ''
+
+    text = _convert_command(text, 'label', label_repl)
     text = _convert_command(text, 'ref', ref_repl)
     text = _convert_command(text, 'pageref', lambda a: '')
     text = _convert_command(text, 'index', lambda a: '')
@@ -1002,15 +1110,18 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         text = _FONT_GROUP_RE.sub(lambda m: m.group(1), text)
     text = _FONT_DECL_RE.sub('', text)
 
+    # --- Symbols ---------------------------------------------------------
+    # Before brace-stripping so a macro's empty group (``\LaTeX{} at`` — used to
+    # protect the following space) is handled, not silently dropped.
+    text = _apply_symbols(text)
+
     # --- Strip leftover LaTeX grouping braces ----------------------------
     # Any ``{`` / ``}`` still present are LaTeX grouping (e.g. ``{\glspl{x}}``);
     # they have no RST meaning and would break adjacent roles.  Escaped braces
     # (``\{`` / ``\}``) are preserved here and turned into literals just below.
     text = re.sub(r'(?<!\\)[{}]', '', text)
 
-    # --- Symbols and escapes ---------------------------------------------
-    for src, dst in _SYMBOL_REPLACEMENTS:
-        text = text.replace(src, dst)
+    # --- Escapes ---------------------------------------------------------
     # LaTeX quotes -> straight quotes.
     text = text.replace('``', '"').replace("''", '"')
     # Non-breaking space and explicit spaces.
@@ -1023,6 +1134,14 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
 
     # --- Finalise figures (caption now converted) ------------------------
     text = _finalise_figures(text)
+
+    # --- Footnote definitions (auto-numbered, matched to ``[#]_`` in order) -
+    if footnotes:
+        defs = '\n'.join(
+            '.. [#] ' + re.sub(r'\s*\n\s*', ' ',
+                               latex_to_rst(b, glsmap)).strip()
+            for b in footnotes)
+        text = text.rstrip('\n') + '\n\n' + defs + '\n'
 
     # --- Tidy whitespace --------------------------------------------------
     text = re.sub(r'[ \t]+\n', '\n', text)
