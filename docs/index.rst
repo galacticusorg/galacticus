@@ -7,7 +7,15 @@ generated directly from the documentation embedded in the source code.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
+   :caption: Guides
+
+   manuals/user-guide/index
+   manuals/developer-guide/index
+   manuals/physics/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
 
    physics/index
    modules

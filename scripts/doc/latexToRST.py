@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import re
 import textwrap
+import unicodedata
 
 
 # ===========================================================================
@@ -210,8 +211,32 @@ _SYMBOL_REPLACEMENTS = [
     (r'\ldots', '…'), (r'\dots', '…'),
     (r'\S', 'Section '),
     (r'\copyright', '©'),
+    # Standalone letter macros.
+    (r'\ss', 'ß'), (r'\ae', 'æ'), (r'\AE', 'Æ'), (r'\oe', 'œ'), (r'\OE', 'Œ'),
+    (r'\aa', 'å'), (r'\o', 'ø'), (r'\O', 'Ø'), (r'\l', 'ł'), (r'\L', 'Ł'),
+    (r'\i', 'ı'), (r'\j', 'ȷ'),
+    (r'\hfill', ''),
     (r'\,', ' '), (r'\;', ' '), (r'\:', ' '), (r'\!', ''),
 ]
+
+# LaTeX accent commands -> Unicode combining marks (composed via NFC).  Both the
+# symbol forms (\"o, \'e, \`a, \^o, \~n, \=o, \.o) and the letter-command forms
+# (\c c, \v s, \H o, …), each accepting an optional braced argument.
+_ACCENT_COMBINING = {
+    '"': '̈', "'": '́', '`': '̀', '^': '̂',
+    '~': '̃', '=': '̄', '.': '̇',
+    'c': '̧', 'v': '̌', 'u': '̆', 'H': '̋',
+    'k': '̨', 'r': '̊', 'd': '̣', 'b': '̱',
+}
+_ACCENT_SYMBOL_RE = re.compile(r'\\(["\'`^~=.])\s*(?:\{([A-Za-z])\}|([A-Za-z]))')
+_ACCENT_LETTER_RE = re.compile(r'\\([cvuHkrdb])(?:\{([A-Za-z])\}|\s+([A-Za-z])\b)')
+
+
+def _apply_accents(s: str) -> str:
+    def repl(m: re.Match) -> str:
+        comb = _ACCENT_COMBINING[m.group(1)]
+        return unicodedata.normalize('NFC', (m.group(2) or m.group(3)) + comb)
+    return _ACCENT_LETTER_RE.sub(repl, _ACCENT_SYMBOL_RE.sub(repl, s))
 
 
 def _apply_symbols(s: str) -> str:
@@ -220,6 +245,7 @@ def _apply_symbols(s: str) -> str:
     ``\\textless fraction`` becomes ``<fraction``, not ``< fraction`` — while
     the trailing ``(?![A-Za-z])`` avoids clipping a longer name (e.g.
     ``\\Sigma``).  A lambda replacement keeps ``dst`` literal (backslashes)."""
+    s = _apply_accents(s)
     for src, dst in _SYMBOL_REPLACEMENTS:
         if src[-1].isalpha():
             # ``\cmd{}`` first (the empty group preserves the following space),
@@ -503,7 +529,11 @@ def _convert_sections(text: str, vault: '_Vault', glsmap: dict) -> str:
         char = _SECTION_LEVELS[m.group(1)]
         title_raw, p = extract_braced(text, m.end() - 1)
         target = ''
-        lm = re.match(r'[ \t]*\\label\{([^}]*)\}', text[p:])
+        # The \label may sit after \index/\hyperdef/\hypertarget noise that
+        # commonly follows a heading; skip those to find it.
+        lm = re.match(
+            r'(?:\s*\\(?:index|hyperdef|hypertarget)\b(?:\{[^{}]*\})*)*'
+            r'\s*\\label\{([^}]*)\}', text[p:])
         if lm:
             target = '.. _' + _sanitize_label('manual-' + lm.group(1)) + ':\n\n'
             p += lm.end()
@@ -546,9 +576,20 @@ def _strip_float_envs(text: str, vault: '_Vault', glsmap: dict) -> str:
             im = re.search(r'\\includegraphics(?:\[[^\]]*\])?\s*\{', inner)
             if im:
                 image, _ = extract_braced(inner, im.end() - 1)
+            vm = re.search(r'\\begin\{verbatim\}(.*?)\\end\{verbatim\}',
+                           inner, re.DOTALL)
             if image.strip():
                 replacement = (f'\n\n@@FIGURE@@{image.strip()}@@{name}@@'
                                f'\n\n{caption}\n\n')
+            elif vm and name:
+                # An imageless figure wrapping a verbatim block (e.g. an ASCII
+                # diagram): render as a captioned, named code-block so it is
+                # numbered and ``:numref:``-referenceable.
+                cap = _conv_cell(caption, glsmap) if caption else ''
+                block = ('.. code-block:: none\n   :name: ' + name
+                         + (('\n   :caption: ' + cap) if cap else '')
+                         + '\n\n' + textwrap.indent(vm.group(1).strip('\n'), '   '))
+                replacement = vault.stash('\n\n' + block + '\n\n', block=True)
             else:
                 replacement = f'\n\n{caption}\n\n' if caption else '\n\n'
             text = text[:b.start()] + replacement + text[e.end():]
@@ -1052,6 +1093,23 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         return ''.join(out)
 
     text = glslink_repl(text)
+    # \hyperlink{target}{shown text} -> keep the shown text (the PDF-internal
+    # targets, e.g. into the dropped source documentation, do not exist on RTD).
+    def hyperlink_repl(text_in: str) -> str:
+        out, i = [], 0
+        while True:
+            j = text_in.find('\\hyperlink', i)
+            if j == -1:
+                out.append(text_in[i:])
+                break
+            _, p = _take_arg(text_in, j + len('\\hyperlink'))
+            shown, q = _take_arg(text_in, p)
+            out.append(text_in[i:j])
+            out.append(shown if shown is not None else '')
+            i = q if shown is not None else j + len('\\hyperlink')
+        return ''.join(out)
+
+    text = hyperlink_repl(text)
 
     # --- Cross references ------------------------------------------------
     # \refClass/\refPhysics -> a custom role resolved at build time to a link to
@@ -1077,7 +1135,10 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         if re.match(r'(?:fig|tb|table):', key):
             return vault.stash(':numref:`{number} <' + _sanitize_label(key) + '>`')
         if key.startswith('sec:'):
-            return vault.stash(':ref:`' + _sanitize_label('manual-' + key) + '`')
+            # Custom role: resolves to the manual section (anchor manual-sec-…),
+            # else degrades to readable plain text — some source \ref{sec:…} are
+            # dangling in the original LaTeX too.
+            return vault.stash(':galacticus-ref:`' + key[4:] + '`')
         return ''
 
     # A leftover \label (one not consumed by a heading or a math/figure env);

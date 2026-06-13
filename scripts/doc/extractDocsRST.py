@@ -498,7 +498,7 @@ def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
 def render_physics_index(families: dict, implementations: dict) -> str:
     fams = sorted((f for f in families if f in implementations),
                   key=lambda f: families[f].get('descriptiveName', f).lower())
-    out = [_heading('Physics', '='),
+    out = [_heading('Physics Classes', '='),
            'Documentation for each pluggable physics class, generated from the '
            'source code.\n',
            '.. toctree::\n   :maxdepth: 1\n']

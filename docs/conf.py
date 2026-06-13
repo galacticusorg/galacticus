@@ -6,6 +6,7 @@ from the RST docstrings embedded in the Fortran source.
 """
 import dataclasses
 import datetime
+import re
 
 from docutils import nodes
 from sphinx import addnodes
@@ -117,7 +118,48 @@ def _resolve_galacticus_class(app, env, node, contnode):
     return contnode      # no page for this class: leave the inline code as-is
 
 
+# --- ``:galacticus-ref:`` role ---------------------------------------------
+# Converted from \ref{sec:…} in the manuals.  Resolves to that section (using
+# its real title), or — for the few \ref{sec:…} that are dangling in the source
+# LaTeX too — degrades to readable text derived from the label, with no warning.
+def _decamel(name: str) -> str:
+    s = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', name)
+    s = re.sub(r'[\s:_-]+', ' ', s).strip()
+    return s[:1].upper() + s[1:] if s else s
+
+
+class _GalacticusRefRole(SphinxRole):
+    def run(self):
+        name = self.text.strip()
+        slug = re.sub(r'[^A-Za-z0-9]+', '-',
+                      'manual-sec-' + name).strip('-').lower()
+        display = _decamel(name)
+        node = addnodes.pending_xref(
+            '', refdomain='', reftype='galacticus-ref', reftarget=slug,
+            refexplicit=True, refwarn=False)
+        node += nodes.inline(display, display)
+        return [node], []
+
+
+def _resolve_galacticus_ref(app, env, node, contnode):
+    if node.get('reftype') != 'galacticus-ref':
+        return None
+    std = env.get_domain('std')
+    target = node['reftarget']
+    fromdoc = node.get('refdoc', env.docname)
+    if target in std.labels:                      # section target: use its title
+        docname, labelid, title = std.labels[target]
+        return make_refnode(app.builder, fromdoc, docname, labelid,
+                            nodes.inline(title, title), title)
+    if target in std.anonlabels:                  # bare target: keep our text
+        docname, labelid = std.anonlabels[target]
+        return make_refnode(app.builder, fromdoc, docname, labelid, contnode)
+    return contnode                               # dangling in source: plain text
+
+
 def setup(app):
     app.add_role('galacticus-class', _GalacticusClassRole())
+    app.add_role('galacticus-ref', _GalacticusRefRole())
     app.connect('missing-reference', _resolve_galacticus_class)
+    app.connect('missing-reference', _resolve_galacticus_ref)
     return {'parallel_read_safe': True, 'parallel_write_safe': True}
