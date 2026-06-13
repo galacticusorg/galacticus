@@ -196,7 +196,7 @@ contains
     !!{
     Compute the first and second order perturbations to the energy. The optional \mono{densityLogSlope} and
     \mono{velocityDispersion1D} arguments return intermediate quantities used to compute the second-order term, allowing callers
-    (e.g.\ \refPhysics{massDistributionHeatingTidal:specificEnergyGradient}) to avoid recomputing them.
+    (e.g.\ \mono{specificEnergyGradient()}) to avoid recomputing them.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
