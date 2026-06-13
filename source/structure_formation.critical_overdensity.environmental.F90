@@ -260,7 +260,12 @@ contains
     !!}
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    environmentalIsTreeDependent=self%haloEnvironment_%isTreeDependent()
+    ! The value (and gradient) functions always access the base node of the host tree (to compare its mass to the environment
+    ! mass scale), so this critical overdensity is always dependent on the host tree, irrespective of whether the underlying
+    ! halo environment is itself tree dependent. Reporting this correctly ensures that the `node` object is made available to
+    ! the value function (e.g. when tabulating the time of collapse), avoiding a dereference of an undefined `node` pointer.
+    environmentalIsTreeDependent=.true.
     return
   end function environmentalIsTreeDependent
