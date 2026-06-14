@@ -26,10 +26,10 @@ module Merger_Tree_Outputter_Buffer_Types
   Provides buffer types for merger tree outputters.
   !!}
   use :: Kind_Numbers      , only : kind_int8
-  use :: Hashes            , only : doubleHash    , rank1DoubleHash
-  use :: IO_HDF5           , only : hdf5VarDouble , hdf5VarDouble2D, hdf5VarInteger8
+  use :: Dictionaries      , only : doubleDictionary, rank1DoubleDictionary
+  use :: IO_HDF5           , only : hdf5VarDouble   , hdf5VarDouble2D      , hdf5VarInteger8
   use :: ISO_Varying_String, only : varying_string
-  use :: Units_MetaData      , only : unitType
+  use :: Units_MetaData    , only : unitType
   public
 
   ! Maximum length of names and comments.
@@ -41,8 +41,8 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
-     type            (doubleHash                  ), allocatable                 :: metaDataRank0
-     type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
+     type            (doubleDictionary            ), allocatable                 :: metaDataRank0
+     type            (rank1DoubleDictionary       ), allocatable                 :: metaDataRank1
      type            (unitType                    )                              :: units
      integer         (kind_int8                   ), allocatable, dimension(:  ) :: scalar
      integer         (kind_int8                   ), allocatable, dimension(:,:) :: rank1
@@ -56,8 +56,8 @@ module Merger_Tree_Outputter_Buffer_Types
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
-     type            (doubleHash                  ), allocatable                 :: metaDataRank0
-     type            (rank1DoubleHash             ), allocatable                 :: metaDataRank1
+     type            (doubleDictionary            ), allocatable                 :: metaDataRank0
+     type            (rank1DoubleDictionary       ), allocatable                 :: metaDataRank1
      type            (unitType                    )                              :: units
      double precision                              , allocatable, dimension(:  ) :: scalar
      double precision                              , allocatable, dimension(:,:) :: rank1
