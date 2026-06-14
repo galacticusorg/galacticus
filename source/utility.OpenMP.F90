@@ -40,7 +40,6 @@ contains
     use :: Output_HDF5          , only : outputFile
     use :: HDF5_Access          , only : hdf5Access
     use :: IO_HDF5              , only : hdf5Object
-    use :: ISO_Varying_String   , only : varying_string         , var_str
     use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime, criticalSectionCount
     use :: Units_MetaData       , only : unitType
 #endif
@@ -59,10 +58,6 @@ contains
     call waitTimeGroup%writeDataset(criticalSectionNames   ,"criticalSectionNames"    ,"Names of OpenMP critical sections"                                                   )
     call waitTimeGroup%writeDataset(criticalSectionWaitTime,"criticalSectionWaitTimes","Total time spent waiting at OpenMP critical sections",datasetReturned=waitTimeDataset)
     call waitTimeDataset%writeAttribute(unitType(1.0d0,"seconds","s"),"units")
-    call waitTimeDataset%close()
-    ! Close output groups.
-    call waitTimeGroup%close()
-    call metaDataGroup%close()
     !$ call hdf5Access%unset()
 #endif
     return
