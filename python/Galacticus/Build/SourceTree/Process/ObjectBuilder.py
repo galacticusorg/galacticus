@@ -194,7 +194,9 @@ def _handle_object_builder(node, state_storables, function_classes):
             "      select type (genericObject)\n"
             f"      class is ({directive['class']}Class)\n"
             f"         if (associated(parametersCurrent,{directive['source']}%parent)) "
-            f"call Error_Report('recursive build of [{directive['class']}] class detected'//{loc_expr})\n"
+            f"call Error_Report('a [{directive['class']}] composites a member of its own class but no such "
+            f"[{directive['class']}] was provided explicitly - this would lead to an infinite recursive build; "
+            f"provide a [{directive['class']}] explicitly (see issue 397)'//{loc_expr})\n"
             "      end select\n"
         )
 
