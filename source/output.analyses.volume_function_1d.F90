@@ -136,9 +136,11 @@ mass function) output analysis class.
    contains
      !![
      <methods>
-       <method description="Return the results of the volume function operator." method="results"         />
-       <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
-       <method description="Activate/deactivate reporting."                      method="setReporting"    />
+       <method description="Return the results of the volume function operator." method="results"           />
+       <method description="Finalize the analysis of this function."             method="finalizeAnalysis"  />
+       <method description="Activate/deactivate reporting."                      method="setReporting"      />
+       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class {\normalfont \ttfamily logLikelihood} method." method="logLikelihoodWrite"/>
+       <method description="Write class-specific metadata to the analysis output group. The default implementation does nothing; child classes may override it to add further attributes or datasets." method="metadataWrite"/>
      </methods>
      !!]
      final     ::                     volumeFunction1DDestructor
@@ -149,6 +151,8 @@ mass function) output analysis class.
      procedure :: logLikelihood    => volumeFunction1DLogLikelihood
      procedure :: finalizeAnalysis => volumeFunction1DFinalizeAnalysis
      procedure :: setReporting     => volumeFunction1DSetReporting
+     procedure :: logLikelihoodWrite => volumeFunction1DLogLikelihoodWrite
+     procedure :: metadataWrite      => volumeFunction1DMetadataWrite
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
@@ -848,18 +852,55 @@ contains
     call    dataset      %writeAttribute(unitType(self%distributionUnitsInSI   ,description=     char(self%distributionUnits)      ,quantity=     char(self%distributionQuantity)       ,isComoving=self%distributionIsComoving),'units')
     call    analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance"     ,char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
     call    dataset      %writeAttribute(unitType(self%distributionUnitsInSI**2,description="["//char(self%distributionUnits)//"]²",quantity="("//char(self%distributionQuantity)//")^2",isComoving=self%distributionIsComoving),'units')
-    ! If available, include the log-likelihood and target dataset.
+    ! Write the log-likelihood. This is delegated to the "logLikelihoodWrite" method so that child classes which compute their
+    ! own log-likelihood can override it, and thereby avoid evaluating the (possibly invalid) parent-class "logLikelihood"
+    ! method.
+    call self%logLikelihoodWrite(analysisGroup)
+    ! If available, include the target dataset.
     if (self%targetData_%hasTarget()) then
-       call analysisGroup%writeAttribute(          self%logLikelihood()                              ,'logLikelihood'                                                                                                    )
        call analysisGroup%writeAttribute(     char(self%targetData_%targetLabel)                     ,'targetLabel'                                                                                                      )
        call analysisGroup%writeDataset  (          self%targetData_%valueTarget                      ,char(self%distributionLabel)//"Target"          ,char(self%distributionComment)                 ,datasetReturned=dataset)
        call dataset      %writeAttribute(unitType(self%distributionUnitsInSI   ,description=     char(self%distributionUnits)      ,quantity=     char(self%distributionQuantity)       ,isComoving=self%distributionIsComoving),'units')
        call analysisGroup%writeDataset  (          self%targetData_%covarianceTarget                 ,char(self%distributionLabel)//"CovarianceTarget",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
        call dataset      %writeAttribute(unitType(self%distributionUnitsInSI**2,description="["//char(self%distributionUnits)//"]²",quantity="("//char(self%distributionQuantity)//")^2",isComoving=self%distributionIsComoving),'units')
     end if
+    ! Write any class-specific metadata.
+    call self%metadataWrite(analysisGroup)
     !$ call hdf5Access%unset()
     return
   end subroutine volumeFunction1DFinalize
+
+  subroutine volumeFunction1DLogLikelihoodWrite(self,analysisGroup)
+    !!{
+    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood
+    returned by the \refClass{outputAnalysisVolumeFunction1D} {\normalfont \ttfamily logLikelihood} method whenever a target
+    dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the
+    covariance matrix used by the default {\normalfont \ttfamily logLikelihood} method) should override this method so that the
+    parent-class {\normalfont \ttfamily logLikelihood} is never evaluated.
+    !!}
+    use :: IO_HDF5, only : hdf5Object
+    implicit none
+    class(outputAnalysisVolumeFunction1D), intent(inout) :: self
+    type (hdf5Object                    ), intent(inout) :: analysisGroup
+
+    if (self%targetData_%hasTarget()) &
+         & call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
+    return
+  end subroutine volumeFunction1DLogLikelihoodWrite
+
+  subroutine volumeFunction1DMetadataWrite(self,analysisGroup)
+    !!{
+    Write class-specific metadata to the analysis output group. This default implementation does nothing; child classes may
+    override it to add further attributes or datasets to the analysis group.
+    !!}
+    use :: IO_HDF5, only : hdf5Object
+    implicit none
+    class(outputAnalysisVolumeFunction1D), intent(inout) :: self
+    type (hdf5Object                    ), intent(inout) :: analysisGroup
+    !$GLC attributes unused :: self, analysisGroup
+
+    return
+  end subroutine volumeFunction1DMetadataWrite
 
   subroutine volumeFunction1DFinalizeAnalysis(self)
     !!{

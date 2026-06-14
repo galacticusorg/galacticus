@@ -71,8 +71,9 @@
      procedure :: newTree          => progenitorMassFunctionNewTree
      procedure :: reduce           => progenitorMassFunctionReduce
      procedure :: finalizeAnalysis => progenitorMassFunctionFinalizeAnalysis
-     procedure :: finalize         => progenitorMassFunctionFinalize
-     procedure :: logLikelihood    => progenitorMassFunctionLogLikelihood
+     procedure :: logLikelihood      => progenitorMassFunctionLogLikelihood
+     procedure :: logLikelihoodWrite => progenitorMassFunctionLogLikelihoodWrite
+     procedure :: metadataWrite      => progenitorMassFunctionMetadataWrite
   end type outputAnalysisProgenitorMassFunction
 
   interface outputAnalysisProgenitorMassFunction
@@ -951,42 +952,40 @@ contains
     return
   end subroutine progenitorMassFunctionFinalizeAnalysis
 
-  subroutine progenitorMassFunctionFinalize(self,groupName)
+  subroutine progenitorMassFunctionLogLikelihoodWrite(self,analysisGroup)
     !!{
-    Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
+    Write the log-likelihood of the progenitor mass function to the output group. This overrides the
+    \refClass{outputAnalysisVolumeFunction1D} default so that our own {\normalfont \ttfamily logLikelihood} method is used, and
+    the parent-class {\normalfont \ttfamily logLikelihood} method (which requires a covariance matrix that we do not construct)
+    is never evaluated.
     !!}
-    use :: Output_HDF5, only : outputFile
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5, only : hdf5Object
     implicit none
-    class(outputAnalysisProgenitorMassFunction), intent(inout)           :: self
-    type (varying_string                      ), intent(in   ), optional :: groupName
-    type (hdf5Object                          )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                          )               , pointer  :: inGroup
-    type (hdf5Object                          )                          :: analysisGroup
+    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+    type (hdf5Object                          ), intent(inout) :: analysisGroup
 
-    call self                               %finalizeAnalysis(         )
-    call self%outputAnalysisVolumeFunction1D%finalize        (groupName)
-    ! Add attributes giving the range of mass ratios considered. Also re-write the log-likelihood attribute here as it will have
-    ! been written as part of the "outputAnalysisVolumeFunction1D" parent class, but we need to do our own calculation.    
-    !$ call hdf5Access%set()
-    analysesGroup =  outputFile   %openGroup('analyses'     )
-    inGroup       => analysesGroup
-    if (present(groupName)) then
-       subGroup   =  analysesGroup%openGroup(char(groupName))
-       inGroup    => subGroup
-    end if
-    analysisGroup=analysesGroup%openGroup(char(self%label),char(self%comment))
-    call analysisGroup%writeAttribute(self%logLikelihood             (),'logLikelihood'             )
-    call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum  ,'massRatioLikelihoodMinimum')
-    call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum  ,'massRatioLikelihoodMaximum')
-    call analysisGroup%writeAttribute(self%massParentMinimum           ,'massParentMinimum'         )
-    call analysisGroup%writeAttribute(self%massParentMaximum           ,'massParentMaximum'         )
-    call analysisGroup%writeAttribute(self%redshiftParent              ,'redshiftParent'            )
-    call analysisGroup%writeAttribute(self%redshiftProgenitor          ,'redshiftProgenitor'        )
-    !$ call hdf5Access%unset()
+    call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
     return
-  end subroutine progenitorMassFunctionFinalize
+  end subroutine progenitorMassFunctionLogLikelihoodWrite
+
+  subroutine progenitorMassFunctionMetadataWrite(self,analysisGroup)
+    !!{
+    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent
+    mass considered, together with the parent and progenitor redshifts.
+    !!}
+    use :: IO_HDF5, only : hdf5Object
+    implicit none
+    class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
+    type (hdf5Object                          ), intent(inout) :: analysisGroup
+
+    call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum,'massRatioLikelihoodMinimum')
+    call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum,'massRatioLikelihoodMaximum')
+    call analysisGroup%writeAttribute(self%massParentMinimum         ,'massParentMinimum'         )
+    call analysisGroup%writeAttribute(self%massParentMaximum         ,'massParentMaximum'         )
+    call analysisGroup%writeAttribute(self%redshiftParent            ,'redshiftParent'            )
+    call analysisGroup%writeAttribute(self%redshiftProgenitor        ,'redshiftProgenitor'        )
+    return
+  end subroutine progenitorMassFunctionMetadataWrite
 
   double precision function progenitorMassFunctionLogLikelihood(self)
     !!{
