@@ -225,10 +225,6 @@ def main():
 
     simulations = parse_simulations_xml(options['pipelinePath'] + 'simulations.xml')
 
-    # Perl: force re-run when --select is given.
-    if options.get('select') is not None:
-        options['force'] = 'yes'
-
     # Build full entry list and attach derived file paths.
     entries = iterate(simulations, options)
     for entry in entries:
