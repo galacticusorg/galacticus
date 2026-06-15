@@ -5442,7 +5442,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -5733,7 +5733,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6021,7 +6021,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6312,7 +6312,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7213,7 +7213,7 @@ attributeValue=trim(attributeValue)
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, size_t              , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f     , h5dread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -7309,7 +7309,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7535,7 +7535,7 @@ attributeValue=trim(attributeValue)
     ! Read the dataset.
     allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7582,7 +7582,7 @@ attributeValue=trim(attributeValue)
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, size_t
+          &                                      h5sselect_hyperslab_f, size_t                , h5dread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -7678,7 +7678,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7902,7 +7902,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7947,7 +7947,7 @@ attributeValue=trim(attributeValue)
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, size_t
+          &                                      h5sselect_hyperslab_f, size_t                , h5dread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8045,7 +8045,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8274,7 +8274,7 @@ attributeValue=trim(attributeValue)
     ! Read the dataset.
     allocate(datasetValueContiguous,mold=datasetValue)
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8321,7 +8321,7 @@ attributeValue=trim(attributeValue)
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, size_t
+          &                                      h5sselect_hyperslab_f, size_t                , h5dread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8418,7 +8418,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8646,7 +8646,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -8691,7 +8691,7 @@ attributeValue=trim(attributeValue)
           &                                      H5T_STD_REF_DSETREG  , HID_T                 , HSIZE_T                    , h5dclose_f          , &
           &                                      h5dget_space_f       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
           &                                      h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-          &                                      h5sselect_hyperslab_f, size_t
+          &                                      h5sselect_hyperslab_f, size_t                , h5dread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , operator(//)          , trim
     implicit none
@@ -8789,7 +8789,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -9021,7 +9021,7 @@ attributeValue=trim(attributeValue)
 
     ! Read the dataset.
     dataBuffer=c_loc(datasetValue)
-    errorCode=h5dread(datasetObject%objectID,H5T_INTEGER8,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -9327,7 +9327,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -9699,7 +9699,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -10244,7 +10244,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -10615,7 +10615,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -11155,7 +11155,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -11445,7 +11445,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -11913,7 +11913,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -12203,7 +12203,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -12671,7 +12671,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -12960,7 +12960,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -13428,7 +13428,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -13717,7 +13717,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -14218,7 +14218,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -14523,7 +14523,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -15057,7 +15057,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -15438,7 +15438,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -15822,7 +15822,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16737,7 +16737,7 @@ attributeValue=trim(attributeValue)
        isReference=.true.
        ! It is, so read the reference.
        dataBuffer=c_loc(referencedRegion)
-       errorCode=h5dread(datasetObject%objectID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
        if (errorCode /= 0) then
           message="unable to read reference in dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
