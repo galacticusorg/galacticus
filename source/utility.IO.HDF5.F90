@@ -386,16 +386,9 @@ module IO_HDF5
   ! example, h5dread_f() can not read a scalar dataset region reference, so we are forced to go through the h5dread() C function
   ! for this purpose.
   interface
-     function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
-       !!{
-       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
-       !!}
-       import
-       integer(kind=hid_t) :: H5T_C_S1_Get
-     end function H5T_C_S1_Get
      function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
        !!{
-       Template for a C function that returns the \mono{H5T\_C\_S1} datatype ID.
+       Template for a C function that returns the \mono{H5T\_VARIABLE} value.
        !!}
        import
        integer(kind=size_t) :: H5T_Variable_Get
@@ -955,7 +948,7 @@ contains
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5T_NATIVE_CHARACTER, H5T_STR_NULLPAD_F, H5T_STR_NULLTERM_F, H5T_STR_SPACEPAD_F, &
           &                           H5Tset_strpad_f     , HID_T            , h5tcopy_f         , h5tset_size_f     , &
-          &                           size_t
+          &                           size_t              , H5T_C_S1
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
     integer(kind=HID_T    ), dimension(6)  :: IO_HDF5_Character_Types
@@ -978,7 +971,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(2),errorCode)
+    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(2),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
@@ -1008,7 +1001,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(4),errorCode)
+    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(4),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
@@ -1038,7 +1031,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(6),errorCode)
+    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(6),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
