@@ -61,6 +61,8 @@ mathjax3_config = {
             'G':      r'\mathrm{G}',
             'clight': r'\mathrm{c}',
             'e':      r'\mathrm{e}',
+            # \mono is used (rarely) inside equations in the embedded docs.
+            'mono':   [r'\texttt{#1}', 1],
         },
     },
 }

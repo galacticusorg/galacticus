@@ -212,7 +212,7 @@ for either velocity, then that system is ejected from the node. Ejected black ho
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
 *Satellite merging:* The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see :galacticus-class:`blackHoleBinaryInitialSeparation`), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected black hole binary merger model (see :galacticus-class:`blackHoleBinaryMerger`). In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see :galacticus-class:`blackHoleBinaryRecoil`), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a "null", zero mass black hole at the center of the galaxy. If any other black hole comes within a distance
 
@@ -220,9 +220,9 @@ Event Evolution
 
    a_\mathrm{h} = {\mathrm{G} M_\bullet \over 4 \sigma^2},
 
-where :math:`\sigma` is approximated to be the virial velocity of the dark matter halo, it is promoted to being the new "central" black hole of the node.\\
+where :math:`\sigma` is approximated to be the virial velocity of the dark matter halo, it is promoted to being the new "central" black hole of the node.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 Additional Output
 ^^^^^^^^^^^^^^^^^
@@ -275,11 +275,11 @@ Quasar-mode
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger model (see :galacticus-class:`blackHoleBinaryMerger`.\\
+*Satellite merging:* The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger model (see :galacticus-class:`blackHoleBinaryMerger`.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 Additional Output
 ^^^^^^^^^^^^^^^^^
@@ -327,13 +327,13 @@ where :math:`\dot{M}_\mathrm{cooling}` is the rate of mass loss from the hot hal
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* Any hot gas from the merging halo is transferred to its host halo.\\
+*Node mergers:* Any hot gas from the merging halo is transferred to its host halo.
 
-*Satellite merging:* Any hot halo of the satellite :term:`node` is added to that of the host :term:`node` and the hot halo :term:`component` removed from the satellite node.\\
+*Satellite merging:* Any hot halo of the satellite :term:`node` is added to that of the host :term:`node` and the hot halo :term:`component` removed from the satellite node.
 
-*Node promotion:* Any hot halo of the parent :term:`node` is added to that of the :term:`node` prior to promotion.\\
+*Node promotion:* Any hot halo of the parent :term:`node` is added to that of the :term:`node` prior to promotion.
 
-*Halo formation:* None.\\
+*Halo formation:* None.
 
 "Very Simple Delayed" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -366,13 +366,13 @@ where :math:`\dot{M}_\mathrm{reincorporation}` is the reincorporation rate of ou
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* Any outflowed gas from the merging halo is transferred to its host halo.\\
+*Node mergers:* Any outflowed gas from the merging halo is transferred to its host halo.
 
-*Satellite merging:* Any outflowed halo of the satellite :term:`node` is added to that of the host :term:`node` and the outflowed mass :term:`component` removed from the satellite node.\\
+*Satellite merging:* Any outflowed halo of the satellite :term:`node` is added to that of the host :term:`node` and the outflowed mass :term:`component` removed from the satellite node.
 
-*Node promotion:* Any outflowed gas of the parent :term:`node` is added to that of the :term:`node` prior to promotion.\\
+*Node promotion:* Any outflowed gas of the parent :term:`node` is added to that of the :term:`node` prior to promotion.
 
-*Halo formation:* None.\\
+*Halo formation:* None.
 
 "Standard" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -506,13 +506,13 @@ A fraction :math:`1-`\ ``[hotHaloAngularMomentumLossFraction]`` of the cooling a
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* If the ``starveSatellites`` parameter is true, then any hot halo properties of the minor :term:`node` are added to those of the major :term:`node` and the hot halo :term:`component` removed from the minor node. Additionally in this case, any material outflowed or stripped from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep. (Alternatively, if ``starveSatellitesOutflowed``\ :math:`=`\ ``true`` then only the outflowed and stripped gas is transferred to the host halo---the main hot gas reservoir is left in place.) If stripped mass is being tracked (i.e. if ``[hotHaloTrackStrippedGas]``\ :math:`=`\ ``true``) then any stripped mass is transferred from the satellite galaxy to the hot halo of the host dark matter halo after each timestep. If ``[hotHaloNodeMergerLimitBaryonFraction]``\ :math:`=`\ ``true`` then the hot gas content of the merged node is limited such that the total baryon content of the node (including satellites) does not exceed the universal baryon fraction, if possible. Any gas removed to enforce this limit is placed into the unaccreted gas reservoir, from which is may eventually be reaccreted.\\
+*Node mergers:* If the ``starveSatellites`` parameter is true, then any hot halo properties of the minor :term:`node` are added to those of the major :term:`node` and the hot halo :term:`component` removed from the minor node. Additionally in this case, any material outflowed or stripped from the the satellite galaxy to its hot halo is transferred to the hot halo of the host dark matter halo after each timestep. (Alternatively, if ``starveSatellitesOutflowed``\ :math:`=`\ ``true`` then only the outflowed and stripped gas is transferred to the host halo---the main hot gas reservoir is left in place.) If stripped mass is being tracked (i.e. if ``[hotHaloTrackStrippedGas]``\ :math:`=`\ ``true``) then any stripped mass is transferred from the satellite galaxy to the hot halo of the host dark matter halo after each timestep. If ``[hotHaloNodeMergerLimitBaryonFraction]``\ :math:`=`\ ``true`` then the hot gas content of the merged node is limited such that the total baryon content of the node (including satellites) does not exceed the universal baryon fraction, if possible. Any gas removed to enforce this limit is placed into the unaccreted gas reservoir, from which is may eventually be reaccreted.
 
-*Satellite merging:* If the ``starveSatellites`` parameter is false, then any hot halo properties of the satellite :term:`node` are added to those of the host :term:`node` and the hot halo :term:`component` removed from the satellite node.\\
+*Satellite merging:* If the ``starveSatellites`` parameter is false, then any hot halo properties of the satellite :term:`node` are added to those of the host :term:`node` and the hot halo :term:`component` removed from the satellite node.
 
-*Node promotion:* Any hot halo properties of the parent :term:`node` are added to those of the :term:`node` prior to promotion.\\
+*Node promotion:* Any hot halo properties of the parent :term:`node` are added to those of the :term:`node` prior to promotion.
 
-*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on `halo formation events <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.HaloFormationEvents>`_.\\
+*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on `halo formation events <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.HaloFormationEvents>`_.
 
 "Outflow Tracking" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -545,13 +545,13 @@ The tracked outflow masses evolve according to:
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
-*Halo formation:* None.\\
+*Halo formation:* None.
 
 Galactic Disk
 -------------
@@ -603,11 +603,11 @@ with :math:`\tau_\mathrm{disk, star~formation}` being the greater of the star fo
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None\\
+*Node mergers:* None
 
-*Satellite merging:* Disks may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).\\
+*Satellite merging:* Disks may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).
 
-*Node promotion:* None\\
+*Node promotion:* None
 
 "Very Simple Size" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -635,11 +635,11 @@ N/A---disk radii are computed using the selected galactic structure solver.
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None\\
+*Node mergers:* None
 
-*Satellite merging:* None\\
+*Satellite merging:* None
 
-*Node promotion:* None\\
+*Node promotion:* None
 
 .. _manual-sec-DiskStandard:
 
@@ -760,11 +760,11 @@ The first term in the integral for disk stellar luminosity is just the usual pro
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None\\
+*Node mergers:* None
 
-*Satellite merging:* Disks may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).\\
+*Satellite merging:* Disks may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).
 
-*Node promotion:* None\\
+*Node promotion:* None
 
 Additional Output
 ^^^^^^^^^^^^^^^^^
@@ -843,11 +843,11 @@ with :math:`\tau_\mathrm{spheroid, star~formation}` being the greater of the sta
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None\\
+*Node mergers:* None
 
-*Satellite merging:* Spheroids may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).\\
+*Satellite merging:* Spheroids may be destroyed (or, potentially, created or otherwise modified) as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see :galacticus-class:`mergerMassMovements`).
 
-*Node promotion:* None\\
+*Node promotion:* None
 
 "Standard" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -989,11 +989,11 @@ which is just the usual production of starlight due to star formation. As the fu
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None\\
+*Node mergers:* None
 
-*Satellite merging:* Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement model (see :galacticus-class:`mergerMassMovements`).\\
+*Satellite merging:* Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement model (see :galacticus-class:`mergerMassMovements`).
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 Additional Output
 ^^^^^^^^^^^^^^^^^
@@ -1042,11 +1042,11 @@ Properties are evolved according to:
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* :math:`M_\mathrm{node}` is updated to the :term:`node` mass of the parent prior to promotion.\\
+*Node promotion:* :math:`M_\mathrm{node}` is updated to the :term:`node` mass of the parent prior to promotion.
 
 "Standard Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1086,11 +1086,11 @@ where the "parent" subscript indicates a property of the parent :term:`node` in 
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* :math:`M_\mathrm{node}` is updated to the :term:`node` mass of the parent prior to promotion.\\
+*Node promotion:* :math:`M_\mathrm{node}` is updated to the :term:`node` mass of the parent prior to promotion.
 
 "Standard-Extended Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1122,11 +1122,11 @@ None.
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* The accretion rate of Bertschinger mass is set to zero.\\
+*Node mergers:* The accretion rate of Bertschinger mass is set to zero.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* :math:`\dot{M}_\mathrm{node, Bertschinger}` is updated to the :term:`node` Bertschinger accretion rate of the parent prior to promotion.\\
+*Node promotion:* :math:`\dot{M}_\mathrm{node, Bertschinger}` is updated to the :term:`node` Bertschinger accretion rate of the parent prior to promotion.
 
 .. _manual-sec-ComponentPosition:
 
@@ -1165,11 +1165,11 @@ None. Positions and velocities do not evolve for a given node. When output, if a
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* If ``positionsPresetSatelliteToHost``\ :math:`=`\ ``true`` then the position and velocity of the satellite node is set equal to that of the host node (this is useful if position data is not available for orphaned halos for example, which would otherwise remain fixed in physical coordinates at their last known position---the position/velocity will also be updated to that of the new host each time a satellite's host changes), otherwise, none.\\
+*Node mergers:* If ``positionsPresetSatelliteToHost``\ :math:`=`\ ``true`` then the position and velocity of the satellite node is set equal to that of the host node (this is useful if position data is not available for orphaned halos for example, which would otherwise remain fixed in physical coordinates at their last known position---the position/velocity will also be updated to that of the new host each time a satellite's host changes), otherwise, none.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* The position and velocity are updated to those of the parent node.\\
+*Node promotion:* The position and velocity are updated to those of the parent node.
 
 Satellite Orbit
 ---------------
@@ -1214,11 +1214,11 @@ None.
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 "Merge Time" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1304,11 +1304,11 @@ Event Evolution
    r&<&R_\mathrm{host}+R_\mathrm{satellite} \\
    M_\mathrm{node,bound}&<&f_\mathrm{d} M_\mathrm{node,basic},
 
-with :math:`R` being the node's half-mass radius, :math:`M_\mathrm{node,basic}` being the node's initial mass, and :math:`f_\mathrm{d}=`\ ``[satelliteOrbitingDestructionMassFraction]``, the node is considered merged and the time to merging is set to zero. The bound mass is set to the current total mass of the node. A virial orbit is selected using the ``virialOrbits`` (see :galacticus-class:`virialOrbit`). \\
+with :math:`R` being the node's half-mass radius, :math:`M_\mathrm{node,basic}` being the node's initial mass, and :math:`f_\mathrm{d}=`\ ``[satelliteOrbitingDestructionMassFraction]``, the node is considered merged and the time to merging is set to zero. The bound mass is set to the current total mass of the node. A virial orbit is selected using the ``virialOrbits`` (see :galacticus-class:`virialOrbit`).
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* Not applicable (component only exists for satellite nodes).\\
+*Node promotion:* Not applicable (component only exists for satellite nodes).
 
 .. _manual-sec-DarkMatterHaloSpinComponent:
 
@@ -1339,11 +1339,11 @@ The spin parameter does not evolve.
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* The spin is updated to equal that of the parent node. (The two will differ only if this is a case where the new halo :term:`node` was sufficiently more massive than the :term:`node` for which a spin was last selected that a new spin value was chosen.)\\
+*Node promotion:* The spin is updated to equal that of the parent node. (The two will differ only if this is a case where the new halo :term:`node` was sufficiently more massive than the :term:`node` for which a spin was last selected that a new spin value was chosen.)
 
 "Preset" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1372,11 +1372,11 @@ The spin parameter evolves linearly with time between :term:`node` and parent no
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* The spin and growth rate are updated to equal those of the parent node.\\
+*Node promotion:* The spin and growth rate are updated to equal those of the parent node.
 
 "Preset3D" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1407,11 +1407,11 @@ The spin parameter evolves linearly with time between :term:`node` and parent no
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* The spin vector and growth rate are updated to equal those of the parent node.\\
+*Node promotion:* The spin vector and growth rate are updated to equal those of the parent node.
 
 "Vitvitska Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1443,9 +1443,9 @@ The spin parameter does not evolve.
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
 *Node promotion:* None.
 
@@ -1485,11 +1485,11 @@ The scale radius grows linearly with time to interpolate between the scale radii
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 .. _manual-sec-DarkMatterProfileScalePreset:
 
@@ -1520,11 +1520,11 @@ The scale radius grows linearly with time to interpolate between the scale radii
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 .. _manual-sec-DarkMatterProfileScaleShape:
 
@@ -1561,11 +1561,11 @@ The scale radius and shape parameter of each node grow linearly with time to int
 Event Evolution
 ^^^^^^^^^^^^^^^
 
-*Node mergers:* None.\\
+*Node mergers:* None.
 
-*Satellite merging:* None.\\
+*Satellite merging:* None.
 
-*Node promotion:* None.\\
+*Node promotion:* None.
 
 .. [#] Specifically, the jet power multiplied by :math:`f_\mathrm{hot} [(M_\mathrm{hot}/M_\mathrm{total}) (\Omega_\mathrm{M}/\Omega_\mathrm{b})]^2` is added to the hot halo heating rate. The dependence on the gas fraction in the hot halo ensures that the heating rate goes smoothly to zero as the hot halo becomes depleted of gas.
 .. [#] Technically of the black hole plus accretion disk system.

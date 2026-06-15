@@ -19,7 +19,7 @@ Throughout the node objects builder code, Fortran variables are defined using a 
    a string specifying the intrinsic Fortran type (``integer``, ``logical``, ``real``, ``double precision``, ``complex``, ``double complex``, ``type``, ``class``, ``procedure``);
 
 ``type``
-   *[optional, except for ``type`` and ``class`` intrinsics]* a string specifying the type of the variables;
+   *[optional, except for type and class intrinsics]* a string specifying the type of the variables;
 
 ``attributes``
    a list of strings specifying all attributes of the variables;
@@ -953,42 +953,62 @@ Although not methods directly bound to the ``functionClass`` class, the followin
    ``autoHook`` Insert any event hooks required by this object.
 
    * Return type: ``void``
-   * Interface: ``()``\ \\
+   * Interface: ``()``
 
    ``deepCopy``  Perform a deep copy of the object. Here, ``<functionClassBase >`` refers to the base class of the created ``functionClass`` child.
 
    * Return type: ``void``
-   * Interface: ``(destination)``\ \\ ``class(<functionClassBase>), intent(inout) :: destination``\ \\
+   * Interface: ``(destination)``
+
+     ``class(<functionClassBase>), intent(inout) :: destination``
 
    ``deepCopyReset`` Reset deep copy pointers in this object and any objects that it uses.
 
    * Return type: ``void``
-   * Interface: ``()``\ \\
+   * Interface: ``()``
 
    ``descriptor`` Return an input parameter list descriptor which could be used to recreate this object.
 
    * Return type: ``void``
-   * Interface: ``(descriptor, includeClass)``\ \\ ``type(inputParameters), intent(inout) :: descriptor``\ \\ ``logical, intent(in   ), optional :: includeClass``\ \\
+   * Interface: ``(descriptor, includeClass)``
+
+     ``type(inputParameters), intent(inout) :: descriptor``
+
+     ``logical, intent(in   ), optional :: includeClass``
 
    ``hashedDescriptor`` Return a hash of the descriptor for this object, optionally include the source code digest in the hash.
 
    * Return type: ``type(varying_string)``
-   * Interface: ``(descriptor, includeClass)``\ \\ ``logical, intent(in   ), optional :: includeSourceDigest``\ \\
+   * Interface: ``(descriptor, includeClass)``
+
+     ``logical, intent(in   ), optional :: includeSourceDigest``
 
    ``objectType`` Return the type of the object.
 
    * Return type: ``type(varying_string)``
-   * Interface: ``()``\ \\
+   * Interface: ``()``
 
    ``stateRestore`` Restore the state of this object from file.
 
    * Return type: ``void``
-   * Interface: ``(stateFile, gslFile, stateOperationID)``\ \\ ``integer, intent(in   ) :: stateFile``\ \\ ``type(c_ptr), intent(in   ) :: gslStateFile``\ \\ ``integer(c_size_t), intent(in   ) :: stateOperationID``\ \\
+   * Interface: ``(stateFile, gslFile, stateOperationID)``
+
+     ``integer, intent(in   ) :: stateFile``
+
+     ``type(c_ptr), intent(in   ) :: gslStateFile``
+
+     ``integer(c_size_t), intent(in   ) :: stateOperationID``
 
    ``stateStore`` Store the state of this object to file.
 
    * Return type: ``void``
-   * Interface: ``(stateFile, gslFile, stateOperationID)``\ \\ ``integer, intent(in   ) :: stateFile``\ \\ ``type(c_ptr), intent(in   ) :: gslStateFile``\ \\ ``integer(c_size_t), intent(in   ) :: stateOperationID``\ \\
+   * Interface: ``(stateFile, gslFile, stateOperationID)``
+
+     ``integer, intent(in   ) :: stateFile``
+
+     ``type(c_ptr), intent(in   ) :: gslStateFile``
+
+     ``integer(c_size_t), intent(in   ) :: stateOperationID``
 
 .. [#] At this time the Galacticus code base is being transitioned to use this approach.
 .. [#] For example, Galacticus's ODE solver will fix the properties of a node and then request that derivatives of all properties be computed. Some functions will then be called multiple times for the same node with unchanged properties.

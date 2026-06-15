@@ -951,6 +951,11 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
 
     text = re.sub(r'(?<!\\)\$(.+?)(?<!\\)\$', repl_inline, text, flags=re.DOTALL)
 
+    # LaTeX forced line breaks (``\\`` / ``\\[..]``) remaining in prose become a
+    # paragraph break.  Those inside math / tabular / verbatim are already
+    # vaulted, so this only touches genuine prose line breaks.
+    text = re.sub(r'\\\\(?:\[[^\]]*\])?', '\n\n', text)
+
     # --- Reflow prose -----------------------------------------------------
     # First isolate block-level protected fragments (display math, code) onto
     # their own paragraph, stripping the surrounding spaces — otherwise the
@@ -1057,10 +1062,24 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         text = _convert_command(text, cmd, lit)
 
     # --- Emphasis ---------------------------------------------------------
+    # RST inline markup cannot nest, so a literal/math inside emphasis (e.g.
+    # ``\emph{… \mono{type} …}``) must be flattened to plain text.
+    def _flatten_inline(a: str) -> str:
+        def _r(m: re.Match) -> str:
+            val = vault.items[int(m.group(1))][0]
+            if val.startswith('``') and val.endswith('``'):
+                return val[2:-2]
+            if val.startswith(':math:`') and val.endswith('`'):
+                return _math_to_text(val[len(':math:`'):-1])
+            return val
+        return re.sub(r'\x00(\d+)\x00', _r, a)
+
     for cmd in ('emph', 'textit', 'textsl'):
-        text = _convert_command(text, cmd, lambda a: '*' + a.strip() + '*')
+        text = _convert_command(text, cmd,
+                                lambda a: '*' + _flatten_inline(a).strip() + '*')
     for cmd in ('textbf', 'textsc'):
-        text = _convert_command(text, cmd, lambda a: '**' + a.strip() + '**')
+        text = _convert_command(text, cmd,
+                                lambda a: '**' + _flatten_inline(a).strip() + '**')
     for cmd in ('textrm', 'textnormal', 'mbox', 'text'):
         text = _convert_command(text, cmd, lambda a: a)
 
