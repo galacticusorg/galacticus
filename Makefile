@@ -118,9 +118,20 @@ CPPFLAGS += -fopenmp
 # (even `dsymutil --num-threads 1` is insufficient).
 LTO ?= enabled
 ifeq '$(LTO)' 'enabled'
-FCFLAGS  += -flto=auto
-CFLAGS   += -flto=auto
-CPPFLAGS += -flto=auto
+# Use `-flto=jobserver` (not `-flto=auto`) so the parallelism of the link-time recompilation (the LTRANS
+# phase) is governed by GNU make's job server rather than by the number of CPUs the compiler detects. This
+# fixes two problems on shared/HPC nodes:
+#   1. `-flto=auto` detects *every* CPU on the node (e.g. 640) regardless of how many were requested via
+#      `make -jN` (e.g. 64), badly oversubscribing a node we only partially own.
+#   2. With `make -jN all`, many executables link simultaneously; with `-flto=auto` each link independently
+#      spawns N LTRANS jobs, so the total process count explodes (N links x N jobs).
+# The job server is a single token pool shared across the whole build, so total LTRANS parallelism is capped
+# at the `-jN` requested, no matter how many executables link at once. This requires a `+` prefix on the link
+# recipe (see the `%.exe` rule) so make exposes the job server to the compiler. With no job server present
+# (e.g. a plain `make Galacticus.exe` with no `-j`), LTO simply runs serially.
+FCFLAGS  += -flto=jobserver
+CFLAGS   += -flto=jobserver
+CPPFLAGS += -flto=jobserver
 endif
 # Detect static compilation
 STATIC=$(findstring -static,${FCFLAGS})
@@ -627,7 +638,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	fi; \
 	./scripts/build/sourceDigests.py `pwd` $*.exe $$useLocks
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
-	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+	+$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 # Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
 # scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
