@@ -287,22 +287,15 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          # Build with parallel make, backing off the level of parallelism on failure. The library build can
-          # exhaust the runner's memory when too many large source files compile concurrently. Since make is
-          # incremental, each retry resumes from the objects already built rather than starting over, so this
-          # keeps the fast path for the common case while reducing memory pressure if a parallel build fails.
-          for j in 4 3 2 1; do
-            echo "Attempting build with -j$j"
-            if make -j$j GALACTICUS_BUILD_OPTION=lib libgalacticus.so; then
-              echo "Build succeeded with -j$j"
-              break
-            fi
-            if [ "$j" -eq 1 ]; then
-              echo "Build failed even with -j1"
-              exit 1
-            fi
-            echo "Build with -j$j failed; retrying with reduced parallelism"
-          done
+          # The library build exhausts the runner's ~16 GB of memory. The dominant consumer is link-time
+          # optimization (`-flto=auto`): each gfortran spawns its own auto-scaled LTO worker pool, and `-O3`
+          # on the large generated source units can take gigabytes in a single process. A `make -j` backoff
+          # cannot help here: the OOM killer sends SIGKILL (exit 137) to the whole step process group,
+          # including the shell, so `make` never returns a catchable nonzero exit; and lowering parallelism
+          # does not bound the peak of a single oversized compile. LTO on the library is only a performance
+          # optimization (the downstream Python-interface test just needs a working libgalacticus.so), so we
+          # disable it here to cut peak memory, and cap parallelism at -j2 to limit concurrent compiles.
+          make -j2 LTO=disabled GALACTICUS_BUILD_OPTION=lib libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -1081,7 +1074,7 @@ jobs:
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
                       tests.geometry.coordinate_systems.exe,
-                      tests.hashes.exe,
+                      tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
                       tests.hashes.cryptographic.exe,

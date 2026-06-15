@@ -612,6 +612,51 @@ def model_parameter_xpath(input_doc, parameters, is_grid):
             name_node.set("value", value)
 
 
+def evaluated_parameter_xpath(input_doc, parameters, is_grid):
+    """Switch the path separator used in run-time-evaluated parameter references.
+
+    References to other parameters appear inside square brackets, both in run-time-evaluated
+    parameter values (those whose value begins with `=`, e.g. `=[mergerTreeMassResolution::massResolution]`)
+    and in conditional `active` attributes (e.g. `active="[cosmologicalMassVariance:sigma_8] == 0.912"`).
+    The path separator used to be a colon (one or more colons were treated as a single separator), but was
+    changed to the XPath standard `/`. Here we replace any run of colons inside each `[...]` reference with a
+    single `/`, leaving format specifiers (`[%s|name]`), default values (`[name|123]`), and relative-path
+    markers (`.`, `..`) intact.
+    """
+
+    def replace_separators(text):
+        # Within each `[...]` reference, replace runs of colons with the XPath separator `/`.
+        return re.sub(
+            r"\[([^\]]*)\]",
+            lambda m: "[" + re.sub(r":+", "/", m.group(1)) + "]",
+            text,
+        )
+
+    for element in parameters.xpath(".//*"):
+        # Conditional `active` attributes.
+        active = element.get("active")
+        if active is not None and "[" in active:
+            new_active = replace_separators(active)
+            if new_active != active:
+                print(f"   translate special evaluated-parameter path in 'active' attribute of '{element.tag}'")
+                element.set("active", new_active)
+        # Run-time-evaluated `value` attributes (those beginning with `=`).
+        value = element.get("value")
+        if value is not None and value.lstrip().startswith("=") and "[" in value:
+            new_value = replace_separators(value)
+            if new_value != value:
+                print(f"   translate special evaluated-parameter path in 'value' of '{element.tag}'")
+                element.set("value", new_value)
+        # Run-time-evaluated `<value>` child elements (those beginning with `=`).
+        for value_elem in element.findall("value"):
+            text = value_elem.text
+            if text is not None and text.lstrip().startswith("=") and "[" in text:
+                new_text = replace_separators(text)
+                if new_text != text:
+                    print(f"   translate special evaluated-parameter path in <value> of '{element.tag}'")
+                    value_elem.text = new_text
+
+
 def method_suffix_remove(input_doc, parameters, is_grid):
     """Special handling to remove the 'Method' suffix from parameter names."""
     print("   translate special - remove Method suffixes")
@@ -1273,6 +1318,7 @@ SPECIAL_FUNCTIONS = {
     "black_hole_seed_mass": black_hole_seed_mass,
     "black_hole_physics": black_hole_physics,
     "model_parameter_xpath": model_parameter_xpath,
+    "evaluated_parameter_xpath": evaluated_parameter_xpath,
     "method_suffix_remove": method_suffix_remove,
     "satellite_orphanize": satellite_orphanize,
     "black_hole_non_central": black_hole_non_central,

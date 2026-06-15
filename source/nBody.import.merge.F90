@@ -144,10 +144,10 @@ contains
     !!{RST
     Merge data from multiple importers.
     !!}
-    use :: Display        , only : displayIndent     , displayUnindent         , verbosityLevelStandard, displayMessage
+    use :: Display        , only : displayIndent           , displayUnindent               , verbosityLevelStandard  , displayMessage
     use :: Error          , only : Error_Report
-    use :: Hashes         , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                        rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
+    use :: Dictionaries   , only : doubleDictionary        , integerSizeTDictionary        , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
+          &                        rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary , genericDictionary
     use :: String_Handling, only : operator(//)
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
@@ -205,28 +205,28 @@ contains
     end if
     ! Extra attributes/properties.
     !! Integer attributes.
-    simulations(1)%attributesInteger=integerSizeTHash     ()
+    simulations(1)%attributesInteger=integerSizeTDictionary     ()
     if (importerReference%simulations(1)%attributesInteger%size() > 0) then
        do k=1,importerReference%simulations(1)%attributesInteger%size()
           call simulations(1)%attributesInteger%set(importerReference%simulations(1)%attributesInteger%key(k),importerReference%simulations(1)%attributesInteger%value(k))
        end do
     end if
     !! Real attributes.
-    simulations(1)%attributesReal   =doubleHash           ()
+    simulations(1)%attributesReal   =doubleDictionary           ()
     if (importerReference%simulations(1)%attributesReal   %size() > 0) then
        do k=1,importerReference%simulations(1)%attributesReal   %size()
           call simulations(1)%attributesReal   %set(importerReference%simulations(1)%attributesReal   %key(k),importerReference%simulations(1)%attributesReal   %value(k))
        end do
     end if
     !! Text attributes.
-    simulations(1)%attributesText   =varyingStringHash    ()
+    simulations(1)%attributesText   =varyingStringDictionary    ()
     if (importerReference%simulations(1)%attributesText   %size() > 0) then
        do k=1,importerReference%simulations(1)%attributesText   %size()
           call simulations(1)%attributesText   %set(importerReference%simulations(1)%attributesText   %key(k),importerReference%simulations(1)%attributesText   %value(k))
        end do
     end if
     !! Generic attributes.
-    simulations(1)%attributesGeneric=genericHash          ()
+    simulations(1)%attributesGeneric=genericDictionary          ()
     if (importerReference%simulations(1)%attributesGeneric%size() > 0) then
        do k=1,importerReference%simulations(1)%attributesGeneric%size()
           call simulations(1)%attributesGeneric%set(importerReference%simulations(1)%attributesGeneric%key(k),importerReference%simulations(1)%attributesGeneric%value(k))
@@ -286,7 +286,7 @@ contains
        importer_ => importer_%next
     end do
     !! Scalar integer properties.
-    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrHash()
+    simulations(1)%propertiesInteger=rank1IntegerSizeTPtrDictionary()
     do k=1,importerReference%simulations(1)%propertiesInteger%size()
        countObjects          = 0_c_size_t
        importer_             => self%importers
@@ -307,7 +307,7 @@ contains
        nullify(propertyIntegerMerged)
     end do
     !! Scalar real properties.
-    simulations(1)%propertiesReal=rank1DoublePtrHash()
+    simulations(1)%propertiesReal=rank1DoublePtrDictionary()
     do k=1,importerReference%simulations(1)%propertiesReal%size()
        countObjects       = 0_c_size_t
        importer_          => self%importers
@@ -328,7 +328,7 @@ contains
        nullify(propertyRealMerged)
     end do
     !! Rank-1 integer properties.
-    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrDictionary()
     do k=1,importerReference%simulations(1)%propertiesIntegerRank1%size()
        countObjects               = 0_c_size_t
        importer_                  => self%importers
@@ -349,7 +349,7 @@ contains
        nullify(propertyIntegerRank1Merged)
     end do
     !! Rank-1 real properties.
-    simulations(1)%propertiesRealRank1=rank2DoublePtrHash()
+    simulations(1)%propertiesRealRank1=rank2DoublePtrDictionary()
     do k=1,importerReference%simulations(1)%propertiesRealRank1%size()
        countObjects            = 0_c_size_t
        importer_               => self%importers

@@ -161,7 +161,7 @@ def Tree_Node_Builder(build):
         'modules':     [
             ("FoX_DOM, only : node, nodeList, getChildNodes, getLength, "
              "getNodeName, item"),
-            'Hashes',
+            'Dictionaries',
         ],
         'variables':   [
             {
@@ -194,7 +194,7 @@ def Tree_Node_Builder(build):
             },
             {
                 'intrinsic':  'type',
-                'type':       'integerHash',
+                'type':       'integerDictionary',
                 'variables':  ['componentIndex'],
             },
             {

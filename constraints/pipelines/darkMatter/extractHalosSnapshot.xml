@@ -13,7 +13,7 @@
   <nbodyImporter value="IRATE">
     <fileName value="" />
     <snapshot value="1"/>
-    <properties value="particleID descendantID snapshotID alwaysIsolated expansionFactor massVirial radiusVirial radiusScale spin hostedRootID"/>
+    <properties value="particleID descendantID snapshotID alwaysIsolated expansionFactor massVirial radiusVirial radiusScale spin virialRatio axisRatioBToA axisRatioCToA timeSinceFormationFractional hostedRootID"/>
   </nbodyImporter>
 
   <nbodyOperator value="sequence">

@@ -22,12 +22,16 @@
   !!}
 
   use :: Mass_Distributions, only : enumerationNonAnalyticSolversType
+  use :: Object_Pools      , only : objectPool
 
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOHeated" docformat="rst">
    <description>
    A dark matter profile DMO class which builds :galacticus-class:`massDistributionSphericalHeated` objects to account for heating of some other dark matter profile.
    </description>
+   <deepCopy>
+     <deallocate variables="pool"/>
+   </deepCopy>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
@@ -43,6 +47,7 @@
      logical                                                      :: velocityDispersionApproximate                   , tolerateVelocityMaximumFailure            , &
           &                                                          tolerateEnclosedMassIntegrationFailure          , tolerateVelocityDispersionFailure         , &
           &                                                          toleratePotentialIntegrationFailure
+     type            (objectPool                       ), allocatable :: pool
    contains
      final     ::        heatedDestructor
      procedure :: get => heatedGet
@@ -210,6 +215,9 @@ contains
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self
 
+    ! Release any pooled heated mass distributions (and their attached kinematics
+    ! distributions) so that they are not leaked when this profile is destroyed.
+    if (allocated(self%pool)) call self%pool%destroy()
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"    />
     <objectDestructor name="self%darkMatterProfileHeating_"/>
@@ -232,6 +240,8 @@ contains
     integer                                       , intent(in   ), optional :: weightIndex
     class           (massDistributionClass       ), pointer                 :: massDistributionDecorated
     class           (massDistributionHeatingClass), pointer                 :: massDistributionHeating_
+    logical                                                                 :: reused
+    integer                                                                 :: i
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -240,54 +250,80 @@ contains
     massDistribution_ => null()
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
-    ! Create the mass distribution.
-    allocate(massDistributionSphericalHeated :: massDistribution_)
-    select type(massDistribution_)
+    ! Acquire a pool slot, creating the pool itself on first use. If an existing object is
+    ! available for re-use "reused" is returned true, otherwise we must create a new object.
+    if (.not.allocated(self%pool)) allocate(self%pool)
+    call self%pool%acquire(i,reused)
+    if (.not.reused) allocate(massDistributionSphericalHeated :: self%pool%slots(i)%object_)
+    ! Get the decorated distribution and heating object for this node. The decorated
+    ! distribution is (typically) itself drawn from a pool, so this is cheap; the heating
+    ! object is currently constructed afresh on each call.
+    massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
+    massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
+    select type (massDistribution__ => self%pool%slots(i)%object_)
     type is (massDistributionSphericalHeated)
-       massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
-       massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
        select type (massDistributionDecorated)
        class is (massDistributionSpherical)
-          !![
-	  <referenceConstruct object="massDistribution_">
-	    <constructor>
-              massDistributionSphericalHeated(                                                                                    &amp;
-               &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
-	       &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
-	       &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
-	       &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
-	       &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
-	       &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
-               &amp;                          massDistribution_                     =     massDistributionDecorated             , &amp;
-               &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
-               &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
-               &amp;                          massType                              =     massTypeDark                            &amp;
-               &amp;                         )
-	    </constructor>
-	  </referenceConstruct>
-	  <objectDestructor name="massDistributionDecorated"/>
-	  <objectDestructor name="massDistributionHeating_" />
-          !!]
+          if (reused) then
+             ! Re-use an existing heated mass distribution: re-point its decorated and heating
+             ! sub-objects to those for this node (releasing the previous ones - in particular
+             ! returning the previously-decorated distribution to its own pool) and clear its
+             ! stale memoized state.
+             call massDistribution__%reinitialize(massDistributionDecorated,massDistributionHeating_)
+             !![
+             <objectDestructor name="massDistributionDecorated"/>
+             <objectDestructor name="massDistributionHeating_" />
+             !!]
+          else
+             ! No pool object was available - construct a new heated mass distribution and
+             ! attach a (re-usable) kinematics distribution to it.
+             !![
+	     <referenceConstruct object="massDistribution__">
+	       <constructor>
+                 massDistributionSphericalHeated(                                                                                    &amp;
+                  &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
+	          &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
+	          &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
+	          &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
+	          &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
+	          &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
+                  &amp;                          massDistribution_                     =     massDistributionDecorated             , &amp;
+                  &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
+                  &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
+                  &amp;                          massType                              =     massTypeDark                            &amp;
+                  &amp;                         )
+	       </constructor>
+	     </referenceConstruct>
+	     <objectDestructor name="massDistributionDecorated"/>
+	     <objectDestructor name="massDistributionHeating_" />
+             !!]
+             allocate(kinematicsDistribution_)
+             !![
+             <referenceConstruct object="kinematicsDistribution_">
+               <constructor>
+                 kinematicsDistributionHeated(                                                                                            &amp;
+                  &amp;                       nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp;
+                  &amp;                       velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp;
+                  &amp;                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
+                  &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+	          &amp;                      )
+               </constructor>
+             </referenceConstruct>
+             !!]
+             call massDistribution__%setKinematicsDistribution(kinematicsDistribution_)
+             !![
+             <objectDestructor name="kinematicsDistribution_"/>
+             !!]
+          end if
        class default
           call Error_Report('expected a spherical mass distribution'//{introspection:location})
        end select
+       ! Increment the reference count for the object since we are returning it to a calling
+       ! function which will therefore hold a reference to it.
+       !![
+       <referenceCountIncrement object="massDistribution__"/>
+       !!]
+       massDistribution_ => massDistribution__
     end select
-    allocate(kinematicsDistribution_)
-    !![
-    <referenceConstruct object="kinematicsDistribution_">
-      <constructor>
-        kinematicsDistributionHeated(                                                                                            &amp;
-         &amp;                       nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp; 
-         &amp;                       velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp; 
-         &amp;                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp; 
-         &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp; 
-	 &amp;                      )
-      </constructor>
-    </referenceConstruct>
-    !!]
-    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-    !![
-    <objectDestructor name="kinematicsDistribution_"/>
-    !!]
     return
   end function heatedGet

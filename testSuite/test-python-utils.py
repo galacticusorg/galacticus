@@ -434,9 +434,11 @@ def test_parse_module_uses():
         assert_equal(order[0], 'iso_c_binding', "intrinsic module placed first")
         assert_equal(set(order), {'foo', 'iso_c_binding', 'omp_lib', 'bar'}, "all modules captured")
         mu = uses.get('moduleUse', {})
-        assert_equal(mu['iso_c_binding']['intrinsic'], True, "intrinsic flag set")
-        assert_equal(mu['omp_lib']['openMP'], True, "openMP flag set for !$ use")
-        assert_equal(set(mu['bar'].get('only', {}).keys()), {'baz', 'qux'}, "only symbols captured")
+        # Each module maps to a list of entries (one per preprocessor condition
+        # set); these modules are all unconditional, so a single entry each.
+        assert_equal(mu['iso_c_binding'][0]['intrinsic'], True, "intrinsic flag set")
+        assert_equal(mu['omp_lib'][0]['openMP'], True, "openMP flag set for !$ use")
+        assert_equal(set(mu['bar'][0].get('only', {}).keys()), {'baz', 'qux'}, "only symbols captured")
 
     # Round-trip: serializing the original text should reproduce it.
     assert_equal(serialize(root), text, "moduleUses round-trip preserves source")
@@ -457,7 +459,7 @@ def test_parse_module_uses_preprocessor():
     uses = _find_node(root, 'moduleUse')
     assert_equal(uses is not None, True, "moduleUse node created under preprocessor")
     if uses:
-        conds = uses['moduleUse']['conditional_mod'].get('conditions')
+        conds = uses['moduleUse']['conditional_mod'][0].get('conditions')
         assert_equal(isinstance(conds, list) and len(conds) == 1, True,
                      "conditions list captured")
         if conds:

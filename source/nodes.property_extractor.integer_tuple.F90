@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Dictionaries, only : doubleDictionary, rank1DoubleDictionary
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes" docformat="rst">
@@ -144,8 +144,8 @@ contains
     class  (nodePropertyExtractorIntegerTuple), intent(inout) :: self
     type   (treeNode                         ), intent(inout) :: node
     integer                                   , intent(in   ) :: indexProperty
-    type   (doubleHash                       ), intent(inout) :: metaDataRank0
-    type   (rank1DoubleHash                  ), intent(inout) :: metaDataRank1
+    type   (doubleDictionary                 ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleDictionary            ), intent(inout) :: metaDataRank1
     !$GLC attributes unused :: self, node, indexProperty, metaDataRank0, metaDataRank1
     
     return

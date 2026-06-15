@@ -593,7 +593,13 @@ contains
          &          )
     ! If weighting is not by mass, return a null profile.
     if (weightBy_ /= weightByMass) return
-    ! Create the mass distribution.
+    ! Create the mass distribution. Any previously-built distribution is destroyed first to avoid leaking it: this profile
+    ! object is reused across nodes (and across calculation resets), and `computeProperties` is re-entered each time the
+    ! memoized properties are invalidated, so without this the prior `massDistributionHeated_` (and the NFW and heating
+    ! distributions it owns) would be orphaned with a non-zero reference count.
+    !![
+    <objectDestructor name="self%massDistributionHeated_"/>
+    !!]
     allocate(self%massDistributionHeated_)
     massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
     massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )

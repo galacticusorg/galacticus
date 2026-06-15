@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Hashes        , only : doubleHash, rank1DoubleHash
+  use :: Dictionaries  , only : doubleDictionary, rank1DoubleDictionary
   use :: Units_MetaData, only : unitType
 
   !![
@@ -174,8 +174,8 @@ contains
     class  (nodePropertyExtractorArray), intent(inout) :: self
     type   (treeNode                  ), intent(inout) :: node
     integer                            , intent(in   ) :: indexProperty
-    type   (doubleHash                ), intent(inout) :: metaDataRank0
-    type   (rank1DoubleHash           ), intent(inout) :: metaDataRank1
+    type   (doubleDictionary          ), intent(inout) :: metaDataRank0
+    type   (rank1DoubleDictionary     ), intent(inout) :: metaDataRank1
     !$GLC attributes unused :: self, node, indexProperty, metaDataRank0, metaDataRank1
     
     return

@@ -43,7 +43,7 @@ from Galacticus.Build.SourceTree.Process                     import (
 from Galacticus.Build.SourceTree.Parse.Declarations          import (
     parse_declaration, build_declarations, declaration_exists, get_declaration,
 )
-from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses
+from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses, _as_entry_list
 from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visibilities
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
@@ -3292,16 +3292,22 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
         for mu_node in module_use_nodes:
             uses = mu_node.get('moduleUse') or {}
             for module_name in sorted(uses.keys()):
-                entry = uses[module_name]
-                if entry.get('all'):
-                    continue
-                only = entry.get('only', {}) or {}
-                kept = {
-                    sym: flag for sym, flag in only.items()
-                    if sym.lower() in module_symbols
-                }
-                entry['only'] = kept
-                if not kept:
+                kept_entries = []
+                for entry in _as_entry_list(uses[module_name]):
+                    if entry.get('all'):
+                        kept_entries.append(entry)
+                        continue
+                    only = entry.get('only', {}) or {}
+                    kept = {
+                        sym: flag for sym, flag in only.items()
+                        if sym.lower() in module_symbols
+                    }
+                    if kept:
+                        entry['only'] = kept
+                        kept_entries.append(entry)
+                if kept_entries:
+                    uses[module_name] = kept_entries
+                else:
                     del uses[module_name]
             if uses:
                 add_uses(parent, {

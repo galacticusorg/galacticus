@@ -161,13 +161,13 @@ contains
     !!{RST
     Import data from a IRATE file.
     !!}
-    use :: Display    , only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Error      , only : errorStatusSuccess
-    use :: Hashes     , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                    rank2DoublePtrHash, rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : H5T_NATIVE_DOUBLES, H5T_NATIVE_INTEGERS     , hdf5Object
-    use :: IO_IRATE   , only : irate
+    use :: Display     , only : displayIndent          , displayUnindent               , verbosityLevelStandard
+    use :: Error       , only : errorStatusSuccess
+    use :: Dictionaries, only : doubleDictionary       , integerSizeTDictionary        , rank1DoublePtrDictionary    , rank1IntegerSizeTPtrDictionary, &
+          &                    rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary     , genericDictionary
+    use :: HDF5_Access , only : hdf5Access
+    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5Object
+    use :: IO_IRATE    , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), dimension(:  ), allocatable :: simulations
@@ -184,14 +184,14 @@ contains
     call displayIndent('import simulation from IRATE file',verbosityLevelStandard)
     allocate(simulations(1))
     simulations(1)%label                 =self%label
-    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
-    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
-    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
-    simulations(1)%attributesInteger     =integerSizeTHash        ()
-    simulations(1)%attributesReal        =doubleHash              ()
-    simulations(1)%attributesText        =varyingStringHash       ()
-    simulations(1)%attributesGeneric     =genericHash             ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesReal        =rank1DoublePtrDictionary      ()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrDictionary      ()
+    simulations(1)%attributesInteger     =integerSizeTDictionary        ()
+    simulations(1)%attributesReal        =doubleDictionary              ()
+    simulations(1)%attributesText        =varyingStringDictionary       ()
+    simulations(1)%attributesGeneric     =genericDictionary             ()
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call irate_        %readSimulation    (          boxSize)
     call simulations(1)%attributesReal%set('boxSize',boxSize)

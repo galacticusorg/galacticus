@@ -74,12 +74,18 @@ with open(count_tmp, 'w') as fh:
 _update_file(os.path.join(build_path, "openMPCriticalSections.count.inc"), count_tmp)
 
 # --- openMPCriticalSections.enumerate.inc ---
+# A fixed-length `character` array is used (rather than `varying_string`) to
+# mirror the event-hook wait-time code in EventHooks.py: a local automatic
+# `varying_string` array segfaults gfortran when it is finalized on return
+# from OpenMP_Critical_Wait_Times (it is written to the output file and never
+# otherwise needs the dynamic length).
 enum_tmp = os.path.join(build_path, "openMPCriticalSections.enumerate.inc.tmp")
 sorted_names = sorted(critical_section_names)
+name_length_max = max((len(name) for name in sorted_names), default=1)
 with open(enum_tmp, 'w') as fh:
-    fh.write("type(varying_string), dimension(criticalSectionCount) :: criticalSectionNames\n")
-    fh.write("criticalSectionNames=[ &\n")
-    joined = "'), &\n & var_str('".join(sorted_names)
-    fh.write(f" & var_str('{joined}') &\n")
+    fh.write(f"character(len={name_length_max}), dimension(criticalSectionCount) :: criticalSectionNames\n")
+    fh.write(f"criticalSectionNames=[character(len={name_length_max}) :: &\n")
+    joined = "', &\n & '".join(sorted_names)
+    fh.write(f" & '{joined}' &\n")
     fh.write(" & ]\n")
 _update_file(os.path.join(build_path, "openMPCriticalSections.enumerate.inc"), enum_tmp)

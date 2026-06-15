@@ -21,11 +21,16 @@
   A dark matter halo profile heating class which accounts for heating from tidal shocking.
   !!}
 
+  use :: Object_Pools, only : objectPool
+
   !![
   <darkMatterProfileHeating name="darkMatterProfileHeatingTidal" docformat="rst">
    <description>
    A dark matter profile heating class that constructs :galacticus-class:`massDistributionHeatingTidal` objects to compute heating due to tidal shocks.
    </description>
+   <deepCopy>
+     <deallocate variables="pool"/>
+   </deepCopy>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTidal
@@ -33,9 +38,11 @@
      A dark matter profile heating class which accounts for heating due to tidal shocking.
      !!}
      private
-     double precision :: correlationVelocityRadius, coefficientSecondOrder0, &
-          &              coefficientSecondOrder1  , coefficientSecondOrder2
+     double precision         :: correlationVelocityRadius, coefficientSecondOrder0, &
+          &                      coefficientSecondOrder1  , coefficientSecondOrder2
+     type            (objectPool), allocatable :: pool
    contains
+     final     ::        tidalDestructor
      procedure :: get => tidalGet
   end type darkMatterProfileHeatingTidal
 
@@ -116,6 +123,19 @@ contains
     return
   end function tidalConstructorInternal
 
+  subroutine tidalDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
+    !!}
+    implicit none
+    type(darkMatterProfileHeatingTidal), intent(inout) :: self
+
+    ! Release any pooled heating mass distributions so that they are not leaked when this
+    ! object is destroyed.
+    if (allocated(self%pool)) call self%pool%destroy()
+    return
+  end subroutine tidalDestructor
+
   function tidalGet(self,node) result(massDistributionHeating_)
     !!{RST
     Return the dark matter mass distribution heating for the given ``node``.
@@ -128,29 +148,53 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: heatSpecificNormalized
- 
-    ! Create the mass distribution.
-    allocate(massDistributionHeatingTidal :: massDistributionHeating_)
-    select type(massDistributionHeating_)
+    logical                                                        :: reused
+    integer                                                        :: i
+
+    satellite              =>      node     %satellite             ()
+    heatSpecificNormalized =  max(                                     &
+         &                        +0.0d0                             , &
+         &                        +satellite%tidalHeatingNormalized()  &
+         &                       )
+    ! Acquire a pool slot, creating the pool itself on first use. If an existing object is
+    ! available for re-use "reused" is returned true, otherwise we must create a new object.
+    if (.not.allocated(self%pool)) allocate(self%pool)
+    call self%pool%acquire(i,reused)
+    if (.not.reused) allocate(massDistributionHeatingTidal :: self%pool%slots(i)%object_)
+    select type (massDistributionHeating__ => self%pool%slots(i)%object_)
     type is (massDistributionHeatingTidal)
-       satellite              =>      node     %satellite             ()
-       heatSpecificNormalized =  max(                                     &
-            &                        +0.0d0                             , &
-            &                        +satellite%tidalHeatingNormalized()  &
-            &                       )
+       if (reused) then
+          ! An existing heating distribution in the pool is available for re-use - update its
+          ! properties for this node.
+          call massDistributionHeating__%initialize(                                                &
+               &                                     heatSpecificNormalized   =heatSpecificNormalized        , &
+               &                                     coefficientSecondOrder0  =self%coefficientSecondOrder0  , &
+               &                                     coefficientSecondOrder1  =self%coefficientSecondOrder1  , &
+               &                                     coefficientSecondOrder2  =self%coefficientSecondOrder2  , &
+               &                                     correlationVelocityRadius=self%correlationVelocityRadius  &
+               &                                    )
+       else
+          ! No pool object was available - construct a new heating mass distribution.
+          !![
+	  <referenceConstruct object="massDistributionHeating__">
+	    <constructor>
+              massDistributionHeatingTidal(                                                          &amp;
+               &amp;                       heatSpecificNormalized   =heatSpecificNormalized        , &amp;
+               &amp;                       coefficientSecondOrder0  =self%coefficientSecondOrder0  , &amp;
+               &amp;                       coefficientSecondOrder1  =self%coefficientSecondOrder1  , &amp;
+               &amp;                       coefficientSecondOrder2  =self%coefficientSecondOrder2  , &amp;
+               &amp;                       correlationVelocityRadius=self%correlationVelocityRadius  &amp;
+               &amp;                      )
+	    </constructor>
+	  </referenceConstruct>
+          !!]
+       end if
+       ! Increment the reference count for the object since we are returning it to a calling
+       ! function which will therefore hold a reference to it.
        !![
-       <referenceConstruct object="massDistributionHeating_">
-	 <constructor>
-           massDistributionHeatingTidal(                                                          &amp;
-            &amp;                       heatSpecificNormalized   =heatSpecificNormalized        , &amp;
-            &amp;                       coefficientSecondOrder0  =self%coefficientSecondOrder0  , &amp;
-            &amp;                       coefficientSecondOrder1  =self%coefficientSecondOrder1  , &amp;
-            &amp;                       coefficientSecondOrder2  =self%coefficientSecondOrder2  , &amp;
-            &amp;                       correlationVelocityRadius=self%correlationVelocityRadius  &amp;
-            &amp;                      )
-	 </constructor>
-       </referenceConstruct>
+       <referenceCountIncrement object="massDistributionHeating__"/>
        !!]
+       massDistributionHeating_ => massDistributionHeating__
     end select
     return
   end function tidalGet

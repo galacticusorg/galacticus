@@ -142,7 +142,7 @@ def _step_a_group_labels(simulations, options):
             labelParameter = 'Cube' + group['name']
             group['labelPerturbation']     = label
             group['parameterPerturbation'] = labelParameter
-            group['perturbation']          = f'haloMassFunctionParameters/perturbation{label}'
+            group['perturbation']          = f'haloMassFunctionParameters/perturbation{labelParameter}'
             perturbations[labelParameter]  = perturbations.get(label, 0) + 1
         else:
             group['labelPerturbation']     = ''
@@ -177,7 +177,6 @@ def _step_b_suite_hmf_xml(simulations, options):
                 _remove_hmf_nodes(root, removal_value)
         ET.indent(root)
         ET.ElementTree(root).write(dst, xml_declaration=True, encoding='utf-8')
-
 
 # ---------------------------------------------------------------------------
 # Steps C & D
@@ -282,11 +281,11 @@ def _step_e_base_files(entry_groups, options):
             matched  = suite['matchedICs']
             data_path_static = data_path + '/static/darkMatter/'
             file_self = (data_path_static
-                         + f"haloMassFunction_{suite['name']}_{grp['name']}_{res['name']}"
-                         + f"_{sim['name']}_{real}_z{redshift}.hdf5")
+                         + f"{suite['name']}/{grp['name']}/{res['name']}"
+                         + f"/{sim['name']}/{real}/haloMassFunction_z{redshift}.hdf5")
             file_ref  = (data_path_static
-                         + f"haloMassFunction_{matched['suite']}_{grp['name']}_{res['name']}"
-                         + f"_{matched['simulation']}_{real}_z{redshift}.hdf5")
+                         + f"{matched['suite']}/{grp['name']}/{res['name']}"
+                         + f"/{matched['simulation']}/{real}/haloMassFunction_z{redshift}.hdf5")
             with h5py.File(file_self, 'r') as hf:
                 count_self = hf['simulation0001/count'][:]
             with h5py.File(file_ref, 'r') as hf:
@@ -328,8 +327,8 @@ def _step_e_base_files(entry_groups, options):
             for z in redshifts
         ]
         file_names_target = [
-            f"%DATASTATICPATH%/darkMatter/haloMassFunction_{suite['name']}_{grp['name']}"
-            + f"_{res['name']}_{sim['name']}_{real}_z{z}.hdf5"
+            f"%DATASTATICPATH%/darkMatter/{suite['name']}/{grp['name']}"
+            + f"/{res['name']}/{sim['name']}/{real}/haloMassFunction_z{z}.hdf5"
             for z in redshifts
         ]
 

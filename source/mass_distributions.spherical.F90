@@ -68,6 +68,7 @@
        <method description="Return the radius variable used in solving the potential that corresponds to a given physical radius." method="potentialSolverRadius"              />
        <method description="Set sub-module scope pointers on a stack to allow recursive calls to functions."                       method="solverSphericalSet"                 />
        <method description="Unset sub-module scope pointers on a stack."                                                           method="solverSphericalUnset"               />
+       <method description="Reset all cached tabulations."                                                                         method="tabulationReset"                    />
      </methods>
      !!]
      procedure :: symmetry                            => sphericalSymmetry
@@ -108,6 +109,7 @@
      procedure :: radiusHalfMass                      => sphericalRadiusHalfMass
      procedure :: solverSphericalSet                  => sphericalSolverSphericalSet
      procedure :: solverSphericalUnset                => sphericalSolverSphericalUnset
+     procedure :: tabulationReset                     => sphericalTabulationReset
   end type massDistributionSpherical
 
   ! Submodule-scope pointers used in integrand functions and root finding.
@@ -121,6 +123,28 @@
   !$omp threadprivate(massSphericalSolvers,massSphericalSolversCount)
   
 contains
+
+  subroutine sphericalTabulationReset(self)
+    !!{RST
+    Reset memoized enclosed-mass and potential tabulations, so that an object which is re-initialized for a different mass distribution (e.g. when re-used from a pool) never returns stale, cached results.
+    !!}
+    implicit none
+    class(massDistributionSpherical), intent(inout) :: self
+
+    if (allocated(self%massProfileMass__          )) deallocate(self%massProfileMass__          )
+    if (allocated(self%massProfileRadius__        )) deallocate(self%massProfileRadius__        )
+    if (allocated(self%massProfile__              )) deallocate(self%massProfile__              )
+    self%massProfileRadiusMinimum__            =+huge(0.0d0)
+    self%massProfileRadiusMaximum__            =-huge(0.0d0)
+    if (allocated(self%potentialProfilePotential__)) deallocate(self%potentialProfilePotential__)
+    if (allocated(self%potentialProfileRadius__   )) deallocate(self%potentialProfileRadius__   )
+    if (allocated(self%potentialProfile__         )) deallocate(self%potentialProfile__         )
+    self%potentialProfileRadiusMinimum__       =+huge(0.0d0)
+    self%potentialProfileRadiusMaximum__       =-huge(0.0d0)
+    self%potentialProfileRadiusMinimumActual__ =+huge(0.0d0)
+    self%potentialRadiusZeroPoint__            =-huge(0.0d0)
+    return
+  end subroutine sphericalTabulationReset
 
   function sphericalSymmetry(self)
     !!{RST

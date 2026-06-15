@@ -21,7 +21,7 @@
   Implements a multi node property extractor class.
   !!}
 
-  use :: Hashes      , only : doubleHash, rank1DoubleHash
+  use :: Dictionaries  , only : doubleDictionary, rank1DoubleDictionary
   use :: Units_MetaData, only : unitType
 
   type, public :: multiExtractorList
@@ -943,8 +943,8 @@ contains
     type            (enumerationElementTypeType), intent(in   ) :: elementType
     double precision                            , intent(in   ) :: time
     integer                                     , intent(in   ) :: iProperty
-    type            (doubleHash                ), intent(inout) :: metaDataRank0
-    type            (rank1DoubleHash           ), intent(inout) :: metaDataRank1
+    type            (doubleDictionary          ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleDictionary     ), intent(inout) :: metaDataRank1
     type            (multiExtractorList        ), pointer       :: extractor_
     integer                                                     :: offset       , elementCount
 

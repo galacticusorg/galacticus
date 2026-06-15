@@ -48,6 +48,8 @@
 						testSuite/data/lightconeCrossingTestTree16390229778.hdf5
 						testSuite/data/lightconeCrossingTestTree16356280596.hdf5
 						testSuite/data/lightconeCrossingTestTree16306053725.hdf5
+						testSuite/data/lightconeCrossingTestTree16424982107.hdf5
+						testSuite/data/lightconeCrossingTestTree16305997248.hdf5
 						"/>
     <!-- Consistency checks and validation. -->
     <outputTimeSnapTolerance              value="0.001"    />

@@ -47,9 +47,11 @@
    contains
      !![
      <methods docformat="rst">
+       <method method="initialize"           description="(Re)initialize the parameters of the NFW mass distribution."                              />
        <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free NFW mass distribution."/>
      </methods>
      !!]
+     procedure :: initialize                        => nfwInitialize
      procedure :: massTotal                         => nfwMassTotal
      procedure :: density                           => nfwDensity
      procedure :: densityGradientRadial             => nfwDensityGradientRadial
@@ -201,8 +203,6 @@ contains
     !!{RST
     Internal constructor for "nfw" mass distribution class.
     !!}
-    use :: Error                   , only : Error_Report
-    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (massDistributionNFW         )                          :: self
     double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
@@ -211,10 +211,27 @@ contains
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
     !![
     <constructorAssign variables="componentType, massType"/>
     !!]
+
+    call self%initialize(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+    return
+  end function massDistributionNFWConstructorInternal
+
+  subroutine nfwInitialize(self,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+    !!{RST
+    Initialize the parameters of an NFW mass distribution.
+    !!}
+    use :: Error                   , only : Error_Report
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (massDistributionNFW), intent(inout)           :: self
+    double precision                     , intent(in   ), optional :: scaleLength         , concentration, &
+         &                                                            densityNormalization, mass         , &
+         &                                                            virialRadius
+    logical                              , intent(in   ), optional :: dimensionless
+    double precision                                               :: radiusScaleFree
 
     ! Determine scale length
     if      (                            &
@@ -251,11 +268,18 @@ contains
     else
        self%dimensionless=.false.
     end if
-    ! Initialize memoized results.
+    ! (Re)initialize memoized results.
     self%enclosedMassPrevious      =-huge(0.0d0)
     self%enclosedMassRadiusPrevious=-huge(0.0d0)
+    ! Defensively clear memoized state inherited from the spherical base class, and
+    ! from any attached kinematics distribution, so that a re-initialized (pooled)
+    ! object never serves stale tabulations built for a previous node. For NFW these
+    ! paths are analytic and normally unused, but this guards against use of the
+    ! numerical fallbacks (e.g. when the profile is embedded in a composite system).
+    call self%tabulationReset()
+    if (associated(self%kinematicsDistribution_)) call self%kinematicsDistribution_%reset()
     return
-  end function massDistributionNFWConstructorInternal
+  end subroutine nfwInitialize
 
   double precision function nfwMassTotal(self)
     !!{RST

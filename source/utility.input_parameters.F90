@@ -35,7 +35,7 @@ module Input_Parameters
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
-  use            :: Hashes            , only : integerHash
+  use            :: Dictionaries      , only : integerDictionary
   use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
@@ -133,18 +133,18 @@ module Input_Parameters
   
   type :: inputParameters
      private
-     type   (documentWrapper), pointer, public :: document               => null()
-     type   (node           ), pointer         :: rootNode               => null()
-     type   (hdf5Object     ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
-     type   (resourceManager)                  :: outputParametersManager          , outputParametersContainerManager          , &
-          &                                       documentManager
-     type   (inputParameter ), pointer, public :: parameters             => null()
-     type   (inputParameters), pointer, public :: parent                 => null() , original                         => null()
-     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
-          &                                       isNull                 =  .false., strict                           = .false.
-     type   (integerHash    ), allocatable     :: warnedDefaults
-     type   (ompLock        ), pointer         :: lock                   => null()
-     type   (resourceManager)                  :: lockManager
+     type   (documentWrapper  ), pointer, public :: document               => null()
+     type   (node             ), pointer         :: rootNode               => null()
+     type   (hdf5Object       ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
+     type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
+          &                                         documentManager
+     type   (inputParameter   ), pointer, public :: parameters             => null()
+     type   (inputParameters)  , pointer, public :: parent                 => null() , original                         => null()
+     logical                                     :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
+          &                                         isNull                 =  .false., strict                           = .false.
+     type   (integerDictionary), allocatable     :: warnedDefaults
+     type   (ompLock          ), pointer         :: lock                   => null()
+     type   (resourceManager  )                  :: lockManager
    contains
      !![
      <methods docformat="rst">
@@ -323,7 +323,7 @@ contains
     </workaround>
     !!]
     self%parameters     => null              (             )
-    self%warnedDefaults =  integerHash       (             )
+    self%warnedDefaults =  integerDictionary (             )
     self%lock           =  ompLock           (             )
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
@@ -712,10 +712,10 @@ contains
     allocate(self%warnedDefaults)
     allocate(self%lock          )
     self%isNull         =  .false.
-    self%rootNode       =>                  parametersNode
-    self%parent         => null            (              )
-    self%warnedDefaults =  integerHash     (              )
-    self%lock           =  ompLock         (              )
+    self%rootNode       =>                   parametersNode
+    self%parent         => null             (              )
+    self%warnedDefaults =  integerDictionary(              )
+    self%lock           =  ompLock          (              )
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
       <description>
@@ -1548,7 +1548,7 @@ contains
     character(len=1024                                )                                                 :: unknownName                , allowedParameterName , &
          &                                                                                                 parameterNameGuess         , unknownNamePath
     type     (varying_string                          )                                                 :: message                    , verbosityLevel
-    type     (integerHash                             )                                                 :: parameterNamesSeen
+    type     (integerDictionary                       )                                                 :: parameterNamesSeen
     type     (DOMException                            )                                                 :: exception
     
     ! Determine whether we should be verbose.
@@ -1559,7 +1559,7 @@ contains
     end if
     ! Validate parameters.
     warningsFound     =.false.
-    parameterNamesSeen=integerHash()
+    parameterNamesSeen=integerDictionary()
     if (associated(self%parameters)) then
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))

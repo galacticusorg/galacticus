@@ -59,9 +59,11 @@
      <methods docformat="rst">
        <method method="radiusInitial"          description="Compute the initial radius corresponding to a given final radius in a heated mass distribution."/>
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
+       <method method="reinitialize"           description="Re-point the decorated and heating sub-objects (e.g. when re-used from a pool) and clear stale memoized state."/>
      </methods>
      !!]
      final     ::                             sphericalHeatedDestructor
+     procedure :: reinitialize             => sphericalHeatedReinitialize
      procedure :: radiusInitial            => sphericalHeatedRadiusInitial
      procedure :: noShellCrossingIsValid   => sphericalHeatedNoShellCrossingIsValid
      procedure :: potentialSolverIntegrand => heatedPotentialSolverIntegrand
@@ -230,6 +232,41 @@ contains
     !!]
     return
   end subroutine sphericalHeatedDestructor
+
+  subroutine sphericalHeatedReinitialize(self,massDistribution_,massDistributionHeating_)
+    !!{RST
+    Re-point the decorated distribution and heating sub-objects of a heated spherical mass distribution to those for a new :term:`node`, and clear all stale memoized state. This is used when the object is re-used from a pool: it releases the currently-held sub-objects (returning, e.g., a pooled decorated distribution to its own pool), takes counted references to the new sub-objects, and resets the per-halo cached state so that the re-used object never serves results computed for the previous halo.
+    !!}
+    implicit none
+    class(massDistributionSphericalHeated), intent(inout)         :: self
+    class(massDistributionSpherical      ), intent(in   ), target :: massDistribution_
+    class(massDistributionHeatingClass   ), intent(in   ), target :: massDistributionHeating_
+
+    ! Release the currently-held sub-objects. For a pooled decorated distribution this drops
+    ! its reference count back to one, returning it to its pool; an unpooled heating object is
+    ! freed.
+    !![
+    <objectDestructor name="self%massDistribution_"       />
+    <objectDestructor name="self%massDistributionHeating_"/>
+    !!]
+    ! Re-point to the new sub-objects, taking counted references to each.
+    self%massDistribution_        => massDistribution_
+    self%massDistributionHeating_ => massDistributionHeating_
+    !![
+    <referenceCountIncrement object="self%massDistribution_"       />
+    <referenceCountIncrement object="self%massDistributionHeating_"/>
+    !!]
+    ! Inherit component and mass types from the new decorated distribution.
+    self%componentType=self%massDistribution_%componentType
+    self%     massType=self%massDistribution_%     massType
+    ! Clear stale memoized state for the new halo: the heated profile's own radius cache, the
+    ! inherited enclosed-mass/potential tabulations, and the attached kinematics distribution's
+    ! memoized velocity dispersion.
+    self%radiusFinalPrevious=-huge(0.0d0)
+    call self%tabulationReset()
+    if (associated(self%kinematicsDistribution_)) call self%kinematicsDistribution_%reset()
+    return
+  end subroutine sphericalHeatedReinitialize
 
   logical function sphericalHeatedUseUndecorated(self) result(useUndecorated)
     !!{RST

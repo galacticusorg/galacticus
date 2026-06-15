@@ -141,9 +141,9 @@ contains
     !!{RST
     Import data from a Random file.
     !!}
-    use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, &
-         &                 doubleHash        , integerSizeTHash        , varyingStringHash     , genericHash
+    use :: Display     , only : displayIndent           , displayUnindent         , verbosityLevelStandard
+    use :: Dictionaries, only : rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, rank2DoublePtrDictionary    , rank2IntegerSizeTPtrDictionary, &
+         &                      doubleDictionary        , integerSizeTDictionary        , varyingStringDictionary     , genericDictionary
     implicit none
     class           (nbodyImporterRandom), intent(inout)                              :: self
     type            (nBodyData          ), intent(  out), dimension(  :), allocatable :: simulations
@@ -157,14 +157,14 @@ contains
     allocate(position   (3,self%countPoints))
     allocate(velocity   (3,self%countPoints))
     simulations(1)%label='random'
-    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
-    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
-    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
-    simulations(1)%attributesInteger     =integerSizeTHash        ()
-    simulations(1)%attributesReal        =doubleHash              ()
-    simulations(1)%attributesText        =varyingStringHash       ()
-    simulations(1)%attributesGeneric     =genericHash             ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesReal        =rank1DoublePtrDictionary      ()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrDictionary      ()
+    simulations(1)%attributesInteger     =integerSizeTDictionary        ()
+    simulations(1)%attributesReal        =doubleDictionary              ()
+    simulations(1)%attributesText        =varyingStringDictionary       ()
+    simulations(1)%attributesGeneric     =genericDictionary             ()
     do i=1_c_size_t,self%countPoints
        particleID(  i)=i
        position  (:,i)=[self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample(),self%randomNumberGenerator_%uniformSample()]

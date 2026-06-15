@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements "hashes" (i.e. associative arrays).
+Contains a module which implements "dictionaries" (i.e. associative arrays).
 !!}
 
-module Hashes
+module Dictionaries
   !!{RST
-  Implements "hashes" (i.e. associative arrays).
+  Implements "dictionaries" (i.e. associative arrays).
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : var_str , varying_string
@@ -48,37 +48,37 @@ module Hashes
   !!]
 
   private
-  public :: {Type¦label}Hash
+  public :: {Type¦label}Dictionary
 
   type :: {Type¦label}Container
      private
      {Type¦intrinsic}{Type¦attributes} :: object {Type¦initializor}
   end type {Type¦label}Container
 
-  type :: {Type¦label}Hash
+  type :: {Type¦label}Dictionary
      !!{RST
-     Derived type for Type¦label hashes.
+     Derived type for Type¦label dictionaries.
      !!}
      private
      integer                                                   :: allocatedSize=0, elementCount=0
      integer(c_size_t             )                            :: indexPrevious
-     type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
-     type   (varying_string       ), allocatable, dimension(:) :: hashKeys
+     type   ({Type¦label}Container), allocatable, dimension(:) :: dictionaryValues
+     type   (varying_string       ), allocatable, dimension(:) :: dictionaryKeys
      type   (varying_string       )                            :: keyPrevious
    contains
      !![
      <methods docformat="rst">
-       <method description="Initialize the hash."                                                                      method="initialize"   />
-       <method description="Set the value of a key in the hash."                                                       method="set"          />
-       <method description="Delete a key from the hash."                                                               method="delete"       />
+       <method description="Initialize the dictionary."                                                                      method="initialize"   />
+       <method description="Set the value of a key in the dictionary."                                                       method="set"          />
+       <method description="Delete a key from the dictionary."                                                               method="delete"       />
        <method description="Return the value for the given key."                                                       method="value"        />
-       <method description="Return the key of the ``indexValue``\ :math:`^\mathrm{th}` entry in the hash."                  method="key"          />
-       <method description="Return an array of all keys in the hash."                                                  method="keys"         />
-       <method description="Return an array of all values in the hash."                                                method="values"       />
-       <method description="Return true if the specified key exists in the hash."                                      method="exists"       />
-       <method description="Return the number of keys in the hash."                                                    method="size"         />
-       <method description="Destroy the hash."                                                                         method="destroy"      />
-       <method description="Assign hash objects."                                                                      method="assignment(=)"/>
+       <method description="Return the key of the ``indexValue``\ :math:`^\mathrm{th}` entry in the dictionary."                  method="key"          />
+       <method description="Return an array of all keys in the dictionary."                                                  method="keys"         />
+       <method description="Return an array of all values in the dictionary."                                                method="values"       />
+       <method description="Return true if the specified key exists in the dictionary."                                      method="exists"       />
+       <method description="Return the number of keys in the dictionary."                                                    method="size"         />
+       <method description="Destroy the dictionary."                                                                         method="destroy"      />
+       <method description="Assign dictionary objects."                                                                      method="assignment(=)"/>
      </methods>
      !!]
      final     ::                             {Type¦label}Destructor
@@ -103,70 +103,70 @@ module Hashes
      generic   :: exists                   => {Type¦label}ExistsVarStr, {Type¦label}ExistsChar
      procedure :: size                     => {Type¦label}Size
      procedure :: destroy                  => {Type¦label}Destroy
-  end type {Type¦label}Hash
+  end type {Type¦label}Dictionary
 
-  interface {Type¦label}Hash
-     module procedure {Type¦label}HashConstructor
-  end interface {Type¦label}Hash
+  interface {Type¦label}Dictionary
+     module procedure {Type¦label}DictionaryConstructor
+  end interface {Type¦label}Dictionary
 
-  ! The number of new elements by which to extend hashes that need to grow.
-  integer, parameter :: hashSizeIncrement=128
+  ! The number of elements allocated when a dictionary is first grown; subsequent growth is geometric (doubling).
+  integer, parameter :: dictionarySizeIncrement=128
 
 contains
 
-  function {Type¦label}HashConstructor() result(self)
+  function {Type¦label}DictionaryConstructor() result(self)
      !!{RST
-     Constructor for scalar hashes.
+     Constructor for scalar dictionaries.
      !!}
      implicit none
-     type({Type¦label}Hash) :: self
+     type({Type¦label}Dictionary) :: self
 
      call {Type¦label}Initialize(self)
      return
-   end function {Type¦label}HashConstructor
+   end function {Type¦label}DictionaryConstructor
 
   subroutine {Type¦label}Initialize(self)
     !!{RST
-    Routine to initialize (or re-initialize) a hash.
+    Routine to initialize (or re-initialize) a dictionary.
     !!}
   use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    class({Type¦label}Hash), intent(  out) :: self
+    class({Type¦label}Dictionary), intent(  out) :: self
 
     self%elementCount = 0
     self%allocatedSize= 0
     self%indexPrevious=-1
     self%keyPrevious  =''
-    if (allocated(self%hashValues)) deallocate(self%hashValues)
-    if (allocated(self%hashKeys  )) deallocate(self%hashKeys  )
+    if (allocated(self%dictionaryValues)) deallocate(self%dictionaryValues)
+    if (allocated(self%dictionaryKeys  )) deallocate(self%dictionaryKeys  )
     return
   end subroutine {Type¦label}Initialize
 
   subroutine {Type¦label}Assign(to,from)
     !!{RST
-    Assignment operator for hashes.
+    Assignment operator for dictionaries.
     !!}
     implicit none
-    class  ({Type¦label}Hash), intent(  out) :: to
-    class  ({Type¦label}Hash), intent(in   ) :: from
-    integer                                  :: i
+    class  ({Type¦label}Dictionary), intent(  out) :: to
+    class  ({Type¦label}Dictionary), intent(in   ) :: from
+    integer                                        :: i
 
     to%allocatedSize=from%allocatedSize
     to%elementCount =from%elementCount
     to%indexPrevious=from%indexPrevious
     to%keyPrevious  =from%keyPrevious
-    if (allocated(to  %hashValues)) deallocate(to%hashValues                       )
-    if (allocated(to  %hashKeys  )) deallocate(to%hashKeys                         )
-    if (allocated(from%hashValues)) then
-       allocate(to%hashValues(size(from%hashValues)))
-       do i=1,size(from%hashValues)
-          to%hashValues(i)=from%hashValues(i)
+    if (allocated(to  %dictionaryValues)) deallocate(to%dictionaryValues                       )
+    if (allocated(to  %dictionaryKeys  )) deallocate(to%dictionaryKeys                         )
+    if (allocated(from%dictionaryValues)) then
+       allocate(to%dictionaryValues(size(from%dictionaryValues)))
+       do i=1,size(from%dictionaryValues)
+          to%dictionaryValues(i)=from%dictionaryValues(i)
        end do
     end if
-    if (allocated(from%hashKeys  )) then
-       allocate(to%hashKeys(size(from%hashKeys)))
-       do i=1,size(from%hashKeys)
-          to%hashKeys(i)=from%hashKeys(i)
+    if (allocated(from%dictionaryKeys  )) then
+       allocate(to%dictionaryKeys(size(from%dictionaryKeys)))
+       do i=1,size(from%dictionaryKeys)
+          to%dictionaryKeys(i)=from%dictionaryKeys(i)
        end do
     end if
     return
@@ -174,10 +174,10 @@ contains
 
   integer function {Type¦label}Size(self)
     !!{RST
-    Returns the number of elements in the specified ``Hash``.
+    Returns the number of elements in the specified ``Dictionary``.
     !!}
     implicit none
-    class({Type¦label}Hash), intent(in   ) :: self
+    class({Type¦label}Dictionary), intent(in   ) :: self
 
     {Type¦label}Size=self%elementCount
     return
@@ -189,29 +189,49 @@ contains
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    class    ({Type¦label}Hash), intent(in   ) :: self
-    character(len=*           ), intent(in   ) :: keyCH
-    type     (varying_string  ), save          :: key
+    class    ({Type¦label}Dictionary), intent(in   ) :: self
+    character(len=*                 ), intent(in   ) :: keyCH
+    type     (varying_string        ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     {Type¦label}ExistsChar={Type¦label}ExistsVarStr(self,key)
     return
   end function {Type¦label}ExistsChar
 
+  function {Type¦label}Lookup(self,key) result(iKey)
+    !!{RST
+    Return the index of ``key`` in the sorted keys of ``self``, or zero if ``key`` does not exist. Uses a binary search, so is :math:`\mathcal{O}(\log N)` in the number of entries.
+    !!}
+    use            :: Arrays_Search     , only : searchArray
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
+    use            :: ISO_Varying_String, only : operator(==)
+    implicit none
+    integer(c_size_t              )                :: iKey
+    class  ({Type¦label}Dictionary), intent(in   ) :: self
+    type   (varying_string        ), intent(in   ) :: key
+
+    if (self%elementCount < 1) then
+       iKey=0_c_size_t
+       return
+    end if
+    iKey=searchArray(self%dictionaryKeys(1:self%elementCount),key)
+    if (iKey < 1_c_size_t .or. iKey > self%elementCount) then
+       iKey=0_c_size_t
+    else if (.not.(self%dictionaryKeys(iKey) == key)) then
+       iKey=0_c_size_t
+    end if
+    return
+  end function {Type¦label}Lookup
+
   logical function {Type¦label}ExistsVarStr(self,key)
     !!{RST
     Returns true if the specified ``key`` exists in the specified ``self``, false otherwise.
     !!}
-    use :: ISO_Varying_String, only : operator(==)
     implicit none
-    class({Type¦label}Hash), intent(in   ) :: self
-    type (varying_string  ), intent(in   ) :: key
+    class({Type¦label}Dictionary), intent(in   ) :: self
+    type (varying_string        ), intent(in   ) :: key
 
-    if (self%elementCount > 0) then
-       {Type¦label}ExistsVarStr=any(self%hashKeys(1:self%elementCount) == key)
-    else
-       {Type¦label}ExistsVarStr=.false.
-    end if
+    {Type¦label}ExistsVarStr={Type¦label}Lookup(self,key) > 0_c_size_t
     return
   end function {Type¦label}ExistsVarStr
 
@@ -221,9 +241,9 @@ contains
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    character(len=*           ), intent(in   ) :: keyCH
-    class    ({Type¦label}Hash), intent(inout) :: self
-    type     (varying_string  ), save          :: key
+    character(len=*                 ), intent(in   ) :: keyCH
+    class    ({Type¦label}Dictionary), intent(inout) :: self
+    type     (varying_string        ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     call {Type¦label}DeleteVarStr(self,key)
@@ -232,31 +252,31 @@ contains
 
   subroutine {Type¦label}DeleteVarStr(self,key)
     !!{RST
-    Deletes entry ``key`` from ``Hash``.
+    Deletes entry ``key`` from ``Dictionary``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=), char
     implicit none
-    type   (varying_string  ), intent(in   ) :: key
-    class  ({Type¦label}Hash), intent(inout) :: self
-    integer(c_size_t        ), save          :: iKey
+    type   (varying_string        ), intent(in   ) :: key
+    class  ({Type¦label}Dictionary), intent(inout) :: self
+    integer(c_size_t              ), save          :: iKey
     !$omp threadprivate(iKey)
-    integer(c_size_t        )                :: i
+    integer(c_size_t              )                :: i
 
     if ({Type¦label}ExistsVarStr(self,key)) then
-       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
+       iKey=searchArray(self%dictionaryKeys(1:self%elementCount),key)
        do i=iKey,self%elementCount-1
-          self%hashKeys  (i)        =                 self%hashKeys  (i+1)
-          self%hashValues(i)%object {Type¦assignment} self%hashValues(i+1)%object
+          self%dictionaryKeys  (i)        =                 self%dictionaryKeys  (i+1)
+          self%dictionaryValues(i)%object {Type¦assignment} self%dictionaryValues(i+1)%object
        end do
        self%elementCount=self%elementCount-1
        ! Unset memoized key.
        self%  keyPrevious=''
        self%indexPrevious=-1
     else
-       call Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
+       call Error_Report('key '''//char(key)//''' does not exist in dictionary'//{introspection:location})
     end if
     return
   end subroutine {Type¦label}DeleteVarStr
@@ -266,11 +286,11 @@ contains
     Returns the key of entry number ``index`` in ``self``.
     !!}
     implicit none
-    type   (varying_string  )                :: key
-    integer                  , intent(in   ) :: indexValue
-    class  ({Type¦label}Hash), intent(in   ) :: self
+    type   (varying_string        )                :: key
+    integer                        , intent(in   ) :: indexValue
+    class  ({Type¦label}Dictionary), intent(in   ) :: self
 
-    key=self%hashKeys(indexValue)
+    key=self%dictionaryKeys(indexValue)
     return
   end function {Type¦label}KeyInt
 
@@ -279,12 +299,12 @@ contains
     Returns an array of all keys in ``self``.
     !!}
     implicit none
-    type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
-    class({Type¦label}Hash)                           , intent(in   ) :: self
+    type (varying_string        ), allocatable, dimension(:), intent(inout) :: keys
+    class({Type¦label}Dictionary)                           , intent(in   ) :: self
 
     if (allocated(keys)) deallocate(keys)
     allocate(keys(self%elementCount))
-    keys=self%hashKeys(1:self%elementCount)
+    keys=self%dictionaryKeys(1:self%elementCount)
     return
   end subroutine {Type¦label}Keys
 
@@ -295,47 +315,47 @@ contains
     use :: Error, only : Error_Report
     implicit none
 #if {Type¦match¦^(generic|rank\d+[a-zA-Z]+)$¦0¦1}
-    {Type¦intrinsic}                  {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
-    class           ({Type¦label}Hash)                                            , intent(in   ) :: self
+    {Type¦intrinsic}                        {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
+    class           ({Type¦label}Dictionary)                                            , intent(in   ) :: self
 
     if (allocated(values)) deallocate(values)
     allocate(values(self%elementCount))
-    values=self%hashValues(1:self%elementCount)%object
+    values=self%dictionaryValues(1:self%elementCount)%object
 #else
-    integer                                            , allocatable, dimension(:), intent(inout) :: values
-    class           ({Type¦label}Hash)                                            , intent(in   ) :: self
+    integer                                                  , allocatable, dimension(:), intent(inout) :: values
+    class           ({Type¦label}Dictionary)                                            , intent(in   ) :: self
     !$GLC attributes unused :: self, values
 
-    call Error_Report('values method is not supported for generic hashes'//{introspection:location})
+    call Error_Report('values method is not supported for generic dictionaries'//{introspection:location})
 #endif
     return
   end subroutine {Type¦label}Values
 
   function {Type¦label}ValueInt(self,indexValue)
     !!{RST
-    Returns the value of entry number ``index`` in ``Hash``.
+    Returns the value of entry number ``index`` in ``Dictionary``.
     !!}
     use :: Error, only : Error_Report
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
-    class           ({Type¦label}Hash), intent(in   )   :: self
-    integer                           , intent(in   )   :: indexValue
+    class           ({Type¦label}Dictionary), intent(in   )   :: self
+    integer                                 , intent(in   )   :: indexValue
 
     if (indexValue < 1 .or. indexValue > self%size()) call Error_Report('index is out of range'//{introspection:location})
-    {Type¦label}ValueInt {Type¦assignment} self%hashValues(indexValue)%object
+    {Type¦label}ValueInt {Type¦assignment} self%dictionaryValues(indexValue)%object
     return
   end function {Type¦label}ValueInt
 
   function {Type¦label}ValueChar(self,keyCH)
     !!{RST
-    Returns the value of ``Key`` in ``Hash``.
+    Returns the value of ``Key`` in ``Dictionary``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueChar
-    character       (len=*           ), intent(in   )   :: keyCH
-    class           ({Type¦label}Hash), intent(in   )   :: self
-    type            (varying_string  ), save            :: key
+    character       (len=*                 ), intent(in   )   :: keyCH
+    class           ({Type¦label}Dictionary), intent(in   )   :: self
+    type            (varying_string        ), save            :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     {Type¦label}ValueChar {Type¦assignment} {Type¦label}ValueVarStr(self,key)
@@ -344,26 +364,27 @@ contains
 
   function {Type¦label}ValueVarStr(self,key)
     !!{RST
-    Returns the value of ``key`` in ``self``.
+    Returns the value of ``key`` in ``self``. A single binary search (:math:`\mathcal{O}(\log N)`) is used to locate the key, short-circuited by the memoized previous key for repeated access.
     !!}
-    use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : char        , operator(==)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueVarStr
-    class           ({Type¦label}Hash), intent(in   )   :: self
-    type            (varying_string  ), intent(in   )   :: key
-    integer         (c_size_t        )                  :: iKey
+    class           ({Type¦label}Dictionary), intent(in   )   :: self
+    type            (varying_string        ), intent(in   )   :: key
+    integer         (c_size_t              )                  :: iKey
 
     if (key == self%keyPrevious) then
-       {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(self%indexPrevious)%object
-    else if ({Type¦label}ExistsVarStr(self,key)) then
-       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
-       {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(iKey)%object
+       {Type¦label}ValueVarStr {Type¦assignment} self%dictionaryValues(self%indexPrevious)%object
     else
-       {Type¦label}ValueVarStr {Type¦assignment} {Type¦null}
-       call Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
+       iKey={Type¦label}Lookup(self,key)
+       if (iKey > 0_c_size_t) then
+          {Type¦label}ValueVarStr {Type¦assignment} self%dictionaryValues(iKey)%object
+       else
+          {Type¦label}ValueVarStr {Type¦assignment} {Type¦null}
+          call Error_Report('key '''//char(key)//''' does not exist in dictionary'//{introspection:location})
+       end if
     end if
     return
   end function {Type¦label}ValueVarStr
@@ -374,10 +395,10 @@ contains
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    {Type¦intrinsic}                  {Type¦argumentAttributes}, intent(in   ) :: value
-    character       (len=*           )                         , intent(in   ) :: keyCH
-    class           ({Type¦label}Hash)                         , intent(inout) :: self
-    type            (varying_string  )                         , save          :: key
+    {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   ) :: value
+    character       (len=*                 )                         , intent(in   ) :: keyCH
+    class           ({Type¦label}Dictionary)                         , intent(inout) :: self
+    type            (varying_string        )                         , save          :: key
     !$omp threadprivate(key)
 
     key=trim(keyCH)
@@ -393,13 +414,13 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=), char, operator(==)
     implicit none
-    {Type¦intrinsic}                       {Type¦argumentAttributes}, intent(in   )               :: Value
-    type            (varying_string       )                         , intent(in   )               :: Key
-    class           ({Type¦label}Hash     )                         , intent(inout)               :: self
-    integer         (c_size_t             )                                                       :: iKey           , i
-    logical                                                                                       :: keyExists      , keyChanged
-    type            ({Type¦label}Container)                         , allocatable  , dimension(:) :: valuesTemporary
-    type            (varying_string       )                         , allocatable  , dimension(:) :: keysTemporary
+    {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   )               :: Value
+    type            (varying_string        )                         , intent(in   )               :: Key
+    class           ({Type¦label}Dictionary)                         , intent(inout)               :: self
+    integer         (c_size_t              )                                                       :: iKey           , i
+    logical                                                                                        :: keyExists      , keyChanged
+    type            ({Type¦label}Container )                         , allocatable  , dimension(:) :: valuesTemporary
+    type            (varying_string        )                         , allocatable  , dimension(:) :: keysTemporary
 
     ! Check if the key already exists.
     keyChanged=.true.
@@ -409,11 +430,11 @@ contains
           keyExists =.true.
           keyChanged=.false.
        else
-          iKey     =searchArray(self%hashKeys(1:self%elementCount),key)
+          iKey     =searchArray(self%dictionaryKeys(1:self%elementCount),key)
           if (iKey < 1 .or. iKey > self%elementCount) then
              keyExists=.false.
           else
-             keyExists=self%hashKeys(iKey) == key
+             keyExists=self%dictionaryKeys(iKey) == key
           end if
        end if
     else
@@ -423,60 +444,61 @@ contains
     if (keyExists) then
 #if {Type¦match¦^rank\d+[a-zA-Z]+$¦1¦0}
 #if {Type¦match¦Ptr$¦0¦1}
-       deallocate(self%hashValues(iKey)%object)
+       deallocate(self%dictionaryValues(iKey)%object)
 #endif
 #endif
-       self%hashValues(iKey)%object {Type¦assignment} value
+       self%dictionaryValues(iKey)%object {Type¦assignment} value
        ! Set memoized key.
        if (keyChanged) then
           self%  keyPrevious=key
           self%indexPrevious=iKey
        end if
     else
-       ! Increase hash size if necessary.
+       ! Increase dictionary size if necessary.
        if (self%elementCount == self%allocatedSize) then
           if (self%allocatedSize > 0) then
              allocate(valuesTemporary(self%allocatedSize))
              allocate(keysTemporary  (self%allocatedSize))
-             valuesTemporary=self%hashValues
-             keysTemporary  =self%hashKeys
-             deallocate(self%hashValues)
-             deallocate(self%hashKeys  )
-             self%allocatedSize=self%allocatedSize+hashSizeIncrement
-             allocate(self%hashValues(self%allocatedSize))
-             allocate(self%hashKeys  (self%allocatedSize))
-             self%hashValues(1:size(valuesTemporary))=valuesTemporary
-             self%hashKeys  (1:size(valuesTemporary))=keysTemporary
+             valuesTemporary=self%dictionaryValues
+             keysTemporary  =self%dictionaryKeys
+             deallocate(self%dictionaryValues)
+             deallocate(self%dictionaryKeys  )
+             ! Grow geometrically (doubling) to give amortized O(N) build cost.
+             self%allocatedSize=self%allocatedSize*2
+             allocate(self%dictionaryValues(self%allocatedSize))
+             allocate(self%dictionaryKeys  (self%allocatedSize))
+             self%dictionaryValues(1:size(valuesTemporary))=valuesTemporary
+             self%dictionaryKeys  (1:size(valuesTemporary))=keysTemporary
              deallocate(valuesTemporary)
              deallocate(keysTemporary  )
           else
-             self%allocatedSize=hashSizeIncrement
-             allocate(self%hashValues(self%allocatedSize))
-             allocate(self%hashKeys  (self%allocatedSize))
+             self%allocatedSize=dictionarySizeIncrement
+             allocate(self%dictionaryValues(self%allocatedSize))
+             allocate(self%dictionaryKeys  (self%allocatedSize))
           end if
        end if
        if (self%elementCount > 0) then
-          iKey=searchArray(self%hashKeys(1:self%elementCount),key)
+          iKey=searchArray(self%dictionaryKeys(1:self%elementCount),key)
        else
           iKey=1
        end if
        if (iKey > self%elementCount) then
           ! Insert at end.
-          self%elementCount                               =                 self%elementCount+1
-          self%hashKeys    (self%elementCount)        =                 key
-          self%hashValues  (self%elementCount)%object {Type¦assignment} value
+          self%elementCount                                 =                 self%elementCount+1
+          self%dictionaryKeys    (self%elementCount)        =                 key
+          self%dictionaryValues  (self%elementCount)%object {Type¦assignment} value
           ! Set memoized key.
           self%  keyPrevious=key
           self%indexPrevious=self%elementCount
        else
           ! Shift array then insert.
           do i=self%elementCount+1,iKey+2,-1
-             self%hashKeys    (i     )        =                 self%hashKeys    (i-1)
-             self%hashValues  (i     )        =                 self%hashValues  (i-1)
+             self%dictionaryKeys    (i     )        =                 self%dictionaryKeys    (i-1)
+             self%dictionaryValues  (i     )        =                 self%dictionaryValues  (i-1)
           end do
-          self   %hashKeys    (iKey+1)        =                 key
-          self   %hashValues  (iKey+1)%object {Type¦assignment} value
-          self   %elementCount                =                 self%elementCount     +1
+          self   %dictionaryKeys    (iKey+1)        =                 key
+          self   %dictionaryValues  (iKey+1)%object {Type¦assignment} value
+          self   %elementCount                      =                 self%elementCount     +1
           ! Set memoized key.
           self%  keyPrevious=key
           self%indexPrevious=iKey+1
@@ -490,15 +512,15 @@ contains
     Destroys ``self``.
     !!}
     implicit none
-    class  ({Type¦label}Hash), intent(inout) :: self
-    integer                                  :: i
+    class  ({Type¦label}Dictionary), intent(inout) :: self
+    integer                                        :: i
 
-    if (allocated(self%hashValues)) deallocate(self%hashValues)
-    if (allocated(self%hashKeys  )) then
-       do i=1,size(self%hashKeys)
-          call self%hashKeys(i)%destroy()
+    if (allocated(self%dictionaryValues)) deallocate(self%dictionaryValues)
+    if (allocated(self%dictionaryKeys  )) then
+       do i=1,size(self%dictionaryKeys)
+          call self%dictionaryKeys(i)%destroy()
        end do
-       deallocate(self%hashKeys)
+       deallocate(self%dictionaryKeys)
     end if
     return
   end subroutine {Type¦label}Destroy
@@ -508,10 +530,10 @@ contains
     Destroys ``self``.
     !!}
     implicit none
-    type({Type¦label}Hash), intent(inout) :: self
+    type({Type¦label}Dictionary), intent(inout) :: self
 
     call {Type¦label}Destroy(self)
     return
   end subroutine {Type¦label}Destructor
 
-end module Hashes
+end module Dictionaries
