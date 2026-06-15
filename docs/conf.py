@@ -6,6 +6,7 @@ from the RST docstrings embedded in the Fortran source.
 """
 import dataclasses
 import datetime
+import os
 import re
 
 from docutils import nodes
@@ -26,6 +27,20 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
 ]
+
+# Spell-checking (sphinxcontrib-spelling) is loaded only for the dedicated
+# ``spelling`` build (``SPHINX_SPELLING=1``, run in CI), so the normal HTML /
+# ReadTheDocs build needs no enchant backend installed.
+if os.environ.get('SPHINX_SPELLING'):
+    extensions.append('sphinxcontrib.spelling')
+    spelling_lang = 'en_US'
+    spelling_word_list_filename = '../aux/words.dict'
+    spelling_show_suggestions = False
+    spelling_warning = True
+    spelling_ignore_contributor_names = True
+    # The bibliography is auto-generated data (author names, journal codes,
+    # bibcodes) — not prose to spell-check.
+    spelling_exclude_patterns = ['**/references.rst']
 
 
 # Author-year citations using round brackets, matching the natbib style of the
