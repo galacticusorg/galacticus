@@ -1830,6 +1830,7 @@ contains
     Open and write a long integer scalar attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : h5awrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
@@ -1896,7 +1897,7 @@ contains
 
     ! Write the attribute.
     dataBuffer=c_loc(attributeValue)
-    errorCode=H5Awrite(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
+    call h5awrite_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -1909,7 +1910,7 @@ contains
     Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HSIZE_T
+    use            :: HDF5              , only : HSIZE_T     , h5awrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
     implicit none
@@ -1983,7 +1984,7 @@ contains
     allocate(attributeValueContiguous,mold=attributeValue)
     attributeValueContiguous=attributeValue
     dataBuffer=c_loc(attributeValueContiguous)
-    errorCode=H5Awrite(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
+    call h5awrite_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2764,7 +2765,7 @@ contains
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f
+          &                                      h5sclose_f                 , h5aread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
     implicit none
@@ -2836,7 +2837,7 @@ contains
     if (matches) then
        ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
-       errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
+       call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2880,7 +2881,7 @@ contains
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T      , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f
+          &                                      h5sclose_f                 , h5aread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)             , operator(//), trim
     implicit none
@@ -2965,7 +2966,7 @@ contains
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
-    errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
+    call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -2979,7 +2980,7 @@ contains
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f
+          &                                      h5sclose_f                 , h5aread_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
     implicit none
@@ -3068,7 +3069,7 @@ contains
     ! since it is of assumed shape.
     allocate(attributeValueContiguous,mold=attributeValue)
     dataBuffer=c_loc(attributeValueContiguous)
-    errorCode=H5Aread(attributeObject%objectID,H5T_INTEGER8,dataBuffer)
+    call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -15279,7 +15280,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueC(datasetDimensions(1)))
     ! Read the dataset.
     dataBuffer=c_loc(datasetValueC)
-    errorCode=h5dread(datasetObject%objectID,H5T_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_VLEN_DOUBLE(1),dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -15660,7 +15661,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueC1(datasetDimensions(1)))
     ! Read the dataset.
     dataBuffer=c_loc(datasetValueC1)
-    errorCode=h5dread(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16044,7 +16045,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueC(datasetDimensions(1),datasetDimensions(2)))
     ! Read the dataset.
     dataBuffer=c_loc(datasetValueC)
-    errorCode=h5dread(datasetObject%objectID,H5T_VLEN_DOUBLE(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_VLEN_DOUBLE(1),dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16093,7 +16094,7 @@ attributeValue=trim(attributeValue)
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f           , &
           &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
@@ -16238,7 +16239,7 @@ attributeValue=trim(attributeValue)
        datasetValueC(i)%p     =c_loc(datasetValue(i)%row              )
     end do
     datasetValueC_=c_loc(datasetValueC)
-    errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
+    call h5dwrite_f(datasetObject%objectID,H5T_VLEN_DOUBLE(1),datasetValueC_,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16269,7 +16270,7 @@ attributeValue=trim(attributeValue)
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f           , &
           &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
@@ -16421,7 +16422,7 @@ attributeValue=trim(attributeValue)
        end do
     end do
     datasetValueC_=c_loc(datasetValueC1)
-    errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
+    call h5dwrite_f(datasetObject%objectID,H5T_VLEN_VLEN_DOUBLE(1),datasetValueC_,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16453,7 +16454,7 @@ attributeValue=trim(attributeValue)
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , hsize_t                    , HID_T                , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f        , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f           , &
           &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
@@ -16600,7 +16601,7 @@ attributeValue=trim(attributeValue)
        end do
     end do
     datasetValueC_=c_loc(datasetValueC)
-    errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_DOUBLE(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
+    call h5dwrite_f(datasetObject%objectID,H5T_VLEN_DOUBLE(1),datasetValueC_,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -16959,7 +16960,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueC(datasetDimensions(1)))
     ! Read the dataset.
     dataBuffer=c_loc(datasetValueC)
-    errorCode=h5dread(datasetObject%objectID,H5T_VLEN_INTEGER8(1),memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dread_f(datasetObject%objectID,H5T_VLEN_INTEGER8(1),dataBuffer,errorCode,memorySpaceID,datasetDataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to read dataset '"//trim(datasetNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -17006,7 +17007,7 @@ attributeValue=trim(attributeValue)
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , h5sget_simple_extent_dims_f, HID_T        , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_vl_f, &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f   , &
           &                                      h5sclose_f   , h5screate_simple_f, h5sselect_hyperslab_f      , hsize_t
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
@@ -17151,7 +17152,7 @@ attributeValue=trim(attributeValue)
        datasetValueC(i)%p     =c_loc(datasetValue(i)%row              )
     end do
     datasetValueC_=c_loc(datasetValueC)
-    errorCode     =H5Dwrite(datasetObject%objectID,H5T_VLEN_INTEGER8(1),newDataspaceID,dataspaceID,H5P_DEFAULT_F,datasetValueC_)
+    call h5dwrite_f(datasetObject%objectID,H5T_VLEN_INTEGER8(1),datasetValueC_,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
