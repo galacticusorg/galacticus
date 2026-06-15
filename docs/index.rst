@@ -1,3 +1,8 @@
+.. image:: /_static/galacticus-logo.png
+   :align: center
+   :width: 480px
+   :alt: Galacticus
+
 Galacticus Documentation
 =========================
 

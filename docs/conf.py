@@ -73,8 +73,13 @@ numfig = True
 
 html_theme = 'furo'
 html_title = 'Galacticus'
+# The galaxy icon shown at the top of the sidebar on every page (transparent,
+# so it works in both light and dark modes).
+html_logo = '_static/galacticus-icon.png'
+html_favicon = '_static/galacticus-icon.png'
 
 templates_path = ['_templates']
+html_static_path = ['_static']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The physics pages are generated; do not fail the build on the occasional
