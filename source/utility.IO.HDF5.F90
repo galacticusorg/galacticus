@@ -382,9 +382,10 @@ module IO_HDF5
      type(hdf5VlenC), allocatable, dimension(:) :: row
   end type hdf5VlenVlenC
   
-  ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API. For
-  ! example, h5dread_f() can not read a scalar dataset region reference, so we are forced to go through the h5dread() C function
-  ! for this purpose.
+  ! Interfaces to a small number of HDF5 C API functions that are required due to the limited datatypes supported by the Fortran
+  ! API: H5T_Variable_Get() returns the H5T_VARIABLE size constant (not exposed by the Fortran module); H5Aread() is used to read
+  ! variable-length string attributes; and H5TBread_fields_name() reads a long-integer table column (the Fortran high-level table
+  ! API has no long-integer interface).
   interface
      function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
        !!{
@@ -393,22 +394,6 @@ module IO_HDF5
        import
        integer(kind=size_t) :: H5T_Variable_Get
      end function H5T_Variable_Get
-     function HDF5_Unit_Type_Create() bind(c,name='HDF5_Unit_Type_Create')
-       !!{
-       Template for the C function that creates the HDF5 compound datatype matching \mono{unitType}.
-       !!}
-       import
-       integer(kind=hid_t) :: HDF5_Unit_Type_Create
-     end function HDF5_Unit_Type_Create
-     function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
-       !!{
-       Template for the HDF5 C API attribute write function.
-       !!}
-       import
-       integer(kind=herr_t)        :: H5Awrite
-       integer(kind=hid_t ), value :: attr_id , mem_type_id
-       type   (c_ptr      ), value :: buf
-     end function H5Awrite
      function H5Aread(attr_id,mem_type_id,buf) bind(c, name='H5Aread')
        !!{
        Template for the HDF5 C API attribute read function.
@@ -418,26 +403,6 @@ module IO_HDF5
        integer(kind=hid_t ), value :: attr_id, mem_type_id
        type   (c_ptr      ), value :: buf
      end function H5Aread
-     function H5Dwrite(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dwrite')
-       !!{
-       Template for the HDF5 C API dataset write function.
-       !!}
-       import
-       integer(kind=herr_t)        :: H5Dwrite
-       integer(kind=hid_t ), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
-            &                         xfer_plist_id
-       type   (c_ptr      ), value :: buf
-     end function H5Dwrite
-     function H5Dread(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dread')
-       !!{
-       Template for the HDF5 C API dataset read function.
-       !!}
-       import
-       integer(kind=herr_t)        :: H5Dread
-       integer(kind=hid_t ), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, &
-            &                         xfer_plist_id
-       type   (c_ptr      ), value :: buf
-     end function H5Dread
      function H5TBread_fields_name(loc_id,table_name,field_names,start,nrecords,type_size,field_offset,dst_sizes,data) bind(c, name='H5TBread_fields_name')
        !!{
        Template for the HDF5 C API table read fields by name function.
@@ -6511,7 +6476,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6652,7 +6617,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6683,7 +6648,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6837,7 +6802,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6868,7 +6833,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -7009,7 +6974,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7040,7 +7005,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f , HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f       , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -7181,7 +7146,7 @@ attributeValue=trim(attributeValue)
     allocate(datasetValueContiguous,mold=datasetValue)
     datasetValueContiguous=datasetValue
     dataBuffer=c_loc(datasetValueContiguous)
-    errorCode=h5dwrite(datasetObject%objectID,H5T_INTEGER8,newDataspaceID,dataspaceID,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(datasetObject%objectID,H5T_INTEGER8,dataBuffer,errorCode,newDataspaceID,dataspaceID,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write dataset '"//datasetNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//{introspection:location})
@@ -17530,7 +17495,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17613,7 +17578,7 @@ attributeValue=trim(attributeValue)
 
     ! Write the reference dataset.
     dataBuffer=c_loc(dataReference)
-    errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
@@ -17651,7 +17616,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17734,7 +17699,7 @@ attributeValue=trim(attributeValue)
 
     ! Write the reference dataset.
     dataBuffer=c_loc(dataReference)
-    errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
@@ -17772,7 +17737,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17855,7 +17820,7 @@ attributeValue=trim(attributeValue)
 
     ! Write the reference dataset.
     dataBuffer=c_loc(dataReference)
-    errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
@@ -17893,7 +17858,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17976,7 +17941,7 @@ attributeValue=trim(attributeValue)
 
     ! Write the reference dataset.
     dataBuffer=c_loc(dataReference)
-    errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
@@ -18014,7 +17979,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -18097,7 +18062,7 @@ attributeValue=trim(attributeValue)
 
     ! Write the reference dataset.
     dataBuffer=c_loc(dataReference)
-    errorCode=h5dwrite(dataSetID,H5T_STD_REF_DSETREG,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F,dataBuffer)
+    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
     if (errorCode /= 0) then
        message="unable to write reference '"//trim(referenceName)//"'"
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
@@ -18276,20 +18241,29 @@ attributeValue=trim(attributeValue)
   subroutine IO_HDF5_Write_Attribute_Units_Scalar(self,attributeValue,attributeName)
     !!{
     Write a \mono{unitType} compound scalar attribute to \mono{self}. The attribute is written using a custom HDF5 compound
-    datatype whose layout is defined in \mono{hdf5\_cTypes.c} via \mono{HDF5\_Unit\_Type\_Create()}.
+    datatype that mirrors the \mono{unitType} \mono{bind(C)} derived type. Member offsets and the overall datatype size are
+    obtained directly from a \mono{unitType} instance via \refClass{H5OFFSETOF} and \mono{c\_sizeof()}, so the HDF5 layout always
+    matches the Fortran type.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HID_T          , h5aclose_f    , h5acreate_f , &
-         &                                       h5aopen_f      , h5screate_f   , h5sclose_f  , &
-         &                                       h5tclose_f     , H5S_SCALAR_F
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)  , trim, char
+    use            :: HDF5              , only : HID_T          , h5aclose_f        , h5acreate_f       , &
+         &                                       h5aopen_f      , h5screate_f       , h5sclose_f        , &
+         &                                       h5tclose_f     , H5S_SCALAR_F      , h5awrite_f        , &
+         &                                       h5tcopy_f      , h5tcreate_f       , h5tinsert_f       , &
+         &                                       h5tset_size_f  , h5tset_strpad_f   , h5tset_cset_f     , &
+         &                                       H5T_COMPOUND_F , H5T_NATIVE_DOUBLE , H5T_NATIVE_INTEGER, &
+         &                                       H5T_C_S1       , H5T_STR_NULLTERM_F, H5T_CSET_ASCII_F  , &
+         &                                       H5OFFSETOF     , size_t
+    use            :: Units_MetaData    , only : unitStringLength
+    use, intrinsic :: ISO_C_Binding     , only : c_loc          , c_sizeof
+    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)      , trim              , char
     implicit none
     class    (hdf5Object    ), intent(inout)           :: self
     type     (unitType      ), intent(in   ), target   :: attributeValue
     character(len=*         ), intent(in   ), optional :: attributeName
-    integer  (kind=HID_T    )                          :: compoundTypeID     , dataspaceID, &
-         &                                                attributeID
+    integer  (kind=HID_T    )                          :: compoundTypeID     , dataspaceID , &
+         &                                                attributeID        , stringTypeID
+    integer  (kind=size_t   )                          :: typeSize
     integer                                            :: errorCode
     type     (varying_string)                          :: attributeNameActual, message
 
@@ -18306,8 +18280,30 @@ attributeValue=trim(attributeValue)
        message="attempt to write units attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    ! Build the compound HDF5 type from the C helper.
-    compoundTypeID=HDF5_Unit_Type_Create()
+    ! Build the compound HDF5 type natively. A fixed-length, null-terminated, ASCII string datatype is used for the two string
+    ! fields, matching the C \mono{char[unitStringLength]} members of the type.
+    call h5tcopy_f(H5T_C_S1,stringTypeID,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to copy string datatype for units attribute'         //self%locationReport()//{introspection:location})
+    call h5tset_size_f(stringTypeID,int(unitStringLength,kind=size_t),errorCode)
+    if (errorCode /= 0) call Error_Report('unable to set string datatype size for units attribute'      //self%locationReport()//{introspection:location})
+    call h5tset_strpad_f(stringTypeID,H5T_STR_NULLTERM_F,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to set string datatype padding for units attribute'   //self%locationReport()//{introspection:location})
+    call h5tset_cset_f(stringTypeID,H5T_CSET_ASCII_F,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to set string datatype charset for units attribute'   //self%locationReport()//{introspection:location})
+    ! Create the compound type, taking its size and member offsets directly from the bind(C) unitType instance.
+    typeSize=int(c_sizeof(attributeValue),kind=size_t)
+    call h5tcreate_f(H5T_COMPOUND_F,typeSize,compoundTypeID,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to create compound datatype for units attribute'      //self%locationReport()//{introspection:location})
+    call h5tinsert_f(compoundTypeID,"unitsInSI"  ,H5OFFSETOF(c_loc(attributeValue),c_loc(attributeValue%unitsInSI    )),H5T_NATIVE_DOUBLE ,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to insert unitsInSI into units datatype'              //self%locationReport()//{introspection:location})
+    call h5tinsert_f(compoundTypeID,"description",H5OFFSETOF(c_loc(attributeValue),c_loc(attributeValue%description(1))),stringTypeID      ,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to insert description into units datatype'            //self%locationReport()//{introspection:location})
+    call h5tinsert_f(compoundTypeID,"quantity"   ,H5OFFSETOF(c_loc(attributeValue),c_loc(attributeValue%quantity   (1))),stringTypeID      ,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to insert quantity into units datatype'               //self%locationReport()//{introspection:location})
+    call h5tinsert_f(compoundTypeID,"isComoving" ,H5OFFSETOF(c_loc(attributeValue),c_loc(attributeValue%isComoving   )),H5T_NATIVE_INTEGER,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to insert isComoving into units datatype'             //self%locationReport()//{introspection:location})
+    call h5tclose_f(stringTypeID,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to close string datatype for units attribute'         //self%locationReport()//{introspection:location})
     ! If the attribute already exists, open it; otherwise create it.
     if (IO_HDF5_Has_Attribute(self,char(attributeNameActual))) then
        call h5aopen_f(self%objectID,char(attributeNameActual),attributeID,errorCode)
@@ -18329,8 +18325,8 @@ attributeValue=trim(attributeValue)
        end if
        call h5sclose_f(dataspaceID,errorCode)
     end if
-    ! Write using the C-level H5Awrite so compound data passes through c_loc correctly.
-    errorCode=int(H5Awrite(attributeID,compoundTypeID,c_loc(attributeValue)))
+    ! Write the compound attribute, passing the data through c_loc.
+    call h5awrite_f(attributeID,compoundTypeID,c_loc(attributeValue),errorCode)
     if (errorCode /= 0) then
        message="unable to write units attribute '"//trim(attributeNameActual)//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
