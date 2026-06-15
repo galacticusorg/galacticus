@@ -45,7 +45,7 @@ Implements a dark matter halo mass function class which accelerates another mass
    contains
      !![
      <methods docformat="rst">
-       <method method="tabulate" description="Tabualte the mass function."/>
+       <method method="tabulate" description="Tabulate the mass function."/>
      </methods>
      !!]
      final     ::                 acceleratorDestructor

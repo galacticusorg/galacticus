@@ -942,6 +942,26 @@ def latex_to_rst(text: str, glsmap: dict[str, str] | None = None) -> str:
         text)
 
     # --- Protect inline math ---------------------------------------------
+    # \ensuremath{X} -> $X$ so the inline-math pass below renders it.
+    def _ensuremath(text_in: str) -> str:
+        out, i = [], 0
+        while True:
+            j = text_in.find('\\ensuremath', i)
+            if j == -1:
+                out.append(text_in[i:])
+                break
+            arg, p = _take_arg(text_in, j + len('\\ensuremath'))
+            out.append(text_in[i:j])
+            if arg is None:
+                out.append('\\ensuremath')
+                i = j + len('\\ensuremath')
+                continue
+            out.append('$' + arg + '$')
+            i = p
+        return ''.join(out)
+
+    text = _ensuremath(text)
+
     def repl_inline(m: re.Match) -> str:
         # Collapse internal whitespace so a ``$…$`` that wrapped across source
         # lines becomes a single-line ``:math:`…``` role (newlines inside an

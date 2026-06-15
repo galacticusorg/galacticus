@@ -636,7 +636,7 @@ contains
              case (Kernel_ENAMETOOLONG)
                 reason="name too long"
              case (Kernel_ENOENT      )
-                reason="non-existant directory"
+                reason="non-existent directory"
              case (Kernel_ENOSPC      )
                 reason="no space on file system"
              case (Kernel_ENOTDIR     )

@@ -69,7 +69,7 @@
   !![
   <stellarPopulation name="stellarPopulationStandard" docformat="rst">
     <description>
-    A standard stellar population class, which uses a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and rates. These rates are determined from the :galacticus-class:`stellarPopulationClass` object provided by a :galacticus-class:`stellarPopulationSelectorClass`.
+    A standard stellar population class, which uses a fully non-instantaneous, metal-dependent calculation of recycling, metal production and rates. These rates are determined from the :galacticus-class:`stellarPopulationClass` object provided by a :galacticus-class:`stellarPopulationSelectorClass`.
 
     It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
 

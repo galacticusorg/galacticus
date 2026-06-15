@@ -44,13 +44,13 @@ Implements a sequence output analysis property operator class.
      !![
      <methods docformat="rst">
        <method description="Prepend an operator to a sequence of property operators." method="prepend" />
-       <method description="Apppend an operator to a sequence of property operators." method="apppend" />
+       <method description="Append an operator to a sequence of property operators." method="apppend" />
      </methods>
      !!]
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend
-     procedure :: apppend => sequenceApppend
+     procedure :: apppend => sequenceAppend
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
@@ -173,7 +173,7 @@ contains
     return
   end subroutine sequencePrepend
 
-  subroutine sequenceApppend(self,operator_)
+  subroutine sequenceAppend(self,operator_)
     !!{RST
     Append an operator to the sequence.
     !!}
@@ -191,4 +191,4 @@ contains
     end do
     operatorCurrent%next => operatorNew
     return
-  end subroutine sequenceApppend
+  end subroutine sequenceAppend

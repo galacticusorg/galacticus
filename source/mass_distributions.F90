@@ -196,7 +196,7 @@ module Mass_Distributions
    </method>
    <method name="densitySphericalAverage" >
     <description>
-    Return the average density on a spherical shell of the gievn radius.
+    Return the average density on a spherical shell of the given radius.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -651,7 +651,7 @@ module Mass_Distributions
    </method>
    <method name="chandrasekharIntegral" >
     <description>
-    Return the Chandresekhar integral of the distribution.
+    Return the Chandrasekhar integral of the distribution.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>

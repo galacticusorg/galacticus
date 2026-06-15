@@ -39,7 +39,7 @@ module Atomic_Rates_Recombination_Dielectronic
    <default>arnaud1985</default>
    <method name="rate" >
     <description>
-    Return the dielectroninc recombination rate (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the ion of given ``atomicNumber`` and ``electronNumber`` at the given ``temperature`` (in Kelvin).
+    Return the dielectronic recombination rate (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the ion of given ``atomicNumber`` and ``electronNumber`` at the given ``temperature`` (in Kelvin).
     </description>
     <type>double precision</type>
     <pass>yes</pass>

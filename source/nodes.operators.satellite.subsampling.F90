@@ -30,7 +30,7 @@
 
       f = \alpha (M_{\mathrm{sat}}/M_0)^\beta,
 
-   where :math:`M_\mathrm{sat}` is the satellite's mass, :math:`M_0` is a reference mass scale. The normalization :math:`\alpha` and slope parameter :math:`\beta` can be set in the paremter file. A threshold on satellite's mass, infall time, and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are less abundant, e.g. satellites with large mass, or in plunging orbit.
+   where :math:`M_\mathrm{sat}` is the satellite's mass, :math:`M_0` is a reference mass scale. The normalization :math:`\alpha` and slope parameter :math:`\beta` can be set in the parameter file. A threshold on satellite's mass, infall time, and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are less abundant, e.g. satellites with large mass, or in plunging orbit.
    </description>
   </nodeOperator>
   !!]

@@ -137,7 +137,7 @@ module Cosmology_Functions
    </method>
    <method name="equationOfStateDarkEnergy" >
     <description>
-    Return the equation of state paramerter, :math:`w`, for the dark energy component.
+    Return the equation of state parameter, :math:`w`, for the dark energy component.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

@@ -41,7 +41,7 @@ Implements a thermal warm dark matter particle class.
      !![
      <methods docformat="rst">
        <method description="Return the effective number of degrees of freedom of the thermal wark dark matter particle." method="degreesOfFreedomEffective" />
-       <method description="Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled." method="degreesOfFreedomEffectiveDecoupling" />
+       <method description="Return the effective number of relativistic degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled." method="degreesOfFreedomEffectiveDecoupling" />
      </methods>
      !!]
      final     ::                                        wdmThermalDestructor

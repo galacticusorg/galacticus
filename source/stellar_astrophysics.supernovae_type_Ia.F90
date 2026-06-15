@@ -59,7 +59,7 @@ module Supernovae_Type_Ia
    </method>
    <method name="yield" >
     <description>
-    Return the cumulative yield from Type Ia supernoave from a stellar population of the given ``initialMass``, ``age``, and ``metallicity``.
+    Return the cumulative yield from Type Ia supernovae from a stellar population of the given ``initialMass``, ``age``, and ``metallicity``.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

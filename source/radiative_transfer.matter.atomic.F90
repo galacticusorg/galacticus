@@ -66,7 +66,7 @@
      <methods docformat="rst">
        <method description="Return the total rate of recombinations (in units of s\ :math:`^{-1}`)." method="recombinationRateHydrogen" />
        <method description="Return the total rate of recombinations (in units of s\ :math:`^{-1}`)." method="absorptionCoefficientSpecies" />
-       <method description="Update the ionization state hsitory in a properties object." method="historyUpdate" />
+       <method description="Update the ionization state history in a properties object." method="historyUpdate" />
        <method description="Compute the total photoionization cross section for the given element and ionization state." method="crossSectionPhotoIonization" />
      </methods>
      !!]

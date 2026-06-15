@@ -114,7 +114,7 @@ module Geometry_Surveys
    </method>
    <method name="angularPower" >
     <description>
-    Return :math:`C^{ij}_\ell`, where :math:`(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}`, and :math:`\Psi^i_{\ell m}` are the cofficients of the spherical harmonic expansion of the :math:`i^\mathrm{th}` field.
+    Return :math:`C^{ij}_\ell`, where :math:`(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}`, and :math:`\Psi^i_{\ell m}` are the coefficients of the spherical harmonic expansion of the :math:`i^\mathrm{th}` field.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

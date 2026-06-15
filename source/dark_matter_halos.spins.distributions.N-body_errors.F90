@@ -63,7 +63,7 @@
      <methods docformat="rst">
        <method description="Return the spin distribution function averaged over all halos above the given ``massLimit``." method="distributionAveraged" />
        <method description="Return the spin distribution function at a fixed point in intrinsic mass and spin." method="distributionFixedPoint" />
-       <method description="Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the ``massRequired`` and ``spinRequireed`` if provided." method="tabulate" />
+       <method description="Tabulate the spin distribution as a function of spin and halo mass. Ensure that the table spans the ``massRequired`` and ``spinRequireed`` if provided." method="tabulate" />
      </methods>
      !!]
      final     ::                           nbodyErrorsDestructor

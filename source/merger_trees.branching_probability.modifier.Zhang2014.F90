@@ -28,7 +28,7 @@
   !![
   <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierZhang2014" docformat="rst">
    <description>
-   Provides a merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for envionmental-dependence of the merger rate. Specifically, the modifier is:
+   Provides a merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence of the merger rate. Specifically, the modifier is:
 
    .. math::
 

@@ -178,7 +178,7 @@
        <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
        <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />
        <method description="Return the power of the jet launched from the disk for the ADAF." method="jetPowerDisk" />
-       <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
+       <method description="Return the power of the jet launched from the disk which is derived from the black hole." method="jetPowerDiskFromBlackHole" />
      </methods>
      !!]
      procedure :: efficiencyRadiative            => adafEfficiencyRadiative

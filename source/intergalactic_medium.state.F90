@@ -107,7 +107,7 @@ module Intergalactic_Medium_State
    </method>
    <method name="massJeans" >
     <description>
-    Return the instantaneus Jeans mass (in :math:`\mathrm{M}_\odot`) at the given time.
+    Return the instantaneous Jeans mass (in :math:`\mathrm{M}_\odot`) at the given time.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

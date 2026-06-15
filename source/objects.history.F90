@@ -628,7 +628,7 @@ contains
     if (allocated(self%data)) then
        self%data=reshape(historyArray,shape(self%data))
     else if (size(historyArray) > 0) then
-       call Error_Report('attempt to deserialize into non-existant history'//{introspection:location})
+       call Error_Report('attempt to deserialize into non-existent history'//{introspection:location})
     end if
     return
   end subroutine History_Deserialize

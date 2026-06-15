@@ -292,7 +292,7 @@ contains
           parameterCount=String_Count_Words(parameterText)
           if (self%modelParametersActive_(i)%indexElement > parameterCount)                           &
                & call Error_Report(                                                                   &
-               &                   var_str('attempt to access non-existant element {')             // &
+               &                   var_str('attempt to access non-existent element {')             // &
                &                          (self%modelParametersActive_(i)%indexElement          -1)// &
                &                           '} of parameter "'                                      // &
                &                   char   (     modelParametersActive_(i)%modelParameter_%name()  )// &
