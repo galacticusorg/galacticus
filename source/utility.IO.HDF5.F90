@@ -394,15 +394,6 @@ module IO_HDF5
        import
        integer(kind=size_t) :: H5T_Variable_Get
      end function H5T_Variable_Get
-     function H5Aread(attr_id,mem_type_id,buf) bind(c, name='H5Aread')
-       !!{
-       Template for the HDF5 C API attribute read function.
-       !!}
-       import
-       integer(kind=herr_t)        :: H5Aread
-       integer(kind=hid_t ), value :: attr_id, mem_type_id
-       type   (c_ptr      ), value :: buf
-     end function H5Aread
      function H5TBread_fields_name(loc_id,table_name,field_names,start,nrecords,type_size,field_offset,dst_sizes,data) bind(c, name='H5TBread_fields_name')
        !!{
        Template for the HDF5 C API table read fields by name function.
@@ -3461,7 +3452,7 @@ contains
        call h5tset_strpad_f(stringType,H5T_STR_NULLTERM_F,errorCode)
        if (errorCode /= 0) call Error_Report('unable to set datatype padding'//self%locationReport()//{introspection:location})
        ! Read the attribute.
-       errorCode=H5Aread(attributeObject%objectID,stringType,c_loc(stringBuffer))
+       call h5aread_f(attributeObject%objectID,stringType,c_loc(stringBuffer),errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
