@@ -290,8 +290,12 @@ def main():
         # Step 6: submit the MCMC job (skip if chain log already exists).
         chain_log_0 = log_file_root(config) + '_0000.log'
         if not os.path.exists(chain_log_0):
+            n_proc = task["ppn"]*task['nodes']
+            omp_prefix = (
+                f'export OMP_NUM_THREADS=1; '
+                )
             mpi_prefix = (
-                f'mpirun --n {task["ppn"]} '
+                f'mpirun --oversubscribe --n {n_proc} '
                 )
             callgrind_prefix = (
                 f'--output-filename {output_dir}{label}.vlog '
@@ -299,13 +303,13 @@ def main():
                 if options['callgrind'] == 'yes' else ''
             )
             job = {
-                'command':    f'{mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
+                'command':    f'{omp_prefix} {mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
                 'launchFile': f'{output_dir}{label}.sh',
                 'logFile':    f'{output_dir}{label}.log',
                 'label':      f'darkMatterPipeline{label[0].upper()}{label[1:]}',
                 'ppn':        task['ppn'],
                 'nodes':      task['nodes'],
-                'walltime':   '24:00:00',
+                'walltime':   '7-00:00:00',
             }
             print(f"  Running MCMC for '{label}'  [{datetime.datetime.now()}]")
             manager = queueManager.factory(args)
