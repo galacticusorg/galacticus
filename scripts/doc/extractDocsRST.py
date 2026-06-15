@@ -496,8 +496,9 @@ def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
 
 
 # ``<constant …/>`` directives in the source define the physical/mathematical/…
-# constants.  (constants.py reads the build's *.constants.xml; the same data is
-# in the source directives, so we read those directly — no compiled build.)
+# constants.  The build's code generator also emits these as ``*.constants.xml``,
+# but the same data is in the source directives, so we read those directly — no
+# compiled build needed.
 _CONSTANT_RE = re.compile(r'<constant\b([^>]*?)/?>')
 _CONSTANT_GROUPS = {
     'astrophysical': 'Astrophysical constants',
