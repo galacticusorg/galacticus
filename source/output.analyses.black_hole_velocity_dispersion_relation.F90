@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by Sachi Weerasooriya
+!+    Contributions to this file made by: Sachi Weerasooriya
   
   !!{RST
   Implements a black hole-velocity dispersion mass relation analysis class using the data from :cite:t:`mcconnell_revisiting_2013`.

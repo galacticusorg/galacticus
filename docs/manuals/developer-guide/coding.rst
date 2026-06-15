@@ -544,7 +544,7 @@ The directive should contain the following elements:
    *(optional)* If present and set to ``yes`` then the default implementation of this function class will be made OpenMP thread private. Otherwise, the default implementation is shared between threads. A thread private default implementation can be useful if the function class may need to generate look-up tables unique to each thread on the fly for example.
 
 ``calculationReset``
-   *(optional)* If present and set to ``yes`` then the default implementation of the function class is assumed to possibly want to reset its calculations when the active :term:`node` changes (see Section :galacticus-ref:`CalculationResetTask`). In this case, an additional method is generated for the function class: ``calculationReset`` with interface:
+   *(optional)* If present and set to ``yes`` then the default implementation of the function class is assumed to possibly want to reset its calculations when the active :term:`node` changes (see Section :galacticus-ref:`autoHook`). In this case, an additional method is generated for the function class: ``calculationReset`` with interface:
 
    .. code-block:: none
 
@@ -857,7 +857,7 @@ Frequently, a given property of a node may be required in many different aspects
 
 The first feature is the "unique ID"---an integer number assigned to each node in Galacticus and which uniquely identifies a node (i.e. no two nodes processed in a Galacticus run will have the same unique ID). This number, which can be retrieved using the ``uniqueID`` property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
 
-The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. Galacticus provides a calculation reset task (see Section :galacticus-ref:`CalculationResetTask`). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
+The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. Galacticus provides a calculation reset task (see Section :galacticus-ref:`autoHook`). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
 Global Functions
 ----------------
