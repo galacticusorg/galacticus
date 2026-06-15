@@ -72,7 +72,7 @@ Quasar-mode
 
    .. math::
 
-      H(a,b,c) = \left\{\begin{array}{ll}a & \hbox{ if } c=\hbox\mono{true} \\b & \hbox{ if } c=\hbox\mono{false},\end{array}\right.
+      H(a,b,c) = \left\{\begin{array}{ll}a & \hbox{ if } c=\mono{true} \\b & \hbox{ if } c=\mono{false},\end{array}\right.
 
    is added to the gas :term:`component` of the spheroid (which, presumably, will respond with an outflow for example---see Section :galacticus-ref:`ComponentSpheroid` for details of how specific implementations of the spheroid component respond to the addition of energy) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas :cite:p:`ciotti_feedbackcentral_2009`, i.e.
 
