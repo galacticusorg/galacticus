@@ -142,7 +142,7 @@ def _step_a_group_labels(simulations, options):
             labelParameter = 'Cube' + group['name']
             group['labelPerturbation']     = label
             group['parameterPerturbation'] = labelParameter
-            group['perturbation']          = f'haloMassFunctionParameters/perturbation{label}'
+            group['perturbation']          = f'haloMassFunctionParameters/perturbation{labelParameter}'
             perturbations[labelParameter]  = perturbations.get(label, 0) + 1
         else:
             group['labelPerturbation']     = ''
@@ -177,7 +177,6 @@ def _step_b_suite_hmf_xml(simulations, options):
                 _remove_hmf_nodes(root, removal_value)
         ET.indent(root)
         ET.ElementTree(root).write(dst, xml_declaration=True, encoding='utf-8')
-
 
 # ---------------------------------------------------------------------------
 # Steps C & D
