@@ -3372,7 +3372,8 @@ contains
     logical                                                                   :: allowPseudoScalarActual   , matches                   , &
          &                                                                       isH5TString
     type     (c_ptr                  )              , target                  :: stringBuffer
-    character(c_char                 ), dimension(:), pointer                 :: stringBuffer_   
+    type     (c_ptr                  )                                        :: stringBufferPtr
+    character(c_char                 ), dimension(:), pointer                 :: stringBuffer_
     
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3452,7 +3453,9 @@ contains
        call h5tset_strpad_f(stringType,H5T_STR_NULLTERM_F,errorCode)
        if (errorCode /= 0) call Error_Report('unable to set datatype padding'//self%locationReport()//{introspection:location})
        ! Read the attribute.
-       call h5aread_f(attributeObject%objectID,stringType,c_loc(stringBuffer),errorCode)
+       ! The c_ptr buffer must be passed as a variable (the F2003 h5aread_f c_ptr interface takes it as intent(inout)).
+       stringBufferPtr=c_loc(stringBuffer)
+       call h5aread_f(attributeObject%objectID,stringType,stringBufferPtr,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
