@@ -54,6 +54,10 @@ def test_factory_pushes_and_pops_build_stack():
     # The push/pop helpers must be imported into the factory's use list.
     assert "Input_Parameters_Build_Stack_Push" in src and \
            "Input_Parameters_Build_Stack_Pop" in src, src
+    # The push must thread the factory's recursion-awareness flag, so that a
+    # repeated build passing through a recursive="yes" class (which short-
+    # circuits its own re-entry and thus bounds the cycle) is not mis-flagged.
+    assert "'.true.' if allow_recursion else '.false.'" in src, src
 
 
 def test_build_stack_push_is_placed_after_recursive_short_circuit():

@@ -3118,7 +3118,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             )
         post['content'] += (
             '        call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
-            f"'{directive_name}',{loc_expr})\n"
+            f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
             '        select type (self)\n'
             f'          type is ({target_name})\n'
             f'            self={target_name}(subParameters)\n'
@@ -3169,7 +3169,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         '      subParameters=parameters%subParameters'
         '(char(parameterName_),copyInstance=copyInstance_)\n'
         '      call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
-        f"'{directive_name}',{loc_expr})\n"
+        f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
         '      select case (char(instanceName))\n'
     )
     for c in non_abstract_classes:
