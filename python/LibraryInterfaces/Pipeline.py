@@ -78,6 +78,22 @@ _SHARED_TYPE_MODULES = {
 }
 
 
+def _module_for_symbol(use_blocks, symbol):
+    """Return the name of the module whose `use ..., only :` list includes
+    `symbol`, or None.
+
+    A parsed moduleUse node maps each module to a *list* of entries (one per
+    preprocessor condition set); a bare dict is tolerated for safety.
+    """
+    for use_block in use_blocks or []:
+        for mod_name, mod_data in use_block.items():
+            entries = mod_data if isinstance(mod_data, list) else [mod_data]
+            for entry in entries:
+                if isinstance(entry, dict) and symbol in entry.get('only', {}):
+                    return mod_name
+    return None
+
+
 # Match a fixed-size dimension attribute of any rank.  Each comma-
 # separated dim is either `N` (default lower bound 1) or `L:U` (explicit
 # lower bound).  Used to distinguish a fixed-size array — whose shape is
@@ -1130,25 +1146,13 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # first (same scheme the scalar derived-type branch uses).
             list_mod = _SHARED_TYPE_MODULES.get(list_type)
             if not list_mod:
-                for use_block in func_class.get('moduleUses', []):
-                    for mod_name, mod_data in use_block.items():
-                        if (isinstance(mod_data, dict)
-                                and list_type in mod_data.get('only', {})):
-                            list_mod = mod_name
-                            break
-                    if list_mod:
-                        break
+                list_mod = _module_for_symbol(
+                    func_class.get('moduleUses', []), list_type)
             if implementation and not list_mod:
                 cls = implementation['name']
                 while cls and not list_mod:
-                    for use_block in module_uses_impls.get(cls, []):
-                        for mod_name, mod_data in use_block.items():
-                            if (isinstance(mod_data, dict)
-                                    and list_type in mod_data.get('only', {})):
-                                list_mod = mod_name
-                                break
-                        if list_mod:
-                            break
+                    list_mod = _module_for_symbol(
+                        module_uses_impls.get(cls, []), list_type)
                     cls = extensions.get(cls)
             if list_mod:
                 arg.fort_modules.setdefault(list_mod, {})[list_type] = 1
@@ -1284,25 +1288,13 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                 if implementation:
                     cls = implementation['name']
                     while cls and not import_module:
-                        for use_block in module_uses_impls.get(cls, []):
-                            for mod_name, mod_data in use_block.items():
-                                if (isinstance(mod_data, dict)
-                                        and type_spec_val in mod_data.get('only', {})):
-                                    import_module = mod_name
-                                    break
-                            if import_module:
-                                break
+                        import_module = _module_for_symbol(
+                            module_uses_impls.get(cls, []), type_spec_val)
                         cls = extensions.get(cls)
                 # 2. fall back to the functionClass file's own module uses.
                 if not import_module:
-                    for use_block in func_class.get('moduleUses', []):
-                        for mod_name, mod_data in use_block.items():
-                            if (isinstance(mod_data, dict)
-                                    and type_spec_val in mod_data.get('only', {})):
-                                import_module = mod_name
-                                break
-                        if import_module:
-                            break
+                    import_module = _module_for_symbol(
+                        func_class.get('moduleUses', []), type_spec_val)
                 # 3. last resort: the functionClass's own module.
                 if not import_module:
                     import_module = func_class.get('module')

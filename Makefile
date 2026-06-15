@@ -409,25 +409,31 @@ ifeq '${STATIC}' '-static'
 $(BUILDPATH)/Makefile_Config_Git2:
 	@mkdir -p $(BUILDPATH)
 	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
-	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 else ifeq '${USEGIT2}' 'no'
 $(BUILDPATH)/Makefile_Config_Git2:
 	@mkdir -p $(BUILDPATH)
 	echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
-	echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2
+	echo "CFLAGS   += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 else
 $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 	@mkdir -p $(BUILDPATH)
-	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(CFLAGS) > /dev/null 2>&1 ; \
+# Probe only against the system/user libgit2 headers (via GALACTICUS_CFLAGS),
+# *not* the full CFLAGS. The latter adds `-I$(BUILDPATH)/`, which can contain a
+# zero-byte `git2.h` stub left by an earlier GIT2UNAVAIL build (created by the
+# generic `%.h` rule for the preprocessed-out include in git2.c). That stub
+# would shadow the real header and make the probe spuriously fail, trapping the
+# build in GIT2UNAVAIL even when a working libgit2 is installed.
+	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(GALACTICUS_CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DGIT2AVAIL"   >  $(BUILDPATH)/Makefile_Config_Git2 ; \
 	 echo "CFLAGS   += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
 	 echo "CPPFLAGS += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
 	else \
 	 echo "FCFLAGS  += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
-	 echo "CFLAGS   += -DGIT2UNAVAIL" >  $(BUILDPATH)/Makefile_Config_Git2 ; \
+	 echo "CFLAGS   += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2 ; \
 	 echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2 ; \
 	fi
 endif

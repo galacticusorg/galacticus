@@ -711,13 +711,8 @@ _WAIT_TIMES_TAIL = """    ! Open output group.
     call waitTimeGroup%writeDataset(eventHookNames         ,"eventHookNames"         ,"Names of event hooks"                                                              )
     call waitTimeGroup%writeDataset(eventHookReadWaitTimes ,"eventHookReadWaitTimes" ,"Total time spent waiting to read-lock event hooks" ,datasetReturned=waitTimeDataset)
     call waitTimeDataset%writeAttribute(unitType(1.0d0,"seconds","s"),"units")
-    call waitTimeDataset%close()
     call waitTimeGroup%writeDataset(eventHookWriteWaitTimes,"eventHookWriteWaitTimes","Total time spent waiting to write-lock event hooks",datasetReturned=waitTimeDataset)
     call waitTimeDataset%writeAttribute(unitType(1.0d0,"seconds","s"),"units")
-    call waitTimeDataset%close()
-    ! Close output groups.
-    call waitTimeGroup%close()
-    call metaDataGroup%close()
     !$ call hdf5Access%unset()
 #endif
    return

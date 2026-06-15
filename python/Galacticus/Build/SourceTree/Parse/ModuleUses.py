@@ -12,11 +12,38 @@ import copy
 
 from Galacticus.Build.FortranUtils import get_fortran_line
 
+# NB: the `(?![a-zA-Z0-9_])` after `use` is essential — without it, an
+# assignment to a variable whose name merely *starts* with "use" (e.g.
+# `useCache=lastCache`) parses as `use Cache, only : =lastCache`, fabricating
+# a bogus module-use node in the middle of a procedure body (issue #1030).
+# The lookahead requires a non-identifier character (whitespace, `,`, or `::`)
+# to follow `use`, mirroring the Perl original's mandatory separator while
+# also accepting the `use::module` spelling the Perl regex wrongly rejected.
 _MODULE_USE_RE = re.compile(
-    r'^\s*(!\$)?\s*use\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
+    r'^\s*(!\$)?\s*use(?![a-zA-Z0-9_])\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
     r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
     re.IGNORECASE,
 )
+
+
+def _as_entry_list(value):
+    """Normalize a `moduleUse[module]` value to a list of entry dicts.
+
+    Parsed `moduleUse` nodes store a *list* of entries per module — one per
+    distinct preprocessor condition set — so that the same module `use`d
+    under different `#ifdef` guards within one unit is preserved and each
+    occurrence re-emitted under its own guard (issue #1030).  Callers of
+    `add_uses` may still pass a bare entry dict for the common unconditional
+    case; treat that as a single-element list.
+    """
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
+def _condition_key(entry):
+    """A hashable identity for an entry's preprocessor condition set."""
+    return tuple((c['name'], c['invert']) for c in entry.get('conditions', []))
 
 
 def parse_module_uses(tree):
@@ -125,21 +152,32 @@ def parse_module_uses(tree):
                 mod_name     = m.group(5)
                 only_text    = m.group(7)
 
-                if mod_name not in module_uses:
+                # Entries are keyed by module name *and* preprocessor
+                # condition set: the same module may be `use`d under
+                # different `#ifdef` guards within one unit, and each such
+                # occurrence must be preserved and re-emitted under its own
+                # guard (issue #1030).
+                conditions = copy.deepcopy(pp_stack) if pp_stack else []
+                cond_key   = tuple((c['name'], c['invert']) for c in conditions)
+
+                entries = module_uses.setdefault(mod_name, [])
+                if not entries:
+                    # First occurrence of this module name fixes its order.
                     if is_intrinsic:
                         module_order.insert(0, mod_name)
                     else:
                         module_order.append(mod_name)
 
-                entry = module_uses.setdefault(mod_name, {
-                    'openMP':    is_openmp,
-                    'intrinsic': is_intrinsic,
-                })
-                entry['openMP']    = is_openmp
-                entry['intrinsic'] = is_intrinsic
-
-                if pp_stack:
-                    entry['conditions'] = copy.deepcopy(pp_stack)
+                entry = next(
+                    (e for e in entries if _condition_key(e) == cond_key), None)
+                if entry is None:
+                    entry = {'openMP': is_openmp, 'intrinsic': is_intrinsic}
+                    if conditions:
+                        entry['conditions'] = conditions
+                    entries.append(entry)
+                else:
+                    entry['openMP']    = is_openmp
+                    entry['intrinsic'] = is_intrinsic
 
                 if only_text and 'all' not in entry:
                     only_text = only_text.strip()
@@ -221,29 +259,33 @@ def update_uses(uses_node):
     module_use  = uses_node.get('moduleUse', {})
     module_order = uses_node.get('moduleOrder', list(module_use.keys()))
 
-    openmp_any   = any(v.get('openMP')    for v in module_use.values())
-    intrinsic_any = any(v.get('intrinsic') for v in module_use.values())
+    openmp_any = any(
+        e.get('openMP')
+        for v in module_use.values() for e in _as_entry_list(v))
+    intrinsic_any = any(
+        e.get('intrinsic')
+        for v in module_use.values() for e in _as_entry_list(v))
 
     name_len_max = max((len(n) for n in module_use), default=0)
 
     # Compute 4-column max widths for 'only' symbols.
     col_max = [0, 0, 0, 0]
-    for mod_name in module_use:
-        only = module_use[mod_name].get('only', {})
-        if only:
-            for i, sym in enumerate(sorted(only.keys())):
-                j = i % 4
-                if len(sym) > col_max[j]:
-                    col_max[j] = len(sym)
+    for v in module_use.values():
+        for entry in _as_entry_list(v):
+            only = entry.get('only', {})
+            if only:
+                for i, sym in enumerate(sorted(only.keys())):
+                    j = i % 4
+                    if len(sym) > col_max[j]:
+                        col_max[j] = len(sym)
 
-    content = ""
-    for mod_name in module_order:
-        entry = module_use.get(mod_name, {})
+    def _emit_entry(mod_name, entry):
+        text = ""
 
         # Emit preprocessor conditions.
         for cond in entry.get('conditions', []):
             directive = "#ifndef" if cond['invert'] else "#ifdef"
-            content += directive + " " + cond['name'] + "\n"
+            text += directive + " " + cond['name'] + "\n"
 
         use_line = indent
 
@@ -286,11 +328,17 @@ def update_uses(uses_node):
                         use_line += cont_prefix + "&" + " " * (offset_len - len(cont_prefix) - 1)
 
         use_line += "\n"
-        content += use_line
+        text += use_line
 
         # Close preprocessor conditions.
         for _ in entry.get('conditions', []):
-            content += "#endif\n"
+            text += "#endif\n"
+        return text
+
+    content = ""
+    for mod_name in module_order:
+        for entry in _as_entry_list(module_use.get(mod_name, [])):
+            content += _emit_entry(mod_name, entry)
 
     if uses_node.get('firstChild') is None:
         uses_node['firstChild'] = {
@@ -361,36 +409,40 @@ def add_uses(node, module_uses_node):
     new_module_order = module_uses_node.get('moduleOrder', sorted(new_module_use.keys()))
 
     for mod_name in new_module_order:
-        new_entry = new_module_use[mod_name]
+        for new_entry in _as_entry_list(new_module_use[mod_name]):
+            cond_key = _condition_key(new_entry)
+            entries  = uses_node['moduleUse'].setdefault(mod_name, [])
 
-        if mod_name not in uses_node['moduleOrder']:
-            if new_entry.get('intrinsic'):
-                uses_node['moduleOrder'].insert(0, mod_name)
-            else:
-                uses_node['moduleOrder'].append(mod_name)
+            if mod_name not in uses_node['moduleOrder']:
+                if new_entry.get('intrinsic'):
+                    uses_node['moduleOrder'].insert(0, mod_name)
+                else:
+                    uses_node['moduleOrder'].append(mod_name)
 
-        existing = uses_node['moduleUse'].setdefault(mod_name, {})
-        existing['openMP']    = new_entry.get('openMP', False)
-        existing['intrinsic'] = new_entry.get('intrinsic', False)
-        if 'conditions' in new_entry:
-            existing['conditions'] = copy.deepcopy(new_entry['conditions'])
-        else:
-            # The caller wants to use this module unconditionally — if the
-            # existing entry was wrapped in `#ifdef …`, drop the conditions
-            # so the wrapper is removed.  Otherwise the merged `use` ends up
-            # only imported in builds where the original (e.g. MPI-only)
-            # condition holds, and the new caller's symbol is undefined in
-            # other builds.  This mirrors the intuitive read of "merge in
-            # an unconditional use of mod_name".
-            existing.pop('conditions', None)
+            # Merge into the entry with the *same* condition set.  An
+            # unconditional `use` thus joins (or creates) the unconditional
+            # entry and leaves any `#ifdef`-guarded entry of the same module
+            # intact — and vice versa.  This is what fixes the condition
+            # conflation of issue #1030: with a single per-module entry, a
+            # later occurrence's guard used to overwrite (or be merged
+            # under) the earlier one's, moving symbols into the wrong block.
+            existing = next(
+                (e for e in entries if _condition_key(e) == cond_key), None)
+            if existing is None:
+                existing = {}
+                if 'conditions' in new_entry:
+                    existing['conditions'] = copy.deepcopy(new_entry['conditions'])
+                entries.append(existing)
+            existing['openMP']    = new_entry.get('openMP', False)
+            existing['intrinsic'] = new_entry.get('intrinsic', False)
 
-        if 'all' not in existing:
-            if new_entry.get('all'):
-                existing['all'] = True
-                existing.pop('only', None)
-            else:
-                only = existing.setdefault('only', {})
-                for sym in new_entry.get('only', {}):
-                    only[sym] = True
+            if 'all' not in existing:
+                if new_entry.get('all'):
+                    existing['all'] = True
+                    existing.pop('only', None)
+                else:
+                    only = existing.setdefault('only', {})
+                    for sym in new_entry.get('only', {}):
+                        only[sym] = True
 
     update_uses(uses_node)
