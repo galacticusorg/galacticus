@@ -274,8 +274,8 @@ contains
     class           (nodePropertyExtractorStarFormationHistoryMass), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
     double precision                                               , intent(in   ) :: time
-    type            (doubleHash                                   ), intent(inout) :: metaDataRank0
-    type            (rank1DoubleHash                              ), intent(inout) :: metaDataRank1
+    type            (doubleDictionary                             ), intent(inout) :: metaDataRank0
+    type            (rank1DoubleDictionary                        ), intent(inout) :: metaDataRank1
     integer         (c_size_t                                     )                :: indexOutput
     !$GLC attributes unused :: metaDataRank0
 

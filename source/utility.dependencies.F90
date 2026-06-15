@@ -25,13 +25,13 @@ module Dependencies
   !!{
   Implements dependency versioning.
   !!}
-  use :: Hashes, only : varyingStringHash
+  use :: Dictionaries, only : varyingStringDictionary
   implicit none
   private
   public :: dependencyVersion
 
-  type   (varyingStringHash) :: dependencies_
-  logical                    :: initialized =.false.
+  type   (varyingStringDictionary) :: dependencies_
+  logical                          :: initialized  =.false.
   
 contains
 

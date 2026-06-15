@@ -1031,7 +1031,7 @@ contains
     use :: Display                 , only : displayGreen              , displayReset
     use :: Error                   , only : Error_Report
     use :: Galacticus_Nodes        , only : treeNode
-    use :: Hashes                  , only : doubleHash                , rank1DoubleHash
+    use :: Dictionaries            , only : doubleDictionary          , rank1DoubleDictionary
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
          &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D       , nodePropertyExtractorIntegerList
@@ -1049,8 +1049,8 @@ contains
           if (allocated(self%integerProperty(i)%metaDataRank1)) deallocate(self%integerProperty(i)%metaDataRank1)
           allocate(self%integerProperty(i)%metaDataRank0)
           allocate(self%integerProperty(i)%metaDataRank1)
-          self%integerProperty(i)%metaDataRank0=     doubleHash()
-          self%integerProperty(i)%metaDataRank1=rank1DoubleHash()
+          self%integerProperty(i)%metaDataRank0=     doubleDictionary()
+          self%integerProperty(i)%metaDataRank1=rank1DoubleDictionary()
        end do
     end if
     if (allocated(self%doubleProperty )) then
@@ -1059,8 +1059,8 @@ contains
           if (allocated(self%doubleProperty (i)%metaDataRank1)) deallocate(self%doubleProperty (i)%metaDataRank1)
           allocate(self%doubleProperty (i)%metaDataRank0)
           allocate(self%doubleProperty (i)%metaDataRank1)
-          self%doubleProperty (i)%metaDataRank0=     doubleHash()
-          self%doubleProperty (i)%metaDataRank1=rank1DoubleHash()
+          self%doubleProperty (i)%metaDataRank0=     doubleDictionary()
+          self%doubleProperty (i)%metaDataRank1=rank1DoubleDictionary()
        end do
     end if
     integerProperty=0

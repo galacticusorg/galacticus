@@ -2104,7 +2104,7 @@ contains
 #ifdef USEMPI
     use :: MPI_F08           , only : MPI_Max_Processor_Name, MPI_Character
     use :: Error             , only : Error_Report
-    use :: Hashes            , only : integerHash
+    use :: Dictionaries      , only : integerDictionary
     use :: ISO_Varying_String, only : assignment(=)         , operator(==), var_str, operator(//), char
     use :: String_Handling   , only : operator(//)
 #endif
@@ -2113,7 +2113,7 @@ contains
 #ifdef USEMPI
     character(len=MPI_Max_Processor_Name), dimension(1)              :: processorName
     character(len=MPI_Max_Processor_Name), dimension(:), allocatable :: processorNames
-    type     (integerHash               )                            :: processCount
+    type     (integerDictionary         )                            :: processCount
     type     (varying_string            )                            :: message
     integer                                                          :: i                  , iError  , &
          &                                                              processorNameLength, iProcess

@@ -1107,7 +1107,7 @@ jobs:
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
                       tests.geometry.coordinate_systems.exe,
-                      tests.hashes.exe,
+                      tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
                       tests.hashes.cryptographic.exe,

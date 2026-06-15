@@ -26,7 +26,7 @@ module Stellar_Populations
   Implements a class for stellar populations.
   !!}
   use            :: Abundances_Structure      , only : abundances
-  use            :: Hashes                    , only : integerSizeTHash
+  use            :: Dictionaries              , only : integerSizeTDictionary
   use, intrinsic :: ISO_C_Binding             , only : c_size_t
   use            :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   implicit none
@@ -94,9 +94,9 @@ module Stellar_Populations
   !!]
 
   ! Dictionary of unique IDs by descriptor.
-  type   (integerSizeTHash) :: descriptors
-  logical                   :: descriptorsInitialized=.false.
-  integer(c_size_t        ) :: uniqueID_             =0_c_size_t
+  type   (integerSizeTDictionary) :: descriptors
+  logical                         :: descriptorsInitialized=.false.
+  integer(c_size_t              ) :: uniqueID_             =0_c_size_t
 
 contains
 

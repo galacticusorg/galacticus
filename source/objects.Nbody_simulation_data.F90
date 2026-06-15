@@ -27,8 +27,8 @@ module NBody_Simulation_Data
   !!}
   use :: IO_HDF5           , only : hdf5Object
   use :: ISO_Varying_String, only : varying_string
-  use :: Hashes            , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
-       &                            integerSizeTHash        , doubleHash              , varyingStringHash , genericHash
+  use :: Dictionaries      , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary, rank2DoublePtrDictionary, &
+       &                            integerSizeTDictionary        , doubleDictionary              , varyingStringDictionary , genericDictionary
   implicit none
   private
   public :: nBodyData, nBodyDataPropertyType
@@ -37,16 +37,16 @@ module NBody_Simulation_Data
      !!{
      A class to store N-body simulation data.
      !!}
-     type(varying_string          ) :: label
-     type(hdf5Object              ) :: analysis
-     type(integerSizeTHash        ) :: attributesInteger
-     type(doubleHash              ) :: attributesReal
-     type(varyingStringHash       ) :: attributesText
-     type(genericHash             ) :: attributesGeneric
-     type(rank1IntegerSizeTPtrHash) :: propertiesInteger
-     type(rank1DoublePtrHash      ) :: propertiesReal
-     type(rank2IntegerSizeTPtrHash) :: propertiesIntegerRank1
-     type(rank2DoublePtrHash      ) :: propertiesRealRank1
+     type(varying_string                ) :: label
+     type(hdf5Object                    ) :: analysis
+     type(integerSizeTDictionary        ) :: attributesInteger
+     type(doubleDictionary              ) :: attributesReal
+     type(varyingStringDictionary       ) :: attributesText
+     type(genericDictionary             ) :: attributesGeneric
+     type(rank1IntegerSizeTPtrDictionary) :: propertiesInteger
+     type(rank1DoublePtrDictionary      ) :: propertiesReal
+     type(rank2IntegerSizeTPtrDictionary) :: propertiesIntegerRank1
+     type(rank2DoublePtrDictionary      ) :: propertiesRealRank1
    contains
      final :: nBodyDataDestructorScalar, nBodyDataDestructorRank1
   end type nBodyData
