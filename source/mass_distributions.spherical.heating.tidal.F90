@@ -52,8 +52,10 @@
      !![
      <methods>
        <method description="Compute the first and second order energy perturbations." method="specificEnergyTerms"/>
+       <method description="(Re)initialize the parameters of the tidal heating distribution." method="initialize"/>
      </methods>
      !!]
+     procedure :: initialize                     => tidalInitialize
      procedure :: specificEnergy                 => tidalSpecificEnergy
      procedure :: specificEnergyGradient         => tidalSpecificEnergyGradient
      procedure :: specificEnergyIsEveryWhereZero => tidalSpecificEnergyIsEverywhereZero
@@ -133,9 +135,28 @@ contains
     !![
     <constructorAssign variables="heatSpecificNormalized, coefficientSecondOrder0, coefficientSecondOrder1, coefficientSecondOrder2, correlationVelocityRadius"/>
     !!]
- 
+
     return
   end function tidalConstructorInternal
+
+  subroutine tidalInitialize(self,heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
+    !!{
+    (Re)initialize the parameters of a tidal mass distribution heating object. This is used
+    when the object is re-used from a pool, to update its properties for a new \gls{node}.
+    !!}
+    implicit none
+    class           (massDistributionHeatingTidal), intent(inout) :: self
+    double precision                              , intent(in   ) :: heatSpecificNormalized   , coefficientSecondOrder0, &
+         &                                                           coefficientSecondOrder1  , coefficientSecondOrder2, &
+         &                                                           correlationVelocityRadius
+
+    self%heatSpecificNormalized   =heatSpecificNormalized
+    self%coefficientSecondOrder0  =coefficientSecondOrder0
+    self%coefficientSecondOrder1  =coefficientSecondOrder1
+    self%coefficientSecondOrder2  =coefficientSecondOrder2
+    self%correlationVelocityRadius=correlationVelocityRadius
+    return
+  end subroutine tidalInitialize
 
   double precision function tidalSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
     !!{
