@@ -159,8 +159,9 @@ jobs:
             fi
           done
           exit $status
-  # Embedded XML and LaTeX checks
-  Embedded-XML-LaTeX:
+  # Embedded XML directive validation (the LaTeX checks were retired with the
+  # migration of the embedded documentation to reStructuredText).
+  Validate-Embedded-XML:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -170,19 +171,14 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "DICTIONARY=en_US" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
-      - name: Mark directory safe        
+      - name: Mark directory safe
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us python3-lxml
-      - name: Build class information
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          make -j4 work/build/stateStorables.xml
+          apt install -y python3-lxml
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v47
@@ -190,39 +186,18 @@ jobs:
           files: |
             **/*.F90
             **/*.Inc
-      - name: Perform checks of embedded XML and LaTeX
+      - name: Validate embedded XML directives
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
-              echo "Embedded XML/LaTeX in file $file passes analysis"
+              echo "Embedded XML in file $file passes validation"
             else
-              echo "Embedded XML/LaTeX in file $file fails analysis"
+              echo "Embedded XML in file $file fails validation"
               status=1
             fi
           done
           exit $status
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: warnings.md
-      - name: Output to a job summary
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          cat warnings.md >> $GITHUB_STEP_SUMMARY
-      - name: Wrap warnings in collapsible section
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          printf '<details><summary>Embedded XML/LaTeX warnings (click to expand)</summary>\n\n' > warnings-collapsible.md
-          cat warnings.md >> warnings-collapsible.md
-          printf '\n\n</details>\n' >> warnings-collapsible.md
-      - name: Comment on the PR if any warnings were found
-        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
-        continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          file-path: warnings-collapsible.md
   # Spell check LaTeX files
   Spell-Check-LaTeX:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
