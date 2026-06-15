@@ -25,6 +25,7 @@ generated directly from the documentation embedded in the source code.
    physics/index
    modules
    enumerations
+   constants
    glossary
    references
    workarounds

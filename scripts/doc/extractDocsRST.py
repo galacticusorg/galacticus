@@ -495,6 +495,86 @@ def render_workarounds(workarounds: list[dict], glsmap: dict) -> str:
     return '\n'.join(out) + '\n'
 
 
+# ``<constant …/>`` directives in the source define the physical/mathematical/…
+# constants.  (constants.py reads the build's *.constants.xml; the same data is
+# in the source directives, so we read those directly — no compiled build.)
+_CONSTANT_RE = re.compile(r'<constant\b([^>]*?)/?>')
+_CONSTANT_GROUPS = {
+    'astrophysical': 'Astrophysical constants',
+    'atomic':        'Atomic physics constants',
+    'physical':      'Physical constants',
+    'math':          'Mathematical constants',
+    'units':         'Units',
+    'prefixes':      'SI prefixes',
+    'GSL':           'GNU Scientific Library constants',
+    'Kernel':        'Kernel constants',
+    'misc':          'Miscellaneous constants',
+}
+
+
+def scan_constants(source_dir: str) -> list[dict]:
+    constants = []
+    for root, _dirs, files in os.walk(source_dir):
+        for fn in sorted(files):
+            if not fn.endswith('.F90') or fn.startswith('.#'):
+                continue
+            with open(os.path.join(root, fn), encoding='utf-8',
+                      errors='replace') as fh:
+                text = fh.read()
+            for m in _CONSTANT_RE.finditer(text):
+                attrs = {k: html.unescape(v)
+                         for k, v in re.findall(r'(\w+)="([^"]*)"', m.group(1))}
+                if 'variable' in attrs:
+                    constants.append(attrs)
+    return constants
+
+
+def _format_constant_value(value: str) -> str:
+    value = re.sub(r'd([+\-0-9]+)$', r'e\1', value)   # Fortran d-exponent -> e
+    value = re.sub(r'_[_a-zA-Z0-9]+$', '', value)     # strip Fortran kind suffix
+    return value
+
+
+def render_constants(constants: list[dict], glsmap: dict) -> str:
+    """A reference of the constants defined via ``<constant>`` source directives."""
+    groups: dict[str, list[dict]] = {}
+    for c in constants:
+        for g in (c.get('group') or 'misc').split(':'):
+            groups.setdefault(g if g in _CONSTANT_GROUPS else 'misc', []).append(c)
+
+    out = [_heading('Constants', '='),
+           'Physical, mathematical and astrophysical constants available in the '
+           'Galacticus source (defined via ``<constant>`` directives). Constants '
+           'whose value is provided by the GNU Scientific Library note the GSL '
+           'symbol rather than a literal value.\n']
+    for g in sorted(groups, key=lambda k: _CONSTANT_GROUPS[k].lower()):
+        out.append(_heading(_CONSTANT_GROUPS[g], '-'))
+        for c in sorted(groups[g], key=lambda c: c.get('variable', '').lower()):
+            term = f'``{c["variable"]}``'
+            if c.get('value'):
+                term += f' = ``{_format_constant_value(c["value"])}``'
+            if c.get('symbol'):
+                term += f' (:math:`{c["symbol"]}`)'
+            units = c.get('units', '')
+            if units and units != 'dimensionless':
+                term += f' [{units}]'
+            desc = re.sub(r'\s*\n\s*', ' ',
+                          latex_to_rst(c.get('description', ''), glsmap)).strip()
+            extras = []
+            if c.get('gslSymbol'):
+                extras.append(f'value from GSL ``{c["gslSymbol"]}``')
+            if c.get('reference'):
+                extras.append(f'`{c["reference"]} <{c["referenceURL"]}>`_'
+                              if c.get('referenceURL') else c['reference'])
+            if c.get('externalDescription'):
+                extras.append(f'`more <{c["externalDescription"]}>`_')
+            body = (desc or '—') + ('\n\n' + '; '.join(extras) if extras else '')
+            out.append(term)
+            out.append(textwrap.indent(body, '   '))
+            out.append('')
+    return '\n'.join(out) + '\n'
+
+
 def render_physics_index(families: dict, implementations: dict) -> str:
     fams = sorted((f for f in families if f in implementations),
                   key=lambda f: families[f].get('descriptiveName', f).lower())
@@ -564,6 +644,11 @@ def main() -> int:
               encoding='utf-8') as fh:
         fh.write(render_workarounds(workarounds, glsmap))
 
+    constants = scan_constants(source_dir)
+    with open(os.path.join(out_dir, 'constants.rst'), 'w',
+              encoding='utf-8') as fh:
+        fh.write(render_constants(constants, glsmap))
+
     n_impl = sum(len(v) for v in implementations.values())
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
     impl_files = {i.get('file') for v in implementations.values() for i in v}
@@ -571,7 +656,7 @@ def main() -> int:
     print(f'Wrote {len(implementations)} physics pages ({n_impl} '
           f'implementations, {n_meth} interface + {n_tmeth} type methods), '
           f'{len(enumerations)} enumerations, {len(modules)} modules, '
-          f'{len(workarounds)} workarounds, glossary '
+          f'{len(workarounds)} workarounds, {len(constants)} constants, glossary '
           f'({len(glossary)} entries), references.', file=sys.stderr)
     return 0
 
