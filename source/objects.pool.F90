@@ -37,7 +37,7 @@ module Object_Pools
 
   type :: poolSlot
      !!{
-     A single slot in an \refClass{objectPool}, holding a pointer to a pooled object.
+     A single slot in an \mono{objectPool}, holding a pointer to a pooled object.
      !!}
      class(functionClass), pointer :: object_ => null()
   end type poolSlot
