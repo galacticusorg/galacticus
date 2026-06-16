@@ -927,7 +927,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(2),errorCode)
+    call h5tcopy_f(H5T_C_S1,IO_HDF5_Character_Types(2),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
@@ -957,7 +957,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(4),errorCode)
+    call h5tcopy_f(H5T_C_S1,IO_HDF5_Character_Types(4),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
@@ -987,7 +987,7 @@ contains
        message="unable to set padding"
        call Error_Report(message//{introspection:location})
     end if
-    call h5tcopy_f(H5T_C_S1      ,IO_HDF5_Character_Types(6),errorCode)
+    call h5tcopy_f(H5T_C_S1,IO_HDF5_Character_Types(6),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
        call Error_Report(message//{introspection:location})
@@ -1788,7 +1788,7 @@ contains
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : h5awrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     class    (hdf5Object    ), intent(inout)           :: self
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -1866,9 +1866,9 @@ contains
     Open and write an integer 1-D array attribute in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HSIZE_T     , h5awrite_f
+    use            :: HDF5              , only : HSIZE_T      , h5awrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     class    (hdf5Object    )                           , intent(inout)           :: self
     character(len=*         )                           , intent(in   ), optional :: attributeName
@@ -6470,7 +6470,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t              , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6642,7 +6642,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t              , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6827,7 +6827,7 @@ attributeValue=trim(attributeValue)
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
           &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t              , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -6997,9 +6997,9 @@ attributeValue=trim(attributeValue)
     Open and write a long integer 4-D array dataset in \mono{self}.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f , HID_T     , &
-          &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f       , h5sclose_f, &
-          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t   , h5dwrite_f
+    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_SELECT_SET_F           , h5sselect_hyperslab_f, HID_T     , &
+          &                                      HSIZE_T           , h5dget_space_f             , h5dset_extent_f      , h5sclose_f, &
+          &                                      h5screate_simple_f, h5sget_simple_extent_dims_f, hsize_t              , h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)               , trim
     implicit none
@@ -16965,8 +16965,8 @@ attributeValue=trim(attributeValue)
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , h5sget_simple_extent_dims_f, HID_T        , &
-          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f   , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_SELECT_SET_F  , h5sget_simple_extent_dims_f, HID_T     , &
+          &                                      HSIZE_T      , h5dget_space_f    , h5dset_extent_f            , h5dwrite_f, &
           &                                      h5sclose_f   , h5screate_simple_f, h5sselect_hyperslab_f      , hsize_t
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
@@ -17489,7 +17489,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17610,7 +17610,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17731,7 +17731,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17852,7 +17852,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -17973,7 +17973,7 @@ attributeValue=trim(attributeValue)
     use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
           &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
           &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f    , h5dwrite_f
+          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
@@ -18250,7 +18250,8 @@ attributeValue=trim(attributeValue)
          &                                       H5OFFSETOF     , size_t
     use            :: Units_MetaData    , only : unitStringLength
     use, intrinsic :: ISO_C_Binding     , only : c_loc          , c_sizeof
-    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)      , trim              , char
+    use            :: ISO_Varying_String, only : assignment(=)  , operator(//)      , trim              , &
+         &                                       char
     implicit none
     class    (hdf5Object    ), intent(inout)           :: self
     type     (unitType      ), intent(in   ), target   :: attributeValue
@@ -18277,7 +18278,7 @@ attributeValue=trim(attributeValue)
     ! Build the compound HDF5 type natively. A fixed-length, null-terminated, ASCII string datatype is used for the two string
     ! fields, matching the C \mono{char[unitStringLength]} members of the type.
     call h5tcopy_f(H5T_C_S1,stringTypeID,errorCode)
-    if (errorCode /= 0) call Error_Report('unable to copy string datatype for units attribute'         //self%locationReport()//{introspection:location})
+    if (errorCode /= 0) call Error_Report('unable to copy string datatype for units attribute'          //self%locationReport()//{introspection:location})
     call h5tset_size_f(stringTypeID,int(unitStringLength,kind=size_t),errorCode)
     if (errorCode /= 0) call Error_Report('unable to set string datatype size for units attribute'      //self%locationReport()//{introspection:location})
     call h5tset_strpad_f(stringTypeID,H5T_STR_NULLTERM_F,errorCode)
