@@ -383,9 +383,8 @@ module IO_HDF5
   end type hdf5VlenVlenC
   
   ! Interfaces to a small number of HDF5 C API functions that are required due to the limited datatypes supported by the Fortran
-  ! API: H5T_Variable_Get() returns the H5T_VARIABLE size constant (not exposed by the Fortran module); H5Aread() is used to read
-  ! variable-length string attributes; and H5TBread_fields_name() reads a long-integer table column (the Fortran high-level table
-  ! API has no long-integer interface).
+  ! API: H5T_Variable_Get() returns the H5T_VARIABLE size constant (not exposed by the Fortran module); and
+  ! H5TBread_fields_name() reads a long-integer table column (the Fortran high-level table API has no long-integer interface).
   interface
      function H5T_Variable_Get() bind(c,name='H5T_Variable_Get')
        !!{
