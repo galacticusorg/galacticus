@@ -28,7 +28,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" docformat="rst">
    <description>
-   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the :term:`node` on the primary branch as a function of time). Histories are written into the Galacticus output file in a group with name given by ``[outputGroupName]``. Within that group, each merger tree has its own group named ``mergerTree\textless\ N\textgreater`` where ``\textless\ N\textgreater`` is the tree index. Within each such merger tree group datasets giving the node index ("``nodeIndex``"), time ("``nodeTime``"), basic mass ("``nodeMass``"), expansion factor ("``nodeExpansionFactor``") are written. Optionally, datasets giving the spin parameter ("``nodeSpin``") and its vector components ("``nodeSpinVector``") are included if ``[includeSpin]`` and ``[includeSpinVector]`` respectively are set to ``true``.
+   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the :term:`node` on the primary branch as a function of time). Histories are written into the Galacticus output file in a group with name given by ``[outputGroupName]``. Within that group, each merger tree has its own group named ``mergerTree&lt;N&gt;`` where ``&lt;N&gt;`` is the tree index. Within each such merger tree group datasets giving the node index ("``nodeIndex``"), time ("``nodeTime``"), basic mass ("``nodeMass``"), expansion factor ("``nodeExpansionFactor``") are written. Optionally, datasets giving the spin parameter ("``nodeSpin``") and its vector components ("``nodeSpinVector``") are included if ``[includeSpin]`` and ``[includeSpinVector]`` respectively are set to ``true``.
    </description>
   </mergerTreeOperator>
   !!]

@@ -26,7 +26,7 @@ Implements a dump to :term:`GraphViz` operator on merger trees.
   !![
   <mergerTreeOperator name="mergerTreeOperatorDumpToGraphViz" docformat="rst">
    <description>
-   A merger tree operator class which dumps the full structure of each merger tree to a file using the :term:`GraphViz` format. All trees with root node basic mass between ``[massMinimum]`` and ``[massMaximum]`` will be dumped to a file named "``mergerTreeDump:\textless treeIndex\textgreater:1.gv``" in the directory specified by ``[path]``. If ``[scaleNodesByLogMass]``\ :math:`=`\ ``true`` then the size of each :term:`GraphViz` node is scaled in proportion to the logarithm of the halo mass. If ``[edgeLengthsToTimes]``\ :math:`=`\ ``true`` then the lengths of edges in the :term:`GraphViz` graph are scaled in proportion to the time difference between the connected nodes.
+   A merger tree operator class which dumps the full structure of each merger tree to a file using the :term:`GraphViz` format. All trees with root node basic mass between ``[massMinimum]`` and ``[massMaximum]`` will be dumped to a file named "``mergerTreeDump:&lt;treeIndex&gt;:1.gv``" in the directory specified by ``[path]``. If ``[scaleNodesByLogMass]``\ :math:`=`\ ``true`` then the size of each :term:`GraphViz` node is scaled in proportion to the logarithm of the halo mass. If ``[edgeLengthsToTimes]``\ :math:`=`\ ``true`` then the lengths of edges in the :term:`GraphViz` graph are scaled in proportion to the time difference between the connected nodes.
    </description>
   </mergerTreeOperator>
   !!]

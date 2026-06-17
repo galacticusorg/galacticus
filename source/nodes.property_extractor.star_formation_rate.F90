@@ -28,7 +28,7 @@ Implements a star formation rate property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate" docformat="rst">
    <description>
-   A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by the ``[component]`` parameter, which can be either "``disk``", "``spheroid``", "``nsc``" or "``total``". The corresponding star formation rate is extracted as ``\textless\ component\textgreater\ StarFormationRate`` in units of :math:`\mathrm{M}_\odot`/Gyr.
+   A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by the ``[component]`` parameter, which can be either "``disk``", "``spheroid``", "``nsc``" or "``total``". The corresponding star formation rate is extracted as ``&lt;component&gt;StarFormationRate`` in units of :math:`\mathrm{M}_\odot`/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
