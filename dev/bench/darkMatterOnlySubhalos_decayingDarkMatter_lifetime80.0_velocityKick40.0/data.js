@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781574733524,
+  "lastUpdate": 1781679989973,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -5547,6 +5547,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 42.06329170523349,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "931f580aca5a858da4c57ed11cf5a4bd7ae2b24c",
+          "message": "docs(pool): refer to objectPool without broken cross-reference\n\nResolve undefined `\\refClass{objectPool}` to a plain `\\mono` reference\nsince the class lacks a corresponding cross-reference target.",
+          "timestamp": "2026-06-16T15:12:57-07:00",
+          "tree_id": "c350a980a9b204bb05b7646ff63744432822807d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/931f580aca5a858da4c57ed11cf5a4bd7ae2b24c"
+        },
+        "date": 1781679988840,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 35.4711425569914,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 43.172477286344545,
             "unit": "-logℒ"
           }
         ]
