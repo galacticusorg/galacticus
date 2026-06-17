@@ -29,12 +29,15 @@ program Tests_IO_HDF5
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
+  use :: Units_MetaData    , only : unitType
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                                                                   :: iPass                          , integerValue         , &
        &                                                                       integerValueReread             , i                    , &
        &                                                                       j                              , k
   logical                                                                   :: appendableOK
+  integer                                                                   :: unitsStatus
+  type            (unitType       )                                         :: unitsValue
   integer                                       , dimension(10)             :: integerValueArray
   integer                                       , dimension(10)             :: integerValueArrayRereadStatic
   integer                          , allocatable, dimension( :)             :: integerValueArrayReread
@@ -157,6 +160,11 @@ program Tests_IO_HDF5
        ! Read the long integer 1-D array attribute back to a static array.
        call groupObject%readAttributeStatic("integer8Attribute1dArray",integer8ValueArrayRereadStatic)
        call Assert("re-read 1-D array long integer attribute to static array",integer8ValueArray,integer8ValueArrayRereadStatic)
+
+       ! Write a units (compound type) attribute to the group. There is no Fortran reader for this attribute type, so it is
+       ! verified externally (via h5py) after the file is closed.
+       unitsValue=unitType(3.0856775814913673d22,description="megaparsec",quantity="length",isComoving=.true.)
+       call groupObject%writeAttribute(unitsValue,"unitsAttribute")
 
        ! Write a scalar double attribute to the group.
        doubleValue=9.12345d0
@@ -894,6 +902,13 @@ program Tests_IO_HDF5
      call Assert("read h5py string attribute (varying_string)",varStringValueReread,var_str("this is a variable length string"))
      call Unit_Tests_End_Group()
    end block
+
+  ! Verify the units (compound type) attribute written above by reading it back with h5py and checking each field. The verifier
+  ! script exits with non-zero status on any mismatch.
+  call Unit_Tests_Begin_Group("units compound attribute")
+  call System_Command_Do("./testSuite/scripts/verify_units.py",unitsStatus)
+  call Assert("re-read units compound attribute (via h5py)",unitsStatus,0)
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()

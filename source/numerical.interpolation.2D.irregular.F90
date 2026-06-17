@@ -75,7 +75,7 @@ contains
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset) &
        result(zi)
     !!{RST
-    Perform interpolation on a set of points irregularly spaced on a 2D surface. On  reset=.true. (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls ( reset=.false.) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the Z values change between calls while the XY positions do not. The function is fully thread-safe: all state is held in  workspace and no global or module-level variables are accessed.
+    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the Z values change between calls while the XY positions do not. The function is fully thread-safe: all state is held in ``workspace`` and no global or module-level variables are accessed.
     !!}
     implicit none
     type            (interpolator2DIrregular)                               , intent(inout)           :: workspace
@@ -174,7 +174,7 @@ contains
 
   double precision function interpolateOne(ws, xii, yii)
     !!{RST
-    Locate the triangle containing  (xii,yii) and interpolate.
+    Locate the triangle containing ``(xii,yii)`` and interpolate.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -191,7 +191,7 @@ contains
 
   subroutine buildTriangulation(ws)
     !!{RST
-    Triangulate the data points stored in  ws.  Produces a Delaunay-like triangulation using the max-min-angle criterion (Lawson).  On return,  ws%ipt,  ws%ipl,  ws%nTriangles and  ws%nBorder are set. Port of  idtang from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Triangulate the data points stored in ``ws``.  Produces a Delaunay-like triangulation using the max-min-angle criterion (Lawson).  On return, ``ws%ipt``, ``ws%ipl``, ``ws%nTriangles`` and ``ws%nBorder`` are set. Port of ``idtang`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type(interpolator2DIrregular), intent(inout) :: ws
@@ -490,7 +490,7 @@ contains
 
   integer function triangleSwapCheck(x, y, i1, i2, i3, i4)
     !!{RST
-    Determine whether swapping the shared diagonal of the quadrilateral formed by points  i1-- i4 improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise. Port of  idxchg from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Determine whether swapping the shared diagonal of the quadrilateral formed by points ``i1``--``i4`` improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise. Port of ``idxchg`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     double precision, dimension(:), intent(in) :: x, y
@@ -530,7 +530,7 @@ contains
 
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
     !!{RST
-    For each of the  ndp data points, select the  ncp closest neighbours, ensuring they are not all collinear.  Output is stored in  ipc(ncp*ndp), with the  ncp neighbours of point  ip1 at indices  (ip1-1)*ncp+1 .. ip1*ncp.  On error  ipc(1) is set to 0. Port of  idcldp from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    For each of the ``ndp`` data points, select the ``ncp`` closest neighbours, ensuring they are not all collinear.  Output is stored in ``ipc(ncp*ndp)``, with the ``ncp`` neighbours of point ``ip1`` at indices ``(ip1-1)*ncp+1 .. ip1*ncp``.  On error ``ipc(1)`` is set to 0. Port of ``idcldp`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -638,7 +638,7 @@ contains
 
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
     !!{RST
-    Estimate first- and second-order partial derivatives at each data point using the  ncp closest neighbours.  Output  pd(5*ndp) stores ZX, ZY, ZXX, ZXY, ZYY for point  ip0 at indices  5*ip0-4 .. 5*ip0. Port of  idpdrv from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Estimate first- and second-order partial derivatives at each data point using the ``ncp`` closest neighbours.  Output ``pd(5*ndp)`` stores ZX, ZY, ZXX, ZXY, ZYY for point ``ip0`` at indices ``5*ip0-4 .. 5*ip0``. Port of ``idpdrv`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -727,7 +727,7 @@ contains
 
   subroutine buildSectionGrid(ws)
     !!{RST
-    Build the 9-section spatial lookup grid over the triangulation stored in  ws. On return  ws%xs1,  ws%xs2,  ws%ys1,  ws%ys2,  ws%ntsc,  ws%sectionData, and  ws%triBounds are populated and  ws%gridReady is set to  .true.. Port of the initialisation block of  idlctn from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Build the 9-section spatial lookup grid over the triangulation stored in ``ws``. On return ``ws%xs1``, ``ws%xs2``, ``ws%ys1``, ``ws%ys2``, ``ws%ntsc``, ``ws%sectionData``, and ``ws%triBounds`` are populated and ``ws%gridReady`` is set to ``.true.``. Port of the initialisation block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -809,7 +809,7 @@ contains
 
   integer function locatePoint(ws, xii, yii)
     !!{RST
-    Locate the triangle or border-segment region containing  (xii,yii). Returns  iti in  1..nTriangles for interior points; returns  il1*(nTriangles+nBorder)+il2 for exterior points, encoding the nearest border-segment pair.  Updates  ws%lastTriangle for subsequent calls. Port of the lookup block of  idlctn from the original BIVAR package :cite:p:`akima_algorithm_1978`.
+    Locate the triangle or border-segment region containing ``(xii,yii)``. Returns ``iti`` in ``1..nTriangles`` for interior points; returns ``il1*(nTriangles+nBorder)+il2`` for exterior points, encoding the nearest border-segment pair.  Updates ``ws%lastTriangle`` for subsequent calls. Port of the lookup block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -933,18 +933,18 @@ contains
 
   double precision function interpolatePoint(ws, xii, yii, iti)
     !!{RST
-    Evaluate the interpolated (or extrapolated) Z value at  (xii,yii) given the location code  iti returned by  locatePoint. Three cases are handled:
+    Evaluate the interpolated (or extrapolated) Z value at ``(xii,yii)`` given the location code ``iti`` returned by ``locatePoint``. Three cases are handled:
 
-    Interior triangle  (iti <= nTriangles+nBorder)
+    Interior triangle ``(iti <= nTriangles+nBorder)``
        5th-degree quintic Bézier surface in barycentric UV coordinates :cite:p:`akima_algorithm_1978`.
 
-    Border segment  (il1==il2)
+    Border segment ``(il1==il2)``
        Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
 
-    Exterior corner  (il1/=il2)
+    Exterior corner ``(il1/=il2)``
        2nd-degree Taylor expansion centred on the shared corner vertex.
 
-    Port of  idptip from the original BIVAR package :cite:p:`akima_algorithm_1978`. Coefficient caching (the original  itpv flag) is omitted since in Galacticus usage the cache was never effective.
+    Port of ``idptip`` from the original BIVAR package :cite:p:`akima_algorithm_1978`. Coefficient caching (the original ``itpv`` flag) is omitted since in Galacticus usage the cache was never effective.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(in) :: ws

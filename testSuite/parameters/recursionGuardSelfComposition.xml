@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Regression test (issue #397): an object that composites a member of its own  -->
+<!-- class, with no such object provided explicitly, must be rejected with a      -->
+<!-- clean error rather than recursing infinitely (a stack-overflow / SIGSEGV).   -->
+<!--                                                                              -->
+<!-- Here `galacticFilterNot` wraps another `galacticFilter`, but none is given   -->
+<!-- inside the empty `<galacticFilter value="not"/>`. The object build searches  -->
+<!-- up the parameter tree, re-discovers the `not` filter being built, and (absent -->
+<!-- the guard) tries to build it again. The same-class guard generated at the    -->
+<!-- objectBuilder site catches this during task construction.                    -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/cosmology.xml"                   xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/powerSpectrum.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/structureFormation.xml"          xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosProfile.xml"      xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosTidalHeating.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosStructure.xml"    xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/subhaloOrbits.xml"               xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/mergerTrees.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/evolutionGalaxyFormation.xml"    xpointer="xpointer(parameters/*)" />
+
+  <verbosityLevel value="standard"/>
+
+  <task value="evolveForests"/>
+
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree   value="1.520e12"/>
+    <radiusTree value="0.262e00"/>
+    <treeCount  value="2"      />
+  </mergerTreeBuildMasses>
+
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e9"/>
+  </mergerTreeMassResolution>
+
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+  <!-- The recursive construct under test: an empty 'not' filter with no wrapped filter. -->
+  <mergerTreeOutputter value="standard">
+    <galacticFilter value="not"/>
+  </mergerTreeOutputter>
+
+  <outputFileName value="testSuite/outputs/recursionGuardSelfComposition.hdf5"/>
+
+</parameters>

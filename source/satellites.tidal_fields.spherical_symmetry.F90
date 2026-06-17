@@ -33,7 +33,7 @@
       \mathcal{F} = f_\mathrm{boost} \left[ {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
       \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2 \right],
 
-   where :math:`r_\mathrm{p}` is the pericentric radius. :math:`M_\mathrm{host}(&lt;r)` is the mass of the host halo enclosed within a sphere of radius :math:`r`, :math:`\rho_\mathrm{host}(r)` is the host density at radius :math:`r`, and :math:`\omega_\mathrm{p}` is the orbital angular velocity at pericenter. The term :math:`f_\mathrm{boost}=` [factorBoost] scales the overall tidal field. Note that the centrifugal term, :math:`\omega_\mathrm{p}^2`, is included only if the  includeCentrifugalAcceleration argument is set to true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the orbital pericenter if the  atPericenter argument is set to true.
+   where :math:`r_\mathrm{p}` is the pericentric radius. :math:`M_\mathrm{host}(&lt;r)` is the mass of the host halo enclosed within a sphere of radius :math:`r`, :math:`\rho_\mathrm{host}(r)` is the host density at radius :math:`r`, and :math:`\omega_\mathrm{p}` is the orbital angular velocity at pericenter. The term :math:`f_\mathrm{boost}=`\ ``[factorBoost]`` scales the overall tidal field. Note that the centrifugal term, :math:`\omega_\mathrm{p}^2`, is included only if the ``includeCentrifugalAcceleration`` argument is set to true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the orbital pericenter if the ``atPericenter`` argument is set to true.
    </description>
   </satelliteTidalField>
   !!]

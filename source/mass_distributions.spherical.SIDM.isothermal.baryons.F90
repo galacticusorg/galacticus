@@ -117,7 +117,7 @@ contains
     class           (*                                             ), pointer       :: initializationSelf    , initializationArgument
     type            (varying_string                                )                :: componentType         , massType                , &
          &                                                                             nonAnalyticSolver
-    double precision                                                                :: timeAge
+    double precision                                                                :: timeAge               , velocityRelativeMean
 
     !![
     <inputParameter docformat="rst">
@@ -125,6 +125,13 @@ contains
       <source>parameters</source>
       <description>
       The age of the halo (in Gyr) since its formation, setting the time available for SIDM interactions to thermalize the dark matter core while the baryonic potential influences the resulting density profile.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>velocityRelativeMean</name>
+      <source>parameters</source>
+      <description>
+      Mean relative velocity to calculate self interaction cross section.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -160,7 +167,7 @@ contains
        initializationFunction => null()
        initializationSelf     => null()
        initializationArgument => null()
-       self=massDistributionSphericalSIDMIsothermalBaryons(timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalSIDMIsothermalBaryons(timeAge,velocityRelativeMean,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -172,14 +179,14 @@ contains
     return
   end function sphericalSIDMIsothermalBaryonsConstructorParameters
 
-  function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
+  function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
     type            (massDistributionSphericalSIDMIsothermalBaryons)                          :: self
-    double precision                                                , intent(in   )           :: timeAge
+    double precision                                                , intent(in   )           :: timeAge                 , velocityRelativeMean
     class           (massDistributionSpherical                     ), intent(in   ), target   :: massDistribution_
     class           (massDistributionClass                         ), intent(in   ), target   :: massDistributionBaryonic
     class           (darkMatterParticleClass                       ), intent(in   ), target   :: darkMatterParticle_
@@ -189,7 +196,7 @@ contains
     type            (enumerationComponentTypeType                  ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                       ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="timeAge, nonAnalyticSolver, componentType, massType, *massDistribution_, *massDistributionBaryonic, *darkMatterParticle_, */initializationFunction, */initializationSelf, */initializationArgument"/>
+    <constructorAssign variables="timeAge, velocityRelativeMean, nonAnalyticSolver, componentType, massType, *massDistribution_, *massDistributionBaryonic, *darkMatterParticle_, */initializationFunction, */initializationSelf, */initializationArgument"/>
     !!]
 
     ! Validate the dark matter particle type.

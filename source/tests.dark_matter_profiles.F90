@@ -29,7 +29,7 @@ program Test_Dark_Matter_Profiles
   use :: Coordinates                     , only : coordinateSpherical                                           , assignment(=)
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                   , darkMatterParticleCDM
+  use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatterConstant           , darkMatterParticleCDM
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOBurkert                                   , darkMatterProfileDMONFW             , darkMatterProfileDMOFiniteResolution, darkMatterProfileDMOSIDMCoreNFW, &
        &                                          darkMatterProfileDMOSIDMIsothermal                            , darkMatterProfileDMOZhao1996
@@ -83,7 +83,7 @@ program Test_Dark_Matter_Profiles
        &                                                                                            radialVelocityDispersion                                                                            , &
        &                                                                                            radialVelocityDispersionSeriesExpansion
   type            (darkMatterParticleCDM                                         ), pointer      :: darkMatterParticleCDM_
-  type            (darkMatterParticleSelfInteractingDarkMatter                   ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_                                                        , &
+  type            (darkMatterParticleSelfInteractingDarkMatterConstant           ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_                                                        , &
        &                                                                                            darkMatterParticleSelfInteractingDarkMatterJiang_
   type            (darkMatterProfileDMOBurkert                                   ), pointer      :: darkMatterProfileDMOBurkert_
   type            (darkMatterProfileDMOZhao1996                                  ), pointer      :: darkMatterProfileDMOZhao1996_
@@ -1433,113 +1433,115 @@ program Test_Dark_Matter_Profiles
   !![
   <referenceConstruct object="cosmologyParametersPippin_"                        >
    <constructor>
-    cosmologyParametersSimple                         (                                                                                       &amp;
-     &amp;                                             OmegaMatter                         = 0.2660d0                                       , &amp;
-     &amp;                                             OmegaBaryon                         = 0.0000d0                                       , &amp;
-     &amp;                                             OmegaDarkEnergy                     = 0.7340d0                                       , &amp;
-     &amp;                                             temperatureCMB                      = 2.7800d0                                       , &amp;
-     &amp;                                             HubbleConstant                      =71.0000d0                                         &amp;
-     &amp;                                            )
+    cosmologyParametersSimple                          (                                                                                       &amp;
+     &amp;                                              OmegaMatter                         = 0.2660d0                                       , &amp;
+     &amp;                                              OmegaBaryon                         = 0.0000d0                                       , &amp;
+     &amp;                                              OmegaDarkEnergy                     = 0.7340d0                                       , &amp;
+     &amp;                                              temperatureCMB                      = 2.7800d0                                       , &amp;
+     &amp;                                              HubbleConstant                      =71.0000d0                                         &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctionsPippin_"                         >
    <constructor>
-    cosmologyFunctionsMatterLambda                    (                                                                                       &amp;
-     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                        &amp;
-     &amp;                                            )
+    cosmologyFunctionsMatterLambda                     (                                                                                       &amp;
+     &amp;                                              cosmologyParameters_                =cosmologyParametersPippin_                        &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="virialDensityContrastPippin_"                      >
    <constructor>
-    virialDensityContrastFixed                        (                                                                                       &amp;
-     &amp;                                             densityContrastValue                =200.0d0                                         , &amp;
-     &amp;                                             densityType                         =fixedDensityTypeCritical                        , &amp;
-     &amp;                                             turnAroundOverVirialRadius          =  2.0d0                                         , &amp;
-     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                      , &amp;
-     &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                         &amp;
-     &amp;                                            )
+    virialDensityContrastFixed                         (                                                                                       &amp;
+     &amp;                                              densityContrastValue                =200.0d0                                         , &amp;
+     &amp;                                              densityType                         =fixedDensityTypeCritical                        , &amp;
+     &amp;                                              turnAroundOverVirialRadius          =  2.0d0                                         , &amp;
+     &amp;                                              cosmologyParameters_                =cosmologyParametersPippin_                      , &amp;
+     &amp;                                              cosmologyFunctions_                 =cosmologyFunctionsPippin_                         &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterHaloScalePippin_"                        >
    <constructor>
-    darkMatterHaloScaleVirialDensityContrastDefinition(                                                                                       &amp;
-     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                      , &amp;
-     &amp;                                             cosmologyFunctions_                 =cosmologyFunctionsPippin_                       , &amp;
-     &amp;                                             virialDensityContrast_              =virialDensityContrastPippin_                      &amp;
-     &amp;                                            )
+    darkMatterHaloScaleVirialDensityContrastDefinition (                                                                                       &amp;
+     &amp;                                              cosmologyParameters_                =cosmologyParametersPippin_                      , &amp;
+     &amp;                                              cosmologyFunctions_                 =cosmologyFunctionsPippin_                       , &amp;
+     &amp;                                              virialDensityContrast_              =virialDensityContrastPippin_                      &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleCDM_"                            >
    <constructor>
-    darkMatterParticleCDM                             (                                                                                       &amp;
-     &amp;                                            )
+    darkMatterParticleCDM                              (                                                                                       &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatter_"      >
    <constructor>
-    darkMatterParticleSelfInteractingDarkMatter       (                                                                                       &amp;
-     &amp;                                             crossSectionSelfInteraction         =1.0d0                                           , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleCDM_                            &amp;
-     &amp;                                            )
+    darkMatterParticleSelfInteractingDarkMatterConstant(                                                                                       &amp;
+     &amp;                                              crossSectionSelfInteraction         =1.0d0                                           , &amp;
+     &amp;                                              darkMatterParticle_                 =darkMatterParticleCDM_                            &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatterJiang_">
    <!-- The cross-section is reduced here since Jiang use a halo age of 10 Gyr instead of the current age of the Universe. By
         offsetting the cross-section by this factor we get the correct interaction radius.                                    -->
    <constructor>
-    darkMatterParticleSelfInteractingDarkMatter       (                                                                                       &amp;
-     &amp;                                             crossSectionSelfInteraction         =+1.0d0                                            &amp;
-     &amp;                                                                                  *timeJiang                                        &amp;
-     &amp;                                                                                  /cosmologyFunctionsPippin_%cosmicTime(1.0d0)    , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleCDM_                            &amp;
-     &amp;                                            )
+    darkMatterParticleSelfInteractingDarkMatterConstant(                                                                                       &amp;
+     &amp;                                              crossSectionSelfInteraction         =+1.0d0                                            &amp;
+     &amp;                                                                                   *timeJiang                                        &amp;
+     &amp;                                                                                   /cosmologyFunctionsPippin_%cosmicTime(1.0d0)    , &amp;
+     &amp;                                              darkMatterParticle_                 =darkMatterParticleCDM_                            &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileDMOSIDMCoreNFW_"                  >
    <constructor>
-    darkMatterProfileDMOSIDMCoreNFW                   (                                                                                       &amp;
-     &amp;                                             factorRadiusCore                    =0.45d0                                          , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                      , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatter_      &amp;
-     &amp;                                            )
+    darkMatterProfileDMOSIDMCoreNFW                    (                                                                                       &amp;
+     &amp;                                              factorRadiusCore                    =0.45d0                                          , &amp;
+     &amp;                                              darkMatterHaloScale_                =darkMatterHaloScalePippin_                      , &amp;
+     &amp;                                              darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatter_      &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileDMONFWPippin_"                    >
    <constructor>
-    darkMatterProfileDMONFW                           (                                                                                       &amp;
-     &amp;                                             velocityDispersionUseSeriesExpansion=.false.                                         , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                        &amp;
-     &amp;                                            )
+    darkMatterProfileDMONFW                            (                                                                                       &amp;
+     &amp;                                              velocityDispersionUseSeriesExpansion=.false.                                         , &amp;
+     &amp;                                              darkMatterHaloScale_                =darkMatterHaloScalePippin_                        &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileAdiabaticPippin_"                  >
    <constructor>
-     darkMatterProfileAdiabaticGnedin2004             (                                                                                        &amp;
-     &amp;                                             A                                   =0.85d0                                           , &amp;
-     &amp;                                             omega                               =0.80d0                                           , &amp;
-     &amp;                                             radiusFractionalPivot               =1.00d0                                           , &amp;
-     &amp;                                             toleranceRelative                   =1.0d-2                                           , &amp;
-     &amp;                                             nonAnalyticSolver                   =nonAnalyticSolversNumerical                      , &amp;
-     &amp;                                             cosmologyParameters_                =cosmologyParametersPippin_                       , &amp;
-     &amp;                                             darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
-     &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                     &amp;
-     &amp;                                            )
+     darkMatterProfileAdiabaticGnedin2004              (                                                                                        &amp;
+     &amp;                                              A                                   =0.85d0                                           , &amp;
+     &amp;                                              omega                               =0.80d0                                           , &amp;
+     &amp;                                              radiusFractionalPivot               =1.00d0                                           , &amp;
+     &amp;                                              toleranceRelative                   =1.0d-2                                           , &amp;
+     &amp;                                              nonAnalyticSolver                   =nonAnalyticSolversNumerical                      , &amp;
+     &amp;                                              cosmologyParameters_                =cosmologyParametersPippin_                       , &amp;
+     &amp;                                              darkMatterHaloScale_                =darkMatterHaloScalePippin_                       , &amp;
+     &amp;                                              darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                     &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileDMOSIDMIsothermal_"               >
    <constructor>
-    darkMatterProfileDMOSIDMIsothermal                (                                                                                        &amp;
-     &amp;                                             darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                   , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_  &amp;
-     &amp;                                            )
+    darkMatterProfileDMOSIDMIsothermal                 (                                                                                        &amp;
+     &amp;                                              darkMatterProfileDMO_               =darkMatterProfileDMONFWPippin_                   , &amp;
+     &amp;                                              darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_, &amp;
+     &amp;                                              darkMatterHaloScale_                =darkMatterHaloScalePippin_                         &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileSIDMIsothermal_"                  >
    <constructor>
-    darkMatterProfileSIDMIsothermal                   (                                                                                        &amp;
-     &amp;                                             darkMatterProfile_                  =darkMatterProfileAdiabaticPippin_                , &amp;
-     &amp;                                             darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_  &amp;
-     &amp;                                            )
+    darkMatterProfileSIDMIsothermal                    (                                                                                        &amp;
+     &amp;                                              darkMatterProfile_                  =darkMatterProfileAdiabaticPippin_                , &amp;
+     &amp;                                              darkMatterParticle_                 =darkMatterParticleSelfInteractingDarkMatterJiang_, &amp;
+     &amp;                                              darkMatterHaloScale_                =darkMatterHaloScalePippin_                         &amp;
+     &amp;                                             )
    </constructor>
   </referenceConstruct>
   !!]

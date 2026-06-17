@@ -39,8 +39,8 @@ module Input_Parameters
   use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
-  public :: inputParameters, inputParameter, inputParameterList
-  
+  public :: inputParameters                 , inputParameter, inputParameterList, Input_Parameters_Build_Stack_Push, &
+       &    Input_Parameters_Build_Stack_Pop  
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -266,6 +266,22 @@ module Input_Parameters
   ! Maximum length allowed for parameter entries.
   integer, parameter :: parameterLengthMaximum=1024
 
+  ! Build stack used to detect recursive object construction from the parameter file. A class that
+  ! composites a member of its own class (directly, or via another, mutually-compositing class) can---if
+  ! no such object is provided explicitly---search up the parameter tree, re-discover the object currently
+  ! being built, and attempt to build it again, leading to an unbounded recursion. The functionClass
+  ! factories push the parameter node being built onto this (thread-private) stack and check for a repeat,
+  ! aborting with an informative error if one is found. See issue #397.
+  type :: buildStackEntry
+     type   (inputParameter), pointer :: node           => null()
+     type   (varying_string)          :: className
+     logical                          :: recursionAware =  .false.
+  end type buildStackEntry
+
+  type   (buildStackEntry), allocatable, dimension(:) :: buildStack
+  integer                                             :: buildStackDepth=0
+  !$omp threadprivate(buildStack,buildStackDepth)
+
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
      subroutine knownParameterNames(names)
@@ -289,6 +305,81 @@ module Input_Parameters
 #endif
 
 contains
+
+  subroutine Input_Parameters_Build_Stack_Push(node,className,recursionAware,location)
+    !!{RST
+    Push a parameter node onto the object-build stack, after first checking that the same node is not already being built for the same class. If it is---and no recursion-aware class lies between that earlier build and this one---a genuine, unbounded recursive build has been detected and we abort with an informative error. See issue #397.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//), operator(==), char
+    implicit none
+    type     (inputParameter ), intent(in   ), target              :: node
+    character(len=*          ), intent(in   )                      :: className            , location
+    logical                   , intent(in   )                      :: recursionAware
+    type     (buildStackEntry), allocatable  , dimension(:)        :: buildStackTmp
+    type     (varying_string )                                     :: message
+    logical                                                        :: recursionAwareBetween
+    integer                                                        :: i                    , j       , &
+         &                                                            k
+
+    ! Check for a recursive build: the same parameter node already being built for the same class. Such a
+    ! repeat is only a genuine, unbounded recursion if no recursion-aware (recursive="yes") class lies
+    ! between that earlier build and the current one. A recursion-aware class short-circuits its own
+    ! re-entry (returning a reference to the object already under construction), which bounds the cycle, so
+    ! a repeat that passes through one is legitimate and must not be flagged. See issue \#397.
+    do i=1,buildStackDepth
+       if (associated(buildStack(i)%node,node).and.buildStack(i)%className == className) then
+          recursionAwareBetween=.false.
+          do j=i+1,buildStackDepth
+             if (buildStack(j)%recursionAware) then
+                recursionAwareBetween=.true.
+                exit
+             end if
+          end do
+          if (.not.recursionAwareBetween) then
+             message=                                                                                                             &
+                  &           'recursive build of ['//className//'] detected while building objects from the parameter file.'  // &
+                  & char(10)//'This usually means that an object of this class composites a member of its own class (directly,'// &
+                  & char(10)//'or via another, mutually-compositing class), but no such object was provided explicitly. The'   // &
+                  & char(10)//'build then searches up the parameter tree, re-discovers the object currently being built, and'  // &
+                  & char(10)//'attempts to build it again. Provide the required ['//className//'] explicitly to resolve this.' // &
+                  & char(10)//'Build stack (outermost first):'
+             do k=1,buildStackDepth
+                message=message//char(10)//'   -> ['//char(buildStack(k)%className)//']'
+             end do
+             message=message//char(10)//'   -> ['//className//']  <-- recursion'
+             call Error_Report(message//location)
+          end if
+          exit
+       end if
+    end do
+    ! Grow the stack as required and push the node.
+    if (.not.allocated(buildStack)) allocate(buildStack(16))
+    if (buildStackDepth >= size(buildStack)) then
+       call move_alloc(buildStack,buildStackTmp)
+       allocate(buildStack(2*size(buildStackTmp)))
+       buildStack(1:size(buildStackTmp))=buildStackTmp
+       deallocate(buildStackTmp)
+    end if
+    buildStackDepth                            =  buildStackDepth+1
+    buildStack(buildStackDepth)%node           => node
+    buildStack(buildStackDepth)%className      =  className
+    buildStack(buildStackDepth)%recursionAware =  recursionAware
+    return
+  end subroutine Input_Parameters_Build_Stack_Push
+
+  subroutine Input_Parameters_Build_Stack_Pop()
+    !!{RST
+    Pop the most recently pushed parameter node from the object-build stack. See issue #397.
+    !!}
+    implicit none
+
+    if (buildStackDepth > 0) then
+       buildStack(buildStackDepth)%node => null()
+       buildStackDepth=buildStackDepth-1
+    end if
+    return
+  end subroutine Input_Parameters_Build_Stack_Pop
 
   function inputParametersConstructorNull() result(self)
     !!{RST

@@ -505,7 +505,7 @@ contains
     !![
     <workaround type="gfortran"  docformat="rst">
       <description>
-      Construct  string_a_vs explicitly - using a constructor call as an argument to a function currently causes memory leaks.
+      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
       </description>
     !!]
     string_a_vs   = var_str(string_a)
@@ -534,7 +534,7 @@ contains
     !![
     <workaround type="gfortran"  docformat="rst">
       <description>
-      Construct  string_a_vs explicitly - using a constructor call as an argument to a function currently causes memory leaks.
+      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
       </description>
     !!]
     string_b_vs   = var_str(string_b)

@@ -274,8 +274,8 @@ contains
        case default
           call Error_Report('unrecognized radius type'//{introspection:location})
        end select
-       coordinates=[radius,Pi/2.0d0,0.0d0]
-       massDistribution_                 => node             %massDistribution(&
+       coordinates                       =  [radius,Pi/2.0d0,0.0d0]
+       massDistribution_                 => node             %massDistribution(                                         &
             &                                                                  componentType=self%radii(i)%component  , &
             &                                                                  massType     =self%radii(i)%mass         &
             &                                                                 )

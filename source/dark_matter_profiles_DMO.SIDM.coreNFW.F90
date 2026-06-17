@@ -186,14 +186,15 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalSIDMCoreNFW(                                                         &amp;
-	      &amp;                                factorRadiusCore   =self %factorRadiusCore             , &amp;
-	      &amp;                                timeAge            =basic%time                       (), &amp;
-	      &amp;                                nonAnalyticSolver  =      nonAnalyticSolversNumerical  , &amp;
-	      &amp;                                massDistribution_  =      massDistributionDecorated    , &amp;
-	      &amp;                                darkMatterParticle_=self %darkMatterParticle_          , &amp;
-              &amp;                                componentType      =      componentTypeDarkHalo        , &amp;
-              &amp;                                massType           =      massTypeDark                   &amp;
+              massDistributionSphericalSIDMCoreNFW(                                                                                   &amp;
+	      &amp;                                factorRadiusCore    =self                      %factorRadiusCore                 , &amp;
+	      &amp;                                timeAge             =basic                     %time                       (    ), &amp;
+              &amp;                                velocityRelativeMean=self %darkMatterHaloScale_%velocityVirial             (node), &amp;
+              &amp;                                nonAnalyticSolver   =                           nonAnalyticSolversNumerical      , &amp;
+	      &amp;                                massDistribution_   =                           massDistributionDecorated        , &amp;
+	      &amp;                                darkMatterParticle_ =self                      %darkMatterParticle_              , &amp;
+              &amp;                                componentType       =                           componentTypeDarkHalo            , &amp;
+              &amp;                                massType            =                           massTypeDark                       &amp;
               &amp;                               )
 	    </constructor>
 	  </referenceConstruct>

@@ -17,138 +17,208 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Niusha Ahvazi
+
 !!{RST
 Implements a selfInteracting dark matter particle class.
 !!}
 
+  use :: Numerical_Interpolation, only : interpolator
+
   !![
-  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter" docformat="rst">
-   <description>
-   Provides a self-interacting dark matter particle candidate in which dark matter undergoes elastic scattering, modifying halo density profiles on small scales. The elastic self-interaction cross section per unit mass in units of cm\ :math:`^2` g\ :math:`^{-1}` is set by ``[crossSectionSelfInteraction]``.
-   </description>
+  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter" abstract="yes" docformat="rst">
+    <description>
+    Provides a self-interacting dark matter particle candidate in which dark matter undergoes elastic scattering, modifying halo density profiles on small scales. The elastic self-interaction cross section per unit mass in units of cm\ :math:`^2` g\ :math:`^{-1}` is set by ``[crossSectionSelfInteraction]``.
+    </description>
   </darkMatterParticle>
   !!]
-  type, extends(darkMatterParticleClass) :: darkMatterParticleSelfInteractingDarkMatter
+  type, abstract, extends(darkMatterParticleClass) :: darkMatterParticleSelfInteractingDarkMatter
      !!{RST
-     A selfInteracting dark matter particle class.
+     A self-interacting dark matter particle class.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
-     double precision                                   :: crossSectionSelfInteraction_
+     ! Lazily-built tabulation of the effective cross section as a function of maximum circular velocity.
+     type   (interpolator), allocatable :: crossSectionEffectiveTable_
+     logical                            :: crossSectionEffectiveTabulated=.false.
    contains
      !![
      <methods docformat="rst">
-       <method description="Return the self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                     method="crossSectionSelfInteraction"            />
-       <method description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\Omega`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`." method="crossSectionSelfInteractionDifferential"/>
+       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                                           />
+       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\Omega`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`."                       />
+       <method method="crossSectionSelfInteractionDifferentialCos"  description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\cos\theta`, of the dark matter particle as a function of :math:`\cos\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}`."/>
+       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                         />
+       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                                 />
+       <method method="crossSectionEffective"                       description="Return the effective self-interaction cross section, :math:`\sigma_\mathrm{eff}`, in units of cm\ :math:`^2` g\ :math:`^{-1}`, for a halo of the given maximum circular velocity."                              />
+       <method method="crossSectionEffectiveTabulate"               description="Tabulate the effective self-interaction cross section, :math:`\sigma_\mathrm{eff}`, as a function of maximum circular velocity."                                                                 />
      </methods>
      !!]
-     final     ::                                            selfInteractingDMDestructor
-     procedure :: mass                                    => selfInteractingDMMass
-     procedure :: crossSectionSelfInteraction             => selfInteractingDMCrossSectionSelfInteraction
-     procedure :: crossSectionSelfInteractionDifferential => selfInteractingDMCrossSectionSelfInteractionDifferential
+     procedure(crossSectionSelfInteractionTemplate                ), deferred :: crossSectionSelfInteraction
+     procedure(crossSectionSelfInteractionDifferentialTemplate    ), deferred :: crossSectionSelfInteractionDifferential
+     procedure(crossSectionSelfInteractionDifferentialCosTemplate ), deferred :: crossSectionSelfInteractionDifferentialCos
+     procedure(crossSectionSelfInteractionMomentumTransferTemplate), deferred :: crossSectionSelfInteractionMomentumTransfer
+     procedure(crossSectionSelfInteractionViscosityTemplate       ), deferred :: crossSectionSelfInteractionViscosity
+     procedure                                                                :: crossSectionEffective                       => crossSectionEffective_
+     procedure                                                                :: crossSectionEffectiveTabulate               => crossSectionEffectiveTabulate_
   end type darkMatterParticleSelfInteractingDarkMatter
 
-  interface darkMatterParticleSelfInteractingDarkMatter
-     !!{RST
-     Constructors for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
-     !!}
-     module procedure selfInteractingDMConstructorParameters
-     module procedure selfInteractingDMConstructorInternal
-  end interface darkMatterParticleSelfInteractingDarkMatter
+  abstract interface
+     double precision function crossSectionSelfInteractionTemplate(self,velocityRelative)
+       !!{RST
+       Interface for self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
+       !!}
+       import darkMatterParticleSelfInteractingDarkMatter
+       class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+       double precision                                  , intent(in   ) :: velocityRelative
+     end function crossSectionSelfInteractionTemplate
+  end interface
+
+  abstract interface
+     double precision function crossSectionSelfInteractionDifferentialTemplate(self,theta,velocityRelative)
+       !!{RST
+       Interface for differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`, of a self-interacting dark matter particle.
+       !!}
+       import darkMatterParticleSelfInteractingDarkMatter
+       class (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+       double precision                                   , intent(in)    :: velocityRelative
+       double precision                                   , intent(in   ) :: theta
+     end function crossSectionSelfInteractionDifferentialTemplate
+
+     double precision function crossSectionSelfInteractionDifferentialCosTemplate(self,Costheta,velocityRelative)
+       !!{RST
+       Interface for differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\cos\theta`, as a function of :math:`\cos\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
+       !!}
+       import darkMatterParticleSelfInteractingDarkMatter
+       class (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+       double precision                                   , intent(in)    :: velocityRelative
+       double precision                                   , intent(in   ) :: Costheta
+     end function crossSectionSelfInteractionDifferentialCosTemplate
+
+     double precision function crossSectionSelfInteractionMomentumTransferTemplate(self,velocityRelative)
+       !!{RST
+       Interface for momentum transfer self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
+       !!}
+       import darkMatterParticleSelfInteractingDarkMatter
+       class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+       double precision                                  , intent(in   ) :: velocityRelative
+     end function crossSectionSelfInteractionMomentumTransferTemplate
+
+     double precision function crossSectionSelfInteractionViscosityTemplate(self,velocityRelative)
+       !!{RST
+       Interface for viscosity self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
+       !!}
+       import darkMatterParticleSelfInteractingDarkMatter
+       class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
+       double precision                                  , intent(in   ) :: velocityRelative
+     end function crossSectionSelfInteractionViscosityTemplate
+  end interface
+   
+  double precision :: velocityEffective_
+  !$omp threadprivate (velocityEffective_)
+
+  class (darkMatterParticleSelfInteractingDarkMatter) , pointer :: self_
+  !$omp threadprivate (self_)
+
+  ! Range (in km s⁻¹) and resolution of the tabulation of the effective cross section as a function of maximum circular velocity.
+  double precision, parameter :: crossSectionEffectiveVelocityMinimum=1.0d-1, crossSectionEffectiveVelocityMaximum=1.0d+4
+  integer         , parameter :: crossSectionEffectiveCountPerDecade =10
 
 contains
 
-  function selfInteractingDMConstructorParameters(parameters) result(self)
+  double precision function integrandNumerator(velocity,cosTheta)
     !!{RST
-    Constructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class which takes a parameter set as input.
+    Integrand of the numerator of the effective cross section, :math:`\sigma_\mathrm{eff}`, of :cite:t:`yang_parametric_2024` (their eqn. 1.1). The integrand is :math:`(\mathrm{d}\sigma/\mathrm{d}\cos\theta)\,\sin^2\theta\,v^5\,f_\mathrm{MB}(v)`, where the kinetic-theory conductivity kernel contributes :math:`\sin^2\theta\,v^5` and the Maxwell--Boltzmann relative-velocity distribution contributes :math:`f_\mathrm{MB}(v) \propto v^2 \exp[-v^2/(4 v_\mathrm{eff}^2)]`. The two factors of :math:`v` combine to give the :math:`v^7` below, and :math:`\sin^2\theta = 1-\cos^2\theta`.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    implicit none
-    type            (darkMatterParticleSelfInteractingDarkMatter)                :: self
-    type            (inputParameters                            ), intent(inout) :: parameters
-    class           (darkMatterParticleClass                    ), pointer       :: darkMatterParticle_
-    double precision                                                             :: crossSectionSelfInteraction
+    double precision, intent(in   ) :: velocity, cosTheta
 
-    !![
-    <inputParameter docformat="rst">
-      <name>crossSectionSelfInteraction</name>
-      <source>parameters</source>
-      <description>
-      The self-interaction cross section in units of cm\ :math:`^2` g\ :math:`^{-1}`.
-      </description>
-    </inputParameter>
-    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    !!]
-    self=darkMatterParticleSelfInteractingDarkMatter(crossSectionSelfInteraction,darkMatterParticle_)
-    !![
-    <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterParticle_" />
-    !!]
+    integrandNumerator=+self_%crossSectionSelfInteractionDifferentialCos(cosTheta,velocity) &
+         &             *velocity**7                                                         &
+         &             *(1.0d0-cosTheta**2)                                                 &
+         &             *exp(                                                                &
+         &                  -velocity          **2                                          &
+         &                  /4.0d0                                                          &
+         &                  /velocityEffective_**2                                          &
+         &              )
     return
-  end function selfInteractingDMConstructorParameters
+  end function integrandNumerator
 
-  function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
+  double precision function crossSectionEffective_(self,velocityMaximum)
     !!{RST
-    Internal constructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
-    !!}
-    implicit none
-    type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self
-    class           (darkMatterParticleClass                    ), intent(in   ), target :: darkMatterParticle_
-    double precision                                             , intent(in   )         :: crossSectionSelfInteraction
-    !![
-    <constructorAssign variables="*darkMatterParticle_"/>
-    !!]
-
-    self%crossSectionSelfInteraction_=crossSectionSelfInteraction
-    return
-  end function selfInteractingDMConstructorInternal
-
-  subroutine selfInteractingDMDestructor(self)
-    !!{RST
-    Destructor for the :galacticus-class:`darkMatterParticleSelfInteractingDarkMatter` dark matter particle class.
-    !!}
-    implicit none
-    type(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
-
-    !![
-    <objectDestructor name="self%darkMatterParticle_" />
-    !!]
-    return
-  end subroutine selfInteractingDMDestructor
-
-  double precision function selfInteractingDMMass(self)
-    !!{RST
-    Return the mass, in units of keV, of a self-interacting dark matter particle.
-    !!}
-    implicit none
-    class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
-
-    selfInteractingDMMass=self%darkMatterParticle_%mass()
-    return
-  end function selfInteractingDMMass
-
-  double precision function selfInteractingDMCrossSectionSelfInteraction(self)
-    !!{RST
-    Return the self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
-    !!}
-    implicit none
-    class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
-
-    selfInteractingDMCrossSectionSelfInteraction=self%crossSectionSelfInteraction_
-    return
-  end function selfInteractingDMCrossSectionSelfInteraction
-
-  double precision function selfInteractingDMCrossSectionSelfInteractionDifferential(self,theta)
-    !!{RST
-    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`, of a self-interacting dark matter particle.
+    Return the effective self-interaction cross section, :math:`\sigma_\mathrm{eff}`, for a halo of maximum circular velocity ``velocityMaximum``. As the direct evaluation is an expensive 2-D integral, the result is obtained by interpolation in a table that is built (lazily, on first use) as a function of maximum circular velocity.
     !!}
     implicit none
     class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
-    double precision                                             , intent(in   ) :: theta
+    double precision                                             , intent(in   ) :: velocityMaximum
 
-    ! Currently isotropic scattering is assumed.
-    selfInteractingDMCrossSectionSelfInteractionDifferential=+self%crossSectionSelfInteraction() &
-         &                                                   *0.5d0                              &
-         &                                                   *sin(theta)
+    ! Build the tabulation on first use. A double-checked lock makes the one-time build thread safe while leaving subsequent
+    ! lookups lock free.
+    if (.not.self%crossSectionEffectiveTabulated) then
+       !$omp critical(darkMatterParticleSelfInteractingCrossSectionEffective)
+       if (.not.self%crossSectionEffectiveTabulated) then
+          call self%crossSectionEffectiveTabulate()
+          self%crossSectionEffectiveTabulated=.true.
+       end if
+       !$omp end critical(darkMatterParticleSelfInteractingCrossSectionEffective)
+    end if
+    ! Interpolate in log-log space (the cross section is positive and varies over orders of magnitude).
+    crossSectionEffective_=10.0d0**self%crossSectionEffectiveTable_%interpolate(log10(velocityMaximum))
     return
-  end function selfInteractingDMCrossSectionSelfInteractionDifferential
+  end function crossSectionEffective_
+
+  subroutine crossSectionEffectiveTabulate_(self)
+    !!{RST
+    Tabulate the effective self-interaction cross section as a function of maximum circular velocity, over a fixed range that comfortably brackets the maximum circular velocities of dark matter halos. The tabulation is stored in :math:`\log_{10}` of both quantities.
+    !!}
+    use :: Numerical_Ranges, only : Make_Range          , rangeTypeLogarithmic
+    use :: Table_Labels    , only : extrapolationTypeFix
+    implicit none
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout)               :: self
+    double precision                                             , allocatable  , dimension(:) :: velocityMaximum, crossSectionEffective
+    integer                                                                                    :: count          , i
+
+    count=int(log10(crossSectionEffectiveVelocityMaximum/crossSectionEffectiveVelocityMinimum)*dble(crossSectionEffectiveCountPerDecade))+1
+    allocate(velocityMaximum      (count))
+    allocate(crossSectionEffective(count))
+    velocityMaximum=Make_Range(crossSectionEffectiveVelocityMinimum,crossSectionEffectiveVelocityMaximum,count,rangeTypeLogarithmic)
+    do i=1,count
+       crossSectionEffective(i)=crossSectionEffectiveCompute(self,velocityMaximum(i))
+    end do
+    if (allocated(self%crossSectionEffectiveTable_)) deallocate(self%crossSectionEffectiveTable_)
+    allocate(self%crossSectionEffectiveTable_)
+    self%crossSectionEffectiveTable_=interpolator(log10(velocityMaximum),log10(crossSectionEffective),extrapolationType=extrapolationTypeFix)
+    return
+  end subroutine crossSectionEffectiveTabulate_
+
+  double precision function crossSectionEffectiveCompute(self,velocityMaximum)
+    !!{RST
+    Evaluate the effective self-interaction cross section at a single maximum circular velocity by direct 2-D integration of eqn. 1.1 of :cite:t:`yang_parametric_2024`.
+    !!}
+    use :: Numerical_Integration_2D, only : integrator2D
+    implicit none
+    class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) , target :: self
+    double precision                                             , intent(in   )          :: velocityMaximum
+    double precision                                             , parameter              :: factorVelocityEffective=0.64d0
+    type            (integrator2D                               )                         :: integratorNumerator
+    double precision                                             , dimension(2,2)         :: boundaries
+    double precision                                                                      :: velocityEffective
+    double precision                                                                      :: numeratorIntegral
+
+    ! Effective velocity dispersion of the Maxwell-Boltzmann weighting: ν_eff = 0.64*Vmax for an NFW halo
+    ! (Yang et al. 2024; JCAP; 2; 32).
+    velocityEffective=factorVelocityEffective*velocityMaximum
+    ! Set integration boundaries.
+    boundaries(1,:)=[+0.0d0,+10.0d0*velocityEffective]
+    boundaries(2,:)=[-1.0d0,+ 1.0d0                  ]
+    ! Set sub-module scope copies.
+    velocityEffective_ =  velocityEffective
+    self_              => self
+    ! Build the integrator for the numerator and compute it.
+    integratorNumerator=integrator2D(integrandNumerator)
+    numeratorIntegral  =integratorNumerator%integrate(boundaries)
+    ! Normalize by the (cross-section-independent) denominator of eqn.~1.1 of Yang et al. (2024; JCAP; 2; 32), evaluated
+    ! analytically: ½ * ∫ sin²(θ) v⁷ exp(-v²/4 Veff²) = ½ * (4/3) * 768 Veff⁸ = 512 Veff⁸, where the factor of ½ is the leading
+    ! "2" in the numerator of that equation, (4/3) = integral over cos(θ) of sin²(θ), and 768 Veff⁸ = integral over v of v⁷
+    ! exp(-v²/4 Veff²).
+    crossSectionEffectiveCompute=numeratorIntegral/(512.0d0*velocityEffective_**8)
+    return
+  end function crossSectionEffectiveCompute
+

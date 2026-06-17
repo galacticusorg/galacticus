@@ -362,6 +362,21 @@ Each ``functionClass`` implementation that provides an ``autoHook`` method must 
 
 The ``isAttached`` method should always be called before ``detach`` to guard against attempting to detach a hook that was never attached. The hooked function is identified by the same function pointer used in the ``attach`` call.
 
+.. _manual-sec-eventHooksLocking:
+
+Thread Safety and Locking
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each event has both a per-thread (``threadprivate``) instance and a single, shared *global* instance (``<name>EventGlobal``). The global instance carries an ``ompReadWriteLock`` (``lock_``): ``attach`` and ``detach`` take its *write* lock while they grow or shrink the hook list, so that concurrent modifications from different threads cannot corrupt it.
+
+The generated dispatch block at each event-trigger site loops over ``hooks_`` and calls each hooked function. It needs the number of attached hooks to bound that loop. The natural choice, the ``count()`` method, takes the *read* lock for the duration of its single-integer read of ``count_``. This is deceptively expensive: event triggers such as ``Calculations_Reset`` fire for every node before every recalculation --- millions of times per run, across all threads --- so an ``OMP_Set_Lock``/``OMP_Unset_Lock`` round-trip on each one is a measurable cost (it was found to account for roughly :math:`6\%` of the wall-clock time of a dark-matter-only model). The cost is incurred even when *no* hooks are attached to the global event (the common case: hooks attached with ``openMPThreadBindingAllLevels`` live on the ``threadprivate`` instance, not the global one), because the guard still locks, reads zero, and unlocks.
+
+Crucially, that lock buys nothing on this path. It serializes only the read of the single ``count_`` integer; the dispatch loop that follows iterates ``hooks_`` *without* holding the lock. So a concurrent ``attach``/``detach`` --- which reallocates ``hooks_`` via ``move_alloc`` --- could already race with an in-progress dispatch loop regardless of whether ``count()`` was locked. The locked ``count()`` therefore provides neither a consistent view of the hook set nor any protection of the traversal; it only adds lock overhead.
+
+For this reason the dispatch block uses ``countLockless()`` instead, which reads ``count_`` *without* taking the lock. This is sound because the set of hooks is established during (single-threaded) initialization and is *static* during the parallel evolution phase, so there is no concurrent writer on the hot path. The lockless read introduces no race that the unlocked traversal did not already have: it is semantically equivalent to the locked ``count()`` on this path, minus the lock. To keep the access well defined under the OpenMP memory model rather than relying on the (aligned, naturally atomic) integer load incidentally, ``countLockless()`` reads ``count_`` via ``!$omp atomic read``, and ``attach``/``detach`` correspondingly update ``count_`` via ``!$omp atomic update``.
+
+Code that genuinely requires a serialized, consistent snapshot of the hook count (for example, logic internal to ``attach``/``detach`` themselves) should continue to use the locked ``count()``; ``countLockless()`` is intended only for hot, read-only dispatch paths that satisfy the static-hooks invariant described above.
+
 Conditional Call
 ~~~~~~~~~~~~~~~~
 

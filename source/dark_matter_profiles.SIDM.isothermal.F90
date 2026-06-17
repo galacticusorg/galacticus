@@ -21,7 +21,8 @@
   An implementation of dark matter halo profiles for self-interacting dark matter following the "isothermal" model of Jiang et al. (2022), including the effects of a baryonic potential.
   !!}
 
-  use :: Dark_Matter_Particles, only : darkMatterParticleClass
+  use :: Dark_Matter_Particles  , only : darkMatterParticleClass
+  use :: Dark_Matter_Halo_Scales, only : darkmatterHaloScaleClass
 
   !![
   <darkMatterProfile name="darkMatterProfileSIDMIsothermal" docformat="rst">
@@ -35,8 +36,9 @@
      A dark matter halo profile class implementing profiles for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
-     class(darkMatterProfileClass ), pointer :: darkMatterProfile_  => null()
-     class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_   => null()
+     class(darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::        sidmIsothermalDestructor
      procedure :: get => sidmIsothermalGet
@@ -62,21 +64,24 @@ contains
     type (inputParameters                ), intent(inout) :: parameters
     class(darkMatterParticleClass        ), pointer       :: darkMatterParticle_
     class(darkMatterProfileClass         ), pointer       :: darkMatterProfile_
+    class(darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
 
     !![
-    <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
-    <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterParticle_)
+    self=darkMatterProfileSIDMIsothermal(darkMatterProfile_,darkMatterParticle_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterParticle_"/>
-    <objectDestructor name="darkMatterProfile_" />
+    <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="darkMatterProfile_"  />
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function sidmIsothermalConstructorParameters
 
-  function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_) result(self)
+  function sidmIsothermalConstructorInternal(darkMatterProfile_,darkMatterParticle_,darkMatterHaloScale_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileSIDMIsothermal` dark matter halo profile class.
     !!}
@@ -85,8 +90,9 @@ contains
     type (darkMatterProfileSIDMIsothermal)                        :: self
     class(darkMatterParticleClass        ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterProfileClass         ), intent(in   ), target :: darkMatterProfile_
+    class(darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     !![
-    <constructorAssign variables="*darkMatterProfile_, *darkMatterParticle_"/>
+    <constructorAssign variables="*darkMatterProfile_, *darkMatterParticle_, *darkMatterHaloScale_"/>
     !!]
 
     ! Validate the dark matter particle type.
@@ -107,8 +113,9 @@ contains
     type(darkMatterProfileSIDMIsothermal), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterParticle_"/>
-    <objectDestructor name="self%darkMatterProfile_" />
+    <objectDestructor name="self%darkMatterParticle_" />
+    <objectDestructor name="self%darkMatterProfile_"  />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine sidmIsothermalDestructor
@@ -155,17 +162,18 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalSIDMIsothermalBaryons(                                                              &amp;
-	      &amp;                                          timeAge                 =basic%time                       (), &amp;
-	      &amp;                                          nonAnalyticSolver       =      nonAnalyticSolversNumerical  , &amp;
-	      &amp;                                          massDistribution_       =      massDistributionDecorated    , &amp;
-	      &amp;                                          massDistributionBaryonic=      massDistributionBaryonic     , &amp;
-	      &amp;                                          darkMatterParticle_     =self %darkMatterParticle_          , &amp;
-	      &amp;                                          initializationFunction  =      initializationFunction       , &amp;
-	      &amp;                                          initializationSelf      =      initializationSelf           , &amp;
-	      &amp;                                          initializationArgument  =      initializationArgument       , &amp;
-              &amp;                                          componentType           =      componentTypeDarkHalo        , &amp;
-              &amp;                                          massType                =      massTypeDark                   &amp;
+              massDistributionSphericalSIDMIsothermalBaryons(                                                                                       &amp;
+	      &amp;                                          timeAge                 =basic                     %time                       (    ), &amp;
+	      &amp;                                          velocityRelativeMean    =self %darkMatterHaloScale_%velocityVirial             (node), &amp;
+	      &amp;                                          nonAnalyticSolver       =                           nonAnalyticSolversNumerical      , &amp;
+	      &amp;                                          massDistribution_       =                           massDistributionDecorated        , &amp;
+	      &amp;                                          massDistributionBaryonic=                           massDistributionBaryonic         , &amp;
+	      &amp;                                          darkMatterParticle_     =self                      %darkMatterParticle_              , &amp;
+	      &amp;                                          initializationFunction  =                           initializationFunction           , &amp;
+	      &amp;                                          initializationSelf      =                           initializationSelf               , &amp;
+	      &amp;                                          initializationArgument  =                           initializationArgument           , &amp;
+              &amp;                                          componentType           =                           componentTypeDarkHalo            , &amp;
+              &amp;                                          massType                =                           massTypeDark                       &amp;
               &amp;                                         )
 	    </constructor>
           </referenceConstruct>

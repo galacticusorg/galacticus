@@ -161,6 +161,7 @@ module Events_Hooks
      !![
      <methods docformat="rst">
        <method description="Return a count of the number of hooks into this event."  method="count"              />
+       <method description="Return a count of the number of hooks into this event, without taking the read/write lock. For use only on hot, read-only dispatch paths where the set of hooks is static (i.e.\ not attached/detached) during the period of concurrent access." method="countLockless"/>
        <method description="Reorder hooked functions to resolved any dependencies."  method="resolveDependencies"/>
        <method description="Filter events to match the current OpenMP thread/level." method="filter"             />
        <method description="Lock the event."                                         method="lock"               />
@@ -169,6 +170,7 @@ module Events_Hooks
      </methods>
      !!]
      procedure :: count               => eventHookCount
+     procedure :: countLockless       => eventHookCountLockless
      procedure :: resolveDependencies => eventHookResolveDependencies
      procedure :: filter              => eventHookFilter
      procedure :: lock                => eventHookLock
@@ -569,6 +571,20 @@ contains
     !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
     return
   end function eventHookCount
+
+  integer function eventHookCountLockless(self)
+    !!{RST
+    Return a count of the number of hooks into this event without taking the read/write lock.
+
+    The locked  count() guards only this single-integer read: the dispatch loops that follow it iterate  hooks_  unlocked, so the lock provides neither a consistent view of the hook set nor protection of the traversal against a concurrent  attach/ detach (which reallocates  hooks_). It therefore buys nothing that this lockless read does not, while costing an  OMP_Set_Lock/ OMP_Unset_Lock round-trip on every call. On the hot dispatch path (e.g.\  Calculations_Reset) hooks are attached once during single-threaded initialization and are static thereafter, so this lockless read is semantically equivalent to the locked  count() but without the per-call lock. The read is made via  !$omp atomic read (paired with  !$omp atomic update on the  count_ updates in  attach/ detach) so it remains well defined under the OpenMP memory model. See :galacticus-ref:`eventHooksLocking` for the full rationale.
+    !!}
+    implicit none
+    class(eventHook), intent(in) :: self
+
+    !$omp atomic read
+    eventHookCountLockless=self%count_
+    return
+  end function eventHookCountLockless
 
   subroutine eventHookFilter(self)
     !!{RST

@@ -47,13 +47,6 @@ module Error
      module procedure Warn_VarStr
   end interface Warn
 
-  ! Specify an explicit dependence on the hdf5_cFuncs.o object file.
-  !: $(BUILDPATH)/hdf5_cFuncs.o
-  interface
-     subroutine H5Close_C() bind(c,name='H5Close_C')
-     end subroutine H5Close_C
-  end interface
-
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
   integer, parameter, public :: errorStatusSuccess      =GSL_Success  ! Success.
@@ -789,7 +782,6 @@ contains
     !$ if (hdf5AccessInitialized) then
     !$    call hdf5Access%set  (     )
     call       H5Close_F       (error)
-    call       H5Close_C       (     )
     !$    call hdf5Access%unset(     )
     !$ end if
     return
