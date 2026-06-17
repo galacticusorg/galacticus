@@ -35,8 +35,9 @@
      Implementation of a spherical mass distribution for SIDM models.
      !!}
      private
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_  => null()
      double precision                                   :: timeAge
+     double precision                                   :: velocityRelativeMean
   contains
      !![
      <methods>
@@ -74,10 +75,10 @@ contains
     self_ => self
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
-       crossSection_=+darkMatterParticle_%crossSectionSelfInteraction() &
-            &        *centi     **2                                     &
-            &        /megaParsec**2                                     &
-            &        *kilo                                              &
+       crossSection_=+darkMatterParticle_%crossSectionSelfInteraction(self%velocityRelativeMean) &
+            &        *centi     **2                                                              &
+            &        /megaParsec**2                                                              &
+            &        *kilo                                                                       &
             &        *massSolar
     class default
        call Error_Report('expected self-interacting dark matter particle but found type "'//char(darkMatterParticle_%objectType())//'"'//{introspection:location})

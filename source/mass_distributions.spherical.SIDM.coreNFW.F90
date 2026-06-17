@@ -74,8 +74,9 @@ contains
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (massDistributionClass               ), pointer       :: massDistribution_
     class           (darkMatterParticleClass             ), pointer       :: darkMatterParticle_
-    double precision                                                      :: factorRadiusCore   , timeAge
-    type            (varying_string                      )                :: componentType      , massType, &
+    double precision                                                      :: factorRadiusCore    , timeAge , &
+         &                                                                   velocityRelativeMean
+    type            (varying_string                      )                :: componentType       , massType, &
          &                                                                   nonAnalyticSolver
 
     !![
@@ -83,6 +84,11 @@ contains
       <name>timeAge</name>
       <source>parameters</source>
       <description>The age of the halo (in Gyr) since its formation, used to compute how long SIDM self-interactions have been active in determining the size of the dark matter core.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityRelativeMean</name>
+      <source>parameters</source>
+      <description>Mean relative velocity to calculate self interaction cross section.</description>
     </inputParameter>
     <inputParameter>
       <name>factorRadiusCore</name>
@@ -114,7 +120,7 @@ contains
     !!]
     select type (massDistribution_)
     class is (massDistributionNFW)
-       self=massDistributionSphericalSIDMCoreNFW(factorRadiusCore,timeAge,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalSIDMCoreNFW(factorRadiusCore,timeAge,velocityRelativeMean,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,darkMatterParticle_,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
     class default
        call Error_Report('an NFW mass distribution is required'//{introspection:location})
     end select
@@ -126,7 +132,7 @@ contains
     return
   end function sphericalSIDMCoreNFWConstructorParameters
 
-  function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
+  function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
     !!{
     Internal constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
     !!}
@@ -136,11 +142,12 @@ contains
     class           (massDistributionNFW                 ), intent(in   ), target   :: massDistribution_
     class           (darkMatterParticleClass             ), intent(in   ), target   :: darkMatterParticle_
     type            (enumerationNonAnalyticSolversType   ), intent(in   )           :: nonAnalyticSolver
-    double precision                                      , intent(in   )           :: factorRadiusCore   , timeAge
+    double precision                                      , intent(in   )           :: factorRadiusCore    , timeAge, &
+         &                                                                             velocityRelativeMean
     type            (enumerationComponentTypeType        ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType             ), intent(in   ), optional :: massType
     !![
-    <constructorAssign variables="factorRadiusCore, timeAge, nonAnalyticSolver, componentType, massType, *massDistribution_, *darkMatterParticle_"/>
+    <constructorAssign variables="factorRadiusCore, timeAge, velocityRelativeMean, nonAnalyticSolver, componentType, massType, *massDistribution_, *darkMatterParticle_"/>
     !!]
 
     ! Validate the dark matter particle type.
