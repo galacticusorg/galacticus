@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Regression test (issue #397): cross-class mutual recursion during object     -->
+<!-- building must be rejected with a clean error rather than recursing infinitely -->
+<!-- (a stack-overflow / SIGSEGV).                                                 -->
+<!--                                                                              -->
+<!-- `criticalOverdensityEnvironmental` composites a `haloEnvironment`, and        -->
+<!-- `haloEnvironmentNormal` composites a `criticalOverdensity`. Both classes live -->
+<!-- in the same module (cosmological_density_field), so the circular-`use`        -->
+<!-- compile barrier does not apply. Here the top-level `criticalOverdensity` is   -->
+<!-- environmental and the top-level `haloEnvironment` is normal *without* its own  -->
+<!-- inner `criticalOverdensity`, so each resolves (by searching up the parameter  -->
+<!-- tree) to the other, forming a build cycle that the same-class guard cannot    -->
+<!-- catch. The factory-level build-stack guard detects the repeated node and       -->
+<!-- aborts, reporting the build stack.                                            -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk              value="null"/>
+  <componentHotHalo           value="null"/>
+  <componentSatellite         value="standard"/>
+  <componentSpheroid          value="null"/>
+  <componentSpin              value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.400000"/>
+    <OmegaMatter     value=" 0.272000"/>
+    <OmegaDarkEnergy value=" 0.728000"/>
+    <OmegaBaryon     value=" 0.000000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="CAMB">
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.400000"/>
+      <OmegaMatter     value=" 0.272000"/>
+      <OmegaDarkEnergy value=" 0.728000"/>
+      <OmegaBaryon     value=" 0.044550"/>
+      <temperatureCMB  value=" 2.725480"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.967"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.81"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="shethTormen">
+    <a             value="+0.791"/>
+    <p             value="+0.218"/>
+    <normalization value="+0.302"/>
+  </haloMassFunction>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- The recursive construct under test: an environmental critical overdensity   -->
+  <!-- and a normal halo environment that mutually resolve to one another. The      -->
+  <!-- halo environment deliberately has no inner `criticalOverdensity`, so its     -->
+  <!-- build searches up and finds the environmental one (and vice versa).          -->
+  <criticalOverdensity value="environmental">
+    <a value="0.077"/>
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </criticalOverdensity>
+  <haloEnvironment value="normal">
+    <radiusEnvironment value="7.102"/>
+  </haloEnvironment>
+
+  <!-- Merger tree building options (needed only to reach object construction). -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit        value="0.01"/>
+    <mergeProbability      value="0.1"/>
+    <branchIntervalStep    value="true"/>
+    <redshiftMaximum       value="12.0"/>
+    <toleranceTimeEarliest value="1.0e-5"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0     value="+0.591"/>
+    <gamma1 value="+0.253"/>
+    <gamma2 value="+0.124"/>
+    <accuracyFirstOrder value="+0.10"/>
+    <cdmAssumptions value="true"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e9"/>
+    <massTreeMaximum value="18.0e9"/>
+    <treesPerDecade  value="3000"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="9.8e6"/>
+  </mergerTreeMassResolution>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  2.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="ludlow2016">
+      <C value="625.0"/>
+      <f value="0.061"/>
+      <darkMatterProfileScaleRadius value="concentration"/>
+    </darkMatterProfileScaleRadius>
+  </darkMatterProfileScaleRadius>
+  <darkMatterProfileConcentration value="diemerJoyce2019"/>
+
+  <accretionHalo           value="zero"/>
+  <hotHaloMassDistribution value="null"/>
+
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <outputFileName value="testSuite/outputs/recursionGuardMutual.hdf5"/>
+
+</parameters>

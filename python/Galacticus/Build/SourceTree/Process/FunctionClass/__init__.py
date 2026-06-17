@@ -3040,7 +3040,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += '      !!}\n'
     post['content'] += (
         '      use :: Input_Parameters  , only : inputParameter         , '
-        'inputParameters\n'
+        'inputParameters        , Input_Parameters_Build_Stack_Push, '
+        'Input_Parameters_Build_Stack_Pop\n'
         '      use :: Locks  , only : ompLock\n'
         '      use :: Error  , only : Error_Report\n'
         '      use :: ISO_Varying_String, only : varying_string         , '
@@ -3116,10 +3117,13 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
                 f'        {directive_name}RecursiveBuildObject => self\n'
             )
         post['content'] += (
+            '        call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
+            f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
             '        select type (self)\n'
             f'          type is ({target_name})\n'
             f'            self={target_name}(subParameters)\n'
             '         end select\n'
+            '        call Input_Parameters_Build_Stack_Pop()\n'
         )
         if match is not None and match.get('recursive') == 'yes':
             post['content'] += (
@@ -3164,6 +3168,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         'instanceName,copyInstance=copyInstance_)\n'
         '      subParameters=parameters%subParameters'
         '(char(parameterName_),copyInstance=copyInstance_)\n'
+        '      call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
+        f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
         '      select case (char(instanceName))\n'
     )
     for c in non_abstract_classes:
@@ -3200,6 +3206,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += (
         f'         call Error_Report(message//{loc_expr})\n'
         '      end select\n'
+        '      call Input_Parameters_Build_Stack_Pop()\n'
     )
     if 'default' in directive:
         post['content'] += '      end if\n'
