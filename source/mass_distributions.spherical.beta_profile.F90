@@ -35,6 +35,12 @@
           &              momentRadial3XPrevious, outerRadius
      logical          :: betaIsTwoThirds       , truncateAtOuterRadius
    contains
+     !![
+     <methods>
+       <method method="initialize" description="(Re)initialize the parameters of the $\beta$-profile mass distribution."/>
+     </methods>
+     !!]
+     procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
      procedure :: densityGradientRadial => betaProfileDensityGradientRadial
      procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
@@ -145,6 +151,27 @@ contains
     !!{
     Constructor for the \refClass{massDistributionBetaProfile} mass distribution class.
     !!}
+    implicit none
+    type            (massDistributionBetaProfile )                          :: self
+    double precision                              , intent(in   )           :: beta
+    double precision                              , intent(in   ), optional :: densityNormalization, mass                 , &
+         &                                                                     outerRadius         , coreRadius
+    logical                                       , intent(in   ), optional :: dimensionless       , truncateAtOuterRadius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
+
+    call self%initialize(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
+    return
+  end function betaProfileConstructorInternal
+
+  subroutine betaProfileInitialize(self,beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
+    !!{
+    (Re)initialize the parameters of a \refClass{massDistributionBetaProfile} mass distribution. Factored out of the constructor
+    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
+    !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug
     use :: Error                   , only : Error_Report
@@ -152,22 +179,18 @@ contains
     use :: Numerical_Comparison    , only : Values_Agree       , Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionBetaProfile )                          :: self
+    class           (massDistributionBetaProfile ), intent(inout)           :: self
     double precision                              , intent(in   )           :: beta
-    double precision                              , intent(in   ), optional :: densityNormalization              , mass                      , &
-         &                                                                     outerRadius                       , coreRadius
-    logical                                       , intent(in   ), optional :: dimensionless                     , truncateAtOuterRadius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   ), optional :: densityNormalization               , mass                     , &
+         &                                                                     outerRadius                        , coreRadius
+    logical                                       , intent(in   ), optional :: dimensionless                      , truncateAtOuterRadius
     double precision                              , parameter               :: radiusTiny                  =1.0d-6
     double precision                                                        :: r
     character       (len=64                      )                          :: message
     double precision                              , save                    :: radiusCoreFractionalPrevious       , normalizationFactorStored
     !$omp threadprivate(radiusCoreFractionalPrevious,normalizationFactorStored)
-    !![
-    <constructorAssign variables="beta, densityNormalization, coreRadius, componentType, massType"/>
-    !!]
 
+    self%beta=beta
     ! Check for special case of β=2/3.
     self%betaIsTwoThirds=Values_Agree(self%beta,2.0d0/3.0d0,relTol=1.0d-3)
     ! Determine if profile is dimensionless.
@@ -251,8 +274,12 @@ contains
     ! Initialize stored results.
     self%momentRadial2XPrevious=-1.0d0
     self%momentRadial3XPrevious=-1.0d0
+    ! Defensively clear any memoized tabulations inherited from the spherical base class, so that a
+    ! re-initialized (pooled) object never serves stale tabulations built for a previous node. The
+    ! β-profile is analytic and normally does not use these, but this guards the numerical fallbacks.
+    call self%tabulationReset()
     return
-  end function betaProfileConstructorInternal
+  end subroutine betaProfileInitialize
 
   double precision function betaProfileDensity(self,coordinates)
     !!{

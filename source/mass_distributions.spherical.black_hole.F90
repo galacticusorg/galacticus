@@ -32,6 +32,12 @@
      !!}
      double precision :: mass, radiusGravitational
    contains
+     !![
+     <methods>
+       <method method="initialize" description="(Re)initialize the parameters of the black hole mass distribution."/>
+     </methods>
+     !!]
+     procedure :: initialize            => blackHoleInitialize
      procedure :: massTotal             => blackHoleMassTotal
      procedure :: density               => blackHoleDensity
      procedure :: densityGradientRadial => blackHoleDensityGradientRadial
@@ -107,11 +113,6 @@ contains
     !!{
     Constructor for the \refClass{massDistributionBlackHole} mass distribution class.
     !!}
-    use :: Error                           , only : Error_Report
-    use :: Numerical_Comparison            , only : Values_Differ
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Constants_Physical    , only : speedLight
-    use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
     type            (massDistributionBlackHole   )                          :: self
     double precision                              , intent(in   ), optional :: mass
@@ -121,6 +122,26 @@ contains
     !![
     <constructorAssign variables="componentType, massType"/>
     !!]
+
+    call self%initialize(mass,dimensionless)
+    return
+  end function blackHoleConstructorInternal
+
+  subroutine blackHoleInitialize(self,mass,dimensionless)
+    !!{
+    (Re)initialize the parameters of a \refClass{massDistributionBlackHole} mass distribution. Factored out of the constructor
+    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
+    !!}
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : milli
+    implicit none
+    class           (massDistributionBlackHole), intent(inout)           :: self
+    double precision                           , intent(in   ), optional :: mass
+    logical                                    , intent(in   ), optional :: dimensionless
+
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
     if (present(dimensionless)) self%dimensionless=dimensionless
@@ -146,8 +167,13 @@ contains
             &                   /     milli                          **2 &
             &                   /     speedLight                     **2
     end if
+    ! Defensively clear any memoized tabulations inherited from the spherical base class, and any
+    ! cached state in an attached kinematics distribution, so that a re-initialized (pooled) object
+    ! never serves stale results built for a previous node.
+    call self%tabulationReset()
+    if (associated(self%kinematicsDistribution_)) call self%kinematicsDistribution_%reset()
     return
-  end function blackHoleConstructorInternal
+  end subroutine blackHoleInitialize
 
   double precision function blackHoleMassTotal(self)
     !!{

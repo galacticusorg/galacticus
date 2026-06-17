@@ -158,6 +158,7 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
+
   !![
   <nodeComponentThreadUninitializationTask function="Node_Component_Black_Hole_Standard_Thread_Uninitialize"/>
   !!]
@@ -165,11 +166,14 @@ contains
     !!{
     Uninitializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks    , only : satelliteMergerEvent
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Events_Hooks                           , only : satelliteMergerEvent
+    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
+    use :: Node_Component_Black_Hole_Standard_Data, only : massDistributionPool
     implicit none
     if (defaultBlackHoleComponent%standardIsActive()) then
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       ! Release any pooled mass distributions held by this thread.
+       call massDistributionPool%destroy()
        !![
        <objectDestructor name="blackHoleSeeds_"                  />
        <objectDestructor name="blackHoleBinaryRecoil_"           />

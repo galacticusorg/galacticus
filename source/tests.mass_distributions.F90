@@ -37,7 +37,7 @@ program Test_Mass_Distributions
        &                                    massDistributionHernquist        , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite           , &
        &                                    massDistributionList             , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler     , &
        &                                    massDistributionCylindricalScaler, massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                 , &
-       &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal
+       &                                    massDistributionIsothermal       , kinematicsDistributionClass        , kinematicsDistributionLocal            , massDistributionBlackHole
   use :: Numerical_Constants_Math  , only : Pi                               , e
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                           , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
@@ -67,6 +67,11 @@ program Test_Mass_Distributions
        &                                                                                                 rotationCurveGradientAnalytic                                                                                   , rotationCurveGradientNumerical             , &
        &                                                                                                 massFraction                                                                                                    , time
   double precision                                         , parameter                                :: epsilonFiniteDifference      =0.01d0
+  ! Parameters and reference values for the black hole re-initialization (pool re-use) test.
+  double precision                                         , parameter                                :: massBlackHoleA               =1.0d6              , massBlackHoleB             =4.0d8, &
+       &                                                                                                 radiusBlackHoleTest          =1.0d-3
+  double precision                                                                                    :: enclosedReferenceA                               , enclosedReferenceB               , &
+       &                                                                                                 rotationReferenceA                               , rotationReferenceB
   character       (len=4                                  )                                           :: label
   double precision                                         , dimension(3,3)                           :: tidalTensorComponents                                                                                           , tidalTensorSphericalComponents
   double precision                                         , dimension(3  )                           :: acceleration
@@ -781,6 +786,36 @@ program Test_Mass_Distributions
        &      -3.58417d15                                                                                , &
        &      relTol=1.0d-3                                                                                &
        &     )
+  call Unit_Tests_End_Group()
+
+  ! Black hole mass distribution: verify that re-initialization (as used by the object pool to re-use
+  ! a pooled object for a new node) fully resets the object's state, leaving no stale residue. This
+  ! directly exercises the "initialize" method on which the black hole component's object pool relies.
+  call Unit_Tests_Begin_Group("Black hole mass distribution (re-initialization for pool re-use)")
+  if (allocated(massDistribution_)) deallocate(massDistribution_)
+  allocate(massDistributionBlackHole :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionBlackHole)
+     ! Reference outputs from freshly-constructed objects of each mass.
+     massDistribution_ =massDistributionBlackHole             (mass=massBlackHoleA)
+     enclosedReferenceA=massDistribution_%massEnclosedBySphere(radiusBlackHoleTest)
+     rotationReferenceA=massDistribution_%rotationCurve       (radiusBlackHoleTest)
+     massDistribution_ =massDistributionBlackHole             (mass=massBlackHoleB)
+     enclosedReferenceB=massDistribution_%massEnclosedBySphere(radiusBlackHoleTest)
+     rotationReferenceB=massDistribution_%rotationCurve       (radiusBlackHoleTest)
+     ! The object now holds state for massBlackHoleB. Re-initialize it to massBlackHoleA (as the pool
+     ! does on re-use) and confirm every output matches a freshly-constructed massBlackHoleA object.
+     call massDistribution_%initialize(mass=massBlackHoleA)
+     call Assert("re-use B->A: total mass"    ,massDistribution_%massTotal           (                   ),massBlackHoleA    ,relTol=1.0d-9)
+     call Assert("re-use B->A: mass enclosed" ,massDistribution_%massEnclosedBySphere(radiusBlackHoleTest),enclosedReferenceA,relTol=1.0d-9)
+     call Assert("re-use B->A: rotation curve",massDistribution_%rotationCurve       (radiusBlackHoleTest),rotationReferenceA,relTol=1.0d-9)
+     ! Re-initialize back to massBlackHoleB and confirm no stale state survived from massBlackHoleA.
+     call massDistribution_%initialize(mass=massBlackHoleB)
+     call Assert("re-use A->B: total mass"    ,massDistribution_%massTotal           (                   ),massBlackHoleB    ,relTol=1.0d-9)
+     call Assert("re-use A->B: mass enclosed" ,massDistribution_%massEnclosedBySphere(radiusBlackHoleTest),enclosedReferenceB,relTol=1.0d-9)
+     call Assert("re-use A->B: rotation curve",massDistribution_%rotationCurve       (radiusBlackHoleTest),rotationReferenceB,relTol=1.0d-9)
+  end select
+  deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
   ! End unit tests.
