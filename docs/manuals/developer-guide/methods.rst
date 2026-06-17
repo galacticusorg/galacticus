@@ -23,7 +23,7 @@ This directive would typically appear just prior to a subroutine which initializ
 Identifying Components and Mass Types
 -------------------------------------
 
-Many functions can be applied to different components or groups of components and to different types of mass within a node. In general, these functions make use of a set of label defined in the `Galactic_Structure_Options <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.galactic_structure_options_F90:galactic_structure_options>`_ module. Components are identified by a ``componentType`` label which can take on the following values:
+Many functions can be applied to different components or groups of components and to different types of mass within a node. In general, these functions make use of a set of label defined in the :ref:`Galactic_Structure_Options <module-galactic_structure_options>` module. Components are identified by a ``componentType`` label which can take on the following values:
 
 ``componentTypeAll``
    All components are matched;
@@ -81,7 +81,7 @@ Extending Components
 
 It is possible to create a component which extends an existing component (see the discussion of the ``extends`` element in Section :galacticus-ref:`ComponentDefinition`). This capability is intended to allow new properties to be added to a component without having to create a whole new copy of the component. It is *not* intended to allow changes in the way in which the component is evolved through the halo hierarchy. (With the exception that rules to describe how the newly added properties will evolve through the halo hierarchy can be added of course.)
 
-A simple example of this extension capability can be found in the `scaleShape <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScaleShape>`_ dark matter profile component, which extends the `scale <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf#sec.DarkMatterProfileScale>`_ dark matter profile component. In this case, the ``scaleShape`` component adds a new property, ``shape``, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It *does not* affect how the ``scale`` property, inherited from the ``scale`` dark matter profile component, is evolved.
+A simple example of this extension capability can be found in the :ref:`scaleShape <manual-sec-darkmatterprofilescaleshape>` dark matter profile component, which extends the :ref:`scale <manual-sec-darkmatterprofilescale>` dark matter profile component. In this case, the ``scaleShape`` component adds a new property, ``shape``, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It *does not* affect how the ``scale`` property, inherited from the ``scale`` dark matter profile component, is evolved.
 
 .. _manual-sec-ComponentImplement:
 
@@ -269,7 +269,7 @@ The elements of this document have the following meaning:
       *[Optional]* If present and set to "``true``", this property should always be non-negative (i.e. zero or positive). This is typically the case for quantities such as masses for example. This attribute is informative only---it may or may not be taking into account by the class responsible for evolving the component properties. For example, the :galacticus-class:`mergerTreeNodeEvolverStandard` class will evolve properties marked as non-negative in such a way as to ensure they remain non-negative, but only if its parameter ``[enforceNonNegativity]=true``.
 
    ``getFunction``
-      *[Optional]* Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the `Galacticus_Nodes <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes>`_ module by use of the ``functions`` element described below. Note that this function, by virtue of its privileged access to the internal structure of node components, can access the value of the data associated with the property using:
+      *[Optional]* Specifies the function to be used for getting the value of the property, overriding the default get function. The function must be included in the :ref:`Galacticus_Nodes <module-galacticus_nodes>` module by use of the ``functions`` element described below. Note that this function, by virtue of its privileged access to the internal structure of node components, can access the value of the data associated with the property using:
 
       .. code-block:: none
 
@@ -298,13 +298,13 @@ The elements of this document have the following meaning:
           myComponent%<method>(...)
 
    ``function``
-      The function to which the method should be bound. (This function must be included in the `Galacticus_Nodes <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes>`_ module by use of the ``functions`` element described below.
+      The function to which the method should be bound. (This function must be included in the :ref:`Galacticus_Nodes <module-galacticus_nodes>` module by use of the ``functions`` element described below.
 
    ``type``
       The type of function.
 
 ``functions``
-   *[Optional]* Contains the name of a file which will be included into the `Galacticus_Nodes <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes>`_ module. This file can contain functions which will be bound to this implementation. By virtue of being included in the `Galacticus_Nodes <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_nodes_F90:galacticus_nodes>`_ module these functions have privileged access to the internal structure of all node component objects.
+   *[Optional]* Contains the name of a file which will be included into the :ref:`Galacticus_Nodes <module-galacticus_nodes>` module. This file can contain functions which will be bound to this implementation. By virtue of being included in the :ref:`Galacticus_Nodes <module-galacticus_nodes>` module these functions have privileged access to the internal structure of all node component objects.
 
 Component Initialization
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -786,7 +786,7 @@ This section describes some of the subsystems within Galacticus that support var
 Kepler Orbits
 ~~~~~~~~~~~~~
 
-The ``keplerOrbit`` object (provided by the `Kepler_Orbits_Structure <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Source.pdf#source.objects_kepler_orbits_F90:kepler_orbits>`_ module) stores the parameters of a single Keplerian orbit. It internally handles computation of additional/alternate orbital parameters once an orbit has been fully defined. Currently, the orientation of orbits (i.e. the unit vector normal to the orbital plane and the argument of periapsis) is not tracked. As such, orbits are fully defined by three parameters (in addition to the masses of the orbiting bodies). The following limitations presently apply to the ``keplerOrbit`` object:
+The ``keplerOrbit`` object (provided by the ``Kepler_Orbits_Structure`` module) stores the parameters of a single Keplerian orbit. It internally handles computation of additional/alternate orbital parameters once an orbit has been fully defined. Currently, the orientation of orbits (i.e. the unit vector normal to the orbital plane and the argument of periapsis) is not tracked. As such, orbits are fully defined by three parameters (in addition to the masses of the orbiting bodies). The following limitations presently apply to the ``keplerOrbit`` object:
 
 * If an orbit is overdefined (i.e. if more than three parameters are set manually) no checking is performed to ensure that the parameters are consistent with a Keplerian orbit;
 * Not all interconversions between parameters are supported\ [#]_. If a conversion cannot be performed, an error message will be given.

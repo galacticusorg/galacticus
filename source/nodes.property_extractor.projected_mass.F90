@@ -26,7 +26,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorProjectedMass" docformat="rst">
    <description>
-   A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid `radius specifier &lt;https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers&gt;`_.
+   A property extractor class for the projected mass at a set of radii. The radii and types of projected mass to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
    </description>
   </nodePropertyExtractor>
   !!]

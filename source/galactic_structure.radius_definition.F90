@@ -422,7 +422,7 @@ contains
     else
        specifier_=specifier
     end if
-    call Error_Report(var_str('Failed to parse radius specifier:')//char(10)//char(10)//'   '//specifier_//char(10)//char(10)//message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' See https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf#sec:radiusSpecifiers for an explanation of radius specifier syntax'//{introspection:location})    
+    call Error_Report(var_str('Failed to parse radius specifier:')//char(10)//char(10)//'   '//specifier_//char(10)//char(10)//message//char(10)//char(10)//displayGreen()//'HELP:'//displayReset()//' See https://galacticus.readthedocs.io/en/latest/manuals/physics/definitions.html#manual-sec-radiusspecifiers for an explanation of radius specifier syntax'//{introspection:location})    
     return
   end subroutine reportSpecifierError
   

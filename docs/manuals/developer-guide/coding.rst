@@ -260,7 +260,7 @@ will cause the value of the ``massThreshold`` argument to ``stellarMassConstruct
 State Storing
 ~~~~~~~~~~~~~
 
-Galacticus supports storing its internal state to file to allow `restarts <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting>`_. Code to store and restore the internal state of objects of a given class can be generated automatically through use of the ``stateStorable`` directive. An example is:
+Galacticus supports storing its internal state to file to allow :ref:`restarts <manual-sec-restarting>`. Code to store and restore the internal state of objects of a given class can be generated automatically through use of the ``stateStorable`` directive. An example is:
 
 .. code-block:: none
 
@@ -668,7 +668,7 @@ Constructors:
 Procedures:
    All required procedures (including constructors and destructors) should be given after a line containing the ``contains`` keyword. Galacticus coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, ``simple`` in this case.
 
-Functionality to store and restore the state (see `here <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.Restarting>`_) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
 
 .. _manual-sec-deepCopy:
 

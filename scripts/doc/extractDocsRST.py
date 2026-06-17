@@ -466,6 +466,11 @@ def render_modules(modules: list[dict]) -> str:
         body = desc or '—'
         if m.get('classRef'):
             body += f'\n\nSee :ref:`physics-{m["classRef"]}`.'
+        # Emit a stable per-module anchor (``module-<name>``, lower-cased) so
+        # cross-references elsewhere (manuals, docstrings) can link to a module
+        # by name.  These replace the dead links into the retired Source PDF.
+        out.append(f'.. _module-{m["name"].lower()}:')
+        out.append('')
         out.append(f'``{m["name"]}``')
         out.append(textwrap.indent(body, '   '))
         out.append('')

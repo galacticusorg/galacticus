@@ -512,7 +512,7 @@ Event Evolution
 
 *Node promotion:* Any hot halo properties of the parent :term:`node` are added to those of the :term:`node` prior to promotion.
 
-*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on `halo formation events <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.HaloFormationEvents>`_.
+*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on :ref:`halo formation events <manual-sec-haloformationevents>`.
 
 "Outflow Tracking" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1197,7 +1197,7 @@ The preset satellite orbit implementation defines the following properties:
    A history time-series of the total bound mass of the satellite.
 
 ``virialOrbit``
-   The orbit (a `keplerOrbit <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits>`_ object) of the satellite at virial orbit crossing.
+   The orbit (a :ref:`keplerOrbit <manual-sec-keplerorbits>` object) of the satellite at virial orbit crossing.
 
 Note that the ``mergeTime`` and ``timeOfMerging`` effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
 
@@ -1243,7 +1243,7 @@ The standard satellite orbit implementation extends the "merge time" implementat
    The remaining, total bound mass of the satellite: :math:`M_\mathrm{node,bound}` [``satelliteBoundMass``].
 
 ``virialOrbit``
-   The orbit (returned as a `keplerOrbit <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits>`_ object) of the satellite at the point of virial radius crossing.
+   The orbit (returned as a :ref:`keplerOrbit <manual-sec-keplerorbits>` object) of the satellite at the point of virial radius crossing.
 
 .. _manual-sec-ComponentSatelliteOrbiting:
 
@@ -1268,7 +1268,7 @@ The orbiting satellite orbit implementation defines the following properties:
    The remaining, total bound mass of the satellite: :math:`M_\mathrm{node,bound}` [``satelliteBoundMass``].
 
 ``virialOrbit``
-   The orbit (returned as a `keplerOrbit <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits>`_ object) of the satellite at the point of virial radius crossing.
+   The orbit (returned as a :ref:`keplerOrbit <manual-sec-keplerorbits>` object) of the satellite at the point of virial radius crossing.
 
 ``tidalTensorPathIntegrated``
    The time integral of the tidal tensor along the orbit of the satellite from initialization: :math:`G_{ij}`.
