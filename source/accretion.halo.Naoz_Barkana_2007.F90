@@ -27,7 +27,6 @@
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
   use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
   use :: Virial_Density_Contrast              , only : virialDensityContrastClass
-  use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
 
   !![
   <accretionHalo name="accretionHaloNaozBarkana2007">
@@ -297,10 +296,9 @@ contains
        massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
             &                                                                                                             node                    , &
             &                                                                                                             densityContrastVirial   , &
-            &                                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
+            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
-            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                                               )
        self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
@@ -336,10 +334,9 @@ contains
        massHalo      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
             &                                                                                             node                    , &
             &                                                                                             densityContrastVirial   , &
-            &                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
+            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
-            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                               )
        if (.not.self%filteredFractionComputed) then
