@@ -27,6 +27,7 @@
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
   use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
   use :: Virial_Density_Contrast              , only : virialDensityContrastClass
+  use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
 
   !![
   <accretionHalo name="accretionHaloNaozBarkana2007">
@@ -160,9 +161,9 @@ contains
     use :: Error       , only : Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
-    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
-         &                                                                            rateAdjust                      , massMinimum                   
-    logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
+    double precision                                       , intent(in   )         :: timeReionization                 , velocitySuppressionReionization, &
+         &                                                                            rateAdjust                       , massMinimum                   
+    logical                                                , intent(in   )         :: accretionNegativeAllowed         , accretionNewGrowthOnly
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
     class           (accretionHaloTotalClass              ), intent(in   ), target :: accretionHaloTotal_
@@ -296,6 +297,7 @@ contains
        massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
             &                                                                                                             node                    , &
             &                                                                                                             densityContrastVirial   , &
+            &                                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
             &                                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
             &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
@@ -334,6 +336,7 @@ contains
        massHalo      =  Dark_Matter_Profile_Mass_Definition                 (                                                       &
             &                                                                                             node                    , &
             &                                                                                             densityContrastVirial   , &
+            &                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
             &                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
             &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &

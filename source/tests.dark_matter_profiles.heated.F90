@@ -41,7 +41,7 @@ program Test_Dark_Matter_Profiles_Heated
   use :: Coordinates                     , only : coordinateSpherical                                              , assignment(=)
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
-  use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter                      , darkMatterParticleCDM
+  use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatterConstant              , darkMatterParticleCDM
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Virial_Density_Contrast         , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOHeated                                       , darkMatterProfileDMOHeatedMonotonic, darkMatterProfileDMOIsothermal          , darkMatterProfileHeatingTidal      , &
@@ -92,7 +92,7 @@ program Test_Dark_Matter_Profiles_Heated
   class           (darkMatterProfileDMOClass                                     ), pointer      :: darkMatterProfileDMO_
   type            (darkMatterProfileHeatingTidal                                 ), pointer      :: darkMatterProfileHeatingTidal_
   type            (darkMatterParticleCDM                                         ), pointer      :: darkMatterParticleCDM_
-  type            (darkMatterParticleSelfInteractingDarkMatter                   ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_
+  type            (darkMatterParticleSelfInteractingDarkMatterConstant           ), pointer      :: darkMatterParticleSelfInteractingDarkMatter_
   class           (massDistributionSpherical                                     ), pointer      :: massDistributionSphericalHeated_
   class           (kinematicsDistributionClass                                   ), pointer      :: kinematicsDistributionHeated_
   class           (massDistributionHeatingClass                                  ), pointer      :: massDistributionHeatingTidal_
@@ -174,7 +174,7 @@ program Test_Dark_Matter_Profiles_Heated
   </referenceConstruct>
   <referenceConstruct object="darkMatterParticleSelfInteractingDarkMatter_">
    <constructor>
-    darkMatterParticleSelfInteractingDarkMatter                  (                                                                                       &amp;
+    darkMatterParticleSelfInteractingDarkMatterConstant          (                                                                                       &amp;
      &amp;                                                        crossSectionSelfInteraction             =1.0d0                                       , &amp;
      &amp;                                                        darkMatterParticle_                     =darkMatterParticleCDM_                        &amp;
      &amp;                                                       )

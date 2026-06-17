@@ -791,16 +791,22 @@ contains
     integer         (c_size_t                          )                                :: iRadius     , jRadius
     type            (multiCounter                      )                                :: counter
 
-    ! Compute interpolating factors.
-    allocate(hParameters(3,size(parameters)))
-    hRadius    (2  )=min(log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0,dble(tabulation%countRadii     -1_c_size_t))
-    hParameters(2,:)=min(log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0,dble(tabulation%countParameters-1_c_size_t))
-    iRadius         =int(hRadius    (2  ),kind=c_size_t)
-    iParameters     =int(hParameters(2,:),kind=c_size_t)
-    hRadius    (2  )=hRadius    (2  )-dble(iRadius    )
-    hParameters(2,:)=hParameters(2,:)-dble(iParameters)
+    ! Compute interpolating factors. In each dimension the node index is clamped to the interior range [1,count-1] so that the
+    ! pair of nodes spanning the interpolation interval always exists, and the interpolation weight is clamped to [0,1]. For
+    ! points within the tabulated range this performs ordinary linear interpolation (including across the final bin, up to the
+    ! last node); for points outside the range (which can occur for the parameters once the tabulation limits have been
+    ! reached) it performs fixed extrapolation using the edge value. Both behaviors are continuous across the table boundaries,
+    ! which matters for iterative solvers that evaluate the distribution as they converge.
+    allocate(hParameters(2,size(parameters)))
+    allocate(iParameters(  size(parameters)))
+    hRadius    (2  )=log(radiusScaled/tabulation%radiusMinimum    )*tabulation%radiusInverseStep    +1.0d0
+    hParameters(2,:)=log(parameters  /tabulation%parametersMinimum)*tabulation%parametersInverseStep+1.0d0
+    iRadius         =min(max(int(hRadius    (2  ),kind=c_size_t),1_c_size_t),tabulation%countRadii     -1_c_size_t)
+    iParameters     =min(max(int(hParameters(2,:),kind=c_size_t),1_c_size_t),tabulation%countParameters-1_c_size_t)
+    hRadius    (2  )=min(max(hRadius    (2  )-dble(iRadius    ),0.0d0),1.0d0)
+    hParameters(2,:)=min(max(hParameters(2,:)-dble(iParameters),0.0d0),1.0d0)
     hRadius    (1  )=1.0d0-hRadius    (2  )
-    hParameters(1,:)=1.0d0-hParameters(2,:)    
+    hParameters(1,:)=1.0d0-hParameters(2,:)
     ! Perform the interpolation.
     interpolated=0.0d0
     counter     =multiCounter(spread(2_c_size_t,1,size(parameters)))

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify the CDM reference parameter files to use the parametric self-interacting dark matter (SIDM) -->
+<!-- model of Yang et al. (2024; JCAP; 2; 32), as extended by Raut, Nadler & Benson (2026).                               -->
+<changes>
+
+  <!-- Use a velocity-dependent self-interacting dark matter particle. -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="SIDMVelocityDependent">
+      <velocityCharacteristic value="24.33"/> <!-- Characteristic velocity scale, v_c [km/s]. -->
+      <sigma0                 value="147.1"/> <!-- Low-velocity cross section, sigma_0 [cm^2/g]. -->
+      <darkMatterParticle     value="CDM"  />
+    </darkMatterParticle>
+  </change>
+
+  <!-- Replace the dark matter-only profile (the NFW inside the existing "heated" wrapper) with the parametric SIDM profile, whose
+       characteristic density, scale radius, and core radius are set from the gravothermal state evolved by the node operator
+       added below. -->
+  <change type="replace" path="darkMatterProfileDMO/darkMatterProfileDMO">
+    <darkMatterProfileDMO value="SIDMParametric"/>
+  </change>
+
+  <!-- Add the node operator that evolves the dimensionless gravothermal time tau and the resulting SIDM Vmax/Rmax and profile
+       parameters along each branch. The CDM-side quantities that drive the evolution are evaluated using an NFW profile. -->
+  <change type="insertAfter" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']">
+    <nodeOperator value="SIDMParametric">
+      <darkMatterProfileDMO value="NFW"/>
+    </nodeOperator>
+  </change>
+
+  <!-- Structural quantities (scale radii, halo spins, and orbital parameters) must be computed using the original CDM (NFW)
+       profile, not the SIDM profile set above. (Unlike the warm dark matter case, the global dark matter-only profile is here
+       replaced by the SIDM profile, so we cannot reuse it for these calculations and instead provide an explicit NFW profile.) -->
+  <change type="append" path="virialOrbit">
+    <darkMatterProfileDMO value="NFW"/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO value="NFW"/>
+  </change>
+  <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <darkMatterProfileDMO value="NFW"/>
+  </change>
+
+</changes>

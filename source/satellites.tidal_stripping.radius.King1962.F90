@@ -204,6 +204,11 @@ contains
     position          =  satellite%position  (        )
     velocity          =  satellite%velocity  (        )
     radius            =  Vector_Magnitude    (position)
+    ! Ignore unphysical cases.
+    if (massSatellite <= 0.0d0) then
+       king1962Radius=0.0d0
+       return
+    end if
     ! Compute the orbital period.
     frequencyAngular  = +Vector_Magnitude(Vector_Product(position,velocity)) &
          &              /radius**2                                           &
@@ -227,8 +232,6 @@ contains
     tidalPull         =  self%efficiencyCentrifugal*frequencyAngular**2-tidalFieldRadial
     if     (                                                             &
          &   tidalPull                                          >  0.0d0 &
-         &  .and.                                                        &
-         &   massSatellite                                      >  0.0d0 &
          &  .and.                                                        &
          &   massDistribution_%massEnclosedBySphere(radiusZero) >= 0.0d0 &
          & ) then

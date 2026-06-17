@@ -132,7 +132,7 @@ contains
     type            (treeNode                                 )               , pointer :: nodeFormation, nodeParent
     class           (nodeComponentBasic                       )               , pointer :: basic
     double precision                                                                    :: timeFormation
-    
+
     if (.not.self%assumeMonotonicGrowth) then
        basic         => node%basic()
        timeFormation =  Dark_Matter_Halo_Formation_Time(                                                                              &
