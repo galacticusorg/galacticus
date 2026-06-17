@@ -3258,12 +3258,14 @@ def test_process_event_hook_call_site():
             process_event_hooks
         process_event_hooks(root, {})
         out = serialize(root)
-        assert_equal('tickEventGlobal%count()' in out, True,
-                     "global dispatch emitted for hook 'tick'")
+        assert_equal('tickEventGlobal%countLockless()' in out, True,
+                     "global dispatch emitted for hook 'tick' (lockless count read)")
         assert_equal('call hook_%function_(hook_%object_,a,b)' in out, True,
                      "hook callsite uses the callWith argument list")
         assert_equal(declaration_exists(sub, 'tickIterator'), True,
                      "iterator declaration added to enclosing scope")
+        assert_equal(declaration_exists(sub, 'tickCount'), True,
+                     "count declaration added to enclosing scope (hoisted lockless read)")
     finally:
         if saved is None:
             del os.environ['BUILDPATH']
