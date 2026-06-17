@@ -29,7 +29,7 @@ module Galacticus_Nodes
   use            :: Abundances_Structure               , only : abundances
   use            :: Chemical_Abundances_Structure      , only : chemicalAbundances
   use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType       , enumerationWeightByType
-  use            :: Hashes                             , only : doubleHash                   , genericHash
+  use            :: Dictionaries                       , only : doubleDictionary             , genericDictionary
   use            :: Histories                          , only : history                      , longIntegerHistory
   use            :: IO_HDF5                            , only : hdf5Object
   use, intrinsic :: ISO_C_Binding                      , only : c_size_t
@@ -85,7 +85,7 @@ module Galacticus_Nodes
      type            (universe                  ), pointer         :: hostUniverse           => null()
      type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
-     type            (doubleHash                )                  :: properties
+     type            (doubleDictionary          )                  :: properties
    contains
      ! Tree creation/destruction.
      !![
@@ -144,12 +144,12 @@ module Galacticus_Nodes
      !!{
      The universe object class.
      !!}
-     type   (mergerTreeList), pointer             :: trees         => null()
-     logical                                      :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer    , public :: event         => null()
-     type   (genericHash   )                      :: attributes
-     integer(kind_int8     )                      :: uniqueID
-     type   (ompLock       ), allocatable         :: lock
+     type   (mergerTreeList   ), pointer             :: trees         => null()
+     logical                                         :: allTreesBuilt =  .false.
+     type   (universeEvent    ), pointer    , public :: event         => null()
+     type   (genericDictionary)                      :: attributes
+     integer(kind_int8        )                      :: uniqueID
+     type   (ompLock          ), allocatable         :: lock
    contains
      !![
      <methods>

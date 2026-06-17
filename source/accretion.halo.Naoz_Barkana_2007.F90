@@ -25,6 +25,7 @@
   !!}
   
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
+  use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
   use :: Virial_Density_Contrast              , only : virialDensityContrastClass
   use :: Dark_Matter_Profiles_DMO             , only : darkMatterProfileDMOClass
 
@@ -126,7 +127,7 @@ contains
     implicit none
     type(accretionHaloNaozBarkana2007)                :: self
     type(inputParameters             ), intent(inout) :: parameters
- 
+
     self%accretionHaloSimple=accretionHaloSimple(parameters)
     !![
     <inputParameter>
@@ -299,6 +300,7 @@ contains
             &                                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
             &                                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
+            &                                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                                               )
        self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
@@ -337,6 +339,7 @@ contains
             &                                                                darkMatterProfileDMO_ =self%darkMatterProfileDMO_    , &
             &                                                                cosmologyParameters_  =self %cosmologyParameters_    , &
             &                                                                cosmologyFunctions_   =self %cosmologyFunctions_     , &
+            &                                                                darkMatterProfileDMO_ =self %darkMatterProfileDMO_   , &
             &                                                                virialDensityContrast_=self %virialDensityContrast_    &
             &                                                               )
        if (.not.self%filteredFractionComputed) then

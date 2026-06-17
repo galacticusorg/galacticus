@@ -21,8 +21,8 @@
   Implements a merger tree evolve profiler that collects simple data.
   !!}
 
-  use :: Hashes, only : integerHash
-  use :: Locks , only : ompLock
+  use :: Dictionaries, only : integerDictionary
+  use :: Locks       , only : ompLock
   
   !![
   <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerSimple">
@@ -55,7 +55,7 @@
           &                                                                         timeCPUInterrupted
      integer         (c_size_t                      ), allocatable, dimension(:) :: timeStepCount                     , evaluationCount           , &
           &                                                                         timeStepCountInterrupted          , evaluationCountInterrupted
-     type            (integerHash                   )                            :: propertyHits
+     type            (integerDictionary             )                            :: propertyHits
      type            (treeNode                      ), pointer                   :: node                     => null()
      class           (mergerTreeEvolveProfilerSimple), pointer                   :: deepCopiedFrom           => null()
      type            (ompLock                       )                            :: reduceLock

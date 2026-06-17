@@ -315,9 +315,13 @@ def _find_enum_module(enum_type, func_class):
         return explicit
     for use_block in func_class.get('moduleUses', []):
         for mod_name, mod_data in use_block.items():
-            if (isinstance(mod_data, dict)
-                    and enum_type in mod_data.get('only', {})):
-                return mod_name
+            # A parsed moduleUse node maps each module to a *list* of entries
+            # (one per preprocessor condition set); tolerate a bare dict too.
+            entries = mod_data if isinstance(mod_data, list) else [mod_data]
+            for entry in entries:
+                if (isinstance(entry, dict)
+                        and enum_type in entry.get('only', {})):
+                    return mod_name
     return func_class.get('module')
 
 

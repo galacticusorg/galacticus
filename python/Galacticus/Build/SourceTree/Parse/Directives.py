@@ -122,6 +122,11 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
             <xs:attribute name="value"     use="required"/>
            </xs:complexType>
           </xs:element>
+          <xs:element name="deallocate"    minOccurs="0" maxOccurs="1" >
+           <xs:complexType>
+            <xs:attribute name="variables" use="required"/>
+           </xs:complexType>
+          </xs:element>
          </xs:sequence>
         </xs:complexType>
        </xs:element>

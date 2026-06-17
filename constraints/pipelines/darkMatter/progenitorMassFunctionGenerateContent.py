@@ -38,6 +38,8 @@ def _parse_args():
                         help='Simulation selection filter (suite::group::resolution::...); may be repeated')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
                         help='Log file root for initializing from a prior posterior maximum')
+    parser.add_argument('--randomize', default='no',
+                        help='Randomize merger tree construction on each step (default: no)')
     args = parser.parse_args()
     # Normalise paths to end with '/'.
     for key in ('pipelinePath', 'outputDirectory'):
@@ -186,7 +188,10 @@ def _base_files(entry_groups,options):
             f'\n'
             f'                         progenitorMassFunctionParameters/rootVarianceTargetFractional\n'
             f'                        "/>\n'
-            f'    <parameterInactiveMap value="randomNumberGenerator/seed"/>\n'
+            )
+        if options['randomize'] == 'yes':
+            config_likelihood += f'    <parameterInactiveMap value="randomNumberGenerator/seed"/>\n'
+        config_likelihood += (
             f'    <posteriorSampleLikelihood value="galaxyPopulation">\n'
             f'      <baseParametersFileName    value="{file_name_base}" />\n'
             )
@@ -232,11 +237,16 @@ def _base_files(entry_groups,options):
             f'  <xi:include href="{output_dir}progenitorMassFunctionParameters.xml"'
             f'                                 {xp} {xi}/>\n'
             f'\n'
-            f'<!-- Random number generator -->\n'
-            f'<randomNumberGenerator value="GSL">\n'
-            f'  <seed value="9372"/>\n'
-            f'</randomNumberGenerator>\n'
-            f'\n'
+        )
+        if options['randomize'] == 'yes':
+            base += (
+                f'<!-- Random number generator -->\n'
+                f'<randomNumberGenerator value="GSL">\n'
+                f'  <seed value="9372"/>\n'
+                f'</randomNumberGenerator>\n'
+                f'\n'
+                )
+        base += (
             f'<!-- Task control -->\n'
             f'<evolveForestsWorkShare value="cyclic"/>\n'
             f'\n'
@@ -594,13 +604,16 @@ def _config_strings(options):
         '      </distributionFunction1DPerturber>\n'
         '    </modelParameter>\n'
         '\n'
-        '    <modelParameter value="derived">\n'
-        '      <name value="randomNumberGenerator/seed"/>\n'
-        '      <definition value="1234+%[posteriorSimulationStep]"/>\n'
-        '      <isInteger value="true"/>\n'
-        '    </modelParameter>\n'
-        '\n'
-    )
+        )
+    if options['randomize'] == 'yes':
+        config_closer += (
+            '    <modelParameter value="derived">\n'
+            '      <name value="randomNumberGenerator/seed"/>\n'
+            '      <definition value="1234+%[posteriorSimulationStep]"/>\n'
+            '      <isInteger value="true"/>\n'
+            '    </modelParameter>\n'
+            '\n'
+        )
 
     # Finish the closer
     config_closer += (

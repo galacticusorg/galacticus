@@ -39,14 +39,15 @@ module Units_MetaData
   private
   public :: unitType
 
-  !! Maximum length of string fields inside unitType.  This must match the length
-  !! used in hdf5_cTypes.c when the compound HDF5 type is built.
+  !! Maximum length of string fields inside unitType. This is the length used for the string members of the HDF5 compound
+  !! datatype built in IO_HDF5_Write_Attribute_Units_Scalar (utility.IO.HDF5.F90).
   integer, parameter, public :: unitStringLength=512
 
   type, bind(C) :: unitType
      !!{
-     A derived type that holds unit metadata for a single dataset property.  The \mono{bind(C)} attribute ensures a predictable
-     memory layout so that the HDF5 C compound-type offsets computed with \mono{offsetof} in \mono{hdf5\_cTypes.c} are exact.
+     A derived type that holds unit metadata for a single dataset property. The \mono{bind(C)} attribute ensures a predictable
+     memory layout so that the HDF5 compound-type member offsets obtained from it (via \mono{H5OFFSETOF}) when writing units
+     attributes are exact.
      !!}
      real     (c_double)                              :: unitsInSI  =0.0_c_double
      character(c_char  ), dimension(unitStringLength) :: description=c_char_""

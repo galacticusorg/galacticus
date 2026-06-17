@@ -237,6 +237,9 @@
   <migration commit="f483d9caf532e5f33cdbe46aad53d076316ec394">
     <translation function="method_suffix_remove"/>
   </migration>
+  <migration commit="dc78406459ea03b964218f7256d2bf3f4e150bf3">
+    <translation function="evaluated_parameter_xpath"/>
+  </migration>
   <migration commit="2af8b4de4a0d9c4e83a0254a2f161dc94e305c15">
     <translation xpath="//stellarFeedbackOutflows[@value]">
       <value old="creasey2012" new="creasey2013"/>

@@ -62,16 +62,18 @@ def _parse_args():
                         help='Processors per node for the progenitorMassFunction MCMC job (default: 32)')
     parser.add_argument('--countParticlesMinimum', default=300, type=int,
                         help='Minimum particles per halo (default: 300); forwarded to sub-scripts')
+    parser.add_argument('--force',              default='yes',
+                        help='Force generation of plots, even if they already exist (default: yes)')
     parser.add_argument('--select',             default=None, action='append',
                         help='Simulation selection filter; may be repeated; forwarded to sub-scripts')
     parser.add_argument('--partition',          default=None,
                         help='SLURM partition override; forwarded to PostProcess')
     parser.add_argument('--jobMaximum',         default=None, type=int,
                         help='Maximum concurrent jobs; forwarded to PostProcess')
-    parser.add_argument('--waitOnSubmit',       default=None, type=int,
-                        help='Time (in seconds) to wait after submitting; forwarded to PostProcess')
-    parser.add_argument('--waitOnActive',       default=None, type=int,
-                        help='Time (in seconds) to wait between polling active jobs; forwarded to PostProcess')
+    parser.add_argument('--waitOnSubmit',       default=5, type=int,
+                        help='Time (in seconds) to wait after submitting; forwarded to PostProcess (default: 5)')
+    parser.add_argument('--waitOnActive',       default=60, type=int,
+                        help='Time (in seconds) to wait between polling active jobs; forwarded to PostProcess (default: 60)')
     parser.add_argument('--pipelinePath',       default=_default_pipeline,
                         help='Pipeline directory (default: $GALACTICUS_EXEC_PATH/constraints/pipelines/darkMatter/)')
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
@@ -104,20 +106,27 @@ def _innermost_likelihood_model(model):
 def _load_base_parameter_trees(config):
     """Load per-redshift base parameter XML files as lxml element trees.
 
-    Walks each outer posteriorSampleLikelihood down to the innermost model,
-    derives filenames by substituting the z-suffix in baseParametersFileName,
-    expands XInclude, and stores a list of (path, root_element) tuples in
-    inner['_trees']. Mutates the config dict in-place.
+    Walks each outer posteriorSampleLikelihood down to the innermost
+    model, derives filenames (substituting the z-suffix in
+    baseParametersFileName if needed), expands XInclude, and stores a
+    list of (path, root_element) tuples in inner['_trees']. Mutates the
+    config dict in-place.
     """
     outer  = config['posteriorSampleLikelihood']
     models = as_array(outer.get('posteriorSampleLikelihood', []))
     for model in models:
         inner     = _innermost_likelihood_model(model)
-        redshifts = inner['redshifts']['value'].split()
-        pattern   = inner['baseParametersFileName']['value']
         trees = []
-        for z in redshifts:
-            path = re.sub(r'_z\d+\.\d+', f'_z{z}', pattern)
+        if 'redshifts' in inner:
+            redshifts = inner['redshifts']['value'].split()
+            pattern   = inner['baseParametersFileName']['value']
+            for z in redshifts:
+                path = re.sub(r'_z\d+\.\d+', f'_z{z}', pattern)
+                tree = ET.parse(path)
+                tree.xinclude()
+                trees.append((path, tree.getroot()))
+        else:
+            path = inner['baseParametersFileName']['value']
             tree = ET.parse(path)
             tree.xinclude()
             trees.append((path, tree.getroot()))
@@ -141,20 +150,24 @@ def _find_param_element(root_elem, param_name):
 def _apply_parameters(config, params_determined):
     """Inject best-fit parameter values into the in-memory base parameter trees.
 
-    Respects parameterMap entries on the outer posteriorSampleLikelihood to
-    restrict which parameters are applied to each inner likelihood model.
+    Respects parameterMap entries on the outer posteriorSampleLikelihood
+    to restrict which active parameters are applied to each inner
+    likelihood model.
     """
     if not params_determined:
         return
+    simulation = config['posteriorSampleSimulation']
     outer      = config['posteriorSampleLikelihood']
     models     = as_array(outer.get('posteriorSampleLikelihood', []))
     param_maps = as_array(outer.get('parameterMap', []))
+    parameters = as_array(simulation.get('modelParameter', []))
+    parameter_names = [parameter['name']['value'] for parameter in parameters]
     for i, model in enumerate(models):
         allowed = (param_maps[i]['value'].split() if i < len(param_maps) else [])
         inner   = _innermost_likelihood_model(model)
         for path, elem_root in inner.get('_trees', []):
             for param_name, value in params_determined.items():
-                if allowed and param_name not in allowed:
+                if allowed and param_name not in allowed and param_name in parameter_names:
                     continue
                 elem = _find_param_element(elem_root, param_name)
                 if elem is not None:
@@ -263,7 +276,7 @@ def main():
             '--pipelinePath',    pipeline_path,
             '--outputDirectory', output_dir,
         ]
-        for key in ('countParticlesMinimum', 'partition', 'jobMaximum', 'waitOnActive', 'waitOnSubmit'):
+        for key in ('countParticlesMinimum', 'partition', 'jobMaximum', 'waitOnActive', 'waitOnSubmit', 'force'):
             if options.get(key) is not None:
                 postprocess_cmd += [f'--{key}', str(options[key])]
         if options.get('select'):
@@ -277,7 +290,7 @@ def main():
         config = _parse_config(config_file)
         _load_base_parameter_trees(config)
 
-        # Step 4: inject parameters determined by earlier tasks (none yet).
+        # Step 4: inject parameters determined by earlier tasks.
         _apply_parameters(config, params_determined)
         print('  ...done')
 
@@ -290,8 +303,12 @@ def main():
         # Step 6: submit the MCMC job (skip if chain log already exists).
         chain_log_0 = log_file_root(config) + '_0000.log'
         if not os.path.exists(chain_log_0):
+            n_proc = task["ppn"]*task['nodes']
+            omp_prefix = (
+                f'export OMP_NUM_THREADS=1; '
+                )
             mpi_prefix = (
-                f'mpirun --n {task["ppn"]} '
+                f'mpirun --oversubscribe --n {n_proc} '
                 )
             callgrind_prefix = (
                 f'--output-filename {output_dir}{label}.vlog '
@@ -299,13 +316,13 @@ def main():
                 if options['callgrind'] == 'yes' else ''
             )
             job = {
-                'command':    f'{mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
+                'command':    f'{omp_prefix} {mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
                 'launchFile': f'{output_dir}{label}.sh',
                 'logFile':    f'{output_dir}{label}.log',
                 'label':      f'darkMatterPipeline{label[0].upper()}{label[1:]}',
                 'ppn':        task['ppn'],
                 'nodes':      task['nodes'],
-                'walltime':   '24:00:00',
+                'walltime':   '7-00:00:00',
             }
             print(f"  Running MCMC for '{label}'  [{datetime.datetime.now()}]")
             manager = queueManager.factory(args)

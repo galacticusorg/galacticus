@@ -35,12 +35,12 @@ module Input_Parameters
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
-  use            :: Hashes            , only : integerHash
+  use            :: Dictionaries      , only : integerDictionary
   use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
-  public :: inputParameters, inputParameter, inputParameterList
-  
+  public :: inputParameters                 , inputParameter, inputParameterList, Input_Parameters_Build_Stack_Push, &
+       &    Input_Parameters_Build_Stack_Pop  
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -133,18 +133,18 @@ module Input_Parameters
   
   type :: inputParameters
      private
-     type   (documentWrapper), pointer, public :: document               => null()
-     type   (node           ), pointer         :: rootNode               => null()
-     type   (hdf5Object     ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
-     type   (resourceManager)                  :: outputParametersManager          , outputParametersContainerManager          , &
-          &                                       documentManager
-     type   (inputParameter ), pointer, public :: parameters             => null()
-     type   (inputParameters), pointer, public :: parent                 => null() , original                         => null()
-     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
-          &                                       isNull                 =  .false., strict                           = .false.
-     type   (integerHash    ), allocatable     :: warnedDefaults
-     type   (ompLock        ), pointer         :: lock                   => null()
-     type   (resourceManager)                  :: lockManager
+     type   (documentWrapper  ), pointer, public :: document               => null()
+     type   (node             ), pointer         :: rootNode               => null()
+     type   (hdf5Object       ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
+     type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
+          &                                         documentManager
+     type   (inputParameter   ), pointer, public :: parameters             => null()
+     type   (inputParameters)  , pointer, public :: parent                 => null() , original                         => null()
+     logical                                     :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
+          &                                         isNull                 =  .false., strict                           = .false.
+     type   (integerDictionary), allocatable     :: warnedDefaults
+     type   (ompLock          ), pointer         :: lock                   => null()
+     type   (resourceManager  )                  :: lockManager
    contains
      !![
      <methods>
@@ -262,6 +262,22 @@ module Input_Parameters
   ! Maximum length allowed for parameter entries.
   integer, parameter :: parameterLengthMaximum=1024
 
+  ! Build stack used to detect recursive object construction from the parameter file. A class that
+  ! composites a member of its own class (directly, or via another, mutually-compositing class) can---if
+  ! no such object is provided explicitly---search up the parameter tree, re-discover the object currently
+  ! being built, and attempt to build it again, leading to an unbounded recursion. The functionClass
+  ! factories push the parameter node being built onto this (thread-private) stack and check for a repeat,
+  ! aborting with an informative error if one is found. See issue #397.
+  type :: buildStackEntry
+     type   (inputParameter), pointer :: node           => null()
+     type   (varying_string)          :: className
+     logical                          :: recursionAware =  .false.
+  end type buildStackEntry
+
+  type   (buildStackEntry), allocatable, dimension(:) :: buildStack
+  integer                                             :: buildStackDepth=0
+  !$omp threadprivate(buildStack,buildStackDepth)
+
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
      subroutine knownParameterNames(names)
@@ -285,6 +301,84 @@ module Input_Parameters
 #endif
 
 contains
+
+  subroutine Input_Parameters_Build_Stack_Push(node,className,recursionAware,location)
+    !!{
+    Push a parameter node onto the object-build stack, after first checking that the same node is not
+    already being built for the same class. If it is---and no recursion-aware class lies between that
+    earlier build and this one---a genuine, unbounded recursive build has been detected and we abort
+    with an informative error. See issue \#397.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//), operator(==), char
+    implicit none
+    type     (inputParameter ), intent(in   ), target              :: node
+    character(len=*          ), intent(in   )                      :: className            , location
+    logical                   , intent(in   )                      :: recursionAware
+    type     (buildStackEntry), allocatable  , dimension(:)        :: buildStackTmp
+    type     (varying_string )                                     :: message
+    logical                                                        :: recursionAwareBetween
+    integer                                                        :: i                    , j       , &
+         &                                                            k
+
+    ! Check for a recursive build: the same parameter node already being built for the same class. Such a
+    ! repeat is only a genuine, unbounded recursion if no recursion-aware (recursive="yes") class lies
+    ! between that earlier build and the current one. A recursion-aware class short-circuits its own
+    ! re-entry (returning a reference to the object already under construction), which bounds the cycle, so
+    ! a repeat that passes through one is legitimate and must not be flagged. See issue \#397.
+    do i=1,buildStackDepth
+       if (associated(buildStack(i)%node,node).and.buildStack(i)%className == className) then
+          recursionAwareBetween=.false.
+          do j=i+1,buildStackDepth
+             if (buildStack(j)%recursionAware) then
+                recursionAwareBetween=.true.
+                exit
+             end if
+          end do
+          if (.not.recursionAwareBetween) then
+             message=                                                                                                             &
+                  &           'recursive build of ['//className//'] detected while building objects from the parameter file.'  // &
+                  & char(10)//'This usually means that an object of this class composites a member of its own class (directly,'// &
+                  & char(10)//'or via another, mutually-compositing class), but no such object was provided explicitly. The'   // &
+                  & char(10)//'build then searches up the parameter tree, re-discovers the object currently being built, and'  // &
+                  & char(10)//'attempts to build it again. Provide the required ['//className//'] explicitly to resolve this.' // &
+                  & char(10)//'Build stack (outermost first):'
+             do k=1,buildStackDepth
+                message=message//char(10)//'   -> ['//char(buildStack(k)%className)//']'
+             end do
+             message=message//char(10)//'   -> ['//className//']  <-- recursion'
+             call Error_Report(message//location)
+          end if
+          exit
+       end if
+    end do
+    ! Grow the stack as required and push the node.
+    if (.not.allocated(buildStack)) allocate(buildStack(16))
+    if (buildStackDepth >= size(buildStack)) then
+       call move_alloc(buildStack,buildStackTmp)
+       allocate(buildStack(2*size(buildStackTmp)))
+       buildStack(1:size(buildStackTmp))=buildStackTmp
+       deallocate(buildStackTmp)
+    end if
+    buildStackDepth                            =  buildStackDepth+1
+    buildStack(buildStackDepth)%node           => node
+    buildStack(buildStackDepth)%className      =  className
+    buildStack(buildStackDepth)%recursionAware =  recursionAware
+    return
+  end subroutine Input_Parameters_Build_Stack_Push
+
+  subroutine Input_Parameters_Build_Stack_Pop()
+    !!{
+    Pop the most recently pushed parameter node from the object-build stack. See issue \#397.
+    !!}
+    implicit none
+
+    if (buildStackDepth > 0) then
+       buildStack(buildStackDepth)%node => null()
+       buildStackDepth=buildStackDepth-1
+    end if
+    return
+  end subroutine Input_Parameters_Build_Stack_Pop
 
   function inputParametersConstructorNull() result(self)
     !!{
@@ -317,7 +411,7 @@ contains
     </workaround>
     !!]
     self%parameters     => null              (             )
-    self%warnedDefaults =  integerHash       (             )
+    self%warnedDefaults =  integerDictionary (             )
     self%lock           =  ompLock           (             )
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
@@ -704,10 +798,10 @@ contains
     allocate(self%warnedDefaults)
     allocate(self%lock          )
     self%isNull         =  .false.
-    self%rootNode       =>                  parametersNode
-    self%parent         => null            (              )
-    self%warnedDefaults =  integerHash     (              )
-    self%lock           =  ompLock         (              )
+    self%rootNode       =>                   parametersNode
+    self%parent         => null             (              )
+    self%warnedDefaults =  integerDictionary(              )
+    self%lock           =  ompLock          (              )
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
       <description>ICE when passing a derived type component to a class(*) function argument.</description>
@@ -1532,7 +1626,7 @@ contains
     character(len=1024                                )                                                 :: unknownName                , allowedParameterName , &
          &                                                                                                 parameterNameGuess         , unknownNamePath
     type     (varying_string                          )                                                 :: message                    , verbosityLevel
-    type     (integerHash                             )                                                 :: parameterNamesSeen
+    type     (integerDictionary                       )                                                 :: parameterNamesSeen
     type     (DOMException                            )                                                 :: exception
     
     ! Determine whether we should be verbose.
@@ -1543,7 +1637,7 @@ contains
     end if
     ! Validate parameters.
     warningsFound     =.false.
-    parameterNamesSeen=integerHash()
+    parameterNamesSeen=integerDictionary()
     if (associated(self%parameters)) then
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))

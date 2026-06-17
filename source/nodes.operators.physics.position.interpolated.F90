@@ -403,11 +403,28 @@ contains
     do while (nodeHost%isSatellite())
        nodeHost => nodeHost%parent
     end do
-    isSatellite       =.not.associated(nodeDescendant,nodeHost)
-    isInitialSatellite=isSatellite
     ! Set the initial time.
     basic => nodeDescendant%basic()
     time  =  basic         %time ()
+    ! Apply any branch jump that occurs at the initial time of this branch tip. A branch jump redirects the host (and, for a
+    ! self-hosting node, the descendant) onto the branch into which the node jumps. The main tree walk does not catch a jump at
+    ! the initial time: findEvents(presentOnly=.false.) at the top of the loop finds only jumps in the future, while the
+    ! present-time check (findEvents(presentOnly=.true.)) is reached only after the time has been advanced to the next history
+    ! step. We therefore apply it explicitly here, so that satellite positions are interpolated relative to the correct host
+    ! from the very first step - consistent with how the merger logic follows such jumps when another branch merges onto this node.
+    eventPrior => node%event
+    do while (associated(eventPrior))
+       select type (eventPrior)
+       type is (nodeEventBranchJump)
+          if (eventPrior%time == time .and. associated(eventPrior%task)) then
+             if (associated(nodeDescendant,nodeHost)) nodeDescendant => eventPrior%node
+             nodeHost => eventPrior%node
+          end if
+       end select
+       eventPrior => eventPrior%next
+    end do
+    isSatellite       =.not.associated(nodeDescendant,nodeHost)
+    isInitialSatellite=isSatellite
     ! Initialize history status.
     iHistory    =-1_c_size_t
     countHistory=+0_c_size_t
@@ -549,6 +566,10 @@ contains
              ! We have a subhalo promotion - move our pointer to that node.
              nodeDescendant    => event         %node
              nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
+             ! The promoted halo survives as an independent central, so cancel any pending (stale) galaxy merger.
+             haveMerger        =  .false.
+             timeMerger        =  huge(0.0d0)
+             nodeMergeTarget   => null()
           else
              ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
              if (.not.associated(nodeDescendant,nodeHost) .and. associated(nodeHost%parent) .and. nodeHost%parent%index() == nodeHost%index()) then
@@ -610,6 +631,10 @@ contains
                 ! We have a subhalo promotion - move our pointer to that node.
                 nodeDescendant => event         %node
                 nodeHost       => nodeDescendant      ! This is always an isolated halo by construction, so must be self-hosting.
+                ! The promoted halo survives as an independent central, so cancel any pending (stale) galaxy merger.
+                haveMerger      =  .false.
+                timeMerger      =  huge(0.0d0)
+                nodeMergeTarget => null()
              else
                 ! This descendant becomes orphanized in its parent, so move our pointer to that parent such that we will follow
                 ! its position.
@@ -628,7 +653,11 @@ contains
           ! Move to the host, unless the merger time is before the current time, in which case we need to back up to the host's
           ! progenitor.
           if (reporting) then
-             write (label,'(l1)') associated(nodeMergeTarget)
+             if (associated(nodeMergeTarget)) then
+                write (label,'(l1,a2,i12,a1)') associated(nodeMergeTarget),' [',nodeMergeTarget%index(),']'
+             else
+                write (label,'(l1)'          ) associated(nodeMergeTarget)
+             end if
              call displayMessage("trace merger - target?: "//trim(adjustl(label)))
           end if
           if (associated(nodeMergeTarget)) then
@@ -656,7 +685,7 @@ contains
                    type is (nodeEventBranchJump)
                       if (eventPrior%time < timeMerger .and. eventPrior%time > timeJumpLatest .and. associated(eventPrior%task)) then
                          nodeHost       => eventPrior%node
-                         timeJumpLatest =  eventPrior%time                         
+                         timeJumpLatest =  eventPrior%time
                       end if
                    end select
                    eventPrior => eventPrior%next

@@ -1107,7 +1107,7 @@ jobs:
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
                       tests.geometry.coordinate_systems.exe,
-                      tests.hashes.exe,
+                      tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
                       tests.hashes.cryptographic.exe,
@@ -1424,8 +1424,9 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
-                test-library-interfaces.py,
-                test-SIDM-parametric.py ]
+                test-SIDM-parametric.py,
+                test-objectBuilder-recursion.py,
+                test-library-interfaces.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

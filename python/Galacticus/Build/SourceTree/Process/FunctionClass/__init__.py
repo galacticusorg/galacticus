@@ -43,7 +43,7 @@ from Galacticus.Build.SourceTree.Process                     import (
 from Galacticus.Build.SourceTree.Parse.Declarations          import (
     parse_declaration, build_declarations, declaration_exists, get_declaration,
 )
-from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses
+from Galacticus.Build.SourceTree.Parse.ModuleUses            import add_uses, _as_entry_list
 from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visibilities
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
@@ -3040,7 +3040,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += '      !!}\n'
     post['content'] += (
         '      use :: Input_Parameters  , only : inputParameter         , '
-        'inputParameters\n'
+        'inputParameters        , Input_Parameters_Build_Stack_Push, '
+        'Input_Parameters_Build_Stack_Pop\n'
         '      use :: Locks  , only : ompLock\n'
         '      use :: Error  , only : Error_Report\n'
         '      use :: ISO_Varying_String, only : varying_string         , '
@@ -3116,10 +3117,13 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
                 f'        {directive_name}RecursiveBuildObject => self\n'
             )
         post['content'] += (
+            '        call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
+            f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
             '        select type (self)\n'
             f'          type is ({target_name})\n'
             f'            self={target_name}(subParameters)\n'
             '         end select\n'
+            '        call Input_Parameters_Build_Stack_Pop()\n'
         )
         if match is not None and match.get('recursive') == 'yes':
             post['content'] += (
@@ -3164,6 +3168,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         'instanceName,copyInstance=copyInstance_)\n'
         '      subParameters=parameters%subParameters'
         '(char(parameterName_),copyInstance=copyInstance_)\n'
+        '      call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
+        f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
         '      select case (char(instanceName))\n'
     )
     for c in non_abstract_classes:
@@ -3200,6 +3206,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += (
         f'         call Error_Report(message//{loc_expr})\n'
         '      end select\n'
+        '      call Input_Parameters_Build_Stack_Pop()\n'
     )
     if 'default' in directive:
         post['content'] += '      end if\n'
@@ -3292,16 +3299,22 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
         for mu_node in module_use_nodes:
             uses = mu_node.get('moduleUse') or {}
             for module_name in sorted(uses.keys()):
-                entry = uses[module_name]
-                if entry.get('all'):
-                    continue
-                only = entry.get('only', {}) or {}
-                kept = {
-                    sym: flag for sym, flag in only.items()
-                    if sym.lower() in module_symbols
-                }
-                entry['only'] = kept
-                if not kept:
+                kept_entries = []
+                for entry in _as_entry_list(uses[module_name]):
+                    if entry.get('all'):
+                        kept_entries.append(entry)
+                        continue
+                    only = entry.get('only', {}) or {}
+                    kept = {
+                        sym: flag for sym, flag in only.items()
+                        if sym.lower() in module_symbols
+                    }
+                    if kept:
+                        entry['only'] = kept
+                        kept_entries.append(entry)
+                if kept_entries:
+                    uses[module_name] = kept_entries
+                else:
                     del uses[module_name]
             if uses:
                 add_uses(parent, {

@@ -163,8 +163,8 @@ contains
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Error                           , only : Error_Report
-    use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
-         &                                          doubleHash              , varyingStringHash       , integerSizeTHash  , genericHash
+    use :: Dictionaries                    , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary, rank2DoublePtrDictionary, &
+         &                                          doubleDictionary              , varyingStringDictionary       , integerSizeTDictionary  , genericDictionary
     use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -251,14 +251,14 @@ contains
             &             )
     end if
     ! Store the data.
-    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
-    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
-    simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
-    simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
-    simulations(1)%attributesReal        =doubleHash              ()
-    simulations(1)%attributesText        =varyingStringHash       ()
-    simulations(1)%attributesInteger     =integerSizeTHash        ()
-    simulations(1)%attributesGeneric     =genericHash             ()
+    simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrDictionary()
+    simulations(1)%propertiesReal        =rank1DoublePtrDictionary      ()
+    simulations(1)%propertiesRealRank1   =rank2DoublePtrDictionary      ()
+    simulations(1)%attributesReal        =doubleDictionary              ()
+    simulations(1)%attributesText        =varyingStringDictionary       ()
+    simulations(1)%attributesInteger     =integerSizeTDictionary        ()
+    simulations(1)%attributesGeneric     =genericDictionary             ()
     call simulations(1)%propertiesRealRank1%set('position'       ,position       )
     call simulations(1)%propertiesRealRank1%set('velocity'       ,velocity       )
     call simulations(1)%propertiesInteger  %set('particleID'     ,particleID     )

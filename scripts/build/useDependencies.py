@@ -445,6 +445,16 @@ def _apply_directive_requirements(entry, source_file, directives,
     if directives['enumeration']:
         entry['modulesUsed'].append(work_dir + 'enumerations.mod')
 
+    # objectDestructor: the directive processor (ObjectBuilder.py) injects a
+    # `use :: Error` into every file containing this directive (for the
+    # negative-reference-count Error_Report call), so such files depend on
+    # error.mod. Most files acquire this transitively via their other uses, but
+    # a file whose only other dependencies are themselves error.mod-free (e.g.
+    # objects.pool.F90, which uses just function_classes.mod) needs it stated
+    # explicitly to be ordered correctly in a parallel build.
+    if directives['objectDestructor']:
+        entry['modulesUsed'].append(work_dir + 'error.mod')
+
     # functionClass methods: each method may declare module dependencies
     # that this file inherits.
     for fc in directives['functionClass']:
@@ -964,7 +974,7 @@ def main(argv):
     directive_names = (
         'functionClass', 'inputParameter', 'enumeration',
         'eventHook', 'eventHookStatic', 'eventHookManager',
-        'functionsGlobal',
+        'functionsGlobal', 'objectDestructor',
     )
 
     # Per-file scan.
