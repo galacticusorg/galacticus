@@ -157,6 +157,7 @@ module Events_Hooks
      !![
      <methods>
        <method description="Return a count of the number of hooks into this event."  method="count"              />
+       <method description="Return a count of the number of hooks into this event, without taking the read/write lock. For use only on hot, read-only dispatch paths where the set of hooks is static (i.e.\ not attached/detached) during the period of concurrent access." method="countLockless"/>
        <method description="Reorder hooked functions to resolved any dependencies."  method="resolveDependencies"/>
        <method description="Filter events to match the current OpenMP thread/level." method="filter"             />
        <method description="Lock the event."                                         method="lock"               />
@@ -165,6 +166,7 @@ module Events_Hooks
      </methods>
      !!]
      procedure :: count               => eventHookCount
+     procedure :: countLockless       => eventHookCountLockless
      procedure :: resolveDependencies => eventHookResolveDependencies
      procedure :: filter              => eventHookFilter
      procedure :: lock                => eventHookLock
@@ -565,6 +567,35 @@ contains
     !$ if (self%isGlobal) call self%unlock(writeLock=.false.)
     return
   end function eventHookCount
+
+  integer function eventHookCountLockless(self)
+    !!{
+    Return a count of the number of hooks into this event {\normalfont without} taking the
+    read/write lock.
+
+    The locked {\normalfont \ttfamily count()} guards only this single-integer read: the
+    dispatch loops that follow it iterate {\normalfont \ttfamily hooks\_} {\normalfont
+    \itshape unlocked}, so the lock provides neither a consistent view of the hook set nor
+    protection of the traversal against a concurrent {\normalfont \ttfamily attach}/{\normalfont
+    \ttfamily detach} (which reallocates {\normalfont \ttfamily hooks\_}). It therefore buys
+    nothing that this lockless read does not, while costing an {\normalfont \ttfamily
+    OMP\_Set\_Lock}/{\normalfont \ttfamily OMP\_Unset\_Lock} round-trip on every call. On the
+    hot dispatch path (e.g.\ {\normalfont \ttfamily Calculations\_Reset}) hooks are attached
+    once during single-threaded initialization and are static thereafter, so this lockless
+    read is semantically equivalent to the locked {\normalfont \ttfamily count()} but without
+    the per-call lock. The read is made via {\normalfont \ttfamily !\$omp atomic read} (paired
+    with {\normalfont \ttfamily !\$omp atomic update} on the {\normalfont \ttfamily count\_}
+    updates in {\normalfont \ttfamily attach}/{\normalfont \ttfamily detach}) so it remains
+    well defined under the OpenMP memory model. See \ref{sec:eventHooksLocking} for the full
+    rationale.
+    !!}
+    implicit none
+    class(eventHook), intent(in) :: self
+
+    !$omp atomic read
+    eventHookCountLockless=self%count_
+    return
+  end function eventHookCountLockless
 
   subroutine eventHookFilter(self)
     !!{
