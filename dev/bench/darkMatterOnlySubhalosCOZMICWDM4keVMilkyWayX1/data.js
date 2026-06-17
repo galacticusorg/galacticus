@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781574617017,
+  "lastUpdate": 1781679838689,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 4keV resolutionX1)": [
@@ -2444,6 +2444,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 58.20105065412193,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "931f580aca5a858da4c57ed11cf5a4bd7ae2b24c",
+          "message": "docs(pool): refer to objectPool without broken cross-reference\n\nResolve undefined `\\refClass{objectPool}` to a plain `\\mono` reference\nsince the class lacks a corresponding cross-reference target.",
+          "timestamp": "2026-06-16T15:12:57-07:00",
+          "tree_id": "c350a980a9b204bb05b7646ff63744432822807d",
+          "url": "https://github.com/galacticusorg/galacticus/commit/931f580aca5a858da4c57ed11cf5a4bd7ae2b24c"
+        },
+        "date": 1781679837282,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 0.25867800152105547,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 8.580916502851952,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:4keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 81.71978024443547,
             "unit": "-logℒ"
           }
         ]
