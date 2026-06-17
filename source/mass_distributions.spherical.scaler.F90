@@ -43,7 +43,13 @@
      double precision                                , dimension(3) :: positionTidalTensorPrevious
      type            (tensorRank2Dimension3Symmetric)               :: tidalTensorPrevious
    contains
+     !![
+     <methods>
+       <method method="initialize" description="(Re)initialize the scaling factors of the scaled mass distribution."/>
+     </methods>
+     !!]
      final     ::                                      sphericalScalerDestructor
+     procedure :: initialize                        => sphericalScalerInitialize
      procedure :: massTotal                         => sphericalScalerMassTotal
      procedure :: density                           => sphericalScalerDensity
      procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
@@ -139,6 +145,24 @@ contains
     self%positionTidalTensorPrevious=-huge(0.0d0)
     return
   end function sphericalScalerConstructorInternal
+
+  subroutine sphericalScalerInitialize(self,factorScalingLength,factorScalingMass)
+    !!{
+    (Re)initialize the scaling factors of a \refClass{massDistributionSphericalScaler} mass distribution. Used to re-use a pooled
+    scaler for a new system without reallocating it (the wrapped, dimensionless mass distribution is unchanged). In addition to
+    the two scaling factors, the memoized tidal tensor (which is scale-dependent) is cleared, along with any tabulations cached
+    in the spherical base class.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout) :: self
+    double precision                                 , intent(in   ) :: factorScalingLength, factorScalingMass
+
+    self%factorScalingLength        =factorScalingLength
+    self%factorScalingMass          =factorScalingMass
+    self%positionTidalTensorPrevious=-huge(0.0d0)
+    call self%tabulationReset()
+    return
+  end subroutine sphericalScalerInitialize
 
   subroutine sphericalScalerDestructor(self)
     !!{
