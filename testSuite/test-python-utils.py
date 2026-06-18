@@ -60,7 +60,6 @@ import Galacticus.Build.SourceTree.Process.EventHooks                # noqa: F40
 import Galacticus.Build.SourceTree.Process.ThreadSafeIO              # noqa: F401
 import Galacticus.Build.SourceTree.Process.SourceDigest              # noqa: F401
 import Galacticus.Build.SourceTree.Process.ObjectBuilder             # noqa: F401
-import Galacticus.Build.SourceTree.Process.ClassDocumentation        # noqa: F401
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     latex_breakable, trimlc, striplc, lctrim, strip_variable_name,
     declaration_rank, class_dependencies,
@@ -3609,89 +3608,6 @@ def test_process_reference_increment_acquire_construct():
 
 
 # ============================================================================
-# Process.ClassDocumentation tests
-# ============================================================================
-
-def test_process_class_documentation_disabled():
-    print("\n=== Testing Process.ClassDocumentation (disabled by default) ===")
-
-    saved = os.environ.pop('GALACTICUS_BUILD_DOCS', None)
-    try:
-        root = _parse_text(
-            "module m\n"
-            "type :: aT\n"
-            "end type aT\n"
-            "end module m\n"
-        )
-        before = serialize(root)
-        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
-            process_class_documentation
-        process_class_documentation(root, {})
-        assert_equal(serialize(root), before,
-                     "no changes when GALACTICUS_BUILD_DOCS is not 'yes'")
-    finally:
-        if saved is not None:
-            os.environ['GALACTICUS_BUILD_DOCS'] = saved
-
-
-def test_process_class_documentation_enabled():
-    print("\n=== Testing Process.ClassDocumentation (enabled, writes XML) ===")
-
-    tmpdir = tempfile.mkdtemp()
-    saved_build = os.environ.get('BUILDPATH')
-    saved_docs  = os.environ.get('GALACTICUS_BUILD_DOCS')
-    os.environ['BUILDPATH']             = tmpdir
-    os.environ['GALACTICUS_BUILD_DOCS'] = 'yes'
-
-    # Write the source to a real file so `tree.get('name')` matches the
-    # `<base>.F90` shape that triggers the XML dump.
-    src_path = os.path.join(tmpdir, 'driver.F90')
-    with open(src_path, 'w') as fh:
-        fh.write(
-            "module m\n"
-            "type :: aT\n"
-            "contains\n"
-            "  procedure :: doIt => aT_doIt\n"
-            "end type aT\n"
-            "contains\n"
-            "subroutine aT_doIt(self, x)\n"
-            "class(aT), intent(inout) :: self\n"
-            "real,       intent(in   ) :: x\n"
-            "end subroutine aT_doIt\n"
-            "end module m\n"
-        )
-    try:
-        # Reset module-level output-previous tracker so we get a fresh write.
-        import Galacticus.Build.SourceTree.Process.ClassDocumentation as CD
-        CD._OUTPUT_PREVIOUS.clear()
-
-        tree = parse_file(src_path)
-        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
-            process_class_documentation
-        process_class_documentation(tree, {})
-
-        out_xml = os.path.join(tmpdir, 'driver.classes.xml')
-        assert_equal(os.path.exists(out_xml), True,
-                     "<basename>.classes.xml written to BUILDPATH")
-        with open(out_xml, 'r') as fh:
-            payload = fh.read()
-        assert_equal('<classes>' in payload, True, "root element is <classes>")
-        assert_equal('<aT>' in payload or '<aT/>' in payload, True,
-                     "class 'aT' recorded in the XML")
-    finally:
-        if saved_build is None:
-            del os.environ['BUILDPATH']
-        else:
-            os.environ['BUILDPATH'] = saved_build
-        if saved_docs is None:
-            del os.environ['GALACTICUS_BUILD_DOCS']
-        else:
-            os.environ['GALACTICUS_BUILD_DOCS'] = saved_docs
-        import shutil
-        shutil.rmtree(tmpdir)
-
-
-# ============================================================================
 # Process.FunctionClass.Utils tests
 # ============================================================================
 
@@ -5069,8 +4985,6 @@ def main():
     test_process_source_digest()
     test_process_object_destructor()
     test_process_reference_increment_acquire_construct()
-    test_process_class_documentation_disabled()
-    test_process_class_documentation_enabled()
     test_functionclass_utils_small_helpers()
     test_functionclass_utils_class_dependencies()
     test_functionclass_descriptor_classification()
