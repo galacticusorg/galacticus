@@ -10,7 +10,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'doc/Galacticus.bib'
+      - 'docs/Galacticus.bib'
   workflow_dispatch:
     inputs:
       refresh-all:
@@ -79,9 +79,9 @@ jobs:
         if: ${{ ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         run: |
           bibtool -r scripts/aux/bibliography.rsc \
-                  -i doc/Galacticus.bib \
-                  -o doc/Galacticus.bib.tidy
-          mv doc/Galacticus.bib.tidy doc/Galacticus.bib
+                  -i docs/Galacticus.bib \
+                  -o docs/Galacticus.bib.tidy
+          mv docs/Galacticus.bib.tidy docs/Galacticus.bib
       - name: "Build PR body"
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
         id: pr-body

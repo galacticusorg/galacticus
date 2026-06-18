@@ -143,7 +143,7 @@ def _clean_name(name: str) -> str:
 
 
 def parse_glossary(path: str) -> dict[str, dict]:
-    """Parse ``doc/Glossary.tex`` into ``{key: entry}``.
+    """Parse ``docs/Glossary.tex`` into ``{key: entry}``.
 
     Each ``entry`` is ``{'name', 'description', 'is_acronym'}`` where ``name`` is
     the plain-text display form used for ``\\gls`` references and ``description``

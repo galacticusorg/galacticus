@@ -1,4 +1,4 @@
-% Resource file for tidying doc/Galacticus.bib via bibtool.
+% Resource file for tidying docs/Galacticus.bib via bibtool.
 % Used by the bibliographyUpdater workflow after the ADS update step.
 
 % Sort entries alphabetically by their citation key.

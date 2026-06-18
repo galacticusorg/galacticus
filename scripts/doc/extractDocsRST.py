@@ -9,7 +9,7 @@ Sphinx documentation tree:
   a section per implementation class, its description, and the input parameters
   declared in the same source file.
 * ``<out>/physics/index.rst``      — a toctree of all family pages.
-* ``<out>/glossary.rst``           — the glossary, from ``doc/Glossary.tex``.
+* ``<out>/glossary.rst``           — the glossary, from ``docs/Glossary.tex``.
 * ``<out>/references.rst``         — a single project-wide bibliography.
 
 Descriptions are read **straight from the raw source** (not via the directive
@@ -146,7 +146,7 @@ def _process_figures(text: str) -> str:
         path = m.group(1).strip()
         if not path.lower().endswith('.pdf'):
             return m.group(0)
-        pdf = os.path.normpath(os.path.join('doc', path))   # LaTeX runs in doc/
+        pdf = os.path.normpath(os.path.join('docs', path))  # figure PDFs live under docs/
         if pdf not in _FIGURE_CACHE:
             _FIGURE_CACHE[pdf] = _rasterise(pdf)
         web = _FIGURE_CACHE[pdf]
@@ -615,7 +615,7 @@ def main() -> int:
     _FIGURES_DIR = os.path.join(out_dir, '_figures')
     os.makedirs(_FIGURES_DIR, exist_ok=True)
 
-    glossary = parse_glossary(os.path.join('doc', 'Glossary.tex'))
+    glossary = parse_glossary(os.path.join('docs', 'Glossary.tex'))
     glsmap = glossary_display_map(glossary)
 
     (families, implementations, params_by_file, methods_by_file, enumerations,
