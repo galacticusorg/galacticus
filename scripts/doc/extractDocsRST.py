@@ -35,6 +35,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from latexToRST import (                                       # noqa: E402
     parse_glossary, glossary_display_map, latex_to_rst,
 )
+from extractContributors import (                              # noqa: E402
+    collect_contributor_names, render_contributors_rst,
+)
 
 # ``!![ … !!]`` directive block.
 _BLOCK_RE = re.compile(r'^[ \t]*!!\[(.*?)^[ \t]*!!\]', re.DOTALL | re.MULTILINE)
@@ -660,6 +663,14 @@ def main() -> int:
               encoding='utf-8') as fh:
         fh.write(render_constants(constants, glsmap))
 
+    # Regenerate the Acknowledgments contributor list from the source markers
+    # (included by manuals/user-guide/acknowledgments.rst).
+    contributors = collect_contributor_names(
+        os.path.dirname(os.path.abspath(source_dir)))
+    with open(os.path.join(out_dir, 'manuals', 'user-guide', 'contributors.rst'),
+              'w', encoding='utf-8') as fh:
+        fh.write(render_contributors_rst(contributors))
+
     n_impl = sum(len(v) for v in implementations.values())
     n_meth = sum(len(f.get('methods') or []) for f in families.values())
     impl_files = {i.get('file') for v in implementations.values() for i in v}
@@ -668,7 +679,8 @@ def main() -> int:
           f'implementations, {n_meth} interface + {n_tmeth} type methods), '
           f'{len(enumerations)} enumerations, {len(modules)} modules, '
           f'{len(workarounds)} workarounds, {len(constants)} constants, glossary '
-          f'({len(glossary)} entries), references.', file=sys.stderr)
+          f'({len(glossary)} entries), references, '
+          f'{len(contributors)} contributors.', file=sys.stderr)
     return 0
 
 

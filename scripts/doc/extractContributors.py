@@ -1,145 +1,88 @@
 #!/usr/bin/env python3
-"""Scan Fortran90/C++/Perl source code and extract contributor data from '!+' / '#+' lines.
+"""Extract the Galacticus contributor list from source markers.
 
 Andrew Benson 25-Mar-2012 (original Perl); Python port 2026.
 
-Usage: extractContributors.py <galacticusDir> <outputFile>
+Contributor names are recorded inline in the source as ``!+`` lines (Fortran,
+include, and C++ files) and ``#+`` lines (Perl modules).  This module both:
+
+* runs as a script — ``extractContributors.py <galacticusDir> <outputFile>`` —
+  writing the contributor list as a reStructuredText paragraph; and
+* exposes ``collect_contributor_names()`` / ``render_contributors_rst()`` for
+  ``extractDocsRST.py`` to regenerate the Acknowledgments contributor list at
+  documentation-build time.
+
+Names are read directly as UTF-8, so accented names need no special handling in
+the RST output.
 """
 
 import os
 import re
 import sys
-from collections import defaultdict
 from pathlib import Path
 
-from latex_utils import latex_encode
-
-# Mapping of accented/special characters to their LaTeX equivalents.
-ACCENT_MAP = {
-    'Ç': r'\c{C}',
-    'ü': r'\"u',
-    'é': r"\'e",
-    'â': r'\^a',
-    'ä': r'\"a',
-    'à': r'\`a',
-    'ç': r'\c{c}',
-    'ê': r'\^e',
-    'ë': r'\"e',
-    'è': r'\`e',
-    'ï': r'\"i',
-    'î': r'\^i',
-    'ì': r'\`i',
-    'Ä': r'\"A',
-    'Å': r'\AA',
-    'É': r"\'E",
-    'ô': r'\^o',
-    'ö': r'\"o',
-    'ò': r'\`o',
-    'û': r'\^u',
-    'ù': r'\`u',
-    'ÿ': r'\"y',
-    'Ö': r'\"O',
-    'Ü': r'\"U',
-    'á': r"\'a",
-    'í': r"\'i",
-    'ó': r"\'o",
-    'ú': r"\'u",
-    'ñ': r'\~n',
-    'Ñ': r'\~N',
-}
-
-def encode_name_for_latex(name):
-    """Replace accented characters in a contributor name with LaTeX accent commands."""
-    for char, replacement in ACCENT_MAP.items():
-        name = name.replace(char, replacement)
-    return name
+_FORTRAN_MARKER = re.compile(r'^\s*!\+\s*(.*)')
+_PERL_MARKER    = re.compile(r'^\s*#\+\s*(.*)')
 
 
 def extract_contributors(line, marker_re):
-    """Return list of contributor names found in *line* using *marker_re*.
+    """Return contributor names found in *line* using *marker_re* (a compiled
+    pattern with one group capturing everything after the ``!+``/``#+`` marker).
 
-    *marker_re* must be a compiled pattern with one capturing group that
-    captures everything after the marker (e.g. ``!+`` or ``#+``).
+    Markers may carry a leading label ("Author:") and a trailing period, and may
+    list several comma-separated names.  A few markers hold a whole sentence
+    rather than a name; those (more than five words) are dropped by callers.
     """
     match = marker_re.match(line)
     if not match:
         return []
     contributors = match.group(1)
-    # Strip any leading label such as "Author:" or "Contributors:".
-    contributors = re.sub(r'^.*:\s*', '', contributors)
-    # Strip trailing period.
-    contributors = re.sub(r'\.\s*$', '', contributors)
+    contributors = re.sub(r'^.*:\s*', '', contributors)   # strip "Author:" label
+    contributors = re.sub(r'\.\s*$', '', contributors)    # strip trailing period
     return [p.strip() for p in re.split(r'\s*,\s*', contributors) if p.strip()]
 
 
-def scan_file(file_path, marker_re, contributions, key):
-    """Scan *file_path* for contributor markers and record them under *key*."""
+def _scan(file_path, marker_re, names):
     with open(file_path, encoding='utf-8', errors='replace') as fh:
         for line in fh:
             for person in extract_contributors(line, marker_re):
-                contributions[person][key] = True
+                if person and len(person.split()) <= 5:   # real names, not prose
+                    names.add(person)
+
+
+def collect_contributor_names(galacticus_dir='.'):
+    """Return the de-duplicated contributor names found in the Galacticus
+    source, sorted case-insensitively."""
+    names = set()
+
+    source_dir = os.path.join(galacticus_dir, 'source')
+    if os.path.isdir(source_dir):
+        for file_name in sorted(os.listdir(source_dir)):
+            if (re.search(r'\.(F90|Inc|cpp)$', file_name)
+                    and not file_name.startswith('.#')):
+                _scan(os.path.join(source_dir, file_name), _FORTRAN_MARKER, names)
+
+    perl_dir = os.path.join(galacticus_dir, 'perl')
+    if os.path.isdir(perl_dir):
+        for pm_path in sorted(Path(perl_dir).rglob('*.pm')):
+            _scan(str(pm_path), _PERL_MARKER, names)
+
+    return sorted(names, key=str.casefold)
+
+
+def render_contributors_rst(names):
+    """Render contributor *names* as a single RST paragraph ending in a period."""
+    return ', '.join(names) + '.\n'
 
 
 def main():
     if len(sys.argv) != 3:
-        print(
-            'Usage: extractContributors.py <galacticusDir> <outputFile>',
-            file=sys.stderr,
-        )
+        print('Usage: extractContributors.py <galacticusDir> <outputFile>',
+              file=sys.stderr)
         sys.exit(1)
-
-    galacticus_dir = sys.argv[1]
-    output_file    = sys.argv[2]
-
-    # contributions[person][file_key] = True
-    contributions = defaultdict(dict)
-
-    fortran_marker = re.compile(r'^\s*!\+\s*(.*)')
-    perl_marker    = re.compile(r'^\s*#\+\s*(.*)')
-
-    # Scan Fortran 90, include, and C++ source files.
-    source_dir = os.path.join(galacticus_dir, 'source')
-    if os.path.isdir(source_dir):
-        for file_name in os.listdir(source_dir):
-            if (re.search(r'\.(F90|Inc|cpp)$', file_name)
-                    and not re.match(r'^\.\#', file_name)):
-                scan_file(
-                    os.path.join(source_dir, file_name),
-                    fortran_marker,
-                    contributions,
-                    key=file_name,  # store bare filename, matching Perl behaviour
-                )
-
-    # Scan Perl modules (full path stored, matching Perl behaviour).
-    perl_dir = os.path.join(galacticus_dir, 'perl')
-    if os.path.isdir(perl_dir):
-        for pm_path in sorted(Path(perl_dir).rglob('*.pm')):
-            scan_file(str(pm_path), perl_marker, contributions, key=str(pm_path))
-
-    # Generate LaTeX output.
-    with open(output_file, 'w', encoding='utf-8') as out:
-        out.write('\\chapter{Contributions}\n\n')
-        out.write(
-            'Contributions to the \\glc\\ project have been made by the following people:\n\n'
-        )
-        out.write('\\begin{description}\n')
-
-        for person in sorted(contributions):
-            name = encode_name_for_latex(person)
-            out.write(f'\\item[{name}] \\hfill\n')
-            out.write('\\begin{itemize}\n')
-            for file_key in sorted(contributions[person]):
-                encoded = latex_encode(file_key)
-                if re.search(r'\.(pm|Inc)$', file_key):
-                    # Perl modules and include files: no hyperlink.
-                    out.write(f'\\item \\mono{{{encoded}}}\n')
-                else:
-                    out.write(
-                        f'\\item \\hyperlink{{{file_key}}}{{\\mono{{{encoded}}}}}\n'
-                    )
-            out.write('\\end{itemize}\n')
-
-        out.write('\\end{description}\n')
+    names = collect_contributor_names(sys.argv[1])
+    with open(sys.argv[2], 'w', encoding='utf-8') as out:
+        out.write(render_contributors_rst(names))
 
 
 if __name__ == '__main__':
